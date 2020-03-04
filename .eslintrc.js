@@ -54,7 +54,6 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/no-misused-new": "error",
-        "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-use-before-declare": "off",
         "@typescript-eslint/no-var-requires": "error",
@@ -72,6 +71,19 @@ module.exports = {
         "@typescript-eslint/typedef": [
           "error",
           { arrowParameter: false, memberVariableDeclaration: false }
+        ],
+        "@typescript-eslint/naming-convention": [
+          "error",
+          {
+            selector: "interface",
+            format: ["PascalCase"],
+            prefix: ["I"]
+          },
+          {
+            selector: "typeAlias",
+            format: ["PascalCase"],
+            prefix: ["I"]
+          }
         ]
       }
     }

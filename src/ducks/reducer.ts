@@ -1,56 +1,82 @@
 import { Reducer } from "preact/hooks";
-import { ivySaurProgram, IProgram } from "../models/program";
-import { excercises, IExcercise } from "../models/excercise";
+import { ivySaurProgram, IProgram, Program } from "../models/program";
+import { IHistoryRecord } from "../models/history";
+import { IProgress, Progress } from "../models/progress";
+import { IExcercise } from "../models/excercise";
+import { StateError } from "./stateError";
 
 export interface IState {
   programs: IProgram[];
   current?: {
-    program: IProgram;
+    programName: string;
     progress?: IProgress;
   };
-  history: HistoryRecord[];
-}
-
-export interface IProgress {
-  day: number;
-  isFinished: boolean;
-  entries: HistoryEntry[];
-}
-
-export interface HistoryRecord {
-  date: string; // ISO8601, like 2020-02-29T18:02:05+00:00
-  entries: HistoryEntry[];
-}
-
-export interface HistoryEntry {
-  excercise: IExcercise;
-  reps: number[];
-  weight: number;
+  history: IHistoryRecord[];
 }
 
 export function getInitialState(): IState {
   return {
     programs: [ivySaurProgram],
-    current: {
-      program: ivySaurProgram,
-      progress: {
-        day: 0,
-        isFinished: false,
-        entries: [
-          {
-            excercise: excercises.benchPress,
-            reps: [4, 4, 3],
-            weight: 150
-          }
-        ]
-      }
-    },
     history: []
   };
 }
 
-type IAction = {};
+export type IChangeProgramAction = {
+  type: "ChangeProgramAction";
+  name: string;
+};
+
+export type IChangeRepsAction = {
+  type: "ChangeRepsAction";
+  excercise: IExcercise;
+  setIndex: number;
+};
+
+export type IFinishProgramDayAction = {
+  type: "FinishProgramDayAction";
+};
+
+export type IStartProgramDayAction = {
+  type: "StartProgramDayAction";
+};
+
+export type IAction = IChangeRepsAction | IStartProgramDayAction | IChangeProgramAction;
+
+export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
+  const newState = reducer(state, action);
+  console.log(newState);
+  return newState;
+};
 
 export const reducer: Reducer<IState, IAction> = (state, action) => {
-  return state;
+  if (action.type === "ChangeRepsAction") {
+    const current = state.current!;
+    const progress = current.progress!;
+    return {
+      ...state,
+      current: {
+        ...current,
+        progress: Progress.updateRepsInExcercise(
+          progress,
+          Program.current(state.programs, current.programName)!,
+          action.excercise,
+          action.setIndex
+        )
+      }
+    };
+  } else if (action.type === "StartProgramDayAction") {
+    const current = state.current!;
+    if (current.progress != null) {
+      throw new StateError("Progress is already started");
+    } else {
+      return {
+        ...state,
+        current: { ...current, progress: Progress.create(Program.current(state.programs, current.programName)!, 0) }
+      };
+    }
+  } else if (action.type === "ChangeProgramAction") {
+    return { ...state, current: { programName: action.name } };
+  } else {
+    return state;
+  }
 };

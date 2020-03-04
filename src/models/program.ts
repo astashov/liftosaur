@@ -19,11 +19,25 @@ export interface IProgramExcercises {
   increment: number;
 }
 
+export namespace Program {
+  export function getSetForExcercise(
+    program: IProgram,
+    day: number,
+    excercise: IExcercise,
+    setIndex: number
+  ): ISet | undefined {
+    return program.days[day]?.excercises?.find(e => e.excercise.name === excercise.name)?.sets?.[setIndex];
+  }
+
+  export function current(programs: IProgram[], name: string): IProgram | undefined {
+    return programs.find(p => p.name === name);
+  }
+}
+
 export const ivySaurProgram: IProgram = {
   name: "IvySaur Program",
   author: "https://old.reddit.com/user/lvysaur",
-  url:
-    "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
+  url: "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
   days: [
     {
       name: "Week A Day 1",

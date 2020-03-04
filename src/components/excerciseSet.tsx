@@ -1,47 +1,63 @@
 import { h, JSX } from "preact";
 import { ISet } from "../models/types";
 
-interface Props {
+interface IProps {
   reps: ISet;
   completedReps?: number;
+  onClick: () => void;
 }
 
-interface IExcerciseSetProps {
+interface IStartedExcerciseSetProps {
   number: number;
+  onClick: () => void;
 }
 
-export function ExcerciseSetView(props: Props): JSX.Element {
+interface INotStartedExcerciseSetProps {
+  number: ISet;
+  onClick: () => void;
+}
+
+export function ExcerciseSetView(props: IProps): JSX.Element {
   if (props.completedReps == null) {
-    return <NotStartedExcerciseSet number={props.reps} />;
+    return <NotStartedExcerciseSet number={props.reps} onClick={props.onClick} />;
   } else {
     if (props.completedReps === props.reps) {
-      return <CompleteExcerciseSet number={props.completedReps} />;
+      return <CompleteExcerciseSet number={props.completedReps} onClick={props.onClick} />;
     } else {
-      return <IncompleteExcerciseSet number={props.completedReps} />;
+      return <IncompleteExcerciseSet number={props.completedReps} onClick={props.onClick} />;
     }
   }
 }
 
-function NotStartedExcerciseSet(props: { number: ISet }): JSX.Element {
+function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Element {
   return (
-    <div className="rounded-full border border-gray-400 bg-gray-300 text-center w-8 h-8 leading-7 mr-3">
+    <button
+      className="rounded-full border border-gray-400 bg-gray-300 text-center w-8 h-8 leading-7 mr-3"
+      onClick={props.onClick}
+    >
       {props.number}
-    </div>
+    </button>
   );
 }
 
-function CompleteExcerciseSet(props: IExcerciseSetProps): JSX.Element {
+function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
-    <div className="rounded-full border border-green-400 bg-green-300 text-center w-8 h-8 leading-7 mr-3">
+    <button
+      className="rounded-full border border-green-400 bg-green-300 text-center w-8 h-8 leading-7 mr-3"
+      onClick={props.onClick}
+    >
       {props.number}
-    </div>
+    </button>
   );
 }
 
-function IncompleteExcerciseSet(props: IExcerciseSetProps): JSX.Element {
+function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
-    <div className="rounded-full border border-red-400 bg-red-300 text-center w-8 h-8 leading-7 mr-3">
+    <button
+      className="rounded-full border border-red-400 bg-red-300 text-center w-8 h-8 leading-7 mr-3"
+      onClick={props.onClick}
+    >
       {props.number}
-    </div>
+    </button>
   );
 }
