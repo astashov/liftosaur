@@ -1,0 +1,22 @@
+{
+  "short_name": "Liftosaur",
+  "name": "Liftosaur: Weight lifting tracking app",
+  "description": "Weather forecast information",
+  "icons": [
+    {
+      "src": "/icons/icon192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "fullscreen",
+  "scope": "/",
+  "theme_color": "#ffffff"
+}

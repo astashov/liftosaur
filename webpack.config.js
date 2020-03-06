@@ -39,6 +39,14 @@ module.exports = {
       {
         from: `src/index.html`,
         to: `index.html`
+      },
+      {
+        from: 'icons',
+        to: 'icons'
+      },
+      {
+        from: 'manifest.webmanifest',
+        to: 'manifest.webmanifest'
       }
     ])
   ],
