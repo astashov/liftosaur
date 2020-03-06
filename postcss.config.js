@@ -1,13 +1,13 @@
-// const purgecss = require("@fullhuman/postcss-purgecss")({
-//   content: ["./src/**/*.tsx"],
-//   defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || []
-// });
+const purgecss = require("@fullhuman/postcss-purgecss")({
+  content: ["./src/**/*.tsx"],
+  defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || []
+});
 
 module.exports = {
   plugins: [
     require("tailwindcss"),
     require("autoprefixer"),
-    // purgecss,
+    ...(process.env.NODE_ENV === "production" ? [purgecss] : []),
     require("cssnano")
   ]
 };
