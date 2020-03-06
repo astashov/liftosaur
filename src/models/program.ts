@@ -1,5 +1,7 @@
-import { ISet } from "./types";
 import { excercises, IExcercise } from "../models/excercise";
+import { ISet } from "./set";
+import { IHistoryRecord } from "./history";
+import { IWeight } from "./weight";
 
 export interface IProgram {
   name: string;
@@ -10,10 +12,10 @@ export interface IProgram {
 
 export interface IProgramDay {
   name: string;
-  excercises: IProgramExcercises[];
+  excercises: IProgramExcercise[];
 }
 
-export interface IProgramExcercises {
+export interface IProgramExcercise {
   excercise: IExcercise;
   sets: ISet[];
   increment: number;
@@ -31,6 +33,16 @@ export namespace Program {
 
   export function current(programs: IProgram[], name: string): IProgram | undefined {
     return programs.find(p => p.name === name);
+  }
+
+  export function nextWeight(programExcercise: IProgramExcercise, lastHistoryRecord?: IHistoryRecord): IWeight {
+    const lastWeight = lastHistoryRecord?.entries?.find(e => e.excercise.name === programExcercise.excercise.name)
+      ?.weight;
+    if (programExcercise != null && lastWeight != null) {
+      return lastWeight + programExcercise.increment;
+    } else {
+      return programExcercise?.excercise?.startWeight ?? 0;
+    }
   }
 }
 

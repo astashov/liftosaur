@@ -1,29 +1,19 @@
 import { h, JSX } from "preact";
-import { useReducer, useEffect } from "preact/hooks";
-import { HeaderView } from "./header";
-import { CardsView } from "./cards";
-import { FooterView } from "./footer";
+import { useReducer } from "preact/hooks";
 import { getInitialState, reducerWrapper } from "../ducks/reducer";
-import { Program } from "../models/program";
+import { ProgramDayView } from "./programDay";
+import { ChooseProgramView } from "./chooseProgram";
+import { ProgramHistoryView } from "./programHistory";
 
 export function AppView(): JSX.Element | null {
   const [state, dispatch] = useReducer(reducerWrapper, getInitialState());
-  useEffect(() => {
-    dispatch({ type: "StartProgramDayAction" });
-  }, []);
-  const current = state.current!;
-  const progress = state.current!.progress;
-
-  if (progress != null) {
-    const currentProgram = Program.current(state.programs, current.programName)!;
-    return (
-      <section className="flex flex-col h-full">
-        <HeaderView />
-        <CardsView progress={progress} programDay={currentProgram.days[progress.day]} dispatch={dispatch} />
-        <FooterView />
-      </section>
-    );
+  const current = state.current;
+  if (current == null) {
+    return <ChooseProgramView programs={state.programs} dispatch={dispatch} />;
+  } else if (current.progress == null) {
+    const program = state.programs.find(p => p.name === current.programName)!;
+    return <ProgramHistoryView program={program} history={state.history} dispatch={dispatch} />;
   } else {
-    return null;
+    return <ProgramDayView current={current} programs={state.programs} dispatch={dispatch} />;
   }
 }

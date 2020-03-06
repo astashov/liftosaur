@@ -7,11 +7,13 @@ import { StateError } from "./stateError";
 
 export interface IState {
   programs: IProgram[];
-  current?: {
-    programName: string;
-    progress?: IProgress;
-  };
+  current?: ICurrent;
   history: IHistoryRecord[];
+}
+
+export interface ICurrent {
+  programName: string;
+  progress?: IProgress;
 }
 
 export function getInitialState(): IState {
