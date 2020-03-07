@@ -1,10 +1,17 @@
 const path = require("path");
+const { DefinePlugin } = require('webpack');
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const commitHash = require('child_process')
+  .execSync('git rev-parse --short HEAD')
+  .toString();
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
-  entry: ["./src/index.tsx", "./src/index.css"],
+  entry: {
+    main: ["./src/index.tsx", "./src/index.css"],
+    sw: "./src/sw.ts"
+  },
   output: {
     filename: "[name].js",
     publicPath: "/",
@@ -35,6 +42,9 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
+    new DefinePlugin({
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+    }),
     new CopyPlugin([
       {
         from: `src/index.html`,
