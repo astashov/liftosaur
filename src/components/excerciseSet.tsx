@@ -1,20 +1,20 @@
 import { h, JSX } from "preact";
-import { ISet } from "../models/types";
+import { ISet } from "../models/set";
 
 interface IProps {
   reps: ISet;
   completedReps?: number;
-  onClick: () => void;
+  onClick: (e: Event) => void;
 }
 
 interface IStartedExcerciseSetProps {
   number: number;
-  onClick: () => void;
+  onClick: (e: Event) => void;
 }
 
 interface INotStartedExcerciseSetProps {
   number: ISet;
-  onClick: () => void;
+  onClick: (e: Event) => void;
 }
 
 export function ExcerciseSetView(props: IProps): JSX.Element {
@@ -32,8 +32,9 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
 function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-full border border-gray-400 bg-gray-300 text-center w-8 h-8 leading-7 mr-3"
-      onClick={props.onClick}
+      className="rounded-full border border-gray-400 bg-gray-300 text-center w-12 h-12 leading-7 mr-3"
+      onTouchEnd={props.onClick}
+      style={{ userSelect: "none", touchAction: "manipulation" }}
     >
       {props.number}
     </button>
@@ -43,8 +44,9 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
 function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-full border border-green-400 bg-green-300 text-center w-8 h-8 leading-7 mr-3"
-      onClick={props.onClick}
+      className="rounded-full border border-green-400 bg-green-300 text-center w-12 h-12 leading-7 mr-3"
+      onTouchEnd={props.onClick}
+      style={{ userSelect: "none", touchAction: "manipulation" }}
     >
       {props.number}
     </button>
@@ -54,8 +56,9 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
 function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-full border border-red-400 bg-red-300 text-center w-8 h-8 leading-7 mr-3"
-      onClick={props.onClick}
+      className="rounded-full border border-red-400 bg-red-300 text-center w-12 h-12 leading-7 mr-3"
+      onTouchEnd={props.onClick}
+      style={{ userSelect: "none", touchAction: "manipulation" }}
     >
       {props.number}
     </button>

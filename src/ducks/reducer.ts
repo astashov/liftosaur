@@ -4,6 +4,7 @@ import { IHistoryRecord } from "../models/history";
 import { IProgress, Progress } from "../models/progress";
 import { IExcercise } from "../models/excercise";
 import { StateError } from "./stateError";
+import { History } from "../models/history";
 
 export interface IState {
   programs: IProgram[];
@@ -17,10 +18,23 @@ export interface ICurrent {
 }
 
 export function getInitialState(): IState {
-  return {
-    programs: [ivySaurProgram],
-    history: []
-  };
+  const state = window.localStorage.getItem("liftosaur");
+  let parsedState: IState | undefined;
+  if (state != null) {
+    try {
+      parsedState = JSON.parse(state);
+    } catch (e) {
+      parsedState = undefined;
+    }
+  }
+  if (parsedState != null) {
+    return parsedState;
+  } else {
+    return {
+      programs: [ivySaurProgram],
+      history: []
+    };
+  }
 }
 
 export type IChangeProgramAction = {
@@ -42,11 +56,12 @@ export type IStartProgramDayAction = {
   type: "StartProgramDayAction";
 };
 
-export type IAction = IChangeRepsAction | IStartProgramDayAction | IChangeProgramAction;
+export type IAction = IChangeRepsAction | IStartProgramDayAction | IChangeProgramAction | IFinishProgramDayAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
   console.log(newState);
+  window.localStorage.setItem("liftosaur", JSON.stringify(newState));
   return newState;
 };
 
@@ -74,6 +89,18 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       return {
         ...state,
         current: { ...current, progress: Progress.create(Program.current(state.programs, current.programName)!, 0) }
+      };
+    }
+  } else if (action.type === "FinishProgramDayAction") {
+    const current = state.current!;
+    if (current.progress == null) {
+      throw new StateError("FinishProgramDayAction: no progress");
+    } else {
+      const historyRecord = History.finishProgramDay(current.programName, current.progress);
+      return {
+        ...state,
+        history: [historyRecord, ...state.history],
+        current: { ...current, progress: undefined }
       };
     }
   } else if (action.type === "ChangeProgramAction") {

@@ -10,6 +10,7 @@ interface IProps {
   programDay: IProgramDay;
   lastHistoryRecord?: IHistoryRecord;
   dispatch: IDispatch;
+  date?: string;
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
@@ -17,14 +18,14 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   const { lastHistoryRecord } = props;
   return (
     <div className="text-xs py-3 mx-3 border-gray-200 border-b">
-      <div className="font-bold">Next</div>
+      <div className="font-bold">{props.date ? props.date : "Next"}</div>
       {excercises.map(group => (
         <div className="flex flex-row">
           {group.map(excercise => (
             <div className="flex-1 flex flex-row">
               <div style={{ flex: 2 }}>{excercise.excercise.name}</div>
               <div className="flex-1">
-                <HistoryRecordSetsView sets={excercise.sets} isNext={true} />
+                <HistoryRecordSetsView sets={excercise.sets} isNext={!props.date} />
               </div>
               <div className="w-20 font-bold">{Weight.display(Program.nextWeight(excercise, lastHistoryRecord))}</div>
             </div>

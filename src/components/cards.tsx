@@ -3,6 +3,7 @@ import { ExcerciseView } from "./excercise";
 import { IProgramDay } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IProgress } from "../models/progress";
+import { Button } from "./button";
 
 interface ICardsViewProps {
   programDay: IProgramDay;
@@ -25,6 +26,11 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
           />
         );
       })}
+      <div className="text-center py-3">
+        <Button kind="green" onClick={() => props.dispatch({ type: "FinishProgramDayAction" })}>
+          Finish the workout
+        </Button>
+      </div>
     </section>
   );
 }

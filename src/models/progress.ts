@@ -5,7 +5,6 @@ import { StateError } from "../ducks/stateError";
 
 export interface IProgress {
   day: number;
-  isFinished: boolean;
   entries: IHistoryEntry[];
 }
 
@@ -14,7 +13,6 @@ export namespace Progress {
     const programDay = program.days[day];
     return {
       day,
-      isFinished: false,
       entries: programDay.excercises.map(excercise => {
         return {
           weight: excercise.excercise.startWeight,

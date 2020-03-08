@@ -1,10 +1,11 @@
 const path = require("path");
-const { DefinePlugin } = require('webpack');
+const { DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const commitHash = require('child_process')
-  .execSync('git rev-parse --short HEAD')
-  .toString();
+const commitHash = require("child_process")
+  .execSync("git rev-parse --short HEAD")
+  .toString()
+  .trim();
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
@@ -43,7 +44,7 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin(),
     new DefinePlugin({
-      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __COMMIT_HASH__: JSON.stringify(commitHash)
     }),
     new CopyPlugin([
       {
@@ -51,12 +52,12 @@ module.exports = {
         to: `index.html`
       },
       {
-        from: 'icons',
-        to: 'icons'
+        from: "icons",
+        to: "icons"
       },
       {
-        from: 'manifest.webmanifest',
-        to: 'manifest.webmanifest'
+        from: "manifest.webmanifest",
+        to: "manifest.webmanifest"
       }
     ])
   ],
@@ -65,6 +66,8 @@ module.exports = {
     compress: true,
     hot: false,
     inline: false,
-    liveReload: false
+    liveReload: false,
+    host: "0.0.0.0",
+    disableHostCheck: true
   }
 };

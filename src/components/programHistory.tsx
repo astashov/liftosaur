@@ -5,6 +5,7 @@ import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IHistoryRecord } from "../models/history";
 import { HistoryRecordView } from "./historyRecord";
+import { Button } from "./button";
 
 interface IProps {
   program: IProgram;
@@ -22,12 +23,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       <HeaderView />
       <HistoryRecordView programDay={nextProgramDay} lastHistoryRecord={lastHistoryRecord} dispatch={props.dispatch} />
       <div className="text-center py-3">
-        <button
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 border border-green-700 rounded"
-          onClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-        >
+        <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
           Start Next Workout
-        </button>
+        </Button>
       </div>
       <FooterView />
     </section>

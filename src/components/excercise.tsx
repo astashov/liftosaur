@@ -1,8 +1,8 @@
 import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
-import { ISet } from "../models/types";
 import { IExcercise } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
+import { ISet } from "../models/set";
 
 interface IProps {
   excercise: IExcercise;
@@ -55,7 +55,10 @@ function ExcerciseContentView(props: IProps): JSX.Element {
             <ExcerciseSetView
               reps={reps}
               completedReps={completedReps}
-              onClick={() => handleClick(props.dispatch, props.excercise, i)}
+              onClick={event => {
+                event.preventDefault();
+                handleClick(props.dispatch, props.excercise, i);
+              }}
             />
           );
         })}
