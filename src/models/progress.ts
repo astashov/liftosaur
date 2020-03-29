@@ -1,12 +1,20 @@
 import { IProgram, Program, IProgramId } from "./program";
 import { IExcercise, IExcerciseType } from "./excercise";
-import { StateError } from "../ducks/stateError";
 import { IProgressSets, Reps } from "./set";
 import { IWeight } from "./weight";
 
 export interface IProgress {
   day: number;
+  ui: IProgressUi;
   entries: IProgressEntry[];
+}
+
+export interface IProgressUi {
+  amrapModal?: {
+    excercise: IExcercise;
+    setIndex: number;
+    weight: IWeight;
+  };
 }
 
 export interface IProgressEntry {
@@ -19,6 +27,7 @@ export namespace Progress {
     const programDay = program.days[day];
     return {
       day,
+      ui: {},
       entries: programDay.excercises.map(excercise => {
         return {
           excercise: excercise.excercise,
@@ -61,35 +70,66 @@ export namespace Progress {
   ): IProgress {
     const day = progress.day;
     const program = Program.get(programName);
-    return {
-      ...progress,
-      entries: progress.entries.map(historyEntry => {
-        if (historyEntry.excercise.name === excercise.name) {
-          const reps = [...historyEntry.sets];
-          const set = reps[setIndex];
-          if (set == null) {
-            const programSet = Program.getSetForExcercise(program, day, excercise, setIndex);
-            if (programSet != null) {
-              if (programSet.reps === "amrap") {
-                throw new StateError("Can't update AMRAP reps");
-              } else {
-                reps[setIndex] = { reps: programSet.reps, weight };
-              }
-            } else {
-              throw new StateError(
-                `Can't find reps for set ${setIndex} of ${excercise.name} in ${program.name} (day ${day})`
-              );
-            }
-          } else if (set.reps > 0) {
-            reps[setIndex] = { reps: set.reps - 1, weight };
-          } else {
-            reps[setIndex] = undefined;
+    const programSet = Program.getSetForExcercise(program, day, excercise, setIndex);
+    if (programSet != null) {
+      const programSetReps = programSet.reps;
+      if (programSetReps === "amrap") {
+        const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
+        return {
+          ...progress,
+          ui: {
+            ...progress.ui,
+            ...amrapUi
           }
-          return { ...historyEntry, sets: reps };
-        } else {
-          return historyEntry;
-        }
-      })
-    };
+        };
+      } else {
+        return {
+          ...progress,
+          entries: progress.entries.map(historyEntry => {
+            if (historyEntry.excercise.name === excercise.name) {
+              const reps = [...historyEntry.sets];
+              const set = reps[setIndex];
+              if (set == null) {
+                reps[setIndex] = { reps: programSetReps, weight };
+              } else if (set.reps > 0) {
+                reps[setIndex] = { reps: set.reps - 1, weight };
+              } else {
+                reps[setIndex] = undefined;
+              }
+              return { ...historyEntry, sets: reps };
+            } else {
+              return historyEntry;
+            }
+          })
+        };
+      }
+    } else {
+      return progress;
+    }
+  }
+
+  export function updateAmrapRepsInExcercise(progress: IProgress, value?: number): IProgress {
+    if (progress.ui.amrapModal != null) {
+      const { excercise, setIndex, weight } = progress.ui.amrapModal;
+      return {
+        ...progress,
+        ui: { ...progress.ui, amrapModal: undefined },
+        entries: progress.entries.map(historyEntry => {
+          if (historyEntry.excercise.id === excercise.id) {
+            const reps = [...historyEntry.sets];
+            if (value == null) {
+              reps[setIndex] = undefined;
+            } else {
+              reps[setIndex] = { reps: value, weight };
+            }
+            return { ...historyEntry, sets: reps };
+          } else {
+            return historyEntry;
+          }
+        })
+      };
+    } else {
+      return progress;
+    }
   }
 }

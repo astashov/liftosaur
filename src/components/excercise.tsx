@@ -66,6 +66,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
           return (
             <ExcerciseSetView
               reps={set.reps}
+              weight={weight}
               completedReps={completedReps?.reps}
               onClick={event => {
                 event.preventDefault();

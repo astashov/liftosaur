@@ -60,7 +60,17 @@ export type IStartProgramDayAction = {
   type: "StartProgramDayAction";
 };
 
-export type IAction = IChangeRepsAction | IStartProgramDayAction | IChangeProgramAction | IFinishProgramDayAction;
+export type IChangeAMRAP = {
+  type: "ChangeAMRAP";
+  value?: number;
+};
+
+export type IAction =
+  | IChangeRepsAction
+  | IStartProgramDayAction
+  | IChangeProgramAction
+  | IFinishProgramDayAction
+  | IChangeAMRAP;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
@@ -115,6 +125,18 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     }
   } else if (action.type === "ChangeProgramAction") {
     return { ...state, current: { programId: action.name } };
+  } else if (action.type === "ChangeAMRAP") {
+    return {
+      ...state,
+      ...(state.current != null
+        ? {
+            current: {
+              ...state.current,
+              progress: Progress.updateAmrapRepsInExcercise(state.current!.progress!, action.value)
+            }
+          }
+        : {})
+    };
   } else {
     return state;
   }
