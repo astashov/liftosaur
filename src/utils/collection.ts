@@ -22,4 +22,12 @@ export namespace CollectionUtils {
       return [];
     }
   }
+
+  export function repeat<T>(el: T, length: number): T[] {
+    const arr: T[] = [];
+    for (let i = 0; i < length; i += 1) {
+      arr.push(el);
+    }
+    return arr;
+  }
 }

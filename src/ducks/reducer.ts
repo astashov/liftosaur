@@ -1,19 +1,20 @@
 import { Reducer } from "preact/hooks";
-import { ivySaurProgram, IProgram, Program } from "../models/program";
+import { Program, IProgramId } from "../models/program";
 import { IHistoryRecord } from "../models/history";
 import { IProgress, Progress } from "../models/progress";
 import { IExcercise } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
+import { IStats, Stats } from "../models/stats";
 
 export interface IState {
-  programs: IProgram[];
+  stats: IStats;
   current?: ICurrent;
   history: IHistoryRecord[];
 }
 
 export interface ICurrent {
-  programName: string;
+  programId: IProgramId;
   progress?: IProgress;
 }
 
@@ -31,7 +32,9 @@ export function getInitialState(): IState {
     return parsedState;
   } else {
     return {
-      programs: [ivySaurProgram],
+      stats: {
+        excercises: {}
+      },
       history: []
     };
   }
@@ -39,13 +42,14 @@ export function getInitialState(): IState {
 
 export type IChangeProgramAction = {
   type: "ChangeProgramAction";
-  name: string;
+  name: IProgramId;
 };
 
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
   excercise: IExcercise;
   setIndex: number;
+  weight: number;
 };
 
 export type IFinishProgramDayAction = {
@@ -75,8 +79,9 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
         ...current,
         progress: Progress.updateRepsInExcercise(
           progress,
-          Program.current(state.programs, current.programName)!,
+          current.programId,
           action.excercise,
+          action.weight,
           action.setIndex
         )
       }
@@ -86,9 +91,12 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     if (current.progress != null) {
       throw new StateError("Progress is already started");
     } else {
+      const lastHistoryRecord = state.history.find(i => i.programId === state.current?.programId);
+      const program = Program.get(current.programId);
+      const day = Program.nextDay(program, lastHistoryRecord?.day);
       return {
         ...state,
-        current: { ...current, progress: Progress.create(Program.current(state.programs, current.programName)!, 0) }
+        current: { ...current, progress: Progress.create(program, day) }
       };
     }
   } else if (action.type === "FinishProgramDayAction") {
@@ -96,15 +104,17 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     if (current.progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
-      const historyRecord = History.finishProgramDay(current.programName, current.progress);
+      const program = Program.get(current.programId);
+      const historyRecord = History.finishProgramDay(program, current.progress);
       return {
         ...state,
+        stats: Stats.update(state.stats, program, current.progress),
         history: [historyRecord, ...state.history],
         current: { ...current, progress: undefined }
       };
     }
   } else if (action.type === "ChangeProgramAction") {
-    return { ...state, current: { programName: action.name } };
+    return { ...state, current: { programId: action.name } };
   } else {
     return state;
   }

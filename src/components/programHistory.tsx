@@ -4,24 +4,30 @@ import { IDispatch } from "../ducks/types";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IHistoryRecord } from "../models/history";
-import { HistoryRecordView } from "./historyRecord";
+import { Program } from "../models/program";
 import { Button } from "./button";
+import { HistoryRecordView, NextProgramRecordView } from "./historyRecord";
+import { IStats } from "../models/stats";
 
 interface IProps {
   program: IProgram;
+  stats: IStats;
   history: IHistoryRecord[];
   dispatch: IDispatch;
 }
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
-  const lastHistoryRecord = props.history.find(i => i.programName === props.program.name);
-  const day = lastHistoryRecord?.day ?? 0;
-  const nextProgramDay = props.program.days[day];
+  const dispatch = props.dispatch;
+  const lastHistoryRecord = props.history.find(i => i.programId === props.program.id);
+  const nextHistoryRecord = Program.nextProgramRecord(props.program, props.stats, lastHistoryRecord?.day);
 
   return (
     <section className="flex flex-col h-full">
       <HeaderView />
-      <HistoryRecordView programDay={nextProgramDay} lastHistoryRecord={lastHistoryRecord} dispatch={props.dispatch} />
+      {props.history.map(historyRecord => (
+        <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
+      ))}
+      <NextProgramRecordView historyRecord={nextHistoryRecord} dispatch={dispatch} />
       <div className="text-center py-3">
         <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
           Start Next Workout

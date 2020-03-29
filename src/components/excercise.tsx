@@ -2,24 +2,35 @@ import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
 import { IExcercise } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
-import { ISet } from "../models/set";
+import { IProgramEntry } from "../models/history";
+import { IProgressEntry } from "../models/progress";
 
 interface IProps {
-  excercise: IExcercise;
-  weight: number;
-  setup: ISet[];
-  progress: (number | undefined)[];
+  entry: IProgramEntry;
+  progress?: IProgressEntry;
   dispatch: IDispatch;
 }
 
 export function ExcerciseView(props: IProps): JSX.Element {
-  const { setup, progress } = props;
-  let isFinished = setup.length === progress.length;
-  for (let i = 0; i < setup.length; i += 1) {
-    isFinished = isFinished && progress[i] != null;
+  const { progress, entry } = props;
+  let isFinished = entry.sets.length === (progress?.sets ?? []).length;
+  for (let i = 0; i < entry.sets.length; i += 1) {
+    isFinished = isFinished && progress?.sets[i] != null;
   }
   if (isFinished) {
-    const isCompleted = setup.every((e, i) => e === progress[i]);
+    const amrap = "amrap" as const;
+    const isCompleted = entry.sets.every((e, i) => {
+      const set = progress?.sets[i];
+      if (set != null) {
+        if (e.reps === amrap) {
+          return set.reps > 0;
+        } else {
+          return e.reps === set.reps;
+        }
+      } else {
+        return false;
+      }
+    });
     if (isCompleted) {
       return (
         <section className="p-4 bg-green-100 border border-green-300 mb-2 rounded-lg">
@@ -43,21 +54,22 @@ export function ExcerciseView(props: IProps): JSX.Element {
 }
 
 function ExcerciseContentView(props: IProps): JSX.Element {
+  const weight = props.entry.sets[0].weight;
   return (
     <Fragment>
       <header className="pb-2">
-        {props.excercise.name}, <strong>{props.weight}</strong>
+        {props.entry.excercise.name}, <strong>{weight}</strong>
       </header>
       <section className="flex">
-        {props.setup.map((reps, i) => {
-          const completedReps = props.progress[i] as number | undefined;
+        {props.entry.sets.map((set, i) => {
+          const completedReps = props.progress?.sets[i];
           return (
             <ExcerciseSetView
-              reps={reps}
-              completedReps={completedReps}
+              reps={set.reps}
+              completedReps={completedReps?.reps}
               onClick={event => {
                 event.preventDefault();
-                handleClick(props.dispatch, props.excercise, i);
+                handleClick(props.dispatch, props.entry.excercise, weight, i);
               }}
             />
           );
@@ -67,6 +79,6 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   );
 }
 
-function handleClick(dispatch: IDispatch, excercise: IExcercise, setIndex: number): void {
-  dispatch({ type: "ChangeRepsAction", excercise, setIndex });
+function handleClick(dispatch: IDispatch, excercise: IExcercise, weight: number, setIndex: number): void {
+  dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight });
 }

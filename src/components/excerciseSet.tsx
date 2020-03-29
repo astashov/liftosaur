@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
-import { ISet } from "../models/set";
+import { IProgramReps, Reps } from "../models/set";
 
 interface IProps {
-  reps: ISet;
+  reps: IProgramReps;
   completedReps?: number;
   onClick: (e: Event) => void;
 }
@@ -13,7 +13,7 @@ interface IStartedExcerciseSetProps {
 }
 
 interface INotStartedExcerciseSetProps {
-  number: ISet;
+  number: IProgramReps;
   onClick: (e: Event) => void;
 }
 
@@ -36,7 +36,7 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      {props.number}
+      {Reps.displayReps(props.number)}
     </button>
   );
 }
@@ -48,7 +48,7 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      {props.number}
+      {Reps.displayReps(props.number)}
     </button>
   );
 }
@@ -60,7 +60,7 @@ function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      {props.number}
+      {Reps.displayReps(props.number)}
     </button>
   );
 }
