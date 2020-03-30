@@ -11,7 +11,7 @@ export interface IHistoryRecord {
 }
 
 export interface IProgramRecord {
-  programName: string;
+  programId: IProgramId;
   day: number;
   entries: IProgramEntry[];
 }

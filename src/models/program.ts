@@ -87,7 +87,7 @@ export namespace Program {
     const day = Program.nextDay(program, previousDay);
     const programDay = program.days[day];
     return {
-      programName: program.name,
+      programId: program.id,
       day,
       entries: programDay.excercises.map(e => ({
         excercise: e.excercise,

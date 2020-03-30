@@ -3,6 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet, IHistorySet } from "../models/set";
 import { IHistoryRecord, IProgramRecord } from "../models/history";
+import { Program } from "../models/program";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -15,7 +16,10 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   const entries = CollectionUtils.inGroupsOf(2, historyRecord.entries);
   return (
     <div className="text-xs py-3 mx-3 border-gray-200 border-b">
-      <div className="font-bold">{formatDate(historyRecord.date)}</div>
+      <div className="flex">
+        <div className="flex-1 font-bold">{formatDate(historyRecord.date)}</div>
+        <div className="text-gray-600">{Program.get(historyRecord.programId).name}</div>
+      </div>
       {entries.map(group => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
@@ -52,7 +56,10 @@ export function NextProgramRecordView(props: INextProps): JSX.Element {
   const entries = CollectionUtils.inGroupsOf(2, historyRecord.entries);
   return (
     <div className="text-xs py-3 mx-3 border-gray-200 border-b">
-      <div className="font-bold">Next</div>
+      <div className="flex">
+        <div className="flex-1 font-bold">Next</div>
+        <div className="text-gray-600">{Program.get(historyRecord.programId).name}</div>
+      </div>
       {entries.map(group => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
@@ -78,8 +85,9 @@ export function NextProgramRecordView(props: INextProps): JSX.Element {
   );
 }
 
-function formatDate(date: string): string {
-  return new Date(Date.parse(date)).toLocaleDateString();
+function formatDate(dateStr: string): string {
+  const date = new Date(Date.parse(dateStr));
+  return date.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
 }
 
 function HistoryRecordSetsView(props: { sets: IHistorySet[] | ISet[] }): JSX.Element {

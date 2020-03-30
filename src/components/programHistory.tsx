@@ -21,18 +21,24 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const lastHistoryRecord = props.history.find(i => i.programId === props.program.id);
   const nextHistoryRecord = Program.nextProgramRecord(props.program, props.stats, lastHistoryRecord?.day);
 
+  const history = [...props.history].sort(
+    (a, b) => new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime()
+  );
+
   return (
     <section className="flex flex-col h-full">
-      <HeaderView />
-      {props.history.map(historyRecord => (
-        <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
-      ))}
-      <NextProgramRecordView historyRecord={nextHistoryRecord} dispatch={dispatch} />
-      <div className="text-center py-3">
-        <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
-          Start Next Workout
-        </Button>
-      </div>
+      <HeaderView>Current program: {props.program.name}</HeaderView>
+      <section className="flex-1">
+        {history.map(historyRecord => (
+          <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
+        ))}
+        <NextProgramRecordView historyRecord={nextHistoryRecord} dispatch={dispatch} />
+        <div className="text-center py-3">
+          <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
+            Start Next Workout
+          </Button>
+        </div>
+      </section>
       <FooterView />
     </section>
   );

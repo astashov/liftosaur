@@ -26,7 +26,9 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
     const nextHistoryRecord = Program.nextProgramRecord(currentProgram, props.stats, lastHistoryRecord?.day);
     return (
       <section className="flex flex-col h-full relative">
-        <HeaderView />
+        <HeaderView>
+          <div className="text-sm">{currentProgram.name}</div>
+        </HeaderView>
         <CardsView
           progress={progress}
           programDay={programDay}

@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { useRef, useDebugValue } from "preact/hooks";
+import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 

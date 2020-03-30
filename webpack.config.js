@@ -49,7 +49,10 @@ module.exports = {
     new CopyPlugin([
       {
         from: `src/index.html`,
-        to: `index.html`
+        to: `index.html`,
+        transform: content => {
+          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
+        }
       },
       {
         from: "icons",
