@@ -18,7 +18,10 @@ export type IHistorySet = {
   weight: IWeight;
 };
 
-export type IProgressSets = (IHistorySet | undefined)[];
+export type IProgressSet = {
+  reps?: number;
+  weight: IWeight;
+};
 
 export namespace Reps {
   export function display(sets: (IProgramSet | ISet | IHistorySet)[]): string {
@@ -42,7 +45,7 @@ export namespace Reps {
     }
   }
 
-  export function isEmpty(progressSets: IProgressSets, programSets: IProgramSet[]): boolean {
+  export function isEmpty(progressSets: IProgressSet[], programSets: IProgramSet[]): boolean {
     let result = true;
     for (let i = 0; i < programSets.length; i += 1) {
       result = result && progressSets[i] != null;
@@ -50,7 +53,7 @@ export namespace Reps {
     return result;
   }
 
-  export function isCompleted(progressSets: IProgressSets, programSets: IProgramSet[]): boolean {
+  export function isCompleted(progressSets: IProgressSet[], programSets: IProgramSet[]): boolean {
     let result = true;
     for (let i = 0; i < programSets.length; i += 1) {
       result = result && progressSets[i]?.reps === programSets[i]?.reps;
@@ -58,12 +61,11 @@ export namespace Reps {
     return result;
   }
 
-  export function completeSets(progressSets: IProgressSets): IHistorySet[] {
+  export function completeSets(progressSets: IProgressSet[]): IHistorySet[] {
     const historySets: IHistorySet[] = [];
-    let lastWeight = undefined;
     for (let i = 0; i < progressSets.length; i += 1) {
-      lastWeight = progressSets[i]?.weight;
-      historySets.push(progressSets[i] ?? { reps: 0, weight: lastWeight ?? 0 });
+      const progressSet = progressSets[i];
+      historySets.push({ reps: progressSet.reps ?? 0, weight: progressSet.weight });
     }
     return historySets;
   }

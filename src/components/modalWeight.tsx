@@ -1,21 +1,22 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
-import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
+import { JSX, h } from "preact";
+import { useRef } from "preact/hooks";
 import { Modal } from "./modal";
+import { Button } from "./button";
 
-export function ModalAmrap(props: { dispatch: IDispatch }): JSX.Element {
+export function ModalWeight(props: { dispatch: IDispatch; weight: number }): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
     <Modal>
-      <h3 className="font-bold pb-2">Please enter number of AMRAP reps</h3>
+      <h3 className="font-bold pb-2">Please enter weight</h3>
       <form>
         <input
           ref={textInput}
           className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+          value={props.weight}
           type="number"
           min="0"
-          placeholder="Number of completed reps"
+          placeholder="Weight in lbs"
           autofocus
         />
         <div className="mt-4 text-right">
@@ -23,7 +24,7 @@ export function ModalAmrap(props: { dispatch: IDispatch }): JSX.Element {
             type="button"
             kind="gray"
             className="mr-3"
-            onClick={() => props.dispatch({ type: "ChangeAMRAPAction", value: undefined })}
+            onClick={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
           >
             Clear
           </Button>
@@ -34,8 +35,8 @@ export function ModalAmrap(props: { dispatch: IDispatch }): JSX.Element {
               const value = textInput.current?.value;
               const numValue = value != null ? parseInt(value, 10) : undefined;
               props.dispatch({
-                type: "ChangeAMRAPAction",
-                value: numValue != null && !isNaN(numValue) ? numValue : undefined
+                type: "ConfirmWeightAction",
+                weight: numValue != null && !isNaN(numValue) ? numValue : undefined
               });
             }}
           >

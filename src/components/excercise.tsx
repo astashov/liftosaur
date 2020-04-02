@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
-import { IExcercise } from "../models/excercise";
+import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgramEntry } from "../models/history";
 import { IProgressEntry } from "../models/progress";
 
 interface IProps {
   entry: IProgramEntry;
-  progress?: IProgressEntry;
+  progress: IProgressEntry;
   dispatch: IDispatch;
 }
 
@@ -15,17 +15,16 @@ export function ExcerciseView(props: IProps): JSX.Element {
   const { progress, entry } = props;
   let isFinished = entry.sets.length === (progress?.sets ?? []).length;
   for (let i = 0; i < entry.sets.length; i += 1) {
-    isFinished = isFinished && progress?.sets[i] != null;
+    isFinished = isFinished && progress.sets[i].reps != null;
   }
   if (isFinished) {
-    const amrap = "amrap" as const;
     const isCompleted = entry.sets.every((e, i) => {
-      const set = progress?.sets[i];
-      if (set != null) {
-        if (e.reps === amrap) {
-          return set.reps > 0;
+      const reps = progress.sets[i].reps;
+      if (reps != null) {
+        if (e.reps === "amrap") {
+          return reps > 0;
         } else {
-          return e.reps === set.reps;
+          return e.reps === reps;
         }
       } else {
         return false;
@@ -54,23 +53,38 @@ export function ExcerciseView(props: IProps): JSX.Element {
 }
 
 function ExcerciseContentView(props: IProps): JSX.Element {
-  const weight = props.entry.sets[0].weight;
+  const weights = Array.from(new Set(props.progress.sets.map(s => s.weight)));
+  const excercise = Excercise.get(props.entry.excercise);
   return (
     <Fragment>
-      <header className="pb-2">
-        {props.entry.excercise.name}, <strong>{weight}</strong>
+      <header className="pb-2 flex">
+        <div className="flex-1 mr-auto">{excercise.name}</div>
+        <div>
+          {weights.map(w => (
+            <div>
+              <button
+                className="text-blue-500 underline cursor-pointer"
+                onClick={() =>
+                  props.dispatch({ type: "ChangeWeightAction", weight: w, excercise: props.entry.excercise })
+                }
+              >
+                {w} lbs
+              </button>
+            </div>
+          ))}
+        </div>
       </header>
       <section className="flex">
         {props.entry.sets.map((set, i) => {
-          const completedReps = props.progress?.sets[i];
+          const progressSet = props.progress.sets[i];
           return (
             <ExcerciseSetView
               reps={set.reps}
-              weight={weight}
-              completedReps={completedReps?.reps}
+              weight={progressSet.weight}
+              completedReps={progressSet.reps}
               onClick={event => {
                 event.preventDefault();
-                handleClick(props.dispatch, props.entry.excercise, weight, i);
+                handleClick(props.dispatch, props.entry.excercise, progressSet.weight, i);
               }}
             />
           );
@@ -80,6 +94,6 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   );
 }
 
-function handleClick(dispatch: IDispatch, excercise: IExcercise, weight: number, setIndex: number): void {
+function handleClick(dispatch: IDispatch, excercise: IExcerciseType, weight: number, setIndex: number): void {
   dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight });
 }

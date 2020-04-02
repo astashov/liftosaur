@@ -17,7 +17,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
     <section className="overflow-y-auto flex-1">
       {props.nextHistoryRecord.entries.map(entry => {
-        const progress = props.progress.entries.find(e => e.excercise.name === entry.excercise.name);
+        const progress = props.progress.entries.find(e => e.excercise === entry.excercise)!;
         return <ExcerciseView entry={entry} progress={progress} dispatch={props.dispatch} />;
       })}
       <div className="text-center py-3">

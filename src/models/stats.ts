@@ -18,7 +18,7 @@ interface IStatsExcercisesValue {
 
 export namespace Stats {
   export function update(stats: IStats, program: IProgram, progress: IProgress): IStats {
-    const excercises = progress.entries.map(e => e.excercise.id);
+    const excercises = progress.entries.map(e => e.excercise);
     return {
       ...stats,
       excercises: {

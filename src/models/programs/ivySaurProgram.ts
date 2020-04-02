@@ -1,4 +1,4 @@
-import { excercises, IExcercise, IExcerciseType } from "../excercise";
+import { excercises, IExcerciseType } from "../excercise";
 import { IProgram } from "../program";
 import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
@@ -23,12 +23,12 @@ export const ivySaurProgram: IProgram = {
   name: "IvySaur Program",
   author: "https://old.reddit.com/user/lvysaur",
   url: "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
-  increment: (stats: IStats, day: number, excercise: IExcercise): number => {
-    const isPreviousWeight = stats.excercises[excercise.id]?.weights["4x4"];
+  increment: (stats: IStats, day: number, excercise: IExcerciseType): number => {
+    const isPreviousWeight = stats.excercises[excercise]?.weights["4x4"];
     if (isPreviousWeight == null) {
       return 0;
     } else {
-      switch (excercise.id) {
+      switch (excercise) {
         case "barbellRows":
           return 10;
         case "benchPress":
@@ -56,19 +56,19 @@ export const ivySaurProgram: IProgram = {
       name: "Week A Day 1",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress") }, 4)
         },
         {
-          excercise: excercises.squat,
+          excercise: "squat",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat") }, 4)
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress") }, 4)
         },
         {
-          excercise: excercises.chinups,
+          excercise: "chinups",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups") }, 4)
         }
       ]
@@ -77,19 +77,19 @@ export const ivySaurProgram: IProgram = {
       name: "Week A Day 2",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress") }, 4)
         },
         {
-          excercise: excercises.deadlift,
+          excercise: "deadlift",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("deadlift") }, 4)
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress") }, 4)
         },
         {
-          excercise: excercises.barbellRows,
+          excercise: "barbellRows",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows") }, 4)
         }
       ]
@@ -98,7 +98,7 @@ export const ivySaurProgram: IProgram = {
       name: "Week A Day 3",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: [
             { reps: 4, weight: getWeight4("benchPress") },
             { reps: 4, weight: getWeight4("benchPress") },
@@ -107,7 +107,7 @@ export const ivySaurProgram: IProgram = {
           ]
         },
         {
-          excercise: excercises.squat,
+          excercise: "squat",
           sets: [
             { reps: 4, weight: getWeight4("squat") },
             { reps: 4, weight: getWeight4("squat") },
@@ -116,11 +116,11 @@ export const ivySaurProgram: IProgram = {
           ]
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress") }, 4)
         },
         {
-          excercise: excercises.chinups,
+          excercise: "chinups",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("chinups") }, 4)
         }
       ]
@@ -129,19 +129,19 @@ export const ivySaurProgram: IProgram = {
       name: "Week B Day 1",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress") }, 4)
         },
         {
-          excercise: excercises.deadlift,
+          excercise: "deadlift",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("deadlift") }, 4)
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress") }, 4)
         },
         {
-          excercise: excercises.barbellRows,
+          excercise: "barbellRows",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("barbellRows") }, 4)
         }
       ]
@@ -150,19 +150,19 @@ export const ivySaurProgram: IProgram = {
       name: "Week B Day 2",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress") }, 4)
         },
         {
-          excercise: excercises.squat,
+          excercise: "squat",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat") }, 4)
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress") }, 4)
         },
         {
-          excercise: excercises.chinups,
+          excercise: "chinups",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups") }, 4)
         }
       ]
@@ -171,11 +171,11 @@ export const ivySaurProgram: IProgram = {
       name: "Week B Day 3",
       excercises: [
         {
-          excercise: excercises.benchPress,
+          excercise: "benchPress",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress") }, 4)
         },
         {
-          excercise: excercises.deadlift,
+          excercise: "deadlift",
           sets: [
             { reps: 4, weight: getWeight4("deadlift") },
             { reps: 4, weight: getWeight4("deadlift") },
@@ -184,7 +184,7 @@ export const ivySaurProgram: IProgram = {
           ]
         },
         {
-          excercise: excercises.overheadPress,
+          excercise: "overheadPress",
           sets: [
             { reps: 4, weight: getWeight4("overheadPress") },
             { reps: 4, weight: getWeight4("overheadPress") },
@@ -193,7 +193,7 @@ export const ivySaurProgram: IProgram = {
           ]
         },
         {
-          excercise: excercises.barbellRows,
+          excercise: "barbellRows",
           sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows") }, 4)
         }
       ]

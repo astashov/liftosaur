@@ -1,7 +1,8 @@
 import { IProgram, Program, IProgramId } from "./program";
 import { IExcercise, IExcerciseType } from "./excercise";
-import { IProgressSets, Reps } from "./set";
-import { IWeight } from "./weight";
+import { Reps, IProgressSet } from "./set";
+import { IWeight, Weight } from "./weight";
+import { IStats } from "./stats";
 
 export interface IProgress {
   day: number;
@@ -11,19 +12,23 @@ export interface IProgress {
 
 export interface IProgressUi {
   amrapModal?: {
-    excercise: IExcercise;
+    excercise: IExcerciseType;
     setIndex: number;
+    weight: IWeight;
+  };
+  weightModal?: {
+    excercise: IExcerciseType;
     weight: IWeight;
   };
 }
 
 export interface IProgressEntry {
-  excercise: IExcercise;
-  sets: IProgressSets;
+  excercise: IExcerciseType;
+  sets: IProgressSet[];
 }
 
 export namespace Progress {
-  export function create(program: IProgram, day: number): IProgress {
+  export function create(program: IProgram, day: number, stats: IStats): IProgress {
     const programDay = program.days[day];
     return {
       day,
@@ -31,14 +36,19 @@ export namespace Progress {
       entries: programDay.excercises.map(excercise => {
         return {
           excercise: excercise.excercise,
-          sets: []
+          sets: excercise.sets.map(set => {
+            const weight = set.weight(stats, day);
+            const increment = program.increment(stats, day, excercise.excercise);
+            const newWeight = weight + increment;
+            return { reps: undefined, weight: newWeight };
+          })
         };
       })
     };
   }
 
   export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IProgressEntry | undefined {
-    return progress.entries.find(entry => entry.excercise.id === excerciseType);
+    return progress.entries.find(entry => entry.excercise === excerciseType);
   }
 
   export function isEmptySet(progress: IProgress, program: IProgram, excercise: IExcercise): boolean {
@@ -51,9 +61,9 @@ export namespace Progress {
     }
   }
 
-  export function isCompletedSet(progress: IProgress, program: IProgram, excercise: IExcercise): boolean {
-    const progressEntry = Progress.findEntryByExcercise(progress, excercise.id);
-    const programExcercise = Program.findExcercise(program, progress.day, excercise.id);
+  export function isCompletedSet(progress: IProgress, program: IProgram, excercise: IExcerciseType): boolean {
+    const progressEntry = Progress.findEntryByExcercise(progress, excercise);
+    const programExcercise = Program.findExcercise(program, progress.day, excercise);
     if (progressEntry && programExcercise) {
       return Reps.isCompleted(progressEntry.sets, programExcercise.sets);
     } else {
@@ -61,10 +71,23 @@ export namespace Progress {
     }
   }
 
+  export function showUpdateWeightModal(progress: IProgress, excercise: IExcerciseType, weight: IWeight): IProgress {
+    return {
+      ...progress,
+      ui: {
+        ...progress.ui,
+        weightModal: {
+          excercise,
+          weight
+        }
+      }
+    };
+  }
+
   export function updateRepsInExcercise(
     progress: IProgress,
     programName: IProgramId,
-    excercise: IExcercise,
+    excercise: IExcerciseType,
     weight: IWeight,
     setIndex: number
   ): IProgress {
@@ -85,20 +108,20 @@ export namespace Progress {
       } else {
         return {
           ...progress,
-          entries: progress.entries.map(historyEntry => {
-            if (historyEntry.excercise.name === excercise.name) {
-              const reps = [...historyEntry.sets];
-              const set = reps[setIndex];
-              if (set == null) {
-                reps[setIndex] = { reps: programSetReps, weight };
+          entries: progress.entries.map(progressEntry => {
+            if (progressEntry.excercise === excercise) {
+              const sets = [...progressEntry.sets];
+              const set = sets[setIndex];
+              if (set.reps == null) {
+                sets[setIndex] = { reps: programSetReps, weight };
               } else if (set.reps > 0) {
-                reps[setIndex] = { reps: set.reps - 1, weight };
+                sets[setIndex] = { reps: set.reps - 1, weight };
               } else {
-                reps[setIndex] = undefined;
+                sets[setIndex] = { reps: undefined, weight };
               }
-              return { ...historyEntry, sets: reps };
+              return { ...progressEntry, sets: sets };
             } else {
-              return historyEntry;
+              return progressEntry;
             }
           })
         };
@@ -114,17 +137,45 @@ export namespace Progress {
       return {
         ...progress,
         ui: { ...progress.ui, amrapModal: undefined },
-        entries: progress.entries.map(historyEntry => {
-          if (historyEntry.excercise.id === excercise.id) {
-            const reps = [...historyEntry.sets];
+        entries: progress.entries.map(progressEntry => {
+          if (progressEntry.excercise === excercise) {
+            const sets = [...progressEntry.sets];
             if (value == null) {
-              reps[setIndex] = undefined;
+              sets[setIndex] = { reps: undefined, weight };
             } else {
-              reps[setIndex] = { reps: value, weight };
+              sets[setIndex] = { reps: value, weight };
             }
-            return { ...historyEntry, sets: reps };
+            return { ...progressEntry, sets: sets };
           } else {
-            return historyEntry;
+            return progressEntry;
+          }
+        })
+      };
+    } else {
+      return progress;
+    }
+  }
+
+  export function updateWeight(progress: IProgress, weight?: IWeight): IProgress {
+    if (progress.ui.weightModal != null) {
+      const { excercise, weight: previousWeight } = progress.ui.weightModal;
+      return {
+        ...progress,
+        ui: { ...progress.ui, weightModal: undefined },
+        entries: progress.entries.map(progressEntry => {
+          if (progressEntry.excercise === excercise) {
+            return {
+              ...progressEntry,
+              sets: progressEntry.sets.map(set => {
+                if (set.weight === previousWeight && weight != null) {
+                  return { ...set, weight: Weight.round(weight) };
+                } else {
+                  return set;
+                }
+              })
+            };
+          } else {
+            return progressEntry;
           }
         })
       };

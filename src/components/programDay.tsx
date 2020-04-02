@@ -8,6 +8,8 @@ import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { IStats } from "../models/stats";
 import { ModalAmrap } from "./modalAmrap";
+import { DateUtils } from "../utils/date";
+import { ModalWeight } from "./modalWeight";
 
 interface IProps {
   current: ICurrent;
@@ -26,9 +28,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
     const nextHistoryRecord = Program.nextProgramRecord(currentProgram, props.stats, lastHistoryRecord?.day);
     return (
       <section className="flex flex-col h-full relative">
-        <HeaderView>
-          <div className="text-sm">{currentProgram.name}</div>
-        </HeaderView>
+        <HeaderView title={DateUtils.format(new Date())} subtitle={currentProgram.name} />
         <CardsView
           progress={progress}
           programDay={programDay}
@@ -37,6 +37,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         <FooterView />
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
+        {progress.ui.weightModal != null ? (
+          <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
+        ) : (
+          undefined
+        )}
       </section>
     );
   } else {

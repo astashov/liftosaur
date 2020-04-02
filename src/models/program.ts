@@ -1,4 +1,4 @@
-import { IExcercise, IExcerciseType } from "../models/excercise";
+import { IExcerciseType } from "../models/excercise";
 import { IStats } from "./stats";
 import { IProgress, IProgressEntry } from "./progress";
 import { IHistoryRecord, IProgramRecord } from "./history";
@@ -12,7 +12,7 @@ export interface IProgram {
   url: string;
   author: string;
   days: IProgramDay[];
-  increment: (stats: IStats, day: number, excercise: IExcercise) => number;
+  increment: (stats: IStats, day: number, excercise: IExcerciseType) => number;
   commit: (weightKey: string, progressEntry: IProgressEntry) => number | undefined;
 }
 
@@ -22,7 +22,7 @@ export interface IProgramDay {
 }
 
 export interface IProgramExcercise {
-  excercise: IExcercise;
+  excercise: IExcerciseType;
   sets: IProgramSet[];
 }
 
@@ -38,13 +38,13 @@ export namespace Program {
     day: number,
     excerciseType: IExcerciseType
   ): IProgramExcercise | undefined {
-    return program.days[day]?.excercises.find(e => e.excercise.id === excerciseType);
+    return program.days[day]?.excercises.find(e => e.excercise === excerciseType);
   }
 
   export function finishProgramDay(program: IProgram, progress: IProgress): IHistoryRecord {
     const programDay = program.days[progress.day];
     const entries = progress.entries.filter(entry => {
-      const programSets = programDay.excercises.find(e => e.excercise.id === entry.excercise.id);
+      const programSets = programDay.excercises.find(e => e.excercise === entry.excercise);
       return entry.sets.length === programSets?.sets.length && entry.sets.some(s => s != null);
     });
     return {
@@ -52,7 +52,7 @@ export namespace Program {
       programId: program.id,
       day: progress.day,
       entries: entries.map(e => {
-        const setsLength = programDay.excercises.find(ex => ex.excercise.name === e.excercise.name)!.sets.length;
+        const setsLength = programDay.excercises.find(ex => ex.excercise === e.excercise)!.sets.length;
         const sets = [];
         for (let i = 0; i < setsLength; i += 1) {
           const rep = e.sets[i];
@@ -69,10 +69,10 @@ export namespace Program {
   export function getSetForExcercise(
     program: IProgram,
     day: number,
-    excercise: IExcercise,
+    excercise: IExcerciseType,
     setIndex: number
   ): IProgramSet | undefined {
-    return program.days[day]?.excercises?.find(e => e.excercise.name === excercise.name)?.sets?.[setIndex];
+    return program.days[day]?.excercises?.find(e => e.excercise === excercise)?.sets?.[setIndex];
   }
 
   export function get(name: IProgramId): IProgram {

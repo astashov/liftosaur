@@ -11,7 +11,7 @@ interface IProps {
 export function ChooseProgramView(props: IProps): JSX.Element {
   return (
     <section className="flex flex-col h-full">
-      <HeaderView>Choose a program</HeaderView>
+      <HeaderView title="Choose a program" />
       <ProgramListView dispatch={props.dispatch} />
       <FooterView />
     </section>

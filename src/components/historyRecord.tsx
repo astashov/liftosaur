@@ -4,6 +4,8 @@ import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet, IHistorySet } from "../models/set";
 import { IHistoryRecord, IProgramRecord } from "../models/history";
 import { Program } from "../models/program";
+import { DateUtils } from "../utils/date";
+import { Excercise } from "../models/excercise";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -17,12 +19,13 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   return (
     <div className="text-xs py-3 mx-3 border-gray-200 border-b">
       <div className="flex">
-        <div className="flex-1 font-bold">{formatDate(historyRecord.date)}</div>
+        <div className="flex-1 font-bold">{DateUtils.format(historyRecord.date)}</div>
         <div className="text-gray-600">{Program.get(historyRecord.programId).name}</div>
       </div>
       {entries.map(group => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
+            const excercise = Excercise.get(entry.excercise);
             let className: string;
             if (i !== group.length - 1) {
               className = "flex-1 flex flex-row mr-2";
@@ -31,7 +34,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
             }
             return (
               <div className={className}>
-                <div style={{ flex: 2 }}>{entry.excercise.name}</div>
+                <div style={{ flex: 2 }}>{excercise.name}</div>
                 <div className="flex-1 text-right">
                   <HistoryRecordSetsView sets={entry.sets} />
                 </div>
@@ -63,6 +66,7 @@ export function NextProgramRecordView(props: INextProps): JSX.Element {
       {entries.map(group => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
+            const excercise = Excercise.get(entry.excercise);
             let className: string;
             if (i !== group.length - 1) {
               className = "flex-1 flex flex-row mr-2";
@@ -71,7 +75,7 @@ export function NextProgramRecordView(props: INextProps): JSX.Element {
             }
             return (
               <div className={className}>
-                <div style={{ flex: 2 }}>{entry.excercise.name}</div>
+                <div style={{ flex: 2 }}>{excercise.name}</div>
                 <div className="flex-1 text-right">
                   <HistoryRecordSetsView sets={entry.sets} />
                 </div>
@@ -83,11 +87,6 @@ export function NextProgramRecordView(props: INextProps): JSX.Element {
       ))}
     </div>
   );
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(Date.parse(dateStr));
-  return date.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
 }
 
 function HistoryRecordSetsView(props: { sets: IHistorySet[] | ISet[] }): JSX.Element {

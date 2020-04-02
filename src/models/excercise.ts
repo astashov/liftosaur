@@ -40,3 +40,9 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
     startWeight: 95
   }
 };
+
+export namespace Excercise {
+  export function get(type: IExcerciseType): IExcercise {
+    return excercises[type];
+  }
+}

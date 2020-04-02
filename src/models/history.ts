@@ -1,4 +1,4 @@
-import { IExcercise } from "./excercise";
+import { IExcerciseType } from "./excercise";
 import { IHistorySet, Reps, ISet } from "./set";
 import { IProgress } from "./progress";
 import { IProgram, IProgramId } from "./program";
@@ -17,12 +17,12 @@ export interface IProgramRecord {
 }
 
 export interface IHistoryEntry {
-  excercise: IExcercise;
+  excercise: IExcerciseType;
   sets: IHistorySet[];
 }
 
 export interface IProgramEntry {
-  excercise: IExcercise;
+  excercise: IExcerciseType;
   sets: ISet[];
 }
 

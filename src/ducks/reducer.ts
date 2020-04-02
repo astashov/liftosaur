@@ -2,10 +2,11 @@ import { Reducer } from "preact/hooks";
 import { Program, IProgramId } from "../models/program";
 import { IHistoryRecord } from "../models/history";
 import { IProgress, Progress } from "../models/progress";
-import { IExcercise } from "../models/excercise";
+import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { IStats, Stats } from "../models/stats";
+import { IWeight } from "../models/weight";
 
 export interface IState {
   stats: IStats;
@@ -47,7 +48,7 @@ export type IChangeProgramAction = {
 
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
-  excercise: IExcercise;
+  excercise: IExcerciseType;
   setIndex: number;
   weight: number;
 };
@@ -60,9 +61,20 @@ export type IStartProgramDayAction = {
   type: "StartProgramDayAction";
 };
 
-export type IChangeAMRAP = {
-  type: "ChangeAMRAP";
+export type IChangeAMRAPAction = {
+  type: "ChangeAMRAPAction";
   value?: number;
+};
+
+export type IChangeWeightAction = {
+  type: "ChangeWeightAction";
+  weight: number;
+  excercise: IExcerciseType;
+};
+
+export type IConfirmWeightAction = {
+  type: "ConfirmWeightAction";
+  weight?: IWeight;
 };
 
 export type IAction =
@@ -70,7 +82,9 @@ export type IAction =
   | IStartProgramDayAction
   | IChangeProgramAction
   | IFinishProgramDayAction
-  | IChangeAMRAP;
+  | IChangeWeightAction
+  | IChangeAMRAPAction
+  | IConfirmWeightAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
@@ -106,7 +120,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       const day = Program.nextDay(program, lastHistoryRecord?.day);
       return {
         ...state,
-        current: { ...current, progress: Progress.create(program, day) }
+        current: { ...current, progress: Progress.create(program, day, state.stats) }
       };
     }
   } else if (action.type === "FinishProgramDayAction") {
@@ -125,7 +139,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     }
   } else if (action.type === "ChangeProgramAction") {
     return { ...state, current: { programId: action.name } };
-  } else if (action.type === "ChangeAMRAP") {
+  } else if (action.type === "ChangeAMRAPAction") {
     return {
       ...state,
       ...(state.current != null
@@ -133,6 +147,30 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
             current: {
               ...state.current,
               progress: Progress.updateAmrapRepsInExcercise(state.current!.progress!, action.value)
+            }
+          }
+        : {})
+    };
+  } else if (action.type === "ChangeWeightAction") {
+    return {
+      ...state,
+      ...(state.current != null
+        ? {
+            current: {
+              ...state.current,
+              progress: Progress.showUpdateWeightModal(state.current!.progress!, action.excercise, action.weight)
+            }
+          }
+        : {})
+    };
+  } else if (action.type === "ConfirmWeightAction") {
+    return {
+      ...state,
+      ...(state.current != null
+        ? {
+            current: {
+              ...state.current,
+              progress: Progress.updateWeight(state.current!.progress!, action.weight)
             }
           }
         : {})

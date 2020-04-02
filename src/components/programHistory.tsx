@@ -27,7 +27,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   return (
     <section className="flex flex-col h-full">
-      <HeaderView>Current program: {props.program.name}</HeaderView>
+      <HeaderView title={props.program.name} subtitle="Current program" />
       <section className="flex-1">
         {history.map(historyRecord => (
           <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
