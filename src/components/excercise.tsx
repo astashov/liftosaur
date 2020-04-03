@@ -9,6 +9,7 @@ interface IProps {
   entry: IProgramEntry;
   progress: IProgressEntry;
   dispatch: IDispatch;
+  onChangeReps: () => void;
 }
 
 export function ExcerciseView(props: IProps): JSX.Element {
@@ -84,6 +85,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               completedReps={progressSet.reps}
               onClick={event => {
                 event.preventDefault();
+                props.onChangeReps();
                 handleClick(props.dispatch, props.entry.excercise, progressSet.weight, i);
               }}
             />

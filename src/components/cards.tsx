@@ -11,6 +11,7 @@ interface ICardsViewProps {
   nextHistoryRecord: IProgramRecord;
   progress: IProgress;
   dispatch: IDispatch;
+  onChangeReps: () => void;
 }
 
 export function CardsView(props: ICardsViewProps): JSX.Element {
@@ -18,7 +19,14 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
     <section className="overflow-y-auto flex-1">
       {props.nextHistoryRecord.entries.map(entry => {
         const progress = props.progress.entries.find(e => e.excercise === entry.excercise)!;
-        return <ExcerciseView entry={entry} progress={progress} dispatch={props.dispatch} />;
+        return (
+          <ExcerciseView
+            entry={entry}
+            progress={progress}
+            dispatch={props.dispatch}
+            onChangeReps={props.onChangeReps}
+          />
+        );
       })}
       <div className="text-center py-3">
         <Button kind="green" onClick={() => props.dispatch({ type: "FinishProgramDayAction" })}>

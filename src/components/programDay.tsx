@@ -10,6 +10,8 @@ import { IStats } from "../models/stats";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
+import { useState } from "preact/hooks";
+import { Timer } from "./timer";
 
 interface IProps {
   current: ICurrent;
@@ -20,6 +22,7 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.current.progress;
+  const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
 
   if (progress != null) {
     const currentProgram = Program.get(props.current.programId);
@@ -34,8 +37,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           programDay={programDay}
           nextHistoryRecord={nextHistoryRecord}
           dispatch={props.dispatch}
+          onChangeReps={() => {
+            setTimerStart(new Date().getTime());
+          }}
         />
-        <FooterView />
+        <section className="relative">
+          <Timer timerStart={timerStart} />
+          <FooterView />
+        </section>
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui.weightModal != null ? (
           <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />

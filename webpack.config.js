@@ -11,7 +11,8 @@ const commitHash = require("child_process")
 module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
-    sw: "./src/sw.ts"
+    sw: "./src/sw.ts",
+    "webpushr-sw": "./src/webpushr-sw.ts"
   },
   output: {
     filename: "[name].js",
