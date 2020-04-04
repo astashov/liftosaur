@@ -68,10 +68,8 @@ module.exports = {
         "@typescript-eslint/unbound-method": "error",
         "@typescript-eslint/unified-signatures": "error",
         "@typescript-eslint/prefer-readonly": "error",
-        "@typescript-eslint/typedef": [
-          "error",
-          { arrowParameter: false, memberVariableDeclaration: false }
-        ],
+        "@typescript-eslint/explicit-function-return-type": ["error", { allowExpressions: true }],
+        "@typescript-eslint/typedef": ["error", { arrowParameter: false, memberVariableDeclaration: false }],
         "@typescript-eslint/naming-convention": [
           "error",
           {

@@ -32,7 +32,8 @@ module.exports = {
           {
             loader: "ts-loader",
             options: {
-              transpileOnly: true
+              transpileOnly: true,
+              configFile: "tsconfig.json"
             }
           }
         ]

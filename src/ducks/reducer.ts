@@ -12,6 +12,11 @@ export interface IState {
   stats: IStats;
   current?: ICurrent;
   history: IHistoryRecord[];
+  webpushr?: IWebpushr;
+}
+
+export interface IWebpushr {
+  sid: number;
 }
 
 export interface ICurrent {
@@ -77,6 +82,11 @@ export type IConfirmWeightAction = {
   weight?: IWeight;
 };
 
+export type IStoreWebpushrSidAction = {
+  type: "StoreWebpushrSidAction";
+  sid: number;
+};
+
 export type IAction =
   | IChangeRepsAction
   | IStartProgramDayAction
@@ -84,7 +94,8 @@ export type IAction =
   | IFinishProgramDayAction
   | IChangeWeightAction
   | IChangeAMRAPAction
-  | IConfirmWeightAction;
+  | IConfirmWeightAction
+  | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
@@ -174,6 +185,11 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
             }
           }
         : {})
+    };
+  } else if (action.type === "StoreWebpushrSidAction") {
+    return {
+      ...state,
+      webpushr: { sid: action.sid }
     };
   } else {
     return state;

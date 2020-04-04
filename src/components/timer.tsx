@@ -1,12 +1,15 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
+import { IWebpushr } from "../ducks/reducer";
 
 interface IProps {
   timerStart?: number;
+  webpushr?: IWebpushr;
 }
 
 export function Timer(props: IProps): JSX.Element | null {
+  const sentNotification = useRef<boolean>(false);
   const intervalId = useRef<number | undefined>(undefined);
   const [tick, setTick] = useState<number>(0);
 
@@ -21,8 +24,10 @@ export function Timer(props: IProps): JSX.Element | null {
     }
     if (props.timerStart != null) {
       const timeDifference = Date.now() - props.timerStart;
-      if (timeDifference > 3000) {
-        console.log("Fire reminder");
+      if (timeDifference > 3000 && props.webpushr != null && !sentNotification.current) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        fetch(`https://server.liftosaur.workers.dev/timernotification?sid=${props.webpushr.sid}`, { method: "POST" });
+        sentNotification.current = true;
       }
     }
   });

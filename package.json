@@ -5,16 +5,19 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "NODE_ENV=production npm run build:dev",
+    "build:server": "webpack --config webpack.server.config.js",
     "build:dev": "webpack",
-    "start": "webpack-dev-server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
+    "start": "webpack-dev-server"
   },
   "author": "Anton Astashov",
   "license": "MIT",
   "devDependencies": {
+    "@cloudflare/wrangler": "^1.8.4",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^2.21.0",
     "@typescript-eslint/parser": "^2.21.0",
+    "@udacity/types-service-worker-mock": "^1.1.2",
     "autoprefixer": "^9.7.4",
     "babel-eslint": "^10.1.0",
     "copy-webpack-plugin": "^5.1.1",
@@ -30,6 +33,7 @@
     "tailwindcss": "^1.2.0",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.6.2",
+    "types-cloudflare-worker": "^1.1.2",
     "typescript": "^3.8.2",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11",
