@@ -6,13 +6,19 @@ import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { IStats, Stats } from "../models/stats";
-import { IWeight } from "../models/weight";
+import { IWeight, IPlate } from "../models/weight";
 
 export interface IState {
   stats: IStats;
   current?: ICurrent;
   history: IHistoryRecord[];
+  settings: ISettings;
   webpushr?: IWebpushr;
+}
+
+export interface ISettings {
+  timer: number;
+  plates: IPlate[];
 }
 
 export interface IWebpushr {
@@ -40,6 +46,16 @@ export function getInitialState(): IState {
     return {
       stats: {
         excercises: {}
+      },
+      settings: {
+        plates: [
+          { weight: 45, num: 4 },
+          { weight: 25, num: 4 },
+          { weight: 10, num: 4 },
+          { weight: 5, num: 4 },
+          { weight: 2.5, num: 4 }
+        ],
+        timer: 180000
       },
       history: []
     };

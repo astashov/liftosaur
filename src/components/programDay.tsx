@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { ICurrent, IWebpushr } from "../ducks/reducer";
+import { ICurrent, IWebpushr, ISettings } from "../ducks/reducer";
 import { Program } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
@@ -17,6 +17,7 @@ interface IProps {
   current: ICurrent;
   history: IHistoryRecord[];
   stats: IStats;
+  settings: ISettings;
   dispatch: IDispatch;
   webpushr?: IWebpushr;
 }
@@ -37,13 +38,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           progress={progress}
           programDay={programDay}
           nextHistoryRecord={nextHistoryRecord}
+          availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={() => {
             setTimerStart(new Date().getTime());
           }}
         />
         <section className="relative">
-          <Timer timerStart={timerStart} webpushr={props.webpushr} />
+          <Timer timerStart={timerStart} webpushr={props.webpushr} timer={props.settings.timer} />
           <FooterView />
         </section>
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}

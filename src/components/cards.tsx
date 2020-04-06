@@ -5,11 +5,13 @@ import { IDispatch } from "../ducks/types";
 import { IProgress } from "../models/progress";
 import { Button } from "./button";
 import { IProgramRecord } from "../models/history";
+import { IPlate } from "../models/weight";
 
 interface ICardsViewProps {
   programDay: IProgramDay;
   nextHistoryRecord: IProgramRecord;
   progress: IProgress;
+  availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: () => void;
 }
@@ -23,6 +25,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
           <ExcerciseView
             entry={entry}
             progress={progress}
+            availablePlates={props.availablePlates}
             dispatch={props.dispatch}
             onChangeReps={props.onChangeReps}
           />

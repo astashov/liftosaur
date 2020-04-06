@@ -29,6 +29,7 @@ export function AppView(): JSX.Element | null {
         stats={state.stats}
         dispatch={dispatch}
         webpushr={state.webpushr}
+        settings={state.settings}
       />
     );
   }

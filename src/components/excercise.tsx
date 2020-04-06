@@ -4,10 +4,12 @@ import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgramEntry } from "../models/history";
 import { IProgressEntry } from "../models/progress";
+import { Weight, IPlate } from "../models/weight";
 
 interface IProps {
   entry: IProgramEntry;
   progress: IProgressEntry;
+  availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: () => void;
 }
@@ -63,6 +65,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
         <div>
           {weights.map(w => (
             <div>
+              <WeightView weight={w} plates={props.availablePlates} />
               <button
                 className="text-blue-500 underline cursor-pointer"
                 onClick={() =>
@@ -98,4 +101,16 @@ function ExcerciseContentView(props: IProps): JSX.Element {
 
 function handleClick(dispatch: IDispatch, excercise: IExcerciseType, weight: number, setIndex: number): void {
   dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight });
+}
+
+function WeightView(props: { weight: number; plates: IPlate[] }): JSX.Element {
+  const plates = Weight.calculatePlates(props.plates, props.weight - 45);
+  const weightOfPlates = Weight.platesWeight(plates);
+  console.log(weightOfPlates, props.weight);
+  const className = weightOfPlates === props.weight - 45 ? "text-gray-600" : "text-red-600";
+  return (
+    <span className="text-xs mx-2 break-all">
+      <span className={className}>{Weight.formatOneSide(plates)}</span>
+    </span>
+  );
 }
