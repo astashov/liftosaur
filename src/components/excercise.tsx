@@ -3,52 +3,37 @@ import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgramEntry } from "../models/history";
-import { IProgressEntry } from "../models/progress";
+import { IProgressEntry, IProgressMode } from "../models/progress";
 import { Weight, IPlate } from "../models/weight";
+import { Reps, IProgressSet } from "../models/set";
 
 interface IProps {
   entry: IProgramEntry;
   progress: IProgressEntry;
   availablePlates: IPlate[];
   dispatch: IDispatch;
-  onChangeReps: () => void;
+  onChangeReps: (mode: IProgressMode) => void;
 }
 
 export function ExcerciseView(props: IProps): JSX.Element {
   const { progress, entry } = props;
-  let isFinished = entry.sets.length === (progress?.sets ?? []).length;
-  for (let i = 0; i < entry.sets.length; i += 1) {
-    isFinished = isFinished && progress.sets[i].reps != null;
-  }
-  if (isFinished) {
-    const isCompleted = entry.sets.every((e, i) => {
-      const reps = progress.sets[i].reps;
-      if (reps != null) {
-        if (e.reps === "amrap") {
-          return reps > 0;
-        } else {
-          return e.reps === reps;
-        }
-      } else {
-        return false;
-      }
-    });
-    if (isCompleted) {
+  if (Reps.isFinished(progress.sets, entry.sets)) {
+    if (Reps.isCompleted(progress.sets, entry.sets)) {
       return (
-        <section className="p-4 bg-green-100 border border-green-300 mb-2 rounded-lg">
+        <section className="px-4 pt-4 pb-2 bg-green-100 border border-green-300 mb-2 rounded-lg">
           <ExcerciseContentView {...props} />
         </section>
       );
     } else {
       return (
-        <section className="p-4 bg-red-100 border border-red-300 mb-2 rounded-lg">
+        <section className="px-4 pt-4 pb-2 bg-red-100 border border-red-300 mb-2 rounded-lg">
           <ExcerciseContentView {...props} />
         </section>
       );
     }
   } else {
     return (
-      <section className="p-4 bg-gray-100 border border-gray-300 mb-2 rounded-lg">
+      <section className="px-4 pt-4 pb-2 bg-gray-100 border border-gray-300 mb-2 rounded-lg">
         <ExcerciseContentView {...props} />
       </section>
     );
@@ -56,14 +41,26 @@ export function ExcerciseView(props: IProps): JSX.Element {
 }
 
 function ExcerciseContentView(props: IProps): JSX.Element {
-  const weights = Array.from(new Set(props.progress.sets.map(s => s.weight)));
   const excercise = Excercise.get(props.entry.excercise);
+  const workoutWeights = Array.from(new Set(props.progress.sets.map(s => s.weight)));
+  workoutWeights.sort((a, b) => a - b);
+  const warmupSets = Excercise.getWarmupSets(props.entry.excercise, workoutWeights[0]);
+  const warmupWeights = Array.from(new Set(warmupSets.map(s => s.weight))).filter(
+    w => Object.keys(Weight.calculatePlates(props.availablePlates, w - excercise.startWeight)).length > 0
+  );
+  warmupWeights.sort((a, b) => a - b);
   return (
     <Fragment>
-      <header className="pb-2 flex">
+      <header className="flex">
         <div className="flex-1 mr-auto">{excercise.name}</div>
-        <div>
-          {weights.map(w => (
+        <div className="text-right">
+          {warmupWeights.map(w => (
+            <div>
+              <WeightView weight={w} plates={props.availablePlates} />
+              <span className="text-gray-500">{w} lbs</span>
+            </div>
+          ))}
+          {workoutWeights.map(w => (
             <div>
               <WeightView weight={w} plates={props.availablePlates} />
               <button
@@ -78,7 +75,32 @@ function ExcerciseContentView(props: IProps): JSX.Element {
           ))}
         </div>
       </header>
-      <section className="flex">
+      <section className="flex flex-wrap pt-2">
+        {warmupSets?.length > 0 && (
+          <Fragment>
+            {warmupSets.map((set, i) => {
+              const warmupProgressSet = props.progress.warmupSets[i] as IProgressSet | undefined;
+              return (
+                <div>
+                  <div className="text-gray-400 text-xs" style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}>
+                    Warmup
+                  </div>
+                  <ExcerciseSetView
+                    reps={set.reps}
+                    weight={set.weight}
+                    completedReps={warmupProgressSet?.reps}
+                    onClick={event => {
+                      event.preventDefault();
+                      props.onChangeReps("warmup");
+                      handleClick(props.dispatch, props.entry.excercise, set.weight, i, "warmup");
+                    }}
+                  />
+                </div>
+              );
+            })}
+            <div style={{ width: "1px" }} className="bg-gray-400 h-12 mr-3 my-2"></div>
+          </Fragment>
+        )}
         {props.entry.sets.map((set, i) => {
           const progressSet = props.progress.sets[i];
           return (
@@ -88,8 +110,8 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               completedReps={progressSet.reps}
               onClick={event => {
                 event.preventDefault();
-                props.onChangeReps();
-                handleClick(props.dispatch, props.entry.excercise, progressSet.weight, i);
+                props.onChangeReps("workout");
+                handleClick(props.dispatch, props.entry.excercise, progressSet.weight, i, "workout");
               }}
             />
           );
@@ -99,14 +121,19 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   );
 }
 
-function handleClick(dispatch: IDispatch, excercise: IExcerciseType, weight: number, setIndex: number): void {
-  dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight });
+function handleClick(
+  dispatch: IDispatch,
+  excercise: IExcerciseType,
+  weight: number,
+  setIndex: number,
+  mode: IProgressMode
+): void {
+  dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight, mode });
 }
 
 function WeightView(props: { weight: number; plates: IPlate[] }): JSX.Element {
   const plates = Weight.calculatePlates(props.plates, props.weight - 45);
   const weightOfPlates = Weight.platesWeight(plates);
-  console.log(weightOfPlates, props.weight);
   const className = weightOfPlates === props.weight - 45 ? "text-gray-600" : "text-red-600";
   return (
     <span className="text-xs mx-2 break-all">

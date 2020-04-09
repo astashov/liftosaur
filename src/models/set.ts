@@ -53,10 +53,25 @@ export namespace Reps {
     return result;
   }
 
-  export function isCompleted(progressSets: IProgressSet[], programSets: IProgramSet[]): boolean {
-    let result = true;
-    for (let i = 0; i < programSets.length; i += 1) {
-      result = result && progressSets[i]?.reps === programSets[i]?.reps;
+  export function isCompleted(progressSets: IProgressSet[], programSets: { reps: IProgramReps }[]): boolean {
+    return programSets.every((e, i) => {
+      const reps = progressSets[i].reps;
+      if (reps != null) {
+        if (e.reps === "amrap") {
+          return reps > 0;
+        } else {
+          return e.reps === reps;
+        }
+      } else {
+        return false;
+      }
+    });
+  }
+
+  export function isFinished(progressSets: IProgressSet[], sets: unknown[]): boolean {
+    let result = sets.length === progressSets.length;
+    for (let i = 0; i < sets.length; i += 1) {
+      result = result && progressSets[i].reps != null;
     }
     return result;
   }

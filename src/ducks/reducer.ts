@@ -1,7 +1,7 @@
 import { Reducer } from "preact/hooks";
 import { Program, IProgramId } from "../models/program";
 import { IHistoryRecord } from "../models/history";
-import { IProgress, Progress } from "../models/progress";
+import { IProgress, Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
@@ -17,7 +17,10 @@ export interface IState {
 }
 
 export interface ISettings {
-  timer: number;
+  timers: {
+    warmup: number;
+    workout: number;
+  };
   plates: IPlate[];
 }
 
@@ -55,7 +58,10 @@ export function getInitialState(): IState {
           { weight: 5, num: 4 },
           { weight: 2.5, num: 4 }
         ],
-        timer: 180000
+        timers: {
+          warmup: 90000,
+          workout: 180000
+        }
       },
       history: []
     };
@@ -72,6 +78,7 @@ export type IChangeRepsAction = {
   excercise: IExcerciseType;
   setIndex: number;
   weight: number;
+  mode: IProgressMode;
 };
 
 export type IFinishProgramDayAction = {
@@ -133,7 +140,8 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
           current.programId,
           action.excercise,
           action.weight,
-          action.setIndex
+          action.setIndex,
+          action.mode
         )
       }
     };

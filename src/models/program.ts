@@ -95,7 +95,6 @@ export namespace Program {
           const weight = set.weight(stats, day);
           const increment = program.increment(stats, day, e.excercise);
           const newWeight = weight + increment;
-          console.log(weight, increment, newWeight);
           return { reps: set.reps, weight: newWeight };
         })
       }))

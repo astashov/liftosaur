@@ -12,6 +12,7 @@ import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
 import { useState } from "preact/hooks";
 import { Timer } from "./timer";
+import { IProgressMode } from "../models/progress";
 
 interface IProps {
   current: ICurrent;
@@ -25,6 +26,7 @@ interface IProps {
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.current.progress;
   const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
+  const [timerMode, setTimerMode] = useState<IProgressMode | undefined>(undefined);
 
   if (progress != null) {
     const currentProgram = Program.get(props.current.programId);
@@ -40,12 +42,18 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           nextHistoryRecord={nextHistoryRecord}
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
-          onChangeReps={() => {
+          onChangeReps={mode => {
+            setTimerMode(mode);
             setTimerStart(new Date().getTime());
           }}
         />
         <section className="relative">
-          <Timer timerStart={timerStart} webpushr={props.webpushr} timer={props.settings.timer} />
+          <Timer
+            mode={timerMode ?? "workout"}
+            timerStart={timerStart}
+            webpushr={props.webpushr}
+            timers={props.settings.timers}
+          />
           <FooterView />
         </section>
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}

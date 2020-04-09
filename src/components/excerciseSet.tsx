@@ -44,7 +44,7 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
 function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-lg border border-gray-400 bg-gray-300 text-center w-12 h-12 leading-7 mr-3"
+      className="rounded-lg border border-gray-400 bg-gray-300 text-center w-12 h-12 leading-7 mr-3 my-2"
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -59,7 +59,7 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
 function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-lg border border-green-400 bg-green-300 text-center w-12 h-12 leading-7 mr-3"
+      className="rounded-lg border border-green-400 bg-green-300 text-center w-12 h-12 leading-7 mr-3 my-2"
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -74,7 +74,7 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
 function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
   return (
     <button
-      className="rounded-lg border border-red-400 bg-red-300 text-center w-12 h-12 leading-7 mr-3"
+      className="rounded-lg border border-red-400 bg-red-300 text-center w-12 h-12 leading-7 mr-3 my-2"
       onTouchEnd={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -89,11 +89,11 @@ function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
 function AmrapExcerciseSet(props: IAmrapExcerciseSetProps): JSX.Element {
   let className: string;
   if (props.number == null) {
-    className = "relative rounded-lg border border-gray-400 bg-gray-300 text-center w-12 h-12 leading-7 mr-3";
+    className = "relative rounded-lg border border-gray-400 bg-gray-300 text-center w-12 h-12 leading-7 mr-3 my-2";
   } else if (props.number === 0) {
-    className = "relative rounded-lg border border-red-400 bg-red-300 text-center w-12 h-12 leading-7 mr-3";
+    className = "relative rounded-lg border border-red-400 bg-red-300 text-center w-12 h-12 leading-7 mr-3 my-2";
   } else {
-    className = "relative rounded-lg border border-green-400 bg-green-300 text-center w-12 h-12 leading-7 mr-3";
+    className = "relative rounded-lg border border-green-400 bg-green-300 text-center w-12 h-12 leading-7 mr-3 my-2";
   }
   return (
     <button

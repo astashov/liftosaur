@@ -2,9 +2,14 @@ import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
 import { IWebpushr } from "../ducks/reducer";
+import { IProgressMode } from "../models/progress";
 
 interface IProps {
-  timer: number;
+  timers: {
+    warmup: number;
+    workout: number;
+  };
+  mode: IProgressMode;
   timerStart?: number;
   webpushr?: IWebpushr;
 }
@@ -24,7 +29,8 @@ export function Timer(props: IProps): JSX.Element | null {
         setTick(tick + 1);
       }, 1000);
       const timeDifference = Date.now() - props.timerStart;
-      if (timeDifference > props.timer && props.webpushr != null && !sentNotification.current) {
+      const timer = props.timers[props.mode];
+      if (timeDifference > timer && props.webpushr != null && !sentNotification.current) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         fetch(`https://server.liftosaur.workers.dev/timernotification?sid=${props.webpushr.sid}`, { method: "POST" });
         sentNotification.current = true;
@@ -38,7 +44,8 @@ export function Timer(props: IProps): JSX.Element | null {
 
   if (props.timerStart != null) {
     const timeDifference = Date.now() - props.timerStart;
-    const className = timeDifference > props.timer ? "text-red-500" : "text-gray-200";
+    const timer = props.timers[props.mode];
+    const className = timeDifference > timer ? "text-red-500" : "text-gray-200";
     return (
       <section className="w-full bg-gray-800 text-center col p-3">
         <span className={className}>{TimeUtils.formatMMSS(timeDifference)}</span>

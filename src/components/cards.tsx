@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { ExcerciseView } from "./excercise";
 import { IProgramDay } from "../models/program";
 import { IDispatch } from "../ducks/types";
-import { IProgress } from "../models/progress";
+import { IProgress, IProgressMode } from "../models/progress";
 import { Button } from "./button";
 import { IProgramRecord } from "../models/history";
 import { IPlate } from "../models/weight";
@@ -13,7 +13,7 @@ interface ICardsViewProps {
   progress: IProgress;
   availablePlates: IPlate[];
   dispatch: IDispatch;
-  onChangeReps: () => void;
+  onChangeReps: (mode: IProgressMode) => void;
 }
 
 export function CardsView(props: ICardsViewProps): JSX.Element {

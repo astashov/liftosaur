@@ -1,5 +1,5 @@
 import { IProgram, Program, IProgramId } from "./program";
-import { IExcercise, IExcerciseType } from "./excercise";
+import { IExcercise, IExcerciseType, Excercise } from "./excercise";
 import { Reps, IProgressSet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
@@ -22,9 +22,13 @@ export interface IProgressUi {
   };
 }
 
+export type IProgressMode = "warmup" | "workout";
+
 export interface IProgressEntry {
   excercise: IExcerciseType;
   sets: IProgressSet[];
+  mode: IProgressMode;
+  warmupSets: IProgressSet[];
 }
 
 export namespace Progress {
@@ -34,14 +38,17 @@ export namespace Progress {
       day,
       ui: {},
       entries: programDay.excercises.map(excercise => {
+        const firstWeight = excercise.sets[0].weight(stats, day);
         return {
+          mode: "warmup",
           excercise: excercise.excercise,
           sets: excercise.sets.map(set => {
             const weight = set.weight(stats, day);
             const increment = program.increment(stats, day, excercise.excercise);
             const newWeight = weight + increment;
             return { reps: undefined, weight: newWeight };
-          })
+          }),
+          warmupSets: Excercise.getWarmupProgressSets(excercise.excercise, firstWeight)
         };
       })
     };
@@ -89,45 +96,75 @@ export namespace Progress {
     programName: IProgramId,
     excercise: IExcerciseType,
     weight: IWeight,
-    setIndex: number
+    setIndex: number,
+    mode: IProgressMode
   ): IProgress {
     const day = progress.day;
     const program = Program.get(programName);
-    const programSet = Program.getSetForExcercise(program, day, excercise, setIndex);
-    if (programSet != null) {
-      const programSetReps = programSet.reps;
-      if (programSetReps === "amrap") {
-        const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
-        return {
-          ...progress,
-          ui: {
-            ...progress.ui,
-            ...amrapUi
-          }
-        };
-      } else {
+    if (mode === "warmup") {
+      const firstWeight = progress.entries.find(e => e.excercise === excercise)?.sets[0]?.weight;
+      if (firstWeight != null) {
+        const warmupSets = Excercise.getWarmupSets(excercise, firstWeight);
         return {
           ...progress,
           entries: progress.entries.map(progressEntry => {
             if (progressEntry.excercise === excercise) {
-              const sets = [...progressEntry.sets];
-              const set = sets[setIndex];
-              if (set.reps == null) {
-                sets[setIndex] = { reps: programSetReps, weight };
-              } else if (set.reps > 0) {
-                sets[setIndex] = { reps: set.reps - 1, weight };
+              const progressSets = progressEntry.warmupSets;
+              const progressSet = progressSets[setIndex];
+              const warmupSet = warmupSets[setIndex];
+              if (progressSet?.reps == null) {
+                progressSets[setIndex] = { reps: warmupSet.reps, weight };
+              } else if (progressSet.reps > 0) {
+                progressSets[setIndex] = { reps: progressSet.reps - 1, weight };
               } else {
-                sets[setIndex] = { reps: undefined, weight };
+                progressSets[setIndex] = { reps: undefined, weight };
               }
-              return { ...progressEntry, sets: sets };
+              return { ...progressEntry, warmupSets: progressSets };
             } else {
               return progressEntry;
             }
           })
         };
+      } else {
+        return progress;
       }
     } else {
-      return progress;
+      const programSet = Program.getSetForExcercise(program, day, excercise, setIndex);
+      if (programSet != null) {
+        const programSetReps = programSet.reps;
+        if (programSetReps === "amrap") {
+          const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
+          return {
+            ...progress,
+            ui: {
+              ...progress.ui,
+              ...amrapUi
+            }
+          };
+        } else {
+          return {
+            ...progress,
+            entries: progress.entries.map(progressEntry => {
+              if (progressEntry.excercise === excercise) {
+                const sets = [...progressEntry.sets];
+                const set = sets[setIndex];
+                if (set.reps == null) {
+                  sets[setIndex] = { reps: programSetReps, weight };
+                } else if (set.reps > 0) {
+                  sets[setIndex] = { reps: set.reps - 1, weight };
+                } else {
+                  sets[setIndex] = { reps: undefined, weight };
+                }
+                return { ...progressEntry, sets: sets };
+              } else {
+                return progressEntry;
+              }
+            })
+          };
+        }
+      } else {
+        return progress;
+      }
     }
   }
 
