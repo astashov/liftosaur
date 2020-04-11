@@ -88,7 +88,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
                   <ExcerciseSetView
                     reps={set.reps}
                     weight={set.weight}
-                    completedReps={warmupProgressSet?.reps}
+                    completedReps={warmupProgressSet?.completedReps}
                     onClick={event => {
                       event.preventDefault();
                       props.onChangeReps("warmup");
@@ -107,7 +107,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
             <ExcerciseSetView
               reps={set.reps}
               weight={progressSet.weight}
-              completedReps={progressSet.reps}
+              completedReps={progressSet.completedReps}
               onClick={event => {
                 event.preventDefault();
                 props.onChangeReps("workout");

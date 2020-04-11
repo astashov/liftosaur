@@ -14,32 +14,38 @@ export type ISet = {
 };
 
 export type IHistorySet = {
-  reps: number;
+  completedReps?: number;
+  reps: IProgramReps;
   weight: IWeight;
 };
 
 export type IProgressSet = {
-  reps?: number;
+  completedReps?: number;
+  reps: IProgramReps;
   weight: IWeight;
 };
 
 export namespace Reps {
-  export function display(sets: (IProgramSet | ISet | IHistorySet)[]): string {
+  export function display(sets: (IProgressSet | IHistorySet)[]): string {
     if (areSameReps(sets)) {
-      return `${sets.length}x${sets[0].reps}`;
+      return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
     } else {
-      return sets.map(s => Reps.displayReps(s.reps)).join("/");
+      return sets.map(s => Reps.displayReps(s.completedReps)).join("/");
     }
   }
 
-  export function displayReps(reps: IProgramReps): string {
-    return reps === "amrap" ? "1+" : reps.toString();
+  export function displayReps(reps?: IProgramReps): string {
+    if (reps != null) {
+      return reps === "amrap" ? "1+" : reps.toString();
+    } else {
+      return "-";
+    }
   }
 
-  export function areSameReps(sets: (IProgramSet | ISet | IHistorySet)[]): boolean {
+  export function areSameReps(sets: (IProgressSet | IHistorySet)[]): boolean {
     if (sets.length > 0) {
       const firstSet = sets[0];
-      return sets.every(s => s.reps === firstSet.reps);
+      return sets.every(s => s.completedReps != null && s.completedReps === firstSet.completedReps);
     } else {
       return false;
     }
@@ -55,7 +61,7 @@ export namespace Reps {
 
   export function isCompleted(progressSets: IProgressSet[], programSets: { reps: IProgramReps }[]): boolean {
     return programSets.every((e, i) => {
-      const reps = progressSets[i].reps;
+      const reps = progressSets[i].completedReps;
       if (reps != null) {
         if (e.reps === "amrap") {
           return reps > 0;
@@ -71,17 +77,12 @@ export namespace Reps {
   export function isFinished(progressSets: IProgressSet[], sets: unknown[]): boolean {
     let result = sets.length === progressSets.length;
     for (let i = 0; i < sets.length; i += 1) {
-      result = result && progressSets[i].reps != null;
+      result = result && progressSets[i].completedReps != null;
     }
     return result;
   }
 
   export function completeSets(progressSets: IProgressSet[]): IHistorySet[] {
-    const historySets: IHistorySet[] = [];
-    for (let i = 0; i < progressSets.length; i += 1) {
-      const progressSet = progressSets[i];
-      historySets.push({ reps: progressSet.reps ?? 0, weight: progressSet.weight });
-    }
-    return historySets;
+    return progressSets;
   }
 }

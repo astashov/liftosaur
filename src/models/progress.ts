@@ -27,7 +27,6 @@ export type IProgressMode = "warmup" | "workout";
 export interface IProgressEntry {
   excercise: IExcerciseType;
   sets: IProgressSet[];
-  mode: IProgressMode;
   warmupSets: IProgressSet[];
 }
 
@@ -40,15 +39,14 @@ export namespace Progress {
       entries: programDay.excercises.map(excercise => {
         const firstWeight = excercise.sets[0].weight(stats, day);
         return {
-          mode: "warmup",
           excercise: excercise.excercise,
           sets: excercise.sets.map(set => {
             const weight = set.weight(stats, day);
             const increment = program.increment(stats, day, excercise.excercise);
             const newWeight = weight + increment;
-            return { reps: undefined, weight: newWeight };
+            return { completedReps: undefined, reps: set.reps, weight: newWeight };
           }),
-          warmupSets: Excercise.getWarmupProgressSets(excercise.excercise, firstWeight)
+          warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight)
         };
       })
     };
@@ -112,12 +110,16 @@ export namespace Progress {
               const progressSets = progressEntry.warmupSets;
               const progressSet = progressSets[setIndex];
               const warmupSet = warmupSets[setIndex];
-              if (progressSet?.reps == null) {
-                progressSets[setIndex] = { reps: warmupSet.reps, weight };
-              } else if (progressSet.reps > 0) {
-                progressSets[setIndex] = { reps: progressSet.reps - 1, weight };
+              if (progressSet?.completedReps == null) {
+                progressSets[setIndex] = { ...progressSet, completedReps: warmupSet.completedReps, weight };
+              } else if (progressSet.completedReps > 0) {
+                progressSets[setIndex] = {
+                  ...progressSet,
+                  completedReps: progressSet.completedReps - 1,
+                  weight
+                };
               } else {
-                progressSets[setIndex] = { reps: undefined, weight };
+                progressSets[setIndex] = { ...progressSet, completedReps: undefined, weight };
               }
               return { ...progressEntry, warmupSets: progressSets };
             } else {
@@ -148,12 +150,12 @@ export namespace Progress {
               if (progressEntry.excercise === excercise) {
                 const sets = [...progressEntry.sets];
                 const set = sets[setIndex];
-                if (set.reps == null) {
-                  sets[setIndex] = { reps: programSetReps, weight };
-                } else if (set.reps > 0) {
-                  sets[setIndex] = { reps: set.reps - 1, weight };
+                if (set.completedReps == null) {
+                  sets[setIndex] = { ...set, completedReps: programSetReps, weight };
+                } else if (set.completedReps > 0) {
+                  sets[setIndex] = { ...set, completedReps: set.completedReps - 1, weight };
                 } else {
-                  sets[setIndex] = { reps: undefined, weight };
+                  sets[setIndex] = { ...set, completedReps: undefined, weight };
                 }
                 return { ...progressEntry, sets: sets };
               } else {
@@ -177,10 +179,11 @@ export namespace Progress {
         entries: progress.entries.map(progressEntry => {
           if (progressEntry.excercise === excercise) {
             const sets = [...progressEntry.sets];
+            const set = sets[setIndex];
             if (value == null) {
-              sets[setIndex] = { reps: undefined, weight };
+              sets[setIndex] = { ...set, completedReps: undefined, weight };
             } else {
-              sets[setIndex] = { reps: value, weight };
+              sets[setIndex] = { ...set, completedReps: value, weight };
             }
             return { ...progressEntry, sets: sets };
           } else {

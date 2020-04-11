@@ -2,8 +2,8 @@ import { h, JSX } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { ICurrent, IWebpushr, ISettings } from "../ducks/reducer";
-import { Program } from "../models/program";
+import { IWebpushr, ISettings } from "../ducks/reducer";
+import { Program, IProgramId } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { IStats } from "../models/stats";
@@ -12,10 +12,11 @@ import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
 import { useState } from "preact/hooks";
 import { Timer } from "./timer";
-import { IProgressMode } from "../models/progress";
+import { IProgressMode, IProgress } from "../models/progress";
 
 interface IProps {
-  current: ICurrent;
+  programId: IProgramId;
+  progress: IProgress;
   history: IHistoryRecord[];
   stats: IStats;
   settings: ISettings;
@@ -24,12 +25,12 @@ interface IProps {
 }
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
-  const progress = props.current.progress;
+  const progress = props.progress;
   const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
   const [timerMode, setTimerMode] = useState<IProgressMode | undefined>(undefined);
 
   if (progress != null) {
-    const currentProgram = Program.get(props.current.programId);
+    const currentProgram = Program.get(props.programId);
     const programDay = currentProgram.days[progress.day];
     const lastHistoryRecord = props.history.find(i => i.programId === currentProgram.id);
     const nextHistoryRecord = Program.nextProgramRecord(currentProgram, props.stats, lastHistoryRecord?.day);

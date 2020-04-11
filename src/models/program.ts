@@ -1,7 +1,7 @@
 import { IExcerciseType } from "../models/excercise";
 import { IStats } from "./stats";
-import { IProgress, IProgressEntry } from "./progress";
-import { IHistoryRecord, IProgramRecord } from "./history";
+import { IProgressEntry } from "./progress";
+import { IProgramRecord } from "./history";
 import { IProgramSet } from "./set";
 import { ivySaurProgram } from "./programs/ivySaurProgram";
 import { ObjectUtils } from "../utils/object";
@@ -39,31 +39,6 @@ export namespace Program {
     excerciseType: IExcerciseType
   ): IProgramExcercise | undefined {
     return program.days[day]?.excercises.find(e => e.excercise === excerciseType);
-  }
-
-  export function finishProgramDay(program: IProgram, progress: IProgress): IHistoryRecord {
-    const programDay = program.days[progress.day];
-    const entries = progress.entries.filter(entry => {
-      const programSets = programDay.excercises.find(e => e.excercise === entry.excercise);
-      return entry.sets.length === programSets?.sets.length && entry.sets.some(s => s != null);
-    });
-    return {
-      date: new Date().toISOString(),
-      programId: program.id,
-      day: progress.day,
-      entries: entries.map(e => {
-        const setsLength = programDay.excercises.find(ex => ex.excercise === e.excercise)!.sets.length;
-        const sets = [];
-        for (let i = 0; i < setsLength; i += 1) {
-          const rep = e.sets[i];
-          sets.push({ reps: rep?.reps ?? 0, weight: rep?.weight ?? 0 });
-        }
-        return {
-          excercise: e.excercise,
-          sets: sets
-        };
-      })
-    };
   }
 
   export function getSetForExcercise(

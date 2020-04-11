@@ -15,21 +15,29 @@ export function AppView(): JSX.Element | null {
       });
     };
   }, []);
-  const current = state.current;
-  if (current == null) {
+  const programId = state.storage.currentProgramId;
+  if (programId == null) {
     return <ChooseProgramView dispatch={dispatch} />;
-  } else if (current.progress == null) {
-    const program = Program.get(current.programId);
-    return <ProgramHistoryView program={program} history={state.history} stats={state.stats} dispatch={dispatch} />;
+  } else if (state.progress == null) {
+    const program = Program.get(programId);
+    return (
+      <ProgramHistoryView
+        program={program}
+        history={state.storage.history}
+        stats={state.storage.stats}
+        dispatch={dispatch}
+      />
+    );
   } else {
     return (
       <ProgramDayView
-        current={current}
-        history={state.history}
-        stats={state.stats}
+        programId={programId}
+        progress={state.progress}
+        history={state.storage.history}
+        stats={state.storage.stats}
         dispatch={dispatch}
         webpushr={state.webpushr}
-        settings={state.settings}
+        settings={state.storage.settings}
       />
     );
   }
