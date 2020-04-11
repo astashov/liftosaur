@@ -6,7 +6,7 @@ import { FooterView } from "./footer";
 import { IHistoryRecord } from "../models/history";
 import { Program } from "../models/program";
 import { Button } from "./button";
-import { HistoryRecordView, NextProgramRecordView } from "./historyRecord";
+import { HistoryRecordView } from "./historyRecord";
 import { IStats } from "../models/stats";
 
 interface IProps {
@@ -21,9 +21,15 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const lastHistoryRecord = props.history.find(i => i.programId === props.program.id);
   const nextHistoryRecord = Program.nextProgramRecord(props.program, props.stats, lastHistoryRecord?.day);
 
-  const history = [...props.history].sort(
-    (a, b) => new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime()
-  );
+  const history = [...props.history, nextHistoryRecord].sort((a, b) => {
+    if (a.date == null) {
+      return 1;
+    } else if (b.date == null) {
+      return -1;
+    } else {
+      return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
+    }
+  });
 
   return (
     <section className="flex flex-col h-full">
@@ -32,7 +38,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         {history.map(historyRecord => (
           <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
         ))}
-        <NextProgramRecordView historyRecord={nextHistoryRecord} dispatch={dispatch} />
         <div className="text-center py-3">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
             Start Next Workout

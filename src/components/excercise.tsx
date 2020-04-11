@@ -2,13 +2,13 @@ import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
-import { IProgramEntry } from "../models/history";
+import { IHistoryEntry } from "../models/history";
 import { IProgressEntry, IProgressMode } from "../models/progress";
 import { Weight, IPlate } from "../models/weight";
-import { Reps, IProgressSet } from "../models/set";
+import { Reps, ISet } from "../models/set";
 
 interface IProps {
-  entry: IProgramEntry;
+  entry: IHistoryEntry;
   progress: IProgressEntry;
   availablePlates: IPlate[];
   dispatch: IDispatch;
@@ -16,9 +16,9 @@ interface IProps {
 }
 
 export function ExcerciseView(props: IProps): JSX.Element {
-  const { progress, entry } = props;
-  if (Reps.isFinished(progress.sets, entry.sets)) {
-    if (Reps.isCompleted(progress.sets, entry.sets)) {
+  const { progress } = props;
+  if (Reps.isFinished(progress.sets)) {
+    if (Reps.isCompleted(progress.sets)) {
       return (
         <section className="px-4 pt-4 pb-2 bg-green-100 border border-green-300 mb-2 rounded-lg">
           <ExcerciseContentView {...props} />
@@ -79,7 +79,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
         {warmupSets?.length > 0 && (
           <Fragment>
             {warmupSets.map((set, i) => {
-              const warmupProgressSet = props.progress.warmupSets[i] as IProgressSet | undefined;
+              const warmupProgressSet = props.progress.warmupSets[i] as ISet | undefined;
               return (
                 <div>
                   <div className="text-gray-400 text-xs" style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}>

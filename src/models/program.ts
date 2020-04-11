@@ -1,10 +1,10 @@
 import { IExcerciseType } from "../models/excercise";
 import { IStats } from "./stats";
 import { IProgressEntry } from "./progress";
-import { IProgramRecord } from "./history";
 import { IProgramSet } from "./set";
 import { ivySaurProgram } from "./programs/ivySaurProgram";
 import { ObjectUtils } from "../utils/object";
+import { IHistoryRecord } from "./history";
 
 export interface IProgram {
   id: IProgramId;
@@ -58,7 +58,7 @@ export namespace Program {
     return ObjectUtils.keys(programsList).map(k => programsList[k]);
   }
 
-  export function nextProgramRecord(program: IProgram, stats: IStats, previousDay?: number): IProgramRecord {
+  export function nextProgramRecord(program: IProgram, stats: IStats, previousDay?: number): IHistoryRecord {
     const day = Program.nextDay(program, previousDay);
     const programDay = program.days[day];
     return {

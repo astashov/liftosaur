@@ -1,6 +1,6 @@
 import { IProgram, Program, IProgramId } from "./program";
 import { IExcercise, IExcerciseType, Excercise } from "./excercise";
-import { Reps, IProgressSet } from "./set";
+import { Reps, ISet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
 
@@ -26,8 +26,8 @@ export type IProgressMode = "warmup" | "workout";
 
 export interface IProgressEntry {
   excercise: IExcerciseType;
-  sets: IProgressSet[];
-  warmupSets: IProgressSet[];
+  sets: ISet[];
+  warmupSets: ISet[];
 }
 
 export namespace Progress {
@@ -56,21 +56,19 @@ export namespace Progress {
     return progress.entries.find(entry => entry.excercise === excerciseType);
   }
 
-  export function isEmptySet(progress: IProgress, program: IProgram, excercise: IExcercise): boolean {
+  export function isEmptySet(progress: IProgress, excercise: IExcercise): boolean {
     const progressEntry = Progress.findEntryByExcercise(progress, excercise.id);
-    const programExcercise = Program.findExcercise(program, progress.day, excercise.id);
-    if (progressEntry && programExcercise) {
-      return Reps.isEmpty(progressEntry.sets, programExcercise.sets);
+    if (progressEntry) {
+      return Reps.isEmpty(progressEntry.sets);
     } else {
       return false;
     }
   }
 
-  export function isCompletedSet(progress: IProgress, program: IProgram, excercise: IExcerciseType): boolean {
+  export function isCompletedSet(progress: IProgress, excercise: IExcerciseType): boolean {
     const progressEntry = Progress.findEntryByExcercise(progress, excercise);
-    const programExcercise = Program.findExcercise(program, progress.day, excercise);
-    if (progressEntry && programExcercise) {
-      return Reps.isCompleted(progressEntry.sets, programExcercise.sets);
+    if (progressEntry) {
+      return Reps.isCompleted(progressEntry.sets);
     } else {
       return false;
     }
@@ -102,16 +100,14 @@ export namespace Progress {
     if (mode === "warmup") {
       const firstWeight = progress.entries.find(e => e.excercise === excercise)?.sets[0]?.weight;
       if (firstWeight != null) {
-        const warmupSets = Excercise.getWarmupSets(excercise, firstWeight);
         return {
           ...progress,
           entries: progress.entries.map(progressEntry => {
             if (progressEntry.excercise === excercise) {
               const progressSets = progressEntry.warmupSets;
               const progressSet = progressSets[setIndex];
-              const warmupSet = warmupSets[setIndex];
               if (progressSet?.completedReps == null) {
-                progressSets[setIndex] = { ...progressSet, completedReps: warmupSet.completedReps, weight };
+                progressSets[setIndex] = { ...progressSet, completedReps: progressSet.reps as number, weight };
               } else if (progressSet.completedReps > 0) {
                 progressSets[setIndex] = {
                   ...progressSet,
@@ -204,6 +200,7 @@ export namespace Progress {
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map(progressEntry => {
           if (progressEntry.excercise === excercise) {
+            const firstWeight = progressEntry.sets[0]?.weight;
             return {
               ...progressEntry,
               sets: progressEntry.sets.map(set => {
@@ -212,7 +209,11 @@ export namespace Progress {
                 } else {
                   return set;
                 }
-              })
+              }),
+              warmupSets:
+                firstWeight === previousWeight && weight != null
+                  ? Excercise.getWarmupSets(excercise, weight)
+                  : progressEntry.warmupSets
             };
           } else {
             return progressEntry;

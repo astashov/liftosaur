@@ -26,7 +26,7 @@ export namespace Stats {
         ...excercises.reduce<IStatsExcercises>((memo, excercise) => {
           const progressEntry = Progress.findEntryByExcercise(progress, excercise);
           if (progressEntry != null) {
-            const isCompletedSet = Progress.isCompletedSet(progress, program, progressEntry.excercise);
+            const isCompletedSet = Progress.isCompletedSet(progress, progressEntry.excercise);
             if (isCompletedSet) {
               const weightKey = Reps.display(progressEntry.sets as ISet[]);
               const newValue = program.commit(weightKey, progressEntry);

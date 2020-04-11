@@ -1,5 +1,5 @@
 import { IWeight, Weight } from "./weight";
-import { IProgressSet } from "./set";
+import { ISet } from "./set";
 
 export type IExcerciseType = "benchPress" | "squat" | "deadlift" | "overheadPress" | "chinups" | "barbellRows";
 
@@ -7,10 +7,10 @@ export type IExcercise = {
   id: IExcerciseType;
   name: string;
   startWeight: IWeight;
-  warmupSets: (weight: IWeight) => IProgressSet[];
+  warmupSets: (weight: IWeight) => ISet[];
 };
 
-function warmup45(weight: IWeight): IProgressSet[] {
+function warmup45(weight: IWeight): ISet[] {
   const percents = [];
   if (weight > 45) {
     percents.unshift(0.8);
@@ -24,7 +24,7 @@ function warmup45(weight: IWeight): IProgressSet[] {
   return percents.map(percent => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
 }
 
-function warmup95(weight: IWeight): IProgressSet[] {
+function warmup95(weight: IWeight): ISet[] {
   const percents = [];
   if (weight > 95) {
     percents.unshift(0.8);
@@ -82,7 +82,7 @@ export namespace Excercise {
     return excercises[type];
   }
 
-  export function getWarmupSets(excercise: IExcerciseType, weight: IWeight): IProgressSet[] {
+  export function getWarmupSets(excercise: IExcerciseType, weight: IWeight): ISet[] {
     return get(excercise).warmupSets(weight);
   }
 }
