@@ -1,8 +1,7 @@
 import { IExcerciseType } from "./excercise";
 import { ISet } from "./set";
 import { IProgress } from "./progress";
-import { IProgram, IProgramId } from "./program";
-import { IStats } from "./stats";
+import { IProgramId } from "./program";
 
 export interface IHistoryRecord {
   date?: string; // ISO8601, like 2020-02-29T18:02:05+00:00
@@ -17,12 +16,12 @@ export interface IHistoryEntry {
 }
 
 export namespace History {
-  export function finishProgramDay(program: IProgram, progress: IProgress, stats: IStats): IHistoryRecord {
+  export function finishProgramDay(programId: IProgramId, progress: IProgress): IHistoryRecord {
     return {
-      date: new Date().toISOString(),
-      programId: program.id,
+      date: progress.historyRecord?.date ? progress.historyRecord.date : new Date().toISOString(),
+      programId: programId,
       day: progress.day,
-      entries: progress.entries.map(entry => ({ ...entry }))
+      entries: progress.entries.map(entry => JSON.parse(JSON.stringify(entry)))
     };
   }
 }

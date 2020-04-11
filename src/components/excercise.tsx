@@ -2,23 +2,21 @@ import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
-import { IHistoryEntry } from "../models/history";
 import { IProgressEntry, IProgressMode } from "../models/progress";
 import { Weight, IPlate } from "../models/weight";
-import { Reps, ISet } from "../models/set";
+import { Reps } from "../models/set";
 
 interface IProps {
-  entry: IHistoryEntry;
-  progress: IProgressEntry;
+  entry: IProgressEntry;
   availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
 
 export function ExcerciseView(props: IProps): JSX.Element {
-  const { progress } = props;
-  if (Reps.isFinished(progress.sets)) {
-    if (Reps.isCompleted(progress.sets)) {
+  const { entry } = props;
+  if (Reps.isFinished(entry.sets)) {
+    if (Reps.isCompleted(entry.sets)) {
       return (
         <section className="px-4 pt-4 pb-2 bg-green-100 border border-green-300 mb-2 rounded-lg">
           <ExcerciseContentView {...props} />
@@ -42,7 +40,7 @@ export function ExcerciseView(props: IProps): JSX.Element {
 
 function ExcerciseContentView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
-  const workoutWeights = Array.from(new Set(props.progress.sets.map(s => s.weight)));
+  const workoutWeights = Array.from(new Set(props.entry.sets.map(s => s.weight)));
   workoutWeights.sort((a, b) => a - b);
   const warmupSets = Excercise.getWarmupSets(props.entry.excercise, workoutWeights[0]);
   const warmupWeights = Array.from(new Set(warmupSets.map(s => s.weight))).filter(
@@ -79,7 +77,6 @@ function ExcerciseContentView(props: IProps): JSX.Element {
         {warmupSets?.length > 0 && (
           <Fragment>
             {warmupSets.map((set, i) => {
-              const warmupProgressSet = props.progress.warmupSets[i] as ISet | undefined;
               return (
                 <div>
                   <div className="text-gray-400 text-xs" style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}>
@@ -88,7 +85,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
                   <ExcerciseSetView
                     reps={set.reps}
                     weight={set.weight}
-                    completedReps={warmupProgressSet?.completedReps}
+                    completedReps={set.completedReps}
                     onClick={event => {
                       event.preventDefault();
                       props.onChangeReps("warmup");
@@ -102,16 +99,15 @@ function ExcerciseContentView(props: IProps): JSX.Element {
           </Fragment>
         )}
         {props.entry.sets.map((set, i) => {
-          const progressSet = props.progress.sets[i];
           return (
             <ExcerciseSetView
               reps={set.reps}
-              weight={progressSet.weight}
-              completedReps={progressSet.completedReps}
+              weight={set.weight}
+              completedReps={set.completedReps}
               onClick={event => {
                 event.preventDefault();
                 props.onChangeReps("workout");
-                handleClick(props.dispatch, props.entry.excercise, progressSet.weight, i, "workout");
+                handleClick(props.dispatch, props.entry.excercise, set.weight, i, "workout");
               }}
             />
           );

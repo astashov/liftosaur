@@ -1,15 +1,11 @@
 import { h, JSX } from "preact";
 import { ExcerciseView } from "./excercise";
-import { IProgramDay } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IProgress, IProgressMode } from "../models/progress";
 import { Button } from "./button";
-import { IHistoryRecord } from "../models/history";
 import { IPlate } from "../models/weight";
 
 interface ICardsViewProps {
-  programDay: IProgramDay;
-  nextHistoryRecord: IHistoryRecord;
   progress: IProgress;
   availablePlates: IPlate[];
   dispatch: IDispatch;
@@ -19,12 +15,10 @@ interface ICardsViewProps {
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
     <section className="overflow-y-auto flex-1">
-      {props.nextHistoryRecord.entries.map(entry => {
-        const progress = props.progress.entries.find(e => e.excercise === entry.excercise)!;
+      {props.progress.entries.map(entry => {
         return (
           <ExcerciseView
             entry={entry}
-            progress={progress}
             availablePlates={props.availablePlates}
             dispatch={props.dispatch}
             onChangeReps={props.onChangeReps}

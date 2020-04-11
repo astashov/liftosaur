@@ -3,11 +3,13 @@ import { IExcercise, IExcerciseType, Excercise } from "./excercise";
 import { Reps, ISet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
+import { IHistoryRecord } from "./history";
 
 export interface IProgress {
   day: number;
   ui: IProgressUi;
   entries: IProgressEntry[];
+  historyRecord?: IHistoryRecord;
 }
 
 export interface IProgressUi {
@@ -47,6 +49,22 @@ export namespace Progress {
             return { completedReps: undefined, reps: set.reps, weight: newWeight };
           }),
           warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight)
+        };
+      })
+    };
+  }
+
+  export function edit(historyRecord: IHistoryRecord): IProgress {
+    return {
+      day: historyRecord.day,
+      historyRecord: historyRecord,
+      ui: {},
+      entries: historyRecord.entries.map(entry => {
+        const firstWeight = entry.sets[0].weight;
+        return {
+          excercise: entry.excercise,
+          sets: entry.sets,
+          warmupSets: Excercise.getWarmupSets(entry.excercise, firstWeight)
         };
       })
     };

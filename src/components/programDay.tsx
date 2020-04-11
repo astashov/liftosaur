@@ -26,21 +26,20 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
+  const historyRecord = progress.historyRecord;
   const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
   const [timerMode, setTimerMode] = useState<IProgressMode | undefined>(undefined);
 
   if (progress != null) {
-    const currentProgram = Program.get(props.programId);
-    const programDay = currentProgram.days[progress.day];
-    const lastHistoryRecord = props.history.find(i => i.programId === currentProgram.id);
-    const nextHistoryRecord = Program.nextProgramRecord(currentProgram, props.stats, lastHistoryRecord?.day);
+    const currentProgram = Program.get(historyRecord?.programId ?? props.programId);
     return (
       <section className="flex flex-col h-full relative">
-        <HeaderView title={DateUtils.format(new Date())} subtitle={currentProgram.name} />
+        <HeaderView
+          title={DateUtils.format(historyRecord?.date != null ? historyRecord.date : new Date())}
+          subtitle={currentProgram.name}
+        />
         <CardsView
           progress={progress}
-          programDay={programDay}
-          nextHistoryRecord={nextHistoryRecord}
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={mode => {

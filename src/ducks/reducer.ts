@@ -112,6 +112,11 @@ export type IStoreWebpushrSidAction = {
   sid: number;
 };
 
+export type IEditHistoryRecord = {
+  type: "EditHistoryRecord";
+  historyRecord: IHistoryRecord;
+};
+
 export type IAction =
   | IChangeRepsAction
   | IStartProgramDayAction
@@ -120,6 +125,7 @@ export type IAction =
   | IChangeWeightAction
   | IChangeAMRAPAction
   | IConfirmWeightAction
+  | IEditHistoryRecord
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -157,18 +163,41 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     } else {
       return state;
     }
+  } else if (action.type === "EditHistoryRecord") {
+    return {
+      ...state,
+      progress: Progress.edit(action.historyRecord)
+    };
   } else if (action.type === "FinishProgramDayAction") {
     if (state.progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
-      const program = Program.get(state.storage.currentProgramId!);
-      const historyRecord = History.finishProgramDay(program, state.progress, state.storage.stats);
+      const program = Program.get(state.progress.historyRecord?.programId ?? state.storage.currentProgramId!);
+      const historyRecord = History.finishProgramDay(
+        state.progress.historyRecord?.programId ?? state.storage.currentProgramId!,
+        state.progress
+      );
+      let newHistory;
+      if (state.progress.historyRecord != null) {
+        newHistory = state.storage.history.map(h => {
+          if (h.date === state.progress?.historyRecord?.date) {
+            return historyRecord;
+          } else {
+            return h;
+          }
+        });
+      } else {
+        newHistory = [historyRecord, ...state.storage.history];
+      }
       return {
         ...state,
         storage: {
           ...state.storage,
-          stats: Stats.update(state.storage.stats, program, state.progress),
-          history: [historyRecord, ...state.storage.history]
+          stats:
+            state.progress.historyRecord != null
+              ? Stats.update(state.storage.stats, program, state.progress)
+              : state.storage.stats,
+          history: newHistory
         },
         progress: undefined
       };

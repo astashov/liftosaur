@@ -13,11 +13,14 @@ interface IProps {
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
-  const { historyRecord } = props;
+  const { historyRecord, dispatch } = props;
 
   const entries = CollectionUtils.inGroupsOf(2, historyRecord.entries);
   return (
-    <div className="text-xs py-3 mx-3 border-gray-200 border-b">
+    <div
+      className="text-xs py-3 mx-3 border-gray-200 border-b"
+      onClick={() => editHistoryRecord(historyRecord, dispatch, !historyRecord.date)}
+    >
       <div className="flex">
         <div className="flex-1 font-bold">{historyRecord.date ? DateUtils.format(historyRecord.date) : "Next"}</div>
         <div className="text-gray-600">{Program.get(historyRecord.programId).name}</div>
@@ -58,5 +61,11 @@ function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.El
     } else {
       return <span className="text-red-600">{Reps.display(sets)}</span>;
     }
+  }
+}
+
+function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean): void {
+  if (!isNext) {
+    dispatch({ type: "EditHistoryRecord", historyRecord });
   }
 }
