@@ -1,6 +1,6 @@
 import { IProgram, Program, IProgramId } from "./program";
-import { IExcercise, IExcerciseType, Excercise } from "./excercise";
-import { Reps, ISet } from "./set";
+import { IExcerciseType, Excercise } from "./excercise";
+import { Reps, ISet, IProgramSet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
 import { IHistoryRecord } from "./history";
@@ -39,15 +39,15 @@ export namespace Progress {
       day,
       ui: {},
       entries: programDay.excercises.map(excercise => {
-        const firstWeight = excercise.sets[0].weight(stats, day);
+        const getWeight = (set: IProgramSet): IWeight => {
+          const weight = set.weight(stats, day);
+          const increment = program.increment(stats, day, excercise.excercise);
+          return weight + increment;
+        };
+        const firstWeight = getWeight(excercise.sets[0]);
         return {
           excercise: excercise.excercise,
-          sets: excercise.sets.map(set => {
-            const weight = set.weight(stats, day);
-            const increment = program.increment(stats, day, excercise.excercise);
-            const newWeight = weight + increment;
-            return { completedReps: undefined, reps: set.reps, weight: newWeight };
-          }),
+          sets: excercise.sets.map(set => ({ completedReps: undefined, reps: set.reps, weight: getWeight(set) })),
           warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight)
         };
       })
@@ -74,19 +74,27 @@ export namespace Progress {
     return progress.entries.find(entry => entry.excercise === excerciseType);
   }
 
-  export function isEmptySet(progress: IProgress, excercise: IExcercise): boolean {
-    const progressEntry = Progress.findEntryByExcercise(progress, excercise.id);
-    if (progressEntry) {
-      return Reps.isEmpty(progressEntry.sets);
-    } else {
-      return false;
-    }
+  export function isFullyCompletedSet(progress: IProgress): boolean {
+    return progress.entries.every(entry => isCompletedSet(progress, entry.excercise));
   }
 
   export function isCompletedSet(progress: IProgress, excercise: IExcerciseType): boolean {
     const progressEntry = Progress.findEntryByExcercise(progress, excercise);
     if (progressEntry) {
       return Reps.isCompleted(progressEntry.sets);
+    } else {
+      return false;
+    }
+  }
+
+  export function isFullyFinishedSet(progress: IProgress): boolean {
+    return progress.entries.every(entry => isFinishedSet(progress, entry.excercise));
+  }
+
+  export function isFinishedSet(progress: IProgress, excercise: IExcerciseType): boolean {
+    const progressEntry = Progress.findEntryByExcercise(progress, excercise);
+    if (progressEntry) {
+      return Reps.isFinished(progressEntry.sets);
     } else {
       return false;
     }

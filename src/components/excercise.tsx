@@ -42,7 +42,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
   const workoutWeights = Array.from(new Set(props.entry.sets.map(s => s.weight)));
   workoutWeights.sort((a, b) => a - b);
-  const warmupSets = Excercise.getWarmupSets(props.entry.excercise, workoutWeights[0]);
+  const warmupSets = props.entry.warmupSets;
   const warmupWeights = Array.from(new Set(warmupSets.map(s => s.weight))).filter(
     w => Object.keys(Weight.calculatePlates(props.availablePlates, w - excercise.startWeight)).length > 0
   );

@@ -75,6 +75,14 @@ export type IChangeProgramAction = {
   name: IProgramId;
 };
 
+export type ICancelProgress = {
+  type: "CancelProgress";
+};
+
+export type IDeleteProgress = {
+  type: "DeleteProgress";
+};
+
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
   excercise: IExcerciseType;
@@ -126,6 +134,8 @@ export type IAction =
   | IChangeAMRAPAction
   | IConfirmWeightAction
   | IEditHistoryRecord
+  | ICancelProgress
+  | IDeleteProgress
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -230,6 +240,20 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       ...state,
       webpushr: { sid: action.sid }
     };
+  } else if (action.type === "CancelProgress") {
+    return { ...state, progress: undefined };
+  } else if (action.type === "DeleteProgress") {
+    const historyRecord = state.progress?.historyRecord;
+    if (historyRecord != null) {
+      const history = state.storage.history.filter(h => h.date !== historyRecord.date);
+      return {
+        ...state,
+        storage: { ...state.storage, history },
+        progress: undefined
+      };
+    } else {
+      return state;
+    }
   } else {
     return state;
   }

@@ -41,7 +41,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                 <div className="flex-1 text-right">
                   <HistoryRecordSetsView sets={entry.sets} isNext={!historyRecord.date} />
                 </div>
-                <div className="w-6 font-bold text-right">{entry.sets[0].weight}</div>
+                <div className="w-6 ml-1 font-bold text-right">{entry.sets[0].weight}</div>
               </div>
             );
           })}

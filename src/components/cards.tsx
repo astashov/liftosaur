@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { ExcerciseView } from "./excercise";
 import { IDispatch } from "../ducks/types";
-import { IProgress, IProgressMode } from "../models/progress";
+import { IProgress, IProgressMode, Progress } from "../models/progress";
 import { Button } from "./button";
 import { IPlate } from "../models/weight";
 
@@ -26,8 +26,16 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
         );
       })}
       <div className="text-center py-3">
-        <Button kind="green" onClick={() => props.dispatch({ type: "FinishProgramDayAction" })}>
-          Finish the workout
+        <Button
+          kind="green"
+          onClick={() => {
+            const isNext = props.progress.historyRecord == null;
+            if ((isNext && Progress.isFullyFinishedSet(props.progress)) || confirm("Are you sure?")) {
+              props.dispatch({ type: "FinishProgramDayAction" });
+            }
+          }}
+        >
+          {props.progress.historyRecord != null ? "Save" : "Finish the workout"}
         </Button>
       </div>
     </section>

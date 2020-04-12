@@ -37,6 +37,34 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         <HeaderView
           title={DateUtils.format(historyRecord?.date != null ? historyRecord.date : new Date())}
           subtitle={currentProgram.name}
+          left={
+            <button
+              onClick={() => {
+                if (confirm("Are you sure?")) {
+                  props.dispatch({ type: "CancelProgress" });
+                }
+              }}
+            >
+              Cancel
+            </button>
+          }
+          right={
+            historyRecord?.date != null ? (
+              <div className="px-3">
+                <button
+                  onClick={() => {
+                    if (confirm("Are you sure?")) {
+                      props.dispatch({ type: "DeleteProgress" });
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ) : (
+              undefined
+            )
+          }
         />
         <CardsView
           progress={progress}
