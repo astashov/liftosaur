@@ -290,18 +290,22 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
     const newStorage = action.storage;
-    const storage: IStorage = {
-      settings: {
-        plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, el =>
-          el.weight.toString()
-        ),
-        timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers)
-      },
-      stats: deepmerge(oldStorage.stats, newStorage.stats),
-      currentProgramId: oldStorage.currentProgramId,
-      history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)
-    };
-    return { ...state, storage };
+    if (newStorage != null) {
+      const storage: IStorage = {
+        settings: {
+          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, el =>
+            el.weight.toString()
+          ),
+          timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers)
+        },
+        stats: deepmerge(oldStorage.stats, newStorage.stats),
+        currentProgramId: oldStorage.currentProgramId,
+        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)
+      };
+      return { ...state, storage };
+    } else {
+      return state;
+    }
   } else {
     return state;
   }
