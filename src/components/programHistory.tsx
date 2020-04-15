@@ -38,13 +38,13 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         {history.map(historyRecord => (
           <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
         ))}
-        <div className="text-center py-3">
+        <div className="py-3 text-center">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
             Start Next Workout
           </Button>
         </div>
       </section>
-      <FooterView />
+      <FooterView dispatch={props.dispatch} />
     </section>
   );
 }

@@ -52,7 +52,6 @@ module.exports = {
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "error",
-        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-use-before-declare": "off",

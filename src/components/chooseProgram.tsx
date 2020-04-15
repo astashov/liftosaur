@@ -13,7 +13,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     <section className="flex flex-col h-full">
       <HeaderView title="Choose a program" />
       <ProgramListView dispatch={props.dispatch} />
-      <FooterView />
+      <FooterView dispatch={props.dispatch} />
     </section>
   );
 }

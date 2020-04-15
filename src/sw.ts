@@ -6,7 +6,13 @@ function initialize(service: ServiceWorkerGlobalScope): void {
   service.addEventListener("install", event => {
     event.waitUntil(
       caches.open(cacheName).then(cache => {
-        return cache.addAll(["/main.css", "/main.js", "/index.html", "/icons/icon192.png", "/icons/icon512.png"]);
+        return cache.addAll([
+          `/main.css?version=${__COMMIT_HASH__}`,
+          `/main.js?version=${__COMMIT_HASH__}`,
+          "/index.html",
+          "/icons/icon192.png",
+          "/icons/icon512.png"
+        ]);
       })
     );
   });

@@ -16,7 +16,12 @@
   "devDependencies": {
     "@cloudflare/wrangler": "^1.8.4",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "@types/cookie": "^0.3.3",
+    "@types/deepmerge": "^2.2.0",
+    "@types/gapi": "^0.0.39",
+    "@types/gapi.auth2": "^0.0.51",
     "@types/jest": "^25.2.1",
+    "@types/jsonwebtoken": "^8.3.9",
     "@typescript-eslint/eslint-plugin": "^2.21.0",
     "@typescript-eslint/parser": "^2.21.0",
     "@udacity/types-service-worker-mock": "^1.1.2",
@@ -44,6 +49,9 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
+    "cookie": "^0.4.0",
+    "deepmerge": "^4.2.2",
+    "jsonwebtoken": "^8.5.1",
     "preact": "^10.3.2"
   }
 }

@@ -5,3 +5,9 @@ workers_dev = true
 route = ""
 zone_id = ""
 webpack_config = "webpack.server.config.js"
+
+kv-namespaces = [ 
+  { binding = "kv_liftosaur_google_access_tokens", id = "529f74d9be9244b28f4201db8dfac079" },
+  { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46" },
+  { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b" }
+]

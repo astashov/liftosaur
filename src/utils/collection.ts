@@ -30,4 +30,12 @@ export namespace CollectionUtils {
     }
     return arr;
   }
+
+  export function concatBy<T>(from: T[], to: T[], condition: (el: T) => string): T[] {
+    const map = [...from, ...to].reduce<Record<string, T>>((memo, item) => {
+      memo[condition(item)] = item;
+      return memo;
+    }, {});
+    return Object.keys(map).map(key => map[key]);
+  }
 }

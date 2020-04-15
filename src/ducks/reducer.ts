@@ -5,12 +5,23 @@ import { IProgress, Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
+import { Screen } from "../models/screen";
 import { IStats, Stats } from "../models/stats";
 import { IWeight, IPlate } from "../models/weight";
+import deepmerge from "deepmerge";
+import { CollectionUtils } from "../utils/collection";
+
+export type IEnv = {
+  client: Window["fetch"];
+  googleAuth?: gapi.auth2.GoogleAuth;
+};
+
+export type IScreen = "main" | "settings" | "account";
 
 export interface IState {
   storage: IStorage;
   webpushr?: IWebpushr;
+  screenStack: IScreen[];
   progress?: IProgress;
 }
 
@@ -44,9 +55,10 @@ export function getInitialState(): IState {
     }
   }
   if (storage != null) {
-    return { storage };
+    return { storage, screenStack: ["main"] };
   } else {
     return {
+      screenStack: ["main"],
       storage: {
         stats: {
           excercises: {}
@@ -73,6 +85,20 @@ export function getInitialState(): IState {
 export type IChangeProgramAction = {
   type: "ChangeProgramAction";
   name: IProgramId;
+};
+
+export type ISyncStorage = {
+  type: "SyncStorage";
+  storage: IStorage;
+};
+
+export type IPushScreen = {
+  type: "PushScreen";
+  screen: IScreen;
+};
+
+export type IPullScreen = {
+  type: "PullScreen";
 };
 
 export type ICancelProgress = {
@@ -136,6 +162,9 @@ export type IAction =
   | IEditHistoryRecord
   | ICancelProgress
   | IDeleteProgress
+  | IPushScreen
+  | IPullScreen
+  | ISyncStorage
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -254,6 +283,25 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     } else {
       return state;
     }
+  } else if (action.type === "PushScreen") {
+    return { ...state, screenStack: Screen.push(state.screenStack, action.screen) };
+  } else if (action.type === "PullScreen") {
+    return { ...state, screenStack: Screen.pull(state.screenStack) };
+  } else if (action.type === "SyncStorage") {
+    const oldStorage = state.storage;
+    const newStorage = action.storage;
+    const storage: IStorage = {
+      settings: {
+        plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, el =>
+          el.weight.toString()
+        ),
+        timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers)
+      },
+      stats: deepmerge(oldStorage.stats, newStorage.stats),
+      currentProgramId: oldStorage.currentProgramId,
+      history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)
+    };
+    return { ...state, storage };
   } else {
     return state;
   }

@@ -46,7 +46,10 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin(),
     new DefinePlugin({
-      __COMMIT_HASH__: JSON.stringify(commitHash)
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __API_HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production" ? "https://server.liftosaur.workers.dev" : "http://localhost:8787"
+      )
     }),
     new CopyPlugin([
       {

@@ -71,8 +71,10 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={mode => {
-            setTimerMode(mode);
-            setTimerStart(new Date().getTime());
+            if (progress.historyRecord == null) {
+              setTimerMode(mode);
+              setTimerStart(new Date().getTime());
+            }
           }}
         />
         <section className="relative">
@@ -82,7 +84,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             webpushr={props.webpushr}
             timers={props.settings.timers}
           />
-          <FooterView />
+          <FooterView dispatch={props.dispatch} />
         </section>
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui.weightModal != null ? (
