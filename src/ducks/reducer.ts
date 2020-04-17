@@ -6,7 +6,7 @@ import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen } from "../models/screen";
-import { IStats, Stats } from "../models/stats";
+import { IStats } from "../models/stats";
 import { IWeight, IPlate } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
@@ -29,6 +29,8 @@ export interface IStorage {
   stats: IStats;
   history: IHistoryRecord[];
   settings: ISettings;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  programStates: Record<string, any>;
   currentProgramId?: IProgramId;
 }
 
@@ -63,6 +65,7 @@ export function getInitialState(): IState {
         stats: {
           excercises: {}
         },
+        programStates: {},
         settings: {
           plates: [
             { weight: 45, num: 4 },
@@ -179,14 +182,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     const progress = state.progress!;
     return {
       ...state,
-      progress: Progress.updateRepsInExcercise(
-        progress,
-        state.storage.currentProgramId!,
-        action.excercise,
-        action.weight,
-        action.setIndex,
-        action.mode
-      )
+      progress: Progress.updateRepsInExcercise(progress, action.excercise, action.weight, action.setIndex, action.mode)
     };
   } else if (action.type === "StartProgramDayAction") {
     if (state.progress != null) {
@@ -195,9 +191,10 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       const lastHistoryRecord = state.storage.history.find(i => i.programId === state.storage.currentProgramId);
       const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
+      const programState = state.storage.programStates[state.storage.currentProgramId];
       return {
         ...state,
-        progress: Progress.create(program, day, state.storage.stats)
+        progress: Progress.create(program, day, state.storage.stats, programState)
       };
     } else {
       return state;
@@ -228,15 +225,21 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
+      const programState = state.storage.programStates[program.id];
+      const { state: newProgramState, stats: newStats } =
+        state.progress.historyRecord == null
+          ? program.finishDay(state.progress, state.storage.stats, programState)
+          : { state: programState, stats: state.storage.stats };
       return {
         ...state,
         storage: {
           ...state.storage,
-          stats:
-            state.progress.historyRecord != null
-              ? Stats.update(state.storage.stats, program, state.progress)
-              : state.storage.stats,
-          history: newHistory
+          stats: newStats,
+          history: newHistory,
+          programStates: {
+            ...state.storage.programStates,
+            [program.id]: newProgramState
+          }
         },
         progress: undefined
       };
@@ -298,6 +301,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
           ),
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers)
         },
+        programStates: deepmerge(oldStorage.programStates, newStorage.programStates),
         stats: deepmerge(oldStorage.stats, newStorage.stats),
         currentProgramId: oldStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)

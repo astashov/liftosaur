@@ -1,12 +1,6 @@
 import { IWeight } from "./weight";
-import { IStats } from "./stats";
 
 export type IProgramReps = number | "amrap";
-
-export type IProgramSet = {
-  reps: IProgramReps;
-  weight: (stats: IStats, day: number) => number;
-};
 
 export type ISet = {
   completedReps?: number;
@@ -33,8 +27,7 @@ export namespace Reps {
 
   export function areSameReps(sets: ISet[]): boolean {
     if (sets.length > 0) {
-      const firstSet = sets[0];
-      return sets.every(s => s.completedReps != null && s.completedReps === firstSet.completedReps);
+      return sets.every(s => s.completedReps != null && s.completedReps === s.reps);
     } else {
       return false;
     }

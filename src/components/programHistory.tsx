@@ -11,6 +11,8 @@ import { IStats } from "../models/stats";
 
 interface IProps {
   program: IProgram;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  programStates: Record<string, any>;
   stats: IStats;
   history: IHistoryRecord[];
   dispatch: IDispatch;
@@ -19,7 +21,11 @@ interface IProps {
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
   const lastHistoryRecord = props.history.find(i => i.programId === props.program.id);
-  const nextHistoryRecord = Program.nextProgramRecord(props.program, props.stats, lastHistoryRecord?.day);
+  const nextHistoryRecord = Program.nextProgramRecord(
+    props.program,
+    lastHistoryRecord?.day,
+    props.programStates[props.program.id]
+  );
 
   const history = [...props.history, nextHistoryRecord].sort((a, b) => {
     if (a.date == null) {

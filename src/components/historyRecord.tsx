@@ -18,7 +18,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   const entries = CollectionUtils.inGroupsOf(2, historyRecord.entries);
   return (
     <div
-      className="text-xs py-3 mx-3 border-gray-200 border-b"
+      className="py-3 mx-3 text-xs border-b border-gray-200"
       onClick={() => editHistoryRecord(historyRecord, dispatch, !historyRecord.date)}
     >
       <div className="flex">
@@ -31,9 +31,9 @@ export function HistoryRecordView(props: IProps): JSX.Element {
             const excercise = Excercise.get(entry.excercise);
             let className: string;
             if (i !== group.length - 1) {
-              className = "flex-1 flex flex-row mr-2";
+              className = "flex flex-row flex-1 mr-2";
             } else {
-              className = "flex-1 flex flex-row";
+              className = "flex flex-row flex-1";
             }
             return (
               <div className={className}>
@@ -56,7 +56,7 @@ function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.El
   if (isNext) {
     return <span className="text-gray-600">{Reps.display(sets, isNext)}</span>;
   } else {
-    if (Reps.areSameReps(sets)) {
+    if (Reps.isCompleted(sets)) {
       return <span className="text-green-600">{Reps.display(sets)}</span>;
     } else {
       return <span className="text-red-600">{Reps.display(sets)}</span>;

@@ -39,6 +39,7 @@ export function AppView(): JSX.Element | null {
       return (
         <ProgramHistoryView
           program={program}
+          programStates={state.storage.programStates}
           history={state.storage.history}
           stats={state.storage.stats}
           dispatch={dispatch}

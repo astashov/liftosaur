@@ -1,29 +1,23 @@
-import { IExcerciseType } from "../models/excercise";
 import { IStats } from "./stats";
-import { IProgressEntry } from "./progress";
-import { IProgramSet } from "./set";
 import { ivySaurProgram } from "./programs/ivySaurProgram";
 import { ObjectUtils } from "../utils/object";
-import { IHistoryRecord } from "./history";
+import { IHistoryRecord, IHistoryEntry } from "./history";
+import { IProgress } from "./progress";
 
 export interface IProgram {
   id: IProgramId;
   name: string;
   url: string;
   author: string;
-  days: IProgramDay[];
-  increment: (stats: IStats, day: number, excercise: IExcerciseType) => number;
-  commit: (weightKey: string, progressEntry: IProgressEntry) => number | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  days: ((state: any) => IProgramDay)[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  finishDay: (progress: IProgress, stats: IStats, state: any) => { state: any; stats: IStats };
 }
 
 export interface IProgramDay {
   name: string;
-  excercises: IProgramExcercise[];
-}
-
-export interface IProgramExcercise {
-  excercise: IExcerciseType;
-  sets: IProgramSet[];
+  excercises: IHistoryEntry[];
 }
 
 export type IProgramId = "ivySaur";
@@ -33,23 +27,6 @@ export const programsList: Record<IProgramId, IProgram> = {
 };
 
 export namespace Program {
-  export function findExcercise(
-    program: IProgram,
-    day: number,
-    excerciseType: IExcerciseType
-  ): IProgramExcercise | undefined {
-    return program.days[day]?.excercises.find(e => e.excercise === excerciseType);
-  }
-
-  export function getSetForExcercise(
-    program: IProgram,
-    day: number,
-    excercise: IExcerciseType,
-    setIndex: number
-  ): IProgramSet | undefined {
-    return program.days[day]?.excercises?.find(e => e.excercise === excercise)?.sets?.[setIndex];
-  }
-
   export function get(name: IProgramId): IProgram {
     return programsList[name];
   }
@@ -58,21 +35,18 @@ export namespace Program {
     return ObjectUtils.keys(programsList).map(k => programsList[k]);
   }
 
-  export function nextProgramRecord(program: IProgram, stats: IStats, previousDay?: number): IHistoryRecord {
+  export function nextProgramRecord(
+    program: IProgram,
+    previousDay?: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    programState?: any
+  ): IHistoryRecord {
     const day = Program.nextDay(program, previousDay);
     const programDay = program.days[day];
     return {
       programId: program.id,
       day,
-      entries: programDay.excercises.map(e => ({
-        excercise: e.excercise,
-        sets: e.sets.map(set => {
-          const weight = set.weight(stats, day);
-          const increment = program.increment(stats, day, e.excercise);
-          const newWeight = weight + increment;
-          return { reps: set.reps, weight: newWeight };
-        })
-      }))
+      entries: programDay(programState).excercises
     };
   }
 

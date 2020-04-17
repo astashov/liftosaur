@@ -1,6 +1,6 @@
-import { IProgram, Program, IProgramId } from "./program";
+import { IProgram } from "./program";
 import { IExcerciseType, Excercise } from "./excercise";
-import { Reps, ISet, IProgramSet } from "./set";
+import { Reps, ISet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
 import { IHistoryRecord } from "./history";
@@ -33,21 +33,17 @@ export interface IProgressEntry {
 }
 
 export namespace Progress {
-  export function create(program: IProgram, day: number, stats: IStats): IProgress {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export function create(program: IProgram, day: number, stats: IStats, state?: any): IProgress {
     const programDay = program.days[day];
     return {
       day,
       ui: {},
-      entries: programDay.excercises.map(excercise => {
-        const getWeight = (set: IProgramSet): IWeight => {
-          const weight = set.weight(stats, day);
-          const increment = program.increment(stats, day, excercise.excercise);
-          return weight + increment;
-        };
-        const firstWeight = getWeight(excercise.sets[0]);
+      entries: programDay(state).excercises.map(excercise => {
+        const firstWeight = excercise.sets[0].weight;
         return {
           excercise: excercise.excercise,
-          sets: excercise.sets.map(set => ({ completedReps: undefined, reps: set.reps, weight: getWeight(set) })),
+          sets: excercise.sets,
           warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight)
         };
       })
@@ -75,29 +71,19 @@ export namespace Progress {
   }
 
   export function isFullyCompletedSet(progress: IProgress): boolean {
-    return progress.entries.every(entry => isCompletedSet(progress, entry.excercise));
+    return progress.entries.every(entry => isCompletedSet(entry));
   }
 
-  export function isCompletedSet(progress: IProgress, excercise: IExcerciseType): boolean {
-    const progressEntry = Progress.findEntryByExcercise(progress, excercise);
-    if (progressEntry) {
-      return Reps.isCompleted(progressEntry.sets);
-    } else {
-      return false;
-    }
+  export function isCompletedSet(entry: IProgressEntry): boolean {
+    return Reps.isCompleted(entry.sets);
   }
 
   export function isFullyFinishedSet(progress: IProgress): boolean {
-    return progress.entries.every(entry => isFinishedSet(progress, entry.excercise));
+    return progress.entries.every(entry => isFinishedSet(entry));
   }
 
-  export function isFinishedSet(progress: IProgress, excercise: IExcerciseType): boolean {
-    const progressEntry = Progress.findEntryByExcercise(progress, excercise);
-    if (progressEntry) {
-      return Reps.isFinished(progressEntry.sets);
-    } else {
-      return false;
-    }
+  export function isFinishedSet(entry: IProgressEntry): boolean {
+    return Reps.isFinished(entry.sets);
   }
 
   export function showUpdateWeightModal(progress: IProgress, excercise: IExcerciseType, weight: IWeight): IProgress {
@@ -115,14 +101,11 @@ export namespace Progress {
 
   export function updateRepsInExcercise(
     progress: IProgress,
-    programName: IProgramId,
     excercise: IExcerciseType,
     weight: IWeight,
     setIndex: number,
     mode: IProgressMode
   ): IProgress {
-    const day = progress.day;
-    const program = Program.get(programName);
     if (mode === "warmup") {
       const firstWeight = progress.entries.find(e => e.excercise === excercise)?.sets[0]?.weight;
       if (firstWeight != null) {
@@ -153,41 +136,36 @@ export namespace Progress {
         return progress;
       }
     } else {
-      const programSet = Program.getSetForExcercise(program, day, excercise, setIndex);
-      if (programSet != null) {
-        const programSetReps = programSet.reps;
-        if (programSetReps === "amrap") {
-          const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
-          return {
-            ...progress,
-            ui: {
-              ...progress.ui,
-              ...amrapUi
-            }
-          };
-        } else {
-          return {
-            ...progress,
-            entries: progress.entries.map(progressEntry => {
-              if (progressEntry.excercise === excercise) {
-                const sets = [...progressEntry.sets];
-                const set = sets[setIndex];
-                if (set.completedReps == null) {
-                  sets[setIndex] = { ...set, completedReps: programSetReps, weight };
-                } else if (set.completedReps > 0) {
-                  sets[setIndex] = { ...set, completedReps: set.completedReps - 1, weight };
-                } else {
-                  sets[setIndex] = { ...set, completedReps: undefined, weight };
-                }
-                return { ...progressEntry, sets: sets };
-              } else {
-                return progressEntry;
-              }
-            })
-          };
-        }
+      const entry = progress.entries.find(e => e.excercise === excercise)!;
+      if (entry.sets[setIndex].reps === "amrap") {
+        const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
+        return {
+          ...progress,
+          ui: {
+            ...progress.ui,
+            ...amrapUi
+          }
+        };
       } else {
-        return progress;
+        return {
+          ...progress,
+          entries: progress.entries.map(progressEntry => {
+            if (progressEntry.excercise === excercise) {
+              const sets = [...progressEntry.sets];
+              const set = sets[setIndex];
+              if (set.completedReps == null) {
+                sets[setIndex] = { ...set, completedReps: set.reps as number, weight };
+              } else if (set.completedReps > 0) {
+                sets[setIndex] = { ...set, completedReps: set.completedReps - 1, weight };
+              } else {
+                sets[setIndex] = { ...set, completedReps: undefined, weight };
+              }
+              return { ...progressEntry, sets: sets };
+            } else {
+              return progressEntry;
+            }
+          })
+        };
       }
     }
   }
