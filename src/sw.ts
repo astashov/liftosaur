@@ -38,8 +38,13 @@ function initialize(service: ServiceWorkerGlobalScope): void {
     );
   });
 
-  self.addEventListener("activate", (event: object) => {
+  self.addEventListener("activate", async (event: object) => {
     console.log("Activate Service Worker", event);
+    const keys = (await caches.keys()).filter(k => k !== cacheName);
+    console.log(keys);
+    for (const key of keys) {
+      await caches.delete(key);
+    }
   });
 }
 
