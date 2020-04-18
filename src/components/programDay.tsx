@@ -13,6 +13,7 @@ import { ModalWeight } from "./modalWeight";
 import { useState } from "preact/hooks";
 import { Timer } from "./timer";
 import { IProgressMode, IProgress } from "../models/progress";
+import { ModalDate } from "./modalDate";
 
 interface IProps {
   programId: IProgramId;
@@ -33,9 +34,20 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   if (progress != null) {
     const currentProgram = Program.get(historyRecord?.programId ?? props.programId);
     return (
-      <section className="flex flex-col h-full relative">
+      <section className="relative flex flex-col h-full">
         <HeaderView
-          title={DateUtils.format(historyRecord?.date != null ? historyRecord.date : new Date())}
+          title={
+            <button
+              onClick={() => {
+                const date = historyRecord?.date;
+                if (date != null) {
+                  props.dispatch({ type: "ChangeDate", date });
+                }
+              }}
+            >
+              {DateUtils.format(historyRecord?.date != null ? historyRecord.date : new Date())}
+            </button>
+          }
           subtitle={currentProgram.name}
           left={
             <button
@@ -89,6 +101,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui.weightModal != null ? (
           <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
+        ) : (
+          undefined
+        )}
+        {progress.ui.dateModal != null ? (
+          <ModalDate dispatch={props.dispatch} date={progress.ui.dateModal.date} />
         ) : (
           undefined
         )}

@@ -4,6 +4,7 @@ import { Reps, ISet } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
 import { IHistoryRecord } from "./history";
+import { DateUtils } from "../utils/date";
 
 export interface IProgress {
   day: number;
@@ -21,6 +22,9 @@ export interface IProgressUi {
   weightModal?: {
     excercise: IExcerciseType;
     weight: IWeight;
+  };
+  dateModal?: {
+    date: string;
   };
 }
 
@@ -97,6 +101,37 @@ export namespace Progress {
         }
       }
     };
+  }
+
+  export function showUpdateDate(progress: IProgress, date: string): IProgress {
+    return {
+      ...progress,
+      ui: {
+        ...progress.ui,
+        dateModal: {
+          date
+        }
+      }
+    };
+  }
+
+  export function changeDate(progress: IProgress, date?: string): IProgress {
+    const historyRecord = progress.historyRecord;
+    if (historyRecord != null) {
+      return {
+        ...progress,
+        historyRecord: {
+          ...historyRecord,
+          ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {})
+        },
+        ui: {
+          ...progress.ui,
+          dateModal: undefined
+        }
+      };
+    } else {
+      return progress;
+    }
   }
 
   export function updateRepsInExcercise(

@@ -90,6 +90,16 @@ export type IChangeProgramAction = {
   name: IProgramId;
 };
 
+export type IChangeDate = {
+  type: "ChangeDate";
+  date: string;
+};
+
+export type IConfirmDate = {
+  type: "ConfirmDate";
+  date?: string;
+};
+
 export type ISyncStorage = {
   type: "SyncStorage";
   storage: IStorage;
@@ -168,6 +178,8 @@ export type IAction =
   | IPushScreen
   | IPullScreen
   | ISyncStorage
+  | IChangeDate
+  | IConfirmDate
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -256,6 +268,16 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     return {
       ...state,
       progress: Progress.updateAmrapRepsInExcercise(state.progress!, action.value)
+    };
+  } else if (action.type === "ChangeDate") {
+    return {
+      ...state,
+      progress: Progress.showUpdateDate(state.progress!, action.date)
+    };
+  } else if (action.type === "ConfirmDate") {
+    return {
+      ...state,
+      progress: Progress.changeDate(state.progress!, action.date)
     };
   } else if (action.type === "ChangeWeightAction") {
     return {
