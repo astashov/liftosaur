@@ -37,6 +37,10 @@ function initialize(service: ServiceWorkerGlobalScope): void {
       })
     );
   });
+
+  self.addEventListener("activate", (event: object) => {
+    console.log("Activate Service Worker", event);
+  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
