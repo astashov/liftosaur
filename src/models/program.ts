@@ -46,6 +46,7 @@ export namespace Program {
     const day = Program.nextDay(program, previousDay);
     const programDay = program.days[day];
     return {
+      id: Date.now(),
       programId: program.id,
       day,
       entries: programDay(programState).excercises

@@ -228,7 +228,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       let newHistory;
       if (state.progress.historyRecord != null) {
         newHistory = state.storage.history.map(h => {
-          if (h.date === state.progress?.historyRecord?.date) {
+          if (h.id === state.progress?.historyRecord?.id) {
             return historyRecord;
           } else {
             return h;
