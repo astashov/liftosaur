@@ -14,9 +14,9 @@ import { Thunk } from "../ducks/thunks";
 export function AppView(): JSX.Element | null {
   const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { client: fetch.bind(window) }, [
     (action, oldState, newState) => {
-      if (oldState.storage !== newState.storage) {
-        dispatch(Thunk.sync());
-      }
+      // if (oldState.storage !== newState.storage) {
+      //   dispatch(Thunk.sync());
+      // }
     }
   ]);
 
@@ -27,7 +27,7 @@ export function AppView(): JSX.Element | null {
       });
     };
     dispatch(Thunk.googleOauthInitialize());
-    dispatch(Thunk.fetchStorage());
+    // dispatch(Thunk.fetchStorage());
   }, []);
 
   if (Screen.current(state.screenStack) === "main") {

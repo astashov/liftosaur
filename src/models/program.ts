@@ -1,5 +1,6 @@
 import { IStats } from "./stats";
 import { ivySaurProgram } from "./programs/ivySaurProgram";
+import { the5314bProgram } from "./programs/the5314bProgram";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { IProgress } from "./progress";
@@ -20,10 +21,11 @@ export interface IProgramDay {
   excercises: IHistoryEntry[];
 }
 
-export type IProgramId = "ivySaur";
+export type IProgramId = "ivySaur" | "the5314b";
 
 export const programsList: Record<IProgramId, IProgram> = {
-  ivySaur: ivySaurProgram
+  ivySaur: ivySaurProgram,
+  the5314b: the5314bProgram
 };
 
 export namespace Program {

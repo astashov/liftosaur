@@ -15,7 +15,7 @@ interface IProps {
 export function HistoryRecordView(props: IProps): JSX.Element {
   const { historyRecord, dispatch } = props;
 
-  const entries = CollectionUtils.inGroupsOf(2, historyRecord.entries);
+  const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
     <div
       className="py-3 mx-3 text-xs border-b border-gray-200"
@@ -28,22 +28,26 @@ export function HistoryRecordView(props: IProps): JSX.Element {
       {entries.map(group => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
-            const excercise = Excercise.get(entry.excercise);
             let className: string;
-            if (i !== group.length - 1) {
+            if (group.length === 1 || i !== group.length - 1) {
               className = "flex flex-row flex-1 mr-2";
             } else {
               className = "flex flex-row flex-1";
             }
-            return (
-              <div className={className}>
-                <div style={{ flex: 2 }}>{excercise.name}</div>
-                <div className="flex-1 text-right">
-                  <HistoryRecordSetsView sets={entry.sets} isNext={!historyRecord.date} />
+            if (entry != null) {
+              const excercise = Excercise.get(entry.excercise);
+              return (
+                <div className={className}>
+                  <div style={{ flex: 2 }}>{excercise.name}</div>
+                  <div className="flex-1 text-right">
+                    <HistoryRecordSetsView sets={entry.sets} isNext={!historyRecord.date} />
+                  </div>
+                  <div className="w-6 ml-1 font-bold text-right">{Math.max(...entry.sets.map(s => s.weight))}</div>
                 </div>
-                <div className="w-6 ml-1 font-bold text-right">{entry.sets[0].weight}</div>
-              </div>
-            );
+              );
+            } else {
+              return <div className={className}></div>;
+            }
           })}
         </div>
       ))}

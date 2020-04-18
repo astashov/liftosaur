@@ -23,6 +23,19 @@ export namespace CollectionUtils {
     }
   }
 
+  export function inGroupsOfFilled<T>(length: number, collection: T[], shouldFill?: boolean): (T | undefined)[][] {
+    const result = inGroupsOf(length, collection) as (T | undefined)[][];
+    if (result.length > 0) {
+      const lastColl = result[result.length - 1];
+      if (lastColl != null) {
+        for (let i = 0; i < length; i += 1) {
+          lastColl[i] = lastColl[i] ?? undefined;
+        }
+      }
+    }
+    return result;
+  }
+
   export function repeat<T>(el: T, length: number): T[] {
     const arr: T[] = [];
     for (let i = 0; i < length; i += 1) {

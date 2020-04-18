@@ -1,6 +1,6 @@
 import { IExcerciseType, Excercise } from "../excercise";
 import { IProgram, IProgramDay } from "../program";
-import { IStats, IStatsExcercises } from "../stats";
+import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
 import { Weight, IWeight } from "../weight";
 import { IProgress, Progress } from "../progress";
@@ -19,6 +19,8 @@ function increment(excerciseType: IExcerciseType): number {
       return 5;
     case "squat":
       return 15;
+    default:
+      return 5;
   }
 }
 

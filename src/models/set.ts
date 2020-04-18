@@ -26,8 +26,9 @@ export namespace Reps {
   }
 
   export function areSameReps(sets: ISet[]): boolean {
+    const firstRep = sets[0]?.reps;
     if (sets.length > 0) {
-      return sets.every(s => s.completedReps != null && s.completedReps === s.reps);
+      return sets.every(s => s.completedReps != null && s.completedReps === firstRep);
     } else {
       return false;
     }

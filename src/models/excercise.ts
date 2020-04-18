@@ -1,7 +1,19 @@
 import { IWeight, Weight } from "./weight";
 import { ISet } from "./set";
 
-export type IExcerciseType = "benchPress" | "squat" | "deadlift" | "overheadPress" | "chinups" | "barbellRows";
+export type IExcerciseType =
+  | "benchPress"
+  | "squat"
+  | "deadlift"
+  | "overheadPress"
+  | "chinups"
+  | "barbellRows"
+  | "pushups"
+  | "pullups"
+  | "dips"
+  | "legRaises"
+  | "singleLegSplitSquat"
+  | "invertedRows";
 
 export type IExcercise = {
   id: IExcerciseType;
@@ -66,6 +78,42 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
   chinups: {
     id: "chinups",
     name: "Chinups",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  pushups: {
+    id: "pushups",
+    name: "Pushups",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  pullups: {
+    id: "pullups",
+    name: "Pullups",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  legRaises: {
+    id: "legRaises",
+    name: "Leg Raises",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  dips: {
+    id: "dips",
+    name: "Dips",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  singleLegSplitSquat: {
+    id: "singleLegSplitSquat",
+    name: "Single Leg Split Squat",
+    startWeight: 0,
+    warmupSets: weight => []
+  },
+  invertedRows: {
+    id: "invertedRows",
+    name: "Inverted Rows",
     startWeight: 0,
     warmupSets: weight => []
   },
