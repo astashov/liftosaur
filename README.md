@@ -1,1 +1,1 @@
-Liftosaur: Weight lifting app
+Liftosaur: Weight lifting app.
