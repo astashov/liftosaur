@@ -8,6 +8,13 @@ webpack_config = "webpack.server.config.js"
 
 kv-namespaces = [ 
   { binding = "kv_liftosaur_google_access_tokens", id = "529f74d9be9244b28f4201db8dfac079" },
-  { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46" },
-  { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b" }
+  { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b" },
+  { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46" }
+]
+
+[env.production]
+kv-namespaces = [ 
+  { binding = "kv_liftosaur_google_access_tokens", id = "0c65756ad516430389f32c8ef85b1372" },
+  { binding = "kv_liftosaur_google_ids", id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5" },
+  { binding = "kv_liftosaur_users", id = "d66a4540147046de80f8a497fcb244c5" }
 ]

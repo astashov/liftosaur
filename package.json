@@ -5,10 +5,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "NODE_ENV=production npm run build:dev",
+    "publish": "wrangler publish --env production",
     "build:server": "webpack --config webpack.server.config.js",
     "build:dev": "webpack",
     "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
     "start": "webpack-dev-server",
+    "start:server": "wrangler dev",
     "test": "jest"
   },
   "author": "Anton Astashov",

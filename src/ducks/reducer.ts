@@ -10,15 +10,17 @@ import { IStats } from "../models/stats";
 import { IWeight, IPlate } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
+import { Service } from "../api/service";
 
 export type IEnv = {
-  client: Window["fetch"];
+  service: Service;
   googleAuth?: gapi.auth2.GoogleAuth;
 };
 
 export type IScreen = "main" | "settings" | "account";
 
 export interface IState {
+  email?: string;
   storage: IStorage;
   webpushr?: IWebpushr;
   screenStack: IScreen[];
@@ -26,7 +28,7 @@ export interface IState {
 }
 
 export interface IStorage {
-  id?: number;
+  id: number;
   stats: IStats;
   history: IHistoryRecord[];
   settings: ISettings;
@@ -63,6 +65,7 @@ export function getInitialState(): IState {
     return {
       screenStack: ["main"],
       storage: {
+        id: 0,
         stats: {
           excercises: {}
         },
@@ -104,6 +107,15 @@ export type IConfirmDate = {
 export type ISyncStorage = {
   type: "SyncStorage";
   storage: IStorage;
+};
+
+export type ILoginAction = {
+  type: "Login";
+  email: string;
+};
+
+export type ILogoutAction = {
+  type: "Logout";
 };
 
 export type IPushScreen = {
@@ -181,6 +193,8 @@ export type IAction =
   | ISyncStorage
   | IChangeDate
   | IConfirmDate
+  | ILoginAction
+  | ILogoutAction
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -316,11 +330,16 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     return { ...state, screenStack: Screen.push(state.screenStack, action.screen) };
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
+  } else if (action.type === "Login") {
+    return { ...state, email: action.email };
+  } else if (action.type === "Logout") {
+    return { ...state, email: undefined };
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
     const newStorage = action.storage;
-    if (newStorage != null) {
+    if (newStorage?.id != null && oldStorage?.id != null && newStorage.id > oldStorage.id) {
       const storage: IStorage = {
+        id: newStorage.id,
         settings: {
           plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, el =>
             el.weight.toString()
@@ -329,7 +348,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
         },
         programStates: deepmerge(oldStorage.programStates, newStorage.programStates),
         stats: deepmerge(oldStorage.stats, newStorage.stats),
-        currentProgramId: oldStorage.currentProgramId,
+        currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)
       };
       return { ...state, storage };

@@ -27,12 +27,16 @@ function initialize(service: ServiceWorkerGlobalScope): void {
         return (
           r ||
           fetch(e.request).then(response => {
-            return caches.open(cacheName).then(cache => {
-              console.log("[Service Worker] Caching new resource: " + e.request.url);
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              cache.put(e.request, response.clone());
+            if (e.request.method === "GET") {
+              return caches.open(cacheName).then(cache => {
+                console.log("[Service Worker] Caching new resource: " + e.request.url);
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                cache.put(e.request, response.clone());
+                return response;
+              });
+            } else {
               return response;
-            });
+            }
           })
         );
       })

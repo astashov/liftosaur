@@ -19,39 +19,37 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       if (env.googleAuth != null) {
         const user = await env.googleAuth.signIn();
-        const response = await env.client(`${__API_HOST__}/api/signin/google`, {
-          method: "POST",
-          body: JSON.stringify({ token: user.getAuthResponse().access_token }),
-          credentials: "include"
-        });
-        console.log("response", response);
+        const result = await env.service.googleSignIn(user.getAuthResponse().access_token);
+        if (result.email != null) {
+          dispatch({ type: "Login", email: result.email });
+          dispatch({ type: "SyncStorage", storage: result.storage });
+        }
       }
     };
   }
 
-  export function getCurrentUser(): IThunk {
+  export function logOut(): IThunk {
     return async (dispatch, getState, env) => {
-      const response = await env.client(`${__API_HOST__}/api/user/me`, {
-        credentials: "include"
-      });
-      console.log("current user", await response.json());
+      await env.service.signout();
+      dispatch({ type: "Logout" });
     };
   }
 
   export function sync(): IThunk {
     return async (dispatch, getState, env) => {
-      await env.client(`${__API_HOST__}/api/storage`, {
-        method: "POST",
-        body: JSON.stringify({ storage: getState().storage }),
-        credentials: "include"
-      });
+      if (getState().email != null) {
+        await env.service.postStorage(getState().storage);
+      }
     };
   }
 
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
-      const result = await env.client(`${__API_HOST__}/api/storage`, { credentials: "include" });
-      dispatch({ type: "SyncStorage", storage: (await result.json()).storage });
+      const result = await env.service.getStorage();
+      if (result.email != null) {
+        dispatch({ type: "Login", email: result.email });
+        dispatch({ type: "SyncStorage", storage: result.storage });
+      }
     };
   }
 

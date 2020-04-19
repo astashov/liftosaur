@@ -10,13 +10,16 @@ import { ScreenSettings } from "./screenSettings";
 import { ScreenAccount } from "./screenAccount";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import { Thunk } from "../ducks/thunks";
+import { Service } from "../api/service";
 
 export function AppView(): JSX.Element | null {
-  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { client: fetch.bind(window) }, [
+  const client = window.fetch.bind(window);
+  const service = new Service(client);
+  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { service }, [
     (action, oldState, newState) => {
-      // if (oldState.storage !== newState.storage) {
-      //   dispatch(Thunk.sync());
-      // }
+      if (oldState.storage !== newState.storage) {
+        dispatch(Thunk.sync());
+      }
     }
   ]);
 
@@ -27,7 +30,7 @@ export function AppView(): JSX.Element | null {
       });
     };
     dispatch(Thunk.googleOauthInitialize());
-    // dispatch(Thunk.fetchStorage());
+    dispatch(Thunk.fetchStorage());
   }, []);
 
   if (Screen.current(state.screenStack) === "main") {
@@ -59,9 +62,9 @@ export function AppView(): JSX.Element | null {
       );
     }
   } else if (Screen.current(state.screenStack) === "settings") {
-    return <ScreenSettings dispatch={dispatch} />;
+    return <ScreenSettings dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "account") {
-    return <ScreenAccount dispatch={dispatch} />;
+    return <ScreenAccount dispatch={dispatch} email={state.email} />;
   } else {
     return null;
   }

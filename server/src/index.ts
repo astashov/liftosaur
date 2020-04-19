@@ -94,10 +94,23 @@ async function googleLoginHandler(request: Request): Promise<Response> {
     storage = JSON.parse(storageStr);
   }
   const session = JWT.sign({ userId: userId }, cookieSecret);
-  return new Response("ok", {
+  return new Response(JSON.stringify({ email: openIdJson.email, storage: storage.storage }), {
     headers: {
       ...getHeaders(request),
       "set-cookie": Cookie.serialize("session", session, { httpOnly: true, path: "/" })
+    }
+  });
+}
+
+async function signoutHandler(request: Request): Promise<Response> {
+  return new Response(JSON.stringify({}), {
+    headers: {
+      ...getHeaders(request),
+      "set-cookie": Cookie.serialize("session", "", {
+        httpOnly: true,
+        path: "/",
+        expires: new Date(1970, 1, 1)
+      })
     }
   });
 }
@@ -113,15 +126,6 @@ async function getCurrentUser(request: Request): Promise<IUser | undefined> {
     }
   }
   return undefined;
-}
-
-async function currentUserHandler(request: Request): Promise<Response> {
-  const user = await getCurrentUser(request);
-  if (user != null) {
-    return new Response(JSON.stringify({ email: user.email }), { headers: getHeaders(request) });
-  } else {
-    return new Response(JSON.stringify({}), { headers: getHeaders(request) });
-  }
 }
 
 async function getStorageHandler(request: Request): Promise<Response> {
@@ -154,7 +158,7 @@ async function handleRequest(request: Request): Promise<Response> {
   const r = new Router();
   r.post(".*timernotification", (req: Request) => timerHandler(req));
   r.post(".*/api/signin/google", (req: Request) => googleLoginHandler(req));
-  r.get(".*/api/user/me", (req: Request) => currentUserHandler(req));
+  r.post(".*/api/signout", (req: Request) => signoutHandler(req));
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
   const resp = await r.route(request);
