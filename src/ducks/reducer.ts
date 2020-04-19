@@ -26,6 +26,7 @@ export interface IState {
 }
 
 export interface IStorage {
+  id?: number;
   stats: IStats;
   history: IHistoryRecord[];
   settings: ISettings;
@@ -185,6 +186,9 @@ export type IAction =
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
   console.log(newState);
+  if (state.storage !== newState.storage) {
+    newState.storage = { ...newState.storage, id: (newState.storage.id || 0) + 1 };
+  }
   window.localStorage.setItem("liftosaur", JSON.stringify(newState.storage));
   return newState;
 };

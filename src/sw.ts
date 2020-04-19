@@ -9,6 +9,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
         return cache.addAll([
           `/main.css?version=${__COMMIT_HASH__}`,
           `/main.js?version=${__COMMIT_HASH__}`,
+          "/",
           "/index.html",
           "/icons/icon192.png",
           "/icons/icon512.png"
