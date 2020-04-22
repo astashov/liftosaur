@@ -12,7 +12,8 @@ function initialize(service: ServiceWorkerGlobalScope): void {
           "/",
           "/index.html",
           "/icons/icon192.png",
-          "/icons/icon512.png"
+          "/icons/icon512.png",
+          "/notification.m4r"
         ]);
       })
     );

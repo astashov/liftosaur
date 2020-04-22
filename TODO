@@ -1,0 +1,14 @@
+* 5314B:
+  - Add editing of training maxes
+  - Add training max calculator
+  - Update stats on day finish
+* Settings:
+  - Add available plates editor
+  - Add timers editing
+  - Add changing the current program
+* Bugs:
+  - Fix clicking settings multiple times
+* Add errors handling to HTTP calls
+* Add `apple-touch-icon`
+
+    

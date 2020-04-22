@@ -61,6 +61,10 @@ module.exports = {
         }
       },
       {
+        from: `src/notification.m4r`,
+        to: `notification.m4r`
+      },
+      {
         from: "icons",
         to: "icons"
       },

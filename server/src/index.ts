@@ -59,7 +59,7 @@ async function timerHandler(request: Request): Promise<Response> {
     body: JSON.stringify({
       title: "Timer",
       message: "Time to get another attempt",
-      target_url: "https://www.webpushr.com",
+      target_url: "https://www.liftosaur.com",
       expire_push: "5m",
       sid: url.searchParams.get("sid")
     })

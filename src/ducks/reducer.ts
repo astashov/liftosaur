@@ -11,9 +11,11 @@ import { IWeight, IPlate } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { Service } from "../api/service";
+import { AudioInterface } from "../lib/audioInterface";
 
 export type IEnv = {
   service: Service;
+  audio: AudioInterface;
   googleAuth?: gapi.auth2.GoogleAuth;
 };
 

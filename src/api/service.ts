@@ -45,4 +45,8 @@ export class Service {
     const json = await result.json();
     return { email: json.email, storage: json.storage };
   }
+
+  public sendTimerPushNotification(sid: number): void {
+    this.client(`https://server.liftosaur.workers.dev/timernotification?sid=${sid}`, { method: "POST" });
+  }
 }

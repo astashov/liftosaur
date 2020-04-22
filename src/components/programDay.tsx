@@ -14,6 +14,7 @@ import { useState } from "preact/hooks";
 import { Timer } from "./timer";
 import { IProgressMode, IProgress } from "../models/progress";
 import { ModalDate } from "./modalDate";
+import { AudioInterface } from "../lib/audioInterface";
 
 interface IProps {
   programId: IProgramId;
@@ -22,6 +23,7 @@ interface IProps {
   stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
+  audio: AudioInterface;
   webpushr?: IWebpushr;
 }
 
@@ -30,6 +32,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const historyRecord = progress.historyRecord;
   const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
   const [timerMode, setTimerMode] = useState<IProgressMode | undefined>(undefined);
+  const timers = props.settings.timers;
 
   if (progress != null) {
     const currentProgram = Program.get(historyRecord?.programId ?? props.programId);
@@ -83,6 +86,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={mode => {
+            const timer = timers[mode];
+            props.audio.playNotificationIn(timer);
             if (progress.historyRecord == null) {
               setTimerMode(mode);
               setTimerStart(new Date().getTime());
@@ -94,7 +99,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             mode={timerMode ?? "workout"}
             timerStart={timerStart}
             webpushr={props.webpushr}
-            timers={props.settings.timers}
+            timers={timers}
+            dispatch={props.dispatch}
           />
           <FooterView dispatch={props.dispatch} />
         </section>

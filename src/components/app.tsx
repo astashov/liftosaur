@@ -11,11 +11,12 @@ import { ScreenAccount } from "./screenAccount";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import { Thunk } from "../ducks/thunks";
 import { Service } from "../api/service";
+import { AudioInterface } from "../lib/audioInterface";
 
-export function AppView(): JSX.Element | null {
-  const client = window.fetch.bind(window);
+export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
+  const { client, audio } = props;
   const service = new Service(client);
-  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { service }, [
+  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { service, audio }, [
     (action, oldState, newState) => {
       if (oldState.storage !== newState.storage) {
         dispatch(Thunk.sync());
@@ -51,6 +52,7 @@ export function AppView(): JSX.Element | null {
     } else {
       return (
         <ProgramDayView
+          audio={audio}
           programId={programId}
           progress={state.progress}
           history={state.storage.history}

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
 import { IWebpushr } from "../ducks/reducer";
 import { IProgressMode } from "../models/progress";
+import { IDispatch } from "../ducks/types";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   timers: {
@@ -12,6 +14,7 @@ interface IProps {
   mode: IProgressMode;
   timerStart?: number;
   webpushr?: IWebpushr;
+  dispatch: IDispatch;
 }
 
 export function Timer(props: IProps): JSX.Element | null {
@@ -31,8 +34,7 @@ export function Timer(props: IProps): JSX.Element | null {
       const timeDifference = Date.now() - props.timerStart;
       const timer = props.timers[props.mode];
       if (timeDifference > timer && props.webpushr != null && !sentNotification.current) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        fetch(`https://server.liftosaur.workers.dev/timernotification?sid=${props.webpushr.sid}`, { method: "POST" });
+        props.dispatch(Thunk.sendTimerPushNotification(props.webpushr?.sid));
         sentNotification.current = true;
       }
       if (prevProps.current.timerStart !== props.timerStart) {
@@ -47,7 +49,7 @@ export function Timer(props: IProps): JSX.Element | null {
     const timer = props.timers[props.mode];
     const className = timeDifference > timer ? "text-red-500" : "text-gray-200";
     return (
-      <section className="w-full bg-gray-800 text-center col p-3">
+      <section className="w-full p-3 text-center bg-gray-800 col">
         <span className={className}>{TimeUtils.formatMMSS(timeDifference)}</span>
       </section>
     );
