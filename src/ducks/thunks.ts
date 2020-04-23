@@ -69,15 +69,10 @@ export namespace Thunk {
 
   export function sendTimerPushNotification(sid?: number): IThunk {
     return (dispatch, getState, env) => {
+      env.audio.play();
       if (sid != null) {
         env.service.sendTimerPushNotification(sid);
       }
-    };
-  }
-
-  export function playNotification(timer: number): IThunk {
-    return (dispatch, getState, env) => {
-      env.audio.playNotificationIn(timer);
     };
   }
 }

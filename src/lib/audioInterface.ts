@@ -1,13 +1,11 @@
 export class AudioInterface {
-  private timerId?: number;
+  private readonly audio: HTMLAudioElement;
 
-  public playNotificationIn(seconds: number): void {
-    const audio = new Audio("/notification.m4r");
-    if (this.timerId != null) {
-      window.clearInterval(this.timerId);
-    }
-    this.timerId = window.setTimeout(() => {
-      audio.play();
-    }, seconds);
+  constructor() {
+    this.audio = new Audio("/notification.m4r");
+  }
+
+  public play(): void {
+    this.audio.play();
   }
 }

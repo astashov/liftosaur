@@ -52,7 +52,6 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
     } else {
       return (
         <ProgramDayView
-          audio={audio}
           programId={programId}
           progress={state.progress}
           history={state.storage.history}

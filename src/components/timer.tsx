@@ -33,7 +33,7 @@ export function Timer(props: IProps): JSX.Element | null {
       }, 1000);
       const timeDifference = Date.now() - props.timerStart;
       const timer = props.timers[props.mode];
-      if (timeDifference > timer && props.webpushr != null && !sentNotification.current) {
+      if (timeDifference > timer && !sentNotification.current) {
         props.dispatch(Thunk.sendTimerPushNotification(props.webpushr?.sid));
         sentNotification.current = true;
       }
