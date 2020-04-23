@@ -8,6 +8,7 @@ import { DateUtils } from "../utils/date";
 
 export interface IProgress {
   day: number;
+  startTime: number;
   ui: IProgressUi;
   entries: IProgressEntry[];
   historyRecord?: IHistoryRecord;
@@ -43,6 +44,7 @@ export namespace Progress {
     return {
       day,
       ui: {},
+      startTime: Date.now(),
       entries: programDay(state).excercises.map(excercise => {
         const firstWeight = excercise.sets[0].weight;
         return {
@@ -58,6 +60,7 @@ export namespace Progress {
     return {
       day: historyRecord.day,
       historyRecord: historyRecord,
+      startTime: historyRecord.startTime,
       ui: {},
       entries: historyRecord.entries.map(entry => {
         const firstWeight = entry.sets[0].weight;
@@ -189,11 +192,21 @@ export namespace Progress {
               const sets = [...progressEntry.sets];
               const set = sets[setIndex];
               if (set.completedReps == null) {
-                sets[setIndex] = { ...set, completedReps: set.reps as number, weight };
+                sets[setIndex] = {
+                  ...set,
+                  completedReps: set.reps as number,
+                  weight,
+                  timestamp: set.timestamp ?? Date.now()
+                };
               } else if (set.completedReps > 0) {
-                sets[setIndex] = { ...set, completedReps: set.completedReps - 1, weight };
+                sets[setIndex] = {
+                  ...set,
+                  completedReps: set.completedReps - 1,
+                  weight,
+                  timestamp: set.timestamp ?? Date.now()
+                };
               } else {
-                sets[setIndex] = { ...set, completedReps: undefined, weight };
+                sets[setIndex] = { ...set, completedReps: undefined, weight, timestamp: set.timestamp ?? Date.now() };
               }
               return { ...progressEntry, sets: sets };
             } else {

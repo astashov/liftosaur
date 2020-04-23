@@ -8,6 +8,8 @@ export interface IHistoryRecord {
   date?: string; // ISO8601, like 2020-02-29T18:02:05+00:00
   programId: IProgramId;
   day: number;
+  startTime: number;
+  endTime: number;
   entries: IHistoryEntry[];
 }
 
@@ -23,7 +25,9 @@ export namespace History {
       date: progress.historyRecord?.date ? progress.historyRecord.date : new Date().toISOString(),
       programId: programId,
       day: progress.day,
-      entries: progress.entries.map(entry => JSON.parse(JSON.stringify(entry)))
+      entries: progress.entries.map(entry => JSON.parse(JSON.stringify(entry))),
+      startTime: progress.startTime,
+      endTime: Date.now()
     };
   }
 }

@@ -9,7 +9,7 @@ export namespace DateUtils {
     return date.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   }
 
-  export function formatYYYYMMDD(date: Date | string): string {
+  export function formatYYYYMMDD(date: Date | string | number): string {
     const d = new Date(date);
     let month = `${d.getMonth() + 1}`;
     let day = `${d.getDate()}`;
@@ -23,6 +23,31 @@ export namespace DateUtils {
     }
 
     return [year, month, day].join("-");
+  }
+
+  export function formatYYYYMMDDHHSS(date: Date | string | number): string {
+    const d = new Date(date);
+    let seconds = `${d.getSeconds()}`;
+    let minutes = `${d.getMinutes()}`;
+    let hours = `${d.getHours()}`;
+    let day = `${d.getDate()}`;
+    const month = `${d.getMonth() + 1}`;
+    const year = `${d.getFullYear()}`;
+
+    if (seconds.length < 2) {
+      seconds = `0${seconds}`;
+    }
+    if (minutes.length < 2) {
+      minutes = `0${minutes}`;
+    }
+    if (hours.length < 2) {
+      hours = `0${hours}`;
+    }
+    if (day.length < 2) {
+      day = `0${day}`;
+    }
+
+    return [year, month, day, hours, minutes, seconds].join("");
   }
 
   export function fromYYYYMMDD(dateStr: string): string {

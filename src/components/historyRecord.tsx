@@ -6,6 +6,7 @@ import { IHistoryRecord } from "../models/history";
 import { Program } from "../models/program";
 import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
+import { TimeUtils } from "../utils/time";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -23,7 +24,9 @@ export function HistoryRecordView(props: IProps): JSX.Element {
     >
       <div className="flex">
         <div className="flex-1 font-bold">{historyRecord.date ? DateUtils.format(historyRecord.date) : "Next"}</div>
-        <div className="text-gray-600">{Program.get(historyRecord.programId).name}</div>
+        <div className="text-gray-600">
+          {Program.get(historyRecord.programId).name}, day {historyRecord.day + 1}
+        </div>
       </div>
       {entries.map(group => (
         <div className="flex flex-row">
@@ -51,6 +54,12 @@ export function HistoryRecordView(props: IProps): JSX.Element {
           })}
         </div>
       ))}
+      {historyRecord.date != null && historyRecord.startTime != null && (
+        <div class="text-gray-600 text-right mt-1">
+          <span>Time:</span>{" "}
+          <span className="font-bold">{TimeUtils.formatHHMMSS(historyRecord.endTime - historyRecord.startTime)}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -49,6 +49,8 @@ export namespace Program {
       id: Date.now(),
       programId: program.id,
       day,
+      startTime: Date.now(),
+      endTime: Date.now(),
       entries: programDay(programState).excercises
     };
   }

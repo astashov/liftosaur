@@ -12,6 +12,8 @@ import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
+import { DateUtils } from "../utils/date";
+import { runMigrations } from "../migrations/runner";
 
 export type IEnv = {
   service: Service;
@@ -37,6 +39,7 @@ export interface IStorage {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   programStates: Record<string, any>;
   currentProgramId?: IProgramId;
+  version: string;
 }
 
 export interface ISettings {
@@ -62,7 +65,7 @@ export function getInitialState(): IState {
     }
   }
   if (storage != null) {
-    return { storage, screenStack: ["main"] };
+    return { storage: runMigrations(storage), screenStack: ["main"] };
   } else {
     return {
       screenStack: ["main"],
@@ -85,7 +88,8 @@ export function getInitialState(): IState {
             workout: 180000
           }
         },
-        history: []
+        history: [],
+        version: DateUtils.formatYYYYMMDDHHSS(Date.now())
       }
     };
   }
@@ -203,7 +207,11 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
   console.log(newState);
   if (state.storage !== newState.storage) {
-    newState.storage = { ...newState.storage, id: (newState.storage.id || 0) + 1 };
+    newState.storage = {
+      ...newState.storage,
+      id: (newState.storage.id || 0) + 1,
+      version: DateUtils.formatYYYYMMDDHHSS(Date.now())
+    };
   }
   window.localStorage.setItem("liftosaur", JSON.stringify(newState.storage));
   return newState;
@@ -351,7 +359,8 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
         programStates: deepmerge(oldStorage.programStates, newStorage.programStates),
         stats: deepmerge(oldStorage.stats, newStorage.stats),
         currentProgramId: newStorage.currentProgramId,
-        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!)
+        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!),
+        version: newStorage.version
       };
       return { ...state, storage };
     } else {

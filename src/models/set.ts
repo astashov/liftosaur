@@ -6,6 +6,7 @@ export type ISet = {
   completedReps?: number;
   reps: IProgramReps;
   weight: IWeight;
+  timestamp?: number;
 };
 
 export namespace Reps {
