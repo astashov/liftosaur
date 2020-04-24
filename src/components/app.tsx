@@ -58,6 +58,8 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
           stats={state.storage.stats}
           dispatch={dispatch}
           webpushr={state.webpushr}
+          timerSince={state.progress.timerSince}
+          timerMode={state.progress.timerMode}
           settings={state.storage.settings}
         />
       );

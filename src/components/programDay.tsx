@@ -10,9 +10,8 @@ import { IStats } from "../models/stats";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
-import { useState } from "preact/hooks";
 import { Timer } from "./timer";
-import { IProgressMode, IProgress } from "../models/progress";
+import { IProgress, IProgressMode } from "../models/progress";
 import { ModalDate } from "./modalDate";
 
 interface IProps {
@@ -22,14 +21,14 @@ interface IProps {
   stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
+  timerSince?: number;
+  timerMode?: IProgressMode;
   webpushr?: IWebpushr;
 }
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
   const historyRecord = progress.historyRecord;
-  const [timerStart, setTimerStart] = useState<number | undefined>(undefined);
-  const [timerMode, setTimerMode] = useState<IProgressMode | undefined>(undefined);
   const timers = props.settings.timers;
 
   if (progress != null) {
@@ -85,15 +84,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           onChangeReps={mode => {
             if (progress.historyRecord == null) {
-              setTimerMode(mode);
-              setTimerStart(new Date().getTime());
+              props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });
             }
           }}
         />
         <section className="relative">
           <Timer
-            mode={timerMode ?? "workout"}
-            timerStart={timerStart}
+            mode={props.timerMode ?? "workout"}
+            timerStart={props.timerSince}
             webpushr={props.webpushr}
             timers={timers}
             dispatch={props.dispatch}

@@ -6,9 +6,6 @@
   - Add available plates editor
   - Add timers editing
   - Add changing the current program
-* Bugs:
-  - Fix clicking settings multiple times
-  - Fix resetting timer if going to settings
 * Mark next weight bold
 * Add errors handling to HTTP calls
 * Add `apple-touch-icon`

@@ -12,6 +12,8 @@ export interface IProgress {
   ui: IProgressUi;
   entries: IProgressEntry[];
   historyRecord?: IHistoryRecord;
+  timerSince?: number;
+  timerMode?: IProgressMode;
 }
 
 export interface IProgressUi {
@@ -70,6 +72,14 @@ export namespace Progress {
           warmupSets: Excercise.getWarmupSets(entry.excercise, firstWeight)
         };
       })
+    };
+  }
+
+  export function startTimer(progress: IProgress, timestamp: number, mode: IProgressMode): IProgress {
+    return {
+      ...progress,
+      timerSince: timestamp,
+      timerMode: mode
     };
   }
 

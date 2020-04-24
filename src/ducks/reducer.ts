@@ -183,6 +183,12 @@ export type IEditHistoryRecord = {
   historyRecord: IHistoryRecord;
 };
 
+export type IStartTimer = {
+  type: "StartTimer";
+  timestamp: number;
+  mode: IProgressMode;
+};
+
 export type IAction =
   | IChangeRepsAction
   | IStartProgramDayAction
@@ -201,6 +207,7 @@ export type IAction =
   | IConfirmDate
   | ILoginAction
   | ILogoutAction
+  | IStartTimer
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -337,13 +344,23 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       return state;
     }
   } else if (action.type === "PushScreen") {
-    return { ...state, screenStack: Screen.push(state.screenStack, action.screen) };
+    if (state.screenStack.length > 0 && state.screenStack[state.screenStack.length - 1] !== action.screen) {
+      return { ...state, screenStack: Screen.push(state.screenStack, action.screen) };
+    } else {
+      return state;
+    }
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
   } else if (action.type === "Login") {
     return { ...state, email: action.email };
   } else if (action.type === "Logout") {
     return { ...state, email: undefined };
+  } else if (action.type === "StartTimer") {
+    if (state.progress != null) {
+      return { ...state, progress: Progress.startTimer(state.progress, action.timestamp, action.mode) };
+    } else {
+      return state;
+    }
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
     const newStorage = action.storage;
