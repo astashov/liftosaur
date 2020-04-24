@@ -40,17 +40,19 @@ export namespace Reps {
   }
 
   export function isCompleted(sets: ISet[]): boolean {
-    return sets.every((set, i) => {
-      if (set.completedReps != null) {
-        if (set.reps === "amrap") {
-          return set.completedReps > 0;
-        } else {
-          return set.reps === set.completedReps;
-        }
+    return sets.every(set => Reps.isCompletedSet(set));
+  }
+
+  export function isCompletedSet(set: ISet): boolean {
+    if (set.completedReps != null) {
+      if (set.reps === "amrap") {
+        return set.completedReps > 0;
       } else {
-        return false;
+        return set.reps === set.completedReps;
       }
-    });
+    } else {
+      return false;
+    }
   }
 
   export function isFinished(sets: ISet[]): boolean {
