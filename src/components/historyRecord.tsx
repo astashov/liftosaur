@@ -57,7 +57,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
       {historyRecord.date != null && historyRecord.startTime != null && (
         <div class="text-gray-600 text-right mt-1">
           <span>Time:</span>{" "}
-          <span className="font-bold">{TimeUtils.formatHHMMSS(historyRecord.endTime - historyRecord.startTime)}</span>
+          <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>
         </div>
       )}
     </div>

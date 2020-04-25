@@ -50,7 +50,7 @@ export function Timer(props: IProps): JSX.Element | null {
     const className = timeDifference > timer ? "text-red-500" : "text-gray-200";
     return (
       <section className="w-full p-3 text-center bg-gray-800 col">
-        <span className={className}>{TimeUtils.formatHHMMSS(timeDifference)}</span>
+        <span className={className}>{TimeUtils.formatHHMM(timeDifference)}</span>
       </section>
     );
   } else {
