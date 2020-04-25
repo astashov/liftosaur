@@ -12,7 +12,7 @@ export type ISet = {
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {
-    if (areSameReps(sets)) {
+    if (areSameReps(sets, isNext)) {
       return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
     } else {
       const arr = sets.map(s => Reps.displayReps(isNext ? s.reps : s.completedReps));
@@ -29,10 +29,12 @@ export namespace Reps {
     }
   }
 
-  export function areSameReps(sets: ISet[]): boolean {
+  export function areSameReps(sets: ISet[], isNext: boolean): boolean {
     const firstRep = sets[0]?.reps;
     if (sets.length > 0) {
-      return sets.every(s => s.completedReps != null && s.completedReps === firstRep);
+      return sets.every(
+        s => (isNext ? s.reps : s.completedReps) != null && (isNext ? s.reps : s.completedReps) === firstRep
+      );
     } else {
       return false;
     }
