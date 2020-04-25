@@ -83,6 +83,14 @@ export namespace Progress {
     };
   }
 
+  export function stopTimer(progress: IProgress): IProgress {
+    return {
+      ...progress,
+      timerSince: undefined,
+      timerMode: undefined
+    };
+  }
+
   export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IProgressEntry | undefined {
     return progress.entries.find(entry => entry.excercise === excerciseType);
   }

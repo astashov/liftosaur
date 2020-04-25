@@ -189,6 +189,10 @@ export type IStartTimer = {
   mode: IProgressMode;
 };
 
+export type IStopTimer = {
+  type: "StopTimer";
+};
+
 export type IAction =
   | IChangeRepsAction
   | IStartProgramDayAction
@@ -208,6 +212,7 @@ export type IAction =
   | ILoginAction
   | ILogoutAction
   | IStartTimer
+  | IStopTimer
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -226,11 +231,12 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
 
 export const reducer: Reducer<IState, IAction> = (state, action) => {
   if (action.type === "ChangeRepsAction") {
-    const progress = state.progress!;
-    return {
-      ...state,
-      progress: Progress.updateRepsInExcercise(progress, action.excercise, action.weight, action.setIndex, action.mode)
-    };
+    let progress = state.progress!;
+    progress = Progress.updateRepsInExcercise(progress, action.excercise, action.weight, action.setIndex, action.mode);
+    if (Progress.isFullyFinishedSet(progress)) {
+      progress = Progress.stopTimer(progress);
+    }
+    return { ...state, progress };
   } else if (action.type === "StartProgramDayAction") {
     if (state.progress != null) {
       throw new StateError("Progress is already started");
@@ -358,6 +364,12 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
   } else if (action.type === "StartTimer") {
     if (state.progress != null) {
       return { ...state, progress: Progress.startTimer(state.progress, action.timestamp, action.mode) };
+    } else {
+      return state;
+    }
+  } else if (action.type === "StopTimer") {
+    if (state.progress != null) {
+      return { ...state, progress: Progress.stopTimer(state.progress) };
     } else {
       return state;
     }

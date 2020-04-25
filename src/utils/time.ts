@@ -9,4 +9,10 @@ export namespace TimeUtils {
 
     return result;
   }
+
+  export function formatMMSS(ms: number): string {
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / 1000 / 60) % 60);
+    return [StringUtils.pad(minutes.toString(), 2), StringUtils.pad(seconds.toString(), 2)].join(":");
+  }
 }
