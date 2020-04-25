@@ -6,8 +6,6 @@
   - Add available plates editor
   - Add timers editing
   - Add changing the current program
-* Bugfixes
-  - Don't start timer after last excercise
 * Add errors handling to HTTP calls
 * Add `apple-touch-icon`
 

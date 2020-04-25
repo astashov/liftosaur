@@ -1,4 +1,5 @@
 import { IWeight } from "./weight";
+import { CollectionUtils } from "../utils/collection";
 
 export type IProgramReps = number | "amrap";
 
@@ -11,10 +12,12 @@ export type ISet = {
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {
-    if (isNext || areSameReps(sets)) {
+    if (areSameReps(sets)) {
       return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
     } else {
-      return sets.map(s => Reps.displayReps(s.completedReps)).join("/");
+      const arr = sets.map(s => Reps.displayReps(isNext ? s.reps : s.completedReps));
+      const groups = CollectionUtils.inGroupsOf(5, arr);
+      return groups.map(group => group.join("/")).join("/ ");
     }
   }
 
