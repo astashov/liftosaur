@@ -7,13 +7,15 @@ import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen } from "../models/screen";
 import { IStats } from "../models/stats";
-import { IWeight, IPlate } from "../models/weight";
+import { IWeight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
 import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
+import { ILensPlayPayload } from "../utils/lens";
+import { ISettings } from "../models/settings";
 
 export type IEnv = {
   service: Service;
@@ -21,7 +23,7 @@ export type IEnv = {
   googleAuth?: gapi.auth2.GoogleAuth;
 };
 
-export type IScreen = "main" | "settings" | "account";
+export type IScreen = "main" | "settings" | "account" | "timers";
 
 export interface IState {
   email?: string;
@@ -40,14 +42,6 @@ export interface IStorage {
   programStates: Record<string, any>;
   currentProgramId?: IProgramId;
   version: string;
-}
-
-export interface ISettings {
-  timers: {
-    warmup: number;
-    workout: number;
-  };
-  plates: IPlate[];
 }
 
 export interface IWebpushr {
@@ -84,8 +78,8 @@ export function getInitialState(): IState {
             { weight: 2.5, num: 4 }
           ],
           timers: {
-            warmup: 90000,
-            workout: 180000
+            warmup: 90,
+            workout: 180
           }
         },
         history: [],
@@ -173,6 +167,11 @@ export type IConfirmWeightAction = {
   weight?: IWeight;
 };
 
+export type IUpdateSettingsAction = {
+  type: "UpdateSettings";
+  lensPlay: ILensPlayPayload<ISettings>;
+};
+
 export type IStoreWebpushrSidAction = {
   type: "StoreWebpushrSidAction";
   sid: number;
@@ -213,9 +212,11 @@ export type IAction =
   | ILogoutAction
   | IStartTimer
   | IStopTimer
+  | IUpdateSettingsAction
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
+  console.log("Action: ", action);
   const newState = reducer(state, action);
   console.log(newState);
   if (state.storage !== newState.storage) {
@@ -373,6 +374,14 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     } else {
       return state;
     }
+  } else if (action.type === "UpdateSettings") {
+    return {
+      ...state,
+      storage: {
+        ...state.storage,
+        settings: action.lensPlay.fn(state.storage.settings)
+      }
+    };
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
     const newStorage = action.storage;

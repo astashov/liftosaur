@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { IWebpushr, ISettings } from "../ducks/reducer";
+import { IWebpushr } from "../ducks/reducer";
 import { Program, IProgramId } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
@@ -13,6 +13,7 @@ import { ModalWeight } from "./modalWeight";
 import { Timer } from "./timer";
 import { IProgress, IProgressMode } from "../models/progress";
 import { ModalDate } from "./modalDate";
+import { ISettings } from "../models/settings";
 
 interface IProps {
   programId: IProgramId;

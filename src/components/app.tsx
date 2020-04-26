@@ -12,6 +12,7 @@ import { useThunkReducer } from "../utils/useThunkReducer";
 import { Thunk } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
+import { ScreenTimers } from "./screenTimers";
 
 export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
   const { client, audio } = props;
@@ -68,6 +69,8 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
     return <ScreenSettings dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "account") {
     return <ScreenAccount dispatch={dispatch} email={state.email} />;
+  } else if (Screen.current(state.screenStack) === "timers") {
+    return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else {
     return null;
   }

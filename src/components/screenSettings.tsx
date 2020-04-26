@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
+import { MenuItem } from "./menuItem";
 
 interface IProps {
   dispatch: IDispatch;
@@ -16,13 +17,18 @@ export function ScreenSettings(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section className="flex-1 w-full">
-        <button
-          className="flex w-full px-6 py-4 text-left border-b border-gray-200"
+        <MenuItem
+          name="Account"
+          type="text"
+          value={props.email}
           onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
-        >
-          <span className="flex-1">Account</span>
-          {props.email != null && <span className="flex-1 text-gray-500">{props.email}</span>}
-        </button>
+        />
+        <MenuItem
+          name="Timers"
+          type="text"
+          value={props.email}
+          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
+        />
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>
