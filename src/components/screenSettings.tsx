@@ -23,12 +23,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           value={props.email}
           onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
         />
-        <MenuItem
-          name="Timers"
-          type="text"
-          value={props.email}
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
-        />
+        <MenuItem name="Timers" type="text" onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })} />
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>
