@@ -7,8 +7,8 @@ export interface ISettings {
 }
 
 export interface ISettingsTimers {
-  warmup: number;
-  workout: number;
+  warmup: number | null;
+  workout: number | null;
 }
 
 export namespace Settings {
@@ -19,7 +19,7 @@ export namespace Settings {
       { from: "settings", to: "timers" }
     ),
     timersField: (field: keyof ISettingsTimers) =>
-      new Lens<ISettingsTimers, number>(
+      new Lens<ISettingsTimers, number | null>(
         t => t[field],
         (t, v) => ({ ...t, [field]: v }),
         { from: "timers", to: field }

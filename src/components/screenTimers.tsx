@@ -24,16 +24,13 @@ export function ScreenTimers(props: IProps): JSX.Element {
             <MenuItem
               name={StringUtils.capitalize(key)}
               type="number"
-              value={timer}
+              hasClear={true}
+              value={timer?.toString() || null}
               valueUnits="sec"
-              onChange={(newValue: string) => {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensPlay: Lens.buildLensPlay(
-                    Settings.lens.timers.then(Settings.lens.timersField(key)),
-                    parseInt(newValue, 10)
-                  )
-                });
+              onChange={(newValue?: string) => {
+                const v = newValue != null ? parseInt(newValue, 10) : null;
+                const lensPlay = Lens.buildLensPlay(Settings.lens.timers.then(Settings.lens.timersField(key)), v);
+                props.dispatch({ type: "UpdateSettings", lensPlay });
               }}
             />
           );

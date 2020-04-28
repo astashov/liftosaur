@@ -5,12 +5,10 @@ import { IWebpushr } from "../ducks/reducer";
 import { IProgressMode } from "../models/progress";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
+import { ISettingsTimers } from "../models/settings";
 
 interface IProps {
-  timers: {
-    warmup: number;
-    workout: number;
-  };
+  timers: ISettingsTimers;
   mode: IProgressMode;
   timerStart?: number;
   webpushr?: IWebpushr;
@@ -33,7 +31,7 @@ export function Timer(props: IProps): JSX.Element | null {
       }, 1000);
       const timeDifference = Date.now() - props.timerStart;
       const timer = props.timers[props.mode];
-      if (timeDifference > timer * 1000 && !sentNotification.current) {
+      if (timer != null && timeDifference > timer * 1000 && !sentNotification.current) {
         props.dispatch(Thunk.sendTimerPushNotification(props.webpushr?.sid));
         sentNotification.current = true;
       }
@@ -44,9 +42,9 @@ export function Timer(props: IProps): JSX.Element | null {
     prevProps.current = props;
   });
 
-  if (props.timerStart != null) {
+  const timer = props.timers[props.mode];
+  if (timer != null && props.timerStart != null) {
     const timeDifference = Date.now() - props.timerStart;
-    const timer = props.timers[props.mode];
     const className = timeDifference > timer * 1000 ? "text-red-500" : "text-gray-200";
     return (
       <section className="w-full p-3 text-center bg-gray-800 col">

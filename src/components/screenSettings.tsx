@@ -20,10 +20,15 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           name="Account"
           type="text"
-          value={props.email}
+          value={props.email || null}
           onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
         />
-        <MenuItem name="Timers" type="text" onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })} />
+        <MenuItem
+          value={null}
+          name="Timers"
+          type="text"
+          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
+        />
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>

@@ -97,7 +97,11 @@ async function googleLoginHandler(request: Request): Promise<Response> {
   return new Response(JSON.stringify({ email: openIdJson.email, storage: storage.storage }), {
     headers: {
       ...getHeaders(request),
-      "set-cookie": Cookie.serialize("session", session, { httpOnly: true, path: "/" })
+      "set-cookie": Cookie.serialize("session", session, {
+        httpOnly: true,
+        path: "/",
+        expires: new Date(new Date().getFullYear() + 10)
+      })
     }
   });
 }
