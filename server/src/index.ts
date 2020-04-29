@@ -100,7 +100,7 @@ async function googleLoginHandler(request: Request): Promise<Response> {
       "set-cookie": Cookie.serialize("session", session, {
         httpOnly: true,
         path: "/",
-        expires: new Date(new Date().getFullYear() + 10)
+        expires: new Date(new Date().getFullYear() + 10, 0)
       })
     }
   });
