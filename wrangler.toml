@@ -18,3 +18,5 @@ kv-namespaces = [
   { binding = "kv_liftosaur_google_ids", id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5" },
   { binding = "kv_liftosaur_users", id = "d66a4540147046de80f8a497fcb244c5" }
 ]
+zone_id = "70fd832552237d1dd9cf1d2d8b97f8ee"
+route="api.liftosaur.com/*"

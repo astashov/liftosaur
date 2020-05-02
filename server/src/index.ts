@@ -99,6 +99,7 @@ async function googleLoginHandler(request: Request): Promise<Response> {
       ...getHeaders(request),
       "set-cookie": Cookie.serialize("session", session, {
         httpOnly: true,
+        domain: ".liftosaur.com",
         path: "/",
         expires: new Date(new Date().getFullYear() + 10, 0, 1)
       })
@@ -112,8 +113,9 @@ async function signoutHandler(request: Request): Promise<Response> {
       ...getHeaders(request),
       "set-cookie": Cookie.serialize("session", "", {
         httpOnly: true,
+        domain: ".liftosaur.com",
         path: "/",
-        expires: new Date(1970, 1, 1)
+        expires: new Date(1970, 0, 1)
       })
     }
   });
