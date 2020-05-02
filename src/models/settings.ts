@@ -23,6 +23,11 @@ export namespace Settings {
         t => t[field],
         (t, v) => ({ ...t, [field]: v }),
         { from: "timers", to: field }
-      )
+      ),
+    plates: new Lens<ISettings, IPlate[]>(
+      s => s.plates,
+      (s, plates) => ({ ...s, plates }),
+      { from: "settings", to: "plates" }
+    )
   };
 }

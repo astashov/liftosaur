@@ -19,16 +19,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
       <section className="flex-1 w-full">
         <MenuItem
           name="Account"
-          type="text"
-          value={props.email || null}
+          value={props.email}
           onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
         />
-        <MenuItem
-          value={null}
-          name="Timers"
-          type="text"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
-        />
+        <MenuItem name="Timers" onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })} />
+        <MenuItem name="Available Plates" onClick={() => props.dispatch({ type: "PushScreen", screen: "plates" })} />
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>

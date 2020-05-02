@@ -23,7 +23,7 @@ export type IEnv = {
   googleAuth?: gapi.auth2.GoogleAuth;
 };
 
-export type IScreen = "main" | "settings" | "account" | "timers";
+export type IScreen = "main" | "settings" | "account" | "timers" | "plates";
 
 export interface IState {
   email?: string;

@@ -2,11 +2,11 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { MenuItem } from "./menuItem";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
 import { ISettingsTimers, Settings } from "../models/settings";
 import { Lens } from "../utils/lens";
+import { MenuItemEditable } from "./menuItemEditable";
 
 interface IProps {
   dispatch: IDispatch;
@@ -21,7 +21,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
         {ObjectUtils.keys(props.timers).map(key => {
           const timer = props.timers[key];
           return (
-            <MenuItem
+            <MenuItemEditable
               name={StringUtils.capitalize(key)}
               type="number"
               hasClear={true}
