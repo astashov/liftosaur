@@ -28,10 +28,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
         return (
           r ||
           fetch(e.request).then(response => {
-            if (
-              e.request.method === "GET" &&
-              (e.request.url.indexOf("liftosaur.com") !== -1 || e.request.url.indexOf("localhost") !== -1)
-            ) {
+            if (e.request.method === "GET" && e.request.url.indexOf("/api") === -1) {
               return caches.open(cacheName).then(cache => {
                 console.log("[Service Worker] Caching new resource: " + e.request.url);
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
