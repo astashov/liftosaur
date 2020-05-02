@@ -1,5 +1,5 @@
-// eslint-disable-next-line no-var
-declare var __COMMIT_HASH__: string;
+declare let __COMMIT_HASH__: string;
+declare let __API_HOST__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 
 function initialize(service: ServiceWorkerGlobalScope): void {
@@ -28,7 +28,10 @@ function initialize(service: ServiceWorkerGlobalScope): void {
         return (
           r ||
           fetch(e.request).then(response => {
-            if (e.request.method === "GET") {
+            if (
+              e.request.method === "GET" &&
+              (e.request.url.indexOf("liftosaur.com") !== -1 || e.request.url.indexOf("localhost") !== -1)
+            ) {
               return caches.open(cacheName).then(cache => {
                 console.log("[Service Worker] Caching new resource: " + e.request.url);
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
