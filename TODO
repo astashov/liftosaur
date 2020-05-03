@@ -2,8 +2,10 @@
   - Add editing of training maxes
   - Add training max calculator
   - Update stats on day finish
-* Settings:
-  - Add changing the current program
+  - Add test week
+  - Add editing of accessory lifts
+* Graphs
+  - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Add errors handling to HTTP calls
 * Add `apple-touch-icon`
 

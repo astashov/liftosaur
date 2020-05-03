@@ -67,7 +67,7 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
       );
     }
   } else if (Screen.current(state.screenStack) === "settings") {
-    return <ScreenSettings dispatch={dispatch} email={state.email} />;
+    return <ScreenSettings dispatch={dispatch} email={state.email} currentProgram={state.storage.currentProgramId!} />;
   } else if (Screen.current(state.screenStack) === "account") {
     return <ScreenAccount dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {

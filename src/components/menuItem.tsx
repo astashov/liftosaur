@@ -1,8 +1,10 @@
 import { h, JSX, ComponentChildren } from "preact";
+import { IconArrowRight } from "./iconArrowRight";
 
 interface IMenuItemProps {
   name: string;
   value?: string;
+  shouldShowRightArrow?: boolean;
   onClick?: () => void;
 }
 
@@ -19,6 +21,11 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
     <MenuItemWrapper onClick={props.onClick}>
       <div className="flex-1 py-2 text-left">{props.name}</div>
       <div className="flex-1 py-2 text-right">{props.value}</div>
+      {props.shouldShowRightArrow && (
+        <div className="flex items-center py-2 pl-2">
+          <IconArrowRight style={{ width: "1rem", height: "1rem", fill: "#a0aec0" }} />
+        </div>
+      )}
     </MenuItemWrapper>
   );
 }

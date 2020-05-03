@@ -63,7 +63,7 @@ export const ivySaurProgram: IProgram = {
   author: "https://old.reddit.com/user/lvysaur",
   url: "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
   finishDay: (progress: IProgress, aStats: IStats, aState?: IIvysaurState): { state: IIvysaurState; stats: IStats } => {
-    const state: IIvysaurState = JSON.parse(JSON.stringify(aState));
+    const state: IIvysaurState = JSON.parse(JSON.stringify(aState || {}));
     const stats: IStats = JSON.parse(JSON.stringify(aStats));
     progress.entries.forEach(entry => {
       const excercise = Excercise.get(entry.excercise);

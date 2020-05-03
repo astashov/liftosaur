@@ -3,10 +3,14 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { MenuItem } from "./menuItem";
+import { MenuItemEditable } from "./menuItemEditable";
+import { programsList, IProgramId } from "../models/program";
+import { ObjectUtils } from "../utils/object";
 
 interface IProps {
   dispatch: IDispatch;
   email?: string;
+  currentProgram: IProgramId;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -20,10 +24,28 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           name="Account"
           value={props.email}
+          shouldShowRightArrow={true}
           onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
         />
-        <MenuItem name="Timers" onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })} />
-        <MenuItem name="Available Plates" onClick={() => props.dispatch({ type: "PushScreen", screen: "plates" })} />
+        <MenuItemEditable
+          name="Current Program"
+          type="select"
+          values={ObjectUtils.keys(programsList).map(k => [programsList[k].id, programsList[k].name])}
+          value={props.currentProgram}
+          onChange={(newValue?: string) => {
+            props.dispatch({ type: "ChangeProgramAction", name: newValue as IProgramId });
+          }}
+        />
+        <MenuItem
+          name="Timers"
+          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
+          shouldShowRightArrow={true}
+        />
+        <MenuItem
+          shouldShowRightArrow={true}
+          name="Available Plates"
+          onClick={() => props.dispatch({ type: "PushScreen", screen: "plates" })}
+        />
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>
