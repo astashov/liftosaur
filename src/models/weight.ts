@@ -19,7 +19,7 @@ export namespace Weight {
     plates.sort((a, b) => b.weight - a.weight);
     const arr: number[] = [];
     while (true) {
-      const plate = plates.find(p => p.num >= 2);
+      const plate = plates.find((p) => p.num >= 2);
       if (plate != null) {
         arr.push(plate.weight);
         plate.num -= 2;
@@ -37,12 +37,12 @@ export namespace Weight {
     const plates: IPlate[] = [];
     while (true) {
       const availablePlate = availablePlates.find(
-        potentialPlate => potentialPlate.num >= 2 && total + potentialPlate.weight * 2 <= weight
+        (potentialPlate) => potentialPlate.num >= 2 && total + potentialPlate.weight * 2 <= weight
       );
       if (availablePlate != null) {
         total += availablePlate.weight * 2;
         availablePlate.num -= 2;
-        let plate = plates.find(p => p.weight === availablePlate!.weight);
+        let plate = plates.find((p) => p.weight === availablePlate!.weight);
         if (plate == null) {
           plate = { weight: availablePlate.weight, num: 0 };
           plates.push(plate);

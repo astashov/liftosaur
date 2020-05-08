@@ -1,5 +1,5 @@
 import { Reducer } from "preact/hooks";
-import { Program, IProgramId } from "../models/program";
+import { Program, IProgramId, defaultProgramStates } from "../models/program";
 import { IHistoryRecord } from "../models/history";
 import { IProgress, Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
@@ -14,7 +14,7 @@ import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
 import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
-import { ILensPlayPayload } from "../utils/lens";
+import { ILensPlayPayload, lf } from "../utils/lens";
 import { ISettings } from "../models/settings";
 
 export type IEnv = {
@@ -23,7 +23,7 @@ export type IEnv = {
   googleAuth?: gapi.auth2.GoogleAuth;
 };
 
-export type IScreen = "main" | "settings" | "account" | "timers" | "plates";
+export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings";
 
 export interface IState {
   email?: string;
@@ -66,7 +66,7 @@ export function getInitialState(): IState {
       storage: {
         id: 0,
         stats: {
-          excercises: {}
+          excercises: {},
         },
         programStates: {},
         settings: {
@@ -75,19 +75,26 @@ export function getInitialState(): IState {
             { weight: 25, num: 4 },
             { weight: 10, num: 4 },
             { weight: 5, num: 4 },
-            { weight: 2.5, num: 4 }
+            { weight: 2.5, num: 4 },
           ],
           timers: {
             warmup: 90,
-            workout: 180
-          }
+            workout: 180,
+          },
         },
         history: [],
-        version: DateUtils.formatYYYYMMDDHHSS(Date.now())
-      }
+        version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
+      },
     };
   }
 }
+
+export type IUpdateProgramState = {
+  type: "UpdateProgramState";
+  name: IProgramId;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  lensPlay: ILensPlayPayload<any>;
+};
 
 export type IChangeProgramAction = {
   type: "ChangeProgramAction";
@@ -213,6 +220,7 @@ export type IAction =
   | IStartTimer
   | IStopTimer
   | IUpdateSettingsAction
+  | IUpdateProgramState
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
@@ -223,7 +231,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     newState.storage = {
       ...newState.storage,
       id: (newState.storage.id || 0) + 1,
-      version: DateUtils.formatYYYYMMDDHHSS(Date.now())
+      version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
     };
   }
   window.localStorage.setItem("liftosaur", JSON.stringify(newState.storage));
@@ -242,13 +250,13 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     if (state.progress != null) {
       throw new StateError("Progress is already started");
     } else if (state.storage.currentProgramId != null) {
-      const lastHistoryRecord = state.storage.history.find(i => i.programId === state.storage.currentProgramId);
+      const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
       const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
       const programState = state.storage.programStates[state.storage.currentProgramId];
       return {
         ...state,
-        progress: Progress.create(program, day, state.storage.stats, programState)
+        progress: Progress.create(program, day, state.storage.stats, programState),
       };
     } else {
       return state;
@@ -256,7 +264,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
   } else if (action.type === "EditHistoryRecord") {
     return {
       ...state,
-      progress: Progress.edit(action.historyRecord)
+      progress: Progress.edit(action.historyRecord),
     };
   } else if (action.type === "FinishProgramDayAction") {
     if (state.progress == null) {
@@ -269,7 +277,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       );
       let newHistory;
       if (state.progress.historyRecord != null) {
-        newHistory = state.storage.history.map(h => {
+        newHistory = state.storage.history.map((h) => {
           if (h.id === state.progress?.historyRecord?.id) {
             return historyRecord;
           } else {
@@ -292,60 +300,66 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
           history: newHistory,
           programStates: {
             ...state.storage.programStates,
-            [program.id]: newProgramState
-          }
+            [program.id]: newProgramState,
+          },
         },
-        progress: undefined
+        progress: undefined,
       };
     }
   } else if (action.type === "ChangeProgramAction") {
+    const currentProgramId = action.name;
+    const programState = state.storage.programStates[currentProgramId] || defaultProgramStates[currentProgramId];
     return {
       ...state,
       storage: {
         ...state.storage,
-        currentProgramId: action.name
-      }
+        programStates: {
+          ...state.storage.programStates,
+          [currentProgramId]: programState,
+        },
+        currentProgramId: action.name,
+      },
     };
   } else if (action.type === "ChangeAMRAPAction") {
     return {
       ...state,
-      progress: Progress.updateAmrapRepsInExcercise(state.progress!, action.value)
+      progress: Progress.updateAmrapRepsInExcercise(state.progress!, action.value),
     };
   } else if (action.type === "ChangeDate") {
     return {
       ...state,
-      progress: Progress.showUpdateDate(state.progress!, action.date)
+      progress: Progress.showUpdateDate(state.progress!, action.date),
     };
   } else if (action.type === "ConfirmDate") {
     return {
       ...state,
-      progress: Progress.changeDate(state.progress!, action.date)
+      progress: Progress.changeDate(state.progress!, action.date),
     };
   } else if (action.type === "ChangeWeightAction") {
     return {
       ...state,
-      progress: Progress.showUpdateWeightModal(state.progress!, action.excercise, action.weight)
+      progress: Progress.showUpdateWeightModal(state.progress!, action.excercise, action.weight),
     };
   } else if (action.type === "ConfirmWeightAction") {
     return {
       ...state,
-      progress: Progress.updateWeight(state.progress!, action.weight)
+      progress: Progress.updateWeight(state.progress!, action.weight),
     };
   } else if (action.type === "StoreWebpushrSidAction") {
     return {
       ...state,
-      webpushr: { sid: action.sid }
+      webpushr: { sid: action.sid },
     };
   } else if (action.type === "CancelProgress") {
     return { ...state, progress: undefined };
   } else if (action.type === "DeleteProgress") {
     const historyRecord = state.progress?.historyRecord;
     if (historyRecord != null) {
-      const history = state.storage.history.filter(h => h.date !== historyRecord.date);
+      const history = state.storage.history.filter((h) => h.date !== historyRecord.date);
       return {
         ...state,
         storage: { ...state.storage, history },
-        progress: undefined
+        progress: undefined,
       };
     } else {
       return state;
@@ -379,8 +393,8 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       ...state,
       storage: {
         ...state.storage,
-        settings: action.lensPlay.fn(state.storage.settings)
-      }
+        settings: action.lensPlay.fn(state.storage.settings),
+      },
     };
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
@@ -389,21 +403,26 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       const storage: IStorage = {
         id: newStorage.id,
         settings: {
-          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, el =>
+          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, (el) =>
             el.weight.toString()
           ),
-          timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers)
+          timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         },
         programStates: deepmerge(oldStorage.programStates, newStorage.programStates),
         stats: deepmerge(oldStorage.stats, newStorage.stats),
         currentProgramId: newStorage.currentProgramId,
-        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, el => el.date!),
-        version: newStorage.version
+        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
+        version: newStorage.version,
       };
       return { ...state, storage };
     } else {
       return state;
     }
+  } else if (action.type === "UpdateProgramState") {
+    const oldState = state.storage.programStates[action.name];
+    const newState = action.lensPlay.fn(oldState);
+
+    return lf(state).p("storage").p("programStates").p(action.name).set(newState);
   } else {
     return state;
   }

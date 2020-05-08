@@ -54,12 +54,12 @@ export namespace Thunk {
   }
 
   function initializeGapi(): Promise<{ auth: gapi.auth2.GoogleAuth }> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       window.gapi.load("auth2", () => {
         const auth2 = window.gapi.auth2.init({
           scope: "openid",
           fetch_basic_profile: false,
-          client_id: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com"
+          client_id: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
         });
 
         resolve({ auth: auth2 });

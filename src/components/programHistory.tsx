@@ -20,7 +20,7 @@ interface IProps {
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
-  const lastHistoryRecord = props.history.find(i => i.programId === props.program.id);
+  const lastHistoryRecord = props.history.find((i) => i.programId === props.program.id);
   const nextHistoryRecord = Program.nextProgramRecord(
     props.program,
     lastHistoryRecord?.day,
@@ -41,7 +41,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     <section className="flex flex-col h-full">
       <HeaderView title={props.program.name} subtitle="Current program" />
       <section className="flex-1 h-0 overflow-y-auto">
-        {history.map(historyRecord => (
+        {history.map((historyRecord) => (
           <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
         ))}
         <div className="py-3 text-center">

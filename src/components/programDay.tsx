@@ -74,16 +74,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                   Delete
                 </button>
               </div>
-            ) : (
-              undefined
-            )
+            ) : undefined
           }
         />
         <CardsView
           progress={progress}
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
-          onChangeReps={mode => {
+          onChangeReps={(mode) => {
             if (progress.historyRecord == null) {
               props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });
             }
@@ -102,14 +100,10 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui.weightModal != null ? (
           <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         {progress.ui.dateModal != null ? (
           <ModalDate dispatch={props.dispatch} date={progress.ui.dateModal.date} />
-        ) : (
-          undefined
-        )}
+        ) : undefined}
       </section>
     );
   } else {

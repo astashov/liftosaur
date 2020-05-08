@@ -35,7 +35,7 @@ export function ModalAmrap(props: { dispatch: IDispatch }): JSX.Element {
               const numValue = value != null ? parseInt(value, 10) : undefined;
               props.dispatch({
                 type: "ChangeAMRAPAction",
-                value: numValue != null && !isNaN(numValue) ? numValue : undefined
+                value: numValue != null && !isNaN(numValue) ? numValue : undefined,
               });
             }}
           >

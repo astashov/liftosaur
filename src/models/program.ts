@@ -1,6 +1,6 @@
 import { IStats } from "./stats";
-import { ivySaurProgram } from "./programs/ivySaurProgram";
-import { the5314bProgram } from "./programs/the5314bProgram";
+import * as IvySaurProgram from "./programs/ivySaurProgram";
+import * as The5314bProgram from "./programs/the5314bProgram";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { IProgress } from "./progress";
@@ -24,8 +24,14 @@ export interface IProgramDay {
 export type IProgramId = "ivySaur" | "the5314b";
 
 export const programsList: Record<IProgramId, IProgram> = {
-  ivySaur: ivySaurProgram,
-  the5314b: the5314bProgram
+  ivySaur: IvySaurProgram.ivySaurProgram,
+  the5314b: The5314bProgram.the5314bProgram,
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const defaultProgramStates: Record<IProgramId, any> = {
+  ivySaur: {},
+  the5314b: The5314bProgram.getInitialState(),
 };
 
 export namespace Program {
@@ -34,7 +40,7 @@ export namespace Program {
   }
 
   export function all(): IProgram[] {
-    return ObjectUtils.keys(programsList).map(k => programsList[k]);
+    return ObjectUtils.keys(programsList).map((k) => programsList[k]);
   }
 
   export function nextProgramRecord(
@@ -51,7 +57,7 @@ export namespace Program {
       day,
       startTime: Date.now(),
       endTime: Date.now(),
-      entries: programDay(programState).excercises
+      entries: programDay(programState).excercises,
     };
   }
 

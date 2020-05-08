@@ -28,7 +28,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
           {Program.get(historyRecord.programId).name}, day {historyRecord.day + 1}
         </div>
       </div>
-      {entries.map(group => (
+      {entries.map((group) => (
         <div className="flex flex-row">
           {group.map((entry, i) => {
             let className: string;
@@ -45,7 +45,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                   <div className="flex-1 text-right">
                     <HistoryRecordSetsView sets={entry.sets} isNext={!historyRecord.date} />
                   </div>
-                  <div className="w-6 ml-1 font-bold text-right">{Math.max(...entry.sets.map(s => s.weight))}</div>
+                  <div className="w-6 ml-1 font-bold text-right">{Math.max(...entry.sets.map((s) => s.weight))}</div>
                 </div>
               );
             } else {

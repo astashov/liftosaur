@@ -33,7 +33,7 @@ function warmup45(weight: IWeight): ISet[] {
   if (weight > 100) {
     percents.unshift(0.3);
   }
-  return percents.map(percent => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
+  return percents.map((percent) => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
 }
 
 function warmup95(weight: IWeight): ISet[] {
@@ -47,7 +47,7 @@ function warmup95(weight: IWeight): ISet[] {
   if (weight > 150) {
     percents.unshift(0.3);
   }
-  return percents.map(percent => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
+  return percents.map((percent) => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
 }
 
 export const excercises: Record<IExcerciseType, IExcercise> = {
@@ -55,74 +55,74 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
     id: "benchPress",
     name: "Bench Press",
     startWeight: 45,
-    warmupSets: warmup45
+    warmupSets: warmup45,
   },
   squat: {
     id: "squat",
     name: "Squat",
     startWeight: 45,
-    warmupSets: warmup45
+    warmupSets: warmup45,
   },
   deadlift: {
     id: "deadlift",
     name: "Deadlift",
     startWeight: 95,
-    warmupSets: warmup95
+    warmupSets: warmup95,
   },
   overheadPress: {
     id: "overheadPress",
     name: "Overhead Press",
     startWeight: 45,
-    warmupSets: warmup45
+    warmupSets: warmup45,
   },
   chinups: {
     id: "chinups",
     name: "Chinups",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   pushups: {
     id: "pushups",
     name: "Pushups",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   pullups: {
     id: "pullups",
     name: "Pullups",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   legRaises: {
     id: "legRaises",
     name: "Leg Raises",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   dips: {
     id: "dips",
     name: "Dips",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   singleLegSplitSquat: {
     id: "singleLegSplitSquat",
     name: "Single Leg Split Squat",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   invertedRows: {
     id: "invertedRows",
     name: "Inverted Rows",
     startWeight: 0,
-    warmupSets: weight => []
+    warmupSets: (weight) => [],
   },
   barbellRows: {
     id: "barbellRows",
     name: "Barbell Rows",
     startWeight: 95,
-    warmupSets: warmup95
-  }
+    warmupSets: warmup95,
+  },
 };
 
 export namespace Excercise {

@@ -8,7 +8,7 @@ import { Button } from "./button";
 import { useState } from "preact/hooks";
 import { ModalPlates } from "./modalPlates";
 import { Lens } from "../utils/lens";
-import { Settings } from "../models/settings";
+import { ISettings } from "../models/settings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -27,7 +27,7 @@ export function ScreenPlates(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section className="flex-1 w-full">
-        {plates.map(plate => {
+        {plates.map((plate) => {
           return (
             <MenuItemEditable
               name={`${plate.weight} lb`}
@@ -39,11 +39,11 @@ export function ScreenPlates(props: IProps): JSX.Element {
                 let newPlates;
                 if (v != null) {
                   const num = Math.floor(v / 2) * 2;
-                  newPlates = props.plates.map(p => (p.weight === plate.weight ? { ...p, num } : p));
+                  newPlates = props.plates.map((p) => (p.weight === plate.weight ? { ...p, num } : p));
                 } else {
-                  newPlates = props.plates.filter(p => p.weight !== plate.weight);
+                  newPlates = props.plates.filter((p) => p.weight !== plate.weight);
                 }
-                const lensPlay = Lens.buildLensPlay(Settings.lens.plates, newPlates);
+                const lensPlay = Lens.build<ISettings>().p("plates").play(newPlates);
                 props.dispatch({ type: "UpdateSettings", lensPlay });
               }}
             />
@@ -59,11 +59,11 @@ export function ScreenPlates(props: IProps): JSX.Element {
       <FooterView dispatch={props.dispatch} />
       {shouldShowModal && (
         <ModalPlates
-          onInput={weight => {
+          onInput={(weight) => {
             setShouldShowModal(false);
-            if (weight != null && props.plates.every(p => p.weight !== weight)) {
+            if (weight != null && props.plates.every((p) => p.weight !== weight)) {
               const newPlates: IPlate[] = [...props.plates, { weight, num: 0 }];
-              const lensPlay = Lens.buildLensPlay(Settings.lens.plates, newPlates);
+              const lensPlay = Lens.build<ISettings>().p("plates").play(newPlates);
               props.dispatch({ type: "UpdateSettings", lensPlay });
             }
           }}

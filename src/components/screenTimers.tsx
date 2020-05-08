@@ -4,7 +4,7 @@ import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
-import { ISettingsTimers, Settings } from "../models/settings";
+import { ISettingsTimers, ISettings } from "../models/settings";
 import { Lens } from "../utils/lens";
 import { MenuItemEditable } from "./menuItemEditable";
 
@@ -18,18 +18,18 @@ export function ScreenTimers(props: IProps): JSX.Element {
     <section className="flex flex-col h-full">
       <HeaderView title="Timers" left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>} />
       <section className="flex-1 w-full">
-        {ObjectUtils.keys(props.timers).map(key => {
-          const timer = props.timers[key];
+        {ObjectUtils.keys(props.timers).map((timerType) => {
+          const timer = props.timers[timerType];
           return (
             <MenuItemEditable
-              name={StringUtils.capitalize(key)}
+              name={StringUtils.capitalize(timerType)}
               type="number"
               hasClear={true}
               value={timer?.toString() || null}
               valueUnits="sec"
               onChange={(newValue?: string) => {
                 const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
-                const lensPlay = Lens.buildLensPlay(Settings.lens.timers.then(Settings.lens.timersField(key)), v);
+                const lensPlay = Lens.buildLensPlay(Lens.build<ISettings>().p("timers").p(timerType), v);
                 props.dispatch({ type: "UpdateSettings", lensPlay });
               }}
             />

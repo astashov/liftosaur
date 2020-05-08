@@ -22,7 +22,7 @@ declare let self: CloudflareWorkerGlobalScope;
 declare let webpushrKey: string;
 declare let webpushrAuthToken: string;
 
-self.addEventListener("fetch", event => {
+self.addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
@@ -32,15 +32,15 @@ function getHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("origin") || "http://example.com";
   const url = new URL(origin);
   let headers: Record<string, string> = {
-    "content-type": "application/json"
+    "content-type": "application/json",
   };
 
-  if (allowedHosts.some(h => h === url.host)) {
+  if (allowedHosts.some((h) => h === url.host)) {
     headers = {
       ...headers,
       "access-control-allow-origin": `${url.protocol}//${url.host}`,
       "access-control-allow-credentials": "true",
-      "access-control-expose-headers": "cookie, set-cookie"
+      "access-control-expose-headers": "cookie, set-cookie",
     };
   }
   return headers;
@@ -54,20 +54,20 @@ async function timerHandler(request: Request): Promise<Response> {
     headers: {
       webpushrKey: webpushrKey,
       webpushrAuthToken: webpushrAuthToken,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       title: "Timer",
       message: "Time to get another attempt",
       target_url: "https://www.liftosaur.com",
       expire_push: "5m",
-      sid: url.searchParams.get("sid")
-    })
+      sid: url.searchParams.get("sid"),
+    }),
   });
 
   const init = {
     headers: getHeaders(request),
-    status: response.status
+    status: response.status,
   };
   const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
   return new Response(body, init);
@@ -101,9 +101,9 @@ async function googleLoginHandler(request: Request): Promise<Response> {
         httpOnly: true,
         domain: ".liftosaur.com",
         path: "/",
-        expires: new Date(new Date().getFullYear() + 10, 0, 1)
-      })
-    }
+        expires: new Date(new Date().getFullYear() + 10, 0, 1),
+      }),
+    },
   });
 }
 
@@ -115,9 +115,9 @@ async function signoutHandler(request: Request): Promise<Response> {
         httpOnly: true,
         domain: ".liftosaur.com",
         path: "/",
-        expires: new Date(1970, 0, 1)
-      })
-    }
+        expires: new Date(1970, 0, 1),
+      }),
+    },
   });
 }
 
@@ -141,7 +141,7 @@ async function getStorageHandler(request: Request): Promise<Response> {
     if (resultRaw != null) {
       const result = JSON.parse(resultRaw);
       return new Response(JSON.stringify({ storage: result.storage, email: user.email }), {
-        headers: getHeaders(request)
+        headers: getHeaders(request),
       });
     }
   }

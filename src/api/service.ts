@@ -18,7 +18,7 @@ export class Service {
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
       body: JSON.stringify({ token }),
-      credentials: "include"
+      credentials: "include",
     });
     const json = await response.json();
     return { email: json.email, storage: json.storage };
@@ -28,7 +28,7 @@ export class Service {
     await this.client(`${__API_HOST__}/api/signout`, {
       method: "POST",
       body: JSON.stringify({}),
-      credentials: "include"
+      credentials: "include",
     });
   }
 
@@ -36,7 +36,7 @@ export class Service {
     await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",
       body: JSON.stringify({ storage }),
-      credentials: "include"
+      credentials: "include",
     });
   }
 

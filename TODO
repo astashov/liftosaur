@@ -6,7 +6,14 @@
   - Add editing of accessory lifts
 * Graphs
   - Show progress of stats over time, by type (3x8, 5x5, etc)
+* Bugs
+  - Sometimes it scrolls the whole screen instead of contents (history and progress views)
 * Add errors handling to HTTP calls
+* Allow to swap excercises in progress view
+* Add custom program WYSIWYG builder
+* Make AMRAP as a separate field, allow N+ AMRAPs
+* Add onboarding message
+* Add more details about a program
 * Add `apple-touch-icon`
 
     

@@ -36,7 +36,7 @@ export function ModalWeight(props: { dispatch: IDispatch; weight: number }): JSX
               const numValue = value != null ? parseInt(value, 10) : undefined;
               props.dispatch({
                 type: "ConfirmWeightAction",
-                weight: numValue != null && !isNaN(numValue) ? numValue : undefined
+                weight: numValue != null && !isNaN(numValue) ? numValue : undefined,
               });
             }}
           >

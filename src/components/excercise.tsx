@@ -40,12 +40,12 @@ export function ExcerciseView(props: IProps): JSX.Element {
 
 function ExcerciseContentView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
-  const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter(s => s.completedReps == null)[0];
-  const workoutWeights = Array.from(new Set(props.entry.sets.map(s => s.weight)));
+  const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+  const workoutWeights = Array.from(new Set(props.entry.sets.map((s) => s.weight)));
   workoutWeights.sort((a, b) => a - b);
   const warmupSets = props.entry.warmupSets;
-  const warmupWeights = Array.from(new Set(warmupSets.map(s => s.weight))).filter(
-    w => Object.keys(Weight.calculatePlates(props.availablePlates, w - 45)).length > 0
+  const warmupWeights = Array.from(new Set(warmupSets.map((s) => s.weight))).filter(
+    (w) => Object.keys(Weight.calculatePlates(props.availablePlates, w - 45)).length > 0
   );
   warmupWeights.sort((a, b) => a - b);
   return (
@@ -53,7 +53,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
       <header className="flex">
         <div className="flex-1 mr-auto">{excercise.name}</div>
         <div className="text-right">
-          {warmupWeights.map(w => {
+          {warmupWeights.map((w) => {
             const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
             return (
               <div className={className}>
@@ -62,7 +62,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               </div>
             );
           })}
-          {workoutWeights.map(w => {
+          {workoutWeights.map((w) => {
             const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
             return (
               <div className={className}>
@@ -94,7 +94,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
                     reps={set.reps}
                     weight={set.weight}
                     completedReps={set.completedReps}
-                    onClick={event => {
+                    onClick={(event) => {
                       event.preventDefault();
                       props.onChangeReps("warmup");
                       handleClick(props.dispatch, props.entry.excercise, set.weight, i, "warmup");
@@ -112,7 +112,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               reps={set.reps}
               weight={set.weight}
               completedReps={set.completedReps}
-              onClick={event => {
+              onClick={(event) => {
                 event.preventDefault();
                 props.onChangeReps("workout");
                 handleClick(props.dispatch, props.entry.excercise, set.weight, i, "workout");

@@ -44,7 +44,7 @@ export class Router {
   public handle(conditions: ICondition | ICondition[], handler: IHandler): this {
     this.routes.push({
       conditions,
-      handler
+      handler,
     });
     return this;
   }
@@ -100,8 +100,8 @@ export class Router {
       status: 404,
       statusText: "not found",
       headers: {
-        "content-type": "text/plain"
-      }
+        "content-type": "text/plain",
+      },
     });
   }
 
@@ -110,7 +110,7 @@ export class Router {
    * true for all conditions (if any).
    */
   public resolve(req: Request): IRoute | undefined {
-    return this.routes.find(r => {
+    return this.routes.find((r) => {
       if (!r.conditions || (Array.isArray(r) && !r.conditions.length)) {
         return true;
       }
@@ -119,7 +119,7 @@ export class Router {
         return r.conditions(req);
       }
 
-      return r.conditions.every(c => c(req));
+      return r.conditions.every((c) => c(req));
     });
   }
 }

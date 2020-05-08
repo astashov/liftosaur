@@ -65,7 +65,7 @@ export const ivySaurProgram: IProgram = {
   finishDay: (progress: IProgress, aStats: IStats, aState?: IIvysaurState): { state: IIvysaurState; stats: IStats } => {
     const state: IIvysaurState = JSON.parse(JSON.stringify(aState || {}));
     const stats: IStats = JSON.parse(JSON.stringify(aStats));
-    progress.entries.forEach(entry => {
+    progress.entries.forEach((entry) => {
       const excercise = Excercise.get(entry.excercise);
       const oldStateEntry = state[excercise.id];
       if (Progress.isCompletedSet(entry)) {
@@ -87,7 +87,7 @@ export const ivySaurProgram: IProgram = {
         state[excercise.id] = { failed: 1, weight: excercise.startWeight };
       }
     });
-    progress.entries.forEach(entry => {
+    progress.entries.forEach((entry) => {
       const oldStatsExcerciseValue = stats.excercises[entry.excercise];
       const set = entry.sets[0];
       if (Progress.isCompletedSet(entry)) {
@@ -95,8 +95,8 @@ export const ivySaurProgram: IProgram = {
           ...oldStatsExcerciseValue,
           weights: {
             ...oldStatsExcerciseValue?.weights,
-            [`${entry.sets.length}x${set.reps}`]: set.weight
-          }
+            [`${entry.sets.length}x${set.reps}`]: set.weight,
+          },
         };
       }
     });
@@ -109,21 +109,21 @@ export const ivySaurProgram: IProgram = {
         excercises: [
           {
             excercise: "benchPress",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress", state) }, 4),
           },
           {
             excercise: "squat",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat", state) }, 4),
           },
           {
             excercise: "overheadPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4),
           },
           {
             excercise: "chinups",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups", state) }, 4),
+          },
+        ],
       };
     },
     (state?: IIvysaurState): IProgramDay => {
@@ -132,21 +132,21 @@ export const ivySaurProgram: IProgram = {
         excercises: [
           {
             excercise: "benchPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4),
           },
           {
             excercise: "deadlift",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("deadlift", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("deadlift", state) }, 4),
           },
           {
             excercise: "overheadPress",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress", state) }, 4),
           },
           {
             excercise: "barbellRows",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows", state) }, 4),
+          },
+        ],
       };
     },
     (state?: IIvysaurState): IProgramDay => {
@@ -159,8 +159,8 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("benchPress", state) },
               { reps: 4, weight: getWeight4("benchPress", state) },
               { reps: 4, weight: getWeight4("benchPress", state) },
-              { reps: "amrap", weight: getWeight4("benchPress", state) }
-            ]
+              { reps: "amrap", weight: getWeight4("benchPress", state) },
+            ],
           },
           {
             excercise: "squat",
@@ -168,18 +168,18 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("squat", state) },
               { reps: 4, weight: getWeight4("squat", state) },
               { reps: 4, weight: getWeight4("squat", state) },
-              { reps: "amrap", weight: getWeight4("squat", state) }
-            ]
+              { reps: "amrap", weight: getWeight4("squat", state) },
+            ],
           },
           {
             excercise: "overheadPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4),
           },
           {
             excercise: "chinups",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("chinups", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("chinups", state) }, 4),
+          },
+        ],
       };
     },
     (state?: IIvysaurState): IProgramDay => {
@@ -188,21 +188,21 @@ export const ivySaurProgram: IProgram = {
         excercises: [
           {
             excercise: "benchPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4),
           },
           {
             excercise: "deadlift",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("deadlift", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("deadlift", state) }, 4),
           },
           {
             excercise: "overheadPress",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("overheadPress", state) }, 4),
           },
           {
             excercise: "barbellRows",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("barbellRows", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("barbellRows", state) }, 4),
+          },
+        ],
       };
     },
     (state?: IIvysaurState): IProgramDay => {
@@ -211,21 +211,21 @@ export const ivySaurProgram: IProgram = {
         excercises: [
           {
             excercise: "benchPress",
-            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 4, weight: getWeight4("benchPress", state) }, 4),
           },
           {
             excercise: "squat",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("squat", state) }, 4),
           },
           {
             excercise: "overheadPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("overheadPress", state) }, 4),
           },
           {
             excercise: "chinups",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("chinups", state) }, 4),
+          },
+        ],
       };
     },
     (state?: IIvysaurState): IProgramDay => {
@@ -234,7 +234,7 @@ export const ivySaurProgram: IProgram = {
         excercises: [
           {
             excercise: "benchPress",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4)
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("benchPress", state) }, 4),
           },
           {
             excercise: "deadlift",
@@ -242,8 +242,8 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("deadlift", state) },
               { reps: 4, weight: getWeight4("deadlift", state) },
               { reps: 4, weight: getWeight4("deadlift", state) },
-              { reps: "amrap", weight: getWeight4("deadlift", state) }
-            ]
+              { reps: "amrap", weight: getWeight4("deadlift", state) },
+            ],
           },
           {
             excercise: "overheadPress",
@@ -251,15 +251,15 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("overheadPress", state) },
               { reps: 4, weight: getWeight4("overheadPress", state) },
               { reps: 4, weight: getWeight4("overheadPress", state) },
-              { reps: "amrap", weight: getWeight4("overheadPress", state) }
-            ]
+              { reps: "amrap", weight: getWeight4("overheadPress", state) },
+            ],
           },
           {
             excercise: "barbellRows",
-            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows", state) }, 4)
-          }
-        ]
+            sets: CollectionUtils.repeat({ reps: 8, weight: getWeight8("barbellRows", state) }, 4),
+          },
+        ],
       };
-    }
-  ]
+    },
+  ],
 };

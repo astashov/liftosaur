@@ -14,6 +14,7 @@ import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
+import { ScreenProgramSettings } from "./screenProgramSettings";
 
 export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
   const { client, audio } = props;
@@ -23,12 +24,12 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
       if (oldState.storage !== newState.storage) {
         dispatch(Thunk.sync());
       }
-    }
+    },
   ]);
 
   useEffect(() => {
     window._webpushrScriptReady = () => {
-      window.webpushr("fetch_id", sid => {
+      window.webpushr("fetch_id", (sid) => {
         dispatch({ type: "StoreWebpushrSidAction", sid });
       });
     };
@@ -74,6 +75,14 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
     return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
     return <ScreenPlates dispatch={dispatch} plates={state.storage.settings.plates} />;
+  } else if (Screen.current(state.screenStack) === "programSettings") {
+    return (
+      <ScreenProgramSettings
+        dispatch={dispatch}
+        programId={state.storage.currentProgramId!}
+        programStates={state.storage.programStates}
+      />
+    );
   } else {
     return null;
   }

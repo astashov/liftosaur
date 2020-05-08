@@ -30,11 +30,16 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItemEditable
           name="Current Program"
           type="select"
-          values={ObjectUtils.keys(programsList).map(k => [programsList[k].id, programsList[k].name])}
+          values={ObjectUtils.keys(programsList).map((k) => [programsList[k].id, programsList[k].name])}
           value={props.currentProgram}
           onChange={(newValue?: string) => {
             props.dispatch({ type: "ChangeProgramAction", name: newValue as IProgramId });
           }}
+        />
+        <MenuItem
+          name="Program Settings"
+          onClick={() => props.dispatch({ type: "PushScreen", screen: "programSettings" })}
+          shouldShowRightArrow={true}
         />
         <MenuItem
           name="Timers"

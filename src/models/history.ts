@@ -25,9 +25,9 @@ export namespace History {
       date: progress.historyRecord?.date ? progress.historyRecord.date : new Date().toISOString(),
       programId: programId,
       day: progress.day,
-      entries: progress.entries.map(entry => JSON.parse(JSON.stringify(entry))),
+      entries: progress.entries.map((entry) => JSON.parse(JSON.stringify(entry))),
       startTime: progress.startTime,
-      endTime: Date.now()
+      endTime: Date.now(),
     };
   }
 }

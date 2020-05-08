@@ -47,14 +47,14 @@ export namespace Progress {
       day,
       ui: {},
       startTime: Date.now(),
-      entries: programDay(state).excercises.map(excercise => {
+      entries: programDay(state).excercises.map((excercise) => {
         const firstWeight = excercise.sets[0].weight;
         return {
           excercise: excercise.excercise,
           sets: excercise.sets,
-          warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight)
+          warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight),
         };
-      })
+      }),
     };
   }
 
@@ -64,14 +64,14 @@ export namespace Progress {
       historyRecord: historyRecord,
       startTime: historyRecord.startTime,
       ui: {},
-      entries: historyRecord.entries.map(entry => {
+      entries: historyRecord.entries.map((entry) => {
         const firstWeight = entry.sets[0].weight;
         return {
           excercise: entry.excercise,
           sets: entry.sets,
-          warmupSets: Excercise.getWarmupSets(entry.excercise, firstWeight)
+          warmupSets: Excercise.getWarmupSets(entry.excercise, firstWeight),
         };
-      })
+      }),
     };
   }
 
@@ -79,7 +79,7 @@ export namespace Progress {
     return {
       ...progress,
       timerSince: timestamp,
-      timerMode: mode
+      timerMode: mode,
     };
   }
 
@@ -87,16 +87,16 @@ export namespace Progress {
     return {
       ...progress,
       timerSince: undefined,
-      timerMode: undefined
+      timerMode: undefined,
     };
   }
 
   export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IProgressEntry | undefined {
-    return progress.entries.find(entry => entry.excercise === excerciseType);
+    return progress.entries.find((entry) => entry.excercise === excerciseType);
   }
 
   export function isFullyCompletedSet(progress: IProgress): boolean {
-    return progress.entries.every(entry => isCompletedSet(entry));
+    return progress.entries.every((entry) => isCompletedSet(entry));
   }
 
   export function isCompletedSet(entry: IProgressEntry): boolean {
@@ -104,7 +104,7 @@ export namespace Progress {
   }
 
   export function isFullyFinishedSet(progress: IProgress): boolean {
-    return progress.entries.every(entry => isFinishedSet(entry));
+    return progress.entries.every((entry) => isFinishedSet(entry));
   }
 
   export function isFinishedSet(entry: IProgressEntry): boolean {
@@ -118,9 +118,9 @@ export namespace Progress {
         ...progress.ui,
         weightModal: {
           excercise,
-          weight
-        }
-      }
+          weight,
+        },
+      },
     };
   }
 
@@ -130,9 +130,9 @@ export namespace Progress {
       ui: {
         ...progress.ui,
         dateModal: {
-          date
-        }
-      }
+          date,
+        },
+      },
     };
   }
 
@@ -143,12 +143,12 @@ export namespace Progress {
         ...progress,
         historyRecord: {
           ...historyRecord,
-          ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {})
+          ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
         },
         ui: {
           ...progress.ui,
-          dateModal: undefined
-        }
+          dateModal: undefined,
+        },
       };
     } else {
       return progress;
@@ -163,11 +163,11 @@ export namespace Progress {
     mode: IProgressMode
   ): IProgress {
     if (mode === "warmup") {
-      const firstWeight = progress.entries.find(e => e.excercise === excercise)?.sets[0]?.weight;
+      const firstWeight = progress.entries.find((e) => e.excercise === excercise)?.sets[0]?.weight;
       if (firstWeight != null) {
         return {
           ...progress,
-          entries: progress.entries.map(progressEntry => {
+          entries: progress.entries.map((progressEntry) => {
             if (progressEntry.excercise === excercise) {
               const progressSets = progressEntry.warmupSets;
               const progressSet = progressSets[setIndex];
@@ -177,7 +177,7 @@ export namespace Progress {
                 progressSets[setIndex] = {
                   ...progressSet,
                   completedReps: progressSet.completedReps - 1,
-                  weight
+                  weight,
                 };
               } else {
                 progressSets[setIndex] = { ...progressSet, completedReps: undefined, weight };
@@ -186,26 +186,26 @@ export namespace Progress {
             } else {
               return progressEntry;
             }
-          })
+          }),
         };
       } else {
         return progress;
       }
     } else {
-      const entry = progress.entries.find(e => e.excercise === excercise)!;
+      const entry = progress.entries.find((e) => e.excercise === excercise)!;
       if (entry.sets[setIndex].reps === "amrap") {
         const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
         return {
           ...progress,
           ui: {
             ...progress.ui,
-            ...amrapUi
-          }
+            ...amrapUi,
+          },
         };
       } else {
         return {
           ...progress,
-          entries: progress.entries.map(progressEntry => {
+          entries: progress.entries.map((progressEntry) => {
             if (progressEntry.excercise === excercise) {
               const sets = [...progressEntry.sets];
               const set = sets[setIndex];
@@ -214,14 +214,14 @@ export namespace Progress {
                   ...set,
                   completedReps: set.reps as number,
                   weight,
-                  timestamp: set.timestamp ?? Date.now()
+                  timestamp: set.timestamp ?? Date.now(),
                 };
               } else if (set.completedReps > 0) {
                 sets[setIndex] = {
                   ...set,
                   completedReps: set.completedReps - 1,
                   weight,
-                  timestamp: set.timestamp ?? Date.now()
+                  timestamp: set.timestamp ?? Date.now(),
                 };
               } else {
                 sets[setIndex] = { ...set, completedReps: undefined, weight, timestamp: set.timestamp ?? Date.now() };
@@ -230,7 +230,7 @@ export namespace Progress {
             } else {
               return progressEntry;
             }
-          })
+          }),
         };
       }
     }
@@ -242,7 +242,7 @@ export namespace Progress {
       return {
         ...progress,
         ui: { ...progress.ui, amrapModal: undefined },
-        entries: progress.entries.map(progressEntry => {
+        entries: progress.entries.map((progressEntry) => {
           if (progressEntry.excercise === excercise) {
             const sets = [...progressEntry.sets];
             const set = sets[setIndex];
@@ -255,7 +255,7 @@ export namespace Progress {
           } else {
             return progressEntry;
           }
-        })
+        }),
       };
     } else {
       return progress;
@@ -268,12 +268,12 @@ export namespace Progress {
       return {
         ...progress,
         ui: { ...progress.ui, weightModal: undefined },
-        entries: progress.entries.map(progressEntry => {
+        entries: progress.entries.map((progressEntry) => {
           if (progressEntry.excercise === excercise) {
             const firstWeight = progressEntry.sets[0]?.weight;
             return {
               ...progressEntry,
-              sets: progressEntry.sets.map(set => {
+              sets: progressEntry.sets.map((set) => {
                 if (set.weight === previousWeight && weight != null) {
                   return { ...set, weight: Weight.round(weight) };
                 } else {
@@ -283,12 +283,12 @@ export namespace Progress {
               warmupSets:
                 firstWeight === previousWeight && weight != null
                   ? Excercise.getWarmupSets(excercise, weight)
-                  : progressEntry.warmupSets
+                  : progressEntry.warmupSets,
             };
           } else {
             return progressEntry;
           }
-        })
+        }),
       };
     } else {
       return progress;

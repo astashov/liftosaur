@@ -8,7 +8,7 @@ export namespace CollectionUtils {
   export function inGroupsOf<T>(length: number, collection: T[]): T[][] {
     if (collection.length > 0) {
       const result: T[][] = [[]];
-      collection.forEach(item => {
+      collection.forEach((item) => {
         let lastColl = result[result.length - 1];
         if (lastColl.length >= length) {
           lastColl = [];
@@ -49,6 +49,6 @@ export namespace CollectionUtils {
       memo[condition(item)] = item;
       return memo;
     }, {});
-    return Object.keys(map).map(key => map[key]);
+    return Object.keys(map).map((key) => map[key]);
   }
 }
