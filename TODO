@@ -11,7 +11,7 @@
 * Add custom program WYSIWYG builder
 * Add onboarding message
 * Add more details about a program
-* Store progress in localstorage
+* Make serializing/deserializing safer by using io-ts
 * Add `apple-touch-icon`
 
     

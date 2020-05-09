@@ -48,9 +48,14 @@ export interface IWebpushr {
   sid: number;
 }
 
+export interface ILocalStorage {
+  storage?: IStorage;
+  progress?: IProgress;
+}
+
 export function getInitialState(): IState {
   const rawStorage = window.localStorage.getItem("liftosaur");
-  let storage: IStorage | undefined;
+  let storage: IStorage | ILocalStorage | undefined;
   if (rawStorage != null) {
     try {
       storage = JSON.parse(rawStorage);
@@ -59,34 +64,43 @@ export function getInitialState(): IState {
     }
   }
   if (storage != null) {
-    return { storage: runMigrations(storage), screenStack: ["main"] };
-  } else {
-    return {
-      screenStack: ["main"],
-      storage: {
-        id: 0,
-        stats: {
-          excercises: {},
-        },
-        programStates: {},
-        settings: {
-          plates: [
-            { weight: 45, num: 4 },
-            { weight: 25, num: 4 },
-            { weight: 10, num: 4 },
-            { weight: 5, num: 4 },
-            { weight: 2.5, num: 4 },
-          ],
-          timers: {
-            warmup: 90,
-            workout: 180,
-          },
-        },
-        history: [],
-        version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
-      },
-    };
+    if ("storage" in storage) {
+      if (storage.storage != null) {
+        return {
+          storage: runMigrations(storage.storage),
+          progress: storage.progress,
+          screenStack: ["main"],
+        };
+      }
+    } else {
+      return { storage: runMigrations(storage as IStorage), screenStack: ["main"] };
+    }
   }
+  return {
+    screenStack: ["main"],
+    storage: {
+      id: 0,
+      stats: {
+        excercises: {},
+      },
+      programStates: {},
+      settings: {
+        plates: [
+          { weight: 45, num: 4 },
+          { weight: 25, num: 4 },
+          { weight: 10, num: 4 },
+          { weight: 5, num: 4 },
+          { weight: 2.5, num: 4 },
+        ],
+        timers: {
+          warmup: 90,
+          workout: 180,
+        },
+      },
+      history: [],
+      version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
+    },
+  };
 }
 
 export type IUpdateProgramState = {
@@ -234,7 +248,8 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
       version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
     };
   }
-  window.localStorage.setItem("liftosaur", JSON.stringify(newState.storage));
+  const localStorage: ILocalStorage = { storage: newState.storage, progress: newState.progress };
+  window.localStorage.setItem("liftosaur", JSON.stringify(localStorage));
   return newState;
 };
 
