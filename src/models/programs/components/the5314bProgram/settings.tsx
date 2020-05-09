@@ -161,6 +161,24 @@ function The5314bProgramAccessorySettings(
           props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
         }}
       />
+      <MenuItemEditable
+        name="Is last set AMRAP?"
+        type="boolean"
+        value={accessory.sets[accessory.sets.length - 1].isAmrap ? "true" : "false"}
+        onChange={(newValue?: string) => {
+          const isSelected = newValue != null && JSON.parse(newValue) === true;
+          const setsLength = accessory.sets.length - 1;
+          const lensPlay = lb<I5314BState>()
+            .p("accessories")
+            .i(day)
+            .p(type)
+            .p("sets")
+            .i(setsLength)
+            .p("isAmrap")
+            .play(isSelected);
+          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+        }}
+      />
     </Fragment>
   );
 }

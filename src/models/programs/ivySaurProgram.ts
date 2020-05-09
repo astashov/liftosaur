@@ -159,7 +159,7 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("benchPress", state) },
               { reps: 4, weight: getWeight4("benchPress", state) },
               { reps: 4, weight: getWeight4("benchPress", state) },
-              { reps: "amrap", weight: getWeight4("benchPress", state) },
+              { reps: 4, weight: getWeight4("benchPress", state), isAmrap: true },
             ],
           },
           {
@@ -168,7 +168,7 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("squat", state) },
               { reps: 4, weight: getWeight4("squat", state) },
               { reps: 4, weight: getWeight4("squat", state) },
-              { reps: "amrap", weight: getWeight4("squat", state) },
+              { reps: 4, weight: getWeight4("squat", state), isAmrap: true },
             ],
           },
           {
@@ -242,7 +242,7 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("deadlift", state) },
               { reps: 4, weight: getWeight4("deadlift", state) },
               { reps: 4, weight: getWeight4("deadlift", state) },
-              { reps: "amrap", weight: getWeight4("deadlift", state) },
+              { reps: 4, weight: getWeight4("deadlift", state), isAmrap: true },
             ],
           },
           {
@@ -251,7 +251,7 @@ export const ivySaurProgram: IProgram = {
               { reps: 4, weight: getWeight4("overheadPress", state) },
               { reps: 4, weight: getWeight4("overheadPress", state) },
               { reps: 4, weight: getWeight4("overheadPress", state) },
-              { reps: "amrap", weight: getWeight4("overheadPress", state) },
+              { reps: 4, weight: getWeight4("overheadPress", state), isAmrap: true },
             ],
           },
           {

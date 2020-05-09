@@ -3,7 +3,7 @@ import { IconDelete } from "./iconDelete";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
 
-type IMenuItemType = "text" | "number" | "select";
+type IMenuItemType = "text" | "number" | "select" | "boolean";
 
 interface IMenuItemEditableValueProps {
   type: IMenuItemType;
@@ -83,6 +83,25 @@ function MenuItemValue(
         onChange={handleChange(props.onChange, props.setPatternError)}
         pattern={props.pattern}
       />
+    );
+  } else if (props.type === "boolean") {
+    return (
+      <div className="flex items-center flex-1 text-right">
+        <label className="flex-1 text-right">
+          <input
+            key={props.value}
+            type="checkbox"
+            className="text-right text-gray-700"
+            checked={props.value === "true"}
+            onChange={(e: Event): void => {
+              if (props.onChange != null) {
+                const value = `${(e.target as HTMLInputElement).checked}`;
+                props.onChange(value, e);
+              }
+            }}
+          />
+        </label>
+      </div>
     );
   } else if (props.type === "number") {
     return (

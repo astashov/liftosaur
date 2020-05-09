@@ -193,7 +193,7 @@ export namespace Progress {
       }
     } else {
       const entry = progress.entries.find((e) => e.excercise === excercise)!;
-      if (entry.sets[setIndex].reps === "amrap") {
+      if (entry.sets[setIndex].isAmrap) {
         const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
         return {
           ...progress,

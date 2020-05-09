@@ -62,7 +62,7 @@ function setsWeek1(trainingMax: IWeight): ISet[] {
   return [
     { reps: 5, weight: Weight.round(trainingMax * 0.65) },
     { reps: 5, weight: Weight.round(trainingMax * 0.75) },
-    { reps: "amrap", weight: Weight.round(trainingMax * 0.85) },
+    { reps: 5, weight: Weight.round(trainingMax * 0.85), isAmrap: true },
     { reps: 5, weight: Weight.round(trainingMax * 0.65) },
     { reps: 5, weight: Weight.round(trainingMax * 0.65) },
     { reps: 5, weight: Weight.round(trainingMax * 0.65) },
@@ -75,7 +75,7 @@ function setsWeek2(trainingMax: IWeight): ISet[] {
   return [
     { reps: 3, weight: Weight.round(trainingMax * 0.7) },
     { reps: 3, weight: Weight.round(trainingMax * 0.8) },
-    { reps: "amrap", weight: Weight.round(trainingMax * 0.9) },
+    { reps: 3, weight: Weight.round(trainingMax * 0.9), isAmrap: true },
     { reps: 5, weight: Weight.round(trainingMax * 0.7) },
     { reps: 5, weight: Weight.round(trainingMax * 0.7) },
     { reps: 5, weight: Weight.round(trainingMax * 0.7) },
@@ -88,7 +88,7 @@ function setsWeek3(trainingMax: IWeight): ISet[] {
   return [
     { reps: 5, weight: Weight.round(trainingMax * 0.75) },
     { reps: 3, weight: Weight.round(trainingMax * 0.85) },
-    { reps: "amrap", weight: Weight.round(trainingMax * 0.95) },
+    { reps: 1, weight: Weight.round(trainingMax * 0.95), isAmrap: true },
     { reps: 5, weight: Weight.round(trainingMax * 0.75) },
     { reps: 5, weight: Weight.round(trainingMax * 0.75) },
     { reps: 5, weight: Weight.round(trainingMax * 0.75) },

@@ -1,9 +1,7 @@
 * 5314B:
-  - Add editing of training maxes
   - Add training max calculator
   - Update stats on day finish
   - Add test week
-  - Add editing of accessory lifts
 * Graphs
   - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Bugs
@@ -11,9 +9,9 @@
 * Add errors handling to HTTP calls
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
-* Make AMRAP as a separate field, allow N+ AMRAPs
 * Add onboarding message
 * Add more details about a program
+* Store progress in localstorage
 * Add `apple-touch-icon`
 
     

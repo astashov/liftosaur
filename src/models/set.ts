@@ -1,11 +1,12 @@
 import { IWeight } from "./weight";
 import { CollectionUtils } from "../utils/collection";
 
-export type IProgramReps = number | "amrap";
+export type IProgramReps = number;
 
 export type ISet = {
   completedReps?: number;
-  reps: IProgramReps;
+  reps: number;
+  isAmrap?: boolean;
   weight: IWeight;
   timestamp?: number;
 };
@@ -15,18 +16,18 @@ export namespace Reps {
     if (areSameReps(sets, isNext)) {
       return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
     } else {
-      const arr = sets.map((s) => Reps.displayReps(isNext ? s.reps : s.completedReps));
+      const arr = sets.map((s) => (isNext ? displayReps(s) : displayCompletedReps(s)));
       const groups = CollectionUtils.inGroupsOf(5, arr);
       return groups.map((group) => group.join("/")).join("/ ");
     }
   }
 
-  export function displayReps(reps?: IProgramReps): string {
-    if (reps != null) {
-      return reps === "amrap" ? "1+" : reps.toString();
-    } else {
-      return "-";
-    }
+  export function displayReps(set: ISet): string {
+    return set.isAmrap ? `${set.reps}+` : `${set.reps}`;
+  }
+
+  export function displayCompletedReps(set: ISet): string {
+    return set.completedReps != null ? `${set.completedReps}` : "-";
   }
 
   export function areSameReps(sets: ISet[], isNext: boolean): boolean {
@@ -50,7 +51,7 @@ export namespace Reps {
 
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null) {
-      if (set.reps === "amrap") {
+      if (set.isAmrap) {
         return set.completedReps > 0;
       } else {
         return set.reps === set.completedReps;
