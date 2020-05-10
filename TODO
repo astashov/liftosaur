@@ -9,9 +9,9 @@
 * Add errors handling to HTTP calls
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
-* Add onboarding message
-* Add more details about a program
-* Make serializing/deserializing safer by using io-ts
+* Make serializing/deserializing safer
+* Allow to go back to history view without finishing the day
+* Provide a way to send feedback
 * Add `apple-touch-icon`
 
     

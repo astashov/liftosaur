@@ -6,6 +6,7 @@ import { ISet } from "../set";
 import { IProgress } from "../progress";
 import { IExcerciseType } from "../excercise";
 import { ObjectUtils } from "../../utils/object";
+import { h } from "preact";
 
 export function getInitialState(): I5314BState {
   return {
@@ -102,6 +103,14 @@ export const the5314bProgram: IProgram = {
   name: "5/3/1 for beginners",
   author: "Jim Wendler",
   url: "https://thefitness.wiki/routines/5-3-1-for-beginners",
+  description: (
+    <div>
+      <p>A very popular weight lifting routine - 5/3/1 by Jim Wendler, adapted for beginners.</p>
+      <p>
+        Good both for strength and size, it's well tested by time and helped thousands of lifters to achieve their goals
+      </p>
+    </div>
+  ),
   finishDay: (progress: IProgress, aStats: IStats, aState?: I5314BState): { state: I5314BState; stats: IStats } => {
     const state: I5314BState = aState ? JSON.parse(JSON.stringify(aState)) : getInitialState();
     const stats: IStats = JSON.parse(JSON.stringify(aStats));

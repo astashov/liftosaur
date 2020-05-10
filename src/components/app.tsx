@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { useEffect } from "preact/hooks";
+import { h, JSX, Fragment } from "preact";
+import { useEffect, useState } from "preact/hooks";
 import { getInitialState, reducerWrapper } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -15,6 +15,7 @@ import { AudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
 import { ScreenProgramSettings } from "./screenProgramSettings";
+import { ModalOnboarding } from "./modalOnboarding";
 
 export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
   const { client, audio } = props;
@@ -26,6 +27,7 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
       }
     },
   ]);
+  const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
 
   useEffect(() => {
     window._webpushrScriptReady = () => {
@@ -35,12 +37,20 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
     };
     dispatch(Thunk.googleOauthInitialize());
     dispatch(Thunk.fetchStorage());
+    if (state.storage.currentProgramId == null) {
+      setShouldShowOnboarding(true);
+    }
   }, []);
 
   if (Screen.current(state.screenStack) === "main") {
     const programId = state.storage.currentProgramId;
     if (programId == null) {
-      return <ChooseProgramView dispatch={dispatch} />;
+      return (
+        <Fragment>
+          <ChooseProgramView dispatch={dispatch} />
+          {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
+        </Fragment>
+      );
     } else if (state.progress == null) {
       const program = Program.get(programId);
       return (

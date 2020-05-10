@@ -1,19 +1,15 @@
 import { h, JSX } from "preact";
-import { IDispatch } from "../ducks/types";
-import { Program } from "../models/program";
+import { Program, IProgramId } from "../models/program";
 
 interface IProps {
-  dispatch: IDispatch;
+  onClick: (id: IProgramId) => void;
 }
 
 export function ProgramListView(props: IProps): JSX.Element {
   return (
     <section className="flex-1 w-full">
       {Program.all().map((program) => (
-        <button
-          className="border-gray-200 border-b p-4 w-full"
-          onClick={() => props.dispatch({ type: "ChangeProgramAction", name: program.id })}
-        >
+        <button className="w-full p-4 border-b border-gray-200" onClick={() => props.onClick(program.id)}>
           {program.name}
         </button>
       ))}

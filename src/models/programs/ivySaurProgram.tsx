@@ -1,3 +1,4 @@
+import { h } from "preact";
 import { IExcerciseType, Excercise } from "../excercise";
 import { IProgram, IProgramDay } from "../program";
 import { IStats } from "../stats";
@@ -62,6 +63,7 @@ export const ivySaurProgram: IProgram = {
   name: "IvySaur Program",
   author: "https://old.reddit.com/user/lvysaur",
   url: "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
+  description: <p></p>,
   finishDay: (progress: IProgress, aStats: IStats, aState?: IIvysaurState): { state: IIvysaurState; stats: IStats } => {
     const state: IIvysaurState = JSON.parse(JSON.stringify(aState || {}));
     const stats: IStats = JSON.parse(JSON.stringify(aStats));

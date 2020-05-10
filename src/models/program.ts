@@ -4,12 +4,14 @@ import * as The5314bProgram from "./programs/the5314bProgram";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { IProgress } from "./progress";
+import { JSX } from "preact";
 
 export interface IProgram {
   id: IProgramId;
   name: string;
   url: string;
   author: string;
+  description: JSX.Element;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   days: ((state: any) => IProgramDay)[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,8 +26,8 @@ export interface IProgramDay {
 export type IProgramId = "ivySaur" | "the5314b";
 
 export const programsList: Record<IProgramId, IProgram> = {
-  ivySaur: IvySaurProgram.ivySaurProgram,
   the5314b: The5314bProgram.the5314bProgram,
+  ivySaur: IvySaurProgram.ivySaurProgram,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
