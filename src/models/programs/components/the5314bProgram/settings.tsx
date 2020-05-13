@@ -1,5 +1,12 @@
 import { h, JSX, Fragment } from "preact";
-import { I5314BState, I5314BAccessory, I5314BAccessoryDay, I5314BExcerciseType } from "../../the5314bProgram";
+import {
+  I5314BState,
+  I5314BAccessory,
+  I5314BAccessoryDay,
+  I5314BExcerciseType,
+  bodyweightAccessoriesPreset,
+  mirrorBroAccessoriesPreset,
+} from "../../the5314bProgram";
 import { IDispatch } from "../../../../ducks/types";
 import { IProgramId, Program } from "../../../program";
 import { MenuItemEditable } from "../../../../components/menuItemEditable";
@@ -113,6 +120,25 @@ function Settings(
           />
         );
       })}
+      <GroupHeader name="Assistance presets" />
+      <MenuItem
+        name="Bodyweight"
+        onClick={() => {
+          if (confirm("Do you want to apply it? It will reset your assistance excercises")) {
+            const lensPlay = lb<I5314BState>().p("accessories").play(bodyweightAccessoriesPreset());
+            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+          }
+        }}
+      ></MenuItem>
+      <MenuItem
+        name="Mirror Bro"
+        onClick={() => {
+          if (confirm("Do you want to apply it? It will reset your assistance excercises")) {
+            const lensPlay = lb<I5314BState>().p("accessories").play(mirrorBroAccessoriesPreset());
+            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+          }
+        }}
+      ></MenuItem>
       <GroupHeader name="Assistance work" />
       <section className="text-sm">
         {([0, 1, 2] as const).map((day) =>

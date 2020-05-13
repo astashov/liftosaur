@@ -13,7 +13,21 @@ export type IExcerciseType =
   | "dips"
   | "legRaises"
   | "singleLegSplitSquat"
-  | "invertedRows";
+  | "invertedRows"
+  | "dbLateralRaise"
+  | "inclineDbBenchPress"
+  | "dbShrug"
+  | "cableCrunch"
+  | "tricepsPushdown"
+  | "neutralGripChinup"
+  | "plank"
+  | "dbRow"
+  | "dbOverheadPress"
+  | "bulgarianSplitSquat"
+  | "paloffPressWithBand"
+  | "dbLunge"
+  | "dbSwing"
+  | "dbBicepCurl";
 
 export type IExcercise = {
   id: IExcerciseType;
@@ -50,6 +64,10 @@ function warmup95(weight: IWeight): ISet[] {
   return percents.map((percent) => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
 }
 
+function warmupEmpty(weight: IWeight): ISet[] {
+  return [];
+}
+
 export const excercises: Record<IExcerciseType, IExcercise> = {
   benchPress: {
     id: "benchPress",
@@ -79,49 +97,133 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
     id: "chinups",
     name: "Chinups",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   pushups: {
     id: "pushups",
     name: "Pushups",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   pullups: {
     id: "pullups",
     name: "Pullups",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   legRaises: {
     id: "legRaises",
     name: "Leg Raises",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   dips: {
     id: "dips",
     name: "Dips",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   singleLegSplitSquat: {
     id: "singleLegSplitSquat",
     name: "Single Leg Split Squat",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   invertedRows: {
     id: "invertedRows",
     name: "Inverted Rows",
     startWeight: 0,
-    warmupSets: (weight) => [],
+    warmupSets: warmupEmpty,
   },
   barbellRows: {
     id: "barbellRows",
     name: "Barbell Rows",
     startWeight: 95,
     warmupSets: warmup95,
+  },
+  dbLateralRaise: {
+    id: "dbLateralRaise",
+    name: "Dumbbell Lateral Raise",
+    startWeight: 25,
+    warmupSets: warmupEmpty,
+  },
+  inclineDbBenchPress: {
+    id: "inclineDbBenchPress",
+    name: "Incline Dumbbell Bench Press",
+    startWeight: 50,
+    warmupSets: warmupEmpty,
+  },
+  dbShrug: {
+    id: "dbShrug",
+    name: "Dumbbell Shrug",
+    startWeight: 25,
+    warmupSets: warmupEmpty,
+  },
+  cableCrunch: {
+    id: "cableCrunch",
+    name: "Cable Crunch",
+    startWeight: 50,
+    warmupSets: warmupEmpty,
+  },
+  tricepsPushdown: {
+    id: "tricepsPushdown",
+    name: "Triceps Pushdown",
+    startWeight: 50,
+    warmupSets: warmupEmpty,
+  },
+  neutralGripChinup: {
+    id: "neutralGripChinup",
+    name: "Neutral Grip Chinup",
+    startWeight: 0,
+    warmupSets: warmupEmpty,
+  },
+  plank: {
+    id: "plank",
+    name: "Plank",
+    startWeight: 0,
+    warmupSets: warmupEmpty,
+  },
+  dbRow: {
+    id: "dbRow",
+    name: "Dumbbell Row",
+    startWeight: 50,
+    warmupSets: warmupEmpty,
+  },
+  dbOverheadPress: {
+    id: "dbOverheadPress",
+    name: "Dumbbell Overhead Press",
+    startWeight: 40,
+    warmupSets: warmupEmpty,
+  },
+  bulgarianSplitSquat: {
+    id: "bulgarianSplitSquat",
+    name: "Bulgarian Split Squat",
+    startWeight: 0,
+    warmupSets: warmupEmpty,
+  },
+  paloffPressWithBand: {
+    id: "paloffPressWithBand",
+    name: "Paloff Press With Band",
+    startWeight: 0,
+    warmupSets: warmupEmpty,
+  },
+  dbLunge: {
+    id: "dbLunge",
+    name: "Dumbbell Lunge",
+    startWeight: 25,
+    warmupSets: warmupEmpty,
+  },
+  dbSwing: {
+    id: "dbSwing",
+    name: "Dumbbell Swing",
+    startWeight: 25,
+    warmupSets: warmupEmpty,
+  },
+  dbBicepCurl: {
+    id: "dbBicepCurl",
+    name: "Dumbbell Bicep Curl",
+    startWeight: 25,
+    warmupSets: warmupEmpty,
   },
 };
 

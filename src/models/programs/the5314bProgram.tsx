@@ -16,24 +16,48 @@ export function getInitialState(): I5314BState {
       deadlift: { trainingMax: 265 },
       squat: { trainingMax: 195 },
     },
-    accessories: [
-      {
-        push: { excercise: "pushups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        pull: { excercise: "chinups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        legs: { excercise: "legRaises", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-      },
-      {
-        push: { excercise: "dips", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        pull: { excercise: "invertedRows", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        legs: { excercise: "singleLegSplitSquat", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-      },
-      {
-        push: { excercise: "pushups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        pull: { excercise: "pullups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-        legs: { excercise: "legRaises", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
-      },
-    ],
+    accessories: bodyweightAccessoriesPreset(),
   };
+}
+
+export function bodyweightAccessoriesPreset(): I5314BAccessoryDays {
+  return [
+    {
+      push: { excercise: "pushups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      pull: { excercise: "chinups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      legs: { excercise: "legRaises", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+    },
+    {
+      push: { excercise: "dips", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      pull: { excercise: "invertedRows", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      legs: { excercise: "singleLegSplitSquat", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+    },
+    {
+      push: { excercise: "pushups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      pull: { excercise: "pullups", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+      legs: { excercise: "legRaises", sets: CollectionUtils.repeat({ reps: 10, weight: 0 }, 5) },
+    },
+  ];
+}
+
+export function mirrorBroAccessoriesPreset(): I5314BAccessoryDays {
+  return [
+    {
+      push: { excercise: "dbLateralRaise", sets: CollectionUtils.repeat({ reps: 8, weight: 25 }, 8) },
+      pull: { excercise: "dbBicepCurl", sets: CollectionUtils.repeat({ reps: 8, weight: 25 }, 8) },
+      legs: { excercise: "legRaises", sets: CollectionUtils.repeat({ reps: 8, weight: 0 }, 8) },
+    },
+    {
+      push: { excercise: "inclineDbBenchPress", sets: CollectionUtils.repeat({ reps: 8, weight: 50 }, 8) },
+      pull: { excercise: "dbShrug", sets: CollectionUtils.repeat({ reps: 8, weight: 50 }, 8) },
+      legs: { excercise: "cableCrunch", sets: CollectionUtils.repeat({ reps: 8, weight: 50 }, 8) },
+    },
+    {
+      push: { excercise: "tricepsPushdown", sets: CollectionUtils.repeat({ reps: 8, weight: 50 }, 8) },
+      pull: { excercise: "neutralGripChinup", sets: CollectionUtils.repeat({ reps: 8, weight: 0 }, 8) },
+      legs: { excercise: "plank", sets: CollectionUtils.repeat({ reps: 8, weight: 0 }, 8) },
+    },
+  ];
 }
 
 export type I5314BExcerciseType = "benchPress" | "deadlift" | "overheadPress" | "squat";
