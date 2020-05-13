@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { I5314BState, I5314BAccessory, I5314BAccessoryDay } from "../../the5314bProgram";
+import { I5314BState, I5314BAccessory, I5314BAccessoryDay, I5314BExcerciseType } from "../../the5314bProgram";
 import { IDispatch } from "../../../../ducks/types";
 import { IProgramId, Program } from "../../../program";
 import { MenuItemEditable } from "../../../../components/menuItemEditable";
@@ -13,6 +13,7 @@ import { HeaderView } from "../../../../components/header";
 import { ObjectUtils } from "../../../../utils/object";
 import { lb } from "../../../../utils/lens";
 import { CollectionUtils } from "../../../../utils/collection";
+import { ModalTrainingMaxCalculator } from "../../../../components/modalTrainingMaxCalculator";
 
 interface IProps {
   dispatch: IDispatch;
@@ -27,6 +28,7 @@ function GroupHeader(props: { name: string }): JSX.Element {
 export function The5314bProgramSettings(props: IProps): JSX.Element {
   const program = Program.get(props.programId);
   const [selectedAccessory, setSelectedAccessory] = useState<[keyof I5314BAccessoryDay, number] | undefined>(undefined);
+  const [excerciseCalculator, setExcerciseCalculator] = useState<I5314BExcerciseType | undefined>(undefined);
   return (
     <section className="flex flex-col h-full">
       <HeaderView
@@ -54,6 +56,9 @@ export function The5314bProgramSettings(props: IProps): JSX.Element {
         {selectedAccessory == null ? (
           <Settings
             {...props}
+            onExcerciseCalculatorSelect={(excercise) => {
+              setExcerciseCalculator(excercise);
+            }}
             onAccessorySelect={(type, day) => {
               setSelectedAccessory([type, day]);
             }}
@@ -62,13 +67,23 @@ export function The5314bProgramSettings(props: IProps): JSX.Element {
           <The5314bProgramAccessorySettings selectedAccessory={selectedAccessory} {...props} />
         )}
       </section>
+      {excerciseCalculator != null && (
+        <ModalTrainingMaxCalculator
+          excercise={excerciseCalculator}
+          dispatch={props.dispatch}
+          onClose={() => setExcerciseCalculator(undefined)}
+        />
+      )}
       <FooterView dispatch={props.dispatch} />
     </section>
   );
 }
 
 function Settings(
-  props: IProps & { onAccessorySelect: (type: keyof I5314BAccessoryDay, day: number) => void }
+  props: IProps & {
+    onAccessorySelect: (type: keyof I5314BAccessoryDay, day: number) => void;
+    onExcerciseCalculatorSelect: (excercise: I5314BExcerciseType) => void;
+  }
 ): JSX.Element {
   return (
     <Fragment>
@@ -88,6 +103,13 @@ function Settings(
                 props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
               }
             }}
+            after={
+              <span className="flex items-center ml-2 text-sm">
+                <button onClick={() => props.onExcerciseCalculatorSelect(exc)} className="text-blue-700 underline">
+                  Calculate
+                </button>
+              </span>
+            }
           />
         );
       })}

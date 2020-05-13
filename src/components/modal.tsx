@@ -13,7 +13,7 @@ export function Modal(props: IProps): JSX.Element {
       <div data-name="overlay" className="absolute inset-0 bg-gray-400 opacity-50"></div>
       <div
         data-name="modal"
-        className="relative flex flex-col p-4 text-sm bg-white rounded-lg shadow-lg"
+        className="relative flex flex-col px-4 py-6 bg-white rounded-lg shadow-lg"
         style={{ maxWidth: "85%", maxHeight: "90%" }}
       >
         <div className="h-full overflow-auto">{props.children}</div>

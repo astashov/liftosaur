@@ -1,11 +1,12 @@
 * 5314B:
-  - Add training max calculator
   - Update stats on day finish
   - Add test week
+  - Add assistance presets
 * Graphs
   - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Bugs
   - Sometimes it scrolls the whole screen instead of contents (history and progress views)
+  - Fix zooming when entering amraps in progress view
 * Add errors handling to HTTP calls
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder

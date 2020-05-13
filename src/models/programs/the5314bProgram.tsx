@@ -36,7 +36,7 @@ export function getInitialState(): I5314BState {
   };
 }
 
-type I5314BExcerciseType = "benchPress" | "deadlift" | "overheadPress" | "squat";
+export type I5314BExcerciseType = "benchPress" | "deadlift" | "overheadPress" | "squat";
 export type I5314BAccessoryDays = [I5314BAccessoryDay, I5314BAccessoryDay, I5314BAccessoryDay];
 
 export type I5314BState = {

@@ -6,7 +6,7 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 font-bold text-center">Welcome to Liftosaur!</h3>
-      <section>
+      <section className="text-sm">
         <p className="mb-2">
           It's an app, that helps you to track your progress when you follow weightlifting routines from{" "}
           <a

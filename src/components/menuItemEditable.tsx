@@ -18,6 +18,7 @@ interface IMenuItemEditableValueProps {
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
   name: string;
   hasClear?: boolean;
+  after?: JSX.Element;
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
@@ -44,6 +45,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               <IconDelete />
             </button>
           )}
+          {props.after != null ? props.after : undefined}
         </div>
         {patternError && props.patternMessage && (
           <div style={{ marginTop: "-0.5rem" }} className="text-xs text-right text-red-500">
@@ -111,7 +113,7 @@ function MenuItemValue(
           onChange={handleChange(props.onChange, props.setPatternError)}
           type="number"
           title={props.patternMessage}
-          className="items-center p-2 text-right text-gray-700 outline-none"
+          className="items-center flex-1 w-0 min-w-0 p-2 text-right text-gray-700 outline-none"
           value={props.value || undefined}
           pattern={props.pattern}
         />
