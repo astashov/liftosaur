@@ -4,9 +4,10 @@ import { CollectionUtils } from "../../utils/collection";
 import { Weight, IWeight } from "../weight";
 import { ISet } from "../set";
 import { IProgress } from "../progress";
-import { IExcerciseType } from "../excercise";
+import { IExcerciseType, Excercise } from "../excercise";
 import { ObjectUtils } from "../../utils/object";
 import { h } from "preact";
+import { lf } from "../../utils/lens";
 
 export function getInitialState(): I5314BState {
   return {
@@ -122,6 +123,35 @@ function setsWeek3(trainingMax: IWeight): ISet[] {
   ];
 }
 
+function trainingWeek(trainingMax: IWeight): ISet[] {
+  return [
+    { reps: 5, weight: Weight.round(trainingMax * 0.7) },
+    { reps: 5, weight: Weight.round(trainingMax * 0.8) },
+    { reps: 3, weight: Weight.round(trainingMax * 0.9) },
+    { reps: 3, weight: Weight.round(trainingMax), isAmrap: true },
+  ];
+}
+
+function adjustAfterTestingTrainingMax(
+  state: I5314BState,
+  progress: IProgress,
+  excerciseType: I5314BExcerciseType
+): I5314BState {
+  const excercise = Excercise.get(excerciseType);
+  const entry = progress.entries.find((e) => e.excercise === excerciseType);
+  const set = entry?.sets.find((s) => s.isAmrap);
+  if (set != null && set.completedReps != null && set.completedReps < set.reps) {
+    const newWeight = Weight.getTrainingMax(set.weight, set.completedReps);
+    if (confirm(`Set the new training max for ${excercise.name} = ${newWeight}lb?`)) {
+      return lf(state).p("main").p(excerciseType).p("trainingMax").set(newWeight);
+    } else {
+      return state;
+    }
+  } else {
+    return state;
+  }
+}
+
 export const the5314bProgram: IProgram = {
   id: "the5314b",
   name: "5/3/1 for beginners",
@@ -136,170 +166,272 @@ export const the5314bProgram: IProgram = {
     </div>
   ),
   finishDay: (progress: IProgress, aStats: IStats, aState?: I5314BState): { state: I5314BState; stats: IStats } => {
-    const state: I5314BState = aState ? JSON.parse(JSON.stringify(aState)) : getInitialState();
-    const stats: IStats = JSON.parse(JSON.stringify(aStats));
+    let state: I5314BState = aState || getInitialState();
+    const stats: IStats = aStats;
 
-    if (progress.day === the5314bProgram.days.length - 1) {
-      state.main.benchPress.trainingMax += 5;
-      state.main.overheadPress.trainingMax += 5;
-      state.main.squat.trainingMax += 10;
-      state.main.deadlift.trainingMax += 10;
+    const programDay = the5314bProgram.days[progress.day](state);
+    if (programDay.name === "Week 3 Day 3") {
+      state = lf(state)
+        .p("main")
+        .p("benchPress")
+        .p("trainingMax")
+        .modify((v) => v + 5);
+      state = lf(state)
+        .p("main")
+        .p("overheadPress")
+        .p("trainingMax")
+        .modify((v) => v + 5);
+      state = lf(state)
+        .p("main")
+        .p("squat")
+        .p("trainingMax")
+        .modify((v) => v + 10);
+      state = lf(state)
+        .p("main")
+        .p("deadlift")
+        .p("trainingMax")
+        .modify((v) => v + 10);
+    } else if (programDay.name === "Squat Testing Day") {
+      state = adjustAfterTestingTrainingMax(state, progress, "squat");
+    } else if (programDay.name === "Overhead Press Testing Day") {
+      state = adjustAfterTestingTrainingMax(state, progress, "overheadPress");
+    } else if (programDay.name === "Deadlift Testing Day") {
+      state = adjustAfterTestingTrainingMax(state, progress, "deadlift");
+    } else if (programDay.name === "Bench Press Testing Day") {
+      state = adjustAfterTestingTrainingMax(state, progress, "benchPress");
     }
     return { state, stats };
   },
   days: [
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 1 Day 1",
-        excercises: [
-          {
-            excercise: "squat",
-            sets: setsWeek1(state.main.squat.trainingMax),
+    ...CollectionUtils.flat(
+      CollectionUtils.repeat(
+        [
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 1 Day 1",
+              excercises: [
+                {
+                  excercise: "squat",
+                  sets: setsWeek1(state.main.squat.trainingMax),
+                },
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek1(state.main.benchPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[0]),
+              ],
+            };
           },
-          {
-            excercise: "benchPress",
-            sets: setsWeek1(state.main.benchPress.trainingMax),
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 1 Day 2",
+              excercises: [
+                {
+                  excercise: "deadlift",
+                  sets: setsWeek1(state.main.deadlift.trainingMax),
+                },
+                {
+                  excercise: "overheadPress",
+                  sets: setsWeek1(state.main.overheadPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[1]),
+              ],
+            };
           },
-          ...ObjectUtils.values(state.accessories[0]),
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 1 Day 3",
+              excercises: [
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek1(state.main.benchPress.trainingMax),
+                },
+                {
+                  excercise: "squat",
+                  sets: setsWeek1(state.main.squat.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[2]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 2 Day 1",
+              excercises: [
+                {
+                  excercise: "squat",
+                  sets: setsWeek2(state.main.squat.trainingMax),
+                },
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek2(state.main.benchPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[0]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 2 Day 2",
+              excercises: [
+                {
+                  excercise: "deadlift",
+                  sets: setsWeek2(state.main.deadlift.trainingMax),
+                },
+                {
+                  excercise: "overheadPress",
+                  sets: setsWeek2(state.main.overheadPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[1]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 2 Day 3",
+              excercises: [
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek2(state.main.benchPress.trainingMax),
+                },
+                {
+                  excercise: "squat",
+                  sets: setsWeek2(state.main.squat.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[2]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 3 Day 1",
+              excercises: [
+                {
+                  excercise: "squat",
+                  sets: setsWeek3(state.main.squat.trainingMax),
+                },
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek3(state.main.benchPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[0]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 3 Day 2",
+              excercises: [
+                {
+                  excercise: "deadlift",
+                  sets: setsWeek3(state.main.deadlift.trainingMax),
+                },
+                {
+                  excercise: "overheadPress",
+                  sets: setsWeek3(state.main.overheadPress.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[1]),
+              ],
+            };
+          },
+          (state?: I5314BState): IProgramDay => {
+            state = state ?? getInitialState();
+            return {
+              name: "Week 3 Day 3",
+              excercises: [
+                {
+                  excercise: "benchPress",
+                  sets: setsWeek3(state.main.benchPress.trainingMax),
+                },
+                {
+                  excercise: "squat",
+                  sets: setsWeek3(state.main.squat.trainingMax),
+                },
+                ...ObjectUtils.values(state.accessories[2]),
+              ],
+            };
+          },
         ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 1 Day 2",
-        excercises: [
-          {
-            excercise: "deadlift",
-            sets: setsWeek1(state.main.deadlift.trainingMax),
-          },
-          {
-            excercise: "overheadPress",
-            sets: setsWeek1(state.main.overheadPress.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[1]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 1 Day 3",
-        excercises: [
-          {
-            excercise: "benchPress",
-            sets: setsWeek1(state.main.benchPress.trainingMax),
-          },
-          {
-            excercise: "squat",
-            sets: setsWeek1(state.main.squat.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[2]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 2 Day 1",
-        excercises: [
-          {
-            excercise: "squat",
-            sets: setsWeek2(state.main.squat.trainingMax),
-          },
-          {
-            excercise: "benchPress",
-            sets: setsWeek2(state.main.benchPress.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[0]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 2 Day 2",
-        excercises: [
-          {
-            excercise: "deadlift",
-            sets: setsWeek2(state.main.deadlift.trainingMax),
-          },
-          {
-            excercise: "overheadPress",
-            sets: setsWeek2(state.main.overheadPress.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[1]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 2 Day 3",
-        excercises: [
-          {
-            excercise: "benchPress",
-            sets: setsWeek2(state.main.benchPress.trainingMax),
-          },
-          {
-            excercise: "squat",
-            sets: setsWeek2(state.main.squat.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[2]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 3 Day 1",
-        excercises: [
-          {
-            excercise: "squat",
-            sets: setsWeek3(state.main.squat.trainingMax),
-          },
-          {
-            excercise: "benchPress",
-            sets: setsWeek3(state.main.benchPress.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[0]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 3 Day 2",
-        excercises: [
-          {
-            excercise: "deadlift",
-            sets: setsWeek3(state.main.deadlift.trainingMax),
-          },
-          {
-            excercise: "overheadPress",
-            sets: setsWeek3(state.main.overheadPress.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[1]),
-        ],
-      };
-    },
-    (state?: I5314BState): IProgramDay => {
-      state = state ?? getInitialState();
-      return {
-        name: "Week 3 Day 3",
-        excercises: [
-          {
-            excercise: "benchPress",
-            sets: setsWeek3(state.main.benchPress.trainingMax),
-          },
-          {
-            excercise: "squat",
-            sets: setsWeek3(state.main.squat.trainingMax),
-          },
-          ...ObjectUtils.values(state.accessories[2]),
-        ],
-      };
-    },
+        3
+      )
+    ),
+    ...[
+      (state?: I5314BState): IProgramDay => {
+        state = state ?? getInitialState();
+        return {
+          name: "Squat Testing Day",
+          excercises: [
+            {
+              excercise: "squat",
+              sets: trainingWeek(state.main.squat.trainingMax),
+            },
+            {
+              excercise: "benchPress",
+              sets: setsWeek1(state.main.benchPress.trainingMax),
+            },
+            ...ObjectUtils.values(state.accessories[0]),
+          ],
+        };
+      },
+      (state?: I5314BState): IProgramDay => {
+        state = state ?? getInitialState();
+        return {
+          name: "Overhead Press Testing Day",
+          excercises: [
+            {
+              excercise: "overheadPress",
+              sets: trainingWeek(state.main.overheadPress.trainingMax),
+            },
+            {
+              excercise: "deadlift",
+              sets: setsWeek1(state.main.deadlift.trainingMax),
+            },
+            ...ObjectUtils.values(state.accessories[1]),
+          ],
+        };
+      },
+      (state?: I5314BState): IProgramDay => {
+        state = state ?? getInitialState();
+        return {
+          name: "Deadlift Testing Day",
+          excercises: [
+            {
+              excercise: "deadlift",
+              sets: trainingWeek(state.main.deadlift.trainingMax),
+            },
+            {
+              excercise: "overheadPress",
+              sets: setsWeek1(state.main.overheadPress.trainingMax),
+            },
+            ...ObjectUtils.values(state.accessories[2]),
+          ],
+        };
+      },
+      (state?: I5314BState): IProgramDay => {
+        state = state ?? getInitialState();
+        return {
+          name: "Bench Press Testing Day",
+          excercises: [
+            {
+              excercise: "benchPress",
+              sets: trainingWeek(state.main.benchPress.trainingMax),
+            },
+            {
+              excercise: "squat",
+              sets: setsWeek1(state.main.squat.trainingMax),
+            },
+            ...ObjectUtils.values(state.accessories[0]),
+          ],
+        };
+      },
+    ],
   ],
 };

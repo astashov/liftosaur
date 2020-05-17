@@ -10,11 +10,15 @@ import { TimeUtils } from "../utils/time";
 
 interface IProps {
   historyRecord: IHistoryRecord;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  programState: any;
   dispatch: IDispatch;
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
   const { historyRecord, dispatch } = props;
+  const program = Program.get(historyRecord.programId);
+  const programDay = program.days[historyRecord.day](props.programState);
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
@@ -25,7 +29,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
       <div className="flex">
         <div className="flex-1 font-bold">{historyRecord.date ? DateUtils.format(historyRecord.date) : "Next"}</div>
         <div className="text-gray-600">
-          {Program.get(historyRecord.programId).name}, day {historyRecord.day + 1}
+          {program.name}, {programDay.name || `day ${historyRecord.day + 1}`}
         </div>
       </div>
       {entries.map((group) => (

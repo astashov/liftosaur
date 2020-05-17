@@ -1,6 +1,5 @@
 * 5314B:
   - Update stats on day finish
-  - Add test week
 * Graphs
   - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Bugs

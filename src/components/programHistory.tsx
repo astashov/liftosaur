@@ -21,11 +21,8 @@ interface IProps {
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
   const lastHistoryRecord = props.history.find((i) => i.programId === props.program.id);
-  const nextHistoryRecord = Program.nextProgramRecord(
-    props.program,
-    lastHistoryRecord?.day,
-    props.programStates[props.program.id]
-  );
+  const programState = props.programStates[props.program.id];
+  const nextHistoryRecord = Program.nextProgramRecord(props.program, lastHistoryRecord?.day, programState);
 
   const history = [...props.history, nextHistoryRecord].sort((a, b) => {
     if (a.date == null) {
@@ -42,7 +39,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       <HeaderView title={props.program.name} subtitle="Current program" />
       <section className="flex-1 h-0 overflow-y-auto">
         {history.map((historyRecord) => (
-          <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
+          <HistoryRecordView historyRecord={historyRecord} programState={programState} dispatch={dispatch} />
         ))}
         <div className="py-3 text-center">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>

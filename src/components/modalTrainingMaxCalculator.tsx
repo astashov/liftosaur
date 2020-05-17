@@ -51,7 +51,7 @@ export function ModalTrainingMaxCalculator(props: IProps): JSX.Element {
         </div>
         <div className="">
           Calculated Training Max:{" "}
-          <strong>{weight != null && reps != null ? getTrainingMax(weight, reps) : "-"}</strong>
+          <strong>{weight != null && reps != null ? Weight.getTrainingMax(weight, reps) : "-"}</strong>
         </div>
         <div className="mt-4 text-right">
           <Button type="button" kind="gray" className="mr-3" onClick={() => props.onClose()}>
@@ -63,7 +63,7 @@ export function ModalTrainingMaxCalculator(props: IProps): JSX.Element {
             disabled={weight == null || reps == null}
             onClick={() => {
               if (weight != null && reps != null) {
-                const trainingMax = getTrainingMax(weight, reps);
+                const trainingMax = Weight.getTrainingMax(weight, reps);
                 const lensPlay = lb<I5314BState>().p("main").p(props.excercise).p("trainingMax").play(trainingMax);
                 props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
                 props.onClose();
@@ -76,13 +76,4 @@ export function ModalTrainingMaxCalculator(props: IProps): JSX.Element {
       </form>
     </Modal>
   );
-}
-
-function getTrainingMax(weight: number, reps: number): number {
-  if (reps === 1) {
-    return weight;
-  } else {
-    // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
-    return Weight.round(weight * (1 + reps / 30));
-  }
 }
