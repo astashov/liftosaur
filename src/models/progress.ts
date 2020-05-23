@@ -1,16 +1,16 @@
 import { IProgram } from "./program";
 import { IExcerciseType, Excercise } from "./excercise";
-import { Reps, ISet } from "./set";
+import { Reps } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
-import { IHistoryRecord } from "./history";
+import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
 
 export interface IProgress {
   day: number;
   startTime: number;
   ui: IProgressUi;
-  entries: IProgressEntry[];
+  entries: IHistoryEntry[];
   historyRecord?: IHistoryRecord;
   timerSince?: number;
   timerMode?: IProgressMode;
@@ -32,12 +32,6 @@ export interface IProgressUi {
 }
 
 export type IProgressMode = "warmup" | "workout";
-
-export interface IProgressEntry {
-  excercise: IExcerciseType;
-  sets: ISet[];
-  warmupSets: ISet[];
-}
 
 export namespace Progress {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,7 +85,7 @@ export namespace Progress {
     };
   }
 
-  export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IProgressEntry | undefined {
+  export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IHistoryEntry | undefined {
     return progress.entries.find((entry) => entry.excercise === excerciseType);
   }
 
@@ -99,7 +93,7 @@ export namespace Progress {
     return progress.entries.every((entry) => isCompletedSet(entry));
   }
 
-  export function isCompletedSet(entry: IProgressEntry): boolean {
+  export function isCompletedSet(entry: IHistoryEntry): boolean {
     return Reps.isCompleted(entry.sets);
   }
 
@@ -107,7 +101,7 @@ export namespace Progress {
     return progress.entries.every((entry) => isFinishedSet(entry));
   }
 
-  export function isFinishedSet(entry: IProgressEntry): boolean {
+  export function isFinishedSet(entry: IHistoryEntry): boolean {
     return Reps.isFinished(entry.sets);
   }
 

@@ -2,9 +2,11 @@ import { IStats } from "./stats";
 import * as IvySaurProgram from "./programs/ivySaurProgram";
 import * as The5314bProgram from "./programs/the5314bProgram";
 import { ObjectUtils } from "../utils/object";
-import { IHistoryRecord, IHistoryEntry } from "./history";
+import { IHistoryRecord } from "./history";
 import { IProgress } from "./progress";
 import { JSX } from "preact";
+import { IExcerciseType, Excercise } from "./excercise";
+import { ISet } from "./set";
 
 export interface IProgram {
   id: IProgramId;
@@ -20,7 +22,12 @@ export interface IProgram {
 
 export interface IProgramDay {
   name: string;
-  excercises: IHistoryEntry[];
+  excercises: IProgramDayEntry[];
+}
+
+export interface IProgramDayEntry {
+  excercise: IExcerciseType;
+  sets: ISet[];
 }
 
 export type IProgramId = "ivySaur" | "the5314b";
@@ -59,7 +66,11 @@ export namespace Program {
       day,
       startTime: Date.now(),
       endTime: Date.now(),
-      entries: programDay(programState).excercises,
+      entries: programDay(programState).excercises.map((e) => ({
+        excercise: e.excercise,
+        sets: e.sets,
+        warmupSets: Excercise.getWarmupSets(e.excercise, e.sets[0].weight),
+      })),
     };
   }
 

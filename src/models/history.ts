@@ -16,6 +16,7 @@ export interface IHistoryRecord {
 export interface IHistoryEntry {
   excercise: IExcerciseType;
   sets: ISet[];
+  warmupSets: ISet[];
 }
 
 export namespace History {

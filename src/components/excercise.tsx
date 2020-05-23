@@ -2,12 +2,13 @@ import { h, JSX, Fragment } from "preact";
 import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
-import { IProgressEntry, IProgressMode } from "../models/progress";
+import { IProgressMode } from "../models/progress";
 import { Weight, IPlate } from "../models/weight";
 import { Reps } from "../models/set";
+import { IHistoryEntry } from "../models/history";
 
 interface IProps {
-  entry: IProgressEntry;
+  entry: IHistoryEntry;
   availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;

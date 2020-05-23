@@ -14,7 +14,7 @@ import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
 import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
-import { ILensPlayPayload, lf } from "../utils/lens";
+import { ILensRecordingPayload, lf } from "../utils/lens";
 import { ISettings } from "../models/settings";
 
 export type IEnv = {
@@ -107,7 +107,7 @@ export type IUpdateProgramState = {
   type: "UpdateProgramState";
   name: IProgramId;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  lensPlay: ILensPlayPayload<any>;
+  lensRecording: ILensRecordingPayload<any>;
 };
 
 export type IChangeProgramAction = {
@@ -190,7 +190,7 @@ export type IConfirmWeightAction = {
 
 export type IUpdateSettingsAction = {
   type: "UpdateSettings";
-  lensPlay: ILensPlayPayload<ISettings>;
+  lensRecording: ILensRecordingPayload<ISettings>;
 };
 
 export type IStoreWebpushrSidAction = {
@@ -408,7 +408,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       ...state,
       storage: {
         ...state.storage,
-        settings: action.lensPlay.fn(state.storage.settings),
+        settings: action.lensRecording.fn(state.storage.settings),
       },
     };
   } else if (action.type === "SyncStorage") {
@@ -435,7 +435,7 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
     }
   } else if (action.type === "UpdateProgramState") {
     const oldState = state.storage.programStates[action.name];
-    const newState = action.lensPlay.fn(oldState);
+    const newState = action.lensRecording.fn(oldState);
 
     return lf(state).p("storage").p("programStates").p(action.name).set(newState);
   } else {

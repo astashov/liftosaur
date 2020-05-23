@@ -1,13 +1,13 @@
 type IGetter<T, R> = (obj: T) => R;
 type ISetter<T, R> = (obj: T, value: R) => T;
 
-export type ILensPlay<T> = {
+export type ILensRecording<T> = {
   (obj: T): T;
   toString(): string;
 };
 
-export type ILensPlayPayload<T> = {
-  fn: ILensPlay<T>;
+export type ILensRecordingPayload<T> = {
+  fn: ILensRecording<T>;
   str: string;
 };
 
@@ -28,8 +28,8 @@ abstract class AbstractLensBuilder<T, R> {
     return this.lens;
   }
 
-  public play(value: R): ILensPlayPayload<T> {
-    return Lens.buildLensPlay(this.lens, value);
+  public record(value: R): ILensRecordingPayload<T> {
+    return Lens.buildLensRecording(this.lens, value);
   }
 }
 
@@ -123,9 +123,9 @@ export class Lens<T, R> {
   public readonly from: string;
   public readonly to: string;
 
-  public static buildLensPlay<T, R>(aLens: Lens<T, R> | LensBuilder<T, R>, value: R): ILensPlayPayload<T> {
+  public static buildLensRecording<T, R>(aLens: Lens<T, R> | LensBuilder<T, R>, value: R): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
-    const fn: ILensPlay<T> = (obj: T) => {
+    const fn: ILensRecording<T> = (obj: T) => {
       return lens.set(obj, value);
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method

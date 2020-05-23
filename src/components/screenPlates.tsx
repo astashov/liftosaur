@@ -43,8 +43,8 @@ export function ScreenPlates(props: IProps): JSX.Element {
                 } else {
                   newPlates = props.plates.filter((p) => p.weight !== plate.weight);
                 }
-                const lensPlay = Lens.build<ISettings>().p("plates").play(newPlates);
-                props.dispatch({ type: "UpdateSettings", lensPlay });
+                const lensRecording = Lens.build<ISettings>().p("plates").record(newPlates);
+                props.dispatch({ type: "UpdateSettings", lensRecording });
               }}
             />
           );
@@ -63,8 +63,8 @@ export function ScreenPlates(props: IProps): JSX.Element {
             setShouldShowModal(false);
             if (weight != null && props.plates.every((p) => p.weight !== weight)) {
               const newPlates: IPlate[] = [...props.plates, { weight, num: 0 }];
-              const lensPlay = Lens.build<ISettings>().p("plates").play(newPlates);
-              props.dispatch({ type: "UpdateSettings", lensPlay });
+              const lensRecording = Lens.build<ISettings>().p("plates").record(newPlates);
+              props.dispatch({ type: "UpdateSettings", lensRecording });
             }
           }}
         />

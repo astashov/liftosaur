@@ -29,8 +29,8 @@ export function ScreenTimers(props: IProps): JSX.Element {
               valueUnits="sec"
               onChange={(newValue?: string) => {
                 const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
-                const lensPlay = Lens.buildLensPlay(Lens.build<ISettings>().p("timers").p(timerType), v);
-                props.dispatch({ type: "UpdateSettings", lensPlay });
+                const lensRecording = Lens.buildLensRecording(Lens.build<ISettings>().p("timers").p(timerType), v);
+                props.dispatch({ type: "UpdateSettings", lensRecording });
               }}
             />
           );

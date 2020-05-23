@@ -106,8 +106,8 @@ function Settings(
             onChange={(newValue) => {
               const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
               if (v != null) {
-                const lensPlay = lb<I5314BState>().p("main").p(exc).p("trainingMax").play(v);
-                props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+                const lensRecording = lb<I5314BState>().p("main").p(exc).p("trainingMax").record(v);
+                props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
               }
             }}
             after={
@@ -125,8 +125,8 @@ function Settings(
         name="Bodyweight"
         onClick={() => {
           if (confirm("Do you want to apply it? It will reset your assistance excercises")) {
-            const lensPlay = lb<I5314BState>().p("accessories").play(bodyweightAccessoriesPreset());
-            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+            const lensRecording = lb<I5314BState>().p("accessories").record(bodyweightAccessoriesPreset());
+            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
           }
         }}
       ></MenuItem>
@@ -134,8 +134,8 @@ function Settings(
         name="Mirror Bro"
         onClick={() => {
           if (confirm("Do you want to apply it? It will reset your assistance excercises")) {
-            const lensPlay = lb<I5314BState>().p("accessories").play(mirrorBroAccessoriesPreset());
-            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+            const lensRecording = lb<I5314BState>().p("accessories").record(mirrorBroAccessoriesPreset());
+            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
           }
         }}
       ></MenuItem>
@@ -175,8 +175,8 @@ function The5314bProgramAccessorySettings(
         value={accessory.excercise}
         onChange={(newValue?: string) => {
           const excercise = newValue as IExcerciseType;
-          const lensPlay = lb<I5314BState>().p("accessories").i(day).p(type).p("excercise").play(excercise);
-          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+          const lensRecording = lb<I5314BState>().p("accessories").i(day).p(type).p("excercise").record(excercise);
+          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
         }}
       />
       <MenuItemEditable
@@ -191,8 +191,8 @@ function The5314bProgramAccessorySettings(
             const [sets, reps] = newValue!.split("x").map((p) => parseInt(p.trim(), 10));
             const weight = props.state.accessories[day][type].sets[0].weight;
             const newReps = CollectionUtils.repeat({ reps, weight }, sets);
-            const lensPlay = lb<I5314BState>().p("accessories").i(day).p(type).p("sets").play(newReps);
-            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+            const lensRecording = lb<I5314BState>().p("accessories").i(day).p(type).p("sets").record(newReps);
+            props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
           }
         }}
       />
@@ -205,8 +205,8 @@ function The5314bProgramAccessorySettings(
           const weight = parseInt(newValue!, 10);
           const newReps = props.state.accessories[day][type].sets.map((r) => ({ ...r, weight }));
 
-          const lensPlay = lb<I5314BState>().p("accessories").i(day).p(type).p("sets").play(newReps);
-          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+          const lensRecording = lb<I5314BState>().p("accessories").i(day).p(type).p("sets").record(newReps);
+          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
         }}
       />
       <MenuItemEditable
@@ -216,15 +216,15 @@ function The5314bProgramAccessorySettings(
         onChange={(newValue?: string) => {
           const isSelected = newValue != null && JSON.parse(newValue) === true;
           const setsLength = accessory.sets.length - 1;
-          const lensPlay = lb<I5314BState>()
+          const lensRecording = lb<I5314BState>()
             .p("accessories")
             .i(day)
             .p(type)
             .p("sets")
             .i(setsLength)
             .p("isAmrap")
-            .play(isSelected);
-          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+            .record(isSelected);
+          props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
         }}
       />
     </Fragment>

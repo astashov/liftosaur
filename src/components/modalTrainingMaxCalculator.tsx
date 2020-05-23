@@ -64,8 +64,12 @@ export function ModalTrainingMaxCalculator(props: IProps): JSX.Element {
             onClick={() => {
               if (weight != null && reps != null) {
                 const trainingMax = Weight.getTrainingMax(weight, reps);
-                const lensPlay = lb<I5314BState>().p("main").p(props.excercise).p("trainingMax").play(trainingMax);
-                props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensPlay });
+                const lensRecording = lb<I5314BState>()
+                  .p("main")
+                  .p(props.excercise)
+                  .p("trainingMax")
+                  .record(trainingMax);
+                props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });
                 props.onClose();
               }
             }}
