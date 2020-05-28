@@ -7,6 +7,7 @@ import { Program } from "../models/program";
 import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
+import { Progress } from "../models/progress";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -24,10 +25,12 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   return (
     <div
       className="py-3 mx-3 text-xs border-b border-gray-200"
-      onClick={() => editHistoryRecord(historyRecord, dispatch, !historyRecord.date)}
+      onClick={() => editHistoryRecord(historyRecord, dispatch, Progress.isCurrent(historyRecord))}
     >
       <div className="flex">
-        <div className="flex-1 font-bold">{historyRecord.date ? DateUtils.format(historyRecord.date) : "Next"}</div>
+        <div className="flex-1 font-bold">
+          {!Progress.isCurrent(historyRecord) ? DateUtils.format(historyRecord.date) : "Next"}
+        </div>
         <div className="text-gray-600">
           {program.name}, {programDay.name || `day ${historyRecord.day + 1}`}
         </div>
@@ -47,7 +50,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                 <div className={className}>
                   <div style={{ flex: 2 }}>{excercise.name}</div>
                   <div className="flex-1 text-right">
-                    <HistoryRecordSetsView sets={entry.sets} isNext={!historyRecord.date} />
+                    <HistoryRecordSetsView sets={entry.sets} isNext={Progress.isCurrent(historyRecord)} />
                   </div>
                   <div className="w-6 ml-1 font-bold text-right">{Math.max(...entry.sets.map((s) => s.weight))}</div>
                 </div>
@@ -58,7 +61,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
           })}
         </div>
       ))}
-      {historyRecord.date != null && historyRecord.startTime != null && (
+      {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
         <div class="text-gray-600 text-right mt-1">
           <span>Time:</span>{" "}
           <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>

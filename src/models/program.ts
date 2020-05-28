@@ -3,7 +3,6 @@ import * as IvySaurProgram from "./programs/ivySaurProgram";
 import * as The5314bProgram from "./programs/the5314bProgram";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord } from "./history";
-import { IProgress } from "./progress";
 import { JSX } from "preact";
 import { IExcerciseType, Excercise } from "./excercise";
 import { ISet } from "./set";
@@ -17,7 +16,7 @@ export interface IProgram {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   days: ((state: any) => IProgramDay)[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  finishDay: (progress: IProgress, stats: IStats, state: any) => { state: any; stats: IStats };
+  finishDay: (progress: IHistoryRecord, stats: IStats, state: any) => { state: any; stats: IStats };
 }
 
 export interface IProgramDay {
@@ -61,7 +60,8 @@ export namespace Program {
     const day = Program.nextDay(program, previousDay);
     const programDay = program.days[day];
     return {
-      id: Date.now(),
+      id: 0,
+      date: new Date().toISOString(),
       programId: program.id,
       day,
       startTime: Date.now(),

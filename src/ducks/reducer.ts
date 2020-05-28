@@ -1,7 +1,7 @@
 import { Reducer } from "preact/hooks";
 import { Program, IProgramId, defaultProgramStates } from "../models/program";
 import { IHistoryRecord } from "../models/history";
-import { IProgress, Progress, IProgressMode } from "../models/progress";
+import { Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
@@ -30,7 +30,8 @@ export interface IState {
   storage: IStorage;
   webpushr?: IWebpushr;
   screenStack: IScreen[];
-  progress?: IProgress;
+  currentHistoryRecord?: number;
+  progress: Record<number, IHistoryRecord | undefined>;
 }
 
 export interface IStorage {
@@ -50,12 +51,12 @@ export interface IWebpushr {
 
 export interface ILocalStorage {
   storage?: IStorage;
-  progress?: IProgress;
+  progress?: IHistoryRecord;
 }
 
 export function getInitialState(): IState {
   const rawStorage = window.localStorage.getItem("liftosaur");
-  let storage: IStorage | ILocalStorage | undefined;
+  let storage: ILocalStorage | undefined;
   if (rawStorage != null) {
     try {
       storage = JSON.parse(rawStorage);
@@ -63,21 +64,16 @@ export function getInitialState(): IState {
       storage = undefined;
     }
   }
-  if (storage != null) {
-    if ("storage" in storage) {
-      if (storage.storage != null) {
-        return {
-          storage: runMigrations(storage.storage),
-          progress: storage.progress,
-          screenStack: ["main"],
-        };
-      }
-    } else {
-      return { storage: runMigrations(storage as IStorage), screenStack: ["main"] };
-    }
+  if (storage != null && storage.storage != null) {
+    return {
+      storage: runMigrations(storage.storage),
+      progress: storage.progress ? { 0: storage.progress } : {},
+      screenStack: ["main"],
+    };
   }
   return {
     screenStack: ["main"],
+    progress: {},
     storage: {
       id: 0,
       stats: {
@@ -198,7 +194,7 @@ export type IStoreWebpushrSidAction = {
   sid: number;
 };
 
-export type IEditHistoryRecord = {
+export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
   historyRecord: IHistoryRecord;
 };
@@ -221,7 +217,7 @@ export type IAction =
   | IChangeWeightAction
   | IChangeAMRAPAction
   | IConfirmWeightAction
-  | IEditHistoryRecord
+  | IEditHistoryRecordAction
   | ICancelProgress
   | IDeleteProgress
   | IPushScreen
@@ -248,30 +244,32 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
       version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
     };
   }
-  const localStorage: ILocalStorage = { storage: newState.storage, progress: newState.progress };
+  const localStorage: ILocalStorage = { storage: newState.storage, progress: newState.progress[0] };
   window.localStorage.setItem("liftosaur", JSON.stringify(localStorage));
   return newState;
 };
 
-export const reducer: Reducer<IState, IAction> = (state, action) => {
+export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "ChangeRepsAction") {
-    let progress = state.progress!;
+    let progress = Progress.getProgress(state)!;
     progress = Progress.updateRepsInExcercise(progress, action.excercise, action.weight, action.setIndex, action.mode);
     if (Progress.isFullyFinishedSet(progress)) {
       progress = Progress.stopTimer(progress);
     }
-    return { ...state, progress };
+    return Progress.setProgress(state, progress);
   } else if (action.type === "StartProgramDayAction") {
-    if (state.progress != null) {
+    if (Progress.getProgress(state) != null) {
       throw new StateError("Progress is already started");
     } else if (state.storage.currentProgramId != null) {
       const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
       const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
       const programState = state.storage.programStates[state.storage.currentProgramId];
+      const progress = Progress.create(program, day, state.storage.stats, programState);
       return {
         ...state,
-        progress: Progress.create(program, day, state.storage.stats, programState),
+        currentHistoryRecord: 0,
+        progress: { ...state.progress, 0: progress },
       };
     } else {
       return state;
@@ -279,34 +277,26 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
   } else if (action.type === "EditHistoryRecord") {
     return {
       ...state,
-      progress: Progress.edit(action.historyRecord),
+      currentHistoryRecord: action.historyRecord.id,
+      progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
-    if (state.progress == null) {
+    const progress = Progress.getProgress(state);
+    if (progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
-      const program = Program.get(state.progress.historyRecord?.programId ?? state.storage.currentProgramId!);
-      const historyRecord = History.finishProgramDay(
-        state.progress.historyRecord?.programId ?? state.storage.currentProgramId!,
-        state.progress
-      );
+      const program = Program.get(progress.programId);
+      const historyRecord = History.finishProgramDay(progress);
       let newHistory;
-      if (state.progress.historyRecord != null) {
-        newHistory = state.storage.history.map((h) => {
-          if (h.id === state.progress?.historyRecord?.id) {
-            return historyRecord;
-          } else {
-            return h;
-          }
-        });
+      if (!Progress.isCurrent(progress)) {
+        newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
       const programState = state.storage.programStates[program.id];
-      const { state: newProgramState, stats: newStats } =
-        state.progress.historyRecord == null
-          ? program.finishDay(state.progress, state.storage.stats, programState)
-          : { state: programState, stats: state.storage.stats };
+      const { state: newProgramState, stats: newStats } = Progress.isCurrent(progress)
+        ? program.finishDay(progress, state.storage.stats, programState)
+        : { state: programState, stats: state.storage.stats };
       return {
         ...state,
         storage: {
@@ -318,7 +308,8 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
             [program.id]: newProgramState,
           },
         },
-        progress: undefined,
+        currentHistoryRecord: undefined,
+        progress: Progress.stop(state.progress, progress.id),
       };
     }
   } else if (action.type === "ChangeProgramAction") {
@@ -336,45 +327,38 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
       },
     };
   } else if (action.type === "ChangeAMRAPAction") {
-    return {
-      ...state,
-      progress: Progress.updateAmrapRepsInExcercise(state.progress!, action.value),
-    };
+    return Progress.setProgress(state, Progress.updateAmrapRepsInExcercise(Progress.getProgress(state)!, action.value));
   } else if (action.type === "ChangeDate") {
-    return {
-      ...state,
-      progress: Progress.showUpdateDate(state.progress!, action.date),
-    };
+    return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date));
   } else if (action.type === "ConfirmDate") {
-    return {
-      ...state,
-      progress: Progress.changeDate(state.progress!, action.date),
-    };
+    return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date));
   } else if (action.type === "ChangeWeightAction") {
-    return {
-      ...state,
-      progress: Progress.showUpdateWeightModal(state.progress!, action.excercise, action.weight),
-    };
+    return Progress.setProgress(
+      state,
+      Progress.showUpdateWeightModal(Progress.getProgress(state)!, action.excercise, action.weight)
+    );
   } else if (action.type === "ConfirmWeightAction") {
-    return {
-      ...state,
-      progress: Progress.updateWeight(state.progress!, action.weight),
-    };
+    return Progress.setProgress(state, Progress.updateWeight(Progress.getProgress(state)!, action.weight));
   } else if (action.type === "StoreWebpushrSidAction") {
     return {
       ...state,
       webpushr: { sid: action.sid },
     };
   } else if (action.type === "CancelProgress") {
-    return { ...state, progress: undefined };
+    return {
+      ...state,
+      currentHistoryRecord: undefined,
+      progress: Progress.stop(state.progress, state.currentHistoryRecord!),
+    };
   } else if (action.type === "DeleteProgress") {
-    const historyRecord = state.progress?.historyRecord;
-    if (historyRecord != null) {
-      const history = state.storage.history.filter((h) => h.date !== historyRecord.date);
+    const progress = Progress.getProgress(state);
+    if (progress != null) {
+      const history = state.storage.history.filter((h) => h.id !== progress.id);
       return {
         ...state,
+        currentHistoryRecord: undefined,
         storage: { ...state.storage, history },
-        progress: undefined,
+        progress: Progress.stop(state.progress, progress.id),
       };
     } else {
       return state;
@@ -392,17 +376,12 @@ export const reducer: Reducer<IState, IAction> = (state, action) => {
   } else if (action.type === "Logout") {
     return { ...state, email: undefined };
   } else if (action.type === "StartTimer") {
-    if (state.progress != null) {
-      return { ...state, progress: Progress.startTimer(state.progress, action.timestamp, action.mode) };
-    } else {
-      return state;
-    }
+    return Progress.setProgress(
+      state,
+      Progress.startTimer(Progress.getProgress(state)!, action.timestamp, action.mode)
+    );
   } else if (action.type === "StopTimer") {
-    if (state.progress != null) {
-      return { ...state, progress: Progress.stopTimer(state.progress) };
-    } else {
-      return state;
-    }
+    return Progress.setProgress(state, Progress.stopTimer(Progress.getProgress(state)!));
   } else if (action.type === "UpdateSettings") {
     return {
       ...state,

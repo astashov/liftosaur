@@ -4,7 +4,8 @@ import { IProgram, IProgramDay } from "../program";
 import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
 import { Weight, IWeight } from "../weight";
-import { IProgress, Progress } from "../progress";
+import { Progress } from "../progress";
+import { IHistoryRecord } from "../history";
 
 function increment(excerciseType: IExcerciseType): number {
   switch (excerciseType) {
@@ -64,7 +65,11 @@ export const ivySaurProgram: IProgram = {
   author: "https://old.reddit.com/user/lvysaur",
   url: "https://old.reddit.com/r/Fitness/comments/4uijsl/a_detailed_look_at_why_stronglifts_starting",
   description: <p></p>,
-  finishDay: (progress: IProgress, aStats: IStats, aState?: IIvysaurState): { state: IIvysaurState; stats: IStats } => {
+  finishDay: (
+    progress: IHistoryRecord,
+    aStats: IStats,
+    aState?: IIvysaurState
+  ): { state: IIvysaurState; stats: IStats } => {
     const state: IIvysaurState = JSON.parse(JSON.stringify(aState || {}));
     const stats: IStats = JSON.parse(JSON.stringify(aStats));
     progress.entries.forEach((entry) => {

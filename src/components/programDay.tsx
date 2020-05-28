@@ -11,13 +11,13 @@ import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
 import { Timer } from "./timer";
-import { IProgress, IProgressMode } from "../models/progress";
+import { IProgressMode, Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { ISettings } from "../models/settings";
 
 interface IProps {
   programId: IProgramId;
-  progress: IProgress;
+  progress: IHistoryRecord;
   history: IHistoryRecord[];
   stats: IStats;
   settings: ISettings;
@@ -29,24 +29,22 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
-  const historyRecord = progress.historyRecord;
   const timers = props.settings.timers;
 
   if (progress != null) {
-    const currentProgram = Program.get(historyRecord?.programId ?? props.programId);
+    const currentProgram = Program.get(progress.programId);
     return (
       <section className="relative flex flex-col h-full">
         <HeaderView
           title={
             <button
               onClick={() => {
-                const date = historyRecord?.date;
-                if (date != null) {
-                  props.dispatch({ type: "ChangeDate", date });
+                if (!Progress.isCurrent(progress)) {
+                  props.dispatch({ type: "ChangeDate", date: progress.date });
                 }
               }}
             >
-              {DateUtils.format(historyRecord?.date != null ? historyRecord.date : new Date())}
+              {DateUtils.format(progress.date)}
             </button>
           }
           subtitle={currentProgram.name}
@@ -62,7 +60,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             </button>
           }
           right={
-            historyRecord?.date != null ? (
+            !Progress.isCurrent(progress) ? (
               <div className="px-3">
                 <button
                   onClick={() => {
@@ -82,7 +80,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={(mode) => {
-            if (progress.historyRecord == null) {
+            if (Progress.isCurrent(progress)) {
               props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });
             }
           }}
@@ -97,11 +95,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           />
           <FooterView dispatch={props.dispatch} />
         </section>
-        {progress.ui.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
-        {progress.ui.weightModal != null ? (
+        {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
+        {progress.ui?.weightModal != null ? (
           <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
         ) : undefined}
-        {progress.ui.dateModal != null ? (
+        {progress.ui?.dateModal != null ? (
           <ModalDate dispatch={props.dispatch} date={progress.ui.dateModal.date} />
         ) : undefined}
       </section>

@@ -5,16 +5,9 @@ import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
-
-export interface IProgress {
-  day: number;
-  startTime: number;
-  ui: IProgressUi;
-  entries: IHistoryEntry[];
-  historyRecord?: IHistoryRecord;
-  timerSince?: number;
-  timerMode?: IProgressMode;
-}
+import { lf } from "../utils/lens";
+import { IState } from "../ducks/reducer";
+import { ObjectUtils } from "../utils/object";
 
 export interface IProgressUi {
   amrapModal?: {
@@ -35,9 +28,12 @@ export type IProgressMode = "warmup" | "workout";
 
 export namespace Progress {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export function create(program: IProgram, day: number, stats: IStats, state?: any): IProgress {
+  export function create(program: IProgram, day: number, stats: IStats, state?: any): IHistoryRecord {
     const programDay = program.days[day];
     return {
+      id: 0,
+      date: new Date().toISOString(),
+      programId: program.id,
       day,
       ui: {},
       startTime: Date.now(),
@@ -52,24 +48,11 @@ export namespace Progress {
     };
   }
 
-  export function edit(historyRecord: IHistoryRecord): IProgress {
-    return {
-      day: historyRecord.day,
-      historyRecord: historyRecord,
-      startTime: historyRecord.startTime,
-      ui: {},
-      entries: historyRecord.entries.map((entry) => {
-        const firstWeight = entry.sets[0].weight;
-        return {
-          excercise: entry.excercise,
-          sets: entry.sets,
-          warmupSets: Excercise.getWarmupSets(entry.excercise, firstWeight),
-        };
-      }),
-    };
+  export function isCurrent(progress: IHistoryRecord): boolean {
+    return progress.id === 0;
   }
 
-  export function startTimer(progress: IProgress, timestamp: number, mode: IProgressMode): IProgress {
+  export function startTimer(progress: IHistoryRecord, timestamp: number, mode: IProgressMode): IHistoryRecord {
     return {
       ...progress,
       timerSince: timestamp,
@@ -77,7 +60,7 @@ export namespace Progress {
     };
   }
 
-  export function stopTimer(progress: IProgress): IProgress {
+  export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
     return {
       ...progress,
       timerSince: undefined,
@@ -85,11 +68,14 @@ export namespace Progress {
     };
   }
 
-  export function findEntryByExcercise(progress: IProgress, excerciseType: IExcerciseType): IHistoryEntry | undefined {
+  export function findEntryByExcercise(
+    progress: IHistoryRecord,
+    excerciseType: IExcerciseType
+  ): IHistoryEntry | undefined {
     return progress.entries.find((entry) => entry.excercise === excerciseType);
   }
 
-  export function isFullyCompletedSet(progress: IProgress): boolean {
+  export function isFullyCompletedSet(progress: IHistoryRecord): boolean {
     return progress.entries.every((entry) => isCompletedSet(entry));
   }
 
@@ -97,7 +83,7 @@ export namespace Progress {
     return Reps.isCompleted(entry.sets);
   }
 
-  export function isFullyFinishedSet(progress: IProgress): boolean {
+  export function isFullyFinishedSet(progress: IHistoryRecord): boolean {
     return progress.entries.every((entry) => isFinishedSet(entry));
   }
 
@@ -105,7 +91,11 @@ export namespace Progress {
     return Reps.isFinished(entry.sets);
   }
 
-  export function showUpdateWeightModal(progress: IProgress, excercise: IExcerciseType, weight: IWeight): IProgress {
+  export function showUpdateWeightModal(
+    progress: IHistoryRecord,
+    excercise: IExcerciseType,
+    weight: IWeight
+  ): IHistoryRecord {
     return {
       ...progress,
       ui: {
@@ -118,44 +108,59 @@ export namespace Progress {
     };
   }
 
-  export function showUpdateDate(progress: IProgress, date: string): IProgress {
+  export function showUpdateDate(progress: IHistoryRecord, date: string): IHistoryRecord {
     return {
       ...progress,
       ui: {
         ...progress.ui,
-        dateModal: {
-          date,
-        },
+        dateModal: { date },
       },
     };
   }
 
-  export function changeDate(progress: IProgress, date?: string): IProgress {
-    const historyRecord = progress.historyRecord;
-    if (historyRecord != null) {
-      return {
-        ...progress,
-        historyRecord: {
-          ...historyRecord,
-          ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
-        },
-        ui: {
-          ...progress.ui,
-          dateModal: undefined,
-        },
-      };
+  export function stop(
+    progresses: Record<number, IHistoryRecord | undefined>,
+    id: number
+  ): Record<number, IHistoryRecord | undefined> {
+    return ObjectUtils.keys(progresses).reduce<Record<number, IHistoryRecord | undefined>>((memo, k) => {
+      const p = progresses[k];
+      if (p != null && p.id !== id) {
+        memo[k] = p;
+      }
+      return memo;
+    }, {});
+  }
+
+  export function changeDate(progress: IHistoryRecord, date?: string): IHistoryRecord {
+    return {
+      ...progress,
+      ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
+      ui: {
+        ...progress.ui,
+        dateModal: undefined,
+      },
+    };
+  }
+
+  export function getProgress(state: Pick<IState, "currentHistoryRecord" | "progress">): IHistoryRecord | undefined {
+    return state.currentHistoryRecord != null ? state.progress[state.currentHistoryRecord] : undefined;
+  }
+
+  export function setProgress(state: IState, progress: IHistoryRecord): IState {
+    if (state.currentHistoryRecord != null) {
+      return lf(state).p("progress").p(state.currentHistoryRecord).set(progress);
     } else {
-      return progress;
+      return state;
     }
   }
 
   export function updateRepsInExcercise(
-    progress: IProgress,
+    progress: IHistoryRecord,
     excercise: IExcerciseType,
     weight: IWeight,
     setIndex: number,
     mode: IProgressMode
-  ): IProgress {
+  ): IHistoryRecord {
     if (mode === "warmup") {
       const firstWeight = progress.entries.find((e) => e.excercise === excercise)?.sets[0]?.weight;
       if (firstWeight != null) {
@@ -230,8 +235,8 @@ export namespace Progress {
     }
   }
 
-  export function updateAmrapRepsInExcercise(progress: IProgress, value?: number): IProgress {
-    if (progress.ui.amrapModal != null) {
+  export function updateAmrapRepsInExcercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+    if (progress.ui?.amrapModal != null) {
       const { excercise, setIndex, weight } = progress.ui.amrapModal;
       return {
         ...progress,
@@ -256,8 +261,8 @@ export namespace Progress {
     }
   }
 
-  export function updateWeight(progress: IProgress, weight?: IWeight): IProgress {
-    if (progress.ui.weightModal != null) {
+  export function updateWeight(progress: IHistoryRecord, weight?: IWeight): IHistoryRecord {
+    if (progress.ui?.weightModal != null) {
       const { excercise, weight: previousWeight } = progress.ui.weightModal;
       return {
         ...progress,

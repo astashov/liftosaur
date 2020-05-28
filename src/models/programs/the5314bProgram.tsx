@@ -3,11 +3,11 @@ import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
 import { Weight, IWeight } from "../weight";
 import { ISet } from "../set";
-import { IProgress } from "../progress";
 import { IExcerciseType, Excercise } from "../excercise";
 import { ObjectUtils } from "../../utils/object";
 import { h } from "preact";
 import { lf } from "../../utils/lens";
+import { IHistoryRecord } from "../history";
 
 export function getInitialState(): I5314BState {
   return {
@@ -134,7 +134,7 @@ function trainingWeek(trainingMax: IWeight): ISet[] {
 
 function adjustAfterTestingTrainingMax(
   state: I5314BState,
-  progress: IProgress,
+  progress: IHistoryRecord,
   excerciseType: I5314BExcerciseType
 ): I5314BState {
   const excercise = Excercise.get(excerciseType);
@@ -165,7 +165,11 @@ export const the5314bProgram: IProgram = {
       </p>
     </div>
   ),
-  finishDay: (progress: IProgress, aStats: IStats, aState?: I5314BState): { state: I5314BState; stats: IStats } => {
+  finishDay: (
+    progress: IHistoryRecord,
+    aStats: IStats,
+    aState?: I5314BState
+  ): { state: I5314BState; stats: IStats } => {
     let state: I5314BState = aState || getInitialState();
     const stats: IStats = aStats;
 

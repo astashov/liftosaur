@@ -51,7 +51,7 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
           {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
         </Fragment>
       );
-    } else if (state.progress == null) {
+    } else if (state.currentHistoryRecord == null || state.progress[state.currentHistoryRecord] == null) {
       const program = Program.get(programId);
       return (
         <ProgramHistoryView
@@ -63,16 +63,17 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
         />
       );
     } else {
+      const progress = state.progress[state.currentHistoryRecord]!;
       return (
         <ProgramDayView
           programId={programId}
-          progress={state.progress}
+          progress={progress}
           history={state.storage.history}
           stats={state.storage.stats}
           dispatch={dispatch}
           webpushr={state.webpushr}
-          timerSince={state.progress.timerSince}
-          timerMode={state.progress.timerMode}
+          timerSince={progress.timerSince}
+          timerMode={progress.timerMode}
           settings={state.storage.settings}
         />
       );

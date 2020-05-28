@@ -25,9 +25,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const nextHistoryRecord = Program.nextProgramRecord(props.program, lastHistoryRecord?.day, programState);
 
   const history = [...props.history, nextHistoryRecord].sort((a, b) => {
-    if (a.date == null) {
+    if (a.id === 0) {
       return 1;
-    } else if (b.date == null) {
+    } else if (b.id === 0) {
       return -1;
     } else {
       return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();

@@ -1,12 +1,13 @@
 import { h, JSX } from "preact";
 import { ExcerciseView } from "./excercise";
 import { IDispatch } from "../ducks/types";
-import { IProgress, IProgressMode, Progress } from "../models/progress";
+import { IProgressMode, Progress } from "../models/progress";
 import { Button } from "./button";
 import { IPlate } from "../models/weight";
+import { IHistoryRecord } from "../models/history";
 
 interface ICardsViewProps {
-  progress: IProgress;
+  progress: IHistoryRecord;
   availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
@@ -14,7 +15,7 @@ interface ICardsViewProps {
 
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
-    <section className="overflow-y-auto flex-1">
+    <section className="flex-1 overflow-y-auto">
       {props.progress.entries.map((entry) => {
         return (
           <ExcerciseView
@@ -25,17 +26,19 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
           />
         );
       })}
-      <div className="text-center py-3">
+      <div className="py-3 text-center">
         <Button
           kind="green"
           onClick={() => {
-            const isNext = props.progress.historyRecord == null;
-            if ((isNext && Progress.isFullyFinishedSet(props.progress)) || confirm("Are you sure?")) {
+            if (
+              (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
+              confirm("Are you sure?")
+            ) {
               props.dispatch({ type: "FinishProgramDayAction" });
             }
           }}
         >
-          {props.progress.historyRecord != null ? "Save" : "Finish the workout"}
+          {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
         </Button>
       </div>
     </section>
