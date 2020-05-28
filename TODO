@@ -8,7 +8,6 @@
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
 * Make serializing/deserializing safer
-* Allow to go back to history view without finishing the day
 * Provide a way to send feedback
 * Extract lens lib into a separate npm package
 * Add `apple-touch-icon`
