@@ -11,6 +11,7 @@ import { IStats } from "../models/stats";
 
 interface IProps {
   program: IProgram;
+  progress?: IHistoryRecord;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   programStates: Record<string, any>;
   stats: IStats;
@@ -20,32 +21,28 @@ interface IProps {
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
-  const lastHistoryRecord = props.history.find((i) => i.programId === props.program.id);
-  const programState = props.programStates[props.program.id];
-  const nextHistoryRecord = Program.nextProgramRecord(props.program, lastHistoryRecord?.day, programState);
-
-  const history = [...props.history, nextHistoryRecord].sort((a, b) => {
-    if (a.id === 0) {
-      return 1;
-    } else if (b.id === 0) {
-      return -1;
-    } else {
-      return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
-    }
+  const sortedHistory = props.history.sort((a, b) => {
+    return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
+  const lastHistoryRecord = sortedHistory.find((i) => i.programId === props.program.id);
+  const programState = props.programStates[props.program.id];
+  const nextHistoryRecord =
+    props.progress || Program.nextProgramRecord(props.program, lastHistoryRecord?.day, programState);
+
+  const history = [nextHistoryRecord, ...sortedHistory];
 
   return (
     <section className="flex flex-col h-full">
       <HeaderView title={props.program.name} subtitle="Current program" />
       <section className="flex-1 h-0 overflow-y-auto">
+        <div className="py-3 text-center border-b border-gray-200">
+          <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
+            {props.progress ? "Continue Workout" : "Start Next Workout"}
+          </Button>
+        </div>
         {history.map((historyRecord) => (
           <HistoryRecordView historyRecord={historyRecord} programState={programState} dispatch={dispatch} />
         ))}
-        <div className="py-3 text-center">
-          <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
-            Start Next Workout
-          </Button>
-        </div>
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>

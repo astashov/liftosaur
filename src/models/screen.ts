@@ -1,4 +1,4 @@
-import { IScreen } from "../ducks/reducer";
+export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings" | "progress";
 
 export namespace Screen {
   export function current(stack: IScreen[]): IScreen {

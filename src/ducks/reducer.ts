@@ -5,7 +5,7 @@ import { Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
-import { Screen } from "../models/screen";
+import { Screen, IScreen } from "../models/screen";
 import { IStats } from "../models/stats";
 import { IWeight } from "../models/weight";
 import deepmerge from "deepmerge";
@@ -22,8 +22,6 @@ export type IEnv = {
   audio: AudioInterface;
   googleAuth?: gapi.auth2.GoogleAuth;
 };
-
-export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings";
 
 export interface IState {
   email?: string;
@@ -68,6 +66,7 @@ export function getInitialState(): IState {
     return {
       storage: runMigrations(storage.storage),
       progress: storage.progress ? { 0: storage.progress } : {},
+      currentHistoryRecord: 0,
       screenStack: ["main"],
     };
   }
@@ -258,18 +257,24 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     }
     return Progress.setProgress(state, progress);
   } else if (action.type === "StartProgramDayAction") {
-    if (Progress.getProgress(state) != null) {
-      throw new StateError("Progress is already started");
+    const progress = Progress.getProgress(state);
+    if (progress != null) {
+      return {
+        ...state,
+        currentHistoryRecord: progress.id,
+        screenStack: Screen.push(state.screenStack, "progress"),
+      };
     } else if (state.storage.currentProgramId != null) {
       const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
       const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
       const programState = state.storage.programStates[state.storage.currentProgramId];
-      const progress = Progress.create(program, day, state.storage.stats, programState);
+      const newProgress = Progress.create(program, day, state.storage.stats, programState);
       return {
         ...state,
         currentHistoryRecord: 0,
-        progress: { ...state.progress, 0: progress },
+        screenStack: Screen.push(state.screenStack, "progress"),
+        progress: { ...state.progress, 0: newProgress },
       };
     } else {
       return state;
@@ -278,6 +283,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       currentHistoryRecord: action.historyRecord.id,
+      screenStack: Screen.push(state.screenStack, "progress"),
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
@@ -308,6 +314,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             [program.id]: newProgramState,
           },
         },
+        screenStack: Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,
         progress: Progress.stop(state.progress, progress.id),
       };
@@ -345,10 +352,14 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       webpushr: { sid: action.sid },
     };
   } else if (action.type === "CancelProgress") {
+    const progress = Progress.getProgress(state)!;
     return {
       ...state,
       currentHistoryRecord: undefined,
-      progress: Progress.stop(state.progress, state.currentHistoryRecord!),
+      screenStack: Screen.pull(state.screenStack),
+      progress: Progress.isCurrent(progress)
+        ? state.progress
+        : Progress.stop(state.progress, state.currentHistoryRecord!),
     };
   } else if (action.type === "DeleteProgress") {
     const progress = Progress.getProgress(state);
@@ -357,6 +368,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: undefined,
+        screenStack: Screen.pull(state.screenStack),
         storage: { ...state.storage, history },
         progress: Progress.stop(state.progress, progress.id),
       };

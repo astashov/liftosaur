@@ -51,28 +51,26 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           left={
             <button
               onClick={() => {
-                if (confirm("Are you sure?")) {
+                if (Progress.isCurrent(progress) || confirm("Are you sure?")) {
                   props.dispatch({ type: "CancelProgress" });
                 }
               }}
             >
-              Cancel
+              {Progress.isCurrent(progress) ? "Back" : "Cancel"}
             </button>
           }
           right={
-            !Progress.isCurrent(progress) ? (
-              <div className="px-3">
-                <button
-                  onClick={() => {
-                    if (confirm("Are you sure?")) {
-                      props.dispatch({ type: "DeleteProgress" });
-                    }
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            ) : undefined
+            <div className="px-3">
+              <button
+                onClick={() => {
+                  if (confirm("Are you sure?")) {
+                    props.dispatch({ type: "DeleteProgress" });
+                  }
+                }}
+              >
+                {Progress.isCurrent(progress) ? "Cancel" : "Delete"}
+              </button>
+            </div>
           }
         />
         <CardsView

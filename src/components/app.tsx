@@ -51,33 +51,35 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
           {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
         </Fragment>
       );
-    } else if (state.currentHistoryRecord == null || state.progress[state.currentHistoryRecord] == null) {
+    } else {
       const program = Program.get(programId);
       return (
         <ProgramHistoryView
           program={program}
+          progress={state.progress?.[0]}
           programStates={state.storage.programStates}
           history={state.storage.history}
           stats={state.storage.stats}
           dispatch={dispatch}
         />
       );
-    } else {
-      const progress = state.progress[state.currentHistoryRecord]!;
-      return (
-        <ProgramDayView
-          programId={programId}
-          progress={progress}
-          history={state.storage.history}
-          stats={state.storage.stats}
-          dispatch={dispatch}
-          webpushr={state.webpushr}
-          timerSince={progress.timerSince}
-          timerMode={progress.timerMode}
-          settings={state.storage.settings}
-        />
-      );
     }
+  } else if (Screen.current(state.screenStack) === "progress") {
+    const programId = state.storage.currentProgramId!;
+    const progress = state.progress[state.currentHistoryRecord!]!;
+    return (
+      <ProgramDayView
+        programId={programId}
+        progress={progress}
+        history={state.storage.history}
+        stats={state.storage.stats}
+        dispatch={dispatch}
+        webpushr={state.webpushr}
+        timerSince={progress.timerSince}
+        timerMode={progress.timerMode}
+        settings={state.storage.settings}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "settings") {
     return <ScreenSettings dispatch={dispatch} email={state.email} currentProgram={state.storage.currentProgramId!} />;
   } else if (Screen.current(state.screenStack) === "account") {

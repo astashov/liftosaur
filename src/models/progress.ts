@@ -87,6 +87,10 @@ export namespace Progress {
     return progress.entries.every((entry) => isFinishedSet(entry));
   }
 
+  export function isFullyEmptySet(progress: IHistoryRecord): boolean {
+    return progress.entries.every((entry) => Reps.isEmpty(entry.sets));
+  }
+
   export function isFinishedSet(entry: IHistoryEntry): boolean {
     return Reps.isFinished(entry.sets);
   }
