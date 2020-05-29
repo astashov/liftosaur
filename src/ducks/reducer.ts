@@ -257,7 +257,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     }
     return Progress.setProgress(state, progress);
   } else if (action.type === "StartProgramDayAction") {
-    const progress = Progress.getProgress(state);
+    const progress = state.progress[0];
     if (progress != null) {
       return {
         ...state,
