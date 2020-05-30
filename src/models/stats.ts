@@ -1,5 +1,5 @@
 import { IExcerciseType } from "./excercise";
-import { IWeight } from "./weight";
+import { IProgramId } from "./program";
 
 export interface IStats {
   excercises: IStatsExcercises;
@@ -8,7 +8,11 @@ export interface IStats {
 export type IStatsExcercises = { [P in IExcerciseType]?: IStatsExcercisesValue };
 
 interface IStatsExcercisesValue {
-  weights: {
-    [key: string]: IWeight | undefined;
-  };
+  maxWeight: {
+    timestamp: number;
+    weight: number;
+    reps: number;
+    programId: IProgramId;
+    day: number;
+  }[];
 }

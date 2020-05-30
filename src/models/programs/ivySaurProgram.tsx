@@ -100,10 +100,16 @@ export const ivySaurProgram: IProgram = {
       if (Progress.isCompletedSet(entry)) {
         stats.excercises[entry.excercise] = {
           ...oldStatsExcerciseValue,
-          weights: {
-            ...oldStatsExcerciseValue?.weights,
-            [`${entry.sets.length}x${set.reps}`]: set.weight,
-          },
+          maxWeight: [
+            ...(oldStatsExcerciseValue?.maxWeight || []),
+            {
+              timestamp: Date.now(),
+              programId: "ivySaur",
+              day: progress.day,
+              reps: set.reps,
+              weight: set.weight,
+            },
+          ],
         };
       }
     });

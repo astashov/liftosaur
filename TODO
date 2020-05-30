@@ -1,5 +1,3 @@
-* 5314B:
-  - Update stats on day finish
 * Graphs
   - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Bugs
@@ -8,6 +6,7 @@
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
 * Make serializing/deserializing safer
+* Support kilograms
 * Provide a way to send feedback
 * Extract lens lib into a separate npm package
 * Add `apple-touch-icon`

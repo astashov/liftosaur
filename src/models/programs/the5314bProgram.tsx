@@ -171,7 +171,7 @@ export const the5314bProgram: IProgram = {
     aState?: I5314BState
   ): { state: I5314BState; stats: IStats } => {
     let state: I5314BState = aState || getInitialState();
-    const stats: IStats = aStats;
+    let stats: IStats = aStats;
 
     const programDay = the5314bProgram.days[progress.day](state);
     if (programDay.name === "Week 3 Day 3") {
@@ -204,6 +204,35 @@ export const the5314bProgram: IProgram = {
     } else if (programDay.name === "Bench Press Testing Day") {
       state = adjustAfterTestingTrainingMax(state, progress, "benchPress");
     }
+    progress.entries.forEach((entry) => {
+      const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
+        return b.weight !== a.weight ? b.weight - a.weight : (b.completedReps || 0) - (a.completedReps || 0);
+      })[0];
+      const reps = maxSet.completedReps || 0;
+      if (reps !== 0) {
+        stats = lf(stats)
+          .p("excercises")
+          .p(entry.excercise)
+          .modify((v) => {
+            v = v || { maxWeight: [] };
+            v = lf(v)
+              .p("maxWeight")
+              .modify((va) => [
+                ...va,
+                {
+                  timestamp: Date.now(),
+                  programId: "the5314b",
+                  day: progress.day,
+                  reps,
+                  weight: maxSet.weight,
+                },
+              ]);
+            return v;
+          });
+      }
+    });
+
+    console.log(stats);
     return { state, stats };
   },
   days: [

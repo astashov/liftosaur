@@ -10,13 +10,17 @@ export namespace Weight {
     return Math.round(weight / 5) * 5;
   }
 
-  export function getTrainingMax(weight: number, reps: number): number {
+  export function getOneRepMax(weight: number, reps: number): number {
     if (reps === 1) {
-      return Weight.round(weight * 0.9);
+      return weight;
     } else {
       // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
-      return Weight.round(weight * (1 + reps / 30) * 0.9);
+      return Weight.round(weight * (1 + reps / 30));
     }
+  }
+
+  export function getTrainingMax(weight: number, reps: number): number {
+    return Weight.round(Weight.getOneRepMax(weight, reps) * 0.9);
   }
 
   export function platesWeight(plates: IPlate[]): IWeight {

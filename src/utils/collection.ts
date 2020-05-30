@@ -55,4 +55,10 @@ export namespace CollectionUtils {
   export function flat<T>(from: T[][]): T[] {
     return from.reduce((acc, val) => acc.concat(val), []);
   }
+
+  export function sort<T>(arr: T[], compareFn?: (a: T, b: T) => number): T[] {
+    const arrCopy = [...arr];
+    arrCopy.sort(compareFn);
+    return arrCopy;
+  }
 }
