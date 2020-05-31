@@ -215,6 +215,7 @@ export const the5314bProgram: IProgram = {
           .p(entry.excercise)
           .modify((v) => {
             v = v || { maxWeight: [] };
+            v.maxWeight = v.maxWeight || [];
             v = lf(v)
               .p("maxWeight")
               .modify((va) => [

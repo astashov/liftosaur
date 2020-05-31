@@ -1,4 +1,4 @@
-export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings" | "progress";
+export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings" | "progress" | "graphs";
 
 export namespace Screen {
   export function current(stack: IScreen[]): IScreen {

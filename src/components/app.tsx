@@ -16,6 +16,7 @@ import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
 import { ScreenProgramSettings } from "./screenProgramSettings";
 import { ModalOnboarding } from "./modalOnboarding";
+import { ScreenGraphs } from "./screenGraphs";
 
 export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
   const { client, audio } = props;
@@ -88,6 +89,8 @@ export function AppView(props: { client: Window["fetch"]; audio: AudioInterface 
     return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
     return <ScreenPlates dispatch={dispatch} plates={state.storage.settings.plates} />;
+  } else if (Screen.current(state.screenStack) === "graphs") {
+    return <ScreenGraphs dispatch={dispatch} history={state.storage.history} stats={state.storage.stats} />;
   } else if (Screen.current(state.screenStack) === "programSettings") {
     return (
       <ScreenProgramSettings

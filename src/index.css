@@ -4,3 +4,7 @@
 /* purgecss end ignore */
 
 @tailwind utilities;
+
+.graph-max-weight .legend .off > * {
+  opacity: 1 !important;
+}
