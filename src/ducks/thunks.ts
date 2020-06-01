@@ -1,4 +1,5 @@
 import { IThunk } from "./types";
+import { IScreen } from "../models/screen";
 
 declare let __API_HOST__: string;
 
@@ -73,6 +74,20 @@ export namespace Thunk {
       if (sid != null) {
         env.service.sendTimerPushNotification(sid);
       }
+    };
+  }
+
+  export function pushScreen(screen: IScreen): IThunk {
+    return (dispatch) => {
+      dispatch({ type: "PushScreen", screen });
+      window.scroll(0, 0);
+    };
+  }
+
+  export function pullScreen(): IThunk {
+    return (dispatch) => {
+      dispatch({ type: "PullScreen" });
+      window.scroll(0, 0);
     };
   }
 }

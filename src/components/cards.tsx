@@ -15,7 +15,7 @@ interface ICardsViewProps {
 
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
-    <section className="flex-1 overflow-y-auto">
+    <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
       {props.progress.entries.map((entry) => {
         return (
           <ExcerciseView

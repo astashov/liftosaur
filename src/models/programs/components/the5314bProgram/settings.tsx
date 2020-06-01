@@ -21,6 +21,7 @@ import { ObjectUtils } from "../../../../utils/object";
 import { lb } from "../../../../utils/lens";
 import { CollectionUtils } from "../../../../utils/collection";
 import { ModalTrainingMaxCalculator } from "../../../../components/modalTrainingMaxCalculator";
+import { Thunk } from "../../../../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -51,7 +52,7 @@ export function The5314bProgramSettings(props: IProps): JSX.Element {
               if (selectedAccessory != null) {
                 setSelectedAccessory(undefined);
               } else {
-                props.dispatch({ type: "PullScreen" });
+                props.dispatch(Thunk.pullScreen());
               }
             }}
           >
@@ -59,7 +60,7 @@ export function The5314bProgramSettings(props: IProps): JSX.Element {
           </button>
         }
       />
-      <section className="flex flex-col flex-1 h-0 overflow-y-auto">
+      <section className="flex flex-col" style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         {selectedAccessory == null ? (
           <Settings
             {...props}

@@ -2,24 +2,17 @@ import { h, JSX } from "preact";
 import { IconCog } from "./iconCog";
 import { IDispatch } from "../ducks/types";
 import { IconGraphs } from "./iconGraphs";
+import { Thunk } from "../ducks/thunks";
 
 export function FooterView(props: { dispatch: IDispatch }): JSX.Element {
   return (
-    <div className="relative flex items-center pb-2 text-center text-white bg-blue-700">
+    <div className="fixed bottom-0 left-0 z-10 flex items-center w-full pb-2 text-center text-white bg-blue-700">
       <div className="flex-1 px-3 text-sm text-left text-blue-500">{__COMMIT_HASH__}</div>
       <div className="flex-1 text-right">
-        <button
-          className="p-4"
-          aria-label="Graphs"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "graphs" })}
-        >
+        <button className="p-4" aria-label="Graphs" onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}>
           <IconGraphs />
         </button>
-        <button
-          className="p-4"
-          aria-label="Settings"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "settings" })}
-        >
+        <button className="p-4" aria-label="Settings" onClick={() => props.dispatch(Thunk.pushScreen("settings"))}>
           <IconCog />
         </button>
       </div>

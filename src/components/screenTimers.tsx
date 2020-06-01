@@ -7,6 +7,7 @@ import { StringUtils } from "../utils/string";
 import { ISettingsTimers, ISettings } from "../models/settings";
 import { Lens } from "../utils/lens";
 import { MenuItemEditable } from "./menuItemEditable";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -15,9 +16,9 @@ interface IProps {
 
 export function ScreenTimers(props: IProps): JSX.Element {
   return (
-    <section className="flex flex-col h-full">
-      <HeaderView title="Timers" left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>} />
-      <section className="flex-1 w-full">
+    <section className="h-full">
+      <HeaderView title="Timers" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         {ObjectUtils.keys(props.timers).map((timerType) => {
           const timer = props.timers[timerType];
           return (

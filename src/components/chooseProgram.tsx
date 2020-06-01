@@ -15,7 +15,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   const [selectedProgramId, useSelectedProgramId] = useState<IProgramId | undefined>(undefined);
 
   return (
-    <section className="flex flex-col h-full">
+    <section className="h-full">
       <HeaderView title="Choose a program" />
       <ProgramListView onClick={(programId) => useSelectedProgramId(programId)} />
       {selectedProgramId != null && (

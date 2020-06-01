@@ -34,7 +34,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   if (progress != null) {
     const currentProgram = Program.get(progress.programId);
     return (
-      <section className="relative flex flex-col h-full">
+      <section className="relative h-full">
         <HeaderView
           title={
             <button

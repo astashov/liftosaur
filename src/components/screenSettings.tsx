@@ -6,6 +6,7 @@ import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
 import { programsList, IProgramId } from "../models/program";
 import { ObjectUtils } from "../utils/object";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -15,17 +16,14 @@ interface IProps {
 
 export function ScreenSettings(props: IProps): JSX.Element {
   return (
-    <section className="flex flex-col h-full">
-      <HeaderView
-        title="Settings"
-        left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
-      />
-      <section className="flex-1 w-full">
+    <section className="h-full">
+      <HeaderView title="Settings" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItem
           name="Account"
           value={props.email}
           shouldShowRightArrow={true}
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "account" })}
+          onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
         <MenuItemEditable
           name="Current Program"
@@ -38,18 +36,18 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
         <MenuItem
           name="Program Settings"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "programSettings" })}
+          onClick={() => props.dispatch(Thunk.pushScreen("programSettings"))}
           shouldShowRightArrow={true}
         />
         <MenuItem
           name="Timers"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "timers" })}
+          onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
           shouldShowRightArrow={true}
         />
         <MenuItem
           shouldShowRightArrow={true}
           name="Available Plates"
-          onClick={() => props.dispatch({ type: "PushScreen", screen: "plates" })}
+          onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
         />
       </section>
       <FooterView dispatch={props.dispatch} />

@@ -5,6 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { IStats } from "../models/stats";
 import { Graph } from "./graph";
 import { IHistoryRecord } from "../models/history";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -14,9 +15,9 @@ interface IProps {
 
 export function ScreenGraphs(props: IProps): JSX.Element {
   return (
-    <section className="flex flex-col h-full">
-      <HeaderView title="Graphs" left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>} />
-      <section className="flex-1 h-0 overflow-y-auto">
+    <section className="h-full">
+      <HeaderView title="Graphs" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <Graph history={props.history} excercise="squat" />
         <Graph history={props.history} excercise="benchPress" />
         <Graph history={props.history} excercise="overheadPress" />

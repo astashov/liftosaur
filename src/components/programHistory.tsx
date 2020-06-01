@@ -32,9 +32,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const history = [nextHistoryRecord, ...sortedHistory];
 
   return (
-    <section className="flex flex-col h-full">
+    <section className="h-full">
       <HeaderView title={props.program.name} subtitle="Current program" />
-      <section className="flex-1 h-0 overflow-y-auto">
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <div className="py-3 text-center border-b border-gray-200">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
             {props.progress ? "Continue Workout" : "Start Next Workout"}

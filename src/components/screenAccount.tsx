@@ -11,8 +11,8 @@ interface IProps {
 
 export function ScreenAccount(props: IProps): JSX.Element {
   return (
-    <section className="flex flex-col h-full">
-      <HeaderView title="Account" left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>} />
+    <section className="h-full">
+      <HeaderView title="Account" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
       {props.email != null ? (
         <ScreenAccountLoggedIn email={props.email} dispatch={props.dispatch} />
       ) : (
@@ -25,7 +25,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
 function ScreenAccountLoggedOut(props: { dispatch: IDispatch }): JSX.Element {
   return (
-    <section className="flex-1 w-full">
+    <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
       <button
         className="w-full px-6 py-4 border-b border-gray-200"
         onClick={() => props.dispatch(Thunk.googleSignIn())}

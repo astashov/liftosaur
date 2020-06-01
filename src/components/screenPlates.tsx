@@ -9,6 +9,7 @@ import { useState } from "preact/hooks";
 import { ModalPlates } from "./modalPlates";
 import { Lens } from "../utils/lens";
 import { ISettings } from "../models/settings";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -21,12 +22,12 @@ export function ScreenPlates(props: IProps): JSX.Element {
   plates.sort((a, b) => b.weight - a.weight);
 
   return (
-    <section className="flex flex-col h-full">
+    <section className="h-full">
       <HeaderView
         title="Available Plates"
-        left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
+        left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>}
       />
-      <section className="flex-1 w-full">
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         {plates.map((plate) => {
           return (
             <MenuItemEditable
