@@ -1,5 +1,3 @@
-* Graphs
-  - Show progress of stats over time, by type (3x8, 5x5, etc)
 * Bugs
   - Sometimes it scrolls the whole screen instead of contents (history and progress views)
 * Add errors handling to HTTP calls

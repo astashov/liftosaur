@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
-import "uplot/dist/uPlot.min.css";
 import { IHistoryRecord } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";

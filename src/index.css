@@ -1,10 +1,8 @@
 /* purgecss start ignore */
+@import "~uplot/dist/uPlot.min.css";
+
 @tailwind base;
 @tailwind components;
 /* purgecss end ignore */
 
 @tailwind utilities;
-
-.graph-max-weight .legend .off > * {
-  opacity: 1 !important;
-}
