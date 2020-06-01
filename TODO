@@ -1,5 +1,13 @@
-* Bugs
-  - Sometimes it scrolls the whole screen instead of contents (history and progress views)
+* Programs
+  - Fitness Basic Beginner Routine
+  - 5/3/1s
+    - BBB
+    - Building the monolith
+  - Greyskull LP
+  - GZCL Method
+  - GZCLP
+  - Strong Curves
+  - nSuns LP
 * Add errors handling to HTTP calls
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
