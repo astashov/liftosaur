@@ -34,11 +34,13 @@ export function ScreenSettings(props: IProps): JSX.Element {
             props.dispatch({ type: "ChangeProgramAction", name: newValue as IProgramId });
           }}
         />
-        <MenuItem
-          name="Program Settings"
-          onClick={() => props.dispatch(Thunk.pushScreen("programSettings"))}
-          shouldShowRightArrow={true}
-        />
+        {props.currentProgram === "the5314b" && (
+          <MenuItem
+            name="Program Settings"
+            onClick={() => props.dispatch(Thunk.pushScreen("programSettings"))}
+            shouldShowRightArrow={true}
+          />
+        )}
         <MenuItem
           name="Timers"
           onClick={() => props.dispatch(Thunk.pushScreen("timers"))}

@@ -86,6 +86,7 @@ export function getInitialState(): IState {
           { weight: 10, num: 4 },
           { weight: 5, num: 4 },
           { weight: 2.5, num: 4 },
+          { weight: 1.25, num: 2 },
         ],
         timers: {
           warmup: 90,

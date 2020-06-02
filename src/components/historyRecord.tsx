@@ -65,7 +65,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                       isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
                     />
                   </div>
-                  <div className="w-6 ml-1 font-bold text-right">{Math.max(...entry.sets.map((s) => s.weight))}</div>
+                  <div className="w-8 ml-1 font-bold text-right">{Math.max(...entry.sets.map((s) => s.weight))}</div>
                 </div>
               );
             } else {

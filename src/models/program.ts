@@ -1,6 +1,7 @@
 import { IStats } from "./stats";
 import * as IvySaurProgram from "./programs/ivySaurProgram";
 import * as The5314bProgram from "./programs/the5314bProgram";
+import * as BasicBeginnerProgram from "./programs/basicBeginner";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord } from "./history";
 import { JSX } from "preact";
@@ -29,15 +30,17 @@ export interface IProgramDayEntry {
   sets: ISet[];
 }
 
-export type IProgramId = "ivySaur" | "the5314b";
+export type IProgramId = "basicBeginner" | "ivySaur" | "the5314b";
 
 export const programsList: Record<IProgramId, IProgram> = {
+  basicBeginner: BasicBeginnerProgram.basicBeginnerProgram,
   the5314b: The5314bProgram.the5314bProgram,
   ivySaur: IvySaurProgram.ivySaurProgram,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const defaultProgramStates: Record<IProgramId, any> = {
+  basicBeginner: BasicBeginnerProgram.getInitialState(),
   ivySaur: {},
   the5314b: The5314bProgram.getInitialState(),
 };
