@@ -47,7 +47,7 @@ export function Timer(props: IProps): JSX.Element | null {
     const timeDifference = Date.now() - props.timerStart;
     const className = timeDifference > timer * 1000 ? "text-red-500" : "text-gray-200";
     return (
-      <section className="w-full p-3 text-center bg-gray-800 col">
+      <section className="fixed w-full p-3 text-center bg-gray-800 col" style={{ bottom: "4rem" }}>
         <span className={className}>{TimeUtils.formatMMSS(timeDifference)}</span>
       </section>
     );

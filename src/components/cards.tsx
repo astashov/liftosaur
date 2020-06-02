@@ -8,6 +8,7 @@ import { IHistoryRecord } from "../models/history";
 
 interface ICardsViewProps {
   progress: IHistoryRecord;
+  isTimerShown: boolean;
   availablePlates: IPlate[];
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
@@ -15,7 +16,7 @@ interface ICardsViewProps {
 
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
-    <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+    <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
       {props.progress.entries.map((entry) => {
         return (
           <ExcerciseView

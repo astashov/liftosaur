@@ -38,7 +38,7 @@ export function The5314bProgramSettings(props: IProps): JSX.Element {
   const [selectedAccessory, setSelectedAccessory] = useState<[keyof I5314BAccessoryDay, number] | undefined>(undefined);
   const [excerciseCalculator, setExcerciseCalculator] = useState<I5314BExcerciseType | undefined>(undefined);
   return (
-    <section className="flex flex-col h-full">
+    <section className="h-full">
       <HeaderView
         title="Program Settings"
         subtitle={

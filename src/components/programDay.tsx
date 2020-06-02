@@ -75,6 +75,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         <CardsView
           progress={progress}
+          isTimerShown={!!props.timerSince}
           availablePlates={props.settings.plates}
           dispatch={props.dispatch}
           onChangeReps={(mode) => {
@@ -83,16 +84,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             }
           }}
         />
-        <section className="relative">
-          <Timer
-            mode={props.timerMode ?? "workout"}
-            timerStart={props.timerSince}
-            webpushr={props.webpushr}
-            timers={timers}
-            dispatch={props.dispatch}
-          />
-          <FooterView dispatch={props.dispatch} />
-        </section>
+        <Timer
+          mode={props.timerMode ?? "workout"}
+          timerStart={props.timerSince}
+          webpushr={props.webpushr}
+          timers={timers}
+          dispatch={props.dispatch}
+        />
+        <FooterView dispatch={props.dispatch} />
         {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui?.weightModal != null ? (
           <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
