@@ -16,13 +16,20 @@ export type IExcerciseType =
   | "invertedRows"
   | "dbLateralRaise"
   | "inclineDbBenchPress"
+  | "dbInclineFly"
+  | "dbArnoldPress"
+  | "dbBenchPress"
   | "dbShrug"
   | "cableCrunch"
   | "tricepsPushdown"
+  | "dbTricepsExtension"
   | "neutralGripChinup"
   | "plank"
   | "dbRow"
   | "dbOverheadPress"
+  | "dbSingleLegDeadlift"
+  | "dbGobletSquat"
+  | "dbCalfRaise"
   | "bulgarianSplitSquat"
   | "paloffPressWithBand"
   | "dbLunge"
@@ -48,6 +55,20 @@ function warmup45(weight: IWeight): ISet[] {
     percents.unshift(0.3);
   }
   return percents.map((percent) => ({ reps: 5, weight: Math.max(45, Weight.round(percent * weight)) }));
+}
+
+function warmup10(weight: IWeight): ISet[] {
+  const percents = [];
+  if (weight > 10) {
+    percents.unshift(0.8);
+  }
+  if (weight > 30) {
+    percents.unshift(0.5);
+  }
+  if (weight > 60) {
+    percents.unshift(0.3);
+  }
+  return percents.map((percent) => ({ reps: 5, weight: Math.max(10, Weight.round(percent * weight)) }));
 }
 
 function warmup95(weight: IWeight): ISet[] {
@@ -147,6 +168,30 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
     startWeight: 25,
     warmupSets: warmupEmpty,
   },
+  dbBenchPress: {
+    id: "dbBenchPress",
+    name: "Dumbbell Bench Press",
+    startWeight: 30,
+    warmupSets: warmup10,
+  },
+  dbInclineFly: {
+    id: "dbInclineFly",
+    name: "Dumbbell Incline Fly",
+    startWeight: 20,
+    warmupSets: warmup10,
+  },
+  dbArnoldPress: {
+    id: "dbArnoldPress",
+    name: "Dumbbell Arnold Press",
+    startWeight: 20,
+    warmupSets: warmup10,
+  },
+  dbTricepsExtension: {
+    id: "dbTricepsExtension",
+    name: "Dumbbell Triceps Extension",
+    startWeight: 20,
+    warmupSets: warmup10,
+  },
   inclineDbBenchPress: {
     id: "inclineDbBenchPress",
     name: "Incline Dumbbell Bench Press",
@@ -200,6 +245,24 @@ export const excercises: Record<IExcerciseType, IExcercise> = {
     name: "Bulgarian Split Squat",
     startWeight: 0,
     warmupSets: warmupEmpty,
+  },
+  dbSingleLegDeadlift: {
+    id: "dbSingleLegDeadlift",
+    name: "Dumbbell Single Leg Deadlift",
+    startWeight: 30,
+    warmupSets: warmup10,
+  },
+  dbGobletSquat: {
+    id: "dbGobletSquat",
+    name: "Goblet Squat",
+    startWeight: 30,
+    warmupSets: warmup10,
+  },
+  dbCalfRaise: {
+    id: "dbCalfRaise",
+    name: "Dumbbell Calf Raise",
+    startWeight: 30,
+    warmupSets: warmup10,
   },
   paloffPressWithBand: {
     id: "paloffPressWithBand",

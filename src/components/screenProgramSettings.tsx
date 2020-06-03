@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IProgramId, Program } from "../models/program";
 import { The5314bProgramSettings } from "../models/programs/components/the5314bProgram/settings";
+import { DbPplProgramSettings } from "../models/programs/components/dbPplProgram/settings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -15,6 +16,8 @@ export function ScreenProgramSettings(props: IProps): JSX.Element | null {
   const state = props.programStates[props.programId];
   if (props.programId === "the5314b") {
     return <The5314bProgramSettings dispatch={props.dispatch} programId={program.id} state={state} />;
+  } else if (props.programId === "dbPpl") {
+    return <DbPplProgramSettings dispatch={props.dispatch} programId={program.id} state={state} />;
   }
   return null;
 }

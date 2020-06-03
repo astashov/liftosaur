@@ -34,7 +34,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             props.dispatch({ type: "ChangeProgramAction", name: newValue as IProgramId });
           }}
         />
-        {props.currentProgram === "the5314b" && (
+        {(props.currentProgram === "the5314b" || props.currentProgram === "dbPpl") && (
           <MenuItem
             name="Program Settings"
             onClick={() => props.dispatch(Thunk.pushScreen("programSettings"))}
@@ -51,6 +51,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
           name="Available Plates"
           onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
         />
+        <a href="mailto:anton.astashov@gmail.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
+          Contact Us
+        </a>
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>
