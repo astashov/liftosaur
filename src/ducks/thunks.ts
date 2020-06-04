@@ -23,7 +23,7 @@ export namespace Thunk {
       if (env.googleAuth != null) {
         const user = await env.googleAuth.signIn();
         const result = await env.service.googleSignIn(user.getAuthResponse().access_token);
-        Rollbar.configure({ payload: { person: { email: result.email } } });
+        Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
         if (result.email != null) {
           dispatch({ type: "Login", email: result.email });
           dispatch({ type: "SyncStorage", storage: result.storage });
@@ -51,7 +51,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const result = await env.service.getStorage();
       if (result.email != null) {
-        Rollbar.configure({ payload: { person: { email: result.email } } });
+        Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
         dispatch({ type: "Login", email: result.email });
         dispatch({ type: "SyncStorage", storage: result.storage });
       }

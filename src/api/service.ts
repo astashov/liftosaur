@@ -3,6 +3,7 @@ import { IStorage } from "../ducks/reducer";
 export interface IGetStorageResponse {
   email: string;
   storage: IStorage;
+  user_id: string;
 }
 
 declare let __API_HOST__: string;
@@ -21,7 +22,7 @@ export class Service {
       credentials: "include",
     });
     const json = await response.json();
-    return { email: json.email, storage: json.storage };
+    return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 
   public async signout(): Promise<void> {
@@ -43,7 +44,7 @@ export class Service {
   public async getStorage(): Promise<IGetStorageResponse> {
     const result = await this.client(`${__API_HOST__}/api/storage`, { credentials: "include" });
     const json = await result.json();
-    return { email: json.email, storage: json.storage };
+    return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 
   public sendTimerPushNotification(sid: number): void {

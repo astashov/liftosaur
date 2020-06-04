@@ -94,7 +94,7 @@ async function googleLoginHandler(request: Request): Promise<Response> {
     storage = JSON.parse(storageStr);
   }
   const session = JWT.sign({ userId: userId }, cookieSecret);
-  return new Response(JSON.stringify({ email: openIdJson.email, storage: storage.storage }), {
+  return new Response(JSON.stringify({ email: openIdJson.email, user_id: userId, storage: storage.storage }), {
     headers: {
       ...getHeaders(request),
       "set-cookie": Cookie.serialize("session", session, {
@@ -140,7 +140,7 @@ async function getStorageHandler(request: Request): Promise<Response> {
     const resultRaw = await kv_liftosaur_users.get(user.id);
     if (resultRaw != null) {
       const result = JSON.parse(resultRaw);
-      return new Response(JSON.stringify({ storage: result.storage, email: user.email }), {
+      return new Response(JSON.stringify({ storage: result.storage, email: user.email, user_id: user.id }), {
         headers: getHeaders(request),
       });
     }
