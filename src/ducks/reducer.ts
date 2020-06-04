@@ -256,7 +256,9 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   timerId = window.setTimeout(() => {
     clearTimeout(timerId);
     timerId = undefined;
-    IDB.set("liftosaur", JSON.stringify(localStorage)).catch((e) => console.error(e));
+    IDB.set("liftosaur", JSON.stringify(localStorage)).catch((e) => {
+      console.error(e);
+    });
   }, 100);
   return newState;
 };
