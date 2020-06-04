@@ -1,6 +1,7 @@
-import { IThunk } from "./types";
+import { IThunk, IDispatch } from "./types";
 import { IScreen } from "../models/screen";
 import RB from "rollbar";
+import { IGetStorageResponse } from "../api/service";
 
 declare let __API_HOST__: string;
 declare let Rollbar: RB;
@@ -23,11 +24,7 @@ export namespace Thunk {
       if (env.googleAuth != null) {
         const user = await env.googleAuth.signIn();
         const result = await env.service.googleSignIn(user.getAuthResponse().access_token);
-        Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
-        if (result.email != null) {
-          dispatch({ type: "Login", email: result.email });
-          dispatch({ type: "SyncStorage", storage: result.storage });
-        }
+        handleLogin(dispatch, result);
       }
     };
   }
@@ -50,11 +47,7 @@ export namespace Thunk {
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
       const result = await env.service.getStorage();
-      if (result.email != null) {
-        Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
-        dispatch({ type: "Login", email: result.email });
-        dispatch({ type: "SyncStorage", storage: result.storage });
-      }
+      handleLogin(dispatch, result);
     };
   }
 
@@ -93,5 +86,13 @@ export namespace Thunk {
       dispatch({ type: "PullScreen" });
       window.scroll(0, 0);
     };
+  }
+}
+
+function handleLogin(dispatch: IDispatch, result: IGetStorageResponse): void {
+  if (result.email != null) {
+    Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
+    dispatch({ type: "Login", email: result.email });
+    dispatch({ type: "SyncStorage", storage: result.storage });
   }
 }
