@@ -1,7 +1,9 @@
 import { IThunk } from "./types";
 import { IScreen } from "../models/screen";
+import RB from "rollbar";
 
 declare let __API_HOST__: string;
+declare let Rollbar: RB;
 
 export namespace Thunk {
   export function googleOauthInitialize(): IThunk {
@@ -21,6 +23,7 @@ export namespace Thunk {
       if (env.googleAuth != null) {
         const user = await env.googleAuth.signIn();
         const result = await env.service.googleSignIn(user.getAuthResponse().access_token);
+        Rollbar.configure({ payload: { person: { email: result.email } } });
         if (result.email != null) {
           dispatch({ type: "Login", email: result.email });
           dispatch({ type: "SyncStorage", storage: result.storage });
@@ -48,6 +51,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const result = await env.service.getStorage();
       if (result.email != null) {
+        Rollbar.configure({ payload: { person: { email: result.email } } });
         dispatch({ type: "Login", email: result.email });
         dispatch({ type: "SyncStorage", storage: result.storage });
       }

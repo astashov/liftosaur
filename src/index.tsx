@@ -10,3 +10,10 @@ if ("serviceWorker" in navigator) {
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
 render(<AppView client={client} audio={audio} />, document.getElementById("app")!);
+
+window.addEventListener("keydown", (e) => {
+  if (e.which === 69) {
+    // e
+    throw new Error("Oh noes");
+  }
+});
