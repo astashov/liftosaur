@@ -237,9 +237,7 @@ export type IAction =
   | IStoreWebpushrSidAction;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
-  console.log("Action: ", action);
   const newState = reducer(state, action);
-  console.log(newState);
   if (state.storage !== newState.storage) {
     newState.storage = {
       ...newState.storage,

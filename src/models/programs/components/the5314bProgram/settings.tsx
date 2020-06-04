@@ -187,7 +187,6 @@ function The5314bProgramAccessorySettings(
         pattern="[0-9]+x[0-9]+"
         patternMessage="Should be SETSxREPS, e.g. 3x8"
         onChange={(newValue?: string, e?: Event) => {
-          console.log((e?.target as HTMLInputElement).validity.patternMismatch);
           if (newValue != null && /^[0-9]+x[0-9]+$/.test(newValue)) {
             const [sets, reps] = newValue!.split("x").map((p) => parseInt(p.trim(), 10));
             const weight = props.state.accessories[day][type].sets[0].weight;

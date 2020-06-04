@@ -233,7 +233,6 @@ export const the5314bProgram: IProgram = {
       }
     });
 
-    console.log(stats);
     return { state, stats };
   },
   days: [
