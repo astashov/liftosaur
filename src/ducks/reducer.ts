@@ -236,6 +236,8 @@ export type IAction =
   | IUpdateProgramState
   | IStoreWebpushrSidAction;
 
+let timerId: number | undefined = undefined;
+
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
   if (state.storage !== newState.storage) {
@@ -246,7 +248,14 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     };
   }
   const localStorage: ILocalStorage = { storage: newState.storage, progress: newState.progress[0] };
-  IDB.set("liftosaur", JSON.stringify(localStorage));
+  if (timerId != null) {
+    window.clearTimeout(timerId);
+  }
+  timerId = window.setTimeout(() => {
+    clearTimeout(timerId);
+    timerId = undefined;
+    IDB.set("liftosaur", JSON.stringify(localStorage));
+  }, 100);
   return newState;
 };
 
