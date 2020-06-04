@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { getInitialState, reducerWrapper } from "../ducks/reducer";
+import { reducerWrapper, IState } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
@@ -21,13 +21,13 @@ import { ScreenGraphs } from "./screenGraphs";
 interface IProps {
   client: Window["fetch"];
   audio: AudioInterface;
-  loadedData?: string;
+  initialState: IState;
 }
 
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio } = props;
   const service = new Service(client);
-  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(props.loadedData), { service, audio }, [
+  const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, { service, audio }, [
     (action, oldState, newState) => {
       if (oldState.storage !== newState.storage) {
         dispatch(Thunk.sync());
