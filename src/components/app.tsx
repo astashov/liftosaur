@@ -18,10 +18,16 @@ import { ScreenProgramSettings } from "./screenProgramSettings";
 import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 
-export function AppView(props: { client: Window["fetch"]; audio: AudioInterface }): JSX.Element | null {
+interface IProps {
+  client: Window["fetch"];
+  audio: AudioInterface;
+  loadedData?: string;
+}
+
+export function AppView(props: IProps): JSX.Element | null {
   const { client, audio } = props;
   const service = new Service(client);
-  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(), { service, audio }, [
+  const [state, dispatch] = useThunkReducer(reducerWrapper, getInitialState(props.loadedData), { service, audio }, [
     (action, oldState, newState) => {
       if (oldState.storage !== newState.storage) {
         dispatch(Thunk.sync());

@@ -16,6 +16,7 @@ import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "../utils/lens";
 import { ISettings } from "../models/settings";
+import * as IDB from "idb-keyval";
 
 export type IEnv = {
   service: Service;
@@ -52,8 +53,10 @@ export interface ILocalStorage {
   progress?: IHistoryRecord;
 }
 
-export function getInitialState(): IState {
-  const rawStorage = window.localStorage.getItem("liftosaur");
+export function getInitialState(rawStorage?: string): IState {
+  if (rawStorage == null) {
+    rawStorage = window.localStorage.getItem("liftosaur") || undefined;
+  }
   let storage: ILocalStorage | undefined;
   if (rawStorage != null) {
     try {
@@ -245,7 +248,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     };
   }
   const localStorage: ILocalStorage = { storage: newState.storage, progress: newState.progress[0] };
-  window.localStorage.setItem("liftosaur", JSON.stringify(localStorage));
+  IDB.set("liftosaur", JSON.stringify(localStorage));
   return newState;
 };
 
