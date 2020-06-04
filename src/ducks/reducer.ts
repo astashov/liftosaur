@@ -429,7 +429,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           ),
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         },
-        programStates: deepmerge(oldStorage.programStates, newStorage.programStates),
+        programStates: newStorage.programStates,
         stats: deepmerge(oldStorage.stats, newStorage.stats),
         currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
