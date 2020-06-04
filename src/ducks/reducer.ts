@@ -251,10 +251,12 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   if (timerId != null) {
     window.clearTimeout(timerId);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).state = newState;
   timerId = window.setTimeout(() => {
     clearTimeout(timerId);
     timerId = undefined;
-    IDB.set("liftosaur", JSON.stringify(localStorage));
+    IDB.set("liftosaur", JSON.stringify(localStorage)).catch((e) => console.error(e));
   }, 100);
   return newState;
 };
