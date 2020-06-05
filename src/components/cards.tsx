@@ -3,13 +3,14 @@ import { ExcerciseView } from "./excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgressMode, Progress } from "../models/progress";
 import { Button } from "./button";
-import { IPlate } from "../models/weight";
+import { IPlate, IBars } from "../models/weight";
 import { IHistoryRecord } from "../models/history";
 
 interface ICardsViewProps {
   progress: IHistoryRecord;
   isTimerShown: boolean;
   availablePlates: IPlate[];
+  bars: IBars;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
@@ -20,6 +21,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
       {props.progress.entries.map((entry) => {
         return (
           <ExcerciseView
+            bars={props.bars}
             entry={entry}
             availablePlates={props.availablePlates}
             dispatch={props.dispatch}

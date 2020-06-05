@@ -10,7 +10,7 @@ describe("Weight", () => {
         { weight: 5, num: 4 },
         { weight: 2.5, num: 4 },
       ];
-      const result = Weight.calculatePlates(availablePlates, 170);
+      const result = Weight.calculatePlates(availablePlates, 215, 45);
       expect(result).toEqual([
         { weight: 45, num: 2 },
         { weight: 25, num: 2 },
@@ -25,7 +25,7 @@ describe("Weight", () => {
         { weight: 5, num: 4 },
         { weight: 2.5, num: 4 },
       ];
-      const result = Weight.calculatePlates(availablePlates, 170);
+      const result = Weight.calculatePlates(availablePlates, 215, 45);
       expect(result).toEqual([
         { weight: 45, num: 2 },
         { weight: 5, num: 4 },

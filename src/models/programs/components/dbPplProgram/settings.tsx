@@ -9,15 +9,12 @@ import { MenuItemEditable } from "../../../../components/menuItemEditable";
 import { ObjectUtils } from "../../../../utils/object";
 import { Excercise } from "../../../excercise";
 import { lb } from "../../../../utils/lens";
+import { GroupHeader } from "../../../../components/groupHeader";
 
 interface IProps {
   dispatch: IDispatch;
   state: IDbPplState;
   programId: IProgramId;
-}
-
-function GroupHeader(props: { name: string }): JSX.Element {
-  return <div className="px-6 py-1 text-sm font-bold bg-gray-200">{props.name}</div>;
 }
 
 export function DbPplProgramSettings(props: IProps): JSX.Element {

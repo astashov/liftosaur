@@ -91,6 +91,11 @@ export function getInitialState(rawStorage?: string): IState {
           { weight: 2.5, num: 4 },
           { weight: 1.25, num: 2 },
         ],
+        bars: {
+          barbell: 45,
+          ezbar: 20,
+          dumbbell: 10,
+        },
         timers: {
           warmup: 90,
           workout: 180,
@@ -428,6 +433,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             el.weight.toString()
           ),
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
+          bars: newStorage.settings.bars,
         },
         programStates: newStorage.programStates,
         stats: deepmerge(oldStorage.stats, newStorage.stats),

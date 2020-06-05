@@ -22,15 +22,12 @@ import { lb } from "../../../../utils/lens";
 import { CollectionUtils } from "../../../../utils/collection";
 import { ModalTrainingMaxCalculator } from "../../../../components/modalTrainingMaxCalculator";
 import { Thunk } from "../../../../ducks/thunks";
+import { GroupHeader } from "../../../../components/groupHeader";
 
 interface IProps {
   dispatch: IDispatch;
   state: I5314BState;
   programId: IProgramId;
-}
-
-function GroupHeader(props: { name: string }): JSX.Element {
-  return <div className="px-6 py-1 text-sm font-bold bg-gray-200">{props.name}</div>;
 }
 
 export function The5314bProgramSettings(props: IProps): JSX.Element {
@@ -172,7 +169,10 @@ function The5314bProgramAccessorySettings(
       <MenuItemEditable
         name="Excercise"
         type="select"
-        values={ObjectUtils.keys(excercises).map((e) => [excercises[e].id, excercises[e].name])}
+        values={CollectionUtils.sort(
+          ObjectUtils.keys(excercises).map((e) => [excercises[e].id, excercises[e].name]),
+          (a, b) => a[1].localeCompare(b[1])
+        )}
         value={accessory.excercise}
         onChange={(newValue?: string) => {
           const excercise = newValue as IExcerciseType;

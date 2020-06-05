@@ -9,7 +9,7 @@ interface IProps {
 
 export function Modal(props: IProps): JSX.Element {
   return (
-    <section className="absolute inset-0 z-20 flex items-center justify-center">
+    <section className="fixed inset-0 z-20 flex items-center justify-center">
       <div data-name="overlay" className="absolute inset-0 bg-gray-400 opacity-50"></div>
       <div
         data-name="modal"

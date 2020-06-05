@@ -3,13 +3,14 @@ import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgressMode } from "../models/progress";
-import { Weight, IPlate } from "../models/weight";
+import { Weight, IPlate, IBars } from "../models/weight";
 import { Reps } from "../models/set";
 import { IHistoryEntry } from "../models/history";
 
 interface IProps {
   entry: IHistoryEntry;
   availablePlates: IPlate[];
+  bars: IBars;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
@@ -45,8 +46,9 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   const workoutWeights = Array.from(new Set(props.entry.sets.map((s) => s.weight)));
   workoutWeights.sort((a, b) => a - b);
   const warmupSets = props.entry.warmupSets;
+  const barWeight = excercise.bar != null ? props.bars[excercise.bar] : 0;
   const warmupWeights = Array.from(new Set(warmupSets.map((s) => s.weight))).filter(
-    (w) => Object.keys(Weight.calculatePlates(props.availablePlates, w - 45)).length > 0
+    (w) => Object.keys(Weight.calculatePlates(props.availablePlates, w, barWeight)).length > 0
   );
   warmupWeights.sort((a, b) => a - b);
   return (
@@ -58,7 +60,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
             const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
             return (
               <div className={className}>
-                <WeightView weight={w} plates={props.availablePlates} />
+                <WeightView weight={w} barWeight={barWeight} plates={props.availablePlates} />
                 <span className="text-gray-500">{w} lbs</span>
               </div>
             );
@@ -67,7 +69,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
             const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
             return (
               <div className={className}>
-                <WeightView weight={w} plates={props.availablePlates} />
+                <WeightView weight={w} barWeight={barWeight} plates={props.availablePlates} />
                 <button
                   className="text-blue-500 underline cursor-pointer"
                   style={{ fontWeight: "inherit" }}
@@ -132,10 +134,10 @@ function handleClick(
   dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight, mode });
 }
 
-function WeightView(props: { weight: number; plates: IPlate[] }): JSX.Element {
-  const plates = Weight.calculatePlates(props.plates, props.weight - 45);
+function WeightView(props: { weight: number; plates: IPlate[]; barWeight: number }): JSX.Element {
+  const plates = Weight.calculatePlates(props.plates, props.weight, props.barWeight);
   const weightOfPlates = Weight.platesWeight(plates);
-  const className = weightOfPlates === props.weight - 45 ? "text-gray-600" : "text-red-600";
+  const className = weightOfPlates === props.weight - props.barWeight ? "text-gray-600" : "text-red-600";
   return (
     <span className="mx-2 text-xs break-all">
       <span className={className}>{Weight.formatOneSide(plates)}</span>

@@ -1,5 +1,10 @@
 export type IWeight = number;
 export type IPlate = { weight: IWeight; num: number };
+export type IBars = {
+  barbell: number;
+  ezbar: number;
+  dumbbell: number;
+};
 
 export namespace Weight {
   export function display(weight: IWeight): string {
@@ -43,7 +48,8 @@ export namespace Weight {
     return arr.join("/");
   }
 
-  export function calculatePlates(availablePlatesArr: IPlate[], weight: IWeight): IPlate[] {
+  export function calculatePlates(availablePlatesArr: IPlate[], allWeight: IWeight, barWeight: number): IPlate[] {
+    const weight = allWeight - barWeight;
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => b.weight - a.weight);
     let total = 0;

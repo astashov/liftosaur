@@ -94,7 +94,9 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "timers") {
     return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
-    return <ScreenPlates dispatch={dispatch} plates={state.storage.settings.plates} />;
+    return (
+      <ScreenPlates dispatch={dispatch} bars={state.storage.settings.bars} plates={state.storage.settings.plates} />
+    );
   } else if (Screen.current(state.screenStack) === "graphs") {
     return <ScreenGraphs dispatch={dispatch} history={state.storage.history} stats={state.storage.stats} />;
   } else if (Screen.current(state.screenStack) === "programSettings") {

@@ -1,6 +1,7 @@
 import { IStorage } from "../ducks/reducer";
 import deepmerge from "deepmerge";
 import * as The5314BProgram from "../models/programs/the5314bProgram";
+import { lf } from "../utils/lens";
 
 export const migrations = {
   "20200422101500_add_history_record_timestamps": (aStorage: IStorage): IStorage => {
@@ -27,5 +28,12 @@ export const migrations = {
       }
     );
     return storage;
+  },
+  "20200604235900_add_bar_weights": (aStorage: IStorage): IStorage => {
+    return lf(aStorage).p("settings").p("bars").set({
+      barbell: 45,
+      dumbbell: 10,
+      ezbar: 20,
+    });
   },
 };

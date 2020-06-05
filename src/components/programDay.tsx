@@ -74,6 +74,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }
         />
         <CardsView
+          bars={props.settings.bars}
           progress={progress}
           isTimerShown={!!props.timerSince}
           availablePlates={props.settings.plates}

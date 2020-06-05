@@ -8,11 +8,11 @@ export function ModalWeight(props: { dispatch: IDispatch; weight: number }): JSX
   const textInput = useRef<HTMLInputElement>(null);
   return (
     <Modal>
-      <h3 className="font-bold pb-2">Please enter weight</h3>
+      <h3 className="pb-2 font-bold">Please enter weight</h3>
       <form>
         <input
           ref={textInput}
-          className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           value={props.weight}
           type="number"
           min="0"
