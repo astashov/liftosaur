@@ -12,9 +12,7 @@
 * Add custom program WYSIWYG builder
 * Make serializing/deserializing safer
 * Support kilograms
-* Provide a way to send feedback
 * Extract lens lib into a separate npm package
-* Add dumbbell/ez-bar to plates calculator
 * Add `apple-touch-icon`
 * Set up backups
     
