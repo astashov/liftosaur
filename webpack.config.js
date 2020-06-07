@@ -58,6 +58,14 @@ module.exports = {
         },
       },
       {
+        from: `src/privacy.html`,
+        to: `privacy.html`,
+      },
+      {
+        from: `src/terms.html`,
+        to: `terms.html`,
+      },
+      {
         from: `src/notification.m4r`,
         to: `notification.m4r`,
       },

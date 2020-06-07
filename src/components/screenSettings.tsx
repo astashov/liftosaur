@@ -54,6 +54,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Contact Us
         </a>
+        <a href="/privacy.html" target="_blank" className="block w-full px-6 py-3 text-left border-b border-gray-200">
+          Privacy Policy
+        </a>
+        <a href="/terms.html" target="_blank" className="block w-full px-6 py-3 text-left border-b border-gray-200">
+          Terms &amp; Conditions
+        </a>
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>

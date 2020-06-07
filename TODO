@@ -15,4 +15,6 @@
 * Extract lens lib into a separate npm package
 * Add `apple-touch-icon`
 * Set up backups
+* Add exporting all data to downloadable CSV
+* Add deleting account
     
