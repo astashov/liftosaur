@@ -22,7 +22,11 @@ export class Backup {
       }, {});
       all = { ...all, ...result };
     }
-    return new Backblaze().upload(`${this.name}_${DateUtils.formatYYYYMMDDHHMM(Date.now())}.json`, all);
+    const dateNow = Date.now();
+    return new Backblaze().upload(
+      `${DateUtils.formatYYYYMMDD(dateNow, "_")}/${this.name}_${DateUtils.formatHHMMSS(dateNow, "_")}.json`,
+      all
+    );
   }
 
   private async getKeys(): Promise<string[]> {
