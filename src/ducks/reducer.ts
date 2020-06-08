@@ -436,7 +436,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
         },
         programStates: newStorage.programStates,
-        stats: deepmerge(oldStorage.stats, newStorage.stats),
+        stats: newStorage.stats,
         currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,

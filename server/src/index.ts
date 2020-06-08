@@ -3,6 +3,7 @@ import { Router } from "./router";
 import { UidFactory } from "./utils/generator";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
+import { Backup } from "./backup";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -21,6 +22,8 @@ interface IUser {
 declare let self: CloudflareWorkerGlobalScope;
 declare let webpushrKey: string;
 declare let webpushrAuthToken: string;
+declare let apiKey: string;
+declare let cookieSecret: string;
 
 self.addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
@@ -72,8 +75,6 @@ async function timerHandler(request: Request): Promise<Response> {
   const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
   return new Response(body, init);
 }
-
-const cookieSecret = "dasfhjkrhg43u2qi4u32y8t7y9waehufilhasdklfjhy4837oq423irufhkjdsa";
 
 async function googleLoginHandler(request: Request): Promise<Response> {
   const token = (await request.json()).token;
@@ -160,6 +161,17 @@ async function saveStorageHandler(request: Request): Promise<Response> {
   }
 }
 
+async function backupHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
+    const backup = new Backup(kv_liftosaur_users, "kv_liftosaur_users");
+    const response = (await backup.backup()) ? "ok" : "error";
+    return new Response(response);
+  } else {
+    return new Response("wrong_key", { status: 400 });
+  }
+}
+
 async function handleRequest(request: Request): Promise<Response> {
   const r = new Router();
   r.post(".*timernotification", (req: Request) => timerHandler(req));
@@ -167,6 +179,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/signout", (req: Request) => signoutHandler(req));
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
+  r.post(".*/api/backup", (req: Request) => backupHandler(req));
   const resp = await r.route(request);
   return resp;
 }
