@@ -164,9 +164,12 @@ async function saveStorageHandler(request: Request): Promise<Response> {
 async function backupHandler(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.searchParams.get("key") === apiKey) {
-    const backup = new Backup(kv_liftosaur_users, "kv_liftosaur_users");
-    const response = (await backup.backup()) ? "ok" : "error";
-    return new Response(response);
+    let result = true;
+    result = result && (await new Backup(kv_liftosaur_users, "kv_liftosaur_users").backup());
+    result = result && (await new Backup(kv_liftosaur_google_ids, "kv_liftosaur_google_ids").backup());
+    result =
+      result && (await new Backup(kv_liftosaur_google_access_tokens, "kv_liftosaur_google_access_tokens").backup());
+    return new Response(result ? "ok" : "error");
   } else {
     return new Response("wrong_key", { status: 400 });
   }
