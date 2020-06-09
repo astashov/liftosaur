@@ -42,24 +42,29 @@ export interface IState {
   progress: Record<number, IHistoryRecord | undefined>;
 }
 
+export const TProgramStates = t.partial(
+  {
+    basicBeginner: TBasicBeginnerState,
+    ivySaur: TIvysaurState,
+    the5314b: T5314BState,
+    dbPpl: TDbPplState,
+  },
+  "TProgramStates"
+);
+export type IProgramStates = t.TypeOf<typeof TProgramStates>;
+
 export const TStorage = t.type(
   {
     id: t.number,
     stats: TStats,
     history: t.array(THistoryRecord),
     settings: TSettings,
-    programStates: t.partial({
-      basicBeginner: TBasicBeginnerState,
-      ivySaur: TIvysaurState,
-      the5314b: T5314BState,
-      dbPpl: TDbPplState,
-    }),
+    programStates: TProgramStates,
     currentProgramId: t.union([TProgramId, t.undefined]),
     version: t.string,
   },
   "TStorage"
 );
-
 export type IStorage = t.TypeOf<typeof TStorage>;
 
 export interface IWebpushr {

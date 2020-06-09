@@ -8,18 +8,19 @@ import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
+import { IProgramStates } from "../ducks/reducer";
 
 interface IProps {
   historyRecord: IHistoryRecord;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  programState: any;
+  programStates: IProgramStates;
   dispatch: IDispatch;
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
   const { historyRecord, dispatch } = props;
   const program = Program.get(historyRecord.programId);
-  const programDay = program.days[historyRecord.day](props.programState);
+  const programState = props.programStates[historyRecord.programId];
+  const programDay = program.days[historyRecord.day](programState);
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (

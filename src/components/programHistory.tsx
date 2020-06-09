@@ -41,7 +41,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           </Button>
         </div>
         {history.map((historyRecord) => (
-          <HistoryRecordView historyRecord={historyRecord} programState={programState} dispatch={dispatch} />
+          <HistoryRecordView historyRecord={historyRecord} programStates={props.programStates} dispatch={dispatch} />
         ))}
       </section>
       <FooterView dispatch={props.dispatch} />

@@ -88,8 +88,9 @@ export function Graph(props: IGraphProps): JSX.Element {
 
     function handler(): void {
       function onMove(event: TouchEvent): void {
+        const offset = window.pageYOffset;
         const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top });
+        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
       }
 
       function onEnd(): void {
