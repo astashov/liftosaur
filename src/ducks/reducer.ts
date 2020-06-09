@@ -1,12 +1,12 @@
 import { Reducer } from "preact/hooks";
-import { Program, IProgramId, defaultProgramStates } from "../models/program";
-import { IHistoryRecord } from "../models/history";
+import { Program, IProgramId, defaultProgramStates, TProgramId } from "../models/program";
+import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
-import { IStats } from "../models/stats";
+import { TStats } from "../models/stats";
 import { IWeight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
@@ -15,8 +15,17 @@ import { AudioInterface } from "../lib/audioInterface";
 import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "../utils/lens";
-import { ISettings } from "../models/settings";
+import { ISettings, TSettings } from "../models/settings";
 import * as IDB from "idb-keyval";
+import * as t from "io-ts";
+import { PathReporter } from "io-ts/lib/PathReporter";
+import { TBasicBeginnerState } from "../models/programs/basicBeginner";
+import { TIvysaurState } from "../models/programs/ivySaurProgram";
+import { T5314BState } from "../models/programs/the5314bProgram";
+import { TDbPplState } from "../models/programs/dbPpl";
+import RB from "rollbar";
+
+declare let Rollbar: RB;
 
 export type IEnv = {
   service: Service;
@@ -33,16 +42,25 @@ export interface IState {
   progress: Record<number, IHistoryRecord | undefined>;
 }
 
-export interface IStorage {
-  id: number;
-  stats: IStats;
-  history: IHistoryRecord[];
-  settings: ISettings;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  programStates: Record<string, any>;
-  currentProgramId?: IProgramId;
-  version: string;
-}
+export const TStorage = t.type(
+  {
+    id: t.number,
+    stats: TStats,
+    history: t.array(THistoryRecord),
+    settings: TSettings,
+    programStates: t.partial({
+      basicBeginner: TBasicBeginnerState,
+      ivySaur: TIvysaurState,
+      the5314b: T5314BState,
+      dbPpl: TDbPplState,
+    }),
+    currentProgramId: t.union([TProgramId, t.undefined]),
+    version: t.string,
+  },
+  "TStorage"
+);
+
+export type IStorage = t.TypeOf<typeof TStorage>;
 
 export interface IWebpushr {
   sid: number;
@@ -66,9 +84,14 @@ export function getInitialState(rawStorage?: string): IState {
     }
   }
   if (storage != null && storage.storage != null) {
+    const finalStorage = runMigrations(storage.storage);
+    validateStorage(finalStorage, TStorage, "storage");
+    const isProgressValid =
+      storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
+
     return {
-      storage: runMigrations(storage.storage),
-      progress: storage.progress ? { 0: storage.progress } : {},
+      storage: finalStorage,
+      progress: isProgressValid ? { 0: storage.progress } : {},
       currentHistoryRecord: 0,
       screenStack: ["main"],
     };
@@ -81,6 +104,7 @@ export function getInitialState(rawStorage?: string): IState {
       stats: {
         excercises: {},
       },
+      currentProgramId: undefined,
       programStates: {},
       settings: {
         plates: [
@@ -105,6 +129,22 @@ export function getInitialState(rawStorage?: string): IState {
       version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
     },
   };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateStorage(data: object, type: t.Type<any, any, any>, name: string): boolean {
+  const decoded = type.decode(data);
+  if ("left" in decoded) {
+    const error = PathReporter.report(decoded);
+    if (Rollbar != null) {
+      Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
+    }
+    console.error(`Error decoding ${name}`);
+    error.forEach((e) => console.error(e));
+    return false;
+  } else {
+    return true;
+  }
 }
 
 export type IUpdateProgramState = {

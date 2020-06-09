@@ -10,11 +10,10 @@
 * Add errors handling to HTTP calls
 * Allow to swap excercises in progress view
 * Add custom program WYSIWYG builder
-* Make serializing/deserializing safer
 * Support kilograms
 * Extract lens lib into a separate npm package
 * Add `apple-touch-icon`
-* Set up backups
 * Add exporting all data to downloadable CSV
+* Fix issues when history contains multiple programs
 * Add deleting account
     

@@ -1,27 +1,40 @@
-import { IExcerciseType } from "./excercise";
-import { ISet } from "./set";
-import { IProgressUi, IProgressMode, Progress } from "./progress";
-import { IProgramId } from "./program";
+import { TExcerciseType } from "./excercise";
+import { TSet } from "./set";
+import { Progress, TProgressUi, TProgressMode } from "./progress";
+import { TProgramId } from "./program";
+import * as t from "io-ts";
 
-export interface IHistoryRecord {
-  date: string; // ISO8601, like 2020-02-29T18:02:05+00:00
-  programId: IProgramId;
-  day: number;
-  entries: IHistoryEntry[];
-  startTime: number;
-  id: number;
+export const THistoryEntry = t.type(
+  {
+    excercise: TExcerciseType,
+    sets: t.array(TSet),
+    warmupSets: t.array(TSet),
+  },
+  "THistoryEntry"
+);
+export type IHistoryEntry = t.TypeOf<typeof THistoryEntry>;
 
-  endTime?: number;
-  ui?: IProgressUi;
-  timerSince?: number;
-  timerMode?: IProgressMode;
-}
-
-export interface IHistoryEntry {
-  excercise: IExcerciseType;
-  sets: ISet[];
-  warmupSets: ISet[];
-}
+export const THistoryRecord = t.intersection(
+  [
+    t.interface({
+      // ISO8601, like 2020-02-29T18:02:05+00:00
+      date: t.string,
+      programId: TProgramId,
+      day: t.number,
+      entries: t.array(THistoryEntry),
+      startTime: t.number,
+      id: t.number,
+    }),
+    t.partial({
+      endTime: t.number,
+      ui: TProgressUi,
+      timerSince: t.number,
+      timerMode: TProgressMode,
+    }),
+  ],
+  "THistoryRecord"
+);
+export type IHistoryRecord = t.TypeOf<typeof THistoryRecord>;
 
 export namespace History {
   export function finishProgramDay(progress: IHistoryRecord): IHistoryRecord {

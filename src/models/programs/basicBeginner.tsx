@@ -4,6 +4,7 @@ import { Weight } from "../weight";
 import { h } from "preact";
 import { lf } from "../../utils/lens";
 import { IHistoryRecord } from "../history";
+import * as t from "io-ts";
 
 export function getInitialState(): IBasicBeginnerState {
   return {
@@ -16,21 +17,33 @@ export function getInitialState(): IBasicBeginnerState {
   };
 }
 
-export type IBasicBeginnerExcerciseType =
-  | "benchPress"
-  | "deadlift"
-  | "overheadPress"
-  | "squat"
-  | "barbellRows"
-  | "chinups";
+export const TBasicBeginnerExcerciseType = t.keyof(
+  {
+    benchPress: null,
+    deadlift: null,
+    overheadPress: null,
+    squat: null,
+    barbellRows: null,
+    chinups: null,
+  },
+  "TBasicBeginnerExcerciseType"
+);
+export type IBasicBeginnerExcerciseType = t.TypeOf<typeof TBasicBeginnerExcerciseType>;
 
-export type IBasicBeginnerState = {
-  [P in IBasicBeginnerExcerciseType]: IBasicBeginnerStateEntry;
-};
+export const TBasicBeginnerStateEntry = t.type(
+  {
+    weight: t.number,
+  },
+  "TBasicBeginnerStateEntry"
+);
+export type IBasicBeginnerStateEntry = t.TypeOf<typeof TBasicBeginnerStateEntry>;
 
-export type IBasicBeginnerStateEntry = {
-  weight: number;
-};
+export const TBasicBeginnerState = t.dictionary(
+  TBasicBeginnerExcerciseType,
+  TBasicBeginnerStateEntry,
+  "TBasicBeginnerState"
+);
+export type IBasicBeginnerState = t.TypeOf<typeof TBasicBeginnerState>;
 
 function programDayEntry(state: IBasicBeginnerState, excercise: IBasicBeginnerExcerciseType): IProgramDayEntry {
   return {

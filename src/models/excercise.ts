@@ -1,41 +1,54 @@
 import { IWeight, Weight, IBars } from "./weight";
 import { ISet } from "./set";
+import * as t from "io-ts";
+import { IArrayElement } from "../utils/types";
 
-export type IExcerciseType =
-  | "benchPress"
-  | "squat"
-  | "deadlift"
-  | "overheadPress"
-  | "chinups"
-  | "barbellRows"
-  | "pushups"
-  | "pullups"
-  | "dips"
-  | "legRaises"
-  | "singleLegSplitSquat"
-  | "invertedRows"
-  | "dbLateralRaise"
-  | "inclineDbBenchPress"
-  | "dbInclineFly"
-  | "dbArnoldPress"
-  | "dbBenchPress"
-  | "dbShrug"
-  | "cableCrunch"
-  | "tricepsPushdown"
-  | "dbTricepsExtension"
-  | "neutralGripChinup"
-  | "plank"
-  | "dbRow"
-  | "dbOverheadPress"
-  | "dbSingleLegDeadlift"
-  | "dbGobletSquat"
-  | "dbCalfRaise"
-  | "bulgarianSplitSquat"
-  | "paloffPressWithBand"
-  | "dbLunge"
-  | "dbSwing"
-  | "dbBicepCurl"
-  | "skullcrusher";
+export const excerciseTypes = [
+  "benchPress",
+  "squat",
+  "deadlift",
+  "overheadPress",
+  "chinups",
+  "barbellRows",
+  "pushups",
+  "pullups",
+  "dips",
+  "legRaises",
+  "singleLegSplitSquat",
+  "invertedRows",
+  "dbLateralRaise",
+  "inclineDbBenchPress",
+  "dbInclineFly",
+  "dbArnoldPress",
+  "dbBenchPress",
+  "dbShrug",
+  "cableCrunch",
+  "tricepsPushdown",
+  "dbTricepsExtension",
+  "neutralGripChinup",
+  "plank",
+  "dbRow",
+  "dbOverheadPress",
+  "dbSingleLegDeadlift",
+  "dbGobletSquat",
+  "dbCalfRaise",
+  "bulgarianSplitSquat",
+  "paloffPressWithBand",
+  "dbLunge",
+  "dbSwing",
+  "dbBicepCurl",
+  "skullcrusher",
+] as const;
+
+export const TExcerciseType = t.keyof(
+  excerciseTypes.reduce<Record<IArrayElement<typeof excerciseTypes>, null>>((memo, excerciseType) => {
+    memo[excerciseType] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof excerciseTypes>, null>),
+  "TExcerciseType"
+);
+
+export type IExcerciseType = t.TypeOf<typeof TExcerciseType>;
 
 export type IExcercise = {
   id: IExcerciseType;

@@ -1,5 +1,5 @@
 import { IProgram } from "./program";
-import { IExcerciseType, Excercise } from "./excercise";
+import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import { Reps } from "./set";
 import { IWeight, Weight } from "./weight";
 import { IStats } from "./stats";
@@ -8,23 +8,37 @@ import { DateUtils } from "../utils/date";
 import { lf } from "../utils/lens";
 import { IState } from "../ducks/reducer";
 import { ObjectUtils } from "../utils/object";
+import * as t from "io-ts";
 
-export interface IProgressUi {
-  amrapModal?: {
-    excercise: IExcerciseType;
-    setIndex: number;
-    weight: IWeight;
-  };
-  weightModal?: {
-    excercise: IExcerciseType;
-    weight: IWeight;
-  };
-  dateModal?: {
-    date: string;
-  };
-}
+export const TProgressUi = t.partial(
+  {
+    amrapModal: t.type({
+      excercise: TExcerciseType,
+      setIndex: t.number,
+      weight: t.number,
+    }),
+    weightModal: t.type({
+      excercise: TExcerciseType,
+      weight: t.number,
+    }),
+    dateModal: t.type({
+      date: t.string,
+    }),
+  },
+  "TProgressUi"
+);
 
-export type IProgressMode = "warmup" | "workout";
+export type IProgressUi = t.TypeOf<typeof TProgressUi>;
+
+export const TProgressMode = t.keyof(
+  {
+    warmup: null,
+    workout: null,
+  },
+  "TProgressMode"
+);
+
+export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
 export namespace Progress {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

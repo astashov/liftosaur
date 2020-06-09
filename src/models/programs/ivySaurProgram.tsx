@@ -1,11 +1,13 @@
 import { h } from "preact";
-import { IExcerciseType, Excercise } from "../excercise";
+import { IExcerciseType, Excercise, excerciseTypes } from "../excercise";
 import { IProgram, IProgramDay } from "../program";
 import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
-import { Weight, IWeight } from "../weight";
+import { Weight } from "../weight";
 import { Progress } from "../progress";
 import { IHistoryRecord } from "../history";
+import * as t from "io-ts";
+import { IArrayElement } from "../../utils/types";
 
 function increment(excerciseType: IExcerciseType): number {
   switch (excerciseType) {
@@ -50,14 +52,26 @@ function getWeight8(excerciseType: IExcerciseType, state?: IIvysaurState): numbe
 //   }
 // }
 
-type IIvysaurState = {
-  [P in IExcerciseType]?: IIvysaurStateEntry;
-};
+export const TIvysaurStateEntry = t.type(
+  {
+    failed: t.number,
+    weight: t.number,
+  },
+  "TIvysaurStateEntry"
+);
+export type IIvysaurStateEntry = t.TypeOf<typeof TIvysaurStateEntry>;
 
-type IIvysaurStateEntry = {
-  failed: number;
-  weight: IWeight;
-};
+export const TIvysaurState = t.partial(
+  excerciseTypes.reduce<Record<IArrayElement<typeof excerciseTypes>, typeof TIvysaurStateEntry>>(
+    (memo, excerciseType) => {
+      memo[excerciseType] = TIvysaurStateEntry;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof excerciseTypes>, typeof TIvysaurStateEntry>
+  ),
+  "TIvysaurState"
+);
+export type IIvysaurState = t.TypeOf<typeof TIvysaurState>;
 
 export const ivySaurProgram: IProgram = {
   id: "ivySaur",

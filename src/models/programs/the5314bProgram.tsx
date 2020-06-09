@@ -2,12 +2,13 @@ import { IProgram, IProgramDay } from "../program";
 import { IStats } from "../stats";
 import { CollectionUtils } from "../../utils/collection";
 import { Weight, IWeight } from "../weight";
-import { ISet } from "../set";
-import { IExcerciseType, Excercise } from "../excercise";
+import { ISet, TSet } from "../set";
+import { Excercise, TExcerciseType } from "../excercise";
 import { ObjectUtils } from "../../utils/object";
 import { h } from "preact";
 import { lf } from "../../utils/lens";
 import { IHistoryRecord } from "../history";
+import * as t from "io-ts";
 
 export function getInitialState(): I5314BState {
   return {
@@ -61,28 +62,58 @@ export function mirrorBroAccessoriesPreset(): I5314BAccessoryDays {
   ];
 }
 
-export type I5314BExcerciseType = "benchPress" | "deadlift" | "overheadPress" | "squat";
-export type I5314BAccessoryDays = [I5314BAccessoryDay, I5314BAccessoryDay, I5314BAccessoryDay];
+export const T5314BExcerciseType = t.keyof(
+  {
+    benchPress: null,
+    deadlift: null,
+    overheadPress: null,
+    squat: null,
+  },
+  "T5314BExcerciseType"
+);
+export type I5314BExcerciseType = t.TypeOf<typeof T5314BExcerciseType>;
 
-export type I5314BState = {
-  main: { [P in I5314BExcerciseType]: I5314BStateEntry };
-  accessories: I5314BAccessoryDays;
-};
+export const T5314BAccessory = t.type(
+  {
+    excercise: TExcerciseType,
+    sets: t.array(TSet),
+  },
+  "T5314BAccessory"
+);
+export type I5314BAccessory = t.TypeOf<typeof T5314BAccessory>;
 
-export type I5314BAccessoryDay = {
-  push: I5314BAccessory;
-  pull: I5314BAccessory;
-  legs: I5314BAccessory;
-};
+export const T5314BAccessoryDay = t.type(
+  {
+    push: T5314BAccessory,
+    pull: T5314BAccessory,
+    legs: T5314BAccessory,
+  },
+  "T5314BAccessoryDay"
+);
+export type I5314BAccessoryDay = t.TypeOf<typeof T5314BAccessoryDay>;
 
-export type I5314BAccessory = {
-  excercise: IExcerciseType;
-  sets: ISet[];
-};
+export const T5314BAccessoryDays = t.tuple(
+  [T5314BAccessoryDay, T5314BAccessoryDay, T5314BAccessoryDay],
+  "T5314BAccessoryDays"
+);
+export type I5314BAccessoryDays = t.TypeOf<typeof T5314BAccessoryDays>;
 
-type I5314BStateEntry = {
-  trainingMax: IWeight;
-};
+export const T5314BStateEntry = t.type(
+  {
+    trainingMax: t.number,
+  },
+  "T5314BStateEntry"
+);
+export type I5314BStateEntry = t.TypeOf<typeof T5314BStateEntry>;
+
+export const T5314BState = t.type(
+  {
+    main: t.dictionary(T5314BExcerciseType, T5314BStateEntry),
+    accessories: T5314BAccessoryDays,
+  },
+  "T5314BState"
+);
+export type I5314BState = t.TypeOf<typeof T5314BState>;
 
 function setsWeek1(trainingMax: IWeight): ISet[] {
   return [

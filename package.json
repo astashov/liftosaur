@@ -56,7 +56,9 @@
   "dependencies": {
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
+    "fp-ts": "^2.6.2",
     "idb-keyval": "^3.2.0",
+    "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "preact": "^10.3.2",
     "uplot": "^1.0.9"

@@ -8,6 +8,7 @@ import { IHistoryRecord } from "./history";
 import { JSX } from "preact";
 import { IExcerciseType, Excercise } from "./excercise";
 import { ISet } from "./set";
+import * as t from "io-ts";
 
 export interface IProgram {
   id: IProgramId;
@@ -31,7 +32,16 @@ export interface IProgramDayEntry {
   sets: ISet[];
 }
 
-export type IProgramId = "basicBeginner" | "ivySaur" | "the5314b" | "dbPpl";
+export const TProgramId = t.keyof(
+  {
+    basicBeginner: null,
+    ivySaur: null,
+    the5314b: null,
+    dbPpl: null,
+  },
+  "TProgramId"
+);
+export type IProgramId = t.TypeOf<typeof TProgramId>;
 
 export const programsList: Record<IProgramId, IProgram> = {
   basicBeginner: BasicBeginnerProgram.basicBeginnerProgram,

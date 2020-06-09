@@ -1,18 +1,43 @@
-import { IExcerciseType } from "./excercise";
-import { IProgramId } from "./program";
+import { excerciseTypes } from "./excercise";
+import { TProgramId } from "./program";
+import * as t from "io-ts";
+import { IArrayElement } from "../utils/types";
 
-export interface IStats {
-  excercises: IStatsExcercises;
-}
+export const TStatsExcercisesValue = t.type(
+  {
+    maxWeight: t.array(
+      t.type({
+        timestamp: t.number,
+        weight: t.number,
+        reps: t.number,
+        programId: TProgramId,
+        day: t.number,
+      })
+    ),
+  },
+  "TStatsExcercisesValue"
+);
 
-export type IStatsExcercises = { [P in IExcerciseType]?: IStatsExcercisesValue };
+export type IStatsExcercisesValue = t.TypeOf<typeof TStatsExcercisesValue>;
 
-interface IStatsExcercisesValue {
-  maxWeight: {
-    timestamp: number;
-    weight: number;
-    reps: number;
-    programId: IProgramId;
-    day: number;
-  }[];
-}
+export const TStatsExcercises = t.partial(
+  excerciseTypes.reduce<Record<IArrayElement<typeof excerciseTypes>, typeof TStatsExcercisesValue>>(
+    (memo, excerciseType) => {
+      memo[excerciseType] = TStatsExcercisesValue;
+      return memo;
+    },
+    {} as Record<IArrayElement<typeof excerciseTypes>, typeof TStatsExcercisesValue>
+  ),
+  "TStatsExcercises"
+);
+
+export type IStatsExcercises = t.TypeOf<typeof TStatsExcercises>;
+
+export const TStats = t.type(
+  {
+    excercises: TStatsExcercises,
+  },
+  "TStats"
+);
+
+export type IStats = t.TypeOf<typeof TStats>;

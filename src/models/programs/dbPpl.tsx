@@ -6,6 +6,7 @@ import { IHistoryRecord } from "../history";
 import { Excercise } from "../excercise";
 import { Progress } from "../progress";
 import { Weight } from "../weight";
+import * as t from "io-ts";
 
 export function getInitialState(): IDbPplState {
   return {
@@ -36,32 +37,40 @@ export function getInitialState(): IDbPplState {
   };
 }
 
-export type IDbPplExcerciseType =
-  | "dbBenchPress"
-  | "dbInclineFly"
-  | "dbArnoldPress"
-  | "dbTricepsExtension"
-  | "pullups"
-  | "dbRow"
-  | "dbLateralRaise"
-  | "dbShrug"
-  | "dbBicepCurl"
-  | "dbGobletSquat"
-  | "dbLunge"
-  | "dbSingleLegDeadlift"
-  | "dbCalfRaise"
-  | "legRaises";
+export const TDbPplExcerciseType = t.keyof(
+  {
+    dbBenchPress: null,
+    dbInclineFly: null,
+    dbArnoldPress: null,
+    dbTricepsExtension: null,
+    pullups: null,
+    dbRow: null,
+    dbLateralRaise: null,
+    dbShrug: null,
+    dbBicepCurl: null,
+    dbGobletSquat: null,
+    dbLunge: null,
+    dbSingleLegDeadlift: null,
+    dbCalfRaise: null,
+    legRaises: null,
+  },
+  "TDbPplExcerciseType"
+);
+export type IDbPplExcerciseType = t.TypeOf<typeof TDbPplExcerciseType>;
 
-export type IDbPplState = {
-  [P in IDbPplExcerciseType]: IDbPplStateEntry;
-};
+export const TDbPplStateEntry = t.type(
+  {
+    weight: t.number,
+    increment: t.number,
+    failures: t.number,
+    lastReps: t.number,
+  },
+  "TDbPplStateEntry"
+);
+export type IDbPplStateEntry = t.TypeOf<typeof TDbPplStateEntry>;
 
-export type IDbPplStateEntry = {
-  weight: number;
-  increment: number;
-  failures: number;
-  lastReps: number;
-};
+export const TDbPplState = t.dictionary(TDbPplExcerciseType, TDbPplStateEntry, "TDbPplState");
+export type IDbPplState = t.TypeOf<typeof TDbPplState>;
 
 function programDayEntry(state: IDbPplState, excercise: IDbPplExcerciseType): IProgramDayEntry {
   return {

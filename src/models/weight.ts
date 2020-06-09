@@ -1,10 +1,26 @@
+import * as t from "io-ts";
+
 export type IWeight = number;
-export type IPlate = { weight: IWeight; num: number };
-export type IBars = {
-  barbell: number;
-  ezbar: number;
-  dumbbell: number;
-};
+
+export const TPlate = t.type(
+  {
+    weight: t.number,
+    num: t.number,
+  },
+  "TPlate"
+);
+export type IPlate = t.TypeOf<typeof TPlate>;
+
+export const TBars = t.type(
+  {
+    barbell: t.number,
+    ezbar: t.number,
+    dumbbell: t.number,
+  },
+  "TBars"
+);
+
+export type IBars = t.TypeOf<typeof TBars>;
 
 export namespace Weight {
   export function display(weight: IWeight): string {
