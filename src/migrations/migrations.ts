@@ -36,4 +36,18 @@ export const migrations = {
       ezbar: 20,
     });
   },
+  "20200609000400_remove_old_amraps": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.history.forEach((record) => {
+      record.entries.forEach((entry) => {
+        entry.sets.forEach((set) => {
+          if ((set.reps as unknown) === "amrap") {
+            set.isAmrap = true;
+            set.reps = 1;
+          }
+        });
+      });
+    });
+    return storage;
+  },
 };
