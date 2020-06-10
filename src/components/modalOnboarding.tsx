@@ -27,10 +27,19 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
             <li>History view</li>
             <li>Rest Timer</li>
             <li>Plates calculator</li>
+            <li>Progress graphs for main lifts</li>
           </ul>
         </p>
         <p className="mb-2">
-          It's still in beta version, and there's only one routine right now -{" "}
+          It's still in beta version, and there's only few routines right now - like{" "}
+          <a
+            target="_blank"
+            className="text-blue-700 underline"
+            href="https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/"
+          >
+            Fitness Basic Beginner Routine
+          </a>
+          ,{" "}
           <a
             target="_blank"
             className="text-blue-700 underline"
@@ -38,15 +47,15 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
           >
             5/3/1 for Beginners
           </a>
-          , but you can definitely give it a try, it's a great balanced program, that nicely balances volume and
-          intensity.
+          , and few more but you can definitely give it a try, it's a great balanced program, that nicely balances
+          volume and intensity.
         </p>
         <p>
           There're more features on the roadmap, like:
           <ul className="py-2 pl-4 list-disc">
             <li>More routines added. The app is designed to be very flexible and allow almost any possible routine.</li>
-            <li>Progress Graphs</li>
             <li>Custom routine visual builder</li>
+            <li>Achievements</li>
             <li>And much more!</li>
           </ul>
         </p>
