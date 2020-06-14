@@ -20,7 +20,6 @@ import * as IDB from "idb-keyval";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { TBasicBeginnerState } from "../models/programs/basicBeginner";
-import { TIvysaurState } from "../models/programs/ivySaurProgram";
 import { T5314BState } from "../models/programs/the5314bProgram";
 import { TDbPplState } from "../models/programs/dbPpl";
 import RB from "rollbar";
@@ -45,7 +44,6 @@ export interface IState {
 export const TProgramStates = t.partial(
   {
     basicBeginner: TBasicBeginnerState,
-    ivySaur: TIvysaurState,
     the5314b: T5314BState,
     dbPpl: TDbPplState,
   },

@@ -1,5 +1,4 @@
 import { IStats } from "./stats";
-import * as IvySaurProgram from "./programs/ivySaurProgram";
 import * as The5314bProgram from "./programs/the5314bProgram";
 import * as BasicBeginnerProgram from "./programs/basicBeginner";
 import * as DbPplProgram from "./programs/dbPpl";
@@ -35,7 +34,6 @@ export interface IProgramDayEntry {
 export const TProgramId = t.keyof(
   {
     basicBeginner: null,
-    ivySaur: null,
     the5314b: null,
     dbPpl: null,
   },
@@ -47,14 +45,12 @@ export const programsList: Record<IProgramId, IProgram> = {
   basicBeginner: BasicBeginnerProgram.basicBeginnerProgram,
   the5314b: The5314bProgram.the5314bProgram,
   dbPpl: DbPplProgram.dbPplProgram,
-  ivySaur: IvySaurProgram.ivySaurProgram,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const defaultProgramStates: Record<IProgramId, any> = {
   basicBeginner: BasicBeginnerProgram.getInitialState(),
   dbPpl: DbPplProgram.getInitialState(),
-  ivySaur: {},
   the5314b: The5314bProgram.getInitialState(),
 };
 
