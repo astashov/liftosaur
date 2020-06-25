@@ -114,6 +114,7 @@ export const dbPplProgram: IProgram = {
           .p(excercise)
           .p("weight")
           .set(weight + state[excercise].increment);
+        state = lf(state).p(excercise).p("failures").set(0);
       } else if (totalReps <= state[excercise].lastReps) {
         state = lf(state)
           .p(excercise)
@@ -126,6 +127,7 @@ export const dbPplProgram: IProgram = {
           .p("weight")
           .modify((v) => Weight.round(v - state[excercise].increment * 2));
       }
+      state = lf(state).p(excercise).p("lastReps").set(totalReps);
     });
 
     return { state, stats: aStats };
