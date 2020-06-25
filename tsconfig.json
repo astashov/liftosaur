@@ -6,16 +6,17 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "declaration": true,
-    "inlineSourceMap": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
     "pretty": true,
     "strict": true,
     "jsx": "react",
     "jsxFactory": "h",
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "outDir": "out"
   },
   "include": ["src/**/*", "server/**/*", "test/**/*"]
 }

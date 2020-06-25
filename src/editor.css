@@ -1,0 +1,6 @@
+@import "~codemirror/lib/codemirror.css";
+@import "~codemirror/addon/hint/show-hint.css";
+
+.CodeMirror-lines {
+  border: 1px solid silver;
+}

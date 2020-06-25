@@ -19,6 +19,7 @@
   "devDependencies": {
     "@cloudflare/wrangler": "^1.8.4",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "@types/codemirror": "^0.0.96",
     "@types/cookie": "^0.3.3",
     "@types/deepmerge": "^2.2.0",
     "@types/gapi": "^0.0.39",
@@ -54,6 +55,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
+    "codemirror": "^5.54.0",
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
     "fp-ts": "^2.6.2",

@@ -1,0 +1,109 @@
+state
+reps / r 
+completedReps / cr
+weight / w
+confirm()
+
+5/3/1 for beginners
+  State
+    benchPressTm = 100
+    deadliftTm = 200
+    squatTm = 150
+    overheadPressTm = 90
+
+  Day 1
+    Squat
+      1x5 (state.squatTm * 0.65)
+      1x5 (state.squatTm * 0.75)
+      1x5 (state.squatTm * 0.85) Amrap
+      5x5 (state.squatTm * 0.65)
+
+    BenchPress
+      1x5 (state.benchPressTm * 0.65)
+      1x5 (state.benchPressTm * 0.75)
+      1x5 (state.benchPressTm * 0.85) Amrap
+      5x5 (state.benchPressTm * 0.65)
+    
+    Pushups
+      5x10 0
+
+    Chinups
+      5x10 0
+
+    Leg Raises
+      5x10 0
+
+  Progress
+    Day 9
+      state.squatTm = state.squatTm + 10
+      state.benchPressTm = state.benchPressTm + 5 
+      state.overheadPressTm = state.overheadPressTm + 5 
+      state.deadliftTm = state.deadliftTm + 10
+
+    Day 10
+      state.squatTm = confirm(
+        cr[3] < r[3] ? w[3] * (1 + r[3] / 30) : w[3],
+        "Are you sure?"
+      )
+
+--------------------------------------------------------------------------
+
+Fitness Basic Beginner 
+  State
+    barbellRows
+    benchPress
+    overheadPress
+    deadlift
+    squat
+
+  Day 1
+    Barbell Row
+      2x5 state.barbellRow
+      1x5 state.barbellRow AMRAP
+
+    Bench Press
+      2x5 state.benchPress
+      1x5 state.benchPress AMRAP
+
+    Squat
+      2x5 state.squat
+      1x5 state.squat AMRAP
+
+  Progress
+    Day *
+      state.barbellRow = (cr[1] + cr[2] + cr[3] >= 15) ?
+        (cr[3] > 10 ? 5 : 2.5) :
+        weight[1] * 0.9
+      state.benchPress = (cr[1] + cr[2] + cr[3] >= 15) ?
+        (cr[3] > 10 ? 5 : 2.5) :
+        weight[1] * 0.9
+
+--------------------------------------------------------------------------
+
+Dumbbell P/P/L
+  State
+    dbBenchPress
+    dbBenchPressLastReps
+    dbBenchPressFailures
+    dbInclineFly
+    dbInclineFlyLastReps
+    dbInclineFlyFailures
+
+  Day 1
+    DbBenchPress
+      3x12 dbBenchPress 
+
+    DbInclineFly
+      3x12 dbInclineFly 
+
+  Progress
+    Day *
+      state.dbBenchPress = cr[1] >= r[1] && cr[2] >= r[2] && cr[3] >= r[3] ?
+        state.dbBenchPress + 2.5 : 
+        (state.dbBenchPressFailures >= 2 ? state.dbBenchPressFailures - 5 : 0)
+      state.dbBenchPressFailures = cr[1] + cr[2] + cr[3] <= state.dbBenchPressLastReps ?
+        state.dbBenchPressFailures + 1 :
+        state.dbBenchPressFailures;
+      state.dbBenchPressLastReps = cr[1] + cr[2] + cr[3]
+
+--------------------------------------------------------------------------
