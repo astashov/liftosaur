@@ -13,11 +13,13 @@ export type ILensRecordingPayload<T> = {
 
 interface IPartialBuilder<T> {
   p: <R extends keyof T>(key: R) => LensBuilder<T, T[R]>;
+  pi: <R extends keyof T>(key: R) => LensBuilder<T, Exclude<T[R], undefined>>;
   i: (index: number) => LensBuilder<T, T extends unknown[] ? T[number] : never>;
 }
 
 interface IPartialBuilderWithObject<T> {
   p: <R extends keyof T>(key: R) => LensBuilderWithObject<T, T[R]>;
+  pi: <R extends keyof T>(key: R) => LensBuilderWithObject<T, Exclude<T[R], undefined>>;
   i: (index: number) => LensBuilderWithObject<T, T extends unknown[] ? T[number] : never>;
 }
 
@@ -30,6 +32,10 @@ abstract class AbstractLensBuilder<T, R> {
 
   public record(value: R): ILensRecordingPayload<T> {
     return Lens.buildLensRecording(this.lens, value);
+  }
+
+  public recordModify(fn: (v: R) => R): ILensRecordingPayload<T> {
+    return Lens.buildLensModifyRecording(this.lens, fn);
   }
 }
 
@@ -46,6 +52,10 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
       p: <R extends keyof T>(key: R): LensBuilderWithObject<T, T[R]> => {
         return new LensBuilderWithObject<T, T[R]>(lensFactory(key), obj);
       },
+      pi: <R extends keyof T>(key: R): LensBuilderWithObject<T, Exclude<T[R], undefined>> => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new LensBuilderWithObject<T, Exclude<T[R], undefined>>(lensFactory(key) as any, obj);
+      },
       i: (index: number): LensBuilderWithObject<T, T extends unknown[] ? T[number] : never> => {
         // @ts-ignore
         return new LensBuilderWithObject<T, T[number]>(lensFactory(index), obj);
@@ -55,6 +65,11 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
 
   public p<K extends keyof R>(key: K): LensBuilderWithObject<T, R[K]> {
     return new LensBuilderWithObject<T, R[K]>(this.lens.then(Lens.prop<R>()(key)), this.obj);
+  }
+
+  public pi<K extends keyof R>(key: K): LensBuilderWithObject<T, Exclude<R[K], undefined>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new LensBuilderWithObject<T, Exclude<R[K], undefined>>(this.lens.then(Lens.prop<R>()(key) as any), this.obj);
   }
 
   public i(index: number): LensBuilderWithObject<T, R extends unknown[] ? R[number] : never> {
@@ -80,6 +95,10 @@ export class LensBuilder<T, R> extends AbstractLensBuilder<T, R> {
     return {
       p: <R extends keyof T>(key: R): LensBuilder<T, T[R]> => {
         return new LensBuilder<T, T[R]>(lensFactory(key));
+      },
+      pi: <R extends keyof T>(key: R): LensBuilder<T, Exclude<T[R], undefined>> => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new LensBuilder<T, Exclude<T[R], undefined>>(lensFactory(key) as any);
       },
       i: (index: number): LensBuilder<T, T extends unknown[] ? T[number] : never> => {
         // @ts-ignore
@@ -123,6 +142,21 @@ export class Lens<T, R> {
   public readonly from: string;
   public readonly to: string;
 
+  public static buildLensModifyRecording<T, R>(
+    aLens: Lens<T, R> | LensBuilder<T, R>,
+    modifyFn: (v: R) => R
+  ): ILensRecordingPayload<T> {
+    const lens = aLens instanceof Lens ? aLens : aLens.get();
+    const fn: ILensRecording<T> = (obj: T) => {
+      return lens.modify(obj, modifyFn);
+    };
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    fn.toString = (): string => {
+      return `${lens.toString()} = \`modify\``;
+    };
+    return { fn, str: fn.toString() };
+  }
+
   public static buildLensRecording<T, R>(aLens: Lens<T, R> | LensBuilder<T, R>, value: R): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
     const fn: ILensRecording<T> = (obj: T) => {
@@ -155,7 +189,8 @@ export class Lens<T, R> {
   private static propKey<T, K extends keyof T>(key: K): Lens<T, T[K]> {
     return new Lens<T, T[K]>(
       (s) => s[key],
-      (s, v) => ({ ...s, [key]: v }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (s, v) => (Array.isArray(s) ? (s.map((e, i) => (i === key ? v : e)) as any) : { ...s, [key]: v }),
       { from: "obj", to: `${key}` }
     );
   }

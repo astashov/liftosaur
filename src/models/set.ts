@@ -17,8 +17,21 @@ export const TSet = t.intersection(
   ],
   "TSet"
 );
-
 export type ISet = t.TypeOf<typeof TSet>;
+
+export const TProgramSet = t.intersection(
+  [
+    t.interface({
+      repsExpr: t.string,
+      weightExpr: t.string,
+    }),
+    t.partial({
+      isAmrap: t.boolean,
+    }),
+  ],
+  "TProgramSet"
+);
+export type IProgramSet = t.TypeOf<typeof TProgramSet>;
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {

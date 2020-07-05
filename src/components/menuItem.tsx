@@ -3,7 +3,7 @@ import { IconArrowRight } from "./iconArrowRight";
 
 interface IMenuItemProps {
   name: string;
-  value?: string;
+  value?: string | JSX.Element;
   shouldShowRightArrow?: boolean;
   onClick?: () => void;
 }
@@ -20,7 +20,7 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
   return (
     <MenuItemWrapper onClick={props.onClick}>
       <section className="flex">
-        <div className="flex-1 py-2 text-left">{props.name}</div>
+        <div className="flex items-center flex-1 py-2 text-left">{props.name}</div>
         <div className="flex-1 py-2 text-right">{props.value}</div>
         {props.shouldShowRightArrow && (
           <div className="flex items-center py-2 pl-2">

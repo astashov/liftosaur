@@ -4,6 +4,7 @@ import { IconClose } from "./iconClose";
 interface IProps {
   children: ComponentChildren;
   shouldShowClose?: boolean;
+  style?: Record<string, string | undefined>;
   onClose?: () => void;
 }
 
@@ -14,7 +15,7 @@ export function Modal(props: IProps): JSX.Element {
       <div
         data-name="modal"
         className="relative flex flex-col px-4 py-6 bg-white rounded-lg shadow-lg"
-        style={{ maxWidth: "85%", maxHeight: "90%" }}
+        style={{ maxWidth: "85%", maxHeight: "90%", ...props.style }}
       >
         <div className="h-full overflow-auto">{props.children}</div>
         {props.shouldShowClose && (

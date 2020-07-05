@@ -1,6 +1,19 @@
-export type IScreen = "main" | "settings" | "account" | "timers" | "plates" | "programSettings" | "progress" | "graphs";
+export type IScreen =
+  | "main"
+  | "settings"
+  | "account"
+  | "timers"
+  | "plates"
+  | "programSettings"
+  | "progress"
+  | "graphs"
+  | "editProgram"
+  | "editProgramDay"
+  | "editProgramDayScript";
 
 export namespace Screen {
+  export const editProgramScreens: IScreen[] = ["editProgram", "editProgramDay", "editProgramDayScript"];
+
   export function current(stack: IScreen[]): IScreen {
     return stack[stack.length - 1];
   }

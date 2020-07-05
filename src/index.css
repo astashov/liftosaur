@@ -3,6 +3,14 @@
 
 @tailwind base;
 @tailwind components;
+
+@import "~codemirror/lib/codemirror.css";
+@import "~codemirror/addon/hint/show-hint.css";
+
+.CodeMirror-hints {
+  z-index: 100;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

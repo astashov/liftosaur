@@ -17,6 +17,7 @@ import { ScreenPlates } from "./screenPlates";
 import { ScreenProgramSettings } from "./screenProgramSettings";
 import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
+import { ScreenEditProgram } from "./screenEditProgram";
 
 interface IProps {
   client: Window["fetch"];
@@ -54,7 +55,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (programId == null) {
       return (
         <Fragment>
-          <ChooseProgramView dispatch={dispatch} />
+          <ChooseProgramView dispatch={dispatch} programs={state.storage.programs || []} />
           {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
         </Fragment>
       );
@@ -107,6 +108,18 @@ export function AppView(props: IProps): JSX.Element | null {
         programStates={state.storage.programStates}
       />
     );
+  } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
+    if (state.editProgram != null) {
+      return (
+        <ScreenEditProgram
+          screen={Screen.current(state.screenStack)}
+          dispatch={dispatch}
+          editProgram={state.editProgram}
+        />
+      );
+    } else {
+      throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
+    }
   } else {
     return null;
   }

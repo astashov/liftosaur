@@ -5,9 +5,9 @@ import * as DbPplProgram from "./programs/dbPpl";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord } from "./history";
 import { JSX } from "preact";
-import { IExcerciseType, Excercise } from "./excercise";
-import { ISet } from "./set";
+import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import * as t from "io-ts";
+import { ISet, TProgramSet } from "./set";
 
 export interface IProgram {
   id: IProgramId;
@@ -20,6 +20,58 @@ export interface IProgram {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   finishDay: (progress: IHistoryRecord, stats: IStats, state: any) => { state: any; stats: IStats };
 }
+
+export const TProgramDayEntry2 = t.type(
+  {
+    excercise: TExcerciseType,
+    sets: t.array(TProgramSet),
+  },
+  "TProgramDayEntry2"
+);
+export type IProgramDayEntry2 = t.TypeOf<typeof TProgramDayEntry2>;
+
+export const TProgramDay2 = t.type(
+  {
+    name: t.string,
+    excercises: t.array(TProgramDayEntry2),
+  },
+  "TProgramDay2"
+);
+export type IProgramDay2 = t.TypeOf<typeof TProgramDay2>;
+
+export const TProgram2 = t.type(
+  {
+    isProgram2: t.boolean,
+    id: t.string,
+    name: t.string,
+    description: t.string,
+    days: t.array(TProgramDay2),
+    initialState: t.dictionary(t.string, t.number),
+    finishDayExpr: t.string,
+  },
+  "TProgram2"
+);
+export type IProgram2 = t.TypeOf<typeof TProgram2>;
+
+export const TEditProgram = t.intersection(
+  [
+    t.interface({
+      program: TProgram2,
+    }),
+    t.partial({
+      editDay: t.intersection([
+        t.interface({
+          day: TProgramDay2,
+        }),
+        t.partial({
+          index: t.number,
+        }),
+      ]),
+    }),
+  ],
+  "TEditProgram"
+);
+export type IEditProgram = t.TypeOf<typeof TEditProgram>;
 
 export interface IProgramDay {
   name: string;
@@ -61,6 +113,13 @@ export namespace Program {
 
   export function all(): IProgram[] {
     return ObjectUtils.keys(programsList).map((k) => programsList[k]);
+  }
+
+  export function createDay(name: string): IProgramDay2 {
+    return {
+      name,
+      excercises: [],
+    };
   }
 
   export function nextProgramRecord(
