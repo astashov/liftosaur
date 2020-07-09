@@ -3,9 +3,7 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { MenuItem } from "./menuItem";
-import { MenuItemEditable } from "./menuItemEditable";
-import { programsList, IProgramId } from "../models/program";
-import { ObjectUtils } from "../utils/object";
+import { IProgramId } from "../models/program";
 import { Thunk } from "../ducks/thunks";
 
 interface IProps {
@@ -25,13 +23,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
-        <MenuItemEditable
-          name="Current Program"
-          type="select"
-          values={ObjectUtils.keys(programsList).map((k) => [programsList[k].id, programsList[k].name])}
+        <MenuItem
+          shouldShowRightArrow={true}
+          name="Choose Program"
           value={props.currentProgram}
-          onChange={(newValue?: string) => {
-            props.dispatch({ type: "ChangeProgramAction", name: newValue as IProgramId });
+          onClick={() => {
+            props.dispatch({ type: "PushScreen", screen: "programs" });
           }}
         />
         {(props.currentProgram === "the5314b" || props.currentProgram === "dbPpl") && (

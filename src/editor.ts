@@ -3,9 +3,7 @@ import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/diff/diff";
 import "codemirror/addon/hint/show-hint";
 
-interface IState {
-  foo: string;
-}
+type IState = Record<string, string | null>;
 
 interface IArgs {
   onChange?: (newValue: string) => void;
@@ -30,31 +28,40 @@ export class CodeEditor {
 
   public attach(container: HTMLElement): void {
     CodeMirror.defineMode<IState>("liftosaur", (config, modeOptions) => {
-      const keywords = ["cr", "r", "w"];
+      const keywords = [...Object.keys(this.state), "day", "completedReps", "reps", "weight", "cr", "r", "w"];
       const stateKeywords = ["state"];
 
       return {
+        startState: () => ({}),
         token: (stream: StringStream, state: IState) => {
           const peek = stream.peek();
-          if (stream.match(/\d+/)) {
-            return "number";
-          } else if (keywords.some((k) => stream.match(k))) {
-            return "keyword";
+          console.log(`current: '${state.current}', peek: ${peek}`);
+          let token: string | null = null;
+          if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+/)) {
+            token = "number";
+          } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
+            console.log("Seems like keyword, peeking", stream.peek());
+            if (/\W/.test(stream.peek() || "")) {
+              token = "keyword";
+            }
           } else if (stateKeywords.some((k) => stream.match(k))) {
-            return "state";
+            token = "state";
           } else if (peek != null && ["[", "]", "(", ")", "{", "}"].indexOf(peek) !== -1) {
             stream.next();
-            return "bracket";
+            token = "bracket";
           } else if (peek != null && ["+", "-", "*", "=", ">", "<", "/", "^"].indexOf(peek) !== -1) {
             stream.next();
-            return "atom";
+            token = "atom";
           } else if (peek != null && ["."].indexOf(peek) !== -1) {
             stream.next();
-            return "dot";
+            token = "dot";
           } else {
             stream.next();
-            return null;
+            token = null;
           }
+          console.log("token", token);
+          state.current = peek;
+          return token;
         },
       };
     });

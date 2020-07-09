@@ -11,6 +11,10 @@
   z-index: 100;
 }
 
+.cm-state {
+  color: darkblue;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

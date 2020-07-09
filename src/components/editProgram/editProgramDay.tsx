@@ -47,9 +47,17 @@ export function EditProgramDay(props: IProps): JSX.Element {
             return (
               <EditProgramExcerciseView
                 entry={entry}
-                dispatch={props.dispatch}
                 onEditSet={(setIndex) => {
-                  setEditSet({ excerciseIndex: i, setIndex });
+                  if (setIndex == null && entry.sets.length > 0) {
+                    const set = entry.sets[entry.sets.length - 1];
+                    props.dispatch({
+                      type: "EditDayAddSet",
+                      excerciseIndex: i,
+                      set,
+                    });
+                  } else {
+                    setEditSet({ excerciseIndex: i, setIndex });
+                  }
                 }}
                 onDeleteSet={(setIndex) => {
                   props.dispatch({ type: "EditDayRemoveSet", excerciseIndex: i, setIndex });
@@ -60,7 +68,9 @@ export function EditProgramDay(props: IProps): JSX.Element {
         </section>
         <button
           className="w-full px-4 py-4 mb-2 text-center bg-gray-100 border border-gray-300 border-dashed rounded-lg"
-          onClick={() => setShouldShowAddExcercise(true)}
+          onClick={() => {
+            setShouldShowAddExcercise(true);
+          }}
         >
           +
         </button>

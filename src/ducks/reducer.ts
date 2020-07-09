@@ -32,6 +32,7 @@ import { T5314BState } from "../models/programs/the5314bProgram";
 import { TDbPplState } from "../models/programs/dbPpl";
 import RB from "rollbar";
 import { IProgramSet } from "../models/set";
+import { ScriptRunner } from "../parser";
 
 declare let Rollbar: RB;
 
@@ -69,6 +70,7 @@ export const TStorage = t.type(
     settings: TSettings,
     programStates: TProgramStates,
     currentProgramId: t.union([TProgramId, t.undefined]),
+    currentProgram2Id: t.union([t.string, t.undefined]),
     version: t.string,
     programs: t.array(TProgram2),
   },
@@ -111,11 +113,11 @@ export function getInitialState(rawStorage?: string): IState {
       progress: isProgressValid ? { 0: storage.progress } : {},
       editProgram: isEditProgramValid ? storage.editProgram : undefined,
       currentHistoryRecord: 0,
-      screenStack: isEditProgramValid ? ["main", "editProgram"] : ["main"],
+      screenStack: finalStorage.currentProgramId || finalStorage.currentProgram2Id ? ["main"] : ["programs"],
     };
   }
   return {
-    screenStack: ["main"],
+    screenStack: ["programs"],
     progress: {},
     storage: {
       id: 0,
@@ -123,6 +125,7 @@ export function getInitialState(rawStorage?: string): IState {
         excercises: {},
       },
       currentProgramId: undefined,
+      currentProgram2Id: undefined,
       programStates: {},
       settings: {
         plates: [
@@ -406,7 +409,19 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
       const programState = state.storage.programStates[state.storage.currentProgramId];
-      const newProgress = Progress.create(program, day, state.storage.stats, programState);
+      const newProgress = Program.nextProgramRecord(program, day, programState);
+      return {
+        ...state,
+        currentHistoryRecord: 0,
+        screenStack: Screen.push(state.screenStack, "progress"),
+        progress: { ...state.progress, 0: newProgress },
+      };
+    } else if (state.storage.currentProgram2Id != null) {
+      const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
+      // TODO: What if the program is missing?
+      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)!;
+      const day = Program.nextDay(program, lastHistoryRecord?.day);
+      const newProgress = Program.nextProgramRecord(program, day, {});
       return {
         ...state,
         currentHistoryRecord: 0,
@@ -428,7 +443,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
-      const program = Program.get(progress.programId);
       const historyRecord = History.finishProgramDay(progress);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
@@ -436,31 +450,53 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
-      const programState = state.storage.programStates[program.id];
-      const { state: newProgramState, stats: newStats } = Progress.isCurrent(progress)
-        ? program.finishDay(progress, state.storage.stats, programState)
-        : { state: programState, stats: state.storage.stats };
-      return {
-        ...state,
-        storage: {
-          ...state.storage,
-          stats: newStats,
-          history: newHistory,
-          programStates: {
-            ...state.storage.programStates,
-            [program.id]: newProgramState,
+      const program =
+        state.storage.programs.find((p) => p.id === progress.programId) ||
+        Program.get(progress.programId as IProgramId);
+      if (Program.isProgram2(program)) {
+        const bindings = Progress.createScriptBindings(progress);
+        const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
+        const programState = { ...program.initialState };
+        new ScriptRunner(program.finishDayExpr, programState, bindings).execute();
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            history: newHistory,
+            programs: lf(state.storage.programs).i(programIndex).p("initialState").set(programState),
           },
-        },
-        screenStack: Screen.pull(state.screenStack),
-        currentHistoryRecord: undefined,
-        progress: Progress.stop(state.progress, progress.id),
-      };
+          screenStack: Screen.pull(state.screenStack),
+          currentHistoryRecord: undefined,
+          progress: Progress.stop(state.progress, progress.id),
+        };
+      } else {
+        const programState = state.storage.programStates[program.id];
+        const { state: newProgramState, stats: newStats } = Progress.isCurrent(progress)
+          ? program.finishDay(progress, state.storage.stats, programState)
+          : { state: programState, stats: state.storage.stats };
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            stats: newStats,
+            history: newHistory,
+            programStates: {
+              ...state.storage.programStates,
+              [program.id]: newProgramState,
+            },
+          },
+          screenStack: Screen.pull(state.screenStack),
+          currentHistoryRecord: undefined,
+          progress: Progress.stop(state.progress, progress.id),
+        };
+      }
     }
   } else if (action.type === "ChangeProgramAction") {
     const currentProgramId = action.name;
     const programState = state.storage.programStates[currentProgramId] || defaultProgramStates[currentProgramId];
     return {
       ...state,
+      screenStack: Screen.push(state.screenStack, "main"),
       storage: {
         ...state.storage,
         programStates: {
@@ -557,6 +593,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         programStates: newStorage.programStates,
         stats: newStorage.stats,
         currentProgramId: newStorage.currentProgramId,
+        currentProgram2Id: newStorage.currentProgram2Id,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,
         programs: newStorage.programs,

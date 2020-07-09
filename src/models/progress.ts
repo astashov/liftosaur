@@ -40,6 +40,16 @@ export const TProgressMode = t.keyof(
 
 export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
+export interface IScriptBindings {
+  day: number;
+  weights: number[][];
+  reps: number[][];
+  completedReps: number[][];
+  w: number[][];
+  r: number[][];
+  cr: number[][];
+}
+
 export namespace Progress {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export function create(program: IProgram, day: number, stats: IStats, state?: any): IHistoryRecord {
@@ -60,6 +70,36 @@ export namespace Progress {
         };
       }),
     };
+  }
+
+  export function createEmptyScriptBindings(day: number): IScriptBindings {
+    return {
+      day,
+      weights: [],
+      reps: [],
+      completedReps: [],
+      w: [],
+      r: [],
+      cr: [],
+    };
+  }
+
+  export function createScriptBindings(progress: IHistoryRecord): IScriptBindings {
+    const bindings = createEmptyScriptBindings(progress.day);
+    for (const entry of progress.entries) {
+      bindings.weights.push([]);
+      bindings.reps.push([]);
+      bindings.completedReps.push([]);
+      for (const set of entry.sets) {
+        bindings.weights[bindings.weights.length - 1].push(set.weight);
+        bindings.reps[bindings.reps.length - 1].push(set.reps);
+        bindings.completedReps[bindings.completedReps.length - 1].push(set.completedReps || 0);
+      }
+    }
+    bindings.w = bindings.weights;
+    bindings.r = bindings.reps;
+    bindings.cr = bindings.completedReps;
+    return bindings;
   }
 
   export function isCurrent(progress: IHistoryRecord): boolean {

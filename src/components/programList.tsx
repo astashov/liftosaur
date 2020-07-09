@@ -9,6 +9,7 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "../utils/lens";
 import { IState } from "../ducks/reducer";
 import { Screen } from "../models/screen";
+import { HtmlUtils } from "../utils/html";
 
 interface IProps {
   onSelectProgram: (id: IProgramId) => void;
@@ -33,10 +34,23 @@ export function ProgramListView(props: IProps): JSX.Element {
           {programs.map((program) => (
             <MenuItem
               name={program.name}
+              onClick={(e) => {
+                if (!HtmlUtils.classInParents(e.target as Element, "button")) {
+                  props.dispatch({
+                    type: "UpdateState",
+                    lensRecording: [
+                      lb<IState>().p("storage").p("currentProgram2Id").record(program.id),
+                      lb<IState>()
+                        .p("screenStack")
+                        .recordModify((s) => Screen.push(s, "main")),
+                    ],
+                  });
+                }
+              }}
               value={
                 <Fragment>
                   <button
-                    className="p-2 align-middle"
+                    className="p-2 align-middle button"
                     onClick={() => {
                       props.dispatch({
                         type: "UpdateState",
@@ -52,7 +66,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                     <IconEdit />
                   </button>
                   <button
-                    className="p-2 align-middle"
+                    className="p-2 align-middle button"
                     onClick={() => {
                       if (confirm("Are you sure?")) {
                         props.dispatch({

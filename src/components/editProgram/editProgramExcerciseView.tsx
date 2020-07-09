@@ -1,12 +1,10 @@
 import { h, JSX } from "preact";
 import { IProgramDayEntry2 } from "../../models/program";
-import { IDispatch } from "../../ducks/types";
 import { Excercise } from "../../models/excercise";
 import { IconDelete } from "../iconDelete";
 
 interface IProps {
   entry: IProgramDayEntry2;
-  dispatch: IDispatch;
   onEditSet: (setIndex?: number) => void;
   onDeleteSet: (setIndex: number) => void;
 }

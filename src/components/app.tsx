@@ -50,20 +50,23 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   }, []);
 
-  if (Screen.current(state.screenStack) === "main") {
-    const programId = state.storage.currentProgramId;
-    if (programId == null) {
-      return (
-        <Fragment>
-          <ChooseProgramView dispatch={dispatch} programs={state.storage.programs || []} />
-          {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
-        </Fragment>
-      );
-    } else {
-      const program = Program.get(programId);
+  if (Screen.current(state.screenStack) === "programs") {
+    return (
+      <Fragment>
+        <ChooseProgramView dispatch={dispatch} programs={state.storage.programs || []} />
+        {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
+      </Fragment>
+    );
+  } else if (Screen.current(state.screenStack) === "main") {
+    const program =
+      state.storage.currentProgramId != null
+        ? Program.get(state.storage.currentProgramId)
+        : state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id);
+    if (program != null) {
       return (
         <ProgramHistoryView
           program={program}
+          programs={state.storage.programs}
           progress={state.progress?.[0]}
           programStates={state.storage.programStates}
           history={state.storage.history}
@@ -71,13 +74,14 @@ export function AppView(props: IProps): JSX.Element | null {
           dispatch={dispatch}
         />
       );
+    } else {
+      throw new Error("Program is not selected on the 'main' screen");
     }
   } else if (Screen.current(state.screenStack) === "progress") {
-    const programId = state.storage.currentProgramId!;
     const progress = state.progress[state.currentHistoryRecord!]!;
     return (
       <ProgramDayView
-        programId={programId}
+        programs={state.storage.programs}
         progress={progress}
         history={state.storage.history}
         stats={state.storage.stats}

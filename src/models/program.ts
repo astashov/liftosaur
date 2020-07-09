@@ -8,6 +8,8 @@ import { JSX } from "preact";
 import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import * as t from "io-ts";
 import { ISet, TProgramSet } from "./set";
+import { ScriptRunner } from "../parser";
+import { Progress } from "./progress";
 
 export interface IProgram {
   id: IProgramId;
@@ -122,30 +124,64 @@ export namespace Program {
     };
   }
 
+  export function isProgram2(program: IProgram | IProgram2): program is IProgram2 {
+    return "isProgram2" in program && program.isProgram2;
+  }
+
   export function nextProgramRecord(
-    program: IProgram,
+    program: IProgram | IProgram2,
     previousDay?: number,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     programState?: any
   ): IHistoryRecord {
     const day = Program.nextDay(program, previousDay);
-    const programDay = program.days[day];
-    return {
-      id: 0,
-      date: new Date().toISOString(),
-      programId: program.id,
-      day,
-      startTime: Date.now(),
-      endTime: Date.now(),
-      entries: programDay(programState).excercises.map((e) => ({
-        excercise: e.excercise,
-        sets: e.sets,
-        warmupSets: Excercise.getWarmupSets(e.excercise, e.sets[0].weight),
-      })),
-    };
+    if (isProgram2(program)) {
+      const programDay = program.days[day];
+      return {
+        id: 0,
+        date: new Date().toISOString(),
+        programId: program.id,
+        day,
+        startTime: Date.now(),
+        entries: programDay.excercises.map((entry) => {
+          const sets: ISet[] = entry.sets.map((set) => ({
+            isAmrap: set.isAmrap,
+            reps: new ScriptRunner(
+              set.repsExpr,
+              program.initialState,
+              Progress.createEmptyScriptBindings(day)
+            ).execute(),
+            weight: new ScriptRunner(
+              set.weightExpr,
+              program.initialState,
+              Progress.createEmptyScriptBindings(day)
+            ).execute(),
+          }));
+          return {
+            excercise: entry.excercise,
+            sets,
+            warmupSets: Excercise.getWarmupSets(entry.excercise, sets[0].weight),
+          };
+        }),
+      };
+    } else {
+      const programDay = program.days[day];
+      return {
+        id: 0,
+        date: new Date().toISOString(),
+        programId: program.id,
+        day,
+        startTime: Date.now(),
+        entries: programDay(programState).excercises.map((e) => ({
+          excercise: e.excercise,
+          sets: e.sets,
+          warmupSets: Excercise.getWarmupSets(e.excercise, e.sets[0].weight),
+        })),
+      };
+    }
   }
 
-  export function nextDay(program: IProgram, day?: number): number {
+  export function nextDay(program: IProgram | IProgram2, day?: number): number {
     return day != null ? (day + 1) % program.days.length : 0;
   }
 }

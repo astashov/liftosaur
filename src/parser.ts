@@ -1,3 +1,5 @@
+import { IScriptBindings } from "./models/progress";
+
 type IPos = { readonly line: number; readonly offset: number };
 
 type ITokenNumber = { readonly type: "number"; readonly value: number; readonly pos: IPos };
@@ -6,12 +8,13 @@ type ITokenOperator = {
   readonly value: "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":";
   readonly pos: IPos;
 };
-type ITokenParen = { readonly type: "paren"; readonly value: "(" | ")"; readonly pos: IPos };
+type ITokenIf = { readonly type: "if"; readonly value: "if" | "else"; readonly pos: IPos };
+type ITokenParen = { readonly type: "paren"; readonly value: "(" | ")" | "[" | "]" | "{" | "}"; readonly pos: IPos };
 type ITokenKeyword = { readonly type: "keyword"; readonly value: string; readonly pos: IPos };
 type ITokenEol = { readonly type: "eol"; readonly value: "\\n"; readonly pos: IPos };
 type ITokenSemicolon = { readonly type: "semicolon"; readonly value: ";"; readonly pos: IPos };
 
-type IToken = ITokenNumber | ITokenOperator | ITokenParen | ITokenKeyword | ITokenEol | ITokenSemicolon;
+type IToken = ITokenNumber | ITokenOperator | ITokenParen | ITokenKeyword | ITokenIf | ITokenEol | ITokenSemicolon;
 
 type ITokenCondition = { type: IToken["type"]; value?: string | RegExp };
 
@@ -25,20 +28,24 @@ export function tokenize(text: string): IToken[] {
     while (line.length > 0) {
       let match: RegExpExecArray | null;
       const pos = { line: lineNumber + 1, offset: offset + 1 };
-      if ((match = /^[()]/.exec(line))) {
+      if ((match = /^([(){}\[\]])/.exec(line))) {
         tokens.push({ type: "paren", value: match[0] as ITokenParen["value"], pos });
-      } else if ((match = /^[\d\.]+/.exec(line))) {
+      } else if ((match = /^([\d\.]+)/.exec(line))) {
         tokens.push({ type: "number", value: parseInt(match[0], 10), pos });
-      } else if ((match = /^[\+\-*<>=\?:/]/.exec(line))) {
+      } else if ((match = /^([\+\-*<>=\?:/]+)/.exec(line))) {
         tokens.push({ type: "operator", value: match[0] as ITokenOperator["value"], pos });
-      } else if ((match = /^;/.exec(line))) {
+      } else if ((match = /^(;)/.exec(line))) {
         tokens.push({ type: "semicolon", value: ";", pos });
-      } else if ((match = /^[a-zA-Z][a-zA-Z0-9\.\[\]]+/.exec(line))) {
+      } else if ((match = /^(if)\W/.exec(line))) {
+        tokens.push({ type: "if", value: "if", pos });
+      } else if ((match = /^(else)\W/.exec(line))) {
+        tokens.push({ type: "if", value: "else", pos });
+      } else if ((match = /^([a-zA-Z][a-zA-Z0-9\.\[\]]+)/.exec(line))) {
         tokens.push({ type: "keyword", value: match[0] as ITokenKeyword["value"], pos });
       } else {
-        throw SyntaxError(`Unexpected token at line ${pos.line}:${pos.offset}`);
+        throw SyntaxError(`Unexpected token at line ${pos.line}:${pos.offset}, ${line}`);
       }
-      const restLine = line.slice(match[0].length);
+      const restLine = line.slice(match[1].length);
       offset += line.length - restLine.length;
       const trimmedRestLine = restLine.trimLeft();
       offset += restLine.length - trimmedRestLine.length;
@@ -49,16 +56,47 @@ export function tokenize(text: string): IToken[] {
 }
 
 const allRules = {
+  if: (parser: Parser): IExpr => {
+    parser.get({ type: "if", value: "if" });
+    const condition = parser.match("cmp");
+    parser.get({ type: "paren", value: "{" });
+    const then = parser.match("block");
+    let or;
+    const elseKeyword = parser.maybeGet({ type: "if", value: "else" });
+    if (elseKeyword != null) {
+      parser.get({ type: "paren", value: "{" });
+      or = parser.match("block");
+    }
+    return { type: "if", condition, then, or };
+  },
+  block: (parser: Parser): IExpr => {
+    const exprs: IExpr[] = [];
+    while (!parser.isEof() && !parser.maybeGet({ type: "paren", value: "}" })) {
+      const expr = parser.match(["if", "assign", "ternary"]);
+      if (expr != null) {
+        exprs.push(expr);
+      }
+      // eslint-disable-next-line no-unused-expressions
+      while (parser.maybeGet({ type: "eol" }) || parser.maybeGet({ type: "semicolon" })) {
+        // eating all eols and semicolons
+      }
+    }
+    return { type: "block", exprs };
+  },
   assign: (parser: Parser): IExpr => {
     const variable = parser.match("keyword") as IExprKeyword;
-    parser.get({ type: "operator", value: "=" });
-    const value = parser.match("cond");
-    return { type: "assign", variable: variable.value, value };
+    const operator = parser.maybeGet({ type: "operator", value: "=" });
+    if (operator != null) {
+      const value = parser.match("ternary");
+      return { type: "assign", variable: variable.value, value };
+    } else {
+      return variable;
+    }
   },
   factor: (parser: Parser): IExpr => {
     const token = parser.maybeGet({ type: "paren", value: "(" });
     if (token != null) {
-      const expr = parser.match("cond");
+      const expr = parser.match("ternary");
       parser.get({ type: "paren", value: ")" });
       return expr;
     } else {
@@ -67,7 +105,7 @@ const allRules = {
   },
   cmp: (parser: Parser): IExpr => {
     const left = parser.match("expression");
-    const operator = parser.maybeGet({ type: "operator", value: /<|>/ });
+    const operator = parser.maybeGet({ type: "operator", value: /[<>=]+/ });
     if (operator != null) {
       const right = parser.match("cmp");
       return { type: "expression", left, operator: operator as ITokenOperator, right };
@@ -75,13 +113,13 @@ const allRules = {
       return left;
     }
   },
-  cond: (parser: Parser): IExpr => {
+  ternary: (parser: Parser): IExpr => {
     const condition = parser.match("cmp");
     const operator = parser.maybeGet({ type: "operator", value: "?" });
     if (operator != null) {
-      const then = parser.match("cond");
+      const then = parser.match("ternary");
       parser.get({ type: "operator", value: ":" });
-      const or = parser.match("cond");
+      const or = parser.match("ternary");
       return { type: "cond", condition, then, or };
     } else {
       return condition;
@@ -127,12 +165,14 @@ const allRules = {
 type IRules = typeof allRules;
 
 type IExprNumber = { type: "number"; sign: "+" | "-"; value: number };
+type IExprBlock = { type: "block"; exprs: IExpr[] };
 type IExprKeyword = { type: "keyword"; value: string };
 type IExprExpression = { type: "expression"; operator: ITokenOperator; left: IExpr; right: IExpr };
 type IExprCond = { type: "cond"; condition: IExpr; then: IExpr; or: IExpr };
+type IExprIf = { type: "if"; condition: IExpr; then: IExpr; or?: IExpr };
 type IExprAssign = { type: "assign"; variable: string; value: IExpr };
 
-type IExpr = IExprNumber | IExprKeyword | IExprExpression | IExprCond | IExprAssign;
+type IExpr = IExprNumber | IExprKeyword | IExprExpression | IExprCond | IExprIf | IExprAssign | IExprBlock;
 
 class Parser {
   private readonly tokens: IToken[];
@@ -194,7 +234,7 @@ class Parser {
   }
 
   public parse(): IExpr {
-    const expr = this.match("assign");
+    const expr = this.match("block");
     if (this.tokens[0] == null || this.tokens[0].type === "semicolon") {
       return expr;
     } else {
@@ -202,47 +242,21 @@ class Parser {
     }
   }
 
+  public isEof(): boolean {
+    return this.tokens.length === 0;
+  }
+
   private raiseError(): never {
     const token = this.tokens[0];
-    throw new SyntaxError(`Unexpected symbol ${token.value} at ${token.pos.line}:${token.pos.offset}`);
+    if (token != null) {
+      throw new SyntaxError(`Unexpected symbol ${token.value} at ${token.pos.line}:${token.pos.offset}`);
+    } else {
+      throw new SyntaxError("Unexpected end of script");
+    }
   }
 }
 
-class ParserAll {
-  private readonly tokenGroups: IToken[][];
-  private readonly rules: IRules;
-
-  constructor(tokens: IToken[], rules: IRules) {
-    this.tokenGroups = tokens.reduce<IToken[][]>(
-      (memo, token) => {
-        if (token.type === "semicolon") {
-          memo.push([]);
-        } else {
-          memo[memo.length - 1].push(token);
-        }
-        return memo;
-      },
-      [[]]
-    );
-    this.rules = rules;
-  }
-
-  public parse(): IExpr[] {
-    return this.tokenGroups.reduce<IExpr[]>((memo, tokens) => {
-      if (tokens.length > 0) {
-        const lineParser = new Parser(tokens, this.rules);
-        memo.push(lineParser.parse());
-      }
-      return memo;
-    }, []);
-  }
-}
-
-function evaluate(
-  expr: IExpr,
-  state: Record<string, number | boolean>,
-  bindings: Record<string, number[]>
-): number | boolean {
+function evaluate(expr: IExpr, state: Record<string, number | boolean>, bindings: IScriptBindings): number | boolean {
   if (expr.type === "expression") {
     const { left, right, operator } = expr;
     const evalLeft = evaluate(left, state, bindings);
@@ -274,6 +288,14 @@ function evaluate(
     return evaluate(expr.condition, state, bindings)
       ? evaluate(expr.then, state, bindings)
       : evaluate(expr.or, state, bindings);
+  } else if (expr.type === "if") {
+    if (evaluate(expr.condition, state, bindings)) {
+      return evaluate(expr.then, state, bindings);
+    } else if (expr.or != null) {
+      return evaluate(expr.or, state, bindings);
+    } else {
+      return false;
+    }
   } else if (expr.type === "assign") {
     const variable = expr.variable;
     let match: RegExpExecArray | null;
@@ -285,48 +307,67 @@ function evaluate(
     } else {
       throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
     }
+  } else if (expr.type === "block") {
+    let result: number | boolean = false;
+    for (const e of expr.exprs) {
+      result = evaluate(e, state, bindings);
+    }
+    return result;
   } else {
     const value = expr.value;
     let match: RegExpExecArray | null;
     if ((match = /^state\.([a-zA-Z0-9]+)/.exec(value))) {
       const stateKey = match[1];
       return state[stateKey];
-    } else if ((match = /^(w|r|cr)\[(\d+)\]/.exec(value))) {
-      const key = match[1];
-      const index = parseInt(match[2], 10) - 1;
-      return bindings[key][index];
+    } else if ((match = /^(w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
+      const key = match[1] as "w" | "r" | "cr";
+      const excerciseIndex = parseInt(match[2], 10) - 1;
+      const setIndex = parseInt(match[3], 10) - 1;
+      return bindings[key][excerciseIndex][setIndex];
     } else {
       throw new SyntaxError(`Unexpected variable '${value}'`);
     }
   }
 }
 
-function evaluateAll(
-  exprs: IExpr[],
-  state: Record<string, number | boolean>,
-  bindings: Record<string, number[]>
-): number | boolean | undefined {
-  let result: boolean | number | undefined;
-  for (const expr of exprs) {
-    result = evaluate(expr, state, bindings);
+export class ScriptRunner {
+  private readonly script: string;
+  private readonly state: Record<string, number | boolean>;
+  private readonly bindings: IScriptBindings;
+
+  constructor(script: string, state: Record<string, number | boolean>, bindings: IScriptBindings) {
+    this.script = script;
+    this.state = state;
+    this.bindings = bindings;
   }
-  return result;
+
+  public execute(): number {
+    const tokens = tokenize(this.script);
+    console.log(tokens);
+    const ast = new Parser(tokens, allRules).parse();
+    console.log(ast);
+    const result = evaluate(ast, this.state, this.bindings);
+    if (typeof result === "number") {
+      return result;
+    } else {
+      throw new SyntaxError("Expected to get number as a result, but got a boolean instead");
+    }
+  }
 }
 
-/*
--24 + (32 * state.foo) + w[2] > 5000 ? 400 : 500
-*/
-
-const program = `
-state.bar = -24 + 32 > 50 ? 600 : 700 * state.foo + w[2] > 5000 ? 400 : 500;
-state.yea = 123;
-`;
-const tokens = tokenize(program);
-console.log(program);
-console.log(tokens);
-const ast = new ParserAll(tokens, allRules).parse();
-console.dir(ast, { depth: null });
-const state = { foo: 5 };
-const result = evaluateAll(ast, state, { w: [1, 2, 3] });
-console.log(result);
-console.log(state);
+// const program = `
+// if (1 == 1) {
+//   state.bar = -24 + 32 > 50 ? 600 : 700 * state.foo + w[2] > 5000 ? 400 : 500
+//   state.yea = 123
+// }
+// `;
+// console.log(program);
+// const tokens = tokenize(program);
+// console.log(program);
+// console.log(tokens);
+// const ast = new Parser(tokens, allRules).parse();
+// console.dir(ast, { depth: null });
+// const state = { foo: 5 };
+// const result = evaluate(ast, state, { w: [1, 2, 3] });
+// console.log(result);
+// console.log(state);

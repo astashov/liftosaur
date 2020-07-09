@@ -5,10 +5,13 @@ interface IMenuItemProps {
   name: string;
   value?: string | JSX.Element;
   shouldShowRightArrow?: boolean;
-  onClick?: () => void;
+  onClick?: (e: MouseEvent) => void;
 }
 
-export function MenuItemWrapper(props: { children: ComponentChildren; onClick?: () => void }): JSX.Element {
+export function MenuItemWrapper(props: {
+  children: ComponentChildren;
+  onClick?: (e: MouseEvent) => void;
+}): JSX.Element {
   return (
     <section className="w-full px-6 py-1 text-left border-b border-gray-200" onClick={props.onClick}>
       {props.children}

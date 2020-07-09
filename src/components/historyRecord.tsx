@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet } from "../models/set";
 import { IHistoryRecord } from "../models/history";
-import { Program } from "../models/program";
+import { Program, IProgram2, IProgramId } from "../models/program";
 import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
@@ -14,13 +14,23 @@ interface IProps {
   historyRecord: IHistoryRecord;
   programStates: IProgramStates;
   dispatch: IDispatch;
+  programs: IProgram2[];
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
   const { historyRecord, dispatch } = props;
-  const program = Program.get(historyRecord.programId);
-  const programState = props.programStates[historyRecord.programId];
-  const programDay = program.days[historyRecord.day](programState);
+  const program2 = props.programs.find((p) => p.id === historyRecord.programId);
+  let programName: string;
+  let programDayName: string;
+  if (program2 != null) {
+    programName = program2.name;
+    programDayName = program2.days[historyRecord.day].name;
+  } else {
+    const program = Program.get(historyRecord.programId as IProgramId);
+    const programState = props.programStates[historyRecord.programId as IProgramId];
+    programName = program.name;
+    programDayName = program.days[historyRecord.day](programState).name;
+  }
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
@@ -43,7 +53,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
             : DateUtils.format(historyRecord.date)}
         </div>
         <div className="text-gray-600">
-          {program.name}, {programDay.name || `day ${historyRecord.day + 1}`}
+          {programName}, {programDayName || `day ${historyRecord.day + 1}`}
         </div>
       </div>
       {entries.map((group) => (

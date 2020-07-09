@@ -5,6 +5,7 @@ export type IScreen =
   | "timers"
   | "plates"
   | "programSettings"
+  | "programs"
   | "progress"
   | "graphs"
   | "editProgram"

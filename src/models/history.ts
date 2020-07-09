@@ -1,7 +1,6 @@
 import { TExcerciseType } from "./excercise";
 import { TSet } from "./set";
 import { Progress, TProgressUi, TProgressMode } from "./progress";
-import { TProgramId } from "./program";
 import * as t from "io-ts";
 
 export const THistoryEntry = t.type(
@@ -19,7 +18,7 @@ export const THistoryRecord = t.intersection(
     t.interface({
       // ISO8601, like 2020-02-29T18:02:05+00:00
       date: t.string,
-      programId: TProgramId,
+      programId: t.string,
       day: t.number,
       entries: t.array(THistoryEntry),
       startTime: t.number,

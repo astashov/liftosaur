@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram } from "../models/program";
+import { IProgram, IProgram2 } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
@@ -10,7 +10,8 @@ import { HistoryRecordView } from "./historyRecord";
 import { IStats } from "../models/stats";
 
 interface IProps {
-  program: IProgram;
+  program: IProgram | IProgram2;
+  programs: IProgram2[];
   progress?: IHistoryRecord;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   programStates: Record<string, any>;
@@ -41,7 +42,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           </Button>
         </div>
         {history.map((historyRecord) => (
-          <HistoryRecordView historyRecord={historyRecord} programStates={props.programStates} dispatch={dispatch} />
+          <HistoryRecordView
+            programs={props.programs}
+            historyRecord={historyRecord}
+            programStates={props.programStates}
+            dispatch={dispatch}
+          />
         ))}
       </section>
       <FooterView dispatch={props.dispatch} />
