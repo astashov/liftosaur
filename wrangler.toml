@@ -7,9 +7,11 @@ zone_id = ""
 webpack_config = "webpack.server.config.js"
 
 kv-namespaces = [ 
-  { binding = "kv_liftosaur_google_access_tokens", id = "529f74d9be9244b28f4201db8dfac079" },
-  { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b" },
-  { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46" }
+  { binding = "kv_liftosaur_google_access_tokens", id = "529f74d9be9244b28f4201db8dfac079", preview_id = "529f74d9be9244b28f4201db8dfac079" },
+  { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b", preview_id = "d551834d828446af94e74467036dbd8b" },
+  { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46", preview_id = "385f0c1293b94aee954bc00c7eef1a46" },
+  { binding = "kv_liftosaur_published_programs", id = "161e7debaada40dcb4509a1fc6e9731f", preview_id = "161e7debaada40dcb4509a1fc6e9731f" },
+  { binding = "kv_liftosaur_programs", id = "0df7609ecee04f92b17d667ece6b6951", preview_id = "0df7609ecee04f92b17d667ece6b6951" }
 ]
 
 [env.production]

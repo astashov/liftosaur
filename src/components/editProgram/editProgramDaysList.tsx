@@ -1,11 +1,17 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IEditProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
-import { MenuItem } from "../menuItem";
+import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { Button } from "../button";
 import { FooterView } from "../footer";
+import { IconDuplicate } from "../iconDuplicate";
+import { lb } from "../../utils/lens";
+import { IState } from "../../ducks/reducer";
+import { HtmlUtils } from "../../utils/html";
+import { IconDelete } from "../iconDelete";
+import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
   editProgram: IEditProgram;
@@ -21,14 +27,78 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        {props.editProgram?.editDay?.day?.name && (
+          <div className="p-2 text-center">
+            <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDay" })}>
+              Continue editing {props.editProgram?.editDay?.day?.name}
+            </Button>
+          </div>
+        )}
         <GroupHeader name="Days" />
         {props.editProgram.program.days.map((day, index) => (
-          <MenuItem name={day.name} onClick={() => props.dispatch({ type: "EditDayAction", index })} />
+          <MenuItem
+            name={day.name}
+            onClick={(e) => {
+              if (!HtmlUtils.classInParents(e.target as Element, "button")) {
+                props.dispatch({ type: "EditDayAction", index });
+              }
+            }}
+            value={
+              <Fragment>
+                <button
+                  className="mr-2 align-middle button"
+                  onClick={() => {
+                    const newName = `${day.name} Copy`;
+                    props.dispatch({
+                      type: "UpdateState",
+                      lensRecording: [
+                        lb<IState>()
+                          .pi("editProgram")
+                          .p("program")
+                          .p("days")
+                          .recordModify((days) => {
+                            const newDays = [...days];
+                            newDays.push({ ...day, name: newName });
+                            return newDays;
+                          }),
+                      ],
+                    });
+                  }}
+                >
+                  <IconDuplicate />
+                </button>
+                <button
+                  className="align-middle button"
+                  onClick={() => {
+                    props.dispatch({
+                      type: "UpdateState",
+                      lensRecording: [
+                        lb<IState>()
+                          .pi("editProgram")
+                          .p("program")
+                          .p("days")
+                          .recordModify((days) => days.filter((d) => d !== day)),
+                      ],
+                    });
+                  }}
+                >
+                  <IconDelete />
+                </button>
+              </Fragment>
+            }
+          />
         ))}
+        <MenuItemWrapper
+          onClick={() => {
+            props.dispatch({ type: "CreateDayAction" });
+          }}
+        >
+          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">+</div>
+        </MenuItemWrapper>
         <div className="flex p-2">
           <div className="flex-1 mr-auto">
-            <Button kind="blue" onClick={() => props.dispatch({ type: "CreateDayAction" })}>
-              Create new day
+            <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
+              Publish
             </Button>
           </div>
           <div>

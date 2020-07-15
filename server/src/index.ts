@@ -4,10 +4,13 @@ import { UidFactory } from "./utils/generator";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
+import { CollectionUtils } from "./utils/collection";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
 declare let kv_liftosaur_users: CloudflareWorkerKV;
+declare let kv_liftosaur_published_programs: CloudflareWorkerKV;
+declare let kv_liftosaur_programs: CloudflareWorkerKV;
 
 interface IOpenIdResponse {
   sub: string;
@@ -29,7 +32,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
-const allowedHosts = ["localhost:8080", "www.liftosaur.com"];
+const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com"];
 
 function getHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("origin") || "http://example.com";
@@ -167,12 +170,38 @@ async function backupHandler(request: Request): Promise<Response> {
     let result = true;
     result = result && (await new Backup(kv_liftosaur_users, "kv_liftosaur_users").backup());
     result = result && (await new Backup(kv_liftosaur_google_ids, "kv_liftosaur_google_ids").backup());
+    result = result && (await new Backup(kv_liftosaur_published_programs, "kv_liftosaur_published_programs").backup());
     result =
       result && (await new Backup(kv_liftosaur_google_access_tokens, "kv_liftosaur_google_access_tokens").backup());
     return new Response(result ? "ok" : "error");
   } else {
     return new Response("wrong_key", { status: 400 });
   }
+}
+
+async function publishProgramHandler(request: Request): Promise<Response> {
+  const user = await getCurrentUser(request);
+  if (user != null) {
+    const program = (await request.json()).program;
+    const payload = { program, id: user.id, timestamp: Date.now() };
+    await kv_liftosaur_published_programs.put(program.id, JSON.stringify(payload));
+    return new Response(JSON.stringify({ data: "ok" }), { headers: getHeaders(request) });
+  } else {
+    return new Response(JSON.stringify({}), { status: 401, headers: getHeaders(request) });
+  }
+}
+
+async function getProgramsHandler(request: Request): Promise<Response> {
+  const keys = (await kv_liftosaur_published_programs.list()).keys;
+  console.log(keys);
+  const groups = CollectionUtils.inGroupsOf(100, keys);
+  let programs: unknown[] = [];
+  for (const group of groups) {
+    programs = programs.concat(
+      await Promise.all(group.map((key) => kv_liftosaur_published_programs.get(key.name, "json")))
+    );
+  }
+  return new Response(JSON.stringify({ programs }), { headers: getHeaders(request) });
 }
 
 async function handleRequest(request: Request): Promise<Response> {
@@ -183,6 +212,8 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
   r.post(".*/api/backup", (req: Request) => backupHandler(req));
+  r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
+  r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   const resp = await r.route(request);
   return resp;
 }

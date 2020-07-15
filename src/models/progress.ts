@@ -9,6 +9,7 @@ import { lf } from "../utils/lens";
 import { IState } from "../ducks/reducer";
 import { ObjectUtils } from "../utils/object";
 import * as t from "io-ts";
+import { ISettings } from "./settings";
 
 export const TProgressUi = t.partial(
   {
@@ -50,6 +51,10 @@ export interface IScriptBindings {
   cr: number[][];
 }
 
+export interface IScriptFunctions {
+  roundWeight: (num: number) => number;
+}
+
 export namespace Progress {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export function create(program: IProgram, day: number, stats: IStats, state?: any): IHistoryRecord {
@@ -74,7 +79,7 @@ export namespace Progress {
 
   export function createEmptyScriptBindings(day: number): IScriptBindings {
     return {
-      day,
+      day: day + 1,
       weights: [],
       reps: [],
       completedReps: [],
@@ -100,6 +105,12 @@ export namespace Progress {
     bindings.r = bindings.reps;
     bindings.cr = bindings.completedReps;
     return bindings;
+  }
+
+  export function createScriptFunctions(settings: ISettings): IScriptFunctions {
+    return {
+      roundWeight: (num) => Weight.round(num, settings),
+    };
   }
 
   export function isCurrent(progress: IHistoryRecord): boolean {

@@ -11,6 +11,8 @@ import { ModalCreateProgram } from "./modalCreateProgram";
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram2[];
+  customPrograms: IProgram2[];
+  editingProgramName?: string;
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
@@ -23,7 +25,9 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       <ProgramListView
         onSelectProgram={(programId) => useSelectedProgramId(programId)}
         onCreateProgram={() => useShouldCreateProgram(true)}
+        editingProgramName={props.editingProgramName}
         programs={props.programs}
+        customPrograms={props.customPrograms}
         dispatch={props.dispatch}
       />
       {selectedProgramId != null && (

@@ -8,6 +8,7 @@ import { Program } from "../models/program";
 import { Button } from "./button";
 import { HistoryRecordView } from "./historyRecord";
 import { IStats } from "../models/stats";
+import { ISettings } from "../models/settings";
 
 interface IProps {
   program: IProgram | IProgram2;
@@ -17,6 +18,7 @@ interface IProps {
   programStates: Record<string, any>;
   stats: IStats;
   history: IHistoryRecord[];
+  settings: ISettings;
   dispatch: IDispatch;
 }
 
@@ -28,7 +30,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const lastHistoryRecord = sortedHistory.find((i) => i.programId === props.program.id);
   const programState = props.programStates[props.program.id];
   const nextHistoryRecord =
-    props.progress || Program.nextProgramRecord(props.program, lastHistoryRecord?.day, programState);
+    props.progress || Program.nextProgramRecord(props.program, props.settings, lastHistoryRecord?.day, programState);
 
   const history = [nextHistoryRecord, ...sortedHistory];
 

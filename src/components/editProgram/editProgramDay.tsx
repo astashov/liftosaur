@@ -10,6 +10,9 @@ import { IExcerciseType } from "../../models/excercise";
 import { IProgramSet } from "../../models/set";
 import { ModalEditSet } from "./modalEditSet";
 import { Button } from "../button";
+import { MenuItemEditable } from "../menuItemEditable";
+import { lb } from "../../utils/lens";
+import { IState } from "../../ducks/reducer";
 
 interface IProps {
   editProgram: IEditProgram;
@@ -43,10 +46,24 @@ export function EditProgramDay(props: IProps): JSX.Element {
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <section className="flex-1 overflow-y-auto">
+          <MenuItemEditable
+            type="text"
+            name="Name:"
+            value={props.editDay.name}
+            onChange={(newValue) => {
+              if (newValue != null) {
+                props.dispatch({
+                  type: "UpdateState",
+                  lensRecording: [lb<IState>().pi("editProgram").pi("editDay").p("day").p("name").record(newValue)],
+                });
+              }
+            }}
+          />
           {props.editDay.excercises.map((entry, i) => {
             return (
               <EditProgramExcerciseView
                 entry={entry}
+                dispatch={props.dispatch}
                 onEditSet={(setIndex) => {
                   if (setIndex == null && entry.sets.length > 0) {
                     const set = entry.sets[entry.sets.length - 1];
@@ -74,7 +91,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
         >
           +
         </button>
-        <section className="flex mx-2">
+        <section className="flex pb-2 mx-2">
           <div className="flex-1 mr-auto">
             <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDayScript" })}>
               Edit Script

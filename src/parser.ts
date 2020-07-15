@@ -1,4 +1,4 @@
-import { IScriptBindings } from "./models/progress";
+import { IScriptBindings, IScriptFunctions } from "./models/progress";
 
 type IPos = { readonly line: number; readonly offset: number };
 
@@ -12,13 +12,22 @@ type ITokenIf = { readonly type: "if"; readonly value: "if" | "else"; readonly p
 type ITokenParen = { readonly type: "paren"; readonly value: "(" | ")" | "[" | "]" | "{" | "}"; readonly pos: IPos };
 type ITokenKeyword = { readonly type: "keyword"; readonly value: string; readonly pos: IPos };
 type ITokenEol = { readonly type: "eol"; readonly value: "\\n"; readonly pos: IPos };
+type ITokenComma = { readonly type: "comma"; readonly value: ","; readonly pos: IPos };
 type ITokenSemicolon = { readonly type: "semicolon"; readonly value: ";"; readonly pos: IPos };
 
-type IToken = ITokenNumber | ITokenOperator | ITokenParen | ITokenKeyword | ITokenIf | ITokenEol | ITokenSemicolon;
+type IToken =
+  | ITokenNumber
+  | ITokenOperator
+  | ITokenParen
+  | ITokenKeyword
+  | ITokenIf
+  | ITokenEol
+  | ITokenSemicolon
+  | ITokenComma;
 
 type ITokenCondition = { type: IToken["type"]; value?: string | RegExp };
 
-export function tokenize(text: string): IToken[] {
+function tokenize(text: string): IToken[] {
   const lines = text.split(/\r\n|\r|\n/);
   const tokens: IToken[] = [];
   lines.forEach((rawLine, lineNumber) => {
@@ -31,7 +40,9 @@ export function tokenize(text: string): IToken[] {
       if ((match = /^([(){}\[\]])/.exec(line))) {
         tokens.push({ type: "paren", value: match[0] as ITokenParen["value"], pos });
       } else if ((match = /^([\d\.]+)/.exec(line))) {
-        tokens.push({ type: "number", value: parseInt(match[0], 10), pos });
+        tokens.push({ type: "number", value: parseFloat(match[0]), pos });
+      } else if ((match = /^,/.exec(line))) {
+        tokens.push({ type: "comma", value: ",", pos });
       } else if ((match = /^([\+\-*<>=\?:/]+)/.exec(line))) {
         tokens.push({ type: "operator", value: match[0] as ITokenOperator["value"], pos });
       } else if ((match = /^(;)/.exec(line))) {
@@ -72,7 +83,7 @@ const allRules = {
   block: (parser: Parser): IExpr => {
     const exprs: IExpr[] = [];
     while (!parser.isEof() && !parser.maybeGet({ type: "paren", value: "}" })) {
-      const expr = parser.match(["if", "assign", "ternary"]);
+      const expr = parser.match(["if", "assign", "fn", "ternary"]);
       if (expr != null) {
         exprs.push(expr);
       }
@@ -85,18 +96,32 @@ const allRules = {
   },
   assign: (parser: Parser): IExpr => {
     const variable = parser.match("keyword") as IExprKeyword;
-    const operator = parser.maybeGet({ type: "operator", value: "=" });
-    if (operator != null) {
-      const value = parser.match("ternary");
-      return { type: "assign", variable: variable.value, value };
-    } else {
-      return variable;
+    parser.get({ type: "operator", value: "=" });
+    const value = parser.match("fn");
+    return { type: "assign", variable: variable.value, value };
+  },
+  fn: (parser: Parser): IExpr => {
+    const name = parser.match(["ternary", "keyword"]);
+    if (name.type === "keyword") {
+      const args: IExpr[] = [];
+      const openParen = parser.maybeGet({ type: "paren", value: "(" });
+      if (openParen != null) {
+        while (true) {
+          args.push(parser.match("fn"));
+          const comma = parser.maybeGet({ type: "comma" });
+          if (comma == null) {
+            parser.get({ type: "paren", value: ")" });
+            return { type: "fn", args, name: name.value };
+          }
+        }
+      }
     }
+    return name;
   },
   factor: (parser: Parser): IExpr => {
     const token = parser.maybeGet({ type: "paren", value: "(" });
     if (token != null) {
-      const expr = parser.match("ternary");
+      const expr = parser.match("fn");
       parser.get({ type: "paren", value: ")" });
       return expr;
     } else {
@@ -117,9 +142,9 @@ const allRules = {
     const condition = parser.match("cmp");
     const operator = parser.maybeGet({ type: "operator", value: "?" });
     if (operator != null) {
-      const then = parser.match("ternary");
+      const then = parser.match("fn");
       parser.get({ type: "operator", value: ":" });
-      const or = parser.match("ternary");
+      const or = parser.match("fn");
       return { type: "cond", condition, then, or };
     } else {
       return condition;
@@ -171,11 +196,12 @@ type IExprExpression = { type: "expression"; operator: ITokenOperator; left: IEx
 type IExprCond = { type: "cond"; condition: IExpr; then: IExpr; or: IExpr };
 type IExprIf = { type: "if"; condition: IExpr; then: IExpr; or?: IExpr };
 type IExprAssign = { type: "assign"; variable: string; value: IExpr };
+type IExprFn = { type: "fn"; name: string; args: IExpr[] };
 
-type IExpr = IExprNumber | IExprKeyword | IExprExpression | IExprCond | IExprIf | IExprAssign | IExprBlock;
+type IExpr = IExprNumber | IExprKeyword | IExprExpression | IExprCond | IExprIf | IExprAssign | IExprBlock | IExprFn;
 
 class Parser {
-  private readonly tokens: IToken[];
+  private tokens: IToken[];
   private readonly rules: IRules;
 
   constructor(tokens: IToken[], rules: IRules) {
@@ -219,11 +245,14 @@ class Parser {
     ruleKeys = Array.isArray(ruleKeys) ? ruleKeys : [ruleKeys];
     for (const key of ruleKeys) {
       let expr: IExpr | undefined;
+      const tokens = [...this.tokens];
       try {
         expr = this.rules[key](this);
       } catch (e) {
         if (!(e instanceof SyntaxError)) {
           throw e;
+        } else {
+          this.tokens = tokens;
         }
       }
       if (expr != null) {
@@ -256,76 +285,101 @@ class Parser {
   }
 }
 
-function evaluate(expr: IExpr, state: Record<string, number | boolean>, bindings: IScriptBindings): number | boolean {
-  if (expr.type === "expression") {
-    const { left, right, operator } = expr;
-    const evalLeft = evaluate(left, state, bindings);
-    const evalRight = evaluate(right, state, bindings);
-    if (operator.value === "+") {
-      return (evalLeft as number) + (evalRight as number);
-    } else if (operator.value === "-") {
-      return (evalLeft as number) - (evalRight as number);
-    } else if (operator.value === "*") {
-      return (evalLeft as number) * (evalRight as number);
-    } else if (operator.value === "/") {
-      return (evalLeft as number) * (evalRight as number);
-    } else if (operator.value === ">") {
-      return (evalLeft as number) > (evalRight as number);
-    } else if (operator.value === "<") {
-      return (evalLeft as number) < (evalRight as number);
-    } else if (operator.value === ">=") {
-      return (evalLeft as number) >= (evalRight as number);
-    } else if (operator.value === "<=") {
-      return (evalLeft as number) <= (evalRight as number);
-    } else if (operator.value === "==") {
-      return (evalLeft as number) === (evalRight as number);
+class Evaluator {
+  private readonly state: Record<string, number | boolean>;
+  private readonly bindings: IScriptBindings;
+  private readonly fns: IScriptFunctions;
+
+  constructor(state: Record<string, number | boolean>, bindings: IScriptBindings, fns: IScriptFunctions) {
+    this.state = state;
+    this.bindings = bindings;
+    this.fns = fns;
+  }
+
+  public evaluate(expr: IExpr): number | boolean {
+    if (expr.type === "expression") {
+      const { left, right, operator } = expr;
+      const evalLeft = this.evaluate(left);
+      const evalRight = this.evaluate(right);
+      if (operator.value === "+") {
+        return (evalLeft as number) + (evalRight as number);
+      } else if (operator.value === "-") {
+        return (evalLeft as number) - (evalRight as number);
+      } else if (operator.value === "*") {
+        return (evalLeft as number) * (evalRight as number);
+      } else if (operator.value === "/") {
+        return (evalLeft as number) * (evalRight as number);
+      } else if (operator.value === ">") {
+        return (evalLeft as number) > (evalRight as number);
+      } else if (operator.value === "<") {
+        return (evalLeft as number) < (evalRight as number);
+      } else if (operator.value === ">=") {
+        return (evalLeft as number) >= (evalRight as number);
+      } else if (operator.value === "<=") {
+        return (evalLeft as number) <= (evalRight as number);
+      } else if (operator.value === "==") {
+        return (evalLeft as number) === (evalRight as number);
+      } else {
+        return (evalLeft as number) + (evalRight as number);
+      }
+    } else if (expr.type === "number") {
+      return expr.sign === "-" ? -expr.value : expr.value;
+    } else if (expr.type === "cond") {
+      return this.evaluate(expr.condition) ? this.evaluate(expr.then) : this.evaluate(expr.or);
+    } else if (expr.type === "if") {
+      if (this.evaluate(expr.condition)) {
+        return this.evaluate(expr.then);
+      } else if (expr.or != null) {
+        return this.evaluate(expr.or);
+      } else {
+        return false;
+      }
+    } else if (expr.type === "assign") {
+      const variable = expr.variable;
+      let match: RegExpExecArray | null;
+      if ((match = /^state\.([a-zA-Z0-9]+)/.exec(variable))) {
+        const stateKey = match[1];
+        const value = this.evaluate(expr.value);
+        this.state[stateKey] = value;
+        return value;
+      } else {
+        throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
+      }
+    } else if (expr.type === "block") {
+      let result: number | boolean = false;
+      for (const e of expr.exprs) {
+        result = this.evaluate(e);
+      }
+      return result;
+    } else if (expr.type === "fn") {
+      const fns = this.fns;
+      const name = expr.name as keyof typeof fns;
+      if (this.fns[name] != null) {
+        return this.fns[name].apply(
+          undefined,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          expr.args.map((a) => this.evaluate(a)) as any
+        );
+      } else {
+        throw new SyntaxError(`Unknown function '${name}'`);
+      }
     } else {
-      return (evalLeft as number) + (evalRight as number);
-    }
-  } else if (expr.type === "number") {
-    return expr.sign === "-" ? -expr.value : expr.value;
-  } else if (expr.type === "cond") {
-    return evaluate(expr.condition, state, bindings)
-      ? evaluate(expr.then, state, bindings)
-      : evaluate(expr.or, state, bindings);
-  } else if (expr.type === "if") {
-    if (evaluate(expr.condition, state, bindings)) {
-      return evaluate(expr.then, state, bindings);
-    } else if (expr.or != null) {
-      return evaluate(expr.or, state, bindings);
-    } else {
-      return false;
-    }
-  } else if (expr.type === "assign") {
-    const variable = expr.variable;
-    let match: RegExpExecArray | null;
-    if ((match = /^state\.([a-zA-Z0-9]+)/.exec(variable))) {
-      const stateKey = match[1];
-      const value = evaluate(expr.value, state, bindings);
-      state[stateKey] = value;
-      return value;
-    } else {
-      throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
-    }
-  } else if (expr.type === "block") {
-    let result: number | boolean = false;
-    for (const e of expr.exprs) {
-      result = evaluate(e, state, bindings);
-    }
-    return result;
-  } else {
-    const value = expr.value;
-    let match: RegExpExecArray | null;
-    if ((match = /^state\.([a-zA-Z0-9]+)/.exec(value))) {
-      const stateKey = match[1];
-      return state[stateKey];
-    } else if ((match = /^(w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
-      const key = match[1] as "w" | "r" | "cr";
-      const excerciseIndex = parseInt(match[2], 10) - 1;
-      const setIndex = parseInt(match[3], 10) - 1;
-      return bindings[key][excerciseIndex][setIndex];
-    } else {
-      throw new SyntaxError(`Unexpected variable '${value}'`);
+      const value = expr.value;
+      let match: RegExpExecArray | null;
+      if ((match = /^state\.([a-zA-Z0-9]+)/.exec(value))) {
+        const stateKey = match[1];
+        return this.state[stateKey];
+      } else if ((match = /^(w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
+        const key = match[1] as "w" | "r" | "cr";
+        const excerciseIndex = parseInt(match[2], 10) - 1;
+        const setIndex = parseInt(match[3], 10) - 1;
+        return this.bindings[key][excerciseIndex][setIndex];
+      } else if (Object.keys(this.bindings).indexOf(expr.value) !== -1) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (this.bindings as any)[expr.value];
+      } else {
+        throw new SyntaxError(`Unexpected variable '${value}'`);
+      }
     }
   }
 }
@@ -334,19 +388,30 @@ export class ScriptRunner {
   private readonly script: string;
   private readonly state: Record<string, number | boolean>;
   private readonly bindings: IScriptBindings;
+  private readonly fns: IScriptFunctions;
 
-  constructor(script: string, state: Record<string, number | boolean>, bindings: IScriptBindings) {
+  constructor(
+    script: string,
+    state: Record<string, number | boolean>,
+    bindings: IScriptBindings,
+    fns: IScriptFunctions
+  ) {
     this.script = script;
     this.state = state;
     this.bindings = bindings;
+    this.fns = fns;
   }
 
   public execute(): number {
+    console.log(this.script);
+    console.dir(this.bindings);
     const tokens = tokenize(this.script);
-    console.log(tokens);
+    console.dir(tokens, { depth: null });
     const ast = new Parser(tokens, allRules).parse();
-    console.log(ast);
-    const result = evaluate(ast, this.state, this.bindings);
+    console.log("AST");
+    console.dir(ast, { depth: null });
+    const evaluator = new Evaluator(this.state, this.bindings, this.fns);
+    const result = evaluator.evaluate(ast);
     if (typeof result === "number") {
       return result;
     } else {
@@ -354,20 +419,3 @@ export class ScriptRunner {
     }
   }
 }
-
-// const program = `
-// if (1 == 1) {
-//   state.bar = -24 + 32 > 50 ? 600 : 700 * state.foo + w[2] > 5000 ? 400 : 500
-//   state.yea = 123
-// }
-// `;
-// console.log(program);
-// const tokens = tokenize(program);
-// console.log(program);
-// console.log(tokens);
-// const ast = new Parser(tokens, allRules).parse();
-// console.dir(ast, { depth: null });
-// const state = { foo: 5 };
-// const result = evaluate(ast, state, { w: [1, 2, 3] });
-// console.log(result);
-// console.log(state);

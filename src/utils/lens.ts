@@ -116,6 +116,11 @@ export class LensBuilder<T, R> extends AbstractLensBuilder<T, R> {
     return new LensBuilder<T, R[number]>(this.lens.then(Lens.index<R>()(index)), this.obj);
   }
 
+  public pi<K extends keyof R>(key: K): LensBuilder<T, Exclude<R[K], undefined>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new LensBuilder<T, Exclude<R[K], undefined>>(this.lens.then(Lens.prop<R>()(key) as any));
+  }
+
   public set(obj: T, value: R): T {
     return this.lens.set(obj, value);
   }

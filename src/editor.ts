@@ -35,12 +35,10 @@ export class CodeEditor {
         startState: () => ({}),
         token: (stream: StringStream, state: IState) => {
           const peek = stream.peek();
-          console.log(`current: '${state.current}', peek: ${peek}`);
           let token: string | null = null;
           if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+/)) {
             token = "number";
           } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
-            console.log("Seems like keyword, peeking", stream.peek());
             if (/\W/.test(stream.peek() || "")) {
               token = "keyword";
             }
@@ -59,7 +57,6 @@ export class CodeEditor {
             stream.next();
             token = null;
           }
-          console.log("token", token);
           state.current = peek;
           return token;
         },
@@ -76,7 +73,6 @@ export class CodeEditor {
             const currentToken = cm.getTokenTypeAt(cursor);
             const previousToken = cm.getTokenTypeAt({ ch: cursor.ch - 1, line: cursor.line });
             const list = currentToken === "dot" && previousToken === "state" ? Object.keys(this.state || {}) : [];
-            console.log(list);
             return {
               from: cursor,
               to: cursor,

@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Program, IProgramId, IProgram2 } from "../models/program";
+import { Program, IProgram2, IProgramId } from "../models/program";
 import { Button } from "./button";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
@@ -14,11 +14,14 @@ import { HtmlUtils } from "../utils/html";
 interface IProps {
   onSelectProgram: (id: IProgramId) => void;
   onCreateProgram: () => void;
-  programs?: IProgram2[];
+  editingProgramName?: string;
+  programs: IProgram2[];
+  customPrograms?: IProgram2[];
   dispatch: IDispatch;
 }
 
 export function ProgramListView(props: IProps): JSX.Element {
+  const customPrograms = props.customPrograms || [];
   const programs = props.programs || [];
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
@@ -30,8 +33,29 @@ export function ProgramListView(props: IProps): JSX.Element {
       ))}
       {programs.length > 0 && (
         <Fragment>
-          <GroupHeader name="Custom Programs" />
+          <GroupHeader name="Programs to clone from" />
           {programs.map((program) => (
+            <button
+              className="w-full p-4 border-b border-gray-200"
+              onClick={() => {
+                if (
+                  confirm(
+                    `Do you want to clone the program ${program.name}? After cloning you'll be able to select it and follow it.`
+                  )
+                ) {
+                  Program.cloneProgram2(props.dispatch, program);
+                }
+              }}
+            >
+              {program.name}
+            </button>
+          ))}
+        </Fragment>
+      )}
+      {customPrograms.length > 0 && (
+        <Fragment>
+          <GroupHeader name="Your Programs" />
+          {customPrograms.map((program) => (
             <MenuItem
               name={program.name}
               onClick={(e) => {
@@ -90,6 +114,13 @@ export function ProgramListView(props: IProps): JSX.Element {
         </Fragment>
       )}
 
+      {props.editingProgramName && (
+        <div className="p-2 text-center">
+          <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgram" })}>
+            Continue editing {props.editingProgramName}
+          </Button>
+        </div>
+      )}
       <div className="p-2 text-center">
         <Button kind="green" onClick={() => props.onCreateProgram()}>
           Create new program

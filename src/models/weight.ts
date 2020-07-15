@@ -1,4 +1,6 @@
 import * as t from "io-ts";
+import { ISettings } from "./settings";
+import { CollectionUtils } from "../utils/collection";
 
 export type IWeight = number;
 
@@ -27,8 +29,10 @@ export namespace Weight {
     return weight === 0 ? "BW" : `${weight}`;
   }
 
-  export function round(weight: IWeight): IWeight {
-    return Math.round(weight / 5) * 5;
+  export function round(weight: IWeight, settings?: ISettings): IWeight {
+    const roundTo: number =
+      settings != null ? CollectionUtils.sort(settings.plates, (a, b) => a.weight - b.weight)[0].weight * 2 : 5;
+    return Math.round(weight / roundTo) * roundTo;
   }
 
   export function getOneRepMax(weight: number, reps: number): number {

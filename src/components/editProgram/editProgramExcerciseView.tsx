@@ -2,9 +2,12 @@ import { h, JSX } from "preact";
 import { IProgramDayEntry2 } from "../../models/program";
 import { Excercise } from "../../models/excercise";
 import { IconDelete } from "../iconDelete";
+import { IDispatch } from "../../ducks/types";
+import { EditProgram } from "../../models/editProgram";
 
 interface IProps {
   entry: IProgramDayEntry2;
+  dispatch: IDispatch;
   onEditSet: (setIndex?: number) => void;
   onDeleteSet: (setIndex: number) => void;
 }
@@ -12,7 +15,14 @@ interface IProps {
 export function EditProgramExcerciseView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
   return (
-    <section className="px-4 pt-4 pb-2 mb-2 bg-gray-100 border border-gray-300 rounded-lg">
+    <section className="relative px-4 pt-4 pb-2 mb-2 bg-gray-100 border border-gray-300 rounded-lg">
+      <button
+        className="absolute p-2"
+        style={{ top: "0px", right: "0px" }}
+        onClick={() => EditProgram.removeEntry(props.dispatch, props.entry)}
+      >
+        <IconDelete />
+      </button>
       <header className="flex">
         <div className="flex-1 mr-auto">{excercise.name}</div>
       </header>
@@ -22,7 +32,15 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
           const isWeightValue = /^\d+$/.test(set.weightExpr.trim());
           return (
             <span className="relative">
-              <button className="absolute" style={{ top: "2px", right: "3px" }} onClick={() => props.onDeleteSet(i)}>
+              {set.isAmrap && (
+                <div
+                  style={{ top: "0", right: "7px", width: "20px", height: "20px" }}
+                  className="absolute p-1 text-xs leading-none text-center text-white bg-gray-600 border-gray-800 rounded-full"
+                >
+                  +
+                </div>
+              )}
+              <button className="absolute" style={{ top: "0", left: "-5px" }} onClick={() => props.onDeleteSet(i)}>
                 <IconDelete />
               </button>
               <button

@@ -14,5 +14,13 @@
 * Extract lens lib into a separate npm package
 * Add exporting all data to downloadable CSV
 * Add deleting account
-* Add achieves
+* Add achievements
+* Fix completed criteria for AMRAP (they're now > 1, should be > reps)
     
+* Add ability to drag-n-drop days and excercises.
+* Add ability to publish user programs
+* Add autofocus on modal inputs
+* Fix autocompletion of state. vars
+* Add autocompletion of functions
+* Add syntax check for scripts on blur
+* Add playground to test scripts/days

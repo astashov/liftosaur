@@ -45,6 +45,7 @@ export function AppView(props: IProps): JSX.Element | null {
     };
     dispatch(Thunk.googleOauthInitialize());
     dispatch(Thunk.fetchStorage());
+    dispatch(Thunk.fetchPrograms());
     if (state.storage.currentProgramId == null) {
       setShouldShowOnboarding(true);
     }
@@ -53,21 +54,27 @@ export function AppView(props: IProps): JSX.Element | null {
   if (Screen.current(state.screenStack) === "programs") {
     return (
       <Fragment>
-        <ChooseProgramView dispatch={dispatch} programs={state.storage.programs || []} />
+        <ChooseProgramView
+          dispatch={dispatch}
+          programs={state.programs || []}
+          customPrograms={state.storage.programs || []}
+          editingProgramName={state.editProgram?.program?.name}
+        />
         {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
       </Fragment>
     );
   } else if (Screen.current(state.screenStack) === "main") {
     const program =
-      state.storage.currentProgramId != null
-        ? Program.get(state.storage.currentProgramId)
-        : state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id);
+      state.storage.currentProgram2Id != null
+        ? state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)
+        : Program.get(state.storage.currentProgramId!);
     if (program != null) {
       return (
         <ProgramHistoryView
           program={program}
           programs={state.storage.programs}
           progress={state.progress?.[0]}
+          settings={state.storage.settings}
           programStates={state.storage.programStates}
           history={state.storage.history}
           stats={state.storage.stats}

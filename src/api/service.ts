@@ -1,4 +1,5 @@
 import { IStorage } from "../ducks/reducer";
+import { IProgram2 } from "../models/program";
 
 export interface IGetStorageResponse {
   email: string;
@@ -48,6 +49,22 @@ export class Service {
   }
 
   public sendTimerPushNotification(sid: number): void {
-    this.client(`https://server.liftosaur.workers.dev/timernotification?sid=${sid}`, { method: "POST" });
+    this.client(`${__API_HOST__}/timernotification?sid=${sid}`, { method: "POST" });
+  }
+
+  public async publishProgram(program: IProgram2): Promise<void> {
+    // TODO: Cover with API key
+    await this.client(`${__API_HOST__}/api/publishprogram`, {
+      method: "POST",
+      body: JSON.stringify({ program }),
+      credentials: "include",
+    });
+  }
+
+  public programs(): Promise<IProgram2[]> {
+    // TODO: Cover with API key
+    return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
+      .then((response) => response.json())
+      .then((json) => json.programs.map((p: { program: IProgram2 }) => p.program));
   }
 }

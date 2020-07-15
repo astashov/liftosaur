@@ -2,6 +2,8 @@ import { IThunk, IDispatch } from "./types";
 import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
+import { lb } from "../utils/lens";
+import { IState } from "./reducer";
 
 declare let __API_HOST__: string;
 declare let Rollbar: RB;
@@ -85,6 +87,23 @@ export namespace Thunk {
     return (dispatch) => {
       dispatch({ type: "PullScreen" });
       window.scroll(0, 0);
+    };
+  }
+
+  export function publishProgram(): IThunk {
+    return (dispatch, getState, env) => {
+      const programId = getState().editProgram!.program.id;
+      dispatch({ type: "SaveProgram" });
+      const state = getState();
+      const program = state.storage.programs.find((p) => p.id === programId)!;
+      env.service.publishProgram(program);
+    };
+  }
+
+  export function fetchPrograms(): IThunk {
+    return async (dispatch, getState, env) => {
+      const programs = await env.service.programs();
+      dispatch({ type: "UpdateState", lensRecording: [lb<IState>().p("programs").record(programs)] });
     };
   }
 }

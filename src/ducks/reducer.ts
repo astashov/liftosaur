@@ -7,6 +7,7 @@ import {
   IEditProgram,
   TEditProgram,
   TProgram2,
+  IProgram2,
 } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
@@ -33,6 +34,7 @@ import { TDbPplState } from "../models/programs/dbPpl";
 import RB from "rollbar";
 import { IProgramSet } from "../models/set";
 import { ScriptRunner } from "../parser";
+import { IDispatch } from "./types";
 
 declare let Rollbar: RB;
 
@@ -45,6 +47,7 @@ export type IEnv = {
 export interface IState {
   email?: string;
   storage: IStorage;
+  programs: IProgram2[];
   webpushr?: IWebpushr;
   screenStack: IScreen[];
   currentHistoryRecord?: number;
@@ -88,6 +91,10 @@ export interface ILocalStorage {
   editProgram?: IEditProgram;
 }
 
+export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[]): void {
+  dispatch({ type: "UpdateState", lensRecording });
+}
+
 export function getInitialState(rawStorage?: string): IState {
   if (rawStorage == null) {
     rawStorage = window.localStorage.getItem("liftosaur") || undefined;
@@ -108,17 +115,25 @@ export function getInitialState(rawStorage?: string): IState {
     const isEditProgramValid =
       storage.editProgram != null ? validateStorage(storage.editProgram, TEditProgram, "editProgram") : false;
 
+    const screenStack: IScreen[] =
+      finalStorage.currentProgramId || finalStorage.currentProgram2Id ? ["main"] : ["programs"];
+    if (isEditProgramValid && storage.editProgram != null) {
+      screenStack.push("editProgram");
+    }
+
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
+      programs: [],
       editProgram: isEditProgramValid ? storage.editProgram : undefined,
       currentHistoryRecord: 0,
-      screenStack: finalStorage.currentProgramId || finalStorage.currentProgram2Id ? ["main"] : ["programs"],
+      screenStack,
     };
   }
   return {
     screenStack: ["programs"],
     progress: {},
+    programs: [],
     storage: {
       id: 0,
       stats: {
@@ -404,24 +419,23 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         currentHistoryRecord: progress.id,
         screenStack: Screen.push(state.screenStack, "progress"),
       };
-    } else if (state.storage.currentProgramId != null) {
-      const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
-      const program = Program.get(state.storage.currentProgramId);
-      const day = Program.nextDay(program, lastHistoryRecord?.day);
-      const programState = state.storage.programStates[state.storage.currentProgramId];
-      const newProgress = Program.nextProgramRecord(program, day, programState);
+    } else if (state.storage.currentProgram2Id != null) {
+      const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgram2Id);
+      // TODO: What if the program is missing?
+      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)!;
+      const newProgress = Program.nextProgramRecord(program, state.storage.settings, lastHistoryRecord?.day, {});
       return {
         ...state,
         currentHistoryRecord: 0,
         screenStack: Screen.push(state.screenStack, "progress"),
         progress: { ...state.progress, 0: newProgress },
       };
-    } else if (state.storage.currentProgram2Id != null) {
+    } else if (state.storage.currentProgramId != null) {
       const lastHistoryRecord = state.storage.history.find((i) => i.programId === state.storage.currentProgramId);
-      // TODO: What if the program is missing?
-      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)!;
+      const program = Program.get(state.storage.currentProgramId);
       const day = Program.nextDay(program, lastHistoryRecord?.day);
-      const newProgress = Program.nextProgramRecord(program, day, {});
+      const programState = state.storage.programStates[state.storage.currentProgramId];
+      const newProgress = Program.nextProgramRecord(program, state.storage.settings, day, programState);
       return {
         ...state,
         currentHistoryRecord: 0,
@@ -455,9 +469,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         Program.get(progress.programId as IProgramId);
       if (Program.isProgram2(program)) {
         const bindings = Progress.createScriptBindings(progress);
+        const fns = Progress.createScriptFunctions(state.storage.settings);
         const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
         const programState = { ...program.initialState };
-        new ScriptRunner(program.finishDayExpr, programState, bindings).execute();
+        new ScriptRunner(program.finishDayExpr, programState, bindings, fns).execute();
         return {
           ...state,
           storage: {

@@ -10,6 +10,11 @@ import * as t from "io-ts";
 import { ISet, TProgramSet } from "./set";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
+import { ISettings } from "./settings";
+import { Screen } from "./screen";
+import { updateState, IState } from "../ducks/reducer";
+import { lb, ILensRecordingPayload } from "../utils/lens";
+import { IDispatch } from "../ducks/types";
 
 export interface IProgram {
   id: IProgramId;
@@ -130,6 +135,7 @@ export namespace Program {
 
   export function nextProgramRecord(
     program: IProgram | IProgram2,
+    settings: ISettings,
     previousDay?: number,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     programState?: any
@@ -149,12 +155,14 @@ export namespace Program {
             reps: new ScriptRunner(
               set.repsExpr,
               program.initialState,
-              Progress.createEmptyScriptBindings(day)
+              Progress.createEmptyScriptBindings(day),
+              Progress.createScriptFunctions(settings)
             ).execute(),
             weight: new ScriptRunner(
               set.weightExpr,
               program.initialState,
-              Progress.createEmptyScriptBindings(day)
+              Progress.createEmptyScriptBindings(day),
+              Progress.createScriptFunctions(settings)
             ).execute(),
           }));
           return {
@@ -181,7 +189,44 @@ export namespace Program {
     }
   }
 
+  export function cloneProgram2(dispatch: IDispatch, program: IProgram2): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          if (programs.some((p) => p.id === program.id)) {
+            if (
+              confirm(
+                "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
+              )
+            ) {
+              return programs.map((p) => (p.id === program.id ? program : p));
+            } else {
+              return programs;
+            }
+          } else {
+            return [...programs, program];
+          }
+        }),
+      ...selectProgram2LensRecordings(program.id),
+    ]);
+  }
+
+  export function selectProgram2(dispatch: IDispatch, programId: string): void {
+    updateState(dispatch, selectProgram2LensRecordings(programId));
+  }
+
   export function nextDay(program: IProgram | IProgram2, day?: number): number {
     return day != null ? (day + 1) % program.days.length : 0;
+  }
+
+  function selectProgram2LensRecordings(programId: string): ILensRecordingPayload<IState>[] {
+    return [
+      lb<IState>().p("storage").p("currentProgram2Id").record(programId),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((s) => Screen.push(s, "main")),
+    ];
   }
 }
