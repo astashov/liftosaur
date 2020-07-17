@@ -5,7 +5,7 @@ type IPos = { readonly line: number; readonly offset: number };
 type ITokenNumber = { readonly type: "number"; readonly value: number; readonly pos: IPos };
 type ITokenOperator = {
   readonly type: "operator";
-  readonly value: "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":";
+  readonly value: "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":" | "&&" | "||";
   readonly pos: IPos;
 };
 type ITokenIf = { readonly type: "if"; readonly value: "if" | "else"; readonly pos: IPos };
@@ -43,7 +43,7 @@ function tokenize(text: string): IToken[] {
         tokens.push({ type: "number", value: parseFloat(match[0]), pos });
       } else if ((match = /^,/.exec(line))) {
         tokens.push({ type: "comma", value: ",", pos });
-      } else if ((match = /^([\+\-*<>=\?:/]+)/.exec(line))) {
+      } else if ((match = /^([\+\-*<>=&|\?:/]+)/.exec(line))) {
         tokens.push({ type: "operator", value: match[0] as ITokenOperator["value"], pos });
       } else if ((match = /^(;)/.exec(line))) {
         tokens.push({ type: "semicolon", value: ";", pos });
@@ -69,7 +69,7 @@ function tokenize(text: string): IToken[] {
 const allRules = {
   if: (parser: Parser): IExpr => {
     parser.get({ type: "if", value: "if" });
-    const condition = parser.match("cmp");
+    const condition = parser.match("andOr");
     parser.get({ type: "paren", value: "{" });
     const then = parser.match("block");
     let or;
@@ -128,6 +128,16 @@ const allRules = {
       return parser.match(["number", "keyword"]);
     }
   },
+  andOr: (parser: Parser): IExpr => {
+    const left = parser.match("cmp");
+    const operator = parser.maybeGet({ type: "operator", value: /(&&|\|\})/ });
+    if (operator != null) {
+      const right = parser.match("andOr");
+      return { type: "expression", left, operator: operator as ITokenOperator, right };
+    } else {
+      return left;
+    }
+  },
   cmp: (parser: Parser): IExpr => {
     const left = parser.match("expression");
     const operator = parser.maybeGet({ type: "operator", value: /[<>=]+/ });
@@ -139,7 +149,7 @@ const allRules = {
     }
   },
   ternary: (parser: Parser): IExpr => {
-    const condition = parser.match("cmp");
+    const condition = parser.match("andOr");
     const operator = parser.maybeGet({ type: "operator", value: "?" });
     if (operator != null) {
       const then = parser.match("fn");
@@ -318,9 +328,13 @@ class Evaluator {
       } else if (operator.value === "<=") {
         return (evalLeft as number) <= (evalRight as number);
       } else if (operator.value === "==") {
-        return (evalLeft as number) === (evalRight as number);
+        return evalLeft === evalRight;
+      } else if (operator.value === "&&") {
+        return evalLeft && evalRight;
+      } else if (operator.value === "||") {
+        return evalLeft || evalRight;
       } else {
-        return (evalLeft as number) + (evalRight as number);
+        throw new SyntaxError(`Unknown operator ${operator.value}`);
       }
     } else if (expr.type === "number") {
       return expr.sign === "-" ? -expr.value : expr.value;
