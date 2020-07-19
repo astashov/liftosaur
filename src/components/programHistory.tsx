@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram, IProgram2 } from "../models/program";
+import { IProgram2 } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
@@ -11,11 +11,9 @@ import { IStats } from "../models/stats";
 import { ISettings } from "../models/settings";
 
 interface IProps {
-  program: IProgram | IProgram2;
+  program: IProgram2;
   programs: IProgram2[];
   progress?: IHistoryRecord;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  programStates: Record<string, any>;
   stats: IStats;
   history: IHistoryRecord[];
   settings: ISettings;
@@ -27,10 +25,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const sortedHistory = props.history.sort((a, b) => {
     return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
-  const lastHistoryRecord = sortedHistory.find((i) => i.programId === props.program.id);
-  const programState = props.programStates[props.program.id];
-  const nextHistoryRecord =
-    props.progress || Program.nextProgramRecord(props.program, props.settings, lastHistoryRecord?.day, programState);
+  const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
 
   const history = [nextHistoryRecord, ...sortedHistory];
 
@@ -44,12 +39,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           </Button>
         </div>
         {history.map((historyRecord) => (
-          <HistoryRecordView
-            programs={props.programs}
-            historyRecord={historyRecord}
-            programStates={props.programStates}
-            dispatch={dispatch}
-          />
+          <HistoryRecordView programs={props.programs} historyRecord={historyRecord} dispatch={dispatch} />
         ))}
       </section>
       <FooterView dispatch={props.dispatch} />

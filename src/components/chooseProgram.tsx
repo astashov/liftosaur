@@ -4,8 +4,7 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { ProgramListView } from "./programList";
 import { useState } from "preact/hooks";
-import { IProgramId, IProgram2 } from "../models/program";
-import { ModalProgramInfo } from "./modalProgramInfo";
+import { IProgram2 } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 
 interface IProps {
@@ -15,26 +14,17 @@ interface IProps {
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
-  const [selectedProgramId, useSelectedProgramId] = useState<IProgramId | undefined>(undefined);
   const [shouldCreateProgram, useShouldCreateProgram] = useState<boolean>(false);
 
   return (
     <section className="h-full">
       <HeaderView title="Choose a program" />
       <ProgramListView
-        onSelectProgram={(programId) => useSelectedProgramId(programId)}
         onCreateProgram={() => useShouldCreateProgram(true)}
         programs={props.programs}
         customPrograms={props.customPrograms}
         dispatch={props.dispatch}
       />
-      {selectedProgramId != null && (
-        <ModalProgramInfo
-          programId={selectedProgramId}
-          onClose={() => useSelectedProgramId(undefined)}
-          onSelect={() => props.dispatch({ type: "ChangeProgramAction", name: selectedProgramId })}
-        />
-      )}
       {shouldCreateProgram && (
         <ModalCreateProgram
           onClose={() => useShouldCreateProgram(false)}

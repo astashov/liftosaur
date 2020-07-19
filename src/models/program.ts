@@ -1,11 +1,5 @@
-import { IStats } from "./stats";
-import * as The5314bProgram from "./programs/the5314bProgram";
-import * as BasicBeginnerProgram from "./programs/basicBeginner";
-import * as DbPplProgram from "./programs/dbPpl";
-import { ObjectUtils } from "../utils/object";
 import { IHistoryRecord } from "./history";
-import { JSX } from "preact";
-import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
+import { Excercise, TExcerciseType } from "./excercise";
 import * as t from "io-ts";
 import { ISet, TProgramSet } from "./set";
 import { ScriptRunner } from "../parser";
@@ -15,18 +9,6 @@ import { Screen } from "./screen";
 import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
-
-export interface IProgram {
-  id: IProgramId;
-  name: string;
-  url: string;
-  author: string;
-  description: JSX.Element;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  days: ((state: any) => IProgramDay)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  finishDay: (progress: IHistoryRecord, stats: IStats, state: any) => { state: any; stats: IStats };
-}
 
 export const TProgramDayEntry2 = t.type(
   {
@@ -69,64 +51,7 @@ export const TProgram2 = t.type(
 );
 export type IProgram2 = t.TypeOf<typeof TProgram2>;
 
-export const TEditProgram = t.intersection(
-  [
-    t.interface({
-      program: TProgram2,
-    }),
-    t.partial({
-      editDay: t.intersection([
-        t.interface({
-          day: TProgramDay2,
-        }),
-        t.partial({
-          index: t.number,
-        }),
-      ]),
-    }),
-  ],
-  "TEditProgram"
-);
-export type IEditProgram = t.TypeOf<typeof TEditProgram>;
-
-export interface IProgramDay {
-  name: string;
-  excercises: IProgramDayEntry[];
-}
-
-export interface IProgramDayEntry {
-  excercise: IExcerciseType;
-  sets: ISet[];
-}
-
-export const TProgramId = t.keyof(
-  {
-    basicBeginner: null,
-    the5314b: null,
-    dbPpl: null,
-  },
-  "TProgramId"
-);
-export type IProgramId = t.TypeOf<typeof TProgramId>;
-
-export const programsList: Record<IProgramId, IProgram> = {
-  basicBeginner: BasicBeginnerProgram.basicBeginnerProgram,
-  the5314b: The5314bProgram.the5314bProgram,
-  dbPpl: DbPplProgram.dbPplProgram,
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const defaultProgramStates: Record<IProgramId, any> = {
-  basicBeginner: BasicBeginnerProgram.getInitialState(),
-  dbPpl: DbPplProgram.getInitialState(),
-  the5314b: The5314bProgram.getInitialState(),
-};
-
 export namespace Program {
-  export function get(name: IProgramId): IProgram {
-    return programsList[name];
-  }
-
   export function getProgram(state: IState, id: string): IProgram2 | undefined {
     return state.storage.programs.find((p) => p.id === id);
   }
@@ -147,10 +72,6 @@ export namespace Program {
     return state.storage.programs.findIndex((p) => p.id === id);
   }
 
-  export function all(): IProgram[] {
-    return ObjectUtils.keys(programsList).map((k) => programsList[k]);
-  }
-
   export function createDay(name: string): IProgramDay2 {
     return {
       name,
@@ -158,65 +79,38 @@ export namespace Program {
     };
   }
 
-  export function isProgram2(program: IProgram | IProgram2): program is IProgram2 {
-    return "isProgram2" in program && program.isProgram2;
-  }
-
-  export function nextProgramRecord(
-    program: IProgram | IProgram2,
-    settings: ISettings,
-    previousDay?: number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    programState?: any
-  ): IHistoryRecord {
-    if (isProgram2(program)) {
-      const day = program.internalState.nextDay || 1;
-      const programDay = program.days[day - 1];
-      return {
-        id: 0,
-        date: new Date().toISOString(),
-        programId: program.id,
-        day,
-        startTime: Date.now(),
-        entries: programDay.excercises.map((entry) => {
-          const sets: ISet[] = entry.sets.map((set) => ({
-            isAmrap: set.isAmrap,
-            reps: new ScriptRunner(
-              set.repsExpr,
-              program.state,
-              Progress.createEmptyScriptBindings(day),
-              Progress.createScriptFunctions(settings)
-            ).execute(true),
-            weight: new ScriptRunner(
-              set.weightExpr,
-              program.state,
-              Progress.createEmptyScriptBindings(day),
-              Progress.createScriptFunctions(settings)
-            ).execute(true),
-          }));
-          return {
-            excercise: entry.excercise,
-            sets,
-            warmupSets: Excercise.getWarmupSets(entry.excercise, sets[0].weight),
-          };
-        }),
-      };
-    } else {
-      const day = Program.nextDay(program, previousDay);
-      const programDay = program.days[day];
-      return {
-        id: 0,
-        date: new Date().toISOString(),
-        programId: program.id,
-        day,
-        startTime: Date.now(),
-        entries: programDay(programState).excercises.map((e) => ({
-          excercise: e.excercise,
-          sets: e.sets,
-          warmupSets: Excercise.getWarmupSets(e.excercise, e.sets[0].weight),
-        })),
-      };
-    }
+  export function nextProgramRecord(program: IProgram2, settings: ISettings): IHistoryRecord {
+    const day = program.internalState.nextDay || 1;
+    const programDay = program.days[day - 1];
+    return {
+      id: 0,
+      date: new Date().toISOString(),
+      programId: program.id,
+      day,
+      startTime: Date.now(),
+      entries: programDay.excercises.map((entry) => {
+        const sets: ISet[] = entry.sets.map((set) => ({
+          isAmrap: set.isAmrap,
+          reps: new ScriptRunner(
+            set.repsExpr,
+            program.state,
+            Progress.createEmptyScriptBindings(day),
+            Progress.createScriptFunctions(settings)
+          ).execute(true),
+          weight: new ScriptRunner(
+            set.weightExpr,
+            program.state,
+            Progress.createEmptyScriptBindings(day),
+            Progress.createScriptFunctions(settings)
+          ).execute(true),
+        }));
+        return {
+          excercise: entry.excercise,
+          sets,
+          warmupSets: Excercise.getWarmupSets(entry.excercise, sets[0].weight),
+        };
+      }),
+    };
   }
 
   export function cloneProgram2(dispatch: IDispatch, program: IProgram2): void {
@@ -247,7 +141,7 @@ export namespace Program {
     updateState(dispatch, selectProgram2LensRecordings(programId));
   }
 
-  export function nextDay(program: IProgram | IProgram2, day?: number): number {
+  export function nextDay(program: IProgram2, day?: number): number {
     return (day != null ? day % program.days.length : 0) + 1;
   }
 

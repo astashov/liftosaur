@@ -1,5 +1,4 @@
 import { excerciseTypes } from "./excercise";
-import { TProgramId } from "./program";
 import * as t from "io-ts";
 import { IArrayElement } from "../utils/types";
 
@@ -10,7 +9,7 @@ export const TStatsExcercisesValue = t.type(
         timestamp: t.number,
         weight: t.number,
         reps: t.number,
-        programId: TProgramId,
+        programId: t.string,
         day: t.number,
       })
     ),

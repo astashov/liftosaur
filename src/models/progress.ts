@@ -1,8 +1,6 @@
-import { IProgram } from "./program";
 import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import { Reps } from "./set";
 import { IWeight, Weight } from "./weight";
-import { IStats } from "./stats";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
 import { lf } from "../utils/lens";
@@ -57,27 +55,6 @@ export interface IScriptFunctions {
 }
 
 export namespace Progress {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export function create(program: IProgram, day: number, stats: IStats, state?: any): IHistoryRecord {
-    const programDay = program.days[day];
-    return {
-      id: 0,
-      date: new Date().toISOString(),
-      programId: program.id,
-      day,
-      ui: {},
-      startTime: Date.now(),
-      entries: programDay(state).excercises.map((excercise) => {
-        const firstWeight = excercise.sets[0].weight;
-        return {
-          excercise: excercise.excercise,
-          sets: excercise.sets,
-          warmupSets: Excercise.getWarmupSets(excercise.excercise, firstWeight),
-        };
-      }),
-    };
-  }
-
   export function createEmptyScriptBindings(day: number): IScriptBindings {
     return {
       day,

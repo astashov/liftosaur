@@ -14,7 +14,6 @@ import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
-import { ScreenProgramSettings } from "./screenProgramSettings";
 import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
@@ -46,7 +45,7 @@ export function AppView(props: IProps): JSX.Element | null {
     dispatch(Thunk.googleOauthInitialize());
     dispatch(Thunk.fetchStorage());
     dispatch(Thunk.fetchPrograms());
-    if (state.storage.currentProgramId == null) {
+    if (state.storage.currentProgram2Id == null) {
       setShouldShowOnboarding(true);
     }
   }, []);
@@ -64,9 +63,7 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "main") {
     const program =
-      state.storage.currentProgram2Id != null
-        ? state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)
-        : Program.get(state.storage.currentProgramId!);
+      state.storage.currentProgram2Id != null ? Program.getProgram(state, state.storage.currentProgram2Id) : undefined;
     if (program != null) {
       return (
         <ProgramHistoryView
@@ -74,7 +71,6 @@ export function AppView(props: IProps): JSX.Element | null {
           programs={state.storage.programs}
           progress={state.progress?.[0]}
           settings={state.storage.settings}
-          programStates={state.storage.programStates}
           history={state.storage.history}
           stats={state.storage.stats}
           dispatch={dispatch}
@@ -99,7 +95,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "settings") {
-    return <ScreenSettings dispatch={dispatch} email={state.email} currentProgram={state.storage.currentProgramId!} />;
+    return <ScreenSettings dispatch={dispatch} email={state.email} currentProgram={state.storage.currentProgram2Id} />;
   } else if (Screen.current(state.screenStack) === "account") {
     return <ScreenAccount dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {
@@ -110,14 +106,6 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
     return <ScreenGraphs dispatch={dispatch} history={state.storage.history} stats={state.storage.stats} />;
-  } else if (Screen.current(state.screenStack) === "programSettings") {
-    return (
-      <ScreenProgramSettings
-        dispatch={dispatch}
-        programId={state.storage.currentProgramId!}
-        programStates={state.storage.programStates}
-      />
-    );
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
     const editProgram = Program.getEditingProgram(state);
     if (editProgram != null) {

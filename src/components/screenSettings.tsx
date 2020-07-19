@@ -3,13 +3,12 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { MenuItem } from "./menuItem";
-import { IProgramId } from "../models/program";
 import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
   email?: string;
-  currentProgram: IProgramId;
+  currentProgram?: string;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -31,13 +30,6 @@ export function ScreenSettings(props: IProps): JSX.Element {
             props.dispatch({ type: "PushScreen", screen: "programs" });
           }}
         />
-        {(props.currentProgram === "the5314b" || props.currentProgram === "dbPpl") && (
-          <MenuItem
-            name="Program Settings"
-            onClick={() => props.dispatch(Thunk.pushScreen("programSettings"))}
-            shouldShowRightArrow={true}
-          />
-        )}
         <MenuItem
           name="Timers"
           onClick={() => props.dispatch(Thunk.pushScreen("timers"))}

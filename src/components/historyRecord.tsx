@@ -3,34 +3,23 @@ import { IDispatch } from "../ducks/types";
 import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet } from "../models/set";
 import { IHistoryRecord } from "../models/history";
-import { Program, IProgram2, IProgramId } from "../models/program";
+import { IProgram2 } from "../models/program";
 import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
-import { IProgramStates } from "../ducks/reducer";
 
 interface IProps {
   historyRecord: IHistoryRecord;
-  programStates: IProgramStates;
   dispatch: IDispatch;
   programs: IProgram2[];
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
   const { historyRecord, dispatch } = props;
-  const program2 = props.programs.find((p) => p.id === historyRecord.programId);
-  let programName: string;
-  let programDayName: string;
-  if (program2 != null) {
-    programName = program2.name;
-    programDayName = program2.days[(historyRecord.day || 1) - 1].name;
-  } else {
-    const program = Program.get(historyRecord.programId as IProgramId);
-    const programState = props.programStates[historyRecord.programId as IProgramId];
-    programName = program.name;
-    programDayName = program.days[historyRecord.day](programState).name;
-  }
+  const program2 = props.programs.find((p) => p.id === historyRecord.programId)!;
+  const programName = program2.name;
+  const programDayName = program2.days[(historyRecord.day || 1) - 1].name;
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (

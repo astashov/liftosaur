@@ -3,7 +3,7 @@ import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IWebpushr, IState } from "../ducks/reducer";
-import { Program, IProgramId, IProgram2 } from "../models/program";
+import { IProgram2 } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { Screen } from "../models/screen";
@@ -34,8 +34,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const timers = props.settings.timers;
 
   if (progress != null) {
-    const currentProgram =
-      props.programs.find((p) => p.id === progress.programId) || Program.get(progress.programId as IProgramId);
+    // TODO: What to do if program missing?
+    const currentProgram = props.programs.find((p) => p.id === progress.programId)!;
     return (
       <section className="relative h-full">
         <HeaderView
@@ -98,23 +98,21 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         <FooterView
           dispatch={props.dispatch}
           buttons={
-            Program.isProgram2(currentProgram) ? (
-              <button
-                onClick={() => {
-                  props.dispatch({
-                    type: "UpdateState",
-                    lensRecording: [
-                      lb<IState>().p("editProgram").record({ id: currentProgram.id }),
-                      lb<IState>()
-                        .p("screenStack")
-                        .recordModify((s) => Screen.push(s, "editProgram")),
-                    ],
-                  });
-                }}
-              >
-                Edit
-              </button>
-            ) : undefined
+            <button
+              onClick={() => {
+                props.dispatch({
+                  type: "UpdateState",
+                  lensRecording: [
+                    lb<IState>().p("editProgram").record({ id: currentProgram.id }),
+                    lb<IState>()
+                      .p("screenStack")
+                      .recordModify((s) => Screen.push(s, "editProgram")),
+                  ],
+                });
+              }}
+            >
+              Edit
+            </button>
           }
         />
         {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
