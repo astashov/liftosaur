@@ -41,7 +41,7 @@ function tokenize(text: string): IToken[] {
         tokens.push({ type: "paren", value: match[0] as ITokenParen["value"], pos });
       } else if ((match = /^([\d\.]+)/.exec(line))) {
         tokens.push({ type: "number", value: parseFloat(match[0]), pos });
-      } else if ((match = /^,/.exec(line))) {
+      } else if ((match = /^(,)/.exec(line))) {
         tokens.push({ type: "comma", value: ",", pos });
       } else if ((match = /^([\+\-*<>=&|\?:/]+)/.exec(line))) {
         tokens.push({ type: "operator", value: match[0] as ITokenOperator["value"], pos });
@@ -369,10 +369,10 @@ class Evaluator {
       const fns = this.fns;
       const name = expr.name as keyof typeof fns;
       if (this.fns[name] != null) {
-        return this.fns[name].apply(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (this.fns[name] as any).apply(
           undefined,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expr.args.map((a) => this.evaluate(a)) as any
+          expr.args.map((a) => this.evaluate(a))
         );
       } else {
         throw new SyntaxError(`Unknown function '${name}'`);
@@ -416,7 +416,9 @@ export class ScriptRunner {
     this.fns = fns;
   }
 
-  public execute(): number {
+  public execute(shouldExpectNumber: true): number;
+  public execute(shouldExpectNumber: false): number | boolean;
+  public execute(shouldExpectNumber: unknown): unknown {
     console.log(this.script);
     console.dir(this.bindings);
     const tokens = tokenize(this.script);
@@ -426,7 +428,7 @@ export class ScriptRunner {
     console.dir(ast, { depth: null });
     const evaluator = new Evaluator(this.state, this.bindings, this.fns);
     const result = evaluator.evaluate(ast);
-    if (typeof result === "number") {
+    if (!shouldExpectNumber || typeof result === "number") {
       return result;
     } else {
       throw new SyntaxError("Expected to get number as a result, but got a boolean instead");

@@ -46,6 +46,14 @@ export const TProgramDay2 = t.type(
 );
 export type IProgramDay2 = t.TypeOf<typeof TProgramDay2>;
 
+export const TProgramInternalState = t.type(
+  {
+    nextDay: t.number,
+  },
+  "TProgramInternalState"
+);
+export type IProgramInternalState = t.TypeOf<typeof TProgramInternalState>;
+
 export const TProgram2 = t.type(
   {
     isProgram2: t.boolean,
@@ -53,7 +61,8 @@ export const TProgram2 = t.type(
     name: t.string,
     description: t.string,
     days: t.array(TProgramDay2),
-    initialState: t.dictionary(t.string, t.number),
+    state: t.dictionary(t.string, t.number),
+    internalState: TProgramInternalState,
     finishDayExpr: t.string,
   },
   "TProgram2"
@@ -140,9 +149,9 @@ export namespace Program {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     programState?: any
   ): IHistoryRecord {
-    const day = Program.nextDay(program, previousDay);
     if (isProgram2(program)) {
-      const programDay = program.days[day];
+      const day = program.internalState.nextDay || 1;
+      const programDay = program.days[day - 1];
       return {
         id: 0,
         date: new Date().toISOString(),
@@ -154,16 +163,16 @@ export namespace Program {
             isAmrap: set.isAmrap,
             reps: new ScriptRunner(
               set.repsExpr,
-              program.initialState,
+              program.state,
               Progress.createEmptyScriptBindings(day),
               Progress.createScriptFunctions(settings)
-            ).execute(),
+            ).execute(true),
             weight: new ScriptRunner(
               set.weightExpr,
-              program.initialState,
+              program.state,
               Progress.createEmptyScriptBindings(day),
               Progress.createScriptFunctions(settings)
-            ).execute(),
+            ).execute(true),
           }));
           return {
             excercise: entry.excercise,
@@ -173,6 +182,7 @@ export namespace Program {
         }),
       };
     } else {
+      const day = Program.nextDay(program, previousDay);
       const programDay = program.days[day];
       return {
         id: 0,
@@ -218,7 +228,7 @@ export namespace Program {
   }
 
   export function nextDay(program: IProgram | IProgram2, day?: number): number {
-    return day != null ? (day + 1) % program.days.length : 0;
+    return (day != null ? day % program.days.length : 0) + 1;
   }
 
   function selectProgram2LensRecordings(programId: string): ILensRecordingPayload<IState>[] {

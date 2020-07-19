@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { IStorage } from "../ducks/reducer";
 import deepmerge from "deepmerge";
 import * as The5314BProgram from "../models/programs/the5314bProgram";
@@ -47,6 +49,14 @@ export const migrations = {
           }
         });
       });
+    });
+    return storage;
+  },
+  "20200717000000_upgrade_programs": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    (storage.programs || []).forEach((program) => {
+      program.state = program.state || (program as any).initialState;
+      program.internalState = program.internalState || { nextDay: 1 };
     });
     return storage;
   },

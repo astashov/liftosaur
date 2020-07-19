@@ -122,7 +122,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
 
       {editSet && (
         <ModalEditSet
-          state={props.editProgram.program.initialState}
+          state={props.editProgram.program.state}
           excercise={getExcercise(editSet)}
           set={getSet(editSet)}
           onDone={(result) => {

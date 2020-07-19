@@ -39,7 +39,7 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
           />
           <GroupHeader name="Finish Day Script" />
           <MultiLineTextEditor
-            state={props.editProgram.program.initialState}
+            state={props.editProgram.program.state}
             onChange={(newValue) => (scriptRef.current = newValue || "")}
             onBlur={(newValue) => {
               const lensRecording = lb<IState>().pi("editProgram").p("program").p("finishDayExpr").record(newValue);
@@ -54,9 +54,9 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
         <ModalAddStateVariable
           onDone={(newValue) => {
             if (newValue != null) {
-              const newState = { ...props.editProgram.program.initialState };
+              const newState = { ...props.editProgram.program.state };
               newState[newValue] = 0;
-              const lensRecording = lb<IState>().pi("editProgram").p("program").p("initialState").record(newState);
+              const lensRecording = lb<IState>().pi("editProgram").p("program").p("state").record(newState);
               props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
             }
             setShouldShowAddStateVariable(false);

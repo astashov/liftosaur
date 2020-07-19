@@ -24,7 +24,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   let programDayName: string;
   if (program2 != null) {
     programName = program2.name;
-    programDayName = program2.days[historyRecord.day].name;
+    programDayName = program2.days[(historyRecord.day || 1) - 1].name;
   } else {
     const program = Program.get(historyRecord.programId as IProgramId);
     const programState = props.programStates[historyRecord.programId as IProgramId];

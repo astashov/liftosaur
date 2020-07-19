@@ -2,67 +2,76 @@ import { ScriptRunner } from "./parser";
 import { Progress } from "./models/progress";
 
 const program = `
-if (day == 1) {
-  if (cr[1][1] + cr[1][2] + cr[1][3] >= 15) {
-    state.barbellRows = state.barbellRows + (cr[1][3] > 10 ? 5 : 2.5)
+if (day == 9) {
+  state.squatTM = state.squatTM + 10
+  state.benchPressTM = state.benchPressTM + 5
+  state.deadliftTM = state.deadliftTM + 10
+  state.overheadPressTM = state.overheadPressTM + 5
+  if (state.cycle == 3) {
+    state.nextDay = 10
+    state.cycle = 1
   } else {
-    state.barbellRows = roundWeight(state.barbellRows * 0.9)
+    state.nextDay = 1
+    state.cycle = state.cycle + 1
   }
-  if (cr[2][1] + cr[2][2] + cr[2][3] >= 15) {
-    state.benchPress = state.benchPress + (cr[2][3] > 10 ? 5 : 2.5)
-  } else {
-    state.benchPress = roundWeight(state.benchPress * 0.9)
-  }
-  if (cr[3][1] + cr[3][2] + cr[3][3] >= 15) {
-    state.squat = state.squat + (cr[3][3] > 10 ? 10 : 5)
-  } else {
-    state.squat = roundWeight(state.squat * 0.9)
-  }
-} else {
-  if (cr[2][1] + cr[2][2] + cr[2][3] >= 15) {
-    state.overheadPress = state.overheadPress + (cr[2][3] > 10 ? 5 : 2.5)
-  } else {
-    state.overheadPress = roundWeight(state.overheadPress * 0.9)
-  }
-  if (cr[3][1] + cr[3][2] + cr[3][3] >= 15) {
-    state.deadlift = state.deadlift + (cr[3][3] > 10 ? 10 : 5)
-  } else {
-    state.deadlift = roundWeight(state.deadlift * 0.9)
-  }
+}
+if (day == 10 && cr[1][4] < r[1][4]) {
+  state.squatTM = calculateTrainingMax(w[1][4], cr[1][4])
+}
+if (day == 11 && cr[1][4] < r[1][4]) {
+  state.overheadPressTM = calculateTrainingMax(w[1][4], cr[1][4])
+}
+if (day == 12 && cr[1][4] < r[1][4]) {
+  state.deadliftTM = calculateTrainingMax(w[1][4], cr[1][4])
+}
+if (day == 13 && cr[1][4] < r[1][4]) {
+  state.benchPressTM = calculateTrainingMax(w[1][4], cr[1][4])
 }
 `;
 
 const bindings = {
   day: 1,
   weights: [
-    [97.5, 97.5, 97.5],
-    [47.5, 47.5, 47.5],
+    [40, 40, 40],
+    [30, 30, 30],
     [50, 50, 50],
+    [50, 50, 50],
+    [0, 0, 0],
   ],
   reps: [
-    [5, 5, 5],
-    [5, 5, 5],
-    [5, 5, 5],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
   ],
   completedReps: [
-    [5, 5, 20],
-    [5, 5, 3],
-    [5, 5, 5],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
   ],
   w: [
-    [97.5, 97.5, 97.5],
-    [47.5, 47.5, 47.5],
+    [40, 40, 40],
+    [30, 30, 30],
     [50, 50, 50],
+    [50, 50, 50],
+    [0, 0, 0],
   ],
   r: [
-    [5, 5, 5],
-    [5, 5, 5],
-    [5, 5, 5],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
   ],
   cr: [
-    [5, 5, 20],
-    [5, 5, 3],
-    [5, 5, 5],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
+    [12, 12, 12],
   ],
 };
 
@@ -87,14 +96,44 @@ const fns = Progress.createScriptFunctions({
 });
 
 const state = {
-  barbellRows: 97.5,
-  benchPress: 45,
-  overheadPress: 45,
-  deadlift: 95,
-  squat: 45,
-  chinups: 0,
+  dbBenchPressWeight: 40,
+  dbBenchPressFailures: 0,
+  dbBenchPressLastReps: 0,
+  dbInclineFlyWeight: 30,
+  dbInclineFlyFailures: 0,
+  dbInclineFlyLastReps: 0,
+  dbArnoldPressWeight: 50,
+  dbArnoldPressFailures: 0,
+  dbArnoldPressLastReps: 0,
+  dbTricepsExtensionWeight: 50,
+  dbTricepsExtensionFailures: 0,
+  dbTricepsExtensionLastReps: 0,
+  dbRowWeight: 50,
+  dbRowFailures: 0,
+  dbRowLastReps: 0,
+  dbLateralRaiseWeight: 20,
+  dbLateralRaiseFailures: 0,
+  dbLateralRaiseLastReps: 0,
+  dbShrugWeight: 50,
+  dbShrugFailures: 0,
+  dbShrugLastReps: 0,
+  dbBicepCurlWeight: 20,
+  dbBicepCurlFailures: 0,
+  dbBicepCurlLastReps: 0,
+  dbGobletSquatWeight: 40,
+  dbGobletSquatFailures: 0,
+  dbGobletSquatLastReps: 0,
+  dbLungeWeight: 20,
+  dbLungeFailures: 0,
+  dbLungeLastReps: 0,
+  dbSingleLegDeadliftWeight: 30,
+  dbSingleLegDeadliftFailures: 0,
+  dbSingleLegDeadliftLastReps: 0,
+  dbCalfRaiseWeight: 50,
+  dbCalfRaiseFailures: 0,
+  dbCalfRaiseLastReps: 0,
 };
 
 const scriptRunner = new ScriptRunner(program, state, bindings, fns);
-console.log(scriptRunner.execute());
+console.log(scriptRunner.execute(false));
 console.log(state);

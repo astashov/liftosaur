@@ -53,6 +53,7 @@ export interface IScriptBindings {
 
 export interface IScriptFunctions {
   roundWeight: (num: number) => number;
+  calculateTrainingMax: (weight: number, reps: number) => number;
 }
 
 export namespace Progress {
@@ -79,7 +80,7 @@ export namespace Progress {
 
   export function createEmptyScriptBindings(day: number): IScriptBindings {
     return {
-      day: day + 1,
+      day,
       weights: [],
       reps: [],
       completedReps: [],
@@ -109,7 +110,8 @@ export namespace Progress {
 
   export function createScriptFunctions(settings: ISettings): IScriptFunctions {
     return {
-      roundWeight: (num) => Weight.round(num, settings),
+      roundWeight: (num) => Weight.round(num || 0, settings),
+      calculateTrainingMax: (weight, reps) => Weight.getTrainingMax(weight, reps || 0),
     };
   }
 

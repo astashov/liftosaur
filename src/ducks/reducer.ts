@@ -8,6 +8,7 @@ import {
   TEditProgram,
   TProgram2,
   IProgram2,
+  IProgramInternalState,
 } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
@@ -471,14 +472,20 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         const bindings = Progress.createScriptBindings(progress);
         const fns = Progress.createScriptFunctions(state.storage.settings);
         const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
-        const programState = { ...program.initialState };
-        new ScriptRunner(program.finishDayExpr, programState, bindings, fns).execute();
+        const newInternalState: IProgramInternalState = {
+          nextDay: Program.nextDay(program, program.internalState.nextDay),
+        };
+        const allProgramState: Record<string, number> = { ...newInternalState, ...program.state };
+        new ScriptRunner(program.finishDayExpr, allProgramState, bindings, fns).execute(false);
+        const { nextDay, ...programState } = allProgramState;
         return {
           ...state,
           storage: {
             ...state.storage,
             history: newHistory,
-            programs: lf(state.storage.programs).i(programIndex).p("initialState").set(programState),
+            programs: lf(state.storage.programs)
+              .i(programIndex)
+              .modify((p) => ({ ...p, state: programState, internalState: { nextDay } })),
           },
           screenStack: Screen.pull(state.screenStack),
           currentHistoryRecord: undefined,
@@ -632,7 +639,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           name: action.name,
           description: action.name,
           days: [],
-          initialState: {},
+          state: {},
+          internalState: { nextDay: 1 },
           finishDayExpr: "",
         },
       },
