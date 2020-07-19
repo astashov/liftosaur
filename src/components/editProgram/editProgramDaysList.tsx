@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IEditProgram } from "../../models/program";
+import { IProgram2 } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
@@ -14,7 +14,8 @@ import { IconDelete } from "../iconDelete";
 import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
-  editProgram: IEditProgram;
+  editProgram: IProgram2;
+  programIndex: number;
   dispatch: IDispatch;
 }
 
@@ -23,19 +24,12 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
     <section className="h-full">
       <HeaderView
         title="Edit Program"
-        subtitle={props.editProgram.program.name}
+        subtitle={props.editProgram.name}
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        {props.editProgram?.editDay?.day?.name && (
-          <div className="p-2 text-center">
-            <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDay" })}>
-              Continue editing {props.editProgram?.editDay?.day?.name}
-            </Button>
-          </div>
-        )}
         <GroupHeader name="Days" />
-        {props.editProgram.program.days.map((day, index) => (
+        {props.editProgram.days.map((day, index) => (
           <MenuItem
             name={day.name}
             onClick={(e) => {
@@ -53,8 +47,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       type: "UpdateState",
                       lensRecording: [
                         lb<IState>()
-                          .pi("editProgram")
-                          .p("program")
+                          .p("storage")
+                          .p("programs")
+                          .i(props.programIndex)
                           .p("days")
                           .recordModify((days) => {
                             const newDays = [...days];
@@ -74,8 +69,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       type: "UpdateState",
                       lensRecording: [
                         lb<IState>()
-                          .pi("editProgram")
-                          .p("program")
+                          .p("storage")
+                          .p("programs")
+                          .i(props.programIndex)
                           .p("days")
                           .recordModify((days) => days.filter((d) => d !== day)),
                       ],
@@ -97,13 +93,13 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         </MenuItemWrapper>
         <div className="flex p-2">
           <div className="flex-1 mr-auto">
-            <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
-              Publish
+            <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDayScript" })}>
+              Edit Script
             </Button>
           </div>
           <div>
-            <Button kind="green" onClick={() => props.dispatch({ type: "SaveProgram" })}>
-              Save Program
+            <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
+              Publish
             </Button>
           </div>
         </div>

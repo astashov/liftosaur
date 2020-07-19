@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
-import { IEditProgram, IProgramDay2 } from "../../models/program";
+import { IProgram2 } from "../../models/program";
 import { FooterView } from "../footer";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { useRef, useState } from "preact/hooks";
@@ -13,24 +13,25 @@ import { GroupHeader } from "../groupHeader";
 
 interface IProps {
   dispatch: IDispatch;
-  editProgram: IEditProgram;
-  editDay: IProgramDay2;
+  editProgram: IProgram2;
+  programIndex: number;
 }
 
 export function EditProgramDayScript(props: IProps): JSX.Element {
-  const scriptRef = useRef<string>(props.editProgram.program.finishDayExpr);
+  const scriptRef = useRef<string>(props.editProgram.finishDayExpr);
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   return (
     <section className="h-full">
       <HeaderView
         title="Edit Program Script"
-        subtitle={props.editProgram.program.name}
+        subtitle={props.editProgram.name}
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <section className="flex-1 overflow-y-auto">
           <GroupHeader name="State Variables" />
           <EditProgramState
+            programIndex={props.programIndex}
             dispatch={props.dispatch}
             editProgram={props.editProgram}
             onAddStateVariable={() => {
@@ -39,13 +40,18 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
           />
           <GroupHeader name="Finish Day Script" />
           <MultiLineTextEditor
-            state={props.editProgram.program.state}
+            state={props.editProgram.state}
             onChange={(newValue) => (scriptRef.current = newValue || "")}
             onBlur={(newValue) => {
-              const lensRecording = lb<IState>().pi("editProgram").p("program").p("finishDayExpr").record(newValue);
+              const lensRecording = lb<IState>()
+                .p("storage")
+                .p("programs")
+                .i(props.programIndex)
+                .p("finishDayExpr")
+                .record(newValue);
               props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
             }}
-            value={props.editProgram.program.finishDayExpr}
+            value={props.editProgram.finishDayExpr}
           />
         </section>
       </section>
@@ -54,9 +60,14 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
         <ModalAddStateVariable
           onDone={(newValue) => {
             if (newValue != null) {
-              const newState = { ...props.editProgram.program.state };
+              const newState = { ...props.editProgram.state };
               newState[newValue] = 0;
-              const lensRecording = lb<IState>().pi("editProgram").p("program").p("state").record(newState);
+              const lensRecording = lb<IState>()
+                .p("storage")
+                .p("programs")
+                .i(props.programIndex)
+                .p("state")
+                .record(newState);
               props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
             }
             setShouldShowAddStateVariable(false);

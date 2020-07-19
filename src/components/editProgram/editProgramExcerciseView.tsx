@@ -7,6 +7,8 @@ import { EditProgram } from "../../models/editProgram";
 
 interface IProps {
   entry: IProgramDayEntry2;
+  programIndex: number;
+  dayIndex: number;
   dispatch: IDispatch;
   onEditSet: (setIndex?: number) => void;
   onDeleteSet: (setIndex: number) => void;
@@ -19,7 +21,7 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
       <button
         className="absolute p-2"
         style={{ top: "0px", right: "0px" }}
-        onClick={() => EditProgram.removeEntry(props.dispatch, props.entry)}
+        onClick={() => EditProgram.removeEntry(props.dispatch, props.entry, props.programIndex, props.dayIndex)}
       >
         <IconDelete />
       </button>

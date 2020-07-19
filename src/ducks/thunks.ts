@@ -4,6 +4,7 @@ import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
 import { lb } from "../utils/lens";
 import { IState } from "./reducer";
+import { Program } from "../models/program";
 
 declare let __API_HOST__: string;
 declare let Rollbar: RB;
@@ -92,10 +93,8 @@ export namespace Thunk {
 
   export function publishProgram(): IThunk {
     return (dispatch, getState, env) => {
-      const programId = getState().editProgram!.program.id;
-      dispatch({ type: "SaveProgram" });
       const state = getState();
-      const program = state.storage.programs.find((p) => p.id === programId)!;
+      const program = Program.getEditingProgram(state)!;
       env.service.publishProgram(program);
     };
   }

@@ -5,7 +5,6 @@ import {
   defaultProgramStates,
   TProgramId,
   IEditProgram,
-  TEditProgram,
   TProgram2,
   IProgram2,
   IProgramInternalState,
@@ -53,7 +52,10 @@ export interface IState {
   screenStack: IScreen[];
   currentHistoryRecord?: number;
   progress: Record<number, IHistoryRecord | undefined>;
-  editProgram?: IEditProgram;
+  editProgram?: {
+    id: string;
+    dayIndex?: number;
+  };
 }
 
 export const TProgramStates = t.partial(
@@ -113,20 +115,14 @@ export function getInitialState(rawStorage?: string): IState {
     validateStorage(finalStorage, TStorage, "storage");
     const isProgressValid =
       storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
-    const isEditProgramValid =
-      storage.editProgram != null ? validateStorage(storage.editProgram, TEditProgram, "editProgram") : false;
 
     const screenStack: IScreen[] =
       finalStorage.currentProgramId || finalStorage.currentProgram2Id ? ["main"] : ["programs"];
-    if (isEditProgramValid && storage.editProgram != null) {
-      screenStack.push("editProgram");
-    }
 
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
       programs: [],
-      editProgram: isEditProgramValid ? storage.editProgram : undefined,
       currentHistoryRecord: 0,
       screenStack,
     };
@@ -332,14 +328,6 @@ export type IEditDayRemoveSetAction = {
   setIndex: number;
 };
 
-export type ISaveProgramDayAction = {
-  type: "SaveProgramDay";
-};
-
-export type ISaveProgramAction = {
-  type: "SaveProgram";
-};
-
 export type IAction =
   | IChangeRepsAction
   | IStartProgramDayAction
@@ -369,9 +357,7 @@ export type IAction =
   | IEditDayAction
   | IEditDayAddExcerciseAction
   | IEditDayAddSetAction
-  | IEditDayRemoveSetAction
-  | ISaveProgramDayAction
-  | ISaveProgramAction;
+  | IEditDayRemoveSetAction;
 
 let timerId: number | undefined = undefined;
 
@@ -387,7 +373,6 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const localStorage: ILocalStorage = {
     storage: newState.storage,
     progress: newState.progress[0],
-    editProgram: newState.editProgram,
   };
   if (timerId != null) {
     window.clearTimeout(timerId);
@@ -630,10 +615,12 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
 
     return lf(state).p("storage").p("programStates").p(action.name).set(newState);
   } else if (action.type === "CreateProgramAction") {
-    return {
-      ...state,
-      editProgram: {
-        program: {
+    let newState = lf(state)
+      .p("storage")
+      .p("programs")
+      .modify((programs) => [
+        ...state.storage.programs,
+        {
           isProgram2: true,
           id: action.name,
           name: action.name,
@@ -643,44 +630,49 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           internalState: { nextDay: 1 },
           finishDayExpr: "",
         },
-      },
-      screenStack: Screen.push(state.screenStack, "editProgram"),
-    };
+      ]);
+    newState = lf(newState).p("editProgram").set({ id: action.name });
+    return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgram"));
   } else if (action.type === "EditDayAddExcerciseAction") {
+    const programIndex = state.storage.programs.findIndex((p) => p.id === state.editProgram!.id);
     return lf(state)
-      .pi("editProgram")
-      .pi("editDay")
-      .p("day")
+      .p("storage")
+      .p("programs")
+      .i(programIndex)
+      .p("days")
+      .i(state.editProgram!.dayIndex!)
       .p("excercises")
       .modify((e) => [...e, { excercise: action.value, sets: [] }]);
   } else if (action.type === "CreateDayAction") {
-    const days = state.editProgram!.program.days || [];
+    const program = Program.getEditingProgram(state)!;
+    const programIndex = Program.getEditingProgramIndex(state)!;
+    const days = program.days;
     const dayName = `Day ${days.length + 1}`;
-    return {
-      ...state,
-      editProgram: {
-        ...state.editProgram!,
-        editDay: {
-          day: Program.createDay(dayName),
-        },
-      },
-      screenStack: Screen.push(state.screenStack, "editProgramDay"),
-    };
+    const newProgram = lf(program)
+      .p("days")
+      .modify((d) => [...d, Program.createDay(dayName)]);
+    let newState = lf(state).p("storage").p("programs").i(programIndex).set(newProgram);
+    newState = lf(newState)
+      .pi("editProgram")
+      .p("dayIndex")
+      .set(newProgram.days.length - 1);
+    return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgramDay"));
   } else if (action.type === "EditDayAction") {
-    const day = state.editProgram!.program.days[action.index];
     return {
       ...state,
       editProgram: {
         ...state.editProgram!,
-        editDay: { day, index: action.index },
+        dayIndex: action.index,
       },
       screenStack: Screen.push(state.screenStack, "editProgramDay"),
     };
   } else if (action.type === "EditDayAddSet") {
     return lf(state)
-      .pi("editProgram")
-      .pi("editDay")
-      .p("day")
+      .p("storage")
+      .p("programs")
+      .i(Program.getEditingProgramIndex(state))
+      .p("days")
+      .i(state.editProgram!.dayIndex!)
       .p("excercises")
       .i(action.excerciseIndex)
       .p("sets")
@@ -693,48 +685,15 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       });
   } else if (action.type === "EditDayRemoveSet") {
     return lf(state)
-      .pi("editProgram")
-      .pi("editDay")
-      .p("day")
+      .p("storage")
+      .p("programs")
+      .i(Program.getEditingProgramIndex(state))
+      .p("days")
+      .i(state.editProgram!.dayIndex!)
       .p("excercises")
       .i(action.excerciseIndex)
       .p("sets")
       .modify((sets) => sets.filter((set, i) => i !== action.setIndex));
-  } else if (action.type === "SaveProgramDay") {
-    let newState = state;
-    newState = lf(newState)
-      .pi("editProgram")
-      .p("program")
-      .p("days")
-      .modify((days) => {
-        const index = state.editProgram!.editDay!.index;
-        if (index == null) {
-          return [...days, state.editProgram!.editDay!.day];
-        } else {
-          return lf(days).i(index).set(state.editProgram!.editDay!.day);
-        }
-      });
-    newState = lf(newState).pi("editProgram").p("editDay").set(undefined);
-    newState = lf(newState).p("screenStack").set(Screen.pull(state.screenStack));
-    return newState;
-  } else if (action.type === "SaveProgram") {
-    let newState = state;
-    newState = lf(newState)
-      .p("storage")
-      .p("programs")
-      .modify((programs) => {
-        programs = programs || [];
-        const program = state.editProgram!.program;
-        const oldProgramIndex = programs.findIndex((p) => p.id === program.id);
-        if (oldProgramIndex === -1) {
-          return [...programs, program];
-        } else {
-          return lf(programs).i(oldProgramIndex).set(program);
-        }
-      });
-    newState = lf(newState).p("editProgram").set(undefined);
-    newState = lf(newState).p("screenStack").set(Screen.pull(state.screenStack));
-    return newState;
   } else {
     return state;
   }

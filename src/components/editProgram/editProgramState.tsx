@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { IEditProgram } from "../../models/program";
+import { IProgram2 } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { MenuItemEditable } from "../menuItemEditable";
 import { lb } from "../../utils/lens";
@@ -8,14 +8,15 @@ import { IState } from "../../ducks/reducer";
 import { Button } from "../button";
 
 interface IProps {
-  editProgram: IEditProgram;
+  editProgram: IProgram2;
+  programIndex: number;
   dispatch: IDispatch;
   onAddStateVariable: () => void;
 }
 
 export function EditProgramState(props: IProps): JSX.Element {
-  const state = props.editProgram.program.state;
-  const internalState = props.editProgram.program.internalState;
+  const state = props.editProgram.state;
+  const internalState = props.editProgram.internalState;
 
   return (
     <section>
@@ -31,7 +32,12 @@ export function EditProgramState(props: IProps): JSX.Element {
               if (v != null) {
                 const newState = { ...internalState };
                 newState[stateKey] = v;
-                const lensRecording = lb<IState>().pi("editProgram").p("program").p("internalState").record(newState);
+                const lensRecording = lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .i(props.programIndex)
+                  .p("internalState")
+                  .record(newState);
                 props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
               }
             }}
@@ -53,7 +59,12 @@ export function EditProgramState(props: IProps): JSX.Element {
               } else {
                 delete newState[stateKey];
               }
-              const lensRecording = lb<IState>().pi("editProgram").p("program").p("state").record(newState);
+              const lensRecording = lb<IState>()
+                .p("storage")
+                .p("programs")
+                .i(props.programIndex)
+                .p("state")
+                .record(newState);
               props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
             }}
           />

@@ -58,7 +58,6 @@ export function AppView(props: IProps): JSX.Element | null {
           dispatch={dispatch}
           programs={state.programs || []}
           customPrograms={state.storage.programs || []}
-          editingProgramName={state.editProgram?.program?.name}
         />
         {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
       </Fragment>
@@ -120,12 +119,15 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
-    if (state.editProgram != null) {
+    const editProgram = Program.getEditingProgram(state);
+    if (editProgram != null) {
       return (
         <ScreenEditProgram
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
-          editProgram={state.editProgram}
+          programIndex={Program.getEditingProgramIndex(state)}
+          dayIndex={Program.getEditingProgramIndex(state)}
+          editProgram={editProgram}
         />
       );
     } else {

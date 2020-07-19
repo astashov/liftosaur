@@ -419,13 +419,8 @@ export class ScriptRunner {
   public execute(shouldExpectNumber: true): number;
   public execute(shouldExpectNumber: false): number | boolean;
   public execute(shouldExpectNumber: unknown): unknown {
-    console.log(this.script);
-    console.dir(this.bindings);
     const tokens = tokenize(this.script);
-    console.dir(tokens, { depth: null });
     const ast = new Parser(tokens, allRules).parse();
-    console.log("AST");
-    console.dir(ast, { depth: null });
     const evaluator = new Evaluator(this.state, this.bindings, this.fns);
     const result = evaluator.evaluate(ast);
     if (!shouldExpectNumber || typeof result === "number") {

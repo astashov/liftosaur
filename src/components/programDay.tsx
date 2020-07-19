@@ -104,7 +104,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                   props.dispatch({
                     type: "UpdateState",
                     lensRecording: [
-                      lb<IState>().p("editProgram").record({ program: currentProgram }),
+                      lb<IState>().p("editProgram").record({ id: currentProgram.id }),
                       lb<IState>()
                         .p("screenStack")
                         .recordModify((s) => Screen.push(s, "editProgram")),

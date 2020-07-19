@@ -14,7 +14,6 @@ import { HtmlUtils } from "../utils/html";
 interface IProps {
   onSelectProgram: (id: IProgramId) => void;
   onCreateProgram: () => void;
-  editingProgramName?: string;
   programs: IProgram2[];
   customPrograms?: IProgram2[];
   dispatch: IDispatch;
@@ -79,7 +78,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                       props.dispatch({
                         type: "UpdateState",
                         lensRecording: [
-                          lb<IState>().p("editProgram").record({ program }),
+                          lb<IState>().p("editProgram").record({ id: program.id }),
                           lb<IState>()
                             .p("screenStack")
                             .recordModify((s) => Screen.push(s, "editProgram")),
@@ -114,13 +113,6 @@ export function ProgramListView(props: IProps): JSX.Element {
         </Fragment>
       )}
 
-      {props.editingProgramName && (
-        <div className="p-2 text-center">
-          <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgram" })}>
-            Continue editing {props.editingProgramName}
-          </Button>
-        </div>
-      )}
       <div className="p-2 text-center">
         <Button kind="green" onClick={() => props.onCreateProgram()}>
           Create new program

@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgramDay2, IEditProgram } from "../../models/program";
+import { IProgram2 } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
@@ -9,14 +9,14 @@ import { ModalAddExcercise } from "./modalAddExcercise";
 import { IExcerciseType } from "../../models/excercise";
 import { IProgramSet } from "../../models/set";
 import { ModalEditSet } from "./modalEditSet";
-import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 
 interface IProps {
-  editProgram: IEditProgram;
-  editDay: IProgramDay2;
+  editProgram: IProgram2;
+  programIndex: number;
+  dayIndex: number;
   dispatch: IDispatch;
 }
 
@@ -26,22 +26,23 @@ export interface IEditSet {
 }
 
 export function EditProgramDay(props: IProps): JSX.Element {
+  const day = props.editProgram.days[props.dayIndex];
   const [shouldShowAddExcercise, setShouldShowAddExcercise] = useState(false);
   const [editSet, setEditSet] = useState<IEditSet | undefined>(undefined);
 
   function getSet(es: IEditSet): IProgramSet | undefined {
-    return es.setIndex != null ? props.editDay.excercises[es.excerciseIndex]?.sets?.[es.setIndex] : undefined;
+    return es.setIndex != null ? day.excercises[es.excerciseIndex]?.sets?.[es.setIndex] : undefined;
   }
 
   function getExcercise(es: IEditSet): IExcerciseType {
-    return props.editDay.excercises[es.excerciseIndex].excercise;
+    return day.excercises[es.excerciseIndex].excercise;
   }
 
   return (
     <section className="h-full">
       <HeaderView
         title="Edit Program"
-        subtitle={props.editProgram.program.name}
+        subtitle={props.editProgram.name}
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
@@ -49,20 +50,31 @@ export function EditProgramDay(props: IProps): JSX.Element {
           <MenuItemEditable
             type="text"
             name="Name:"
-            value={props.editDay.name}
+            value={day.name}
             onChange={(newValue) => {
               if (newValue != null) {
                 props.dispatch({
                   type: "UpdateState",
-                  lensRecording: [lb<IState>().pi("editProgram").pi("editDay").p("day").p("name").record(newValue)],
+                  lensRecording: [
+                    lb<IState>()
+                      .p("storage")
+                      .p("programs")
+                      .i(props.programIndex)
+                      .p("days")
+                      .i(props.dayIndex)
+                      .p("name")
+                      .record(newValue),
+                  ],
                 });
               }
             }}
           />
-          {props.editDay.excercises.map((entry, i) => {
+          {day.excercises.map((entry, i) => {
             return (
               <EditProgramExcerciseView
                 entry={entry}
+                programIndex={props.programIndex}
+                dayIndex={props.dayIndex}
                 dispatch={props.dispatch}
                 onEditSet={(setIndex) => {
                   if (setIndex == null && entry.sets.length > 0) {
@@ -91,23 +103,6 @@ export function EditProgramDay(props: IProps): JSX.Element {
         >
           +
         </button>
-        <section className="flex pb-2 mx-2">
-          <div className="flex-1 mr-auto">
-            <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDayScript" })}>
-              Edit Script
-            </Button>
-          </div>
-          <div>
-            <Button
-              kind="green"
-              onClick={() => {
-                props.dispatch({ type: "SaveProgramDay" });
-              }}
-            >
-              Save
-            </Button>
-          </div>
-        </section>
       </section>
       {shouldShowAddExcercise && (
         <ModalAddExcercise
@@ -122,7 +117,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
 
       {editSet && (
         <ModalEditSet
-          state={props.editProgram.program.state}
+          state={props.editProgram.state}
           excercise={getExcercise(editSet)}
           set={getSet(editSet)}
           onDone={(result) => {

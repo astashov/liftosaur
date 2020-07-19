@@ -127,6 +127,26 @@ export namespace Program {
     return programsList[name];
   }
 
+  export function getProgram(state: IState, id: string): IProgram2 | undefined {
+    return state.storage.programs.find((p) => p.id === id);
+  }
+
+  export function getEditingProgram(state: IState): IProgram2 | undefined {
+    return state.storage.programs.find((p) => p.id === state.editProgram?.id);
+  }
+
+  export function getEditingProgramIndex(state: IState): number {
+    return state.storage.programs.findIndex((p) => p.id === state.editProgram?.id);
+  }
+
+  export function getEditingDay(state: IState): IProgramDay2 | undefined {
+    return state.storage.programs.find((p) => p.id === state.editProgram?.id)?.days?.[state.editProgram?.dayIndex || 0];
+  }
+
+  export function getProgramIndex(state: IState, id: string): number {
+    return state.storage.programs.findIndex((p) => p.id === id);
+  }
+
   export function all(): IProgram[] {
     return ObjectUtils.keys(programsList).map((k) => programsList[k]);
   }
