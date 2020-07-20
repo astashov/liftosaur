@@ -4,13 +4,13 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { ProgramListView } from "./programList";
 import { useState } from "preact/hooks";
-import { IProgram2 } from "../models/program";
+import { IProgram } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 
 interface IProps {
   dispatch: IDispatch;
-  programs: IProgram2[];
-  customPrograms: IProgram2[];
+  programs: IProgram[];
+  customPrograms: IProgram[];
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {

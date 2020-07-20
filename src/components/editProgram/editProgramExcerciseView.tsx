@@ -1,12 +1,12 @@
 import { h, JSX } from "preact";
-import { IProgramDayEntry2 } from "../../models/program";
+import { IProgramDayEntry } from "../../models/program";
 import { Excercise } from "../../models/excercise";
 import { IconDelete } from "../iconDelete";
 import { IDispatch } from "../../ducks/types";
 import { EditProgram } from "../../models/editProgram";
 
 interface IProps {
-  entry: IProgramDayEntry2;
+  entry: IProgramDayEntry;
   programIndex: number;
   dayIndex: number;
   dispatch: IDispatch;

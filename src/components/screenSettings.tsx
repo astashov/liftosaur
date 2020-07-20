@@ -8,7 +8,7 @@ import { Thunk } from "../ducks/thunks";
 interface IProps {
   dispatch: IDispatch;
   email?: string;
-  currentProgram?: string;
+  currentProgramName?: string;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -25,7 +25,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           shouldShowRightArrow={true}
           name="Choose Program"
-          value={props.currentProgram}
+          value={props.currentProgramName}
           onClick={() => {
             props.dispatch({ type: "PushScreen", screen: "programs" });
           }}

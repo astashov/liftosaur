@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
-import { IProgram2 } from "../../models/program";
+import { IProgram } from "../../models/program";
 import { FooterView } from "../footer";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { useRef, useState } from "preact/hooks";
@@ -13,7 +13,7 @@ import { GroupHeader } from "../groupHeader";
 
 interface IProps {
   dispatch: IDispatch;
-  editProgram: IProgram2;
+  editProgram: IProgram;
   programIndex: number;
 }
 

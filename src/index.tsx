@@ -11,7 +11,7 @@ if ("serviceWorker" in navigator) {
 
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
-IDB.get("liftosaur").then((loadedData) => {
-  const initialState = getInitialState(loadedData as string | undefined);
+IDB.get("liftosaur").then(async (loadedData) => {
+  const initialState = await getInitialState(client, loadedData as string | undefined);
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
 });

@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram2 } from "../../models/program";
+import { IProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
@@ -14,7 +14,7 @@ import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 
 interface IProps {
-  editProgram: IProgram2;
+  editProgram: IProgram;
   programIndex: number;
   dayIndex: number;
   dispatch: IDispatch;

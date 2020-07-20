@@ -3,7 +3,7 @@ import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IWebpushr, IState } from "../ducks/reducer";
-import { IProgram2 } from "../models/program";
+import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { Screen } from "../models/screen";
@@ -18,7 +18,7 @@ import { ISettings } from "../models/settings";
 import { lb } from "../utils/lens";
 
 interface IProps {
-  programs: IProgram2[];
+  programs: IProgram[];
   progress: IHistoryRecord;
   history: IHistoryRecord[];
   stats: IStats;

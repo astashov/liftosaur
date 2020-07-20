@@ -1,12 +1,12 @@
 import { lb } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import { IProgramDayEntry2 } from "./program";
+import { IProgramDayEntry } from "./program";
 import { IDispatch } from "../ducks/types";
 
 export namespace EditProgram {
   export function removeEntry(
     dispatch: IDispatch,
-    entry: IProgramDayEntry2,
+    entry: IProgramDayEntry,
     programIndex: number,
     dayIndex: number
   ): void {

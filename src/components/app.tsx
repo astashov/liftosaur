@@ -45,7 +45,7 @@ export function AppView(props: IProps): JSX.Element | null {
     dispatch(Thunk.googleOauthInitialize());
     dispatch(Thunk.fetchStorage());
     dispatch(Thunk.fetchPrograms());
-    if (state.storage.currentProgram2Id == null) {
+    if (state.storage.currentProgramId == null) {
       setShouldShowOnboarding(true);
     }
   }, []);
@@ -63,7 +63,7 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "main") {
     const program =
-      state.storage.currentProgram2Id != null ? Program.getProgram(state, state.storage.currentProgram2Id) : undefined;
+      state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
     if (program != null) {
       return (
         <ProgramHistoryView
@@ -95,7 +95,13 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "settings") {
-    return <ScreenSettings dispatch={dispatch} email={state.email} currentProgram={state.storage.currentProgram2Id} />;
+    return (
+      <ScreenSettings
+        dispatch={dispatch}
+        email={state.email}
+        currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "account") {
     return <ScreenAccount dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {

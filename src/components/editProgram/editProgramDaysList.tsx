@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgram2 } from "../../models/program";
+import { IProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
@@ -14,7 +14,7 @@ import { IconDelete } from "../iconDelete";
 import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
-  editProgram: IProgram2;
+  editProgram: IProgram;
   programIndex: number;
   dispatch: IDispatch;
 }

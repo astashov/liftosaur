@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram2 } from "../models/program";
+import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
@@ -11,8 +11,8 @@ import { IStats } from "../models/stats";
 import { ISettings } from "../models/settings";
 
 interface IProps {
-  program: IProgram2;
-  programs: IProgram2[];
+  program: IProgram;
+  programs: IProgram[];
   progress?: IHistoryRecord;
   stats: IStats;
   history: IHistoryRecord[];

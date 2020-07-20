@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Program, IProgram2 } from "../models/program";
+import { Program, IProgram } from "../models/program";
 import { Button } from "./button";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
@@ -13,8 +13,8 @@ import { HtmlUtils } from "../utils/html";
 
 interface IProps {
   onCreateProgram: () => void;
-  programs: IProgram2[];
-  customPrograms?: IProgram2[];
+  programs: IProgram[];
+  customPrograms?: IProgram[];
   dispatch: IDispatch;
 }
 
@@ -34,7 +34,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                   props.dispatch({
                     type: "UpdateState",
                     lensRecording: [
-                      lb<IState>().p("storage").p("currentProgram2Id").record(program.id),
+                      lb<IState>().p("storage").p("currentProgramId").record(program.id),
                       lb<IState>()
                         .p("screenStack")
                         .recordModify((s) => Screen.push(s, "main")),

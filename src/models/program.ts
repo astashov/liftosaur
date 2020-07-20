@@ -10,23 +10,23 @@ import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 
-export const TProgramDayEntry2 = t.type(
+export const TProgramDayEntry = t.type(
   {
     excercise: TExcerciseType,
     sets: t.array(TProgramSet),
   },
-  "TProgramDayEntry2"
+  "TProgramDayEntry"
 );
-export type IProgramDayEntry2 = t.TypeOf<typeof TProgramDayEntry2>;
+export type IProgramDayEntry = t.TypeOf<typeof TProgramDayEntry>;
 
-export const TProgramDay2 = t.type(
+export const TProgramDay = t.type(
   {
     name: t.string,
-    excercises: t.array(TProgramDayEntry2),
+    excercises: t.array(TProgramDayEntry),
   },
-  "TProgramDay2"
+  "TProgramDay"
 );
-export type IProgramDay2 = t.TypeOf<typeof TProgramDay2>;
+export type IProgramDay = t.TypeOf<typeof TProgramDay>;
 
 export const TProgramInternalState = t.type(
   {
@@ -36,27 +36,26 @@ export const TProgramInternalState = t.type(
 );
 export type IProgramInternalState = t.TypeOf<typeof TProgramInternalState>;
 
-export const TProgram2 = t.type(
+export const TProgram = t.type(
   {
-    isProgram2: t.boolean,
     id: t.string,
     name: t.string,
     description: t.string,
-    days: t.array(TProgramDay2),
+    days: t.array(TProgramDay),
     state: t.dictionary(t.string, t.number),
     internalState: TProgramInternalState,
     finishDayExpr: t.string,
   },
-  "TProgram2"
+  "TProgram"
 );
-export type IProgram2 = t.TypeOf<typeof TProgram2>;
+export type IProgram = t.TypeOf<typeof TProgram>;
 
 export namespace Program {
-  export function getProgram(state: IState, id: string): IProgram2 | undefined {
+  export function getProgram(state: IState, id?: string): IProgram | undefined {
     return state.storage.programs.find((p) => p.id === id);
   }
 
-  export function getEditingProgram(state: IState): IProgram2 | undefined {
+  export function getEditingProgram(state: IState): IProgram | undefined {
     return state.storage.programs.find((p) => p.id === state.editProgram?.id);
   }
 
@@ -64,7 +63,7 @@ export namespace Program {
     return state.storage.programs.findIndex((p) => p.id === state.editProgram?.id);
   }
 
-  export function getEditingDay(state: IState): IProgramDay2 | undefined {
+  export function getEditingDay(state: IState): IProgramDay | undefined {
     return state.storage.programs.find((p) => p.id === state.editProgram?.id)?.days?.[state.editProgram?.dayIndex || 0];
   }
 
@@ -72,14 +71,14 @@ export namespace Program {
     return state.storage.programs.findIndex((p) => p.id === id);
   }
 
-  export function createDay(name: string): IProgramDay2 {
+  export function createDay(name: string): IProgramDay {
     return {
       name,
       excercises: [],
     };
   }
 
-  export function nextProgramRecord(program: IProgram2, settings: ISettings): IHistoryRecord {
+  export function nextProgramRecord(program: IProgram, settings: ISettings): IHistoryRecord {
     const day = program.internalState.nextDay || 1;
     const programDay = program.days[day - 1];
     return {
@@ -113,7 +112,7 @@ export namespace Program {
     };
   }
 
-  export function cloneProgram2(dispatch: IDispatch, program: IProgram2): void {
+  export function cloneProgram2(dispatch: IDispatch, program: IProgram): void {
     updateState(dispatch, [
       lb<IState>()
         .p("storage")
@@ -141,13 +140,13 @@ export namespace Program {
     updateState(dispatch, selectProgram2LensRecordings(programId));
   }
 
-  export function nextDay(program: IProgram2, day?: number): number {
+  export function nextDay(program: IProgram, day?: number): number {
     return (day != null ? day % program.days.length : 0) + 1;
   }
 
   function selectProgram2LensRecordings(programId: string): ILensRecordingPayload<IState>[] {
     return [
-      lb<IState>().p("storage").p("currentProgram2Id").record(programId),
+      lb<IState>().p("storage").p("currentProgramId").record(programId),
       lb<IState>()
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "main")),

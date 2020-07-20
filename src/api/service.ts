@@ -1,5 +1,5 @@
 import { IStorage } from "../ducks/reducer";
-import { IProgram2 } from "../models/program";
+import { IProgram } from "../models/program";
 
 export interface IGetStorageResponse {
   email: string;
@@ -52,7 +52,7 @@ export class Service {
     this.client(`${__API_HOST__}/timernotification?sid=${sid}`, { method: "POST" });
   }
 
-  public async publishProgram(program: IProgram2): Promise<void> {
+  public async publishProgram(program: IProgram): Promise<void> {
     // TODO: Cover with API key
     await this.client(`${__API_HOST__}/api/publishprogram`, {
       method: "POST",
@@ -61,10 +61,10 @@ export class Service {
     });
   }
 
-  public programs(): Promise<IProgram2[]> {
+  public programs(): Promise<IProgram[]> {
     // TODO: Cover with API key
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
-      .then((json) => json.programs.map((p: { program: IProgram2 }) => p.program));
+      .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
   }
 }

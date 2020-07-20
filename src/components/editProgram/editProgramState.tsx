@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { IProgram2 } from "../../models/program";
+import { IProgram } from "../../models/program";
 import { ObjectUtils } from "../../utils/object";
 import { MenuItemEditable } from "../menuItemEditable";
 import { lb } from "../../utils/lens";
@@ -8,7 +8,7 @@ import { IState } from "../../ducks/reducer";
 import { Button } from "../button";
 
 interface IProps {
-  editProgram: IProgram2;
+  editProgram: IProgram;
   programIndex: number;
   dispatch: IDispatch;
   onAddStateVariable: () => void;

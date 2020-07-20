@@ -1,5 +1,5 @@
 import { Reducer } from "preact/hooks";
-import { Program, TProgram2, IProgram2, IProgramInternalState } from "../models/program";
+import { Program, TProgram, IProgram, IProgramInternalState } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
@@ -35,7 +35,7 @@ export type IEnv = {
 export interface IState {
   email?: string;
   storage: IStorage;
-  programs: IProgram2[];
+  programs: IProgram[];
   webpushr?: IWebpushr;
   screenStack: IScreen[];
   currentHistoryRecord?: number;
@@ -52,9 +52,9 @@ export const TStorage = t.type(
     stats: TStats,
     history: t.array(THistoryRecord),
     settings: TSettings,
-    currentProgram2Id: t.union([t.string, t.undefined]),
+    currentProgramId: t.union([t.string, t.undefined]),
     version: t.string,
-    programs: t.array(TProgram2),
+    programs: t.array(TProgram),
   },
   "TStorage"
 );
@@ -73,7 +73,7 @@ export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPa
   dispatch({ type: "UpdateState", lensRecording });
 }
 
-export function getInitialState(rawStorage?: string): IState {
+export async function getInitialState(client: Window["fetch"], rawStorage?: string): Promise<IState> {
   if (rawStorage == null) {
     rawStorage = window.localStorage.getItem("liftosaur") || undefined;
   }
@@ -86,12 +86,12 @@ export function getInitialState(rawStorage?: string): IState {
     }
   }
   if (storage != null && storage.storage != null) {
-    const finalStorage = runMigrations(storage.storage);
+    const finalStorage = await runMigrations(client, storage.storage);
     validateStorage(finalStorage, TStorage, "storage");
     const isProgressValid =
       storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
 
-    const screenStack: IScreen[] = finalStorage.currentProgram2Id ? ["main"] : ["programs"];
+    const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["programs"];
 
     return {
       storage: finalStorage,
@@ -110,7 +110,7 @@ export function getInitialState(rawStorage?: string): IState {
       stats: {
         excercises: {},
       },
-      currentProgram2Id: undefined,
+      currentProgramId: undefined,
       settings: {
         plates: [
           { weight: 45, num: 4 },
@@ -363,9 +363,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         currentHistoryRecord: progress.id,
         screenStack: Screen.push(state.screenStack, "progress"),
       };
-    } else if (state.storage.currentProgram2Id != null) {
+    } else if (state.storage.currentProgramId != null) {
       // TODO: What if the program is missing?
-      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgram2Id)!;
+      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
       const newProgress = Program.nextProgramRecord(program, state.storage.settings);
       return {
         ...state,
@@ -505,7 +505,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
         },
         stats: newStorage.stats,
-        currentProgram2Id: newStorage.currentProgram2Id,
+        currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,
         programs: newStorage.programs,

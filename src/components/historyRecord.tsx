@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet } from "../models/set";
 import { IHistoryRecord } from "../models/history";
-import { IProgram2 } from "../models/program";
+import { IProgram } from "../models/program";
 import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
@@ -12,7 +12,7 @@ import { Progress } from "../models/progress";
 interface IProps {
   historyRecord: IHistoryRecord;
   dispatch: IDispatch;
-  programs: IProgram2[];
+  programs: IProgram[];
 }
 
 export function HistoryRecordView(props: IProps): JSX.Element {
