@@ -192,14 +192,11 @@ async function publishProgramHandler(request: Request): Promise<Response> {
 }
 
 async function getProgramsHandler(request: Request): Promise<Response> {
-  const keys = (await kv_liftosaur_published_programs.list()).keys;
-  console.log(keys);
+  const keys = (await kv_liftosaur_programs.list()).keys;
   const groups = CollectionUtils.inGroupsOf(100, keys);
   let programs: unknown[] = [];
   for (const group of groups) {
-    programs = programs.concat(
-      await Promise.all(group.map((key) => kv_liftosaur_published_programs.get(key.name, "json")))
-    );
+    programs = programs.concat(await Promise.all(group.map((key) => kv_liftosaur_programs.get(key.name, "json"))));
   }
   return new Response(JSON.stringify({ programs }), { headers: getHeaders(request) });
 }

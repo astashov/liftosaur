@@ -12,6 +12,7 @@ import { HtmlUtils } from "../utils/html";
 
 interface IProps {
   onCreateProgram: () => void;
+  onSelectProgram: (id: string) => void;
   programs: IProgram[];
   customPrograms?: IProgram[];
   dispatch: IDispatch;
@@ -76,18 +77,7 @@ export function ProgramListView(props: IProps): JSX.Element {
         <Fragment>
           <GroupHeader name="Programs to clone from" />
           {programs.map((program) => (
-            <button
-              className="w-full p-4 border-b border-gray-200"
-              onClick={() => {
-                if (
-                  confirm(
-                    `Do you want to clone the program ${program.name}? After cloning you'll be able to select it and follow it.`
-                  )
-                ) {
-                  Program.cloneProgram2(props.dispatch, program);
-                }
-              }}
-            >
+            <button className="w-full p-4 border-b border-gray-200" onClick={() => props.onSelectProgram(program.id)}>
               {program.name}
             </button>
           ))}

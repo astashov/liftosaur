@@ -6,14 +6,14 @@ import { Service } from "../api/service";
 import { CollectionUtils } from "../utils/collection";
 
 let latestMigrationVersion: number | undefined;
-export function getLatestMigrationVersion(): number {
+export function getLatestMigrationVersion(): string {
   if (latestMigrationVersion == null) {
     latestMigrationVersion = CollectionUtils.sort(
       Object.keys(migrations).map((v) => parseInt(v, 10)),
       (a, b) => b - a
     )[0];
   }
-  return latestMigrationVersion;
+  return latestMigrationVersion.toString();
 }
 
 export const migrations = {
@@ -40,6 +40,9 @@ export const migrations = {
   },
   "20200721221513_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (aStorage.programs.length > 0) {
+      return storage;
+    }
     const storageAny: any = storage;
 
     const service = new Service(client);

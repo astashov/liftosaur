@@ -41,6 +41,8 @@ export const TProgram = t.type(
     id: t.string,
     name: t.string,
     description: t.string,
+    url: t.string,
+    author: t.string,
     days: t.array(TProgramDay),
     state: t.dictionary(t.string, t.number),
     internalState: TProgramInternalState,
@@ -112,7 +114,7 @@ export namespace Program {
     };
   }
 
-  export function cloneProgram2(dispatch: IDispatch, program: IProgram): void {
+  export function cloneProgram(dispatch: IDispatch, program: IProgram): void {
     updateState(dispatch, [
       lb<IState>()
         .p("storage")

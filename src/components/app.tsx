@@ -50,7 +50,13 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   }, []);
 
-  if (Screen.current(state.screenStack) === "programs") {
+  const program =
+    state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
+
+  if (
+    Screen.current(state.screenStack) === "programs" ||
+    (Screen.current(state.screenStack) === "main" && program == null)
+  ) {
     return (
       <Fragment>
         <ChooseProgramView
@@ -62,8 +68,6 @@ export function AppView(props: IProps): JSX.Element | null {
       </Fragment>
     );
   } else if (Screen.current(state.screenStack) === "main") {
-    const program =
-      state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
     if (program != null) {
       return (
         <ProgramHistoryView

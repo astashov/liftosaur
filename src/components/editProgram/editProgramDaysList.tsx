@@ -11,7 +11,6 @@ import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 import { HtmlUtils } from "../../utils/html";
 import { IconDelete } from "../iconDelete";
-import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
   editProgram: IProgram;
@@ -98,9 +97,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             </Button>
           </div>
           <div>
-            <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
+            {/* <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
               Publish
-            </Button>
+            </Button> */}
           </div>
         </div>
       </section>

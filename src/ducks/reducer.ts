@@ -53,7 +53,7 @@ export const TStorage = t.type(
     history: t.array(THistoryRecord),
     settings: TSettings,
     currentProgramId: t.union([t.string, t.undefined]),
-    version: t.number,
+    version: t.string,
     programs: t.array(TProgram),
   },
   "TStorage"
@@ -516,6 +516,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           isProgram2: true,
           id: action.name,
           name: action.name,
+          url: "",
+          author: "",
           description: action.name,
           days: [],
           state: {},
