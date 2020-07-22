@@ -12,7 +12,6 @@ import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
-import { DateUtils } from "../utils/date";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "../utils/lens";
 import { ISettings, TSettings } from "../models/settings";
@@ -22,6 +21,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
 import { ScriptRunner } from "../parser";
 import { IDispatch } from "./types";
+import { getLatestMigrationVersion } from "../migrations/migrations";
 
 declare let Rollbar: RB;
 
@@ -53,7 +53,7 @@ export const TStorage = t.type(
     history: t.array(THistoryRecord),
     settings: TSettings,
     currentProgramId: t.union([t.string, t.undefined]),
-    version: t.string,
+    version: t.number,
     programs: t.array(TProgram),
   },
   "TStorage"
@@ -135,7 +135,7 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
         },
       },
       history: [],
-      version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
+      version: getLatestMigrationVersion(),
       programs: [],
     },
   };
@@ -314,7 +314,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     newState.storage = {
       ...newState.storage,
       id: (newState.storage.id || 0) + 1,
-      version: DateUtils.formatYYYYMMDDHHMM(Date.now()),
+      version: getLatestMigrationVersion(),
     };
   }
   const localStorage: ILocalStorage = {

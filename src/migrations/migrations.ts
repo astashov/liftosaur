@@ -3,6 +3,18 @@
 import { IStorage } from "../ducks/reducer";
 import { lf } from "../utils/lens";
 import { Service } from "../api/service";
+import { CollectionUtils } from "../utils/collection";
+
+let latestMigrationVersion: number | undefined;
+export function getLatestMigrationVersion(): number {
+  if (latestMigrationVersion == null) {
+    latestMigrationVersion = CollectionUtils.sort(
+      Object.keys(migrations).map((v) => parseInt(v, 10)),
+      (a, b) => b - a
+    )[0];
+  }
+  return latestMigrationVersion;
+}
 
 export const migrations = {
   "20200604235900_add_bar_weights": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
@@ -26,9 +38,8 @@ export const migrations = {
     });
     return storage;
   },
-  "20200719184500_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20200721221513_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    console.log(aStorage);
     const storageAny: any = storage;
 
     const service = new Service(client);
