@@ -113,10 +113,12 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "graphs") {
     return <ScreenGraphs dispatch={dispatch} history={state.storage.history} stats={state.storage.stats} />;
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
-    const editProgram = Program.getEditingProgram(state);
+    let editProgram = Program.getEditingProgram(state);
+    editProgram = Program.getProgram(state, state.progress[0]?.programId);
     if (editProgram != null) {
       return (
         <ScreenEditProgram
+          editDay={state.editDay}
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}

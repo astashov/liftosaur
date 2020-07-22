@@ -2,11 +2,10 @@ import { h, JSX } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { IWebpushr, IState } from "../ducks/reducer";
+import { IWebpushr } from "../ducks/reducer";
 import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
-import { Screen } from "../models/screen";
 import { IStats } from "../models/stats";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
@@ -15,7 +14,7 @@ import { Timer } from "./timer";
 import { IProgressMode, Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { ISettings } from "../models/settings";
-import { lb } from "../utils/lens";
+import { IconEdit } from "./iconEdit";
 
 interface IProps {
   programs: IProgram[];
@@ -98,20 +97,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         <FooterView
           dispatch={props.dispatch}
           buttons={
-            <button
-              onClick={() => {
-                props.dispatch({
-                  type: "UpdateState",
-                  lensRecording: [
-                    lb<IState>().p("editProgram").record({ id: currentProgram.id }),
-                    lb<IState>()
-                      .p("screenStack")
-                      .recordModify((s) => Screen.push(s, "editProgram")),
-                  ],
-                });
-              }}
-            >
-              Edit
+            <button className="p-4" onClick={() => Progress.editDayAction(props.dispatch)}>
+              <IconEdit />
             </button>
           }
         />

@@ -136,12 +136,21 @@ export namespace Program {
     ]);
   }
 
-  export function selectProgram2(dispatch: IDispatch, programId: string): void {
+  export function selectProgram(dispatch: IDispatch, programId: string): void {
     updateState(dispatch, selectProgram2LensRecordings(programId));
   }
 
   export function nextDay(program: IProgram, day?: number): number {
     return (day != null ? day % program.days.length : 0) + 1;
+  }
+
+  export function editAction(dispatch: IDispatch, id: string): void {
+    updateState(dispatch, [
+      lb<IState>().p("editProgram").record({ id }),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((s) => Screen.push(s, "editProgram")),
+    ]);
   }
 
   function selectProgram2LensRecordings(programId: string): ILensRecordingPayload<IState>[] {

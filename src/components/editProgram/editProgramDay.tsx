@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram } from "../../models/program";
+import { IProgram, IProgramDay } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
@@ -10,13 +10,16 @@ import { IExcerciseType } from "../../models/excercise";
 import { IProgramSet } from "../../models/set";
 import { ModalEditSet } from "./modalEditSet";
 import { MenuItemEditable } from "../menuItemEditable";
-import { lb } from "../../utils/lens";
+import { LensBuilder } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
+import { EditProgram } from "../../models/editProgram";
+import { Button } from "../button";
 
 interface IProps {
+  isProgress: boolean;
   editProgram: IProgram;
-  programIndex: number;
-  dayIndex: number;
+  editDay: IProgramDay;
+  editDayLensBuilder: LensBuilder<IState, IProgramDay>;
   dispatch: IDispatch;
 }
 
@@ -26,7 +29,7 @@ export interface IEditSet {
 }
 
 export function EditProgramDay(props: IProps): JSX.Element {
-  const day = props.editProgram.days[props.dayIndex];
+  const day = props.editDay;
   const [shouldShowAddExcercise, setShouldShowAddExcercise] = useState(false);
   const [editSet, setEditSet] = useState<IEditSet | undefined>(undefined);
 
@@ -53,19 +56,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
             value={day.name}
             onChange={(newValue) => {
               if (newValue != null) {
-                props.dispatch({
-                  type: "UpdateState",
-                  lensRecording: [
-                    lb<IState>()
-                      .p("storage")
-                      .p("programs")
-                      .i(props.programIndex)
-                      .p("days")
-                      .i(props.dayIndex)
-                      .p("name")
-                      .record(newValue),
-                  ],
-                });
+                EditProgram.setDayName(props.dispatch, props.editDayLensBuilder, newValue);
               }
             }}
           />
@@ -73,23 +64,18 @@ export function EditProgramDay(props: IProps): JSX.Element {
             return (
               <EditProgramExcerciseView
                 entry={entry}
-                programIndex={props.programIndex}
-                dayIndex={props.dayIndex}
+                editDayLensBuilder={props.editDayLensBuilder}
                 dispatch={props.dispatch}
                 onEditSet={(setIndex) => {
                   if (setIndex == null && entry.sets.length > 0) {
                     const set = entry.sets[entry.sets.length - 1];
-                    props.dispatch({
-                      type: "EditDayAddSet",
-                      excerciseIndex: i,
-                      set,
-                    });
+                    EditProgram.addSet(props.dispatch, props.editDayLensBuilder, i, set);
                   } else {
                     setEditSet({ excerciseIndex: i, setIndex });
                   }
                 }}
                 onDeleteSet={(setIndex) => {
-                  props.dispatch({ type: "EditDayRemoveSet", excerciseIndex: i, setIndex });
+                  EditProgram.removeSet(props.dispatch, props.editDayLensBuilder, i, setIndex);
                 }}
               />
             );
@@ -103,13 +89,21 @@ export function EditProgramDay(props: IProps): JSX.Element {
         >
           +
         </button>
+
+        {props.isProgress && (
+          <div className="py-3 text-center">
+            <Button kind="green" onClick={() => props.dispatch({ type: "SaveProgressDay" })}>
+              Save
+            </Button>
+          </div>
+        )}
       </section>
       {shouldShowAddExcercise && (
         <ModalAddExcercise
           onSelect={(value) => {
             setShouldShowAddExcercise(false);
             if (value != null) {
-              props.dispatch({ type: "EditDayAddExcerciseAction", value: value as IExcerciseType });
+              EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, value as IExcerciseType);
             }
           }}
         />
@@ -122,12 +116,13 @@ export function EditProgramDay(props: IProps): JSX.Element {
           set={getSet(editSet)}
           onDone={(result) => {
             if (result != null) {
-              props.dispatch({
-                type: "EditDayAddSet",
-                excerciseIndex: editSet.excerciseIndex,
-                set: result,
-                setIndex: editSet.setIndex,
-              });
+              EditProgram.addSet(
+                props.dispatch,
+                props.editDayLensBuilder,
+                editSet.excerciseIndex,
+                result,
+                editSet.setIndex
+              );
             }
             setEditSet(undefined);
           }}

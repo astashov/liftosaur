@@ -1,13 +1,17 @@
 import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import { Reps } from "./set";
 import { IWeight, Weight } from "./weight";
+import { Screen } from "./screen";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
-import { lf } from "../utils/lens";
-import { IState } from "../ducks/reducer";
+import { lf, lb } from "../utils/lens";
+import { IState, updateState } from "../ducks/reducer";
 import { ObjectUtils } from "../utils/object";
 import * as t from "io-ts";
 import { ISettings } from "./settings";
+import { IDispatch } from "../ducks/types";
+import { IProgramDay, IProgram } from "./program";
+import { ScriptRunner } from "../parser";
 
 export const TProgressUi = t.partial(
   {
@@ -340,5 +344,57 @@ export namespace Progress {
     } else {
       return progress;
     }
+  }
+
+  export function editDayAction(dispatch: IDispatch): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((s) => Screen.push(s, "editProgressDay")),
+    ]);
+  }
+
+  export function applyProgramDay(
+    progress: IHistoryRecord,
+    program: IProgram,
+    programDay: IProgramDay,
+    settings: ISettings
+  ): IHistoryRecord {
+    const state = { ...program.internalState, ...program.state };
+    const day = progress.day;
+    return {
+      ...progress,
+      entries: programDay.excercises.map((dayEntry) => {
+        const progressEntry = progress.entries.find((e) => dayEntry.excercise === e.excercise);
+        if (progressEntry != null && dayEntry.sets.length === progressEntry.sets.length) {
+          return {
+            ...progressEntry,
+            excercise: dayEntry.excercise,
+            sets: progressEntry.sets.map((set, i) => ({
+              ...set,
+              reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings),
+              weight: executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings),
+            })),
+          };
+        } else {
+          const firstWeightExpr = dayEntry.sets[0]?.weightExpr;
+          const firstWeight =
+            firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings) : undefined;
+          return {
+            excercise: dayEntry.excercise,
+            sets: dayEntry.sets.map((set) => ({
+              reps: executeEntryScript(set.repsExpr, day, state, settings),
+              weight: executeEntryScript(set.weightExpr, day, state, settings),
+            })),
+            warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight) : [],
+          };
+        }
+      }),
+    };
+  }
+
+  function executeEntryScript(expr: string, day: number, state: Record<string, number>, settings: ISettings): number {
+    const runner = new ScriptRunner(expr, state, createEmptyScriptBindings(day), createScriptFunctions(settings));
+    return runner.execute(true);
   }
 }

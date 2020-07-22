@@ -1,14 +1,15 @@
 import { h, JSX } from "preact";
-import { IProgramDayEntry } from "../../models/program";
+import { IProgramDayEntry, IProgramDay } from "../../models/program";
 import { Excercise } from "../../models/excercise";
 import { IconDelete } from "../iconDelete";
 import { IDispatch } from "../../ducks/types";
 import { EditProgram } from "../../models/editProgram";
+import { LensBuilder } from "../../utils/lens";
+import { IState } from "../../ducks/reducer";
 
 interface IProps {
   entry: IProgramDayEntry;
-  programIndex: number;
-  dayIndex: number;
+  editDayLensBuilder: LensBuilder<IState, IProgramDay>;
   dispatch: IDispatch;
   onEditSet: (setIndex?: number) => void;
   onDeleteSet: (setIndex: number) => void;
@@ -21,7 +22,7 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
       <button
         className="absolute p-2"
         style={{ top: "0px", right: "0px" }}
-        onClick={() => EditProgram.removeEntry(props.dispatch, props.entry, props.programIndex, props.dayIndex)}
+        onClick={() => EditProgram.removeEntry(props.dispatch, props.editDayLensBuilder, props.entry)}
       >
         <IconDelete />
       </button>

@@ -8,7 +8,6 @@ import { IconEdit } from "./iconEdit";
 import { IDispatch } from "../ducks/types";
 import { lb } from "../utils/lens";
 import { IState } from "../ducks/reducer";
-import { Screen } from "../models/screen";
 import { HtmlUtils } from "../utils/html";
 
 interface IProps {
@@ -31,32 +30,14 @@ export function ProgramListView(props: IProps): JSX.Element {
               name={program.name}
               onClick={(e) => {
                 if (!HtmlUtils.classInParents(e.target as Element, "button")) {
-                  props.dispatch({
-                    type: "UpdateState",
-                    lensRecording: [
-                      lb<IState>().p("storage").p("currentProgramId").record(program.id),
-                      lb<IState>()
-                        .p("screenStack")
-                        .recordModify((s) => Screen.push(s, "main")),
-                    ],
-                  });
+                  Program.selectProgram(props.dispatch, program.id);
                 }
               }}
               value={
                 <Fragment>
                   <button
                     className="p-2 align-middle button"
-                    onClick={() => {
-                      props.dispatch({
-                        type: "UpdateState",
-                        lensRecording: [
-                          lb<IState>().p("editProgram").record({ id: program.id }),
-                          lb<IState>()
-                            .p("screenStack")
-                            .recordModify((s) => Screen.push(s, "editProgram")),
-                        ],
-                      });
-                    }}
+                    onClick={() => Program.editAction(props.dispatch, program.id)}
                   >
                     <IconEdit />
                   </button>

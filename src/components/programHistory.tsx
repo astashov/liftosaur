@@ -31,7 +31,15 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   return (
     <section className="h-full">
-      <HeaderView title={props.program.name} subtitle="Current program" />
+      <HeaderView
+        title={props.program.name}
+        subtitle="Current program"
+        right={
+          <button className="p-3" onClick={() => Program.editAction(props.dispatch, props.program.id)}>
+            Edit Program
+          </button>
+        }
+      />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <div className="py-3 text-center border-b border-gray-200">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>

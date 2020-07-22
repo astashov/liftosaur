@@ -9,10 +9,16 @@ export type IScreen =
   | "graphs"
   | "editProgram"
   | "editProgramDay"
+  | "editProgressDay"
   | "editProgramDayScript";
 
 export namespace Screen {
-  export const editProgramScreens: IScreen[] = ["editProgram", "editProgramDay", "editProgramDayScript"];
+  export const editProgramScreens: IScreen[] = [
+    "editProgram",
+    "editProgressDay",
+    "editProgramDay",
+    "editProgramDayScript",
+  ];
 
   export function current(stack: IScreen[]): IScreen {
     return stack[stack.length - 1];
