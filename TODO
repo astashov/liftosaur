@@ -8,8 +8,6 @@
   - Strong Curves
   - nSuns LP
 * Add errors handling to HTTP calls
-* Allow to swap excercises in progress view
-* Add custom program WYSIWYG builder
 * Support kilograms
 * Extract lens lib into a separate npm package
 * Add exporting all data to downloadable CSV
@@ -24,4 +22,4 @@
 * Add autocompletion of functions and bindings
 * Add syntax check for scripts on blur
 * Add playground to test scripts/days
-* Edit programs inline, without save buttons
+* Make sure it's safe to delete programs

@@ -38,7 +38,7 @@ export const migrations = {
     });
     return storage;
   },
-  "20200721221513_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20200722232050_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (aStorage.programs.length > 0) {
       return storage;
