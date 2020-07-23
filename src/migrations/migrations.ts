@@ -40,7 +40,7 @@ export const migrations = {
   },
   "20200722232050_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    if (aStorage.programs.length > 0) {
+    if (aStorage.programs != null && aStorage.programs.length > 0) {
       return storage;
     }
     const storageAny: any = storage;
