@@ -70,7 +70,7 @@ export const migrations = {
     }
     for (const historyRecord of storage.history) {
       if (historyRecord.programId === "the5314b") {
-        historyRecord.day = historyRecord.day % 10;
+        historyRecord.day = (historyRecord.day % 10) + 1;
       }
     }
     delete storageAny.programStates;
