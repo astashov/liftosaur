@@ -6,7 +6,7 @@ interface IMenuItemProps {
   name: string;
   value?: string | JSX.Element;
   shouldShowRightArrow?: boolean;
-  handleTouchStart?: (e: TouchEvent) => void;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   onClick?: (e: MouseEvent) => void;
 }
 
@@ -26,8 +26,8 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
     <MenuItemWrapper onClick={props.onClick}>
       <section className="flex items-center">
         {props.handleTouchStart && (
-          <div className="p-2" style={{ marginLeft: "-16px", touchAction: "none" }}>
-            <span onTouchStart={props.handleTouchStart}>
+          <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
+            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
               <IconHandle />
             </span>
           </div>

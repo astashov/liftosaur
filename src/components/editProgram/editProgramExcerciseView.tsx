@@ -11,7 +11,7 @@ import { IconHandle } from "../iconHandle";
 interface IProps {
   entry: IProgramDayEntry;
   editDayLensBuilder: LensBuilder<IState, IProgramDay>;
-  handleTouchStart?: (e: TouchEvent) => void;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   dispatch: IDispatch;
   onEditSet: (setIndex?: number) => void;
   onDeleteSet: (setIndex: number) => void;
@@ -30,8 +30,8 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
           <IconDelete />
         </button>
         <header className="flex items-center">
-          <div className="p-2" style={{ touchAction: "none" }}>
-            <span onTouchStart={props.handleTouchStart}>
+          <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
+            <span onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
               <IconHandle />
             </span>
           </div>

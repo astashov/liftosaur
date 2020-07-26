@@ -8,7 +8,7 @@ interface IData {
 
 interface IDraggableListProps<T> {
   items: T[];
-  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent) => void) => JSX.Element;
+  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   onDragEnd: (startIndex: number, endIndex: number) => void;
 }
 
@@ -131,18 +131,27 @@ interface IDraggableListItemProps<T> {
   onEnd: () => void;
   onHeightCalc: (height?: number) => void;
   currentHeight?: number;
-  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent) => void) => JSX.Element;
+  element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   item: T;
   index: number;
 }
 
+function getPointY(event: TouchEvent | MouseEvent): number {
+  if ("touches" in event) {
+    return event.touches[0].clientY;
+  } else {
+    return event.clientY;
+  }
+}
+
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
-  function handleTouchStart(es: TouchEvent): void {
-    function handleTouchMove(em: TouchEvent): void {
-      const pointY = em.touches[0].clientY + window.pageYOffset - shiftY;
+  function handleTouchStart(es: TouchEvent | MouseEvent): void {
+    function handleTouchMove(em: TouchEvent | MouseEvent): void {
+      const pointY = getPointY(em) + window.pageYOffset - shiftY;
       setY(pointY);
       props.onMove(pointY + Math.round(heightRef.current! / 2));
       window.document.addEventListener("touchend", handleTouchEnd);
+      window.document.addEventListener("mouseup", handleTouchEnd);
       statusRef.current = "move";
     }
     function handleTouchEnd(): void {
@@ -151,21 +160,26 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       setIsDragging(false);
       statusRef.current = undefined;
       window.document.removeEventListener("touchmove", handleTouchMove);
+      window.document.removeEventListener("mousemove", handleTouchMove);
       window.document.removeEventListener("touchend", handleTouchEnd);
+      window.document.removeEventListener("mouseup", handleTouchEnd);
     }
 
     window.document.removeEventListener("touchmove", handleTouchMove);
+    window.document.removeEventListener("mousemove", handleTouchMove);
     window.document.removeEventListener("touchend", handleTouchEnd);
+    window.document.removeEventListener("mouseup", handleTouchEnd);
     const elOffset = el.current!.offsetTop;
-    const shiftY = es.touches[0].clientY + window.pageYOffset - elOffset;
+    const shiftY = getPointY(es) + window.pageYOffset - elOffset;
     setIsDragging(true);
     statusRef.current = "start";
 
     setTimeout(() => {
-      const pointY = es.touches[0].clientY + window.pageYOffset - shiftY;
+      const pointY = getPointY(es) + window.pageYOffset - shiftY;
       props.onStart(pointY + Math.round(heightRef.current! / 2));
       setY(pointY);
       window.document.addEventListener("touchmove", handleTouchMove);
+      window.document.addEventListener("mousemove", handleTouchMove);
     }, 0);
   }
 
@@ -199,6 +213,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
     style = {
       top: 0,
       transform: `translateY(${y}px)`,
+      zIndex: 100,
       left: 0,
       borderWidth: "1px 0",
       touchAction: "none",
