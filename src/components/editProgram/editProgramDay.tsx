@@ -14,6 +14,7 @@ import { LensBuilder } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 import { EditProgram } from "../../models/editProgram";
 import { Button } from "../button";
+import { DraggableList } from "../draggableList";
 
 interface IProps {
   isProgress: boolean;
@@ -60,26 +61,33 @@ export function EditProgramDay(props: IProps): JSX.Element {
               }
             }}
           />
-          {day.excercises.map((entry, i) => {
-            return (
-              <EditProgramExcerciseView
-                entry={entry}
-                editDayLensBuilder={props.editDayLensBuilder}
-                dispatch={props.dispatch}
-                onEditSet={(setIndex) => {
-                  if (setIndex == null && entry.sets.length > 0) {
-                    const set = entry.sets[entry.sets.length - 1];
-                    EditProgram.addSet(props.dispatch, props.editDayLensBuilder, i, set);
-                  } else {
-                    setEditSet({ excerciseIndex: i, setIndex });
-                  }
-                }}
-                onDeleteSet={(setIndex) => {
-                  EditProgram.removeSet(props.dispatch, props.editDayLensBuilder, i, setIndex);
-                }}
-              />
-            );
-          })}
+          <DraggableList
+            items={day.excercises}
+            element={(entry, i, handleTouchStart) => {
+              return (
+                <EditProgramExcerciseView
+                  entry={entry}
+                  handleTouchStart={handleTouchStart}
+                  editDayLensBuilder={props.editDayLensBuilder}
+                  dispatch={props.dispatch}
+                  onEditSet={(setIndex) => {
+                    if (setIndex == null && entry.sets.length > 0) {
+                      const set = entry.sets[entry.sets.length - 1];
+                      EditProgram.addSet(props.dispatch, props.editDayLensBuilder, i, set);
+                    } else {
+                      setEditSet({ excerciseIndex: i, setIndex });
+                    }
+                  }}
+                  onDeleteSet={(setIndex) => {
+                    EditProgram.removeSet(props.dispatch, props.editDayLensBuilder, i, setIndex);
+                  }}
+                />
+              );
+            }}
+            onDragEnd={(startIndex, endIndex) => {
+              EditProgram.reorderExcercises(props.dispatch, props.editDayLensBuilder, startIndex, endIndex);
+            }}
+          />
         </section>
         <button
           className="w-full px-4 py-4 mb-2 text-center bg-gray-100 border border-gray-300 border-dashed rounded-lg"

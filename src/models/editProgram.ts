@@ -91,4 +91,20 @@ export namespace EditProgram {
         }),
     ]);
   }
+
+  export function reorderExcercises(
+    dispatch: IDispatch,
+    editDayLensBuilder: LensBuilder<IState, IProgramDay>,
+    startExcerciseIndex: number,
+    endExceciseIndex: number
+  ): void {
+    updateState(dispatch, [
+      editDayLensBuilder.p("excercises").recordModify((excercises) => {
+        const newExcercises = [...excercises];
+        const [excercisesToMove] = newExcercises.splice(startExcerciseIndex, 1);
+        newExcercises.splice(endExceciseIndex, 0, excercisesToMove);
+        return newExcercises;
+      }),
+    ]);
+  }
 }
