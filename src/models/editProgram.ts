@@ -1,4 +1,4 @@
-import { LensBuilder, lf } from "../utils/lens";
+import { LensBuilder, lf, lb } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
 import { IProgramDayEntry, IProgramDay } from "./program";
 import { IDispatch } from "../ducks/types";
@@ -68,6 +68,27 @@ export namespace EditProgram {
   ): void {
     updateState(dispatch, [
       editDayLensBuilder.p("excercises").recordModify((e) => [...e, { excercise: excerciseType, sets: [] }]),
+    ]);
+  }
+
+  export function reorderDays(
+    dispatch: IDispatch,
+    programIndex: number,
+    startDayIndex: number,
+    endDayIndex: number
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .i(programIndex)
+        .p("days")
+        .recordModify((days) => {
+          const newDays = [...days];
+          const [daysToMove] = newDays.splice(startDayIndex, 1);
+          newDays.splice(endDayIndex, 0, daysToMove);
+          return newDays;
+        }),
     ]);
   }
 }

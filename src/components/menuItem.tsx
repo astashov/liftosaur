@@ -1,10 +1,12 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { IconArrowRight } from "./iconArrowRight";
+import { IconHandle } from "./iconHandle";
 
 interface IMenuItemProps {
   name: string;
   value?: string | JSX.Element;
   shouldShowRightArrow?: boolean;
+  handleTouchStart?: (e: TouchEvent) => void;
   onClick?: (e: MouseEvent) => void;
 }
 
@@ -22,7 +24,14 @@ export function MenuItemWrapper(props: {
 export function MenuItem(props: IMenuItemProps): JSX.Element {
   return (
     <MenuItemWrapper onClick={props.onClick}>
-      <section className="flex">
+      <section className="flex items-center">
+        {props.handleTouchStart && (
+          <div className="p-2" style={{ marginLeft: "-16px", touchAction: "none" }}>
+            <span onTouchStart={props.handleTouchStart}>
+              <IconHandle />
+            </span>
+          </div>
+        )}
         <div className="flex items-center flex-1 py-2 text-left">{props.name}</div>
         <div className="flex-1 py-2 text-right">{props.value}</div>
         {props.shouldShowRightArrow && (

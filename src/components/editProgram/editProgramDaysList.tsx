@@ -11,6 +11,8 @@ import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 import { HtmlUtils } from "../../utils/html";
 import { IconDelete } from "../iconDelete";
+import { DraggableList } from "../draggableList";
+import { EditProgram } from "../../models/editProgram";
 
 interface IProps {
   editProgram: IProgram;
@@ -28,61 +30,70 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <GroupHeader name="Days" />
-        {props.editProgram.days.map((day, index) => (
-          <MenuItem
-            name={day.name}
-            onClick={(e) => {
-              if (!HtmlUtils.classInParents(e.target as Element, "button")) {
-                props.dispatch({ type: "EditDayAction", index });
-              }
-            }}
-            value={
-              <Fragment>
-                <button
-                  className="mr-2 align-middle button"
-                  onClick={() => {
-                    const newName = `${day.name} Copy`;
-                    props.dispatch({
-                      type: "UpdateState",
-                      lensRecording: [
-                        lb<IState>()
-                          .p("storage")
-                          .p("programs")
-                          .i(props.programIndex)
-                          .p("days")
-                          .recordModify((days) => {
-                            const newDays = [...days];
-                            newDays.push({ ...day, name: newName });
-                            return newDays;
-                          }),
-                      ],
-                    });
-                  }}
-                >
-                  <IconDuplicate />
-                </button>
-                <button
-                  className="align-middle button"
-                  onClick={() => {
-                    props.dispatch({
-                      type: "UpdateState",
-                      lensRecording: [
-                        lb<IState>()
-                          .p("storage")
-                          .p("programs")
-                          .i(props.programIndex)
-                          .p("days")
-                          .recordModify((days) => days.filter((d) => d !== day)),
-                      ],
-                    });
-                  }}
-                >
-                  <IconDelete />
-                </button>
-              </Fragment>
-            }
-          />
-        ))}
+        <DraggableList
+          onDragEnd={(startIndex, endIndex) => {
+            EditProgram.reorderDays(props.dispatch, props.programIndex, startIndex, endIndex);
+          }}
+          items={props.editProgram.days}
+          element={(day, index, handleTouchStart) => {
+            return (
+              <MenuItem
+                handleTouchStart={handleTouchStart}
+                name={day.name}
+                onClick={(e) => {
+                  if (!HtmlUtils.classInParents(e.target as Element, "button")) {
+                    props.dispatch({ type: "EditDayAction", index });
+                  }
+                }}
+                value={
+                  <Fragment>
+                    <button
+                      className="mr-2 align-middle button"
+                      onClick={() => {
+                        const newName = `${day.name} Copy`;
+                        props.dispatch({
+                          type: "UpdateState",
+                          lensRecording: [
+                            lb<IState>()
+                              .p("storage")
+                              .p("programs")
+                              .i(props.programIndex)
+                              .p("days")
+                              .recordModify((days) => {
+                                const newDays = [...days];
+                                newDays.push({ ...day, name: newName });
+                                return newDays;
+                              }),
+                          ],
+                        });
+                      }}
+                    >
+                      <IconDuplicate />
+                    </button>
+                    <button
+                      className="align-middle button"
+                      onClick={() => {
+                        props.dispatch({
+                          type: "UpdateState",
+                          lensRecording: [
+                            lb<IState>()
+                              .p("storage")
+                              .p("programs")
+                              .i(props.programIndex)
+                              .p("days")
+                              .recordModify((days) => days.filter((d) => d !== day)),
+                          ],
+                        });
+                      }}
+                    >
+                      <IconDelete />
+                    </button>
+                  </Fragment>
+                }
+              />
+            );
+          }}
+        />
         <MenuItemWrapper
           onClick={() => {
             props.dispatch({ type: "CreateDayAction" });
