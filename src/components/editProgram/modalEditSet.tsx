@@ -22,8 +22,8 @@ interface IProps {
 export function ModalEditSet(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.excercise);
   const amrapFieldRef = useRef<HTMLInputElement>();
-  const repsExprRef = useRef<string | undefined>(props.set?.repsExpr);
-  const weightExprRef = useRef<string | undefined>(props.set?.weightExpr);
+  const repsExprRef = useRef<string | undefined>(props.set?.repsExpr.trim());
+  const weightExprRef = useRef<string | undefined>(props.set?.weightExpr.trim());
   const isAmrapRef = useRef<boolean>(props.set?.isAmrap || false);
 
   const [repsResult, setRepsResult] = useState<IEither<number | undefined, string>>(validate(props.set?.repsExpr));
@@ -33,7 +33,7 @@ export function ModalEditSet(props: IProps): JSX.Element {
 
   function validate(script?: string): IEither<number | undefined, string> {
     try {
-      if (script != null) {
+      if (script) {
         const scriptRunnerReps = new ScriptRunner(
           script,
           props.state,
@@ -42,7 +42,7 @@ export function ModalEditSet(props: IProps): JSX.Element {
         );
         return { success: true, data: scriptRunnerReps.execute(true) };
       } else {
-        return { success: true, data: undefined };
+        return { success: false, error: "Empty expression" };
       }
     } catch (e) {
       if (e instanceof SyntaxError) {
@@ -54,8 +54,8 @@ export function ModalEditSet(props: IProps): JSX.Element {
   }
 
   function runValidations(): void {
-    setRepsResult(validate(repsExprRef.current));
-    setWeightResult(validate(weightExprRef.current));
+    setRepsResult(validate(repsExprRef.current?.trim()));
+    setWeightResult(validate(weightExprRef.current?.trim()));
   }
 
   return (

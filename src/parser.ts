@@ -318,7 +318,7 @@ class Evaluator {
       } else if (operator.value === "*") {
         return (evalLeft as number) * (evalRight as number);
       } else if (operator.value === "/") {
-        return (evalLeft as number) * (evalRight as number);
+        return (evalLeft as number) / (evalRight as number);
       } else if (operator.value === ">") {
         return (evalLeft as number) > (evalRight as number);
       } else if (operator.value === "<") {
