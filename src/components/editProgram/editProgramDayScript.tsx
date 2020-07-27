@@ -10,16 +10,50 @@ import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IState } from "../../ducks/reducer";
 import { lb } from "../../utils/lens";
 import { GroupHeader } from "../groupHeader";
+import { ISettings } from "../../models/settings";
+import { ScriptRunner } from "../../parser";
+import { Progress } from "../../models/progress";
 
 interface IProps {
   dispatch: IDispatch;
   editProgram: IProgram;
   programIndex: number;
+  dayIndex: number;
+  settings: ISettings;
 }
 
 export function EditProgramDayScript(props: IProps): JSX.Element {
   const scriptRef = useRef<string>(props.editProgram.finishDayExpr);
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
+  const [finishDayError, setFinishDayError] = useState<string | undefined>(undefined);
+
+  function validateFinishScript(value: string): boolean {
+    const scriptRunner = new ScriptRunner(
+      value,
+      props.editProgram.state,
+      Progress.createEmptyScriptBindings(props.dayIndex),
+      Progress.createScriptFunctions(props.settings)
+    );
+
+    let error: string | undefined = undefined;
+
+    try {
+      scriptRunner.parse();
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        error = e.message;
+        setFinishDayError(e.message);
+      } else {
+        throw e;
+      }
+    }
+    if (error == null) {
+      setFinishDayError(undefined);
+    }
+
+    return !error;
+  }
+
   return (
     <section className="h-full">
       <HeaderView
@@ -41,15 +75,22 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
           <GroupHeader name="Finish Day Script" />
           <MultiLineTextEditor
             state={props.editProgram.state}
-            onChange={(newValue) => (scriptRef.current = newValue || "")}
+            onChange={(newValue) => {
+              validateFinishScript(newValue);
+              scriptRef.current = newValue || "";
+            }}
+            result={finishDayError != null ? { success: false, error: finishDayError } : undefined}
             onBlur={(newValue) => {
-              const lensRecording = lb<IState>()
-                .p("storage")
-                .p("programs")
-                .i(props.programIndex)
-                .p("finishDayExpr")
-                .record(newValue);
-              props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
+              const isValid = validateFinishScript(newValue);
+              if (isValid) {
+                const lensRecording = lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .i(props.programIndex)
+                  .p("finishDayExpr")
+                  .record(newValue);
+                props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
+              }
             }}
             value={props.editProgram.finishDayExpr}
           />

@@ -61,6 +61,8 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   } else if (props.screen === "editProgramDayScript") {
     return (
       <EditProgramDayScript
+        dayIndex={props.dayIndex}
+        settings={props.settings}
         programIndex={props.programIndex}
         editProgram={props.editProgram}
         dispatch={props.dispatch}

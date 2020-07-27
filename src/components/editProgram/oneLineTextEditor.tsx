@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
+import { EvalResultInEditor } from "../evalResultInEditor";
 
 interface IProps {
   onChange?: (newValue: string) => void;
@@ -38,25 +39,7 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   return (
     <div>
       <div className={className} ref={divRef}></div>
-      {props.result && <Result result={props.result} />}
+      {props.result && <EvalResultInEditor result={props.result} />}
     </div>
   );
-}
-
-function Result(props: { result: IEither<number | undefined, string> }): JSX.Element {
-  if (props.result.success) {
-    return (
-      <span className="text-sm">
-        <span className="text-gray-500">Evaluation result: </span>
-        <span className="font-bold">{props.result.data}</span>
-      </span>
-    );
-  } else {
-    return (
-      <span className="text-sm">
-        <span className="text-red-500">Error: </span>
-        <span className="font-bold text-red-700">{props.result.error}</span>
-      </span>
-    );
-  }
 }
