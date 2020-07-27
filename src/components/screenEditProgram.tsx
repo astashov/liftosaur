@@ -7,6 +7,7 @@ import { IScreen } from "../models/screen";
 import { EditProgramDayScript } from "./editProgram/editProgramDayScript";
 import { lb } from "../utils/lens";
 import { IState } from "../ducks/reducer";
+import { ISettings } from "../models/settings";
 
 interface IProps {
   editProgram: IProgram;
@@ -15,6 +16,7 @@ interface IProps {
   dispatch: IDispatch;
   programIndex: number;
   dayIndex: number;
+  settings: ISettings;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
@@ -31,6 +33,8 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       const lensBuilder = lb<IState>().p("storage").p("programs").i(props.programIndex).p("days").i(props.dayIndex);
       return (
         <EditProgramDay
+          settings={props.settings}
+          dayIndex={props.dayIndex}
           isProgress={false}
           dispatch={props.dispatch}
           editDayLensBuilder={lensBuilder}
@@ -45,7 +49,9 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     const lensBuilder = lb<IState>().pi("editDay");
     return (
       <EditProgramDay
+        settings={props.settings}
         isProgress={true}
+        dayIndex={props.dayIndex}
         dispatch={props.dispatch}
         editDayLensBuilder={lensBuilder}
         editDay={props.editDay || props.editProgram.days[props.dayIndex]}

@@ -416,11 +416,15 @@ export class ScriptRunner {
     this.fns = fns;
   }
 
+  public parse(): IExpr {
+    const tokens = tokenize(this.script);
+    return new Parser(tokens, allRules).parse();
+  }
+
   public execute(shouldExpectNumber: true): number;
   public execute(shouldExpectNumber: false): number | boolean;
   public execute(shouldExpectNumber: unknown): unknown {
-    const tokens = tokenize(this.script);
-    const ast = new Parser(tokens, allRules).parse();
+    const ast = this.parse();
     const evaluator = new Evaluator(this.state, this.bindings, this.fns);
     const result = evaluator.evaluate(ast);
     if (!shouldExpectNumber || typeof result === "number") {

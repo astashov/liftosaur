@@ -1,15 +1,21 @@
 import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { IExcerciseType, Excercise } from "../../models/excercise";
 import { Modal } from "../modal";
 import { Button } from "../button";
 import { IProgramSet } from "../../models/set";
 import { OneLineTextEditor } from "./oneLineTextEditor";
+import { ScriptRunner } from "../../parser";
+import { Progress } from "../../models/progress";
+import { ISettings } from "../../models/settings";
+import { IEither } from "../../utils/types";
 
 interface IProps {
   excercise: IExcerciseType;
   state: Record<string, number>;
   onDone: (result?: IProgramSet) => void;
+  day: number;
+  settings: ISettings;
   set?: IProgramSet;
 }
 
@@ -19,6 +25,39 @@ export function ModalEditSet(props: IProps): JSX.Element {
   const repsExprRef = useRef<string | undefined>(props.set?.repsExpr);
   const weightExprRef = useRef<string | undefined>(props.set?.weightExpr);
   const isAmrapRef = useRef<boolean>(props.set?.isAmrap || false);
+
+  const [repsResult, setRepsResult] = useState<IEither<number | undefined, string>>(validate(props.set?.repsExpr));
+  const [weightResult, setWeightResult] = useState<IEither<number | undefined, string>>(
+    validate(props.set?.weightExpr)
+  );
+
+  function validate(script?: string): IEither<number | undefined, string> {
+    try {
+      if (script != null) {
+        const scriptRunnerReps = new ScriptRunner(
+          script,
+          props.state,
+          Progress.createEmptyScriptBindings(props.day),
+          Progress.createScriptFunctions(props.settings)
+        );
+        return { success: true, data: scriptRunnerReps.execute(true) };
+      } else {
+        return { success: true, data: undefined };
+      }
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  function runValidations(): void {
+    setRepsResult(validate(repsExprRef.current));
+    setWeightResult(validate(weightExprRef.current));
+  }
+
   return (
     <Modal style={{ width: "85%" }}>
       <h3 className="pb-2 font-bold text-center">{`${props.set ? "Edit Set" : "Add Set"} for ${excercise.name}`}</h3>
@@ -29,6 +68,10 @@ export function ModalEditSet(props: IProps): JSX.Element {
         <OneLineTextEditor
           state={props.state}
           value={props.set?.repsExpr}
+          result={repsResult}
+          onBlur={() => {
+            runValidations();
+          }}
           onChange={(value) => {
             repsExprRef.current = value;
           }}
@@ -39,6 +82,10 @@ export function ModalEditSet(props: IProps): JSX.Element {
         <OneLineTextEditor
           state={props.state}
           value={props.set?.weightExpr}
+          result={weightResult}
+          onBlur={() => {
+            runValidations();
+          }}
           onChange={(value) => {
             weightExprRef.current = value;
           }}
@@ -56,6 +103,7 @@ export function ModalEditSet(props: IProps): JSX.Element {
           <Button
             kind="green"
             type="submit"
+            disabled={(repsResult && !repsResult.success) || (weightResult && !weightResult.success)}
             onClick={() => {
               const result: IProgramSet = {
                 repsExpr: repsExprRef.current || "",

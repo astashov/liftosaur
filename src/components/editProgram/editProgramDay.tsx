@@ -15,9 +15,12 @@ import { IState } from "../../ducks/reducer";
 import { EditProgram } from "../../models/editProgram";
 import { Button } from "../button";
 import { DraggableList } from "../draggableList";
+import { ISettings } from "../../models/settings";
 
 interface IProps {
   isProgress: boolean;
+  dayIndex: number;
+  settings: ISettings;
   editProgram: IProgram;
   editDay: IProgramDay;
   editDayLensBuilder: LensBuilder<IState, IProgramDay>;
@@ -119,6 +122,8 @@ export function EditProgramDay(props: IProps): JSX.Element {
 
       {editSet && (
         <ModalEditSet
+          day={props.dayIndex}
+          settings={props.settings}
           state={props.editProgram.state}
           excercise={getExcercise(editSet)}
           set={getSet(editSet)}

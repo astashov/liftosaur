@@ -16,7 +16,6 @@
 * Fix completed criteria for AMRAP (they're now > 1, should be > reps)
 * Add autofocus on modal inputs
     
-* Add ability to drag-n-drop days and excercises.
 * Add ability to publish user programs
 * Fix autocompletion of state. vars
 * Add autocompletion of functions and bindings

@@ -102,7 +102,9 @@ export class CodeEditor {
       // now disallow adding newlines in the following simple way
       codemirror.on("beforeChange", (instance, change) => {
         const newtext = change.text.join("").replace(/\n/g, ""); // remove ALL \n !
-        change.update!(change.from, change.to, [newtext]);
+        if (change.update != null) {
+          change.update(change.from, change.to, [newtext]);
+        }
         return true;
       });
     }
