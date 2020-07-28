@@ -1,9 +1,7 @@
 import { JSX, h } from "preact";
-import { IProgram, IProgramInternalState, Program } from "../../models/program";
+import { IProgram, Program } from "../../models/program";
 import { IHistoryRecord } from "../../models/history";
 import { ISettings } from "../../models/settings";
-import { Progress } from "../../models/progress";
-import { ScriptRunner } from "../../parser";
 import { ObjectUtils } from "../../utils/object";
 
 interface IProps {
@@ -13,34 +11,12 @@ interface IProps {
 }
 
 export function FinishScriptStateChangesView(props: IProps): JSX.Element {
+  // TODO: Extract into function, so that errors show properly in multiline editor
   const { progress, program, settings } = props;
-  const bindings = Progress.createScriptBindings(progress);
-  const fns = Progress.createScriptFunctions(settings);
-  const newInternalState: IProgramInternalState = {
-    nextDay: Program.nextDay(program, program.internalState.nextDay),
-  };
-  const newState: Record<string, number> = { ...newInternalState, ...program.state };
+  const result = Program.runFinishDayScript(program, progress, settings);
 
-  let error: string | undefined;
-
-  try {
-    new ScriptRunner(program.finishDayExpr, newState, bindings, fns).execute(false);
-  } catch (e) {
-    if (e instanceof SyntaxError) {
-      error = e.message;
-    } else {
-      throw e;
-    }
-  }
-
-  if (error) {
-    return (
-      <span className="text-sm">
-        <span className="text-red-500">Error: </span>
-        <span className="font-bold text-red-700">{error}</span>
-      </span>
-    );
-  } else {
+  if (result.success) {
+    const newState = result.data;
     const oldState = { ...program.internalState, ...program.state };
     const diffState = ObjectUtils.keys(oldState).reduce<Record<string, string | undefined>>((memo, key) => {
       const oldValue = oldState[key];
@@ -57,6 +33,12 @@ export function FinishScriptStateChangesView(props: IProps): JSX.Element {
             {key}: <strong>{diffState[key]}</strong>
           </li>
         ))}
+      </ul>
+    );
+  } else {
+    return (
+      <ul className="px-6 py-4 text-sm">
+        <li></li>
       </ul>
     );
   }

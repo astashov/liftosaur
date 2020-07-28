@@ -4,15 +4,13 @@ import { HeaderView } from "../header";
 import { IProgram, Program } from "../../models/program";
 import { FooterView } from "../footer";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
-import { useState } from "preact/hooks";
+import { useState, useRef } from "preact/hooks";
 import { EditProgramState } from "./editProgramState";
 import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IState } from "../../ducks/reducer";
 import { lb } from "../../utils/lens";
 import { GroupHeader } from "../groupHeader";
 import { ISettings } from "../../models/settings";
-import { ScriptRunner } from "../../parser";
-import { Progress } from "../../models/progress";
 import { MenuItemEditable } from "../menuItemEditable";
 import { CardsPlayground } from "./cardsPlayground";
 import { IHistoryRecord } from "../../models/history";
@@ -27,36 +25,23 @@ interface IProps {
 }
 
 export function EditProgramDayScript(props: IProps): JSX.Element {
-  function validateFinishScript(value: string): boolean {
-    const scriptRunner = new ScriptRunner(
-      value,
-      props.editProgram.state,
-      Progress.createEmptyScriptBindings(props.dayIndex),
-      Progress.createScriptFunctions(props.settings)
-    );
-
-    let error: string | undefined = undefined;
-
-    try {
-      scriptRunner.parse();
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        error = e.message;
-        setFinishDayError(e.message);
-      } else {
-        throw e;
-      }
-    }
-    if (error == null) {
+  function validateFinishScript(value?: string): boolean {
+    const result =
+      progressRef.current != null
+        ? Program.runFinishDayScript(props.editProgram, progressRef.current, props.settings, value)
+        : Program.parseFinishDayScript(props.editProgram, props.dayIndex, props.settings, value);
+    if (result.success) {
       setFinishDayError(undefined);
+    } else {
+      setFinishDayError(result.error);
     }
-
-    return !error;
+    return result.success;
   }
 
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   const [finishDayError, setFinishDayError] = useState<string | undefined>(undefined);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(undefined);
+  const progressRef = useRef<IHistoryRecord | undefined>(undefined);
 
   return (
     <section className="h-full">
@@ -87,7 +72,10 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
             ]}
             onChange={(newValue) => {
               const v = parseInt(newValue || "", 10);
-              setProgress(isNaN(v) ? undefined : Program.nextProgramRecord(props.editProgram, props.settings, v + 1));
+              const p = isNaN(v) ? undefined : Program.nextProgramRecord(props.editProgram, props.settings, v + 1);
+              setProgress(p);
+              progressRef.current = p;
+              validateFinishScript();
             }}
           />
           {progress && (
@@ -96,7 +84,10 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
               program={props.editProgram}
               settings={props.settings}
               progress={progress}
-              setProgress={setProgress}
+              setProgress={(p) => {
+                setProgress(p);
+                progressRef.current = p;
+              }}
             />
           )}
           {progress && (
@@ -109,7 +100,6 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
           <MultiLineTextEditor
             state={props.editProgram.state}
             onChange={(newValue) => {
-              validateFinishScript(newValue);
               const isValid = validateFinishScript(newValue);
               if (isValid) {
                 const lensRecording = lb<IState>()
@@ -122,7 +112,6 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
               }
             }}
             result={finishDayError != null ? { success: false, error: finishDayError } : undefined}
-            onBlur={(newValue) => {}}
             value={props.editProgram.finishDayExpr}
           />
         </section>

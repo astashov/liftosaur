@@ -1,5 +1,4 @@
 import CodeMirror, { StringStream } from "codemirror";
-import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/diff/diff";
 import "codemirror/addon/hint/show-hint";
 

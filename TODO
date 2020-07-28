@@ -20,6 +20,6 @@
 * Add ability to publish user programs
 * Fix autocompletion of state. vars
 * Add autocompletion of functions and bindings
-* Add syntax check for scripts on blur
+* Add changing program day when editing progress day
 * Make sure it's safe to delete programs
 * Make sure it's safe to add excercise with empty sets

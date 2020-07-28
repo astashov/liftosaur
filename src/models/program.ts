@@ -9,6 +9,7 @@ import { Screen } from "./screen";
 import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
+import { IEither } from "../utils/types";
 
 export const TProgramDayEntry = t.type(
   {
@@ -112,6 +113,60 @@ export namespace Program {
         };
       }),
     };
+  }
+
+  export function getState(program: IProgram): Record<string, number> {
+    return { ...program.internalState, ...program.state };
+  }
+
+  export function parseFinishDayScript(
+    program: IProgram,
+    dayIndex: number,
+    settings: ISettings,
+    script: string = program.finishDayExpr
+  ): IEither<unknown, string> {
+    const scriptRunner = new ScriptRunner(
+      script,
+      Program.getState(program),
+      Progress.createEmptyScriptBindings(dayIndex),
+      Progress.createScriptFunctions(settings)
+    );
+
+    try {
+      return { success: true, data: scriptRunner.parse() };
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  export function runFinishDayScript(
+    program: IProgram,
+    progress: IHistoryRecord,
+    settings: ISettings,
+    script: string = program.finishDayExpr
+  ): IEither<Record<string, number>, string> {
+    const bindings = Progress.createScriptBindings(progress);
+    const fns = Progress.createScriptFunctions(settings);
+    const newInternalState: IProgramInternalState = {
+      nextDay: Program.nextDay(program, program.internalState.nextDay),
+    };
+    const newState: Record<string, number> = { ...newInternalState, ...program.state };
+
+    try {
+      new ScriptRunner(script, newState, bindings, fns).execute(false);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+
+    return { success: true, data: newState };
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram): void {

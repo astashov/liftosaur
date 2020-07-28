@@ -353,9 +353,13 @@ class Evaluator {
       let match: RegExpExecArray | null;
       if ((match = /^state\.([a-zA-Z0-9]+)/.exec(variable))) {
         const stateKey = match[1];
-        const value = this.evaluate(expr.value);
-        this.state[stateKey] = value;
-        return value;
+        if (stateKey in this.state) {
+          const value = this.evaluate(expr.value);
+          this.state[stateKey] = value;
+          return value;
+        } else {
+          throw new SyntaxError(`Unknown state variable '${stateKey}'`);
+        }
       } else {
         throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
       }
@@ -382,7 +386,11 @@ class Evaluator {
       let match: RegExpExecArray | null;
       if ((match = /^state\.([a-zA-Z0-9]+)/.exec(value))) {
         const stateKey = match[1];
-        return this.state[stateKey];
+        if (stateKey in this.state) {
+          return this.state[stateKey];
+        } else {
+          throw new SyntaxError(`Unknown state variable '${stateKey}'`);
+        }
       } else if ((match = /^(w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
         const key = match[1] as "w" | "r" | "cr";
         const excerciseIndex = parseInt(match[2], 10) - 1;

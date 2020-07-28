@@ -127,7 +127,7 @@ export function AppView(props: IProps): JSX.Element | null {
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}
-          dayIndex={state.editProgram?.dayIndex || state.progress[0]?.day || 0}
+          dayIndex={state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0}
           editProgram={editProgram}
         />
       );
