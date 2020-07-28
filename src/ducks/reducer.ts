@@ -279,13 +279,12 @@ export type ISaveProgressDay = {
   type: "SaveProgressDay";
 };
 
+export type ICardsAction = IChangeRepsAction | IChangeWeightAction | IChangeAMRAPAction | IConfirmWeightAction;
+
 export type IAction =
-  | IChangeRepsAction
+  | ICardsAction
   | IStartProgramDayAction
   | IFinishProgramDayAction
-  | IChangeWeightAction
-  | IChangeAMRAPAction
-  | IConfirmWeightAction
   | IEditHistoryRecordAction
   | ICancelProgress
   | IDeleteProgress
@@ -337,14 +336,42 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   return newState;
 };
 
+export const cardsReducer: Reducer<IHistoryRecord, ICardsAction> = (progress, action): IHistoryRecord => {
+  switch (action.type) {
+    case "ChangeRepsAction": {
+      progress = Progress.updateRepsInExcercise(
+        progress,
+        action.excercise,
+        action.weight,
+        action.setIndex,
+        action.mode
+      );
+      if (Progress.isFullyFinishedSet(progress)) {
+        progress = Progress.stopTimer(progress);
+      }
+      return progress;
+    }
+    case "ChangeAMRAPAction": {
+      return Progress.updateAmrapRepsInExcercise(progress, action.value);
+    }
+    case "ChangeWeightAction": {
+      return Progress.showUpdateWeightModal(progress, action.excercise, action.weight);
+    }
+    case "ConfirmWeightAction": {
+      return Progress.updateWeight(progress, action.weight);
+    }
+  }
+};
+
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "ChangeRepsAction") {
-    let progress = Progress.getProgress(state)!;
-    progress = Progress.updateRepsInExcercise(progress, action.excercise, action.weight, action.setIndex, action.mode);
-    if (Progress.isFullyFinishedSet(progress)) {
-      progress = Progress.stopTimer(progress);
-    }
-    return Progress.setProgress(state, progress);
+    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+  } else if (action.type === "ChangeAMRAPAction") {
+    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+  } else if (action.type === "ChangeWeightAction") {
+    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+  } else if (action.type === "ConfirmWeightAction") {
+    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
   } else if (action.type === "StartProgramDayAction") {
     const progress = state.progress[0];
     if (progress != null) {
@@ -412,19 +439,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         progress: Progress.stop(state.progress, progress.id),
       };
     }
-  } else if (action.type === "ChangeAMRAPAction") {
-    return Progress.setProgress(state, Progress.updateAmrapRepsInExcercise(Progress.getProgress(state)!, action.value));
   } else if (action.type === "ChangeDate") {
     return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date));
   } else if (action.type === "ConfirmDate") {
     return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date));
-  } else if (action.type === "ChangeWeightAction") {
-    return Progress.setProgress(
-      state,
-      Progress.showUpdateWeightModal(Progress.getProgress(state)!, action.excercise, action.weight)
-    );
-  } else if (action.type === "ConfirmWeightAction") {
-    return Progress.setProgress(state, Progress.updateWeight(Progress.getProgress(state)!, action.weight));
   } else if (action.type === "StoreWebpushrSidAction") {
     return {
       ...state,

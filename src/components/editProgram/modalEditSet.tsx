@@ -69,11 +69,9 @@ export function ModalEditSet(props: IProps): JSX.Element {
           state={props.state}
           value={props.set?.repsExpr}
           result={repsResult}
-          onBlur={() => {
-            runValidations();
-          }}
           onChange={(value) => {
             repsExprRef.current = value;
+            runValidations();
           }}
         />
         <label for="edit_set_weight" className="block mt-2 text-sm font-bold">
@@ -83,11 +81,9 @@ export function ModalEditSet(props: IProps): JSX.Element {
           state={props.state}
           value={props.set?.weightExpr}
           result={weightResult}
-          onBlur={() => {
-            runValidations();
-          }}
           onChange={(value) => {
             weightExprRef.current = value;
+            runValidations();
           }}
         />
         <div className="mt-2">

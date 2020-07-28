@@ -80,8 +80,8 @@ export namespace Program {
     };
   }
 
-  export function nextProgramRecord(program: IProgram, settings: ISettings): IHistoryRecord {
-    const day = program.internalState.nextDay || 1;
+  export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
+    const day = dayIndex || program.internalState.nextDay || 1;
     const programDay = program.days[day - 1];
     return {
       id: 0,
