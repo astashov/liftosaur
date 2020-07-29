@@ -69,11 +69,65 @@ export class CodeEditor {
         codemirror.showHint({
           hint: (cm: CodeMirror.Editor): CodeMirror.Hints => {
             const cursor = cm.getCursor();
-            const currentToken = cm.getTokenTypeAt(cursor);
-            const previousToken = cm.getTokenTypeAt({ ch: cursor.ch - 1, line: cursor.line });
-            const list = currentToken === "dot" && previousToken === "state" ? Object.keys(this.state || {}) : [];
+            const end = cursor.ch;
+            let start = end;
+            let list: string[] = [];
+            if (start > 1) {
+              const lineContent = cm.getLine(cursor.line);
+              let previousChar = lineContent.slice(start - 1, start)[0];
+              let isFoundStateVar = false;
+              let isFoundKeyword = false;
+              if (
+                /[a-zA-Z]/.test(previousChar) &&
+                (lineContent.slice(start)[0] == null || /\s/.test(lineContent.slice(start)[0]))
+              ) {
+                while (start > 0) {
+                  if (previousChar === ".") {
+                    isFoundStateVar = true;
+                    break;
+                  } else if (/[^a-zA-Z]/.test(previousChar)) {
+                    isFoundKeyword = true;
+                    break;
+                  }
+                  start -= 1;
+                  previousChar = lineContent.slice(start - 1)[0];
+                }
+                if (isFoundStateVar) {
+                  if (cm.getTokenTypeAt({ ch: start - 1, line: cursor.line }) === "state") {
+                    list = Object.keys(this.state || {}).filter((k) => {
+                      const keyword = lineContent.slice(start, end);
+                      return k !== keyword && k.startsWith(keyword);
+                    });
+                  }
+                }
+                if (isFoundKeyword) {
+                  const keywords = [
+                    "state",
+                    "w",
+                    "weights",
+                    "r",
+                    "reps",
+                    "cr",
+                    "completedReps",
+                    "day",
+                    "roundWeight",
+                    "calculateTrainingMax",
+                  ];
+                  list = keywords.filter((k) => {
+                    const keyword = lineContent.slice(start, end);
+                    return k !== keyword && k.startsWith(keyword);
+                  });
+                }
+              } else if (
+                previousChar === "." &&
+                (lineContent.slice(start)[0] == null || /\s/.test(lineContent.slice(start)[0])) &&
+                cm.getTokenTypeAt({ ch: start - 2, line: cursor.line }) === "state"
+              ) {
+                list = Object.keys(this.state || {});
+              }
+            }
             return {
-              from: cursor,
+              from: { ch: start, line: cursor.line },
               to: cursor,
               list: list,
             };

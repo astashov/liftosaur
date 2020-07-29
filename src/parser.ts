@@ -391,8 +391,8 @@ class Evaluator {
         } else {
           throw new SyntaxError(`Unknown state variable '${stateKey}'`);
         }
-      } else if ((match = /^(w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
-        const key = match[1] as "w" | "r" | "cr";
+      } else if ((match = /^(weights|reps|completedReps|w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
+        const key = match[1] as "w" | "r" | "cr" | "weights" | "reps" | "completedReps";
         const excerciseIndex = parseInt(match[2], 10) - 1;
         const setIndex = parseInt(match[3], 10) - 1;
         return this.bindings[key][excerciseIndex][setIndex];
