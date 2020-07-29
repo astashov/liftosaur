@@ -67,7 +67,19 @@ export namespace EditProgram {
     excerciseType: IExcerciseType
   ): void {
     updateState(dispatch, [
-      editDayLensBuilder.p("excercises").recordModify((e) => [...e, { excercise: excerciseType, sets: [] }]),
+      editDayLensBuilder.p("excercises").recordModify((e) => [
+        ...e,
+        {
+          excercise: excerciseType,
+          sets: [
+            {
+              repsExpr: "5",
+              weightExpr: "0",
+              isAmrap: false,
+            },
+          ],
+        },
+      ]),
     ]);
   }
 

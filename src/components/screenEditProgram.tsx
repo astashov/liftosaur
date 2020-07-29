@@ -47,17 +47,21 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     }
   } else if (props.screen === "editProgressDay") {
     const lensBuilder = lb<IState>().pi("editDay");
-    return (
-      <EditProgramDay
-        settings={props.settings}
-        isProgress={true}
-        dayIndex={props.dayIndex}
-        dispatch={props.dispatch}
-        editDayLensBuilder={lensBuilder}
-        editDay={props.editDay || props.editProgram.days[props.dayIndex]}
-        editProgram={props.editProgram}
-      />
-    );
+    if (props.editDay != null) {
+      return (
+        <EditProgramDay
+          settings={props.settings}
+          isProgress={true}
+          dayIndex={props.dayIndex}
+          dispatch={props.dispatch}
+          editDayLensBuilder={lensBuilder}
+          editDay={props.editDay}
+          editProgram={props.editProgram}
+        />
+      );
+    } else {
+      throw new Error("Opened 'editProgressDay' screen, but 'state.editDay' is null");
+    }
   } else if (props.screen === "editProgramDayScript") {
     return (
       <EditProgramDayScript

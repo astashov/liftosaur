@@ -16,8 +16,6 @@
 * Fix completed criteria for AMRAP (they're now > 1, should be > reps)
 * Add autofocus on modal inputs
 * Add cookie banner
-    
 * Add ability to publish user programs
 * Add changing program day when editing progress day
-* Make sure it's safe to delete programs
-* Make sure it's safe to add excercise with empty sets
+* Versionize published programs

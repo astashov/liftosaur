@@ -308,6 +308,7 @@ export type IAction =
 let timerId: number | undefined = undefined;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
+  console.log(action);
   const newState = reducer(state, action);
   if (state.storage !== newState.storage) {
     newState.storage = {
@@ -413,25 +414,38 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
-      // TODO: What if program is missing?
+      let newPrograms = state.storage.programs;
       const program = state.storage.programs.find((p) => p.id === progress.programId)!;
-      const bindings = Progress.createScriptBindings(progress);
-      const fns = Progress.createScriptFunctions(state.storage.settings);
-      const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
-      const newInternalState: IProgramInternalState = {
-        nextDay: Program.nextDay(program, program.internalState.nextDay),
-      };
-      const allProgramState: Record<string, number> = { ...newInternalState, ...program.state };
-      new ScriptRunner(program.finishDayExpr, allProgramState, bindings, fns).execute(false);
-      const { nextDay, ...programState } = allProgramState;
+      if (Progress.isCurrent(progress) && program != null) {
+        const bindings = Progress.createScriptBindings(progress);
+        const fns = Progress.createScriptFunctions(state.storage.settings);
+        const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
+        const newInternalState: IProgramInternalState = {
+          nextDay: Program.nextDay(program, program.internalState.nextDay),
+        };
+        const allProgramState: Record<string, number> = { ...newInternalState, ...program.state };
+        try {
+          new ScriptRunner(program.finishDayExpr, allProgramState, bindings, fns).execute(false);
+          const { nextDay, ...programState } = allProgramState;
+          newPrograms = lf(state.storage.programs)
+            .i(programIndex)
+            .modify((p) => ({ ...p, state: programState, internalState: { nextDay } }));
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            alert(
+              `There's an error while executing Finish Day Script:\n\n${e.message}.\n\nState Variables won't be updated. Please fix the program's Finish Day Script.`
+            );
+          } else {
+            throw e;
+          }
+        }
+      }
       return {
         ...state,
         storage: {
           ...state.storage,
           history: newHistory,
-          programs: lf(state.storage.programs)
-            .i(programIndex)
-            .modify((p) => ({ ...p, state: programState, internalState: { nextDay } })),
+          programs: newPrograms,
         },
         screenStack: Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,
@@ -537,7 +551,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           url: "",
           author: "",
           description: action.name,
-          days: [],
+          days: [{ name: "Day 1", excercises: [] }],
           state: {},
           internalState: { nextDay: 1 },
           finishDayExpr: "",

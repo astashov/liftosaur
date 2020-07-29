@@ -19,7 +19,9 @@ export const THistoryRecord = t.intersection(
       // ISO8601, like 2020-02-29T18:02:05+00:00
       date: t.string,
       programId: t.string,
+      programName: t.string,
       day: t.number,
+      dayName: t.string,
       entries: t.array(THistoryEntry),
       startTime: t.number,
       id: t.number,

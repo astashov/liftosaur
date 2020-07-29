@@ -12,7 +12,6 @@ import { ISettings } from "../models/settings";
 
 interface IProps {
   program: IProgram;
-  programs: IProgram[];
   progress?: IHistoryRecord;
   stats: IStats;
   history: IHistoryRecord[];
@@ -35,9 +34,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         title={props.program.name}
         subtitle="Current program"
         right={
-          <button className="p-3" onClick={() => Program.editAction(props.dispatch, props.program.id)}>
-            Edit Program
-          </button>
+          props.progress == null ? (
+            <button className="p-3" onClick={() => Program.editAction(props.dispatch, props.program.id)}>
+              Edit Program
+            </button>
+          ) : undefined
         }
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
@@ -47,7 +48,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           </Button>
         </div>
         {history.map((historyRecord) => (
-          <HistoryRecordView programs={props.programs} historyRecord={historyRecord} dispatch={dispatch} />
+          <HistoryRecordView historyRecord={historyRecord} dispatch={dispatch} />
         ))}
       </section>
       <FooterView dispatch={props.dispatch} />

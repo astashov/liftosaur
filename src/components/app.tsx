@@ -63,6 +63,7 @@ export function AppView(props: IProps): JSX.Element | null {
           dispatch={dispatch}
           programs={state.programs || []}
           customPrograms={state.storage.programs || []}
+          editProgramId={state.progress[0]?.programId}
         />
         {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
       </Fragment>
@@ -72,7 +73,6 @@ export function AppView(props: IProps): JSX.Element | null {
       return (
         <ProgramHistoryView
           program={program}
-          programs={state.storage.programs}
           progress={state.progress?.[0]}
           settings={state.storage.settings}
           history={state.storage.history}
@@ -87,7 +87,6 @@ export function AppView(props: IProps): JSX.Element | null {
     const progress = state.progress[state.currentHistoryRecord!]!;
     return (
       <ProgramDayView
-        programs={state.storage.programs}
         progress={progress}
         history={state.storage.history}
         stats={state.storage.stats}
@@ -127,7 +126,7 @@ export function AppView(props: IProps): JSX.Element | null {
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}
-          dayIndex={state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0}
+          dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}
           editProgram={editProgram}
         />
       );

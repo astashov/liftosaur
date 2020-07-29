@@ -12,6 +12,7 @@ interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
   customPrograms: IProgram[];
+  editProgramId?: string;
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
@@ -29,6 +30,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         programs={props.programs}
         customPrograms={props.customPrograms}
         dispatch={props.dispatch}
+        editProgramId={props.editProgramId}
       />
       {program != null && (
         <ModalProgramInfo

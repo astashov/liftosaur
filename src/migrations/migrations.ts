@@ -77,4 +77,19 @@ export const migrations = {
 
     return storage;
   },
+  "20200728215253_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      const program = storage.programs.find((p) => p.id === historyRecord.programId);
+      if (program != null) {
+        const programDay = program.days[historyRecord.day - 1];
+        historyRecord.dayName = programDay?.name || `Day ${historyRecord.day}`;
+        historyRecord.programName = program.name;
+      } else {
+        historyRecord.dayName = `Day ${historyRecord.day}`;
+        historyRecord.programName = `Program ${historyRecord.programId}`;
+      }
+    }
+    return storage;
+  },
 };

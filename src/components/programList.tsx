@@ -16,6 +16,7 @@ interface IProps {
   programs: IProgram[];
   customPrograms?: IProgram[];
   dispatch: IDispatch;
+  editProgramId?: string;
 }
 
 export function ProgramListView(props: IProps): JSX.Element {
@@ -38,23 +39,33 @@ export function ProgramListView(props: IProps): JSX.Element {
                 <Fragment>
                   <button
                     className="p-2 align-middle button"
-                    onClick={() => Program.editAction(props.dispatch, program.id)}
+                    onClick={() => {
+                      if (props.editProgramId == null || props.editProgramId !== program.id) {
+                        Program.editAction(props.dispatch, program.id);
+                      } else {
+                        alert("You cannot edit the program while that program's workout is in progress");
+                      }
+                    }}
                   >
                     <IconEdit />
                   </button>
                   <button
                     className="p-2 align-middle button"
                     onClick={() => {
-                      if (confirm("Are you sure?")) {
-                        props.dispatch({
-                          type: "UpdateState",
-                          lensRecording: [
-                            lb<IState>()
-                              .p("storage")
-                              .p("programs")
-                              .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
-                          ],
-                        });
+                      if (props.editProgramId == null || props.editProgramId !== program.id) {
+                        if (confirm("Are you sure?")) {
+                          props.dispatch({
+                            type: "UpdateState",
+                            lensRecording: [
+                              lb<IState>()
+                                .p("storage")
+                                .p("programs")
+                                .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
+                            ],
+                          });
+                        }
+                      } else {
+                        alert("You cannot delete the program while that program's workout is in progress");
                       }
                     }}
                   >

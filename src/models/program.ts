@@ -82,13 +82,15 @@ export namespace Program {
   }
 
   export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
-    const day = dayIndex || program.internalState.nextDay || 1;
+    const day = Math.min(dayIndex || program.internalState.nextDay || 1, program.days.length);
     const programDay = program.days[day - 1];
     return {
       id: 0,
       date: new Date().toISOString(),
       programId: program.id,
+      programName: program.name,
       day,
+      dayName: programDay.name,
       startTime: Date.now(),
       entries: programDay.excercises.map((entry) => {
         const sets: ISet[] = entry.sets.map((set) => ({
@@ -109,7 +111,7 @@ export namespace Program {
         return {
           excercise: entry.excercise,
           sets,
-          warmupSets: Excercise.getWarmupSets(entry.excercise, sets[0].weight),
+          warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(entry.excercise, sets[0].weight) : [],
         };
       }),
     };

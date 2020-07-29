@@ -395,7 +395,15 @@ class Evaluator {
         const key = match[1] as "w" | "r" | "cr" | "weights" | "reps" | "completedReps";
         const excerciseIndex = parseInt(match[2], 10) - 1;
         const setIndex = parseInt(match[3], 10) - 1;
-        return this.bindings[key][excerciseIndex][setIndex];
+        if (this.bindings[key][excerciseIndex] == null) {
+          throw new SyntaxError(`${value} - There's no excercise ${excerciseIndex + 1} in the program day`);
+        } else if (this.bindings[key][excerciseIndex][setIndex] == null) {
+          throw new SyntaxError(
+            `${value} - There's no set ${setIndex + 1} in excercise ${excerciseIndex + 1} in the program day`
+          );
+        } else {
+          return this.bindings[key][excerciseIndex][setIndex];
+        }
       } else if (Object.keys(this.bindings).indexOf(expr.value) !== -1) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (this.bindings as any)[expr.value];

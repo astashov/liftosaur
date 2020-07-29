@@ -40,7 +40,12 @@ export function ModalEditSet(props: IProps): JSX.Element {
           Progress.createEmptyScriptBindings(props.day),
           Progress.createScriptFunctions(props.settings)
         );
-        return { success: true, data: scriptRunnerReps.execute(true) };
+        const value = scriptRunnerReps.execute(true);
+        if (value >= 0) {
+          return { success: true, data: value };
+        } else {
+          return { success: false, error: "Result should be > 0" };
+        }
       } else {
         return { success: false, error: "Empty expression" };
       }

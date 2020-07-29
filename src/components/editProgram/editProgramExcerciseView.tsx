@@ -51,9 +51,11 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
                     +
                   </div>
                 )}
-                <button className="absolute" style={{ top: "0", left: "-5px" }} onClick={() => props.onDeleteSet(i)}>
-                  <IconDelete />
-                </button>
+                {props.entry.sets.length > 1 ? (
+                  <button className="absolute" style={{ top: "0", left: "-5px" }} onClick={() => props.onDeleteSet(i)}>
+                    <IconDelete />
+                  </button>
+                ) : undefined}
                 <button
                   className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg"
                   style={{ userSelect: "none", touchAction: "manipulation" }}

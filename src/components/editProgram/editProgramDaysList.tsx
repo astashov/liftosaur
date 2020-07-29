@@ -70,24 +70,26 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     >
                       <IconDuplicate />
                     </button>
-                    <button
-                      className="align-middle button"
-                      onClick={() => {
-                        props.dispatch({
-                          type: "UpdateState",
-                          lensRecording: [
-                            lb<IState>()
-                              .p("storage")
-                              .p("programs")
-                              .i(props.programIndex)
-                              .p("days")
-                              .recordModify((days) => days.filter((d) => d !== day)),
-                          ],
-                        });
-                      }}
-                    >
-                      <IconDelete />
-                    </button>
+                    {props.editProgram.days.length > 1 && (
+                      <button
+                        className="align-middle button"
+                        onClick={() => {
+                          props.dispatch({
+                            type: "UpdateState",
+                            lensRecording: [
+                              lb<IState>()
+                                .p("storage")
+                                .p("programs")
+                                .i(props.programIndex)
+                                .p("days")
+                                .recordModify((days) => days.filter((d) => d !== day)),
+                            ],
+                          });
+                        }}
+                      >
+                        <IconDelete />
+                      </button>
+                    )}
                   </Fragment>
                 }
               />

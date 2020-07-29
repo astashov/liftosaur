@@ -3,7 +3,6 @@ import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IWebpushr } from "../ducks/reducer";
-import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { IStats } from "../models/stats";
@@ -17,7 +16,6 @@ import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
 
 interface IProps {
-  programs: IProgram[];
   progress: IHistoryRecord;
   history: IHistoryRecord[];
   stats: IStats;
@@ -34,7 +32,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
 
   if (progress != null) {
     // TODO: What to do if program missing?
-    const currentProgram = props.programs.find((p) => p.id === progress.programId)!;
     return (
       <section className="relative h-full">
         <HeaderView
@@ -49,7 +46,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               {DateUtils.format(progress.date)}
             </button>
           }
-          subtitle={currentProgram.name}
+          subtitle={progress.programName}
           left={
             <button
               onClick={() => {
@@ -97,9 +94,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         <FooterView
           dispatch={props.dispatch}
           buttons={
-            <button className="p-4" onClick={() => Progress.editDayAction(props.dispatch)}>
-              <IconEdit />
-            </button>
+            Progress.isCurrent(props.progress) ? (
+              <button className="p-4" onClick={() => Progress.editDayAction(props.dispatch)}>
+                <IconEdit />
+              </button>
+            ) : undefined
           }
         />
         {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
