@@ -116,23 +116,41 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
       },
       currentProgramId: undefined,
       settings: {
-        plates: [
-          { weight: 45, num: 4 },
-          { weight: 25, num: 4 },
-          { weight: 10, num: 4 },
-          { weight: 5, num: 4 },
-          { weight: 2.5, num: 4 },
-          { weight: 1.25, num: 2 },
-        ],
+        plates: {
+          lb: [
+            { weight: 45, num: 4 },
+            { weight: 25, num: 4 },
+            { weight: 10, num: 4 },
+            { weight: 5, num: 4 },
+            { weight: 2.5, num: 4 },
+            { weight: 1.25, num: 2 },
+          ],
+          kg: [
+            { weight: 20, num: 4 },
+            { weight: 10, num: 4 },
+            { weight: 5, num: 4 },
+            { weight: 2.5, num: 4 },
+            { weight: 1.25, num: 4 },
+            { weight: 0.5, num: 2 },
+          ],
+        },
         bars: {
-          barbell: 45,
-          ezbar: 20,
-          dumbbell: 10,
+          lb: {
+            barbell: 45,
+            ezbar: 20,
+            dumbbell: 10,
+          },
+          kg: {
+            barbell: 20,
+            ezbar: 10,
+            dumbbell: 5,
+          },
         },
         timers: {
           warmup: 90,
           workout: 180,
         },
+        units: "lb",
       },
       history: [],
       version: getLatestMigrationVersion(),
@@ -522,11 +540,17 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const storage: IStorage = {
         id: newStorage.id,
         settings: {
-          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, (el) =>
-            el.weight.toString()
-          ),
+          plates: {
+            kg: CollectionUtils.concatBy(oldStorage.settings.plates.kg, newStorage.settings.plates.kg, (el) =>
+              el.weight.toString()
+            ),
+            lb: CollectionUtils.concatBy(oldStorage.settings.plates.lb, newStorage.settings.plates.lb, (el) =>
+              el.weight.toString()
+            ),
+          },
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,
+          units: newStorage.settings.units,
         },
         stats: newStorage.stats,
         currentProgramId: newStorage.currentProgramId,

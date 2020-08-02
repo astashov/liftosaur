@@ -1,6 +1,6 @@
 import { JSX, h } from "preact";
 import { IProgram } from "../../models/program";
-import { ISettings } from "../../models/settings";
+import { ISettings, Settings } from "../../models/settings";
 import { IHistoryRecord } from "../../models/history";
 import { IDispatch } from "../../ducks/types";
 import { ModalAmrap } from "../modalAmrap";
@@ -28,9 +28,9 @@ export function CardsPlayground(props: IProps): JSX.Element {
       {progress.entries.map((entry) => {
         return (
           <ExcerciseView
-            bars={props.settings.bars}
+            bars={Settings.bars(props.settings)}
             entry={entry}
-            availablePlates={props.settings.plates}
+            availablePlates={Settings.plates(props.settings)}
             dispatch={dispatch}
             onChangeReps={() => undefined}
           />

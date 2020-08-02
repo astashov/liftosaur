@@ -17,6 +17,7 @@ import { ScreenPlates } from "./screenPlates";
 import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
+import { Settings } from "../models/settings";
 
 interface IProps {
   client: Window["fetch"];
@@ -103,6 +104,7 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch={dispatch}
         email={state.email}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
+        settings={state.storage.settings}
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
@@ -111,7 +113,12 @@ export function AppView(props: IProps): JSX.Element | null {
     return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
     return (
-      <ScreenPlates dispatch={dispatch} bars={state.storage.settings.bars} plates={state.storage.settings.plates} />
+      <ScreenPlates
+        dispatch={dispatch}
+        bars={Settings.bars(state.storage.settings)}
+        plates={Settings.plates(state.storage.settings)}
+        units={state.storage.settings.units}
+      />
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
     return <ScreenGraphs dispatch={dispatch} history={state.storage.history} stats={state.storage.stats} />;

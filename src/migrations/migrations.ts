@@ -18,11 +18,14 @@ export function getLatestMigrationVersion(): string {
 
 export const migrations = {
   "20200604235900_add_bar_weights": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
-    return lf(aStorage).p("settings").p("bars").set({
-      barbell: 45,
-      dumbbell: 10,
-      ezbar: 20,
-    });
+    return lf(aStorage)
+      .p("settings")
+      .p("bars")
+      .set({
+        barbell: 45,
+        dumbbell: 10,
+        ezbar: 20,
+      } as any);
   },
   "20200609000400_remove_old_amraps": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
@@ -90,6 +93,37 @@ export const migrations = {
         historyRecord.programName = `Program ${historyRecord.programId}`;
       }
     }
+    return storage;
+  },
+  "20200801230241_upgrade_settings_with_units": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const lbsBars = { ...storage.settings.bars } as any;
+    const lbsPlates = [...(storage.settings.plates as any)];
+    delete storage.settings.bars;
+    delete storage.settings.plates;
+    storage.settings.bars = {
+      lb: lbsBars,
+      kg: {
+        barbell: 20,
+        ezbar: 10,
+        dumbbell: 5,
+      },
+    };
+    storage.settings.plates = {
+      lb: lbsPlates,
+      kg: [
+        { weight: 20, num: 4 },
+        { weight: 10, num: 4 },
+        { weight: 5, num: 4 },
+        { weight: 2.5, num: 4 },
+        { weight: 1.25, num: 4 },
+        { weight: 0.5, num: 2 },
+      ],
+    };
+    storage.settings.units = "lb";
     return storage;
   },
 };

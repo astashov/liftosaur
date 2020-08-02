@@ -1,5 +1,4 @@
 import * as t from "io-ts";
-import { ISettings } from "./settings";
 import { CollectionUtils } from "../utils/collection";
 
 export type IWeight = number;
@@ -24,6 +23,8 @@ export const TBars = t.type(
 
 export type IBars = t.TypeOf<typeof TBars>;
 
+import { ISettings, Settings } from "./settings";
+
 export namespace Weight {
   export function display(weight: IWeight): string {
     return weight === 0 ? "BW" : `${weight}`;
@@ -31,7 +32,9 @@ export namespace Weight {
 
   export function round(weight: IWeight, settings?: ISettings): IWeight {
     const roundTo: number =
-      settings != null ? CollectionUtils.sort(settings.plates, (a, b) => a.weight - b.weight)[0].weight * 2 : 5;
+      settings != null
+        ? CollectionUtils.sort(Settings.plates(settings), (a, b) => a.weight - b.weight)[0].weight * 2
+        : 5;
     return Math.round(weight / roundTo) * roundTo;
   }
 

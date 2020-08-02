@@ -4,11 +4,15 @@ import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { MenuItem } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
+import { MenuItemEditable } from "./menuItemEditable";
+import { ISettings, IUnit } from "../models/settings";
+import { lb } from "../utils/lens";
 
 interface IProps {
   dispatch: IDispatch;
   email?: string;
   currentProgramName?: string;
+  settings: ISettings;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -39,6 +43,23 @@ export function ScreenSettings(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
           name="Available Plates"
           onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Units"
+          value={props.settings.units}
+          values={[
+            ["kg", "kg"],
+            ["lb", "lb"],
+          ]}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("units")
+                .record(newValue as IUnit),
+            });
+          }}
         />
         <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Contact Us
