@@ -7,9 +7,12 @@ import { DateUtils } from "../utils/date";
 import { Excercise } from "../models/excercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
+import { ISettings } from "../models/settings";
+import { Weight } from "../models/weight";
 
 interface IProps {
   historyRecord: IHistoryRecord;
+  settings: ISettings;
   dispatch: IDispatch;
 }
 
@@ -60,7 +63,9 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                       isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
                     />
                   </div>
-                  <div className="w-8 ml-1 font-bold text-right">{Math.max(...entry.sets.map((s) => s.weight))}</div>
+                  <div className="w-8 ml-1 font-bold text-right">
+                    {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
+                  </div>
                 </div>
               );
             } else {

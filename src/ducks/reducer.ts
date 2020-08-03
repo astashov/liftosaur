@@ -7,7 +7,7 @@ import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
 import { TStats } from "../models/stats";
-import { IWeight } from "../models/weight";
+import { IWeight, Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { Service } from "../api/service";
@@ -116,34 +116,30 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
       },
       currentProgramId: undefined,
       settings: {
-        plates: {
-          lb: [
-            { weight: 45, num: 4 },
-            { weight: 25, num: 4 },
-            { weight: 10, num: 4 },
-            { weight: 5, num: 4 },
-            { weight: 2.5, num: 4 },
-            { weight: 1.25, num: 2 },
-          ],
-          kg: [
-            { weight: 20, num: 4 },
-            { weight: 10, num: 4 },
-            { weight: 5, num: 4 },
-            { weight: 2.5, num: 4 },
-            { weight: 1.25, num: 4 },
-            { weight: 0.5, num: 2 },
-          ],
-        },
+        plates: [
+          { weight: Weight.build(45, "lb"), num: 4 },
+          { weight: Weight.build(25, "lb"), num: 4 },
+          { weight: Weight.build(10, "lb"), num: 4 },
+          { weight: Weight.build(5, "lb"), num: 4 },
+          { weight: Weight.build(2.5, "lb"), num: 4 },
+          { weight: Weight.build(1.25, "lb"), num: 2 },
+          { weight: Weight.build(20, "kg"), num: 4 },
+          { weight: Weight.build(10, "kg"), num: 4 },
+          { weight: Weight.build(5, "kg"), num: 4 },
+          { weight: Weight.build(2.5, "kg"), num: 4 },
+          { weight: Weight.build(1.25, "kg"), num: 4 },
+          { weight: Weight.build(0.5, "kg"), num: 2 },
+        ],
         bars: {
           lb: {
-            barbell: 45,
-            ezbar: 20,
-            dumbbell: 10,
+            barbell: Weight.build(45, "lb"),
+            ezbar: Weight.build(20, "lb"),
+            dumbbell: Weight.build(10, "lb"),
           },
           kg: {
-            barbell: 20,
-            ezbar: 10,
-            dumbbell: 5,
+            barbell: Weight.build(20, "kg"),
+            ezbar: Weight.build(10, "kg"),
+            dumbbell: Weight.build(5, "kg"),
           },
         },
         timers: {
@@ -220,7 +216,7 @@ export type IChangeRepsAction = {
   type: "ChangeRepsAction";
   excercise: IExcerciseType;
   setIndex: number;
-  weight: number;
+  weight: IWeight;
   mode: IProgressMode;
 };
 
@@ -239,7 +235,7 @@ export type IChangeAMRAPAction = {
 
 export type IChangeWeightAction = {
   type: "ChangeWeightAction";
-  weight: number;
+  weight: IWeight;
   excercise: IExcerciseType;
 };
 
@@ -355,42 +351,44 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   return newState;
 };
 
-export const cardsReducer: Reducer<IHistoryRecord, ICardsAction> = (progress, action): IHistoryRecord => {
-  switch (action.type) {
-    case "ChangeRepsAction": {
-      progress = Progress.updateRepsInExcercise(
-        progress,
-        action.excercise,
-        action.weight,
-        action.setIndex,
-        action.mode
-      );
-      if (Progress.isFullyFinishedSet(progress)) {
-        progress = Progress.stopTimer(progress);
+export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, ICardsAction> {
+  return (progress, action): IHistoryRecord => {
+    switch (action.type) {
+      case "ChangeRepsAction": {
+        progress = Progress.updateRepsInExcercise(
+          progress,
+          action.excercise,
+          action.weight,
+          action.setIndex,
+          action.mode
+        );
+        if (Progress.isFullyFinishedSet(progress)) {
+          progress = Progress.stopTimer(progress);
+        }
+        return progress;
       }
-      return progress;
+      case "ChangeAMRAPAction": {
+        return Progress.updateAmrapRepsInExcercise(progress, action.value);
+      }
+      case "ChangeWeightAction": {
+        return Progress.showUpdateWeightModal(progress, action.excercise, action.weight);
+      }
+      case "ConfirmWeightAction": {
+        return action.weight != null ? Progress.updateWeight(progress, settings, action.weight) : progress;
+      }
     }
-    case "ChangeAMRAPAction": {
-      return Progress.updateAmrapRepsInExcercise(progress, action.value);
-    }
-    case "ChangeWeightAction": {
-      return Progress.showUpdateWeightModal(progress, action.excercise, action.weight);
-    }
-    case "ConfirmWeightAction": {
-      return Progress.updateWeight(progress, action.weight);
-    }
-  }
-};
+  };
+}
 
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "ChangeRepsAction") {
-    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "ChangeAMRAPAction") {
-    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "ChangeWeightAction") {
-    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "ConfirmWeightAction") {
-    return Progress.setProgress(state, cardsReducer(Progress.getProgress(state)!, action));
+    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "StartProgramDayAction") {
     const progress = state.progress[0];
     if (progress != null) {
@@ -540,14 +538,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const storage: IStorage = {
         id: newStorage.id,
         settings: {
-          plates: {
-            kg: CollectionUtils.concatBy(oldStorage.settings.plates.kg, newStorage.settings.plates.kg, (el) =>
-              el.weight.toString()
-            ),
-            lb: CollectionUtils.concatBy(oldStorage.settings.plates.lb, newStorage.settings.plates.lb, (el) =>
-              el.weight.toString()
-            ),
-          },
+          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, (el) =>
+            el.weight.toString()
+          ),
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,

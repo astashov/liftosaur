@@ -52,6 +52,14 @@ export namespace CollectionUtils {
     return Object.keys(map).map((key) => map[key]);
   }
 
+  export function compatBy<T>(arr: T[], condition: (el: T) => string): T[] {
+    const map = arr.reduce<Record<string, T>>((memo, item) => {
+      memo[condition(item)] = item;
+      return memo;
+    }, {});
+    return Object.keys(map).map((key) => map[key]);
+  }
+
   export function flat<T>(from: T[][]): T[] {
     return from.reduce((acc, val) => acc.concat(val), []);
   }

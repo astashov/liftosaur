@@ -73,6 +73,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }
         />
         <CardsView
+          units={props.settings.units}
           bars={Settings.bars(props.settings)}
           progress={progress}
           isTimerShown={!!props.timerSince}
@@ -103,7 +104,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
         {progress.ui?.weightModal != null ? (
-          <ModalWeight dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
+          <ModalWeight units={props.settings.units} dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
         ) : undefined}
         {progress.ui?.dateModal != null ? (
           <ModalDate dispatch={props.dispatch} date={progress.ui.dateModal.date} />

@@ -5,15 +5,19 @@ import { IHistoryRecord } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
 import { IExcerciseType, Excercise } from "../models/excercise";
+import { ISettings } from "../models/settings";
+import { Weight } from "../models/weight";
 
 interface IGraphProps {
   history: IHistoryRecord[];
   excercise: IExcerciseType;
+  settings: ISettings;
 }
 
 export function Graph(props: IGraphProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
+  const units = props.settings.units;
   useEffect(() => {
     const data = CollectionUtils.sort(props.history, (a, b) => a.startTime - b.startTime).reduce<
       [number[], number[], number[]]
@@ -22,11 +26,13 @@ export function Graph(props: IGraphProps): JSX.Element {
         const entry = i.entries.find((e) => e.excercise === props.excercise);
         if (entry != null) {
           const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
-            return b.weight !== a.weight ? b.weight - a.weight : (b.completedReps || 0) - (a.completedReps || 0);
+            return b.weight !== a.weight
+              ? Weight.compare(b.weight, a.weight)
+              : (b.completedReps || 0) - (a.completedReps || 0);
           }).find((s) => s.completedReps != null && s.completedReps > 0);
           if (maxSet != null) {
             memo[0].push(new Date(Date.parse(i.date)).getTime() / 1000);
-            memo[1].push(maxSet.weight);
+            memo[1].push(Weight.convertTo(maxSet.weight, units).value);
             memo[2].push(maxSet.completedReps!);
           }
         }
@@ -55,7 +61,7 @@ export function Graph(props: IGraphProps): JSX.Element {
                 const reps = data[2][idx];
                 legendRef.current.innerHTML = `${DateUtils.format(
                   date
-                )}, <strong>${weight}</strong> lbs x <strong>${reps}</strong> reps`;
+                )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
               },
             ],
           },
@@ -68,7 +74,7 @@ export function Graph(props: IGraphProps): JSX.Element {
         {},
         {
           label: "Weight",
-          value: (self, rawValue) => `${rawValue} lbs`,
+          value: (self, rawValue) => `${rawValue} ${units}`,
           stroke: "red",
           width: 1,
         },

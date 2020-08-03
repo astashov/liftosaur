@@ -2,13 +2,13 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { IPlate, IBars } from "../models/weight";
+import { IPlate, IBars, IUnit, Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Button } from "./button";
 import { useState } from "preact/hooks";
 import { ModalPlates } from "./modalPlates";
 import { lb } from "../utils/lens";
-import { ISettings, IUnit } from "../models/settings";
+import { ISettings } from "../models/settings";
 import { Thunk } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
@@ -24,7 +24,7 @@ interface IProps {
 export function ScreenPlates(props: IProps): JSX.Element {
   const [shouldShowModal, setShouldShowModal] = useState<boolean>(false);
   const plates = [...props.plates];
-  plates.sort((a, b) => b.weight - a.weight);
+  plates.sort((a, b) => Weight.compare(b.weight, a.weight));
 
   return (
     <section className="h-full">
@@ -39,12 +39,16 @@ export function ScreenPlates(props: IProps): JSX.Element {
             <MenuItemEditable
               name={StringUtils.capitalize(bar)}
               type="number"
-              value={props.bars[bar].toString()}
+              value={props.bars[bar].value.toString()}
               valueUnits={props.units}
               onChange={(newValue?: string) => {
                 const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
                 if (v != null) {
-                  const lensRecording = lb<ISettings>().p("bars").p(props.units).p(bar).record(v);
+                  const lensRecording = lb<ISettings>()
+                    .p("bars")
+                    .p(props.units)
+                    .p(bar)
+                    .record(Weight.build(v, props.units));
                   props.dispatch({ type: "UpdateSettings", lensRecording });
                 }
               }}
@@ -55,7 +59,7 @@ export function ScreenPlates(props: IProps): JSX.Element {
         {plates.map((plate) => {
           return (
             <MenuItemEditable
-              name={`${plate.weight} ${props.units}`}
+              name={`${plate.weight.value} ${props.units}`}
               type="number"
               value={plate.num.toString()}
               hasClear={true}
@@ -64,11 +68,11 @@ export function ScreenPlates(props: IProps): JSX.Element {
                 let newPlates;
                 if (v != null) {
                   const num = Math.floor(v / 2) * 2;
-                  newPlates = props.plates.map((p) => (p.weight === plate.weight ? { ...p, num } : p));
+                  newPlates = props.plates.map((p) => (Weight.eqeq(p.weight, plate.weight) ? { ...p, num } : p));
                 } else {
-                  newPlates = props.plates.filter((p) => p.weight !== plate.weight);
+                  newPlates = props.plates.filter((p) => !Weight.eqeq(p.weight, plate.weight));
                 }
-                const lensRecording = lb<ISettings>().p("plates").p(props.units).record(newPlates);
+                const lensRecording = lb<ISettings>().p("plates").record(newPlates);
                 props.dispatch({ type: "UpdateSettings", lensRecording });
               }}
             />
@@ -86,10 +90,13 @@ export function ScreenPlates(props: IProps): JSX.Element {
         <ModalPlates
           onInput={(weight) => {
             setShouldShowModal(false);
-            if (weight != null && props.plates.every((p) => p.weight !== weight)) {
-              const newPlates: IPlate[] = [...props.plates, { weight, num: 0 }];
-              const lensRecording = lb<ISettings>().p("plates").p(props.units).record(newPlates);
-              props.dispatch({ type: "UpdateSettings", lensRecording });
+            if (weight != null) {
+              const newWeight = Weight.build(weight, props.units);
+              if (props.plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
+                const newPlates: IPlate[] = [...props.plates, { weight: newWeight, num: 0 }];
+                const lensRecording = lb<ISettings>().p("plates").record(newPlates);
+                props.dispatch({ type: "UpdateSettings", lensRecording });
+              }
             }
           }}
         />

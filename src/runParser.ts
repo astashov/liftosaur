@@ -1,5 +1,6 @@
 import { ScriptRunner } from "./parser";
 import { Progress } from "./models/progress";
+import { Weight } from "./models/weight";
 
 const program = `
 if (day == 9) {
@@ -76,34 +77,30 @@ const bindings = {
 };
 
 const fns = Progress.createScriptFunctions({
-  plates: {
-    lb: [
-      { weight: 45, num: 4 },
-      { weight: 25, num: 4 },
-      { weight: 10, num: 4 },
-      { weight: 5, num: 4 },
-      { weight: 2.5, num: 4 },
-      { weight: 1.25, num: 2 },
-    ],
-    kg: [
-      { weight: 20, num: 4 },
-      { weight: 10, num: 4 },
-      { weight: 5, num: 4 },
-      { weight: 2.5, num: 4 },
-      { weight: 1.25, num: 4 },
-      { weight: 0.5, num: 2 },
-    ],
-  },
+  plates: [
+    { weight: Weight.build(45, "lb"), num: 4 },
+    { weight: Weight.build(25, "lb"), num: 4 },
+    { weight: Weight.build(10, "lb"), num: 4 },
+    { weight: Weight.build(5, "lb"), num: 4 },
+    { weight: Weight.build(2.5, "lb"), num: 4 },
+    { weight: Weight.build(1.25, "lb"), num: 2 },
+    { weight: Weight.build(20, "kg"), num: 4 },
+    { weight: Weight.build(10, "kg"), num: 4 },
+    { weight: Weight.build(5, "kg"), num: 4 },
+    { weight: Weight.build(2.5, "kg"), num: 4 },
+    { weight: Weight.build(1.25, "kg"), num: 4 },
+    { weight: Weight.build(0.5, "kg"), num: 2 },
+  ],
   bars: {
     lb: {
-      barbell: 45,
-      ezbar: 20,
-      dumbbell: 10,
+      barbell: Weight.build(45, "lb"),
+      ezbar: Weight.build(20, "lb"),
+      dumbbell: Weight.build(10, "lb"),
     },
     kg: {
-      barbell: 20,
-      ezbar: 10,
-      dumbbell: 5,
+      barbell: Weight.build(20, "kg"),
+      ezbar: Weight.build(10, "kg"),
+      dumbbell: Weight.build(5, "kg"),
     },
   },
   timers: {

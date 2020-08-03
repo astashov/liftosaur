@@ -1,5 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import * as t from "io-ts";
+import { TWeight } from "./weight";
 
 export type IProgramReps = number;
 
@@ -7,7 +8,7 @@ export const TSet = t.intersection(
   [
     t.interface({
       reps: t.number,
-      weight: t.number,
+      weight: TWeight,
     }),
     t.partial({
       completedReps: t.number,

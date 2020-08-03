@@ -5,8 +5,9 @@ import { IDispatch } from "../ducks/types";
 import { MenuItem } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettings, IUnit } from "../models/settings";
+import { ISettings } from "../models/settings";
 import { lb } from "../utils/lens";
+import { IUnit } from "../models/weight";
 
 interface IProps {
   dispatch: IDispatch;

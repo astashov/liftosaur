@@ -10,6 +10,7 @@ import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither } from "../utils/types";
+import { Weight } from "./weight";
 
 export const TProgramDayEntry = t.type(
   {
@@ -93,25 +94,29 @@ export namespace Program {
       dayName: programDay.name,
       startTime: Date.now(),
       entries: programDay.excercises.map((entry) => {
-        const sets: ISet[] = entry.sets.map((set) => ({
-          isAmrap: set.isAmrap,
-          reps: new ScriptRunner(
+        const sets: ISet[] = entry.sets.map((set) => {
+          const repsValue = new ScriptRunner(
             set.repsExpr,
             program.state,
             Progress.createEmptyScriptBindings(day),
             Progress.createScriptFunctions(settings)
-          ).execute(true),
-          weight: new ScriptRunner(
+          ).execute(true);
+          const weightValue = new ScriptRunner(
             set.weightExpr,
             program.state,
             Progress.createEmptyScriptBindings(day),
             Progress.createScriptFunctions(settings)
-          ).execute(true),
-        }));
+          ).execute(true);
+          return {
+            isAmrap: set.isAmrap,
+            reps: repsValue,
+            weight: Weight.build(weightValue, settings.units),
+          };
+        });
         return {
           excercise: entry.excercise,
           sets,
-          warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(entry.excercise, sets[0].weight) : [],
+          warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(entry.excercise, sets[0].weight, settings) : [],
         };
       }),
     };

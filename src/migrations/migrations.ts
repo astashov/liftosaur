@@ -4,6 +4,8 @@ import { IStorage } from "../ducks/reducer";
 import { lf } from "../utils/lens";
 import { Service } from "../api/service";
 import { CollectionUtils } from "../utils/collection";
+import { Weight } from "../models/weight";
+import { ObjectUtils } from "../utils/object";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -95,35 +97,31 @@ export const migrations = {
     }
     return storage;
   },
-  "20200801230241_upgrade_settings_with_units": async (
-    client: Window["fetch"],
-    aStorage: IStorage
-  ): Promise<IStorage> => {
+  "20200802140247_convert_to_iweight": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    const lbsBars = { ...storage.settings.bars } as any;
-    const lbsPlates = [...(storage.settings.plates as any)];
-    delete storage.settings.bars;
-    delete storage.settings.plates;
-    storage.settings.bars = {
-      lb: lbsBars,
-      kg: {
-        barbell: 20,
-        ezbar: 10,
-        dumbbell: 5,
-      },
-    };
-    storage.settings.plates = {
-      lb: lbsPlates,
-      kg: [
-        { weight: 20, num: 4 },
-        { weight: 10, num: 4 },
-        { weight: 5, num: 4 },
-        { weight: 2.5, num: 4 },
-        { weight: 1.25, num: 4 },
-        { weight: 0.5, num: 2 },
-      ],
-    };
-    storage.settings.units = "lb";
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        for (const set of entry.sets) {
+          if (typeof set.weight === "number") {
+            set.weight = Weight.build(set.weight, "lb");
+          }
+        }
+        for (const set of entry.warmupSets) {
+          if (typeof set.weight === "number") {
+            set.weight = Weight.build(set.weight, "lb");
+          }
+        }
+      }
+    }
+    for (const entryKey of ObjectUtils.keys(storage.settings.bars)) {
+      const entry = storage.settings.bars[entryKey];
+      for (const b of ObjectUtils.keys(entry)) {
+        const entryB = entry[b];
+        if (typeof entryB === "number") {
+          entry[b] = Weight.build(entryB, entryKey);
+        }
+      }
+    }
     return storage;
   },
 };

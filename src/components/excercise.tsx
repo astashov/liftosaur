@@ -3,14 +3,16 @@ import { ExcerciseSetView } from "./excerciseSet";
 import { Excercise, IExcerciseType } from "../models/excercise";
 import { IDispatch } from "../ducks/types";
 import { IProgressMode } from "../models/progress";
-import { Weight, IPlate, IBars } from "../models/weight";
+import { Weight, IPlate, IBars, IUnit, IWeight } from "../models/weight";
 import { Reps } from "../models/set";
 import { IHistoryEntry } from "../models/history";
+import { CollectionUtils } from "../utils/collection";
 
 interface IProps {
   entry: IHistoryEntry;
   availablePlates: IPlate[];
   bars: IBars;
+  units: IUnit;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
@@ -43,25 +45,31 @@ export function ExcerciseView(props: IProps): JSX.Element {
 function ExcerciseContentView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
-  const workoutWeights = Array.from(new Set(props.entry.sets.map((s) => s.weight)));
-  workoutWeights.sort((a, b) => a - b);
-  const warmupSets = props.entry.warmupSets;
-  const barWeight = excercise.bar != null ? props.bars[excercise.bar] : 0;
-  const warmupWeights = Array.from(new Set(warmupSets.map((s) => s.weight))).filter(
-    (w) => Object.keys(Weight.calculatePlates(props.availablePlates, w, barWeight)).length > 0
+  const workoutWeights = CollectionUtils.compatBy(
+    props.entry.sets.map((s) => s.weight),
+    (w) => w.value.toString()
   );
-  warmupWeights.sort((a, b) => a - b);
+  workoutWeights.sort(Weight.compare);
+  const warmupSets = props.entry.warmupSets;
+  const barWeight = excercise.bar != null ? props.bars[excercise.bar] : { value: 0, unit: props.units };
+  const warmupWeights = CollectionUtils.compatBy(
+    props.entry.warmupSets.map((s) => s.weight),
+    (w) => w.value.toString()
+  ).filter((w) => Object.keys(Weight.calculatePlates(props.availablePlates, w, barWeight)).length > 0);
+  warmupWeights.sort(Weight.compare);
   return (
     <Fragment>
       <header className="flex">
         <div className="flex-1 mr-auto">{excercise.name}</div>
         <div className="text-right">
           {warmupWeights.map((w) => {
-            const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
+            const className = nextSet != null && Weight.eqeq(nextSet.weight, w) ? "font-bold" : "";
             return (
               <div className={className}>
                 <WeightView weight={w} barWeight={barWeight} plates={props.availablePlates} />
-                <span className="text-gray-500">{w} lbs</span>
+                <span className="text-gray-500">
+                  {w.value} {props.units}
+                </span>
               </div>
             );
           })}
@@ -77,7 +85,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
                     props.dispatch({ type: "ChangeWeightAction", weight: w, excercise: props.entry.excercise })
                   }
                 >
-                  {w} lbs
+                  {w.value} {props.units}
                 </button>
               </div>
             );
@@ -127,17 +135,18 @@ function ExcerciseContentView(props: IProps): JSX.Element {
 function handleClick(
   dispatch: IDispatch,
   excercise: IExcerciseType,
-  weight: number,
+  weight: IWeight,
   setIndex: number,
   mode: IProgressMode
 ): void {
   dispatch({ type: "ChangeRepsAction", excercise, setIndex, weight, mode });
 }
 
-function WeightView(props: { weight: number; plates: IPlate[]; barWeight: number }): JSX.Element {
+function WeightView(props: { weight: IWeight; plates: IPlate[]; barWeight: IWeight }): JSX.Element {
   const plates = Weight.calculatePlates(props.plates, props.weight, props.barWeight);
   const weightOfPlates = Weight.platesWeight(plates);
-  const className = weightOfPlates === props.weight - props.barWeight ? "text-gray-600" : "text-red-600";
+  const className =
+    weightOfPlates.value === Weight.subtract(props.weight, props.barWeight).value ? "text-gray-600" : "text-red-600";
   return (
     <span className="mx-2 text-xs break-all">
       <span className={className}>{Weight.formatOneSide(plates)}</span>

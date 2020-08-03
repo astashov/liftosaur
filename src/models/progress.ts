@@ -1,6 +1,6 @@
 import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import { Reps } from "./set";
-import { IWeight, Weight } from "./weight";
+import { IWeight, Weight, TWeight } from "./weight";
 import { Screen } from "./screen";
 import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
@@ -18,7 +18,7 @@ export const TProgressUi = t.partial(
     amrapModal: t.type({
       excercise: TExcerciseType,
       setIndex: t.number,
-      weight: t.number,
+      weight: TWeight,
     }),
     weightModal: t.type({
       excercise: TExcerciseType,
@@ -78,7 +78,7 @@ export namespace Progress {
       bindings.reps.push([]);
       bindings.completedReps.push([]);
       for (const set of entry.sets) {
-        bindings.weights[bindings.weights.length - 1].push(set.weight);
+        bindings.weights[bindings.weights.length - 1].push(set.weight.value);
         bindings.reps[bindings.reps.length - 1].push(set.reps);
         bindings.completedReps[bindings.completedReps.length - 1].push(set.completedReps || 0);
       }
@@ -91,8 +91,9 @@ export namespace Progress {
 
   export function createScriptFunctions(settings: ISettings): IScriptFunctions {
     return {
-      roundWeight: (num) => Weight.round(num || 0, settings),
-      calculateTrainingMax: (weight, reps) => Weight.getTrainingMax(weight, reps || 0),
+      roundWeight: (num) => Weight.round(Weight.build(num || 0, settings.units), settings).value,
+      calculateTrainingMax: (weight, reps) =>
+        Weight.getTrainingMax(Weight.build(weight, settings.units), reps || 0, settings).value,
     };
   }
 
@@ -154,7 +155,7 @@ export namespace Progress {
         ...progress.ui,
         weightModal: {
           excercise,
-          weight,
+          weight: weight.value,
         },
       },
     };
@@ -313,7 +314,7 @@ export namespace Progress {
     }
   }
 
-  export function updateWeight(progress: IHistoryRecord, weight?: IWeight): IHistoryRecord {
+  export function updateWeight(progress: IHistoryRecord, settings: ISettings, weight?: IWeight): IHistoryRecord {
     if (progress.ui?.weightModal != null) {
       const { excercise, weight: previousWeight } = progress.ui.weightModal;
       return {
@@ -325,15 +326,15 @@ export namespace Progress {
             return {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
-                if (set.weight === previousWeight && weight != null) {
-                  return { ...set, weight: Weight.round(weight) };
+                if (set.weight.value === previousWeight && weight != null) {
+                  return { ...set, weight: Weight.round(weight, settings) };
                 } else {
                   return set;
                 }
               }),
               warmupSets:
-                firstWeight === previousWeight && weight != null
-                  ? Excercise.getWarmupSets(excercise, weight)
+                firstWeight.value === previousWeight && weight != null
+                  ? Excercise.getWarmupSets(excercise, weight, settings)
                   : progressEntry.warmupSets,
             };
           } else {
@@ -373,20 +374,25 @@ export namespace Progress {
             sets: progressEntry.sets.map((set, i) => ({
               ...set,
               reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings),
-              weight: executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings),
+              weight: Weight.build(
+                executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings),
+                settings.units
+              ),
             })),
           };
         } else {
           const firstWeightExpr = dayEntry.sets[0]?.weightExpr;
           const firstWeight =
-            firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings) : undefined;
+            firstWeightExpr != null
+              ? Weight.build(executeEntryScript(firstWeightExpr, day, state, settings), settings.units)
+              : undefined;
           return {
             excercise: dayEntry.excercise,
             sets: dayEntry.sets.map((set) => ({
               reps: executeEntryScript(set.repsExpr, day, state, settings),
-              weight: executeEntryScript(set.weightExpr, day, state, settings),
+              weight: Weight.build(executeEntryScript(set.weightExpr, day, state, settings), settings.units),
             })),
-            warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight) : [],
+            warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight, settings) : [],
           };
         }
       }),

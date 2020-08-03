@@ -6,7 +6,7 @@ import { IDispatch } from "../../ducks/types";
 import { ModalAmrap } from "../modalAmrap";
 import { ModalWeight } from "../modalWeight";
 import { ExcerciseView } from "../excercise";
-import { cardsReducer, ICardsAction } from "../../ducks/reducer";
+import { ICardsAction, buildCardsReducer } from "../../ducks/reducer";
 
 interface IProps {
   program: IProgram;
@@ -16,10 +16,10 @@ interface IProps {
 }
 
 export function CardsPlayground(props: IProps): JSX.Element {
-  const { progress } = props;
+  const { progress, settings } = props;
 
   const dispatch: IDispatch = async (action) => {
-    const newProgress = cardsReducer(progress, action as ICardsAction);
+    const newProgress = buildCardsReducer(settings)(progress, action as ICardsAction);
     props.setProgress(newProgress);
   };
 
@@ -32,13 +32,14 @@ export function CardsPlayground(props: IProps): JSX.Element {
             entry={entry}
             availablePlates={Settings.plates(props.settings)}
             dispatch={dispatch}
+            units={props.settings.units}
             onChangeReps={() => undefined}
           />
         );
       })}
       {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={dispatch} /> : undefined}
       {progress.ui?.weightModal != null ? (
-        <ModalWeight dispatch={dispatch} weight={progress.ui.weightModal.weight} />
+        <ModalWeight units={props.settings.units} dispatch={dispatch} weight={progress.ui.weightModal.weight} />
       ) : undefined}
     </section>
   );
