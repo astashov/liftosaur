@@ -10,7 +10,7 @@ import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither } from "../utils/types";
-import { Weight } from "./weight";
+import { Weight, TWeight } from "./weight";
 
 export const TProgramDayEntry = t.type(
   {
@@ -38,6 +38,9 @@ export const TProgramInternalState = t.type(
 );
 export type IProgramInternalState = t.TypeOf<typeof TProgramInternalState>;
 
+export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
+export type IProgramState = t.TypeOf<typeof TProgramState>;
+
 export const TProgram = t.type(
   {
     id: t.string,
@@ -46,7 +49,7 @@ export const TProgram = t.type(
     url: t.string,
     author: t.string,
     days: t.array(TProgramDay),
-    state: t.dictionary(t.string, t.number),
+    state: TProgramState,
     internalState: TProgramInternalState,
     finishDayExpr: t.string,
   },
@@ -155,7 +158,7 @@ export namespace Program {
     progress: IHistoryRecord,
     settings: ISettings,
     script: string = program.finishDayExpr
-  ): IEither<Record<string, number>, string> {
+  ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(progress);
     const fns = Progress.createScriptFunctions(settings);
     const newInternalState: IProgramInternalState = {

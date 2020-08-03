@@ -3,13 +3,14 @@ import { useEffect, useRef } from "preact/hooks";
 import { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
+import { IProgramState } from "../../models/program";
 
 interface IProps {
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   value?: string;
   result?: IEither<number | undefined, string>;
-  state: Record<string, number>;
+  state: IProgramState;
 }
 
 export function OneLineTextEditor(props: IProps): JSX.Element {

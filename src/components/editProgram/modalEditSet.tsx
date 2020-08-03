@@ -9,10 +9,11 @@ import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { ISettings } from "../../models/settings";
 import { IEither } from "../../utils/types";
+import { IProgramState } from "../../models/program";
 
 interface IProps {
   excercise: IExcerciseType;
-  state: Record<string, number>;
+  state: IProgramState;
   onDone: (result?: IProgramSet) => void;
   day: number;
   settings: ISettings;

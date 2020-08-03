@@ -3,6 +3,7 @@ import { IProgram, Program } from "../../models/program";
 import { IHistoryRecord } from "../../models/history";
 import { ISettings } from "../../models/settings";
 import { ObjectUtils } from "../../utils/object";
+import { Weight } from "../../models/weight";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -11,8 +12,8 @@ interface IProps {
 }
 
 export function FinishScriptStateChangesView(props: IProps): JSX.Element {
-  // TODO: Extract into function, so that errors show properly in multiline editor
   const { progress, program, settings } = props;
+  const { units } = settings;
   const result = Program.runFinishDayScript(program, progress, settings);
 
   if (result.success) {
@@ -21,8 +22,10 @@ export function FinishScriptStateChangesView(props: IProps): JSX.Element {
     const diffState = ObjectUtils.keys(oldState).reduce<Record<string, string | undefined>>((memo, key) => {
       const oldValue = oldState[key];
       const newValue = newState[key];
-      if (oldValue !== newValue) {
-        memo[key] = `${oldValue} -> ${newValue}`;
+      if (!Weight.eq(oldValue, newValue)) {
+        memo[key] = `${Weight.display(Weight.convertTo(oldValue, units))} -> ${Weight.display(
+          Weight.convertTo(newValue as number, units)
+        )}`;
       }
       return memo;
     }, {});

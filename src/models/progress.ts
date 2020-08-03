@@ -45,17 +45,17 @@ export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
 export interface IScriptBindings {
   day: number;
-  weights: number[][];
+  weights: IWeight[][];
   reps: number[][];
   completedReps: number[][];
-  w: number[][];
+  w: IWeight[][];
   r: number[][];
   cr: number[][];
 }
 
 export interface IScriptFunctions {
-  roundWeight: (num: number) => number;
-  calculateTrainingMax: (weight: number, reps: number) => number;
+  roundWeight: (num: IWeight) => IWeight;
+  calculateTrainingMax: (weight: IWeight, reps: number) => IWeight;
 }
 
 export namespace Progress {
@@ -78,7 +78,7 @@ export namespace Progress {
       bindings.reps.push([]);
       bindings.completedReps.push([]);
       for (const set of entry.sets) {
-        bindings.weights[bindings.weights.length - 1].push(set.weight.value);
+        bindings.weights[bindings.weights.length - 1].push(set.weight);
         bindings.reps[bindings.reps.length - 1].push(set.reps);
         bindings.completedReps[bindings.completedReps.length - 1].push(set.completedReps || 0);
       }
@@ -91,9 +91,20 @@ export namespace Progress {
 
   export function createScriptFunctions(settings: ISettings): IScriptFunctions {
     return {
-      roundWeight: (num) => Weight.round(Weight.build(num || 0, settings.units), settings).value,
-      calculateTrainingMax: (weight, reps) =>
-        Weight.getTrainingMax(Weight.build(weight, settings.units), reps || 0, settings).value,
+      roundWeight: (num) => {
+        if (!Weight.is(num)) {
+          throw new SyntaxError(`${num} is not weight`);
+        } else {
+          return Weight.round(num, settings);
+        }
+      },
+      calculateTrainingMax: (weight, reps) => {
+        if (!Weight.is(weight)) {
+          throw new SyntaxError(`${weight} is not weight`);
+        } else {
+          return Weight.getTrainingMax(weight, reps || 0, settings);
+        }
+      },
     };
   }
 

@@ -1,8 +1,10 @@
 import { IScriptBindings, IScriptFunctions } from "./models/progress";
+import { IProgramState } from "./models/program";
+import { IWeight, Weight, IUnit } from "./models/weight";
 
 type IPos = { readonly line: number; readonly offset: number };
 
-type ITokenNumber = { readonly type: "number"; readonly value: number; readonly pos: IPos };
+type ITokenNumber = { readonly type: "number"; readonly value: number; unit?: IUnit; readonly pos: IPos };
 type ITokenOperator = {
   readonly type: "operator";
   readonly value: "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":" | "&&" | "||";
@@ -39,8 +41,8 @@ function tokenize(text: string): IToken[] {
       const pos = { line: lineNumber + 1, offset: offset + 1 };
       if ((match = /^([(){}\[\]])/.exec(line))) {
         tokens.push({ type: "paren", value: match[0] as ITokenParen["value"], pos });
-      } else if ((match = /^([\d\.]+)/.exec(line))) {
-        tokens.push({ type: "number", value: parseFloat(match[0]), pos });
+      } else if ((match = /^([\d\.]+)(lb|kg)?/.exec(line))) {
+        tokens.push({ type: "number", value: parseFloat(match[1]), unit: match[2] as IUnit | undefined, pos });
       } else if ((match = /^(,)/.exec(line))) {
         tokens.push({ type: "comma", value: ",", pos });
       } else if ((match = /^([\+\-*<>=&|\?:/]+)/.exec(line))) {
@@ -56,7 +58,7 @@ function tokenize(text: string): IToken[] {
       } else {
         throw SyntaxError(`Unexpected token at line ${pos.line}:${pos.offset}, ${line}`);
       }
-      const restLine = line.slice(match[1].length);
+      const restLine = line.slice(match[0].length);
       offset += line.length - restLine.length;
       const trimmedRestLine = restLine.trimLeft();
       offset += restLine.length - trimmedRestLine.length;
@@ -182,11 +184,12 @@ const allRules = {
   },
   number: (parser: Parser): IExpr => {
     const sign = parser.maybeGet({ type: "operator", value: /\+|\-/ });
-    const number = parser.get({ type: "number" });
+    const number = parser.get({ type: "number" }) as ITokenNumber;
+    const value = number.unit != null ? Weight.build(number.value, number.unit) : number.value;
     return {
       type: "number",
       sign: sign != null && "value" in sign && sign.value === "-" ? "-" : "+",
-      value: number.value as number,
+      value,
     };
   },
   keyword: (parser: Parser): IExpr => {
@@ -199,7 +202,7 @@ const allRules = {
 } as const;
 type IRules = typeof allRules;
 
-type IExprNumber = { type: "number"; sign: "+" | "-"; value: number };
+type IExprNumber = { type: "number"; sign: "+" | "-"; value: number | IWeight };
 type IExprBlock = { type: "block"; exprs: IExpr[] };
 type IExprKeyword = { type: "keyword"; value: string };
 type IExprExpression = { type: "expression"; operator: ITokenOperator; left: IExpr; right: IExpr };
@@ -296,48 +299,58 @@ class Parser {
 }
 
 class Evaluator {
-  private readonly state: Record<string, number | boolean>;
+  private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
 
-  constructor(state: Record<string, number | boolean>, bindings: IScriptBindings, fns: IScriptFunctions) {
+  constructor(state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions) {
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
   }
 
-  public evaluate(expr: IExpr): number | boolean {
+  public evaluate(expr: IExpr): number | boolean | IWeight {
     if (expr.type === "expression") {
       const { left, right, operator } = expr;
       const evalLeft = this.evaluate(left);
       const evalRight = this.evaluate(right);
-      if (operator.value === "+") {
-        return (evalLeft as number) + (evalRight as number);
-      } else if (operator.value === "-") {
-        return (evalLeft as number) - (evalRight as number);
-      } else if (operator.value === "*") {
-        return (evalLeft as number) * (evalRight as number);
-      } else if (operator.value === "/") {
-        return (evalLeft as number) / (evalRight as number);
-      } else if (operator.value === ">") {
-        return (evalLeft as number) > (evalRight as number);
-      } else if (operator.value === "<") {
-        return (evalLeft as number) < (evalRight as number);
-      } else if (operator.value === ">=") {
-        return (evalLeft as number) >= (evalRight as number);
-      } else if (operator.value === "<=") {
-        return (evalLeft as number) <= (evalRight as number);
-      } else if (operator.value === "==") {
-        return evalLeft === evalRight;
-      } else if (operator.value === "&&") {
-        return evalLeft && evalRight;
-      } else if (operator.value === "||") {
-        return evalLeft || evalRight;
+      if (typeof evalLeft === "boolean" || typeof evalRight === "boolean") {
+        if (operator.value === "&&") {
+          return evalLeft && evalRight;
+        } else if (operator.value === "||") {
+          return evalLeft || evalRight;
+        } else {
+          throw new SyntaxError(`Unknown operator ${operator.value} between ${evalLeft} and ${evalRight}`);
+        }
       } else {
-        throw new SyntaxError(`Unknown operator ${operator.value}`);
+        if (operator.value === "+") {
+          return this.add(evalLeft, evalRight);
+        } else if (operator.value === "-") {
+          return this.subtract(evalLeft, evalRight);
+        } else if (operator.value === "*") {
+          return this.multiply(evalLeft, evalRight);
+        } else if (operator.value === "/") {
+          return this.divide(evalLeft, evalRight);
+        } else if (operator.value === ">") {
+          return Weight.gt(evalLeft, evalRight);
+        } else if (operator.value === "<") {
+          return Weight.lt(evalLeft, evalRight);
+        } else if (operator.value === ">=") {
+          return Weight.gte(evalLeft, evalRight);
+        } else if (operator.value === "<=") {
+          return Weight.lte(evalLeft, evalRight);
+        } else if (operator.value === "==") {
+          return Weight.eq(evalLeft, evalRight);
+        } else {
+          throw new SyntaxError(`Unknown operator ${operator.value} between ${evalLeft} and ${evalRight}`);
+        }
       }
     } else if (expr.type === "number") {
-      return expr.sign === "-" ? -expr.value : expr.value;
+      if (Weight.is(expr.value)) {
+        return expr.sign === "-" ? Weight.build(-expr.value.value, expr.value.unit) : expr.value;
+      } else {
+        return expr.sign === "-" ? -expr.value : expr.value;
+      }
     } else if (expr.type === "cond") {
       return this.evaluate(expr.condition) ? this.evaluate(expr.then) : this.evaluate(expr.or);
     } else if (expr.type === "if") {
@@ -355,7 +368,11 @@ class Evaluator {
         const stateKey = match[1];
         if (stateKey in this.state) {
           const value = this.evaluate(expr.value);
-          this.state[stateKey] = value;
+          if (Weight.is(value) || typeof value === "number") {
+            this.state[stateKey] = value;
+          } else {
+            throw new SyntaxError(`Can't assign to ${stateKey} - value is not a number or weight`);
+          }
           return value;
         } else {
           throw new SyntaxError(`Unknown state variable '${stateKey}'`);
@@ -364,7 +381,7 @@ class Evaluator {
         throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
       }
     } else if (expr.type === "block") {
-      let result: number | boolean = false;
+      let result: number | boolean | IWeight = false;
       for (const e of expr.exprs) {
         result = this.evaluate(e);
       }
@@ -412,20 +429,39 @@ class Evaluator {
       }
     }
   }
+
+  private add(one: IWeight | number, two: IWeight | number): IWeight | number {
+    return this.operation(one, two, (a, b) => a + b);
+  }
+
+  private subtract(one: IWeight | number, two: IWeight | number): IWeight | number {
+    return this.operation(one, two, (a, b) => a - b);
+  }
+
+  private multiply(one: IWeight | number, two: IWeight | number): IWeight | number {
+    return this.operation(one, two, (a, b) => a * b);
+  }
+
+  private divide(one: IWeight | number, two: IWeight | number): IWeight | number {
+    return this.operation(one, two, (a, b) => a / b);
+  }
+
+  private operation(a: IWeight | number, b: IWeight | number, op: (a: number, b: number) => number): IWeight | number {
+    if (typeof a === "number" && typeof b === "number") {
+      return op(a, b);
+    } else {
+      return Weight.operation(a as IWeight, b, op);
+    }
+  }
 }
 
 export class ScriptRunner {
   private readonly script: string;
-  private readonly state: Record<string, number | boolean>;
+  private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
 
-  constructor(
-    script: string,
-    state: Record<string, number | boolean>,
-    bindings: IScriptBindings,
-    fns: IScriptFunctions
-  ) {
+  constructor(script: string, state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions) {
     this.script = script;
     this.state = state;
     this.bindings = bindings;
@@ -434,6 +470,7 @@ export class ScriptRunner {
 
   public parse(): IExpr {
     const tokens = tokenize(this.script);
+    console.log(tokens);
     return new Parser(tokens, allRules).parse();
   }
 
@@ -443,10 +480,12 @@ export class ScriptRunner {
     const ast = this.parse();
     const evaluator = new Evaluator(this.state, this.bindings, this.fns);
     const result = evaluator.evaluate(ast);
-    if (!shouldExpectNumber || typeof result === "number") {
-      return result;
-    } else {
+    if (shouldExpectNumber && typeof result === "boolean") {
       throw new SyntaxError("Expected to get number as a result, but got a boolean instead");
+    } else if (Weight.is(result)) {
+      return result.value;
+    } else {
+      return result;
     }
   }
 }

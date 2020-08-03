@@ -15,6 +15,7 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { CardsPlayground } from "./cardsPlayground";
 import { IHistoryRecord } from "../../models/history";
 import { FinishScriptStateChangesView } from "./finishScriptStateChanges";
+import { Weight, IWeight } from "../../models/weight";
 
 interface IProps {
   dispatch: IDispatch;
@@ -119,10 +120,16 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
 
       {shouldShowAddStateVariable && (
         <ModalAddStateVariable
-          onDone={(newValue) => {
-            if (newValue != null) {
+          onDone={(newName, newType) => {
+            if (newName != null && newType != null) {
               const newState = { ...props.editProgram.state };
-              newState[newValue] = 0;
+              let newValue: IWeight | number;
+              if (newType === "lb" || newType === "kg") {
+                newValue = Weight.build(0, newType);
+              } else {
+                newValue = 0;
+              }
+              newState[newName] = newValue;
               const lensRecording = lb<IState>()
                 .p("storage")
                 .p("programs")

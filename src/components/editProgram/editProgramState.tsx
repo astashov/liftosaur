@@ -6,6 +6,7 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
 import { Button } from "../button";
+import { Weight } from "../../models/weight";
 
 interface IProps {
   editProgram: IProgram;
@@ -45,17 +46,21 @@ export function EditProgramState(props: IProps): JSX.Element {
         );
       })}
       {ObjectUtils.keys(state).map((stateKey) => {
+        const value = state[stateKey];
+        const displayValue = Weight.is(value) ? value.value : value;
+
         return (
           <MenuItemEditable
             name={stateKey}
             type="number"
-            value={state[stateKey].toString()}
+            value={displayValue.toString()}
+            valueUnits={Weight.is(value) ? value.unit : undefined}
             hasClear={true}
             onChange={(newValue?: string) => {
               const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
               const newState = { ...state };
               if (v != null) {
-                newState[stateKey] = v;
+                newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
               } else {
                 delete newState[stateKey];
               }

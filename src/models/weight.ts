@@ -46,16 +46,20 @@ export type IBars = t.TypeOf<typeof TBars>;
 import { ISettings, Settings } from "./settings";
 
 export namespace Weight {
-  export function display(weight: IWeight): string {
-    return weight.value === 0 ? "BW" : `${weight.value}`;
+  export function display(weight: IWeight | number): string {
+    if (typeof weight === "number") {
+      return `${weight}`;
+    } else {
+      return weight.value === 0 ? "BW" : `${weight.value} ${weight.unit}`;
+    }
   }
 
   export function build(value: number, unit: IUnit): IWeight {
     return { value, unit };
   }
 
-  export function is(object: object): object is IWeight {
-    return "unit" in object && "value" in object;
+  export function is(object: unknown): object is IWeight {
+    return object instanceof Object && "unit" in object && "value" in object;
   }
 
   export function round(weight: IWeight, settings: ISettings): IWeight {
@@ -146,23 +150,23 @@ export namespace Weight {
     return operation(weight, value, (a, b) => a / b);
   }
 
-  export function lte(weight: IWeight, value: IWeight | number): boolean {
-    return comparison(weight, value, (a, b) => a <= b);
-  }
-
-  export function gte(weight: IWeight, value: IWeight | number): boolean {
-    return comparison(weight, value, (a, b) => a >= b);
-  }
-
-  export function gt(weight: IWeight, value: IWeight | number): boolean {
+  export function gt(weight: IWeight | number, value: IWeight | number): boolean {
     return comparison(weight, value, (a, b) => a > b);
   }
 
-  export function lt(weight: IWeight, value: IWeight | number): boolean {
+  export function lt(weight: IWeight | number, value: IWeight | number): boolean {
     return comparison(weight, value, (a, b) => a < b);
   }
 
-  export function eq(weight: IWeight, value: IWeight | number): boolean {
+  export function gte(weight: IWeight | number, value: IWeight | number): boolean {
+    return comparison(weight, value, (a, b) => a >= b);
+  }
+
+  export function lte(weight: IWeight | number, value: IWeight | number): boolean {
+    return comparison(weight, value, (a, b) => a <= b);
+  }
+
+  export function eq(weight: IWeight | number, value: IWeight | number): boolean {
     return comparison(weight, value, (a, b) => a === b);
   }
 
@@ -174,13 +178,19 @@ export namespace Weight {
     return CollectionUtils.sort([weight, ...weights], Weight.compareReverse)[0];
   }
 
-  export function convertTo(weight: IWeight, unit: IUnit): IWeight {
-    if (weight.unit === unit) {
+  export function convertTo(weight: IWeight, unit: IUnit): IWeight;
+  export function convertTo(weight: number, unit: IUnit): number;
+  export function convertTo(weight: IWeight | number, unit: IUnit): IWeight | number {
+    if (typeof weight === "number") {
       return weight;
-    } else if (weight.unit === "kg" && unit === "lb") {
-      return Weight.build(Math.round((weight.value * 2.205) / 0.125) * 0.125, unit);
     } else {
-      return Weight.build(Math.round(weight.value / 2.205 / 0.125) * 0.125, unit);
+      if (weight.unit === unit) {
+        return weight;
+      } else if (weight.unit === "kg" && unit === "lb") {
+        return Weight.build(Math.round((weight.value * 2.205) / 0.125) * 0.125, unit);
+      } else {
+        return Weight.build(Math.round(weight.value / 2.205 / 0.125) * 0.125, unit);
+      }
     }
   }
 
@@ -192,19 +202,39 @@ export namespace Weight {
     return convertTo(b, a.unit).value - a.value;
   }
 
-  function comparison(weight: IWeight, value: IWeight | number, op: (a: number, b: number) => boolean): boolean {
-    if (typeof value === "number") {
+  function comparison(
+    weight: IWeight | number,
+    value: IWeight | number,
+    op: (a: number, b: number) => boolean
+  ): boolean {
+    if (typeof weight === "number" && typeof value === "number") {
+      return op(weight, value);
+    } else if (typeof weight === "number" && typeof value !== "number") {
+      return op(weight, value.value);
+    } else if (typeof weight !== "number" && typeof value === "number") {
       return op(weight.value, value);
-    } else {
+    } else if (typeof weight !== "number" && typeof value !== "number") {
       return op(weight.value, convertTo(value, weight.unit).value);
+    } else {
+      return false;
     }
   }
 
-  function operation(weight: IWeight, value: IWeight | number, op: (a: number, b: number) => number): IWeight {
-    if (typeof value === "number") {
+  export function operation(weight: IWeight, value: IWeight | number, op: (a: number, b: number) => number): IWeight;
+  export function operation(weight: IWeight | number, value: IWeight, op: (a: number, b: number) => number): IWeight;
+  export function operation(
+    weight: IWeight | number,
+    value: IWeight | number,
+    op: (a: number, b: number) => number
+  ): IWeight {
+    if (typeof weight === "number" && typeof value !== "number") {
+      return Weight.build(op(weight, value.value), value.unit);
+    } else if (typeof weight !== "number" && typeof value === "number") {
       return Weight.build(op(weight.value, value), weight.unit);
-    } else {
+    } else if (typeof weight !== "number" && typeof value !== "number") {
       return Weight.build(op(weight.value, convertTo(value, weight.unit).value), weight.unit);
+    } else {
+      throw new Error("Weight.operation should never work with numbers only");
     }
   }
 }

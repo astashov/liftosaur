@@ -1,5 +1,5 @@
 import { ScriptRunner } from "./parser";
-import { Progress } from "./models/progress";
+import { Progress, IScriptBindings } from "./models/progress";
 import { Weight } from "./models/weight";
 
 const program = `
@@ -30,14 +30,34 @@ if (day == 13 && cr[1][4] < r[1][4]) {
 }
 `;
 
-const bindings = {
+const bindings: IScriptBindings = {
   day: 1,
   weights: [
-    [40, 40, 40],
-    [30, 30, 30],
-    [50, 50, 50],
-    [50, 50, 50],
-    [0, 0, 0],
+    [
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+    ],
+    [
+      { value: 30, unit: "lb" },
+      { value: 30, unit: "lb" },
+      { value: 30, unit: "lb" },
+    ],
+    [
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+    ],
+    [
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+    ],
+    [
+      { value: 0, unit: "lb" },
+      { value: 0, unit: "lb" },
+      { value: 0, unit: "lb" },
+    ],
   ],
   reps: [
     [12, 12, 12],
@@ -54,11 +74,31 @@ const bindings = {
     [12, 12, 12],
   ],
   w: [
-    [40, 40, 40],
-    [30, 30, 30],
-    [50, 50, 50],
-    [50, 50, 50],
-    [0, 0, 0],
+    [
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+    ],
+    [
+      { value: 30, unit: "lb" },
+      { value: 30, unit: "lb" },
+      { value: 30, unit: "lb" },
+    ],
+    [
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+    ],
+    [
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+      { value: 50, unit: "lb" },
+    ],
+    [
+      { value: 0, unit: "lb" },
+      { value: 0, unit: "lb" },
+      { value: 0, unit: "lb" },
+    ],
   ],
   r: [
     [12, 12, 12],

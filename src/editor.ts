@@ -1,6 +1,7 @@
 import CodeMirror, { StringStream } from "codemirror";
 import "codemirror/mode/diff/diff";
 import "codemirror/addon/hint/show-hint";
+import { IProgramState } from "./models/program";
 
 type IState = Record<string, string | null>;
 
@@ -9,19 +10,19 @@ interface IArgs {
   onBlur?: (newValue: string) => void;
   value?: string;
   multiLine?: boolean;
-  state?: Record<string, number>;
+  state?: IProgramState;
 }
 
 export class CodeEditor {
   private readonly args: IArgs;
-  private state: Record<string, number>;
+  private state: IProgramState;
 
   constructor(args: IArgs = {}) {
     this.args = args;
     this.state = args.state || {};
   }
 
-  public updateState(newState: Record<string, number>): void {
+  public updateState(newState: IProgramState): void {
     this.state = newState;
   }
 
