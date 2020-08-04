@@ -1,12 +1,13 @@
 import { IEither } from "../utils/types";
 import { h, JSX } from "preact";
+import { IWeight, Weight } from "../models/weight";
 
-export function EvalResultInEditor(props: { result: IEither<number | undefined, string> }): JSX.Element {
+export function EvalResultInEditor(props: { result: IEither<number | IWeight | undefined, string> }): JSX.Element {
   if (props.result.success) {
     return (
       <span className="text-sm">
         <span className="text-gray-500">Evaluation result: </span>
-        <span className="font-bold">{props.result.data}</span>
+        <span className="font-bold">{props.result.data != null ? Weight.display(props.result.data) : undefined}</span>
       </span>
     );
   } else {

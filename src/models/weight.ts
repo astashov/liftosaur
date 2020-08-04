@@ -187,9 +187,9 @@ export namespace Weight {
       if (weight.unit === unit) {
         return weight;
       } else if (weight.unit === "kg" && unit === "lb") {
-        return Weight.build(Math.round((weight.value * 2.205) / 0.125) * 0.125, unit);
+        return Weight.build(Math.round((weight.value * 2.205) / 0.5) * 0.5, unit);
       } else {
-        return Weight.build(Math.round(weight.value / 2.205 / 0.125) * 0.125, unit);
+        return Weight.build(Math.round(weight.value / 2.205 / 0.5) * 0.5, unit);
       }
     }
   }

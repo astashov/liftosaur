@@ -441,7 +441,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         };
         const allProgramState: Record<string, number> = { ...newInternalState, ...program.state };
         try {
-          new ScriptRunner(program.finishDayExpr, allProgramState, bindings, fns).execute(false);
+          new ScriptRunner(
+            program.finishDayExpr,
+            allProgramState,
+            bindings,
+            fns,
+            state.storage.settings.units
+          ).execute();
           const { nextDay, ...programState } = allProgramState;
           newPrograms = lf(state.storage.programs)
             .i(programIndex)

@@ -10,6 +10,7 @@ import { Progress } from "../../models/progress";
 import { ISettings } from "../../models/settings";
 import { IEither } from "../../utils/types";
 import { IProgramState } from "../../models/program";
+import { IWeight } from "../../models/weight";
 
 interface IProps {
   excercise: IExcerciseType;
@@ -27,25 +28,30 @@ export function ModalEditSet(props: IProps): JSX.Element {
   const weightExprRef = useRef<string | undefined>(props.set?.weightExpr.trim());
   const isAmrapRef = useRef<boolean>(props.set?.isAmrap || false);
 
-  const [repsResult, setRepsResult] = useState<IEither<number | undefined, string>>(validate(props.set?.repsExpr));
-  const [weightResult, setWeightResult] = useState<IEither<number | undefined, string>>(
-    validate(props.set?.weightExpr)
+  const [repsResult, setRepsResult] = useState<IEither<number | IWeight | undefined, string>>(
+    validate(props.set?.repsExpr, "reps")
+  );
+  const [weightResult, setWeightResult] = useState<IEither<number | IWeight | undefined, string>>(
+    validate(props.set?.weightExpr, "weight")
   );
 
-  function validate(script?: string): IEither<number | undefined, string> {
+  function validate(
+    script: string | undefined,
+    type: "reps" | "weight"
+  ): IEither<number | IWeight | undefined, string> {
     try {
       if (script) {
         const scriptRunnerReps = new ScriptRunner(
           script,
           props.state,
           Progress.createEmptyScriptBindings(props.day),
-          Progress.createScriptFunctions(props.settings)
+          Progress.createScriptFunctions(props.settings),
+          props.settings.units
         );
-        const value = scriptRunnerReps.execute(true);
-        if (value >= 0) {
-          return { success: true, data: value };
+        if (type === "reps") {
+          return { success: true, data: scriptRunnerReps.execute(type) };
         } else {
-          return { success: false, error: "Result should be > 0" };
+          return { success: true, data: scriptRunnerReps.execute(type) };
         }
       } else {
         return { success: false, error: "Empty expression" };
@@ -60,8 +66,8 @@ export function ModalEditSet(props: IProps): JSX.Element {
   }
 
   function runValidations(): void {
-    setRepsResult(validate(repsExprRef.current?.trim()));
-    setWeightResult(validate(weightExprRef.current?.trim()));
+    setRepsResult(validate(repsExprRef.current?.trim(), "reps"));
+    setWeightResult(validate(weightExprRef.current?.trim(), "weight"));
   }
 
   return (

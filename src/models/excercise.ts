@@ -73,7 +73,10 @@ function warmup45(weight: IWeight, settings: ISettings): ISet[] {
   return percents.map((percent) => {
     return {
       reps: 5,
-      weight: Weight.max(Weight.build(45, "lb"), Weight.round(Weight.multiply(weight, percent), settings)),
+      weight: Weight.convertTo(
+        Weight.max(Weight.build(45, "lb"), Weight.round(Weight.multiply(weight, percent), settings)),
+        settings.units
+      ),
     };
   });
 }

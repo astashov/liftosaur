@@ -10,7 +10,7 @@ import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither } from "../utils/types";
-import { Weight, TWeight } from "./weight";
+import { TWeight, Weight } from "./weight";
 
 export const TProgramDayEntry = t.type(
   {
@@ -102,18 +102,20 @@ export namespace Program {
             set.repsExpr,
             program.state,
             Progress.createEmptyScriptBindings(day),
-            Progress.createScriptFunctions(settings)
-          ).execute(true);
+            Progress.createScriptFunctions(settings),
+            settings.units
+          ).execute("reps");
           const weightValue = new ScriptRunner(
             set.weightExpr,
             program.state,
             Progress.createEmptyScriptBindings(day),
-            Progress.createScriptFunctions(settings)
-          ).execute(true);
+            Progress.createScriptFunctions(settings),
+            settings.units
+          ).execute("weight");
           return {
             isAmrap: set.isAmrap,
             reps: repsValue,
-            weight: Weight.build(weightValue, settings.units),
+            weight: Weight.convertTo(weightValue, settings.units),
           };
         });
         return {
@@ -139,7 +141,8 @@ export namespace Program {
       script,
       Program.getState(program),
       Progress.createEmptyScriptBindings(dayIndex),
-      Progress.createScriptFunctions(settings)
+      Progress.createScriptFunctions(settings),
+      settings.units
     );
 
     try {
@@ -167,7 +170,7 @@ export namespace Program {
     const newState: Record<string, number> = { ...newInternalState, ...program.state };
 
     try {
-      new ScriptRunner(script, newState, bindings, fns).execute(false);
+      new ScriptRunner(script, newState, bindings, fns, settings.units).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };

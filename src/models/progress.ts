@@ -384,24 +384,19 @@ export namespace Progress {
             excercise: dayEntry.excercise,
             sets: progressEntry.sets.map((set, i) => ({
               ...set,
-              reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings),
-              weight: Weight.build(
-                executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings),
-                settings.units
-              ),
+              reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings, "reps"),
+              weight: executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings, "weight"),
             })),
           };
         } else {
           const firstWeightExpr = dayEntry.sets[0]?.weightExpr;
           const firstWeight =
-            firstWeightExpr != null
-              ? Weight.build(executeEntryScript(firstWeightExpr, day, state, settings), settings.units)
-              : undefined;
+            firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings, "weight") : undefined;
           return {
             excercise: dayEntry.excercise,
             sets: dayEntry.sets.map((set) => ({
-              reps: executeEntryScript(set.repsExpr, day, state, settings),
-              weight: Weight.build(executeEntryScript(set.weightExpr, day, state, settings), settings.units),
+              reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
+              weight: executeEntryScript(set.weightExpr, day, state, settings, "weight"),
             })),
             warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight, settings) : [],
           };
@@ -410,8 +405,38 @@ export namespace Progress {
     };
   }
 
-  function executeEntryScript(expr: string, day: number, state: Record<string, number>, settings: ISettings): number {
-    const runner = new ScriptRunner(expr, state, createEmptyScriptBindings(day), createScriptFunctions(settings));
-    return runner.execute(true);
+  function executeEntryScript(
+    expr: string,
+    day: number,
+    state: Record<string, number>,
+    settings: ISettings,
+    type: "weight"
+  ): IWeight;
+  function executeEntryScript(
+    expr: string,
+    day: number,
+    state: Record<string, number>,
+    settings: ISettings,
+    type: "reps"
+  ): number;
+  function executeEntryScript(
+    expr: string,
+    day: number,
+    state: Record<string, number>,
+    settings: ISettings,
+    type: "reps" | "weight"
+  ): IWeight | number {
+    const runner = new ScriptRunner(
+      expr,
+      state,
+      createEmptyScriptBindings(day),
+      createScriptFunctions(settings),
+      settings.units
+    );
+    if (type === "reps") {
+      return runner.execute(type);
+    } else {
+      return runner.execute(type);
+    }
   }
 }

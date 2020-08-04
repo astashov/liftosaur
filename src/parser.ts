@@ -460,12 +460,14 @@ export class ScriptRunner {
   private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
+  private readonly units: IUnit;
 
-  constructor(script: string, state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions) {
+  constructor(script: string, state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions, units: IUnit) {
     this.script = script;
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
+    this.units = units;
   }
 
   public parse(): IExpr {
@@ -474,16 +476,34 @@ export class ScriptRunner {
     return new Parser(tokens, allRules).parse();
   }
 
-  public execute(shouldExpectNumber: true): number;
-  public execute(shouldExpectNumber: false): number | boolean;
-  public execute(shouldExpectNumber: unknown): unknown {
+  public execute(type: "reps"): number;
+  public execute(type: "weight"): IWeight;
+  public execute(type?: undefined): number | IWeight | boolean;
+  public execute(type?: "reps" | "weight"): number | IWeight | boolean {
     const ast = this.parse();
     const evaluator = new Evaluator(this.state, this.bindings, this.fns);
-    const result = evaluator.evaluate(ast);
-    if (shouldExpectNumber && typeof result === "boolean") {
-      throw new SyntaxError("Expected to get number as a result, but got a boolean instead");
-    } else if (Weight.is(result)) {
-      return result.value;
+    let result = evaluator.evaluate(ast);
+    if (type === "reps") {
+      if (typeof result !== "number") {
+        throw new SyntaxError("Expected to get number as a result");
+      } else if (result < 0) {
+        throw new SyntaxError("Result should be > 0");
+      } else {
+        return result;
+      }
+    } else if (type === "weight") {
+      if (typeof result === "boolean") {
+        throw new SyntaxError("Expected to get number or weight as a result");
+      } else {
+        if (!Weight.is(result)) {
+          result = Weight.build(result, this.units);
+        }
+        if (Weight.lt(result, 0)) {
+          throw new SyntaxError("Result should be > 0");
+        } else {
+          return result;
+        }
+      }
     } else {
       return result;
     }

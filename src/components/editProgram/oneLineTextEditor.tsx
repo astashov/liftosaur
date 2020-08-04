@@ -4,12 +4,13 @@ import { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
 import { IProgramState } from "../../models/program";
+import { IWeight } from "../../models/weight";
 
 interface IProps {
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   value?: string;
-  result?: IEither<number | undefined, string>;
+  result?: IEither<number | undefined | IWeight, string>;
   state: IProgramState;
 }
 

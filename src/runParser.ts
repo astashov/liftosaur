@@ -189,6 +189,6 @@ const state = {
   dbCalfRaiseLastReps: 0,
 };
 
-const scriptRunner = new ScriptRunner(program, state, bindings, fns);
-console.log(scriptRunner.execute(false));
+const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb");
+console.log(scriptRunner.execute());
 console.log(state);
