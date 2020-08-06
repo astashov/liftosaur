@@ -322,7 +322,6 @@ export type IAction =
 let timerId: number | undefined = undefined;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
-  console.log(action);
   const newState = reducer(state, action);
   if (state.storage !== newState.storage) {
     newState.storage = {
@@ -339,6 +338,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   if (timerId != null) {
     window.clearTimeout(timerId);
   }
+  console.log(action, newState);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).state = newState;
   timerId = window.setTimeout(() => {

@@ -63,12 +63,13 @@ function MenuItemValue(
   if (props.type === "select") {
     return (
       <select
-        className="flex-1 text-right text-gray-700"
+        className="flex-1 pr-2 text-gray-700"
+        style={{ textAlignLast: "right" }}
         value={props.value || undefined}
         onChange={handleChange(props.onChange, props.setPatternError)}
       >
         {(props.values || []).map(([key, value]) => (
-          <option value={key} selected={key === props.value}>
+          <option value={key} selected={key === props.value} style={{ direction: "rtl" }}>
             {value}
           </option>
         ))}

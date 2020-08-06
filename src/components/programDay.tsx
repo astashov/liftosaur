@@ -12,7 +12,7 @@ import { ModalWeight } from "./modalWeight";
 import { Timer } from "./timer";
 import { IProgressMode, Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { ISettings, Settings } from "../models/settings";
+import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
 
 interface IProps {
@@ -73,11 +73,9 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }
         />
         <CardsView
-          units={props.settings.units}
-          bars={Settings.bars(props.settings)}
+          settings={props.settings}
           progress={progress}
           isTimerShown={!!props.timerSince}
-          availablePlates={Settings.plates(props.settings)}
           dispatch={props.dispatch}
           onChangeReps={(mode) => {
             if (Progress.isCurrent(progress)) {

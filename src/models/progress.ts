@@ -95,14 +95,14 @@ export namespace Progress {
         if (!Weight.is(num)) {
           throw new SyntaxError(`${num} is not weight`);
         } else {
-          return Weight.round(num, settings);
+          return Weight.round("benchPress", num, settings);
         }
       },
       calculateTrainingMax: (weight, reps) => {
         if (!Weight.is(weight)) {
           throw new SyntaxError(`${weight} is not weight`);
         } else {
-          return Weight.getTrainingMax(weight, reps || 0, settings);
+          return Weight.getTrainingMax("benchPress", weight, reps || 0, settings);
         }
       },
     };
@@ -338,7 +338,7 @@ export namespace Progress {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
                 if (set.weight.value === previousWeight && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings) };
+                  return { ...set, weight: Weight.round(progressEntry.excercise, weight, settings) };
                 } else {
                   return set;
                 }

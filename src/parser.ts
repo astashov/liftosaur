@@ -472,7 +472,6 @@ export class ScriptRunner {
 
   public parse(): IExpr {
     const tokens = tokenize(this.script);
-    console.log(tokens);
     return new Parser(tokens, allRules).parse();
   }
 

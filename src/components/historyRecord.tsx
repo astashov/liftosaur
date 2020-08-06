@@ -64,7 +64,9 @@ export function HistoryRecordView(props: IProps): JSX.Element {
                     />
                   </div>
                   <div className="w-8 ml-1 font-bold text-right">
-                    {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
+                    {Math.max(
+                      ...entry.sets.map((s) => Weight.roundConvertTo(entry.excercise, s.weight, props.settings).value)
+                    )}
                   </div>
                 </div>
               );

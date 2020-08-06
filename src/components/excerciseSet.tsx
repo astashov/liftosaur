@@ -1,22 +1,33 @@
 import { h, JSX } from "preact";
 import { Reps, ISet } from "../models/set";
+import { Weight } from "../models/weight";
+import { ISettings } from "../models/settings";
+import { IExcerciseType } from "../models/excercise";
 
 interface IProps {
+  excercise: IExcerciseType;
+  settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
 interface IAmrapExcerciseSetProps {
+  excercise: IExcerciseType;
+  settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
 interface IStartedExcerciseSetProps {
+  excercise: IExcerciseType;
+  settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
 interface INotStartedExcerciseSetProps {
+  excercise: IExcerciseType;
+  settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
@@ -24,14 +35,27 @@ interface INotStartedExcerciseSetProps {
 export function ExcerciseSetView(props: IProps): JSX.Element {
   const set = props.set;
   if (set.isAmrap) {
-    return <AmrapExcerciseSet set={set} onClick={props.onClick} />;
+    return (
+      <AmrapExcerciseSet excercise={props.excercise} set={set} settings={props.settings} onClick={props.onClick} />
+    );
   } else if (set.completedReps == null) {
-    return <NotStartedExcerciseSet set={set} onClick={props.onClick} />;
+    return (
+      <NotStartedExcerciseSet excercise={props.excercise} set={set} settings={props.settings} onClick={props.onClick} />
+    );
   } else {
     if (set.completedReps === set.reps) {
-      return <CompleteExcerciseSet set={set} onClick={props.onClick} />;
+      return (
+        <CompleteExcerciseSet excercise={props.excercise} set={set} settings={props.settings} onClick={props.onClick} />
+      );
     } else {
-      return <IncompleteExcerciseSet set={set} onClick={props.onClick} />;
+      return (
+        <IncompleteExcerciseSet
+          excercise={props.excercise}
+          set={set}
+          settings={props.settings}
+          onClick={props.onClick}
+        />
+      );
     }
   }
 }
@@ -46,7 +70,7 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
     >
       <div className="leading-none">{Reps.displayReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {set.weight.value}
+        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
       </div>
     </button>
   );
@@ -62,7 +86,7 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
     >
       <div className="leading-none">{Reps.displayCompletedReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {set.weight.value}
+        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
       </div>
     </button>
   );
@@ -78,7 +102,7 @@ function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
     >
       <div className="leading-none">{Reps.displayCompletedReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {set.weight.value}
+        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
       </div>
     </button>
   );
@@ -106,7 +130,7 @@ function AmrapExcerciseSet(props: IAmrapExcerciseSetProps): JSX.Element {
       )}
       <div className="leading-none">{set.completedReps == null ? `${set.reps}+` : set.completedReps}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {set.weight.value}
+        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
       </div>
     </button>
   );
