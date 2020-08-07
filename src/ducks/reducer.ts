@@ -338,7 +338,6 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   if (timerId != null) {
     window.clearTimeout(timerId);
   }
-  console.log(action, newState);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).state = newState;
   timerId = window.setTimeout(() => {

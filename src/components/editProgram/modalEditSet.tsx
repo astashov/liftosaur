@@ -10,7 +10,7 @@ import { Progress } from "../../models/progress";
 import { ISettings } from "../../models/settings";
 import { IEither } from "../../utils/types";
 import { IProgramState } from "../../models/program";
-import { IWeight } from "../../models/weight";
+import { IWeight, Weight } from "../../models/weight";
 
 interface IProps {
   excercise: IExcerciseType;
@@ -51,7 +51,10 @@ export function ModalEditSet(props: IProps): JSX.Element {
         if (type === "reps") {
           return { success: true, data: scriptRunnerReps.execute(type) };
         } else {
-          return { success: true, data: scriptRunnerReps.execute(type) };
+          return {
+            success: true,
+            data: Weight.roundConvertTo(props.excercise, scriptRunnerReps.execute(type), props.settings),
+          };
         }
       } else {
         return { success: false, error: "Empty expression" };

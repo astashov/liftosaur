@@ -5,7 +5,6 @@ import { lf } from "../utils/lens";
 import { Service } from "../api/service";
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "../models/weight";
-import { ObjectUtils } from "../utils/object";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -97,7 +96,7 @@ export const migrations = {
     }
     return storage;
   },
-  "20200802140247_convert_to_iweight": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20200807000141_convert_to_iweight": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
@@ -113,15 +112,33 @@ export const migrations = {
         }
       }
     }
-    for (const entryKey of ObjectUtils.keys(storage.settings.bars)) {
-      const entry = storage.settings.bars[entryKey];
-      for (const b of ObjectUtils.keys(entry)) {
-        const entryB = entry[b];
-        if (typeof entryB === "number") {
-          entry[b] = Weight.build(entryB, entryKey);
-        }
-      }
-    }
+    storage.settings.plates = [
+      { weight: Weight.build(45, "lb"), num: 4 },
+      { weight: Weight.build(25, "lb"), num: 4 },
+      { weight: Weight.build(10, "lb"), num: 4 },
+      { weight: Weight.build(5, "lb"), num: 4 },
+      { weight: Weight.build(2.5, "lb"), num: 4 },
+      { weight: Weight.build(1.25, "lb"), num: 2 },
+      { weight: Weight.build(20, "kg"), num: 4 },
+      { weight: Weight.build(10, "kg"), num: 4 },
+      { weight: Weight.build(5, "kg"), num: 4 },
+      { weight: Weight.build(2.5, "kg"), num: 4 },
+      { weight: Weight.build(1.25, "kg"), num: 4 },
+      { weight: Weight.build(0.5, "kg"), num: 2 },
+    ];
+    storage.settings.bars = {
+      lb: {
+        barbell: Weight.build(45, "lb"),
+        ezbar: Weight.build(20, "lb"),
+        dumbbell: Weight.build(10, "lb"),
+      },
+      kg: {
+        barbell: Weight.build(20, "kg"),
+        ezbar: Weight.build(10, "kg"),
+        dumbbell: Weight.build(5, "kg"),
+      },
+    };
+    storage.settings.units = "lb";
     return storage;
   },
 };

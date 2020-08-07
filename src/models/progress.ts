@@ -93,17 +93,15 @@ export namespace Progress {
     return {
       roundWeight: (num) => {
         if (!Weight.is(num)) {
-          throw new SyntaxError(`${num} is not weight`);
-        } else {
-          return Weight.round("benchPress", num, settings);
+          num = Weight.build(num, settings.units);
         }
+        return Weight.round("benchPress", num, settings);
       },
       calculateTrainingMax: (weight, reps) => {
         if (!Weight.is(weight)) {
-          throw new SyntaxError(`${weight} is not weight`);
-        } else {
-          return Weight.getTrainingMax("benchPress", weight, reps || 0, settings);
+          weight = Weight.build(weight, settings.units);
         }
+        return Weight.getTrainingMax("benchPress", weight, reps || 0, settings);
       },
     };
   }
