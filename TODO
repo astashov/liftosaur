@@ -12,12 +12,10 @@
 * Add exporting all data to downloadable CSV
 * Add deleting account
 * Add achievements
-* Add autofocus on modal inputs
 * Add cookie banner
 * Add ability to publish user programs
 * Add changing program day when editing progress day
 * Versionize published programs
 * Lazy load Codemirror
-* Fix plates calc for no-bar excercises
 * Add more excercises
 * Add Cypress e2e tests

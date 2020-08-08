@@ -64,9 +64,7 @@ export namespace Weight {
   }
 
   export function round(excerciseType: IExcerciseType, weight: IWeight, settings: ISettings): IWeight {
-    const excercise = Excercise.get(excerciseType);
-    const barWeight = excercise.bar != null ? Settings.bars(settings)[excercise.bar] : Weight.build(0, weight.unit);
-    return Weight.add(Weight.calculatePlates(Settings.plates(settings), weight, barWeight).weight, barWeight);
+    return Weight.calculatePlates(weight, excerciseType, settings).totalWeight;
   }
 
   export function getOneRepMax(excercise: IExcerciseType, weight: IWeight, reps: number, settings: ISettings): IWeight {
@@ -99,15 +97,17 @@ export namespace Weight {
     );
   }
 
-  export function formatOneSide(platesArr: IPlate[]): string {
+  export function formatOneSide(excerciseType: IExcerciseType, platesArr: IPlate[]): string {
+    const { bar } = Excercise.get(excerciseType);
     const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
     plates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const arr: number[] = [];
+    const multiplier = bar != null ? 2 : 1;
     while (true) {
-      const plate = plates.find((p) => p.num >= 2);
+      const plate = plates.find((p) => p.num >= multiplier);
       if (plate != null) {
         arr.push(plate.weight.value);
-        plate.num -= 2;
+        plate.num -= multiplier;
       } else {
         break;
       }
@@ -116,10 +116,21 @@ export namespace Weight {
   }
 
   export function calculatePlates(
-    availablePlatesArr: IPlate[],
     allWeight: IWeight,
-    barWeight: IWeight
-  ): { plates: IPlate[]; weight: IWeight } {
+    excerciseType: IExcerciseType,
+    settings: ISettings
+  ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
+    const availablePlatesArr = Settings.plates(settings);
+    const excercise = Excercise.get(excerciseType);
+    let barWeight: IWeight;
+    let multiplier: number;
+    if (excercise.bar != null) {
+      barWeight = Settings.bars(settings)[excercise.bar];
+      multiplier = 2;
+    } else {
+      barWeight = Weight.build(0, settings.units);
+      multiplier = 1;
+    }
     const weight = Weight.subtract(allWeight, barWeight);
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
@@ -128,22 +139,23 @@ export namespace Weight {
     while (true) {
       const availablePlate = availablePlates.find(
         (potentialPlate) =>
-          potentialPlate.num >= 2 && Weight.lte(Weight.add(Weight.multiply(potentialPlate.weight, 2), total), weight)
+          potentialPlate.num >= multiplier &&
+          Weight.lte(Weight.add(Weight.multiply(potentialPlate.weight, multiplier), total), weight)
       );
       if (availablePlate != null) {
-        total = Weight.add(total, Weight.multiply(availablePlate.weight, 2));
-        availablePlate.num -= 2;
+        total = Weight.add(total, Weight.multiply(availablePlate.weight, multiplier));
+        availablePlate.num -= multiplier;
         let plate = plates.find((p) => Weight.eq(p.weight, availablePlate!.weight));
         if (plate == null) {
           plate = { weight: availablePlate.weight, num: 0 };
           plates.push(plate);
         }
-        plate.num += 2;
+        plate.num += multiplier;
       } else {
         break;
       }
     }
-    return { plates, weight: total };
+    return { plates, platesWeight: total, totalWeight: Weight.add(total, barWeight) };
   }
 
   export function add(weight: IWeight, value: IWeight | number): IWeight {

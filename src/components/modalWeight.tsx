@@ -40,7 +40,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
             type="submit"
             onClick={() => {
               const value = textInput.current?.value;
-              const numValue = value != null ? parseInt(value, 10) : undefined;
+              const numValue = value != null ? parseFloat(value) : undefined;
               props.dispatch({
                 type: "ConfirmWeightAction",
                 weight: numValue != null && !isNaN(numValue) ? Weight.build(numValue, props.units) : undefined,
