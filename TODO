@@ -8,7 +8,6 @@
   - Strong Curves
   - nSuns LP
 * Add errors handling to HTTP calls
-* Support kilograms
 * Extract lens lib into a separate npm package
 * Add exporting all data to downloadable CSV
 * Add deleting account
@@ -20,3 +19,7 @@
 * Add changing program day when editing progress day
 * Versionize published programs
 * Highlight lb/kg properly in the editor
+* Remove Google SDK, try to auth just by REST
+* Lazy load Codemirror
+* Fix plates calc for no-bar excercises
+* Add more excercises

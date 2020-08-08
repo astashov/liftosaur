@@ -36,7 +36,7 @@ export class CodeEditor {
         token: (stream: StringStream, state: IState) => {
           const peek = stream.peek();
           let token: string | null = null;
-          if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+/)) {
+          if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+(lb|kg)?/)) {
             token = "number";
           } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
             if (/\W/.test(stream.peek() || "")) {
