@@ -5,12 +5,18 @@ import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { DateUtils } from "../utils/date";
 
-export function ModalDate(props: { dispatch: IDispatch; date: string }): JSX.Element {
+interface IModalDateProps {
+  dispatch: IDispatch;
+  date: string;
+  isHidden: boolean;
+}
+
+export function ModalDate(props: IModalDateProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const date = new Date(Date.parse(props.date));
   const formattedDate = DateUtils.formatYYYYMMDD(date);
   return (
-    <Modal>
+    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <h3 className="pb-2 font-bold">Please enter new date</h3>
       <form>
         <input
@@ -19,7 +25,6 @@ export function ModalDate(props: { dispatch: IDispatch; date: string }): JSX.Ele
           type="date"
           placeholder="Date"
           value={formattedDate}
-          autofocus
         />
         <div className="mt-4 text-right">
           <Button

@@ -5,12 +5,19 @@ import { Modal } from "./modal";
 import { Button } from "./button";
 import { IUnit, Weight } from "../models/weight";
 
-export function ModalWeight(props: { dispatch: IDispatch; units: IUnit; weight: number }): JSX.Element {
+interface IModalWeightProps {
+  dispatch: IDispatch;
+  units: IUnit;
+  weight: number;
+  isHidden: boolean;
+}
+
+export function ModalWeight(props: IModalWeightProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal>
+    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <h3 className="pb-2 font-bold">Please enter weight</h3>
-      <form>
+      <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
@@ -18,7 +25,6 @@ export function ModalWeight(props: { dispatch: IDispatch; units: IUnit; weight: 
           type="number"
           min="0"
           placeholder="Weight in lbs"
-          autofocus
         />
         <div className="mt-4 text-right">
           <Button

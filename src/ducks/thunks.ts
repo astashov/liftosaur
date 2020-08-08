@@ -43,7 +43,7 @@ export namespace Thunk {
   }
 
   export function sendTimerPushNotification(sid?: number): IThunk {
-    return (dispatch, getState, env) => {
+    return async (dispatch, getState, env) => {
       env.audio.play();
       if (sid != null) {
         env.service.sendTimerPushNotification(sid);
@@ -52,21 +52,21 @@ export namespace Thunk {
   }
 
   export function pushScreen(screen: IScreen): IThunk {
-    return (dispatch) => {
+    return async (dispatch) => {
       dispatch({ type: "PushScreen", screen });
       window.scroll(0, 0);
     };
   }
 
   export function pullScreen(): IThunk {
-    return (dispatch) => {
+    return async (dispatch) => {
       dispatch({ type: "PullScreen" });
       window.scroll(0, 0);
     };
   }
 
   export function publishProgram(): IThunk {
-    return (dispatch, getState, env) => {
+    return async (dispatch, getState, env) => {
       const state = getState();
       const program = Program.getEditingProgram(state)!;
       env.service.publishProgram(program);

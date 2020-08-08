@@ -118,30 +118,29 @@ export function EditProgramDayScript(props: IProps): JSX.Element {
         </section>
       </section>
 
-      {shouldShowAddStateVariable && (
-        <ModalAddStateVariable
-          onDone={(newName, newType) => {
-            if (newName != null && newType != null) {
-              const newState = { ...props.editProgram.state };
-              let newValue: IWeight | number;
-              if (newType === "lb" || newType === "kg") {
-                newValue = Weight.build(0, newType);
-              } else {
-                newValue = 0;
-              }
-              newState[newName] = newValue;
-              const lensRecording = lb<IState>()
-                .p("storage")
-                .p("programs")
-                .i(props.programIndex)
-                .p("state")
-                .record(newState);
-              props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
+      <ModalAddStateVariable
+        isHidden={!shouldShowAddStateVariable}
+        onDone={(newName, newType) => {
+          if (newName != null && newType != null) {
+            const newState = { ...props.editProgram.state };
+            let newValue: IWeight | number;
+            if (newType === "lb" || newType === "kg") {
+              newValue = Weight.build(0, newType);
+            } else {
+              newValue = 0;
             }
-            setShouldShowAddStateVariable(false);
-          }}
-        />
-      )}
+            newState[newName] = newValue;
+            const lensRecording = lb<IState>()
+              .p("storage")
+              .p("programs")
+              .i(props.programIndex)
+              .p("state")
+              .record(newState);
+            props.dispatch({ type: "UpdateState", lensRecording: [lensRecording] });
+          }
+          setShouldShowAddStateVariable(false);
+        }}
+      />
 
       <FooterView dispatch={props.dispatch} />
     </section>

@@ -90,23 +90,22 @@ export function ScreenPlates(props: IProps): JSX.Element {
       </section>
 
       <FooterView dispatch={props.dispatch} />
-      {shouldShowModal && (
-        <ModalPlates
-          units={props.units}
-          onInput={(weight) => {
-            setShouldShowModal(false);
-            if (weight != null) {
-              const newWeight = Weight.build(weight, props.units);
-              if (props.plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
-                const lensRecording = lb<ISettings>()
-                  .p("plates")
-                  .recordModify((p) => [...p, { weight: newWeight, num: 0 }]);
-                props.dispatch({ type: "UpdateSettings", lensRecording });
-              }
+      <ModalPlates
+        isHidden={!shouldShowModal}
+        units={props.units}
+        onInput={(weight) => {
+          setShouldShowModal(false);
+          if (weight != null) {
+            const newWeight = Weight.build(weight, props.units);
+            if (props.plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
+              const lensRecording = lb<ISettings>()
+                .p("plates")
+                .recordModify((p) => [...p, { weight: newWeight, num: 0 }]);
+              props.dispatch({ type: "UpdateSettings", lensRecording });
             }
-          }}
-        />
-      )}
+          }
+        }}
+      />
     </section>
   );
 }

@@ -100,13 +100,18 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             ) : undefined
           }
         />
-        {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={props.dispatch} /> : undefined}
-        {progress.ui?.weightModal != null ? (
-          <ModalWeight units={props.settings.units} dispatch={props.dispatch} weight={progress.ui.weightModal.weight} />
-        ) : undefined}
-        {progress.ui?.dateModal != null ? (
-          <ModalDate dispatch={props.dispatch} date={progress.ui.dateModal.date} />
-        ) : undefined}
+        <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
+        <ModalWeight
+          isHidden={progress.ui?.weightModal == null}
+          units={props.settings.units}
+          dispatch={props.dispatch}
+          weight={progress.ui?.weightModal?.weight ?? 0}
+        />
+        <ModalDate
+          isHidden={progress.ui?.dateModal == null}
+          dispatch={props.dispatch}
+          date={progress.ui?.dateModal?.date ?? ""}
+        />
       </section>
     );
   } else {

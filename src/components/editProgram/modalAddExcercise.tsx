@@ -7,13 +7,14 @@ import { Button } from "../button";
 
 interface IProps {
   onSelect: (value?: string) => void;
+  isHidden: boolean;
 }
 
 export function ModalAddExcercise(props: IProps): JSX.Element {
   const inputRef = useRef<HTMLSelectElement>(null);
   const excerciseOptions = ObjectUtils.keys(excercises).map((e) => [excercises[e].id, excercises[e].name]);
   return (
-    <Modal>
+    <Modal isHidden={props.isHidden} autofocusInputRef={inputRef}>
       <h3 className="pb-2 font-bold">Choose new excercise</h3>
       <form>
         <select ref={inputRef} className="text-right text-gray-700">

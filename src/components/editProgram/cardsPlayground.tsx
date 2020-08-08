@@ -30,10 +30,13 @@ export function CardsPlayground(props: IProps): JSX.Element {
           <ExcerciseView settings={props.settings} entry={entry} dispatch={dispatch} onChangeReps={() => undefined} />
         );
       })}
-      {progress.ui?.amrapModal != null ? <ModalAmrap dispatch={dispatch} /> : undefined}
-      {progress.ui?.weightModal != null ? (
-        <ModalWeight units={props.settings.units} dispatch={dispatch} weight={progress.ui.weightModal.weight} />
-      ) : undefined}
+      <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
+      <ModalWeight
+        isHidden={progress.ui?.weightModal == null}
+        units={props.settings.units}
+        dispatch={dispatch}
+        weight={progress.ui?.weightModal?.weight ?? 0}
+      />
     </section>
   );
 }

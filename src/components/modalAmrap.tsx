@@ -4,19 +4,25 @@ import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 
-export function ModalAmrap(props: { dispatch: IDispatch }): JSX.Element {
+interface IModalAmrapProps {
+  isHidden: boolean;
+  dispatch: IDispatch;
+}
+
+export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
+
   return (
-    <Modal>
-      <h3 className="font-bold pb-2">Please enter number of AMRAP reps</h3>
-      <form>
+    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
+      <h3 className="pb-2 font-bold">Please enter number of AMRAP reps</h3>
+      <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+          data-name="modal-input-autofocus"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="number"
           min="0"
           placeholder="Number of completed reps"
-          autofocus
         />
         <div className="mt-4 text-right">
           <Button

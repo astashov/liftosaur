@@ -109,16 +109,15 @@ export function EditProgramDay(props: IProps): JSX.Element {
           </div>
         )}
       </section>
-      {shouldShowAddExcercise && (
-        <ModalAddExcercise
-          onSelect={(value) => {
-            setShouldShowAddExcercise(false);
-            if (value != null) {
-              EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, value as IExcerciseType);
-            }
-          }}
-        />
-      )}
+      <ModalAddExcercise
+        isHidden={!shouldShowAddExcercise}
+        onSelect={(value) => {
+          setShouldShowAddExcercise(false);
+          if (value != null) {
+            EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, value as IExcerciseType);
+          }
+        }}
+      />
 
       {editSet && (
         <ModalEditSet

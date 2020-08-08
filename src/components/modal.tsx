@@ -1,16 +1,41 @@
-import { h, ComponentChildren, JSX } from "preact";
+import { h, ComponentChildren, JSX, RefObject } from "preact";
 import { IconClose } from "./iconClose";
+import { useRef, useEffect } from "preact/hooks";
 
 interface IProps {
   children: ComponentChildren;
+  autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement>;
+  isHidden?: boolean;
   shouldShowClose?: boolean;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
 }
 
 export function Modal(props: IProps): JSX.Element {
+  const modalRef = useRef<HTMLElement>();
+
+  let className = "fixed inset-0 z-20 flex items-center justify-center";
+  if (props.isHidden) {
+    className += " invisible";
+  }
+
+  const prevProps = useRef<IProps>(props);
+  useEffect(() => {
+    prevProps.current = props;
+  });
+
+  if (
+    modalRef.current != null &&
+    props.autofocusInputRef?.current != null &&
+    prevProps.current.isHidden &&
+    !props.isHidden
+  ) {
+    modalRef.current.classList.remove("invisible");
+    props.autofocusInputRef.current.focus();
+  }
+
   return (
-    <section className="fixed inset-0 z-20 flex items-center justify-center">
+    <section ref={modalRef} className={className}>
       <div data-name="overlay" className="absolute inset-0 bg-gray-400 opacity-50"></div>
       <div
         data-name="modal"

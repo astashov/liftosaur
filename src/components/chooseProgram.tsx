@@ -41,14 +41,13 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           }}
         />
       )}
-      {shouldCreateProgram && (
-        <ModalCreateProgram
-          onClose={() => setShouldCreateProgram(false)}
-          onSelect={(name) => {
-            props.dispatch({ type: "CreateProgramAction", name });
-          }}
-        />
-      )}
+      <ModalCreateProgram
+        isHidden={!shouldCreateProgram}
+        onClose={() => setShouldCreateProgram(false)}
+        onSelect={(name) => {
+          props.dispatch({ type: "CreateProgramAction", name });
+        }}
+      />
       <FooterView dispatch={props.dispatch} />
     </section>
   );

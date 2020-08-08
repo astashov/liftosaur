@@ -7,12 +7,13 @@ import { IUnit } from "../models/weight";
 interface IProps {
   units: IUnit;
   onInput: (value?: number) => void;
+  isHidden: boolean;
 }
 
 export function ModalPlates(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal>
+    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <h3 className="pb-2 font-bold">Enter new plate weight</h3>
       <form>
         <input
@@ -21,7 +22,6 @@ export function ModalPlates(props: IProps): JSX.Element {
           type="number"
           min="0"
           placeholder={`Plate weight in ${props.units}`}
-          autofocus
         />
         <div className="mt-4 text-right">
           <Button type="button" kind="gray" className="mr-3" onClick={() => props.onInput(undefined)}>

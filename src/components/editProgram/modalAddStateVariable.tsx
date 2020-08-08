@@ -5,13 +5,14 @@ import { useRef } from "preact/hooks";
 
 interface IProps {
   onDone: (newValue?: string, newType?: string) => void;
+  isHidden: boolean;
 }
 
 export function ModalAddStateVariable(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>();
   const typeInput = useRef<HTMLSelectElement>();
   return (
-    <Modal>
+    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
       <h3 className="pb-2 font-bold text-center">Add State Variable</h3>
       <form onSubmit={(e) => e.preventDefault()}>
         <label for="add_state_variable" className="block text-sm font-bold">
