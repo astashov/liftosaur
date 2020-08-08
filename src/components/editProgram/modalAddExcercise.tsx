@@ -16,7 +16,7 @@ export function ModalAddExcercise(props: IProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} autofocusInputRef={inputRef}>
       <h3 className="pb-2 font-bold">Choose new excercise</h3>
-      <form>
+      <form onSubmit={(e) => e.preventDefault()}>
         <select ref={inputRef} className="text-right text-gray-700">
           {excerciseOptions.map(([key, value]) => (
             <option value={key}>{value}</option>
