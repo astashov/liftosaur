@@ -18,8 +18,6 @@
 * Add ability to publish user programs
 * Add changing program day when editing progress day
 * Versionize published programs
-* Highlight lb/kg properly in the editor
-* Remove Google SDK, try to auth just by REST
 * Lazy load Codemirror
 * Fix plates calc for no-bar excercises
 * Add more excercises

@@ -43,7 +43,6 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch({ type: "StoreWebpushrSidAction", sid });
       });
     };
-    dispatch(Thunk.googleOauthInitialize());
     dispatch(Thunk.fetchStorage());
     dispatch(Thunk.fetchPrograms());
     if (state.storage.currentProgramId == null) {

@@ -5,28 +5,16 @@ import { IGetStorageResponse } from "../api/service";
 import { lb } from "../utils/lens";
 import { IState } from "./reducer";
 import { Program } from "../models/program";
+import { getGoogleAccessToken } from "../utils/googleAccessToken";
 
-declare let __API_HOST__: string;
 declare let Rollbar: RB;
 
 export namespace Thunk {
-  export function googleOauthInitialize(): IThunk {
-    return async (_, __, env): Promise<void> => {
-      if (window.gapi != null) {
-        env.googleAuth = (await initializeGapi()).auth;
-      } else {
-        window.handleGapiLoad = async () => {
-          env.googleAuth = (await initializeGapi()).auth;
-        };
-      }
-    };
-  }
-
   export function googleSignIn(): IThunk {
     return async (dispatch, getState, env) => {
-      if (env.googleAuth != null) {
-        const user = await env.googleAuth.signIn();
-        const result = await env.service.googleSignIn(user.getAuthResponse().access_token);
+      const accessToken = await getGoogleAccessToken();
+      if (accessToken != null) {
+        const result = await env.service.googleSignIn(accessToken);
         handleLogin(dispatch, result);
       }
     };
@@ -52,20 +40,6 @@ export namespace Thunk {
       const result = await env.service.getStorage();
       handleLogin(dispatch, result);
     };
-  }
-
-  function initializeGapi(): Promise<{ auth: gapi.auth2.GoogleAuth }> {
-    return new Promise((resolve) => {
-      window.gapi.load("auth2", () => {
-        const auth2 = window.gapi.auth2.init({
-          scope: "openid",
-          fetch_basic_profile: false,
-          client_id: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
-        });
-
-        resolve({ auth: auth2 });
-      });
-    });
   }
 
   export function sendTimerPushNotification(sid?: number): IThunk {
