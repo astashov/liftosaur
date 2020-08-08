@@ -74,11 +74,7 @@ export namespace Reps {
 
   export function isCompletedSet(set: ISet): boolean {
     if (set.completedReps != null) {
-      if (set.isAmrap) {
-        return set.completedReps > 0;
-      } else {
-        return set.reps === set.completedReps;
-      }
+      return set.completedReps >= set.reps;
     } else {
       return false;
     }

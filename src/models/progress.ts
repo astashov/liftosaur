@@ -384,6 +384,7 @@ export namespace Progress {
               ...set,
               reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings, "reps"),
               weight: executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings, "weight"),
+              isAmrap: dayEntry.sets[i].isAmrap,
             })),
           };
         } else {
@@ -395,6 +396,7 @@ export namespace Progress {
             sets: dayEntry.sets.map((set) => ({
               reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
               weight: executeEntryScript(set.weightExpr, day, state, settings, "weight"),
+              isAmrap: set.isAmrap,
             })),
             warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight, settings) : [],
           };

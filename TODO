@@ -12,7 +12,6 @@
 * Add exporting all data to downloadable CSV
 * Add deleting account
 * Add achievements
-* Fix completed criteria for AMRAP (they're now > 1, should be > reps)
 * Add autofocus on modal inputs
 * Add cookie banner
 * Add ability to publish user programs
@@ -21,3 +20,4 @@
 * Lazy load Codemirror
 * Fix plates calc for no-bar excercises
 * Add more excercises
+* Add Cypress e2e tests
