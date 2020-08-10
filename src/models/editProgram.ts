@@ -4,7 +4,7 @@ import { IProgramDayEntry, IProgramDay } from "./program";
 import { IDispatch } from "../ducks/types";
 import { IProgramSet } from "./set";
 import { IExcerciseId } from "./excercise";
-import { IBars } from "./weight";
+import { IBarKey } from "./weight";
 
 export namespace EditProgram {
   export function removeEntry(
@@ -66,7 +66,7 @@ export namespace EditProgram {
     dispatch: IDispatch,
     editDayLensBuilder: LensBuilder<IState, IProgramDay>,
     excerciseId: IExcerciseId,
-    bar: keyof IBars
+    bar?: IBarKey
   ): void {
     updateState(dispatch, [
       editDayLensBuilder.p("excercises").recordModify((e) => [

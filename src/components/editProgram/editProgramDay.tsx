@@ -114,7 +114,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
         settings={props.settings}
         onSelect={(excerciseId, bar) => {
           setShouldShowAddExcercise(false);
-          if (excerciseId != null && bar != null) {
+          if (excerciseId != null) {
             EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, excerciseId, bar);
           }
         }}
