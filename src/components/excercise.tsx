@@ -45,15 +45,15 @@ function ExcerciseContentView(props: IProps): JSX.Element {
   const excercise = Excercise.get(props.entry.excercise);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
   const workoutWeights = CollectionUtils.compatBy(
-    props.entry.sets.map((s) => Weight.roundConvertTo(props.entry.excercise, s.weight, props.settings)),
+    props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.excercise.bar)),
     (w) => w.value.toString()
   );
   workoutWeights.sort(Weight.compare);
   const warmupSets = props.entry.warmupSets;
   const warmupWeights = CollectionUtils.compatBy(
-    props.entry.warmupSets.map((s) => Weight.roundConvertTo(props.entry.excercise, s.weight, props.settings)),
+    props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.excercise.bar)),
     (w) => w.value.toString()
-  ).filter((w) => Object.keys(Weight.calculatePlates(w, props.entry.excercise, props.settings).plates).length > 0);
+  ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.excercise.bar).plates).length > 0);
   warmupWeights.sort(Weight.compare);
   return (
     <Fragment>
@@ -145,11 +145,11 @@ function handleClick(
 }
 
 function WeightView(props: { weight: IWeight; excercise: IExcerciseType; settings: ISettings }): JSX.Element {
-  const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.excercise, props.settings);
+  const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.settings, props.excercise.bar);
   const className = Weight.eq(weight, props.weight) ? "text-gray-600" : "text-red-600";
   return (
     <span className="mx-2 text-xs break-all">
-      <span className={className}>{Weight.formatOneSide(props.excercise, plates)}</span>
+      <span className={className}>{Weight.formatOneSide(plates, props.excercise.bar)}</span>
     </span>
   );
 }

@@ -32,19 +32,21 @@ export const TPlate = t.type(
 );
 export type IPlate = t.TypeOf<typeof TPlate>;
 
-export const TBars = t.type(
-  {
-    barbell: TWeight,
-    ezbar: TWeight,
-    dumbbell: TWeight,
-  },
-  "TBars"
-);
+const barKeys = ["barbell", "ezbar", "dumbbell"] as const;
 
+export const TBarKey = t.keyof(
+  barKeys.reduce<Record<IArrayElement<typeof barKeys>, null>>((memo, barKey) => {
+    memo[barKey] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof barKeys>, null>),
+  "TBarKey"
+);
+export type IBarKey = t.TypeOf<typeof TBarKey>;
+
+export const TBars = t.record(TBarKey, TWeight, "TBars");
 export type IBars = t.TypeOf<typeof TBars>;
 
 import { ISettings, Settings } from "./settings";
-import { IExcerciseType, Excercise } from "./excercise";
 
 export namespace Weight {
   export function display(weight: IWeight | number): string {
@@ -63,30 +65,21 @@ export namespace Weight {
     return object instanceof Object && "unit" in object && "value" in object;
   }
 
-  export function round(excerciseType: IExcerciseType, weight: IWeight, settings: ISettings): IWeight {
-    return Weight.calculatePlates(weight, excerciseType, settings).totalWeight;
+  export function round(weight: IWeight, settings: ISettings, bar?: IBarKey): IWeight {
+    return Weight.calculatePlates(weight, settings, bar).totalWeight;
   }
 
-  export function getOneRepMax(excercise: IExcerciseType, weight: IWeight, reps: number, settings: ISettings): IWeight {
+  export function getOneRepMax(weight: IWeight, reps: number, settings: ISettings, bar?: IBarKey): IWeight {
     if (reps === 1) {
       return weight;
     } else {
       // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
-      return Weight.round(excercise, Weight.multiply(weight, 1 + reps / 30), settings);
+      return Weight.round(Weight.multiply(weight, 1 + reps / 30), settings, bar);
     }
   }
 
-  export function getTrainingMax(
-    excercise: IExcerciseType,
-    weight: IWeight,
-    reps: number,
-    settings: ISettings
-  ): IWeight {
-    return Weight.round(
-      excercise,
-      Weight.multiply(Weight.getOneRepMax(excercise, weight, reps, settings), 0.9),
-      settings
-    );
+  export function getTrainingMax(weight: IWeight, reps: number, settings: ISettings, bar: IBarKey): IWeight {
+    return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps, settings, bar), 0.9), settings, bar);
   }
 
   export function platesWeight(plates: IPlate[]): IWeight {
@@ -97,8 +90,7 @@ export namespace Weight {
     );
   }
 
-  export function formatOneSide(excerciseType: IExcerciseType, platesArr: IPlate[]): string {
-    const { bar } = Excercise.get(excerciseType);
+  export function formatOneSide(platesArr: IPlate[], bar?: IBarKey): string {
     const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
     plates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const arr: number[] = [];
@@ -117,15 +109,14 @@ export namespace Weight {
 
   export function calculatePlates(
     allWeight: IWeight,
-    excerciseType: IExcerciseType,
-    settings: ISettings
+    settings: ISettings,
+    bar?: IBarKey
   ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
     const availablePlatesArr = Settings.plates(settings);
-    const excercise = Excercise.get(excerciseType);
     let barWeight: IWeight;
     let multiplier: number;
-    if (excercise.bar != null) {
-      barWeight = Settings.bars(settings)[excercise.bar];
+    if (bar != null) {
+      barWeight = Settings.bars(settings)[bar];
       multiplier = 2;
     } else {
       barWeight = Weight.build(0, settings.units);
@@ -202,8 +193,8 @@ export namespace Weight {
     return CollectionUtils.sort([weight, ...weights], Weight.compareReverse)[0];
   }
 
-  export function roundConvertTo(excercise: IExcerciseType, weight: IWeight, settings: ISettings): IWeight {
-    return round(excercise, convertTo(weight, settings.units), settings);
+  export function roundConvertTo(weight: IWeight, settings: ISettings, bar?: IBarKey): IWeight {
+    return round(convertTo(weight, settings.units), settings, bar);
   }
 
   export function convertTo(weight: IWeight, unit: IUnit): IWeight;

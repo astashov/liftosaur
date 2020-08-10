@@ -35,7 +35,10 @@ export function EditProgramExcerciseView(props: IProps): JSX.Element {
               <IconHandle />
             </span>
           </div>
-          <div className="flex-1 mr-auto">{excercise.name}</div>
+          <div className="flex-1 mr-auto">
+            {excercise.name}{" "}
+            <span className="text-sm text-gray-600">{excercise.bar != null ? `(${excercise.bar})` : ""}</span>
+          </div>
         </header>
         <section className="flex flex-wrap pt-2">
           {props.entry.sets.map((set, i) => {

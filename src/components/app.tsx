@@ -76,7 +76,6 @@ export function AppView(props: IProps): JSX.Element | null {
           progress={state.progress?.[0]}
           settings={state.storage.settings}
           history={state.storage.history}
-          stats={state.storage.stats}
           dispatch={dispatch}
         />
       );
@@ -89,7 +88,6 @@ export function AppView(props: IProps): JSX.Element | null {
       <ProgramDayView
         progress={progress}
         history={state.storage.history}
-        stats={state.storage.stats}
         dispatch={dispatch}
         webpushr={state.webpushr}
         timerSince={progress.timerSince}
@@ -120,14 +118,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
-    return (
-      <ScreenGraphs
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        history={state.storage.history}
-        stats={state.storage.stats}
-      />
-    );
+    return <ScreenGraphs settings={state.storage.settings} dispatch={dispatch} history={state.storage.history} />;
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);

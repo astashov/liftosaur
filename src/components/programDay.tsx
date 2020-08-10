@@ -5,7 +5,6 @@ import { FooterView } from "./footer";
 import { IWebpushr } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
-import { IStats } from "../models/stats";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
@@ -18,7 +17,6 @@ import { IconEdit } from "./iconEdit";
 interface IProps {
   progress: IHistoryRecord;
   history: IHistoryRecord[];
-  stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
   timerSince?: number;

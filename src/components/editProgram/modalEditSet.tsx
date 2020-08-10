@@ -53,7 +53,7 @@ export function ModalEditSet(props: IProps): JSX.Element {
         } else {
           return {
             success: true,
-            data: Weight.roundConvertTo(props.excercise, scriptRunnerReps.execute(type), props.settings),
+            data: Weight.roundConvertTo(scriptRunnerReps.execute(type), props.settings, props.excercise.bar),
           };
         }
       } else {

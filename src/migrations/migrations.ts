@@ -5,6 +5,7 @@ import { lf } from "../utils/lens";
 import { Service } from "../api/service";
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "../models/weight";
+import { IExcerciseType } from "../models/excercise";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -16,6 +17,41 @@ export function getLatestMigrationVersion(): string {
   }
   return latestMigrationVersion.toString();
 }
+
+export const excerciseMapper: Record<string, IExcerciseType> = {
+  benchPress: { id: "benchPress", bar: "barbell" },
+  squat: { id: "squat", bar: "barbell" },
+  deadlift: { id: "deadlift", bar: "barbell" },
+  overheadPress: { id: "overheadPress", bar: "barbell" },
+  chinups: { id: "chinUp" },
+  barbellRows: { id: "bentOverRow", bar: "barbell" },
+  pushups: { id: "pushUp" },
+  pullups: { id: "pullUp" },
+  dips: { id: "tricepsDip" },
+  legRaises: { id: "hangingLegRaise" },
+  singleLegSplitSquat: { id: "bulgarianSplitSquat" },
+  invertedRows: { id: "invertedRow" },
+  dbLateralRaise: { id: "lateralRaise", bar: "dumbbell" },
+  inclineDbBenchPress: { id: "inclineBenchPress", bar: "dumbbell" },
+  dbInclineFly: { id: "inclineChestFly", bar: "dumbbell" },
+  dbArnoldPress: { id: "arnoldPress", bar: "dumbbell" },
+  dbBenchPress: { id: "benchPress", bar: "dumbbell" },
+  dbShrug: { id: "shrug", bar: "dumbbell" },
+  cableCrunch: { id: "cableCrunch" },
+  tricepsPushdown: { id: "tricepsPushdown" },
+  dbTricepsExtension: { id: "tricepsExtension", bar: "dumbbell" },
+  neutralGripChinup: { id: "chinUp" },
+  plank: { id: "plank" },
+  dbRow: { id: "bentOverRow", bar: "dumbbell" },
+  dbOverheadPress: { id: "overheadPress", bar: "dumbbell" },
+  dbSingleLegDeadlift: { id: "singleLegDeadlift", bar: "dumbbell" },
+  dbGobletSquat: { id: "gobletSquat", bar: "dumbbell" },
+  dbCalfRaise: { id: "standingCalfRaise", bar: "dumbbell" },
+  bulgarianSplitSquat: { id: "bulgarianSplitSquat", bar: "dumbbell" },
+  dbLunge: { id: "lunge", bar: "dumbbell" },
+  dbBicepCurl: { id: "bicepCurl", bar: "dumbbell" },
+  skullcrusher: { id: "skullcrusher", bar: "ezbar" },
+} as const;
 
 export const migrations = {
   "20200604235900_add_bar_weights": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
@@ -139,6 +175,26 @@ export const migrations = {
       },
     };
     storage.settings.units = "lb";
+    return storage;
+  },
+  "20200808141059_migrate_excercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        if (typeof entry.excercise === "string") {
+          entry.excercise = excerciseMapper[(entry.excercise as unknown) as string];
+        }
+      }
+    }
+    for (const program of storage.programs) {
+      for (const day of program.days) {
+        for (const excercise of day.excercises) {
+          if (typeof excercise.excercise === "string") {
+            excercise.excercise = excerciseMapper[(excercise.excercise as unknown) as string];
+          }
+        }
+      }
+    }
     return storage;
   },
 };

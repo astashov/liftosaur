@@ -111,10 +111,11 @@ export function EditProgramDay(props: IProps): JSX.Element {
       </section>
       <ModalAddExcercise
         isHidden={!shouldShowAddExcercise}
-        onSelect={(value) => {
+        settings={props.settings}
+        onSelect={(excerciseId, bar) => {
           setShouldShowAddExcercise(false);
-          if (value != null) {
-            EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, value as IExcerciseType);
+          if (excerciseId != null && bar != null) {
+            EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, excerciseId, bar);
           }
         }}
       />

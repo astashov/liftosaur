@@ -3,7 +3,8 @@ import { IState, updateState } from "../ducks/reducer";
 import { IProgramDayEntry, IProgramDay } from "./program";
 import { IDispatch } from "../ducks/types";
 import { IProgramSet } from "./set";
-import { IExcerciseType } from "./excercise";
+import { IExcerciseId } from "./excercise";
+import { IBars } from "./weight";
 
 export namespace EditProgram {
   export function removeEntry(
@@ -64,13 +65,17 @@ export namespace EditProgram {
   export function addExcercise(
     dispatch: IDispatch,
     editDayLensBuilder: LensBuilder<IState, IProgramDay>,
-    excerciseType: IExcerciseType
+    excerciseId: IExcerciseId,
+    bar: keyof IBars
   ): void {
     updateState(dispatch, [
       editDayLensBuilder.p("excercises").recordModify((e) => [
         ...e,
         {
-          excercise: excerciseType,
+          excercise: {
+            id: excerciseId,
+            bar: bar,
+          },
           sets: [
             {
               repsExpr: "5",

@@ -70,7 +70,7 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
     >
       <div className="leading-none">{Reps.displayReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
+        {Weight.roundConvertTo(set.weight, props.settings, props.excercise.bar).value}
       </div>
     </button>
   );
@@ -86,7 +86,7 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
     >
       <div className="leading-none">{Reps.displayCompletedReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
+        {Weight.roundConvertTo(set.weight, props.settings, props.excercise.bar).value}
       </div>
     </button>
   );
@@ -102,7 +102,7 @@ function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
     >
       <div className="leading-none">{Reps.displayCompletedReps(set)}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
+        {Weight.roundConvertTo(set.weight, props.settings, props.excercise.bar).value}
       </div>
     </button>
   );
@@ -130,7 +130,7 @@ function AmrapExcerciseSet(props: IAmrapExcerciseSetProps): JSX.Element {
       )}
       <div className="leading-none">{set.completedReps == null ? `${set.reps}+` : set.completedReps}</div>
       <div style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {Weight.roundConvertTo(props.excercise, set.weight, props.settings).value}
+        {Weight.roundConvertTo(set.weight, props.settings, props.excercise.bar).value}
       </div>
     </button>
   );

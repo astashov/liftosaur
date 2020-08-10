@@ -7,13 +7,11 @@ import { IHistoryRecord } from "../models/history";
 import { Program } from "../models/program";
 import { Button } from "./button";
 import { HistoryRecordView } from "./historyRecord";
-import { IStats } from "../models/stats";
 import { ISettings } from "../models/settings";
 
 interface IProps {
   program: IProgram;
   progress?: IHistoryRecord;
-  stats: IStats;
   history: IHistoryRecord[];
   settings: ISettings;
   dispatch: IDispatch;

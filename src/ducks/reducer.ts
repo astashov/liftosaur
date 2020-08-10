@@ -6,7 +6,6 @@ import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
-import { TStats } from "../models/stats";
 import { IWeight, Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
@@ -49,7 +48,6 @@ export interface IState {
 export const TStorage = t.type(
   {
     id: t.number,
-    stats: TStats,
     history: t.array(THistoryRecord),
     settings: TSettings,
     currentProgramId: t.union([t.string, t.undefined]),
@@ -111,9 +109,6 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
     programs: [],
     storage: {
       id: 0,
-      stats: {
-        excercises: {},
-      },
       currentProgramId: undefined,
       settings: {
         plates: [
@@ -550,7 +545,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
         },
-        stats: newStorage.stats,
         currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,
