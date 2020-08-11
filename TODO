@@ -17,5 +17,6 @@
 * Add changing program day when editing progress day
 * Versionize published programs
 * Lazy load Codemirror
-* Add more excercises
 * Add Cypress e2e tests
+* Fix backups
+* Add landing page

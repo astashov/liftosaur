@@ -61,7 +61,11 @@ function ExcerciseContentView(props: IProps): JSX.Element {
         <div className="flex-1 mr-auto">{excercise.name}</div>
         <div className="text-right">
           {warmupWeights.map((w) => {
-            const className = nextSet != null && Weight.eqeq(nextSet.weight, w) ? "font-bold" : "";
+            const className =
+              nextSet != null &&
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.excercise.bar), w)
+                ? "font-bold"
+                : "";
             return (
               <div className={className}>
                 <WeightView weight={w} excercise={props.entry.excercise} settings={props.settings} />
@@ -72,7 +76,11 @@ function ExcerciseContentView(props: IProps): JSX.Element {
             );
           })}
           {workoutWeights.map((w) => {
-            const className = nextSet != null && nextSet.weight === w ? "font-bold" : "";
+            const className =
+              nextSet != null &&
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.excercise.bar), w)
+                ? "font-bold"
+                : "";
             return (
               <div className={className}>
                 <WeightView weight={w} excercise={props.entry.excercise} settings={props.settings} />
