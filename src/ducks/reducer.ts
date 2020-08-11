@@ -368,7 +368,7 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         return Progress.showUpdateWeightModal(progress, action.excercise, action.weight);
       }
       case "ConfirmWeightAction": {
-        return action.weight != null ? Progress.updateWeight(progress, settings, action.weight) : progress;
+        return Progress.updateWeight(progress, settings, action.weight);
       }
     }
   };

@@ -22,7 +22,7 @@ export const TProgressUi = t.partial(
     }),
     weightModal: t.type({
       excercise: TExcerciseType,
-      weight: t.number,
+      weight: TWeight,
     }),
     dateModal: t.type({
       date: t.string,
@@ -164,7 +164,7 @@ export namespace Progress {
         ...progress.ui,
         weightModal: {
           excercise,
-          weight: weight.value,
+          weight: weight,
         },
       },
     };
@@ -324,25 +324,30 @@ export namespace Progress {
   }
 
   export function updateWeight(progress: IHistoryRecord, settings: ISettings, weight?: IWeight): IHistoryRecord {
-    if (progress.ui?.weightModal != null) {
+    if (weight != null && progress.ui?.weightModal != null) {
       const { excercise, weight: previousWeight } = progress.ui.weightModal;
+
       return {
         ...progress,
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map((progressEntry) => {
-          if (progressEntry.excercise === excercise) {
+          const eq = (a: IWeight, b: IWeight): boolean => {
+            const bar = progressEntry.excercise.bar;
+            return Weight.eq(Weight.roundConvertTo(a, settings, bar), Weight.roundConvertTo(b, settings, bar));
+          };
+          if (Excercise.eq(progressEntry.excercise, excercise)) {
             const firstWeight = progressEntry.sets[0]?.weight;
             return {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
-                if (set.weight.value === previousWeight && weight != null) {
+                if (eq(set.weight, previousWeight) && weight != null) {
                   return { ...set, weight: Weight.round(weight, settings, progressEntry.excercise.bar) };
                 } else {
                   return set;
                 }
               }),
               warmupSets:
-                firstWeight.value === previousWeight && weight != null
+                eq(firstWeight, previousWeight) && weight != null
                   ? Excercise.getWarmupSets(excercise, weight, settings)
                   : progressEntry.warmupSets,
             };
@@ -352,7 +357,7 @@ export namespace Progress {
         }),
       };
     } else {
-      return progress;
+      return { ...progress, ui: { ...progress.ui, weightModal: undefined } };
     }
   }
 

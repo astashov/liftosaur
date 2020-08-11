@@ -47,7 +47,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                       }
                     }}
                   >
-                    <IconEdit />
+                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                   </button>
                   <button
                     className="p-2 align-middle button"
