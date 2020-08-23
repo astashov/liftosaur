@@ -19,4 +19,18 @@
 * Lazy load Codemirror
 * Add Cypress e2e tests
 * Fix backups
-* Add landing page
+* Add comments support to parser
+
+* Bug:
+This is valid code:
+```
+if (completedReps[1][1] >= reps[1][1]) {
+  state.benchPressWeight = weights + 5lb
+}
+```
+
+* Bug:
+If you use unexisting state var in code, and then add it, it won't recognize it.
+
+* Bug:
+Assign lb to state var of type number

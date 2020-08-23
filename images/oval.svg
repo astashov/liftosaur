@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144px" height="77px" viewBox="0 0 144 77" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Oval</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Desktop" transform="translate(-297.000000, -2957.000000)" stroke="#C53030" stroke-width="3">
+            <g id="Features" transform="translate(122.000000, 1023.000000)">
+                <g id="Tracking-workout-progress" transform="translate(10.000000, 1796.000000)">
+                    <ellipse id="Oval" transform="translate(237.000000, 176.500000) rotate(-360.000000) translate(-237.000000, -176.500000) " cx="237" cy="176.5" rx="70" ry="36.5"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

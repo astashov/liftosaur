@@ -43,7 +43,7 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
   }
 
   return (
-    <div>
+    <div style={{ fontFamily: "Iosevka Web" }}>
       {props.result && <EvalResultInEditor result={props.result} />}
       <div className={className} ref={divRef}></div>
     </div>

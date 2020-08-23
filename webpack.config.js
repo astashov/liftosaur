@@ -11,6 +11,7 @@ module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
+    about: ["./src/about.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
   },
   output: {
@@ -66,6 +67,17 @@ module.exports = {
         to: `editor.html`,
       },
       {
+        from: `src/about.html`,
+        to: `about/index.html`,
+        transform: (content) => {
+          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
+        },
+      },
+      {
+        from: `docs`,
+        to: `docs`,
+      },
+      {
         from: `src/googleauthcallback.html`,
         to: `googleauthcallback.html`,
       },
@@ -84,6 +96,14 @@ module.exports = {
       {
         from: "icons",
         to: "icons",
+      },
+      {
+        from: "fonts",
+        to: "fonts",
+      },
+      {
+        from: "images",
+        to: "images",
       },
       {
         from: "manifest.webmanifest",
