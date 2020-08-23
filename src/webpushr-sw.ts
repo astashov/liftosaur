@@ -2,19 +2,21 @@ declare let __COMMIT_HASH__: string;
 declare let __API_HOST__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 
+const filesToCache = [
+  `/main.css?version=${__COMMIT_HASH__}`,
+  `/main.js?version=${__COMMIT_HASH__}`,
+  "/",
+  "/index.html",
+  "/icons/icon192.png",
+  "/icons/icon512.png",
+  "/notification.m4r",
+];
+
 function initialize(service: ServiceWorkerGlobalScope): void {
   service.addEventListener("install", (event) => {
     event.waitUntil(
       caches.open(cacheName).then((cache) => {
-        return cache.addAll([
-          `/main.css?version=${__COMMIT_HASH__}`,
-          `/main.js?version=${__COMMIT_HASH__}`,
-          "/",
-          "/index.html",
-          "/icons/icon192.png",
-          "/icons/icon512.png",
-          "/notification.m4r",
-        ]);
+        return cache.addAll(filesToCache);
       })
     );
   });
@@ -28,7 +30,13 @@ function initialize(service: ServiceWorkerGlobalScope): void {
         return (
           r ||
           fetch(e.request).then((response) => {
-            if (e.request.method === "GET" && e.request.url.indexOf("/api") === -1) {
+            if (
+              e.request.method === "GET" &&
+              filesToCache.some((f) => {
+                const u = new URL(e.request.url);
+                return `${u.pathname}${u.search}` === f;
+              })
+            ) {
               return caches.open(cacheName).then((cache) => {
                 console.log("[Service Worker] Caching new resource: " + e.request.url);
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
