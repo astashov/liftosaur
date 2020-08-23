@@ -74,6 +74,10 @@ module.exports = {
         },
       },
       {
+        from: `src/about.css`,
+        to: `about.css`,
+      },
+      {
         from: `docs`,
         to: `docs`,
       },
