@@ -1,3 +1,4 @@
+/* purgecss start ignore */
 * {
   margin: 0;
   padding: 0;
@@ -524,3 +525,4 @@ footer nav li {
     line-height: 2em;
   }
 }
+/* purgecss end ignore */
