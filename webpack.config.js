@@ -94,6 +94,10 @@ module.exports = {
         to: `terms.html`,
       },
       {
+        from: `src/sitemap.txt`,
+        to: `sitemap.txt`,
+      },
+      {
         from: `src/notification.m4r`,
         to: `notification.m4r`,
       },
