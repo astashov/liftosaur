@@ -22,6 +22,14 @@ interface IProps {
 export function ProgramListView(props: IProps): JSX.Element {
   const customPrograms = props.customPrograms || [];
   const programs = props.programs || [];
+
+  const tagToColor = {
+    "first-starter": "bg-orange-700",
+    beginner: "bg-orange-700",
+    barbell: "bg-green-700",
+    dumbbell: "bg-green-700",
+  };
+
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
       {customPrograms.length > 0 && (
@@ -88,8 +96,23 @@ export function ProgramListView(props: IProps): JSX.Element {
         <Fragment>
           <GroupHeader name="Programs to clone from" />
           {programs.map((program) => (
-            <button className="w-full p-4 border-b border-gray-200" onClick={() => props.onSelectProgram(program.id)}>
-              {program.name}
+            <button
+              className="relative flex items-center w-full px-6 py-4 text-left border-b border-gray-200"
+              onClick={() => props.onSelectProgram(program.id)}
+            >
+              <span className="flex-1">{program.name}</span>
+              <div className="text-right" style={{ maxWidth: "30%", lineHeight: "1em" }}>
+                {program.tags.map((tag) => (
+                  <span
+                    className={`inline-block mx-2 my-0 text-xs text-white whitespace-no-wrap rounded-full ${
+                      tagToColor[tag] || "bg-red-700"
+                    }`}
+                    style={{ padding: "1px 6px" }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </button>
           ))}
         </Fragment>

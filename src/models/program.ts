@@ -9,7 +9,7 @@ import { Screen } from "./screen";
 import { updateState, IState } from "../ducks/reducer";
 import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
-import { IEither } from "../utils/types";
+import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight } from "./weight";
 
 export const TProgramDayEntry = t.type(
@@ -41,6 +41,17 @@ export type IProgramInternalState = t.TypeOf<typeof TProgramInternalState>;
 export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
 
+const tags = ["first-starter", "beginner", "barbell", "dumbbell"] as const;
+
+export const TProgramTag = t.keyof(
+  tags.reduce<Record<IArrayElement<typeof tags>, null>>((memo, barKey) => {
+    memo[barKey] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof tags>, null>),
+  "TProgramTag"
+);
+export type IProgramTag = t.TypeOf<typeof TProgramTag>;
+
 export const TProgram = t.type(
   {
     id: t.string,
@@ -52,6 +63,7 @@ export const TProgram = t.type(
     state: TProgramState,
     internalState: TProgramInternalState,
     finishDayExpr: t.string,
+    tags: t.array(TProgramTag),
   },
   "TProgram"
 );

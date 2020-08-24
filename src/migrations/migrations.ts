@@ -197,4 +197,11 @@ export const migrations = {
     }
     return storage;
   },
+  "20200823225507_add_tags_to_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      program.tags = program.tags || [];
+    }
+    return storage;
+  },
 };
