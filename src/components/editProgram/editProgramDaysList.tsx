@@ -29,6 +29,29 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        <GroupHeader name="Excercises" />
+        {props.editProgram.excercises.map((excercise) => {
+          return (
+            <MenuItem
+              name={excercise.name}
+              value={
+                <Fragment>
+                  <button className="mr-2 align-middle button">
+                    <IconDuplicate />
+                  </button>
+                  {props.editProgram.excercises.length > 1 && (
+                    <button className="align-middle button" onClick={() => {}}>
+                      <IconDelete />
+                    </button>
+                  )}
+                </Fragment>
+              }
+            />
+          );
+        })}
+        <MenuItemWrapper onClick={() => EditProgram.addProgramExcercise(props.dispatch)}>
+          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Excercise +</div>
+        </MenuItemWrapper>
         <GroupHeader name="Days" />
         <DraggableList
           onDragEnd={(startIndex, endIndex) => {

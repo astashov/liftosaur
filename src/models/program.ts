@@ -1,7 +1,7 @@
-import { IHistoryRecord } from "./history";
-import { Excercise, TExcerciseType } from "./excercise";
+import { IHistoryRecord, IHistoryEntry } from "./history";
+import { Excercise, TExcerciseType, IExcerciseType } from "./excercise";
 import * as t from "io-ts";
-import { ISet, TProgramSet } from "./set";
+import { ISet, TProgramSet, IProgramSet } from "./set";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { ISettings } from "./settings";
@@ -11,6 +11,7 @@ import { lb, ILensRecordingPayload } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight } from "./weight";
+import { UidFactory } from "../utils/generator";
 
 export const TProgramDayEntry = t.type(
   {
@@ -24,7 +25,16 @@ export type IProgramDayEntry = t.TypeOf<typeof TProgramDayEntry>;
 export const TProgramDay = t.type(
   {
     name: t.string,
-    excercises: t.array(TProgramDayEntry),
+    excercises: t.array(
+      t.intersection([
+        t.interface({
+          id: t.string,
+        }),
+        t.partial({
+          variation: t.number,
+        }),
+      ])
+    ),
   },
   "TProgramDay"
 );
@@ -52,17 +62,38 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = t.TypeOf<typeof TProgramTag>;
 
+export const TProgramExcerciseVariation = t.type(
+  {
+    sets: t.array(TProgramSet),
+  },
+  "TProgramExcerciseVariation"
+);
+export type IProgramExcerciseVariation = t.TypeOf<typeof TProgramExcerciseVariation>;
+
+export const TProgramExcercise = t.type(
+  {
+    excerciseType: TExcerciseType,
+    id: t.string,
+    name: t.string,
+    variations: t.array(TProgramExcerciseVariation),
+    state: TProgramState,
+    variationExpr: t.string,
+    finishDayExpr: t.string,
+  },
+  "TProgramExcercise"
+);
+export type IProgramExcercise = t.TypeOf<typeof TProgramExcercise>;
+
 export const TProgram = t.type(
   {
+    excercises: t.array(TProgramExcercise),
     id: t.string,
     name: t.string,
     description: t.string,
     url: t.string,
     author: t.string,
+    nextDay: t.number,
     days: t.array(TProgramDay),
-    state: TProgramState,
-    internalState: TProgramInternalState,
-    finishDayExpr: t.string,
     tags: t.array(TProgramTag),
   },
   "TProgram"
@@ -97,6 +128,41 @@ export namespace Program {
     };
   }
 
+  export function nextHistoryEntry(
+    excercise: IExcerciseType,
+    day: number,
+    programSets: IProgramSet[],
+    state: IProgramState,
+    settings: ISettings
+  ): IHistoryEntry {
+    const sets: ISet[] = programSets.map((set) => {
+      const repsValue = new ScriptRunner(
+        set.repsExpr,
+        state,
+        Progress.createEmptyScriptBindings(day),
+        Progress.createScriptFunctions(settings),
+        settings.units
+      ).execute("reps");
+      const weightValue = new ScriptRunner(
+        set.weightExpr,
+        state,
+        Progress.createEmptyScriptBindings(day),
+        Progress.createScriptFunctions(settings),
+        settings.units
+      ).execute("weight");
+      return {
+        isAmrap: set.isAmrap,
+        reps: repsValue,
+        weight: Weight.convertTo(weightValue, settings.units),
+      };
+    });
+    return {
+      excercise: excercise,
+      sets,
+      warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(excercise, sets[0].weight, settings) : [],
+    };
+  }
+
   export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
     const day = Math.min(dayIndex || program.internalState.nextDay || 1, program.days.length);
     const programDay = program.days[day - 1];
@@ -109,32 +175,7 @@ export namespace Program {
       dayName: programDay.name,
       startTime: Date.now(),
       entries: programDay.excercises.map((entry) => {
-        const sets: ISet[] = entry.sets.map((set) => {
-          const repsValue = new ScriptRunner(
-            set.repsExpr,
-            program.state,
-            Progress.createEmptyScriptBindings(day),
-            Progress.createScriptFunctions(settings),
-            settings.units
-          ).execute("reps");
-          const weightValue = new ScriptRunner(
-            set.weightExpr,
-            program.state,
-            Progress.createEmptyScriptBindings(day),
-            Progress.createScriptFunctions(settings),
-            settings.units
-          ).execute("weight");
-          return {
-            isAmrap: set.isAmrap,
-            reps: repsValue,
-            weight: Weight.convertTo(weightValue, settings.units),
-          };
-        });
-        return {
-          excercise: entry.excercise,
-          sets,
-          warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(entry.excercise, sets[0].weight, settings) : [],
-        };
+        return nextHistoryEntry(entry.excercise, day, entry.sets, program.state, settings);
       }),
     };
   }
@@ -143,16 +184,16 @@ export namespace Program {
     return { ...program.internalState, ...program.state };
   }
 
-  export function parseFinishDayScript(
-    program: IProgram,
-    dayIndex: number,
+  export function parseExcerciseFinishDayScript(
+    day: number,
     settings: ISettings,
-    script: string = program.finishDayExpr
+    state: IProgramState,
+    script: string
   ): IEither<unknown, string> {
     const scriptRunner = new ScriptRunner(
       script,
-      Program.getState(program),
-      Progress.createEmptyScriptBindings(dayIndex),
+      state,
+      Progress.createEmptyScriptBindings(day),
       Progress.createScriptFunctions(settings),
       settings.units
     );
@@ -166,6 +207,30 @@ export namespace Program {
         throw e;
       }
     }
+  }
+
+  export function runExcerciseFinishDayScript(
+    entry: IHistoryEntry,
+    day: number,
+    settings: ISettings,
+    state: IProgramState,
+    script: string
+  ): IEither<IProgramState, string> {
+    const bindings = Progress.createScriptBindings(day, entry);
+    const fns = Progress.createScriptFunctions(settings);
+    const newState: IProgramState = { ...state };
+
+    try {
+      new ScriptRunner(script, newState, bindings, fns, settings.units).execute();
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+
+    return { success: true, data: newState };
   }
 
   export function runFinishDayScript(
@@ -192,6 +257,33 @@ export namespace Program {
     }
 
     return { success: true, data: newState };
+  }
+
+  export function createVariation(): IProgramExcerciseVariation {
+    return {
+      sets: [
+        {
+          repsExpr: "5",
+          weightExpr: "0lb",
+          isAmrap: false,
+        },
+      ],
+    };
+  }
+
+  export function createExcercise(): IProgramExcercise {
+    return {
+      name: "",
+      id: UidFactory.generateUid(8),
+      variations: [createVariation()],
+      excerciseType: {
+        id: "squat",
+        bar: "barbell",
+      },
+      state: {},
+      finishDayExpr: "",
+      variationExpr: "",
+    };
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram): void {

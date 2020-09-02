@@ -19,8 +19,8 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   const codeEditor = useRef(
     new CodeEditor({
       state: props.state,
-      onChange: props.onChange,
-      onBlur: props.onBlur,
+      onChange: (value) => props.onChange?.(value),
+      onBlur: (value) => props.onBlur?.(value),
       value: props.value,
       multiLine: false,
     })

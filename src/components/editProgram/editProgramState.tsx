@@ -60,7 +60,7 @@ export function EditProgramState(props: IProps): JSX.Element {
               const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
               const newState = { ...state };
               if (v != null) {
-                newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
+                newState[stateKey] = Weight.is(v) ? Weight.build(v, value.unit) : v;
               } else {
                 delete newState[stateKey];
               }

@@ -1,8 +1,16 @@
 import { Reducer } from "preact/hooks";
-import { Program, TProgram, IProgram, IProgramInternalState, IProgramDay, TProgramDay } from "../models/program";
+import {
+  Program,
+  TProgram,
+  IProgram,
+  IProgramInternalState,
+  IProgramDay,
+  TProgramDay,
+  IProgramExcercise,
+} from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
-import { IExcerciseType } from "../models/excercise";
+import { IExcerciseType, excercises } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
@@ -43,6 +51,7 @@ export interface IState {
     dayIndex?: number;
   };
   editDay?: IProgramDay;
+  editExcercise?: IProgramExcercise;
 }
 
 export const TStorage = t.type(
@@ -559,18 +568,18 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       .p("storage")
       .p("programs")
       .modify((programs) => [
-        ...state.storage.programs,
+        ...programs,
         {
-          isProgram2: true,
           id: action.name,
           name: action.name,
           url: "",
           author: "",
           description: action.name,
+          nextDay: 1,
           days: [{ name: "Day 1", excercises: [] }],
-          state: {},
-          internalState: { nextDay: 1 },
+          excercises: [],
           finishDayExpr: "",
+          tags: [],
         },
       ]);
     newState = lf(newState).p("editProgram").set({ id: action.name });

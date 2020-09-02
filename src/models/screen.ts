@@ -8,6 +8,7 @@ export type IScreen =
   | "progress"
   | "graphs"
   | "editProgram"
+  | "editProgramExcercise"
   | "editProgramDay"
   | "editProgressDay"
   | "editProgramDayScript";

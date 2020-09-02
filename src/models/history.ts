@@ -38,6 +38,19 @@ export const THistoryRecord = t.intersection(
 export type IHistoryRecord = t.TypeOf<typeof THistoryRecord>;
 
 export namespace History {
+  export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {
+    return {
+      id: 0,
+      date: new Date().toISOString(),
+      programId: "",
+      programName: "",
+      day,
+      dayName: day.toString(),
+      startTime: Date.now(),
+      entries: [entry],
+    };
+  }
+
   export function finishProgramDay(progress: IHistoryRecord): IHistoryRecord {
     return {
       ...progress,

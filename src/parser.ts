@@ -408,18 +408,13 @@ class Evaluator {
         } else {
           throw new SyntaxError(`Unknown state variable '${stateKey}'`);
         }
-      } else if ((match = /^(weights|reps|completedReps|w|r|cr)\[(\d+)\]\[(\d+)\]/.exec(value))) {
+      } else if ((match = /^(weights|reps|completedReps|w|r|cr)\[(\d+)\]/.exec(value))) {
         const key = match[1] as "w" | "r" | "cr" | "weights" | "reps" | "completedReps";
-        const excerciseIndex = parseInt(match[2], 10) - 1;
-        const setIndex = parseInt(match[3], 10) - 1;
-        if (this.bindings[key][excerciseIndex] == null) {
-          throw new SyntaxError(`${value} - There's no excercise ${excerciseIndex + 1} in the program day`);
-        } else if (this.bindings[key][excerciseIndex][setIndex] == null) {
-          throw new SyntaxError(
-            `${value} - There's no set ${setIndex + 1} in excercise ${excerciseIndex + 1} in the program day`
-          );
+        const setIndex = parseInt(match[2], 10) - 1;
+        if (this.bindings[key][setIndex] == null) {
+          throw new SyntaxError(`${value} - There's no set ${setIndex + 1} in the excercise`);
         } else {
-          return this.bindings[key][excerciseIndex][setIndex];
+          return this.bindings[key][setIndex];
         }
       } else if (Object.keys(this.bindings).indexOf(expr.value) !== -1) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

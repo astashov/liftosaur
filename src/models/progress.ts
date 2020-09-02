@@ -45,12 +45,12 @@ export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
 export interface IScriptBindings {
   day: number;
-  weights: IWeight[][];
-  reps: number[][];
-  completedReps: number[][];
-  w: IWeight[][];
-  r: number[][];
-  cr: number[][];
+  weights: IWeight[];
+  reps: number[];
+  completedReps: number[];
+  w: IWeight[];
+  r: number[];
+  cr: number[];
 }
 
 export interface IScriptFunctions {
@@ -71,17 +71,12 @@ export namespace Progress {
     };
   }
 
-  export function createScriptBindings(progress: IHistoryRecord): IScriptBindings {
-    const bindings = createEmptyScriptBindings(progress.day);
-    for (const entry of progress.entries) {
-      bindings.weights.push([]);
-      bindings.reps.push([]);
-      bindings.completedReps.push([]);
-      for (const set of entry.sets) {
-        bindings.weights[bindings.weights.length - 1].push(set.weight);
-        bindings.reps[bindings.reps.length - 1].push(set.reps);
-        bindings.completedReps[bindings.completedReps.length - 1].push(set.completedReps || 0);
-      }
+  export function createScriptBindings(day: number, entry: IHistoryEntry): IScriptBindings {
+    const bindings = createEmptyScriptBindings(day);
+    for (const set of entry.sets) {
+      bindings.weights.push(set.weight);
+      bindings.reps.push(set.reps);
+      bindings.completedReps.push(set.completedReps || 0);
     }
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
