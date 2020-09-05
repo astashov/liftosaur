@@ -297,6 +297,10 @@ export type ISaveProgressDay = {
   type: "SaveProgressDay";
 };
 
+export type ISaveExcercise = {
+  type: "SaveExcercise";
+};
+
 export type ICardsAction = IChangeRepsAction | IChangeWeightAction | IChangeAMRAPAction | IConfirmWeightAction;
 
 export type IAction =
@@ -321,7 +325,8 @@ export type IAction =
   | ICreateProgramAction
   | ICreateDayAction
   | IEditDayAction
-  | ISaveProgressDay;
+  | ISaveProgressDay
+  | ISaveExcercise;
 
 let timerId: number | undefined = undefined;
 
@@ -616,6 +621,26 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         ...state.progress,
         0: Progress.applyProgramDay(progress, program, state.editDay!, state.storage.settings),
       },
+      screenStack: Screen.pull(state.screenStack),
+    };
+  } else if (action.type === "SaveExcercise") {
+    const programIndex = Program.getEditingProgramIndex(state);
+    return {
+      ...state,
+      editExcercise: undefined,
+      storage: lf(state.storage)
+        .p("programs")
+        .i(programIndex)
+        .p("excercises")
+        .modify((exc) => {
+          const editExcercise = state.editExcercise!;
+          const excercise = exc.find((e) => e.id === editExcercise.id);
+          if (excercise != null) {
+            return exc.map((e) => (e.id === editExcercise.id ? editExcercise : e));
+          } else {
+            return [...exc, editExcercise];
+          }
+        }),
       screenStack: Screen.pull(state.screenStack),
     };
   } else {

@@ -13,6 +13,7 @@ import { HtmlUtils } from "../../utils/html";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
+import { MenuItemEditable } from "../menuItemEditable";
 
 interface IProps {
   editProgram: IProgram;
@@ -29,23 +30,45 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        <MenuItemEditable
+          type="number"
+          name="Next Day:"
+          value={props.editProgram.nextDay.toString()}
+          onChange={(newValueStr) => {
+            const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
+            if (newValue != null && !isNaN(newValue)) {
+              const newDay = Math.max(1, Math.min(newValue, props.editProgram.days.length));
+              EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
+            }
+          }}
+        />
         <GroupHeader name="Excercises" />
         {props.editProgram.excercises.map((excercise) => {
           return (
             <MenuItem
               name={excercise.name}
               value={
-                <Fragment>
-                  <button className="mr-2 align-middle button">
-                    <IconDuplicate />
-                  </button>
-                  {props.editProgram.excercises.length > 1 && (
-                    <button className="align-middle button" onClick={() => {}}>
-                      <IconDelete />
-                    </button>
-                  )}
-                </Fragment>
+                <button
+                  className="align-middle button"
+                  onClick={() => {
+                    const isExcerciseUsed = props.editProgram.days.some(
+                      (d) => d.excercises.map((e) => e.id).indexOf(excercise.id) !== -1
+                    );
+                    if (isExcerciseUsed) {
+                      alert("You can't delete this excercise, it's used in one of the days");
+                    } else if (confirm("Are you sure?")) {
+                      EditProgram.removeProgramExcercise(props.dispatch, props.editProgram, excercise.id);
+                    }
+                  }}
+                >
+                  <IconDelete />
+                </button>
               }
+              onClick={(e) => {
+                if (!HtmlUtils.classInParents(e.target as Element, "button")) {
+                  EditProgram.editProgramExcercise(props.dispatch, excercise);
+                }
+              }}
             />
           );
         })}

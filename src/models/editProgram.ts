@@ -1,6 +1,6 @@
-import { LensBuilder, lb } from "../utils/lens";
+import { LensBuilder, lb, lf } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import { IProgramDayEntry, IProgramDay, Program } from "./program";
+import { IProgramDayEntry, IProgramDay, Program, IProgramExcercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { IExcerciseId } from "./excercise";
@@ -119,6 +119,10 @@ export namespace EditProgram {
     updateState(dispatch, [lb<IState>().pi("editExcercise").p("finishDayExpr").record(value)]);
   }
 
+  export function setExcerciseVariationExpr(dispatch: IDispatch, value: string): void {
+    updateState(dispatch, [lb<IState>().pi("editExcercise").p("variationExpr").record(value)]);
+  }
+
   export function addVariation(dispatch: IDispatch): void {
     updateState(dispatch, [
       lb<IState>()
@@ -136,6 +140,39 @@ export namespace EditProgram {
         .pi("editExcercise")
         .p("variations")
         .recordModify((v) => v.filter((_, i) => i !== variationIndex)),
+    ]);
+  }
+
+  export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          const programIndex = programs.findIndex((p) => p.id === program.id);
+          return lf(programs).i(programIndex).p("nextDay").set(nextDay);
+        }),
+    ]);
+  }
+
+  export function reorderSets(
+    dispatch: IDispatch,
+    variationIndex: number,
+    startSetIndex: number,
+    endSetIndex: number
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .pi("editExcercise")
+        .p("variations")
+        .i(variationIndex)
+        .p("sets")
+        .recordModify((sets) => {
+          const newSets = [...sets];
+          const [setsToMove] = newSets.splice(startSetIndex, 1);
+          newSets.splice(endSetIndex, 0, setsToMove);
+          return newSets;
+        }),
     ]);
   }
 
@@ -179,6 +216,30 @@ export namespace EditProgram {
       lb<IState>()
         .p("screenStack")
         .recordModify((stack) => Screen.push(stack, "editProgramExcercise")),
+    ]);
+  }
+
+  export function editProgramExcercise(dispatch: IDispatch, excercise: IProgramExcercise): void {
+    updateState(dispatch, [
+      lb<IState>().p("editExcercise").record(excercise),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((stack) => Screen.push(stack, "editProgramExcercise")),
+    ]);
+  }
+
+  export function removeProgramExcercise(dispatch: IDispatch, program: IProgram, excerciseId: string): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          const programIndex = programs.findIndex((p) => p.id === program.id);
+          return lf(programs)
+            .i(programIndex)
+            .p("excercises")
+            .modify((es) => es.filter((e) => e.id !== excerciseId));
+        }),
     ]);
   }
 

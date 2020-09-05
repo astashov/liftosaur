@@ -11,6 +11,7 @@ interface IArgs {
   value?: string;
   multiLine?: boolean;
   state?: IProgramState;
+  height?: number;
 }
 
 export class CodeEditor {
@@ -150,7 +151,10 @@ export class CodeEditor {
       }
     });
 
-    codemirror.setSize("100%", (this.args.multiLine ? 16 : 1) * codemirror.defaultTextHeight() + 2 * 4);
+    codemirror.setSize(
+      "100%",
+      (this.args.multiLine ? this.args.height ?? 16 : 1) * codemirror.defaultTextHeight() + 2 * 4
+    );
 
     if (!this.args.multiLine) {
       // now disallow adding newlines in the following simple way

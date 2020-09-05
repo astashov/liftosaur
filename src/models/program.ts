@@ -273,7 +273,7 @@ export namespace Program {
 
   export function createExcercise(): IProgramExcercise {
     return {
-      name: "",
+      name: "Squat",
       id: UidFactory.generateUid(8),
       variations: [createVariation()],
       excerciseType: {
@@ -282,7 +282,7 @@ export namespace Program {
       },
       state: {},
       finishDayExpr: "",
-      variationExpr: "",
+      variationExpr: "1",
     };
   }
 

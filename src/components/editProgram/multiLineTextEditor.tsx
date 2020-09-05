@@ -11,6 +11,7 @@ interface IProps {
   result?: IEither<number | undefined, string>;
   value?: string;
   state: IProgramState;
+  height?: number;
 }
 
 export function MultiLineTextEditor(props: IProps): JSX.Element {
@@ -21,6 +22,7 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
       onBlur: props.onBlur,
       value: props.value,
       multiLine: true,
+      height: props.height,
     })
   );
 

@@ -27,6 +27,8 @@ import { ModalAmrap } from "../modalAmrap";
 import { ModalWeight } from "../modalWeight";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IconDelete } from "../iconDelete";
+import { DraggableList } from "../draggableList";
+import { IconHandle } from "../iconHandle";
 
 interface IProps {
   settings: ISettings;
@@ -56,6 +58,34 @@ function buildProgress(
   return entry != null ? History.buildFromEntry(entry, day) : undefined;
 }
 
+function executeVariationScript(
+  programExcercise: IProgramExcercise,
+  day: number,
+  settings: ISettings
+): IEither<number, string> {
+  const script = programExcercise.variationExpr;
+  try {
+    if (script) {
+      const scriptRunnerResult = new ScriptRunner(
+        script,
+        programExcercise.state,
+        Progress.createEmptyScriptBindings(day),
+        Progress.createScriptFunctions(settings),
+        settings.units
+      );
+      return { success: true, data: scriptRunnerResult.execute("reps") };
+    } else {
+      return { success: false, error: "Empty expression" };
+    }
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      return { success: false, error: e.message };
+    } else {
+      throw e;
+    }
+  }
+}
+
 export function EditProgramExcercise(props: IProps): JSX.Element {
   const { programExcercise } = props;
 
@@ -74,6 +104,27 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
   });
   const entry = progress?.entries[0];
   const day = progress?.day ?? 1;
+
+  const finishScriptResult =
+    entry != null
+      ? Program.runExcerciseFinishDayScript(
+          entry,
+          day,
+          props.settings,
+          programExcercise.state,
+          programExcercise.finishDayExpr
+        )
+      : Program.parseExcerciseFinishDayScript(
+          day,
+          props.settings,
+          programExcercise.state,
+          programExcercise.finishDayExpr
+        );
+  const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
+    ? { success: true, data: undefined }
+    : finishScriptResult;
+
+  const variationScriptResult = executeVariationScript(programExcercise, day, props.settings);
 
   const excerciseOptions = ObjectUtils.keys(excercises).map<[string, string]>((e) => [
     excercises[e].id,
@@ -125,6 +176,13 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           onChangeVariation={(i) => setVariationIndex(i)}
         />
+        {programExcercise.variations.length > 1 && (
+          <VariationsEditor
+            programExcercise={programExcercise}
+            editorResult={variationScriptResult}
+            dispatch={props.dispatch}
+          />
+        )}
         <Sets
           variationIndex={variationIndex}
           settings={props.settings}
@@ -162,14 +220,16 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
           </Fragment>
         )}
         <FinishDayScriptEditor
-          entry={entry}
           programExcercise={programExcercise}
-          day={day}
-          settings={props.settings}
+          editorResult={finishEditorResult}
           dispatch={props.dispatch}
         />
         <div className="p-2 text-center">
-          <Button kind="green" disabled={!entry}>
+          <Button
+            kind="green"
+            disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
+            onClick={() => props.dispatch({ type: "SaveExcercise" })}
+          >
             Save
           </Button>
         </div>
@@ -234,6 +294,7 @@ interface ISetsProps {
 function Sets(props: ISetsProps): JSX.Element {
   const { programExcercise, day, settings, variationIndex, dispatch } = props;
   const variation = programExcercise.variations[variationIndex];
+  const [resetCounter, setResetCounter] = useState(0);
   return (
     <Fragment>
       <GroupHeader name="Sets" />
@@ -251,20 +312,28 @@ function Sets(props: ISetsProps): JSX.Element {
         </div>
       )}
       <ul className="relative z-10 p-1 text-sm bg-gray-100">
-        {variation.sets.map((set, setIndex) => (
-          <SetFields
-            key={`${variation.sets.length}_${programExcercise.variations.length}_${variationIndex}`}
-            bar={programExcercise.excerciseType.bar}
-            settings={settings}
-            day={day}
-            set={set}
-            state={programExcercise.state}
-            variationIndex={variationIndex}
-            setIndex={setIndex}
-            isDeleteEnabled={variation.sets.length > 1}
-            dispatch={dispatch}
-          />
-        ))}
+        <DraggableList
+          items={variation.sets}
+          element={(set, setIndex, handleTouchStart) => (
+            <SetFields
+              key={`${resetCounter}_${variation.sets.length}_${programExcercise.variations.length}_${variationIndex}`}
+              bar={programExcercise.excerciseType.bar}
+              settings={settings}
+              handleTouchStart={handleTouchStart}
+              day={day}
+              set={set}
+              state={programExcercise.state}
+              variationIndex={variationIndex}
+              setIndex={setIndex}
+              isDeleteEnabled={variation.sets.length > 1}
+              dispatch={dispatch}
+            />
+          )}
+          onDragEnd={(startIndex, endIndex) => {
+            setResetCounter(resetCounter + 1);
+            EditProgram.reorderSets(dispatch, variationIndex, startIndex, endIndex);
+          }}
+        />
       </ul>
       <div className="px-1 pb-1 text-sm bg-gray-100">
         <SemiButton onClick={() => EditProgram.addSet(dispatch, 0)}>Add Set +</SemiButton>
@@ -282,6 +351,7 @@ interface ISetFieldsProps {
   setIndex: number;
   bar?: IBarKey;
   isDeleteEnabled: boolean;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   dispatch: IDispatch;
 }
 
@@ -327,7 +397,12 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
   const weightResult = validate(set.weightExpr.trim(), "weight");
 
   return (
-    <li className="relative py-1 pl-2 pr-12 mb-1 bg-white border border-gray-400 rounded-md">
+    <li className="relative px-12 py-1 mb-1 bg-white border border-gray-400 rounded-md">
+      <div className="absolute" style={{ touchAction: "none", top: 12, left: 12 }}>
+        <span className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
+          <IconHandle />
+        </span>
+      </div>
       <div className="flex">
         {props.isDeleteEnabled && (
           <button
@@ -380,6 +455,31 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         />
       </div>
     </li>
+  );
+}
+
+interface IVariationsEditorProps {
+  programExcercise: IProgramExcercise;
+  dispatch: IDispatch;
+  editorResult: IEither<number, string>;
+}
+
+function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
+  const { programExcercise } = props;
+
+  return (
+    <Fragment>
+      <GroupHeader name="Variation Selection Script" />
+      <MultiLineTextEditor
+        state={programExcercise.state}
+        result={props.editorResult}
+        value={programExcercise.variationExpr}
+        height={4}
+        onChange={(value) => {
+          EditProgram.setExcerciseVariationExpr(props.dispatch, value);
+        }}
+      />
+    </Fragment>
   );
 }
 
@@ -524,30 +624,19 @@ function StateChanges(props: IStateChangesProps): JSX.Element {
 
 export interface IFinishDayScriptEditorProps {
   programExcercise: IProgramExcercise;
-  day: number;
   dispatch: IDispatch;
-  entry?: IHistoryEntry;
-  settings: ISettings;
+  editorResult: IEither<number | undefined, string>;
 }
 
 function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element {
-  const { programExcercise, entry, day, settings } = props;
-  const { state, finishDayExpr } = programExcercise;
-
-  const result =
-    entry != null
-      ? Program.runExcerciseFinishDayScript(entry, day, settings, state, finishDayExpr)
-      : Program.parseExcerciseFinishDayScript(day, settings, state, finishDayExpr);
-  const editorResult: IEither<number | undefined, string> = result.success
-    ? { success: true, data: undefined }
-    : result;
+  const { programExcercise } = props;
 
   return (
     <Fragment>
       <GroupHeader name="Finish Day Script" />
       <MultiLineTextEditor
         state={programExcercise.state}
-        result={editorResult}
+        result={props.editorResult}
         value={programExcercise.finishDayExpr}
         onChange={(value) => {
           EditProgram.setExcerciseFinishDayExpr(props.dispatch, value);
