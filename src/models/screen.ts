@@ -18,6 +18,7 @@ export namespace Screen {
     "editProgram",
     "editProgressDay",
     "editProgramDay",
+    "editProgramExcercise",
     "editProgramDayScript",
   ];
 

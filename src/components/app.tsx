@@ -18,7 +18,6 @@ import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
-import { EditProgramExcercise } from "./editProgram/editProgramExcercise";
 
 interface IProps {
   client: Window["fetch"];
@@ -120,24 +119,6 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
     return <ScreenGraphs settings={state.storage.settings} dispatch={dispatch} history={state.storage.history} />;
-  } else if (Screen.current(state.screenStack) === "editProgramExcercise") {
-    const editExcercise = state.editExcercise;
-    const editProgram = Program.getEditingProgram(state);
-    if (editExcercise == null) {
-      throw new Error("Opened 'editProgramExcercise' screen, but 'state.editExcercise' is null");
-    }
-    if (editProgram == null) {
-      throw new Error("Opened 'editProgramExcercise' screen, but 'state.editProgram' is null");
-    }
-    return (
-      <EditProgramExcercise
-        days={editProgram.days}
-        programName={editProgram.name}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        programExcercise={editExcercise}
-      />
-    );
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
@@ -146,6 +127,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ScreenEditProgram
           settings={state.storage.settings}
           editDay={state.editDay}
+          editExcercise={state.editExcercise}
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}

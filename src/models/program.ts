@@ -186,10 +186,6 @@ export namespace Program {
     return Math.max(0, Math.min(variationIndexResult.data - 1, programExcercise.variations.length - 1));
   }
 
-  export function getState(program: IProgram): Record<string, number> {
-    return { ...program.internalState, ...program.state };
-  }
-
   export function parseExcerciseFinishDayScript(
     day: number,
     settings: ISettings,

@@ -93,7 +93,7 @@ export const migrations = {
     }
     storage.programs = [];
     for (const programId of usedPrograms) {
-      const program = programs.find((p) => p.id === programId)!;
+      const program = programs.find((p) => p.id === programId)! as any;
       delete (program as any).initialState;
       delete (program as any).isProgram2;
       storage.programs = storage.programs || [];
@@ -189,8 +189,9 @@ export const migrations = {
     for (const program of storage.programs) {
       for (const day of program.days) {
         for (const excercise of day.excercises) {
-          if (typeof excercise.excercise === "string") {
-            excercise.excercise = excerciseMapper[(excercise.excercise as unknown) as string];
+          const e = excercise as any;
+          if (typeof e.excercise === "string") {
+            e.excercise = excerciseMapper[(e.excercise as unknown) as string];
           }
         }
       }

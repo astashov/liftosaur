@@ -1,30 +1,13 @@
 import { LensBuilder, lb, lf } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import {
-  IProgramDayEntry,
-  IProgramDay,
-  Program,
-  IProgramExcercise,
-  IProgram,
-  IProgramExcerciseVariation,
-} from "./program";
+import { IProgramDay, Program, IProgramExcercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExcerciseId, excercises, Excercise } from "./excercise";
+import { IExcerciseId, Excercise } from "./excercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 
 export namespace EditProgram {
-  export function removeEntry(
-    dispatch: IDispatch,
-    editDayLensBuilder: LensBuilder<IState, IProgramDay>,
-    entry: IProgramDayEntry
-  ): void {
-    updateState(dispatch, [
-      editDayLensBuilder.p("excercises").recordModify((entries) => entries.filter((e) => e !== entry)),
-    ]);
-  }
-
   export function addStateVariable(dispatch: IDispatch, newName?: string, newType?: IUnit): void {
     if (newName != null && newType != null) {
       updateState(dispatch, [
@@ -299,32 +282,6 @@ export namespace EditProgram {
               }
             });
         }),
-    ]);
-  }
-
-  export function addExcercise(
-    dispatch: IDispatch,
-    editDayLensBuilder: LensBuilder<IState, IProgramDay>,
-    excerciseId: IExcerciseId,
-    bar?: IBarKey
-  ): void {
-    updateState(dispatch, [
-      editDayLensBuilder.p("excercises").recordModify((e) => [
-        ...e,
-        {
-          excercise: {
-            id: excerciseId,
-            bar: bar,
-          },
-          sets: [
-            {
-              repsExpr: "5",
-              weightExpr: "0",
-              isAmrap: false,
-            },
-          ],
-        },
-      ]),
     ]);
   }
 

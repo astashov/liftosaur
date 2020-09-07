@@ -4,7 +4,6 @@ import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { Button } from "../button";
 import { FooterView } from "../footer";
 import { IconDuplicate } from "../iconDuplicate";
 import { lb } from "../../utils/lens";
@@ -14,7 +13,6 @@ import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
-import { SemiButton } from "../semiButton";
 
 interface IProps {
   editProgram: IProgram;
@@ -160,18 +158,6 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         >
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Day +</div>
         </MenuItemWrapper>
-        <div className="flex p-2">
-          <div className="flex-1 mr-auto">
-            <Button kind="blue" onClick={() => props.dispatch({ type: "PushScreen", screen: "editProgramDayScript" })}>
-              Edit Script
-            </Button>
-          </div>
-          <div>
-            {/* <Button kind="blue" onClick={() => props.dispatch(Thunk.publishProgram())}>
-              Publish
-            </Button> */}
-          </div>
-        </div>
       </section>
 
       <FooterView dispatch={props.dispatch} />

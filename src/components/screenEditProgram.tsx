@@ -1,17 +1,18 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IProgram, IProgramDay } from "../models/program";
+import { IProgram, IProgramDay, IProgramExcercise } from "../models/program";
 import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { IScreen } from "../models/screen";
-import { EditProgramDayScript } from "./editProgram/editProgramDayScript";
 import { lb } from "../utils/lens";
 import { IState } from "../ducks/reducer";
 import { ISettings } from "../models/settings";
+import { EditProgramExcercise } from "./editProgram/editProgramExcercise";
 
 interface IProps {
   editProgram: IProgram;
   editDay?: IProgramDay;
+  editExcercise?: IProgramExcercise;
   screen: IScreen;
   dispatch: IDispatch;
   programIndex: number;
@@ -62,14 +63,18 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     } else {
       throw new Error("Opened 'editProgressDay' screen, but 'state.editDay' is null");
     }
-  } else if (props.screen === "editProgramDayScript") {
+  } else if (props.screen === "editProgramExcercise") {
+    const editExcercise = props.editExcercise;
+    if (editExcercise == null) {
+      throw new Error("Opened 'editProgramExcercise' screen, but 'state.editExcercise' is null");
+    }
     return (
-      <EditProgramDayScript
-        dayIndex={props.dayIndex}
+      <EditProgramExcercise
+        days={props.editProgram.days}
+        programName={props.editProgram.name}
         settings={props.settings}
-        programIndex={props.programIndex}
-        editProgram={props.editProgram}
         dispatch={props.dispatch}
+        programExcercise={editExcercise}
       />
     );
   } else {
