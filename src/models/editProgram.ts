@@ -1,10 +1,18 @@
 import { LensBuilder, lb, lf } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import { IProgramDayEntry, IProgramDay, Program, IProgramExcercise, IProgram } from "./program";
+import {
+  IProgramDayEntry,
+  IProgramDay,
+  Program,
+  IProgramExcercise,
+  IProgram,
+  IProgramExcerciseVariation,
+} from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExcerciseId } from "./excercise";
+import { IExcerciseId, excercises, Excercise } from "./excercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
+import { UidFactory } from "../utils/generator";
 
 export namespace EditProgram {
   export function removeEntry(
@@ -68,7 +76,12 @@ export namespace EditProgram {
 
   export function changeExcerciseId(dispatch: IDispatch, newId?: IExcerciseId): void {
     if (newId != null) {
-      updateState(dispatch, [lb<IState>().pi("editExcercise").p("excerciseType").p("id").record(newId)]);
+      const excercise = Excercise.get({ id: newId, bar: "barbell" });
+      updateState(dispatch, [
+        lb<IState>().pi("editExcercise").p("excerciseType").p("id").record(excercise.id),
+        lb<IState>().pi("editExcercise").p("excerciseType").p("bar").record(excercise.defaultBar),
+        lb<IState>().pi("editExcercise").p("name").record(excercise.name),
+      ]);
     }
   }
 
@@ -199,7 +212,6 @@ export namespace EditProgram {
   }
 
   export function removeSet(dispatch: IDispatch, variationIndex: number, setIndex: number): void {
-    console.log("Removing", variationIndex, setIndex);
     updateState(dispatch, [
       lb<IState>()
         .pi("editExcercise")
@@ -239,6 +251,53 @@ export namespace EditProgram {
             .i(programIndex)
             .p("excercises")
             .modify((es) => es.filter((e) => e.id !== excerciseId));
+        }),
+    ]);
+  }
+
+  export function copyProgramExcercise(dispatch: IDispatch, program: IProgram, excercise: IProgramExcercise): void {
+    const newName = `${excercise.name} Copy`;
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          const programIndex = programs.findIndex((p) => p.id === program.id);
+          return lf(programs)
+            .i(programIndex)
+            .p("excercises")
+            .modify((es) => {
+              const newExcercise: IProgramExcercise = { ...excercise, name: newName, id: UidFactory.generateUid(8) };
+              return [...es, newExcercise];
+            });
+        }),
+    ]);
+  }
+
+  export function toggleDayExcercise(
+    dispatch: IDispatch,
+    program: IProgram,
+    dayIndex: number,
+    excerciseId: string
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          const programIndex = programs.findIndex((p) => p.id === program.id);
+          return lf(programs)
+            .i(programIndex)
+            .p("days")
+            .i(dayIndex)
+            .p("excercises")
+            .modify((es) => {
+              if (es.some((e) => e.id === excerciseId)) {
+                return es.filter((e) => e.id !== excerciseId);
+              } else {
+                return [...es, { id: excerciseId }];
+              }
+            });
         }),
     ]);
   }

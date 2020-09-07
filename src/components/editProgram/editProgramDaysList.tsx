@@ -14,6 +14,7 @@ import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
+import { SemiButton } from "../semiButton";
 
 interface IProps {
   editProgram: IProgram;
@@ -48,21 +49,31 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             <MenuItem
               name={excercise.name}
               value={
-                <button
-                  className="align-middle button"
-                  onClick={() => {
-                    const isExcerciseUsed = props.editProgram.days.some(
-                      (d) => d.excercises.map((e) => e.id).indexOf(excercise.id) !== -1
-                    );
-                    if (isExcerciseUsed) {
-                      alert("You can't delete this excercise, it's used in one of the days");
-                    } else if (confirm("Are you sure?")) {
-                      EditProgram.removeProgramExcercise(props.dispatch, props.editProgram, excercise.id);
-                    }
-                  }}
-                >
-                  <IconDelete />
-                </button>
+                <Fragment>
+                  <button
+                    className="mr-2 align-middle button"
+                    onClick={() => {
+                      EditProgram.copyProgramExcercise(props.dispatch, props.editProgram, excercise);
+                    }}
+                  >
+                    <IconDuplicate />
+                  </button>
+                  <button
+                    className="align-middle button"
+                    onClick={() => {
+                      const isExcerciseUsed = props.editProgram.days.some(
+                        (d) => d.excercises.map((e) => e.id).indexOf(excercise.id) !== -1
+                      );
+                      if (isExcerciseUsed) {
+                        alert("You can't delete this excercise, it's used in one of the days");
+                      } else if (confirm("Are you sure?")) {
+                        EditProgram.removeProgramExcercise(props.dispatch, props.editProgram, excercise.id);
+                      }
+                    }}
+                  >
+                    <IconDelete />
+                  </button>
+                </Fragment>
               }
               onClick={(e) => {
                 if (!HtmlUtils.classInParents(e.target as Element, "button")) {
@@ -147,7 +158,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             props.dispatch({ type: "CreateDayAction" });
           }}
         >
-          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">+</div>
+          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Day +</div>
         </MenuItemWrapper>
         <div className="flex p-2">
           <div className="flex-1 mr-auto">

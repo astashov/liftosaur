@@ -7,7 +7,7 @@ import { Progress } from "./progress";
 import { ISettings } from "./settings";
 import { Screen } from "./screen";
 import { updateState, IState } from "../ducks/reducer";
-import { lb, ILensRecordingPayload } from "../utils/lens";
+import { lb, ILensRecordingPayload, lf } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight } from "./weight";
@@ -26,14 +26,9 @@ export const TProgramDay = t.type(
   {
     name: t.string,
     excercises: t.array(
-      t.intersection([
-        t.interface({
-          id: t.string,
-        }),
-        t.partial({
-          variation: t.number,
-        }),
-      ])
+      t.type({
+        id: t.string,
+      })
     ),
   },
   "TProgramDay"
@@ -164,7 +159,7 @@ export namespace Program {
   }
 
   export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
-    const day = Math.min(dayIndex || program.internalState.nextDay || 1, program.days.length);
+    const day = Math.min(dayIndex || program.nextDay);
     const programDay = program.days[day - 1];
     return {
       id: 0,
@@ -174,10 +169,21 @@ export namespace Program {
       day,
       dayName: programDay.name,
       startTime: Date.now(),
-      entries: programDay.excercises.map((entry) => {
-        return nextHistoryEntry(entry.excercise, day, entry.sets, program.state, settings);
+      entries: programDay.excercises.map(({ id }) => {
+        const programExcercise = program.excercises.find((e) => id === e.id)!;
+        const variationIndex = nextVariationIndex(programExcercise, day, settings);
+        const sets = programExcercise.variations[variationIndex].sets;
+        return nextHistoryEntry(programExcercise.excerciseType, day, sets, programExcercise.state, settings);
       }),
     };
+  }
+
+  export function nextVariationIndex(programExcercise: IProgramExcercise, day: number, settings: ISettings): number {
+    const variationIndexResult = runVariationScript(programExcercise, day, settings);
+    if (!variationIndexResult.success) {
+      throw new Error(variationIndexResult.error);
+    }
+    return Math.max(0, Math.min(variationIndexResult.data - 1, programExcercise.variations.length - 1));
   }
 
   export function getState(program: IProgram): Record<string, number> {
@@ -233,21 +239,46 @@ export namespace Program {
     return { success: true, data: newState };
   }
 
+  export function runVariationScript(
+    programExcercise: IProgramExcercise,
+    day: number,
+    settings: ISettings
+  ): IEither<number, string> {
+    const script = programExcercise.variationExpr;
+    try {
+      if (script) {
+        const scriptRunnerResult = new ScriptRunner(
+          script,
+          programExcercise.state,
+          Progress.createEmptyScriptBindings(day),
+          Progress.createScriptFunctions(settings),
+          settings.units
+        );
+        return { success: true, data: scriptRunnerResult.execute("reps") };
+      } else {
+        return { success: false, error: "Empty expression" };
+      }
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+  }
+
   export function runFinishDayScript(
-    program: IProgram,
-    progress: IHistoryRecord,
-    settings: ISettings,
-    script: string = program.finishDayExpr
+    programExcercise: IProgramExcercise,
+    day: number,
+    entry: IHistoryEntry,
+    settings: ISettings
   ): IEither<IProgramState, string> {
-    const bindings = Progress.createScriptBindings(progress);
+    const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
-    const newInternalState: IProgramInternalState = {
-      nextDay: Program.nextDay(program, program.internalState.nextDay),
-    };
-    const newState: Record<string, number> = { ...newInternalState, ...program.state };
+    const newState: IProgramState = { ...programExcercise.state };
 
     try {
-      new ScriptRunner(script, newState, bindings, fns, settings.units).execute();
+      new ScriptRunner(programExcercise.finishDayExpr, newState, bindings, fns, settings.units).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -257,6 +288,29 @@ export namespace Program {
     }
 
     return { success: true, data: newState };
+  }
+
+  export function runAllFinishDayScripts(program: IProgram, progress: IHistoryRecord, settings: ISettings): IProgram {
+    const programDay = program.days[progress.day - 1];
+    const newProgram = lf(program)
+      .p("excercises")
+      .modify((es) =>
+        es.map((e) => {
+          const excIndex = programDay.excercises.findIndex((exc) => exc.id === e.id);
+          if (excIndex !== -1) {
+            const newStateResult = Program.runFinishDayScript(e, progress.day, progress.entries[excIndex], settings);
+            if (newStateResult.success) {
+              return lf(e).p("state").set(newStateResult.data);
+            } else {
+              alert(
+                `There's an error while executing Finish Day Script of '${e.name}' excercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that excercise. Please fix the program's Finish Day Script.`
+              );
+            }
+          }
+          return e;
+        })
+      );
+    return lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day));
   }
 
   export function createVariation(): IProgramExcerciseVariation {

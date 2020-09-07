@@ -1,16 +1,8 @@
 import { Reducer } from "preact/hooks";
-import {
-  Program,
-  TProgram,
-  IProgram,
-  IProgramInternalState,
-  IProgramDay,
-  TProgramDay,
-  IProgramExcercise,
-} from "../models/program";
+import { Program, TProgram, IProgram, IProgramDay, TProgramDay, IProgramExcercise } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
-import { IExcerciseType, excercises } from "../models/excercise";
+import { IExcerciseType } from "../models/excercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
@@ -26,7 +18,6 @@ import * as IDB from "idb-keyval";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
-import { ScriptRunner } from "../parser";
 import { IDispatch } from "./types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 
@@ -427,6 +418,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
   } else if (action.type === "FinishProgramDayAction") {
+    const settings = state.storage.settings;
     const progress = Progress.getProgress(state);
     if (progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
@@ -438,38 +430,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
-      let newPrograms = state.storage.programs;
-      const program = state.storage.programs.find((p) => p.id === progress.programId)!;
-      if (Progress.isCurrent(progress) && program != null) {
-        const bindings = Progress.createScriptBindings(progress);
-        const fns = Progress.createScriptFunctions(state.storage.settings);
-        const programIndex = state.storage.programs.findIndex((p) => p.id === program.id);
-        const newInternalState: IProgramInternalState = {
-          nextDay: Program.nextDay(program, program.internalState.nextDay),
-        };
-        const allProgramState: Record<string, number> = { ...newInternalState, ...program.state };
-        try {
-          new ScriptRunner(
-            program.finishDayExpr,
-            allProgramState,
-            bindings,
-            fns,
-            state.storage.settings.units
-          ).execute();
-          const { nextDay, ...programState } = allProgramState;
-          newPrograms = lf(state.storage.programs)
-            .i(programIndex)
-            .modify((p) => ({ ...p, state: programState, internalState: { nextDay } }));
-        } catch (e) {
-          if (e instanceof SyntaxError) {
-            alert(
-              `There's an error while executing Finish Day Script:\n\n${e.message}.\n\nState Variables won't be updated. Please fix the program's Finish Day Script.`
-            );
-          } else {
-            throw e;
-          }
-        }
-      }
+      const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
+      const program = state.storage.programs[programIndex];
+      const newProgram =
+        Progress.isCurrent(progress) && program != null
+          ? Program.runAllFinishDayScripts(program, progress, settings)
+          : program;
+      const newPrograms = lf(state.storage.programs).i(programIndex).set(newProgram);
       return {
         ...state,
         storage: {

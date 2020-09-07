@@ -1,14 +1,8 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IProgram, IProgramDay } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
-import { EditProgramExcerciseView } from "./editProgramExcerciseView";
-import { useState } from "preact/hooks";
-import { ModalAddExcercise } from "./modalAddExcercise";
-import { IExcerciseType } from "../../models/excercise";
-import { IProgramSet } from "../../models/set";
-import { ModalEditSet } from "./modalEditSet";
 import { MenuItemEditable } from "../menuItemEditable";
 import { LensBuilder } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
@@ -16,6 +10,12 @@ import { EditProgram } from "../../models/editProgram";
 import { Button } from "../button";
 import { DraggableList } from "../draggableList";
 import { ISettings } from "../../models/settings";
+import { GroupHeader } from "../groupHeader";
+import { MenuItem } from "../menuItem";
+import { IconCheck } from "../iconCheck";
+import { IconDelete } from "../iconDelete";
+import { IconEdit } from "../iconEdit";
+import { SemiButton } from "../semiButton";
 
 interface IProps {
   isProgress: boolean;
@@ -33,23 +33,14 @@ export interface IEditSet {
 }
 
 export function EditProgramDay(props: IProps): JSX.Element {
+  const program = props.editProgram;
   const day = props.editDay;
-  const [shouldShowAddExcercise, setShouldShowAddExcercise] = useState(false);
-  const [editSet, setEditSet] = useState<IEditSet | undefined>(undefined);
-
-  function getSet(es: IEditSet): IProgramSet | undefined {
-    return es.setIndex != null ? day.excercises[es.excerciseIndex]?.sets?.[es.setIndex] : undefined;
-  }
-
-  function getExcercise(es: IEditSet): IExcerciseType {
-    return day.excercises[es.excerciseIndex].excercise;
-  }
 
   return (
     <section className="h-full">
       <HeaderView
-        title="Edit Program"
-        subtitle={props.editProgram.name}
+        title={day.name}
+        subtitle="Edit Program Day"
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
@@ -64,26 +55,33 @@ export function EditProgramDay(props: IProps): JSX.Element {
               }
             }}
           />
+          <GroupHeader name="Selected excercises" />
           <DraggableList
             items={day.excercises}
-            element={(entry, i, handleTouchStart) => {
+            element={(excerciseRef, i, handleTouchStart) => {
+              const excercise = program.excercises.find((e) => e.id === excerciseRef.id)!;
               return (
-                <EditProgramExcerciseView
-                  entry={entry}
+                <MenuItem
                   handleTouchStart={handleTouchStart}
-                  editDayLensBuilder={props.editDayLensBuilder}
-                  dispatch={props.dispatch}
-                  onEditSet={(setIndex) => {
-                    if (setIndex == null && entry.sets.length > 0) {
-                      const set = entry.sets[entry.sets.length - 1];
-                      EditProgram.addSet(props.dispatch, props.editDayLensBuilder, i, set);
-                    } else {
-                      setEditSet({ excerciseIndex: i, setIndex });
-                    }
-                  }}
-                  onDeleteSet={(setIndex) => {
-                    EditProgram.removeSet(props.dispatch, props.editDayLensBuilder, i, setIndex);
-                  }}
+                  name={excercise.name}
+                  value={
+                    <Fragment>
+                      <button
+                        className="p-2 align-middle button"
+                        onClick={() => EditProgram.editProgramExcercise(props.dispatch, excercise)}
+                      >
+                        <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                      </button>
+                      <button
+                        className="p-2 align-middle button"
+                        onClick={() =>
+                          EditProgram.toggleDayExcercise(props.dispatch, program, props.dayIndex, excercise.id)
+                        }
+                      >
+                        <IconDelete />
+                      </button>
+                    </Fragment>
+                  }
                 />
               );
             }}
@@ -91,15 +89,32 @@ export function EditProgramDay(props: IProps): JSX.Element {
               EditProgram.reorderExcercises(props.dispatch, props.editDayLensBuilder, startIndex, endIndex);
             }}
           />
+          <div class="p-1">
+            <SemiButton
+              onClick={() => {
+                EditProgram.addProgramExcercise(props.dispatch);
+              }}
+            >
+              Create New Excercise
+            </SemiButton>
+          </div>
+          <GroupHeader name="Available excercises" />
+          {program.excercises.map((excercise) => (
+            <MenuItem
+              name={excercise.name}
+              onClick={() => {
+                EditProgram.toggleDayExcercise(props.dispatch, program, props.dayIndex, excercise.id);
+              }}
+              value={
+                day.excercises.some((e) => e.id === excercise.id) ? (
+                  <div className="flex flex-row-reverse">
+                    <IconCheck />
+                  </div>
+                ) : undefined
+              }
+            />
+          ))}
         </section>
-        <button
-          className="w-full px-4 py-4 mb-2 text-center bg-gray-100 border border-gray-300 border-dashed rounded-lg"
-          onClick={() => {
-            setShouldShowAddExcercise(true);
-          }}
-        >
-          +
-        </button>
 
         {props.isProgress && (
           <div className="py-3 text-center">
@@ -109,38 +124,6 @@ export function EditProgramDay(props: IProps): JSX.Element {
           </div>
         )}
       </section>
-      <ModalAddExcercise
-        isHidden={!shouldShowAddExcercise}
-        settings={props.settings}
-        onSelect={(excerciseId, bar) => {
-          setShouldShowAddExcercise(false);
-          if (excerciseId != null) {
-            EditProgram.addExcercise(props.dispatch, props.editDayLensBuilder, excerciseId, bar);
-          }
-        }}
-      />
-
-      {editSet && (
-        <ModalEditSet
-          day={props.dayIndex}
-          settings={props.settings}
-          state={props.editProgram.state}
-          excercise={getExcercise(editSet)}
-          set={getSet(editSet)}
-          onDone={(result) => {
-            if (result != null) {
-              EditProgram.addSet(
-                props.dispatch,
-                props.editDayLensBuilder,
-                editSet.excerciseIndex,
-                result,
-                editSet.setIndex
-              );
-            }
-            setEditSet(undefined);
-          }}
-        />
-      )}
 
       <FooterView dispatch={props.dispatch} />
     </section>

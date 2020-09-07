@@ -20,6 +20,8 @@
 * Add Cypress e2e tests
 * Fix backups
 * Add comments support to parser
+* Think of a better way to pass pieces of state into lens play
+* Refactor MenuItem, to better incorporate existing use cases
 
 * Bug:
 This is valid code:

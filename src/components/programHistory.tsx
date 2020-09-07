@@ -6,11 +6,8 @@ import { FooterView } from "./footer";
 import { IHistoryRecord } from "../models/history";
 import { Program } from "../models/program";
 import { Button } from "./button";
-import { Screen } from "../models/screen";
 import { HistoryRecordView } from "./historyRecord";
 import { ISettings } from "../models/settings";
-import { updateState, IState } from "../ducks/reducer";
-import { lb } from "../utils/lens";
 
 interface IProps {
   program: IProgram;
@@ -34,20 +31,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       <HeaderView
         title={props.program.name}
         subtitle="Current program"
-        left={
-          <button
-            className="p-3"
-            onClick={() =>
-              updateState(dispatch, [
-                lb<IState>()
-                  .p("screenStack")
-                  .recordModify((s) => Screen.push(s, "editProgramExcercise")),
-              ])
-            }
-          >
-            Excercise
-          </button>
-        }
         right={
           props.progress == null ? (
             <button className="p-3" onClick={() => Program.editAction(props.dispatch, props.program.id)}>

@@ -9,7 +9,6 @@ import { excercises, IExcerciseId } from "../../models/excercise";
 import { ISettings, Settings } from "../../models/settings";
 import { History } from "../../models/history";
 import { Weight, IBarKey, IUnit, IWeight } from "../../models/weight";
-import { JSXInternal } from "preact/src/jsx";
 import { ExcerciseView } from "../excercise";
 import { IHistoryEntry, IHistoryRecord } from "../../models/history";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
@@ -29,11 +28,13 @@ import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
+import { SemiButton } from "../semiButton";
 
 interface IProps {
   settings: ISettings;
   days: IProgramDay[];
   programExcercise: IProgramExcercise;
+  programName: string;
   dispatch: IDispatch;
 }
 
@@ -56,34 +57,6 @@ function buildProgress(
     entry = undefined;
   }
   return entry != null ? History.buildFromEntry(entry, day) : undefined;
-}
-
-function executeVariationScript(
-  programExcercise: IProgramExcercise,
-  day: number,
-  settings: ISettings
-): IEither<number, string> {
-  const script = programExcercise.variationExpr;
-  try {
-    if (script) {
-      const scriptRunnerResult = new ScriptRunner(
-        script,
-        programExcercise.state,
-        Progress.createEmptyScriptBindings(day),
-        Progress.createScriptFunctions(settings),
-        settings.units
-      );
-      return { success: true, data: scriptRunnerResult.execute("reps") };
-    } else {
-      return { success: false, error: "Empty expression" };
-    }
-  } catch (e) {
-    if (e instanceof SyntaxError) {
-      return { success: false, error: e.message };
-    } else {
-      throw e;
-    }
-  }
 }
 
 export function EditProgramExcercise(props: IProps): JSX.Element {
@@ -124,7 +97,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
     ? { success: true, data: undefined }
     : finishScriptResult;
 
-  const variationScriptResult = executeVariationScript(programExcercise, day, props.settings);
+  const variationScriptResult = Program.runVariationScript(programExcercise, day, props.settings);
 
   const excerciseOptions = ObjectUtils.keys(excercises).map<[string, string]>((e) => [
     excercises[e].id,
@@ -140,8 +113,18 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
     <section className="h-full">
       <HeaderView
         title="Edit Program Excercise"
-        subtitle={"Edit it"}
-        left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
+        subtitle={props.programName}
+        left={
+          <button
+            onClick={() => {
+              if (confirm("Are you sure? Your changes won't be saved")) {
+                props.dispatch({ type: "PullScreen" });
+              }
+            }}
+          >
+            Back
+          </button>
+        }
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItemEditable
@@ -213,6 +196,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
             <GroupHeader name="State Changes" />
             <StateChanges
               entry={entry}
+              day={day}
               settings={props.settings}
               state={programExcercise.state}
               script={programExcercise.finishDayExpr}
@@ -336,7 +320,7 @@ function Sets(props: ISetsProps): JSX.Element {
         />
       </ul>
       <div className="px-1 pb-1 text-sm bg-gray-100">
-        <SemiButton onClick={() => EditProgram.addSet(dispatch, 0)}>Add Set +</SemiButton>
+        <SemiButton onClick={() => EditProgram.addSet(dispatch, variationIndex)}>Add Set +</SemiButton>
       </div>
     </Fragment>
   );
@@ -489,17 +473,6 @@ interface IStateProps {
   onAddStateVariable: () => void;
 }
 
-function SemiButton(props: JSXInternal.HTMLAttributes<HTMLButtonElement>): JSX.Element {
-  return (
-    <button
-      className="box-border block w-full p-2 text-center border border-gray-500 border-dashed rounded-md"
-      {...props}
-    >
-      {props.children}
-    </button>
-  );
-}
-
 function EditState(props: IStateProps): JSX.Element {
   const state = props.programExcercise.state;
 
@@ -558,10 +531,11 @@ function Playground(props: IPlaygroundProps): JSX.Element {
         values={[...days.map<[string, string]>((d, i) => [(i + 1).toString(), `${i + 1} - ${d.name}`])]}
         onChange={(newValue) => {
           const newDay = parseInt(newValue || "1", 10);
+          const nextVariationIndex = Program.nextVariationIndex(programExcercise, newDay, settings);
           const newEntry = Program.nextHistoryEntry(
             programExcercise.excerciseType,
             newDay,
-            programExcercise.variations[0].sets,
+            programExcercise.variations[nextVariationIndex].sets,
             programExcercise.state,
             settings
           );
@@ -582,15 +556,16 @@ function Playground(props: IPlaygroundProps): JSX.Element {
 
 interface IStateChangesProps {
   entry: IHistoryEntry;
+  day: number;
   settings: ISettings;
   state: IProgramState;
   script: string;
 }
 
 function StateChanges(props: IStateChangesProps): JSX.Element {
-  const { entry, settings, state, script } = props;
+  const { entry, settings, state, script, day } = props;
   const { units } = settings;
-  const result = Program.runExcerciseFinishDayScript(entry, 0, settings, state, script);
+  const result = Program.runExcerciseFinishDayScript(entry, day, settings, state, script);
 
   if (result.success) {
     const newState = result.data;

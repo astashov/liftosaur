@@ -10,7 +10,7 @@ import { ObjectUtils } from "../utils/object";
 import * as t from "io-ts";
 import { ISettings } from "./settings";
 import { IDispatch } from "../ducks/types";
-import { IProgramDay, IProgram } from "./program";
+import { IProgramDay, IProgram, Program, IProgramState } from "./program";
 import { ScriptRunner } from "../parser";
 
 export const TProgressUi = t.partial(
@@ -370,35 +370,39 @@ export namespace Progress {
     programDay: IProgramDay,
     settings: ISettings
   ): IHistoryRecord {
-    const state = { ...program.internalState, ...program.state };
     const day = progress.day;
     return {
       ...progress,
       entries: programDay.excercises.map((dayEntry) => {
-        const progressEntry = progress.entries.find((e) => dayEntry.excercise === e.excercise);
-        if (progressEntry != null && dayEntry.sets.length === progressEntry.sets.length) {
+        const programExcercise = program.excercises.find((e) => e.id === dayEntry.id)!;
+        const progressEntry = progress.entries.find((e) => programExcercise.excerciseType.id === e.excercise.id);
+        const variationIndex = Program.nextVariationIndex(programExcercise, day, settings);
+        const sets = programExcercise.variations[variationIndex].sets;
+        const state = programExcercise.state;
+        if (progressEntry != null && sets.length === progressEntry.sets.length) {
           return {
             ...progressEntry,
-            excercise: dayEntry.excercise,
+            excercise: programExcercise.excerciseType,
             sets: progressEntry.sets.map((set, i) => ({
               ...set,
-              reps: executeEntryScript(dayEntry.sets[i].repsExpr, day, state, settings, "reps"),
-              weight: executeEntryScript(dayEntry.sets[i].weightExpr, day, state, settings, "weight"),
-              isAmrap: dayEntry.sets[i].isAmrap,
+              reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
+              weight: executeEntryScript(sets[i].weightExpr, day, state, settings, "weight"),
+              isAmrap: sets[i].isAmrap,
             })),
           };
         } else {
-          const firstWeightExpr = dayEntry.sets[0]?.weightExpr;
+          const firstWeightExpr = sets[0]?.weightExpr;
           const firstWeight =
             firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings, "weight") : undefined;
           return {
-            excercise: dayEntry.excercise,
-            sets: dayEntry.sets.map((set) => ({
+            excercise: programExcercise.excerciseType,
+            sets: sets.map((set) => ({
               reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
               weight: executeEntryScript(set.weightExpr, day, state, settings, "weight"),
               isAmrap: set.isAmrap,
             })),
-            warmupSets: firstWeight != null ? Excercise.getWarmupSets(dayEntry.excercise, firstWeight, settings) : [],
+            warmupSets:
+              firstWeight != null ? Excercise.getWarmupSets(programExcercise.excerciseType, firstWeight, settings) : [],
           };
         }
       }),
@@ -408,21 +412,21 @@ export namespace Progress {
   function executeEntryScript(
     expr: string,
     day: number,
-    state: Record<string, number>,
+    state: IProgramState,
     settings: ISettings,
     type: "weight"
   ): IWeight;
   function executeEntryScript(
     expr: string,
     day: number,
-    state: Record<string, number>,
+    state: IProgramState,
     settings: ISettings,
     type: "reps"
   ): number;
   function executeEntryScript(
     expr: string,
     day: number,
-    state: Record<string, number>,
+    state: IProgramState,
     settings: ISettings,
     type: "reps" | "weight"
   ): IWeight | number {

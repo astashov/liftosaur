@@ -33,87 +33,19 @@ if (day == 13 && cr[1][4] < r[1][4]) {
 const bindings: IScriptBindings = {
   day: 1,
   weights: [
-    [
-      { value: 40, unit: "lb" },
-      { value: 40, unit: "lb" },
-      { value: 40, unit: "lb" },
-    ],
-    [
-      { value: 30, unit: "lb" },
-      { value: 30, unit: "lb" },
-      { value: 30, unit: "lb" },
-    ],
-    [
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-    ],
-    [
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-    ],
-    [
-      { value: 0, unit: "lb" },
-      { value: 0, unit: "lb" },
-      { value: 0, unit: "lb" },
-    ],
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
   ],
-  reps: [
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-  ],
-  completedReps: [
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-  ],
+  reps: [12, 12, 12],
+  completedReps: [12, 12, 12],
   w: [
-    [
-      { value: 40, unit: "lb" },
-      { value: 40, unit: "lb" },
-      { value: 40, unit: "lb" },
-    ],
-    [
-      { value: 30, unit: "lb" },
-      { value: 30, unit: "lb" },
-      { value: 30, unit: "lb" },
-    ],
-    [
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-    ],
-    [
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-      { value: 50, unit: "lb" },
-    ],
-    [
-      { value: 0, unit: "lb" },
-      { value: 0, unit: "lb" },
-      { value: 0, unit: "lb" },
-    ],
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
+    { value: 40, unit: "lb" },
   ],
-  r: [
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-  ],
-  cr: [
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-    [12, 12, 12],
-  ],
+  r: [12, 12, 12],
+  cr: [12, 12, 12],
 };
 
 const fns = Progress.createScriptFunctions({

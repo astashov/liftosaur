@@ -19,7 +19,6 @@ import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
 import { EditProgramExcercise } from "./editProgram/editProgramExcercise";
-import { lb } from "../utils/lens";
 
 interface IProps {
   client: Window["fetch"];
@@ -133,6 +132,7 @@ export function AppView(props: IProps): JSX.Element | null {
     return (
       <EditProgramExcercise
         days={editProgram.days}
+        programName={editProgram.name}
         settings={state.storage.settings}
         dispatch={dispatch}
         programExcercise={editExcercise}
