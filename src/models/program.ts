@@ -159,7 +159,7 @@ export namespace Program {
   }
 
   export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
-    const day = Math.min(dayIndex || program.nextDay);
+    const day = Math.max(program.days.length, Math.min(1, dayIndex || program.nextDay));
     const programDay = program.days[day - 1];
     return {
       id: 0,

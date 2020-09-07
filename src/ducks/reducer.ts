@@ -529,24 +529,21 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "CreateProgramAction") {
+    const newProgram: IProgram = {
+      id: action.name,
+      name: action.name,
+      url: "",
+      author: "",
+      description: action.name,
+      nextDay: 1,
+      days: [{ name: "Day 1", excercises: [] }],
+      excercises: [],
+      tags: [],
+    };
     let newState = lf(state)
       .p("storage")
       .p("programs")
-      .modify((programs) => [
-        ...programs,
-        {
-          id: action.name,
-          name: action.name,
-          url: "",
-          author: "",
-          description: action.name,
-          nextDay: 1,
-          days: [{ name: "Day 1", excercises: [] }],
-          excercises: [],
-          finishDayExpr: "",
-          tags: [],
-        },
-      ]);
+      .modify((programs) => [...programs, newProgram]);
     newState = lf(newState).p("editProgram").set({ id: action.name });
     return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgram"));
   } else if (action.type === "CreateDayAction") {
@@ -602,6 +599,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         ...state,
         progress: { ...state.progress, 0: newProgress },
       };
+    } else {
+      return state;
     }
   } else {
     return state;

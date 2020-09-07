@@ -139,6 +139,18 @@ export namespace EditProgram {
     ]);
   }
 
+  export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((programs) => {
+          const programIndex = programs.findIndex((p) => p.id === program.id);
+          return lf(programs).i(programIndex).p("name").set(name);
+        }),
+    ]);
+  }
+
   export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
     updateState(dispatch, [
       lb<IState>()

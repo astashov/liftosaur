@@ -30,6 +30,16 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItemEditable
+          type="text"
+          name="Name:"
+          value={props.editProgram.name}
+          onChange={(newValue) => {
+            if (newValue != null) {
+              EditProgram.setName(props.dispatch, props.editProgram, newValue);
+            }
+          }}
+        />
+        <MenuItemEditable
           type="number"
           name="Next Day:"
           value={props.editProgram.nextDay.toString()}
