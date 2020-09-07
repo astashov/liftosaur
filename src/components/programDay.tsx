@@ -92,7 +92,10 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           buttons={
             Progress.isCurrent(props.progress) ? (
-              <button className="p-4" onClick={() => Progress.editDayAction(props.dispatch)}>
+              <button
+                className="p-4"
+                onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
+              >
                 <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
               </button>
             ) : undefined

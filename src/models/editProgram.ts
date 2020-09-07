@@ -1,6 +1,6 @@
-import { LensBuilder, lb, lf } from "../utils/lens";
+import { lb, lf } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import { IProgramDay, Program, IProgramExcercise, IProgram } from "./program";
+import { Program, IProgramExcercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { IExcerciseId, Excercise } from "./excercise";
@@ -172,12 +172,10 @@ export namespace EditProgram {
     ]);
   }
 
-  export function setDayName(
-    dispatch: IDispatch,
-    editDayLensBuilder: LensBuilder<IState, IProgramDay>,
-    name: string
-  ): void {
-    updateState(dispatch, [editDayLensBuilder.p("name").record(name)]);
+  export function setDayName(dispatch: IDispatch, programIndex: number, dayIndex: number, name: string): void {
+    updateState(dispatch, [
+      lb<IState>().p("storage").p("programs").i(programIndex).p("days").i(dayIndex).p("name").record(name),
+    ]);
   }
 
   export function addSet(dispatch: IDispatch, variationIndex: number): void {
@@ -308,17 +306,25 @@ export namespace EditProgram {
 
   export function reorderExcercises(
     dispatch: IDispatch,
-    editDayLensBuilder: LensBuilder<IState, IProgramDay>,
+    programIndex: number,
+    dayIndex: number,
     startExcerciseIndex: number,
     endExceciseIndex: number
   ): void {
     updateState(dispatch, [
-      editDayLensBuilder.p("excercises").recordModify((excercises) => {
-        const newExcercises = [...excercises];
-        const [excercisesToMove] = newExcercises.splice(startExcerciseIndex, 1);
-        newExcercises.splice(endExceciseIndex, 0, excercisesToMove);
-        return newExcercises;
-      }),
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .i(programIndex)
+        .p("days")
+        .i(dayIndex)
+        .p("excercises")
+        .recordModify((excercises) => {
+          const newExcercises = [...excercises];
+          const [excercisesToMove] = newExcercises.splice(startExcerciseIndex, 1);
+          newExcercises.splice(endExceciseIndex, 0, excercisesToMove);
+          return newExcercises;
+        }),
     ]);
   }
 }

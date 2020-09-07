@@ -1,5 +1,5 @@
 import { Reducer } from "preact/hooks";
-import { Program, TProgram, IProgram, IProgramDay, TProgramDay, IProgramExcercise } from "../models/program";
+import { Program, TProgram, IProgram, IProgramDay, IProgramExcercise } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
 import { IExcerciseType } from "../models/excercise";
@@ -41,7 +41,6 @@ export interface IState {
     id: string;
     dayIndex?: number;
   };
-  editDay?: IProgramDay;
   editExcercise?: IProgramExcercise;
 }
 
@@ -90,14 +89,11 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
     const isProgressValid =
       storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
 
-    const isEditDayValid = storage.editDay != null ? validateStorage(storage.editDay, TProgramDay, "editDay") : false;
-
     const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["programs"];
 
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
-      editDay: isEditDayValid ? storage.editDay : undefined,
       programs: [],
       currentHistoryRecord: 0,
       screenStack,
@@ -284,12 +280,12 @@ export type IEditDayAction = {
   index: number;
 };
 
-export type ISaveProgressDay = {
-  type: "SaveProgressDay";
-};
-
 export type ISaveExcercise = {
   type: "SaveExcercise";
+};
+
+export type IApplyProgramChangesToProgress = {
+  type: "ApplyProgramChangesToProgress";
 };
 
 export type ICardsAction = IChangeRepsAction | IChangeWeightAction | IChangeAMRAPAction | IConfirmWeightAction;
@@ -316,8 +312,8 @@ export type IAction =
   | ICreateProgramAction
   | ICreateDayAction
   | IEditDayAction
-  | ISaveProgressDay
-  | ISaveExcercise;
+  | ISaveExcercise
+  | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
 
@@ -333,7 +329,6 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const localStorage: ILocalStorage = {
     storage: newState.storage,
     progress: newState.progress[0],
-    editDay: newState.editDay,
   };
   if (timerId != null) {
     window.clearTimeout(timerId);
@@ -404,7 +399,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         ...state,
         currentHistoryRecord: 0,
         screenStack: Screen.push(state.screenStack, "progress"),
-        editDay: program.days[newProgress.day - 1],
         progress: { ...state.progress, 0: newProgress },
       };
     } else {
@@ -446,7 +440,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         },
         screenStack: Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,
-        editDay: undefined,
         progress: Progress.stop(state.progress, progress.id),
       };
     }
@@ -579,17 +572,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       },
       screenStack: Screen.push(state.screenStack, "editProgramDay"),
     };
-  } else if (action.type === "SaveProgressDay") {
-    const progress = state.progress[0]!;
-    const program = Program.getProgram(state, progress.programId)!;
-    return {
-      ...state,
-      progress: {
-        ...state.progress,
-        0: Progress.applyProgramDay(progress, program, state.editDay!, state.storage.settings),
-      },
-      screenStack: Screen.pull(state.screenStack),
-    };
   } else if (action.type === "SaveExcercise") {
     const programIndex = Program.getEditingProgramIndex(state);
     return {
@@ -610,6 +592,17 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         }),
       screenStack: Screen.pull(state.screenStack),
     };
+  } else if (action.type === "ApplyProgramChangesToProgress") {
+    const progress = state.progress[0];
+    if (progress != null) {
+      const program = Program.getProgram(state, progress.programId)!;
+      const programDay = program.days[progress.day - 1];
+      const newProgress = Progress.applyProgramDay(progress, program, programDay, state.storage.settings);
+      return {
+        ...state,
+        progress: { ...state.progress, 0: newProgress },
+      };
+    }
   } else {
     return state;
   }

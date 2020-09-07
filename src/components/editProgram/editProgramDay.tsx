@@ -4,10 +4,7 @@ import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
 import { MenuItemEditable } from "../menuItemEditable";
-import { LensBuilder } from "../../utils/lens";
-import { IState } from "../../ducks/reducer";
 import { EditProgram } from "../../models/editProgram";
-import { Button } from "../button";
 import { DraggableList } from "../draggableList";
 import { ISettings } from "../../models/settings";
 import { GroupHeader } from "../groupHeader";
@@ -19,11 +16,11 @@ import { SemiButton } from "../semiButton";
 
 interface IProps {
   isProgress: boolean;
+  programIndex: number;
   dayIndex: number;
   settings: ISettings;
   editProgram: IProgram;
   editDay: IProgramDay;
-  editDayLensBuilder: LensBuilder<IState, IProgramDay>;
   dispatch: IDispatch;
 }
 
@@ -35,6 +32,7 @@ export interface IEditSet {
 export function EditProgramDay(props: IProps): JSX.Element {
   const program = props.editProgram;
   const day = props.editDay;
+  const { programIndex, dayIndex } = props;
 
   return (
     <section className="h-full">
@@ -51,7 +49,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
             value={day.name}
             onChange={(newValue) => {
               if (newValue != null) {
-                EditProgram.setDayName(props.dispatch, props.editDayLensBuilder, newValue);
+                EditProgram.setDayName(props.dispatch, programIndex, dayIndex, newValue);
               }
             }}
           />
@@ -86,7 +84,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
               );
             }}
             onDragEnd={(startIndex, endIndex) => {
-              EditProgram.reorderExcercises(props.dispatch, props.editDayLensBuilder, startIndex, endIndex);
+              EditProgram.reorderExcercises(props.dispatch, programIndex, dayIndex, startIndex, endIndex);
             }}
           />
           <div class="p-1">
@@ -115,14 +113,6 @@ export function EditProgramDay(props: IProps): JSX.Element {
             />
           ))}
         </section>
-
-        {props.isProgress && (
-          <div className="py-3 text-center">
-            <Button kind="green" onClick={() => props.dispatch({ type: "SaveProgressDay" })}>
-              Save
-            </Button>
-          </div>
-        )}
       </section>
 
       <FooterView dispatch={props.dispatch} />

@@ -34,6 +34,16 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.sync());
       }
     },
+    (action, oldState, newState) => {
+      const progress = newState.progress[0];
+      if (progress != null) {
+        const oldProgram = Program.getProgram(oldState, progress.programId);
+        const newProgram = Program.getProgram(newState, progress.programId);
+        if (oldProgram !== newProgram) {
+          dispatch({ type: "ApplyProgramChangesToProgress" });
+        }
+      }
+    },
   ]);
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
 
@@ -126,7 +136,6 @@ export function AppView(props: IProps): JSX.Element | null {
       return (
         <ScreenEditProgram
           settings={state.storage.settings}
-          editDay={state.editDay}
           editExcercise={state.editExcercise}
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}

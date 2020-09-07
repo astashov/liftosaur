@@ -10,13 +10,11 @@ export type IScreen =
   | "editProgram"
   | "editProgramExcercise"
   | "editProgramDay"
-  | "editProgressDay"
   | "editProgramDayScript";
 
 export namespace Screen {
   export const editProgramScreens: IScreen[] = [
     "editProgram",
-    "editProgressDay",
     "editProgramDay",
     "editProgramExcercise",
     "editProgramDayScript",

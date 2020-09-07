@@ -356,11 +356,12 @@ export namespace Progress {
     }
   }
 
-  export function editDayAction(dispatch: IDispatch): void {
+  export function editDayAction(dispatch: IDispatch, programId: string, dayIndex: number): void {
     updateState(dispatch, [
+      lb<IState>().p("editProgram").record({ id: programId, dayIndex: dayIndex }),
       lb<IState>()
         .p("screenStack")
-        .recordModify((s) => Screen.push(s, "editProgressDay")),
+        .recordModify((s) => Screen.push(s, "editProgramDay")),
     ]);
   }
 
