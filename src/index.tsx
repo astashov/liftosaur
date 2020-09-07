@@ -14,6 +14,15 @@ console.log(DateUtils.formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
 IDB.get("liftosaur").then(async (loadedData) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).loadedData = loadedData;
   const initialState = await getInitialState(client, loadedData as string | undefined);
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).storeData = (data: any) => {
+  IDB.set("liftosaur", typeof data === "string" ? data : JSON.stringify(data)).catch((e) => {
+    console.error(e);
+  });
+};

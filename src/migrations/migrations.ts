@@ -205,4 +205,9 @@ export const migrations = {
     }
     return storage;
   },
+  "20200907132922_remove_old_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.programs = [];
+    return storage;
+  },
 };
