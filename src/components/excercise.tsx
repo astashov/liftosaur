@@ -12,6 +12,7 @@ import { ISettings } from "../models/settings";
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
+  isCurrent?: boolean;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
@@ -110,6 +111,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
                   <ExcerciseSetView
                     settings={props.settings}
                     excercise={props.entry.excercise}
+                    isCurrent={!!props.isCurrent}
                     set={set}
                     onClick={(event) => {
                       event.preventDefault();
@@ -129,6 +131,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               excercise={props.entry.excercise}
               settings={props.settings}
               set={set}
+              isCurrent={!!props.isCurrent}
               onClick={(event) => {
                 event.preventDefault();
                 props.onChangeReps("workout");

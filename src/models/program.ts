@@ -148,7 +148,7 @@ export namespace Program {
       return {
         isAmrap: set.isAmrap,
         reps: repsValue,
-        weight: Weight.convertTo(weightValue, settings.units),
+        weight: Weight.roundConvertTo(weightValue, settings, excercise.bar),
       };
     });
     return {

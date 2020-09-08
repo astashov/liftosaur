@@ -32,7 +32,7 @@ export function Graph(props: IGraphProps): JSX.Element {
           }).find((s) => s.completedReps != null && s.completedReps > 0);
           if (maxSet != null) {
             memo[0].push(new Date(Date.parse(i.date)).getTime() / 1000);
-            memo[1].push(Weight.roundConvertTo(maxSet.weight, props.settings).value);
+            memo[1].push(Weight.convertTo(maxSet.weight, props.settings.units).value);
             memo[2].push(maxSet.completedReps!);
           }
         }

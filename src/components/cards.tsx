@@ -20,6 +20,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
       {props.progress.entries.map((entry) => {
         return (
           <ExcerciseView
+            isCurrent={Progress.isCurrent(props.progress)}
             settings={props.settings}
             entry={entry}
             dispatch={props.dispatch}

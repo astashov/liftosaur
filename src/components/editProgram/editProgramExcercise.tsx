@@ -542,7 +542,13 @@ function Playground(props: IPlaygroundProps): JSX.Element {
           props.onProgressChange(History.buildFromEntry(newEntry, newDay));
         }}
       />
-      <ExcerciseView entry={entry} settings={props.settings} dispatch={dispatch} onChangeReps={() => undefined} />
+      <ExcerciseView
+        entry={entry}
+        settings={props.settings}
+        dispatch={dispatch}
+        onChangeReps={() => undefined}
+        isCurrent={true}
+      />
       <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
       <ModalWeight
         isHidden={progress.ui?.weightModal == null}
