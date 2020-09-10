@@ -20,6 +20,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
+          data-cy="modal-weight-input"
           className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           value={Weight.is(props.weight) ? props.weight.value : props.weight}
           type="number"
@@ -30,6 +31,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
           <Button
             type="button"
             kind="gray"
+            data-cy="modal-weight-cancel"
             className="mr-3"
             onClick={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
           >
@@ -37,6 +39,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
           </Button>
           <Button
             kind="green"
+            data-cy="modal-weight-submit"
             type="submit"
             onClick={() => {
               const value = textInput.current?.value;

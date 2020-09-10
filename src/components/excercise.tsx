@@ -22,20 +22,29 @@ export function ExcerciseView(props: IProps): JSX.Element {
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
       return (
-        <section className="px-4 pt-4 pb-2 mb-2 bg-green-100 border border-green-300 rounded-lg">
+        <section
+          data-cy="excercise-completed"
+          className="px-4 pt-4 pb-2 mb-2 bg-green-100 border border-green-300 rounded-lg"
+        >
           <ExcerciseContentView {...props} />
         </section>
       );
     } else {
       return (
-        <section className="px-4 pt-4 pb-2 mb-2 bg-red-100 border border-red-300 rounded-lg">
+        <section
+          data-cy="excercise-finished"
+          className="px-4 pt-4 pb-2 mb-2 bg-red-100 border border-red-300 rounded-lg"
+        >
           <ExcerciseContentView {...props} />
         </section>
       );
     }
   } else {
     return (
-      <section className="px-4 pt-4 pb-2 mb-2 bg-gray-100 border border-gray-300 rounded-lg">
+      <section
+        data-cy="excercise-progress"
+        className="px-4 pt-4 pb-2 mb-2 bg-gray-100 border border-gray-300 rounded-lg"
+      >
         <ExcerciseContentView {...props} />
       </section>
     );
@@ -86,6 +95,7 @@ function ExcerciseContentView(props: IProps): JSX.Element {
               <div className={className}>
                 <WeightView weight={w} excercise={props.entry.excercise} settings={props.settings} />
                 <button
+                  data-cy="change-weight"
                   className="text-blue-500 underline cursor-pointer"
                   style={{ fontWeight: "inherit" }}
                   onClick={() =>
@@ -104,8 +114,12 @@ function ExcerciseContentView(props: IProps): JSX.Element {
           <Fragment>
             {warmupSets.map((set, i) => {
               return (
-                <div>
-                  <div className="text-xs text-gray-400" style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}>
+                <div data-cy="container-set">
+                  <div
+                    data-cy="warmup-set-title"
+                    className="text-xs text-gray-400"
+                    style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}
+                  >
                     Warmup
                   </div>
                   <ExcerciseSetView

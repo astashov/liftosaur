@@ -18,6 +18,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
+          data-cy="modal-amrap-input"
           data-name="modal-input-autofocus"
           className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="number"
@@ -26,6 +27,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
         />
         <div className="mt-4 text-right">
           <Button
+            data-cy="modal-amrap-clear"
             type="button"
             kind="gray"
             className="mr-3"
@@ -36,6 +38,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           <Button
             kind="green"
             type="submit"
+            data-cy="modal-amrap-submit"
             onClick={() => {
               const value = textInput.current?.value;
               const numValue = value != null ? parseInt(value, 10) : undefined;
