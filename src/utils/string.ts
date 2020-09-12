@@ -6,4 +6,8 @@ export namespace StringUtils {
   export function capitalize(string: string): string {
     return string[0].toUpperCase() + string.slice(1);
   }
+
+  export function dashcase(string: string): string {
+    return string.replace(/:/g, "").replace(/\s+/g, "-").toLowerCase();
+  }
 }

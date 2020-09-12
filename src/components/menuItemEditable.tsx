@@ -2,10 +2,12 @@ import { h, JSX, Fragment } from "preact";
 import { IconDelete } from "./iconDelete";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
+import { StringUtils } from "../utils/string";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean";
 
 interface IMenuItemEditableValueProps {
+  name: string;
   type: IMenuItemType;
   value: string | null;
   valueUnits?: string;
@@ -16,7 +18,6 @@ interface IMenuItemEditableValueProps {
 }
 
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
-  name: string;
   hasClear?: boolean;
   after?: JSX.Element;
 }
@@ -24,12 +25,18 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   const [patternError, setPatternError] = useState<boolean>(false);
   return (
-    <MenuItemWrapper>
+    <MenuItemWrapper name={props.name}>
       <label className="flex flex-col flex-1">
         <div className="flex flex-1">
-          <span className="flex items-center flex-1 py-2">{props.name}</span>
+          <span
+            data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
+            className="flex items-center flex-1 py-2"
+          >
+            {props.name}
+          </span>
           <Fragment>
             <MenuItemValue
+              name={props.name}
               type={props.type}
               value={props.value}
               pattern={props.pattern}
@@ -63,6 +70,7 @@ function MenuItemValue(
   if (props.type === "select") {
     return (
       <select
+        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         className="flex-1 pr-2 text-gray-700"
         style={{ textAlignLast: "right" }}
         value={props.value || undefined}
@@ -78,6 +86,7 @@ function MenuItemValue(
   } else if (props.type === "text") {
     return (
       <input
+        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
         className="flex-1 text-right text-gray-700"
@@ -92,6 +101,7 @@ function MenuItemValue(
       <div className="flex items-center flex-1 text-right">
         <label className="flex-1 text-right">
           <input
+            data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
             key={props.value}
             type="checkbox"
             className="text-right text-gray-700"
@@ -110,6 +120,7 @@ function MenuItemValue(
     return (
       <span className="flex flex-1 text-right">
         <input
+          data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
           key={props.value}
           onChange={handleChange(props.onChange, props.setPatternError)}
           type="number"

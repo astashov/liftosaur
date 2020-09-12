@@ -13,6 +13,7 @@ import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
+import { StringUtils } from "../../utils/string";
 
 interface IProps {
   editProgram: IProgram;
@@ -91,7 +92,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             />
           );
         })}
-        <MenuItemWrapper onClick={() => EditProgram.addProgramExcercise(props.dispatch)}>
+        <MenuItemWrapper name="add-excercise" onClick={() => EditProgram.addProgramExcercise(props.dispatch)}>
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Excercise +</div>
         </MenuItemWrapper>
         <GroupHeader name="Days" />
@@ -137,6 +138,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     </button>
                     {props.editProgram.days.length > 1 && (
                       <button
+                        data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
                         className="align-middle button"
                         onClick={() => {
                           props.dispatch({
@@ -162,6 +164,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           }}
         />
         <MenuItemWrapper
+          name="add-day"
           onClick={() => {
             props.dispatch({ type: "CreateDayAction" });
           }}

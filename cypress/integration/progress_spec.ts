@@ -92,5 +92,18 @@ describe("Progress", () => {
     cy.get("[data-cy=modal-amrap-submit]").click();
 
     cy.contains("Finish the workout").click();
+
+    // Checking the history record
+    cy.get("[data-cy=history-entry-excercise]:contains('Bent Over Row')").as("history-entry");
+    cy.get("@history-entry").find("[data-cy=history-entry-sets-incompleted]").should("have.text", "4/5/2");
+    cy.get("@history-entry").find("[data-cy=history-entry-weight]").should("have.text", "200");
+    cy.get("[data-cy=history-entry-excercise]:contains('Squat') [data-cy=history-entry-sets-completed]").should(
+      "have.text",
+      "3x5"
+    );
+    cy.get("[data-cy=history-entry-excercise]:contains('Squat') [data-cy=history-entry-weight]").should(
+      "have.text",
+      "45"
+    );
   });
 });

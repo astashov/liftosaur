@@ -17,5 +17,6 @@
  */
 module.exports = (on, config) => {
   // `on` is used to hook into various events Cypress emits
+  require("cypress-terminal-report/src/installLogsPrinter")(on);
   // `config` is the resolved Cypress config
 };

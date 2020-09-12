@@ -1,6 +1,7 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { IconArrowRight } from "./iconArrowRight";
 import { IconHandle } from "./iconHandle";
+import { StringUtils } from "../utils/string";
 
 interface IMenuItemProps {
   name: string;
@@ -11,11 +12,16 @@ interface IMenuItemProps {
 }
 
 export function MenuItemWrapper(props: {
+  name: string;
   children: ComponentChildren;
   onClick?: (e: MouseEvent) => void;
 }): JSX.Element {
   return (
-    <section className="w-full px-6 py-1 text-left border-b border-gray-200" onClick={props.onClick}>
+    <section
+      data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
+      className="w-full px-6 py-1 text-left border-b border-gray-200"
+      onClick={props.onClick}
+    >
       {props.children}
     </section>
   );
@@ -23,7 +29,7 @@ export function MenuItemWrapper(props: {
 
 export function MenuItem(props: IMenuItemProps): JSX.Element {
   return (
-    <MenuItemWrapper onClick={props.onClick}>
+    <MenuItemWrapper name={props.name} onClick={props.onClick}>
       <section className="flex items-center">
         {props.handleTouchStart && (
           <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>

@@ -7,6 +7,7 @@ import { IProgramState } from "../../models/program";
 import { IWeight } from "../../models/weight";
 
 interface IProps {
+  name: string;
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   value?: string;
@@ -40,7 +41,7 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
 
   return (
     <div>
-      <div className={className} ref={divRef}></div>
+      <div data-cy={`oneline-editor-${props.name}`} className={className} ref={divRef}></div>
       {props.result && <EvalResultInEditor result={props.result} />}
     </div>
   );

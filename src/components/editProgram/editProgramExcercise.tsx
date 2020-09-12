@@ -29,6 +29,7 @@ import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
 import { SemiButton } from "../semiButton";
+import { StringUtils } from "../../utils/string";
 
 interface IProps {
   settings: ISettings;
@@ -98,6 +99,9 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExcercise, day, props.settings);
+  console.log("Variation script: ", programExcercise.variationExpr);
+  console.log("Variation script result: ", variationScriptResult);
+  console.log("Progress entries: ", progress?.entries);
 
   const excerciseOptions = ObjectUtils.keys(excercises).map<[string, string]>((e) => [
     excercises[e].id,
@@ -402,6 +406,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
             Reps
           </label>
           <OneLineTextEditor
+            name="reps"
             state={state}
             value={set.repsExpr}
             result={repsResult}
@@ -430,6 +435,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           Weight
         </label>
         <OneLineTextEditor
+          name="weight"
           state={state}
           value={set.weightExpr}
           result={weightResult}
@@ -455,6 +461,7 @@ function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
     <Fragment>
       <GroupHeader name="Variation Selection Script" />
       <MultiLineTextEditor
+        name="variation"
         state={programExcercise.state}
         result={props.editorResult}
         value={programExcercise.variationExpr}
@@ -586,17 +593,17 @@ function StateChanges(props: IStateChangesProps): JSX.Element {
       return memo;
     }, {});
     return (
-      <ul className="px-6 py-4 text-sm">
+      <ul data-cy="state-changes" className="px-6 py-4 text-sm">
         {ObjectUtils.keys(diffState).map((key) => (
-          <li>
-            {key}: <strong>{diffState[key]}</strong>
+          <li data-cy={`state-changes-key-${StringUtils.dashcase(key)}`}>
+            {key}: <strong data-cy={`state-changes-value-${StringUtils.dashcase(key)}`}>{diffState[key]}</strong>
           </li>
         ))}
       </ul>
     );
   } else {
     return (
-      <ul className="px-6 py-4 text-sm">
+      <ul data-cy="state-changes" className="px-6 py-4 text-sm">
         <li></li>
       </ul>
     );
@@ -616,6 +623,7 @@ function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element 
     <Fragment>
       <GroupHeader name="Finish Day Script" />
       <MultiLineTextEditor
+        name="finish-day"
         state={programExcercise.state}
         result={props.editorResult}
         value={programExcercise.finishDayExpr}

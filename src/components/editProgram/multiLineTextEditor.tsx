@@ -6,6 +6,7 @@ import { EvalResultInEditor } from "../evalResultInEditor";
 import { IProgramState } from "../../models/program";
 
 interface IProps {
+  name: string;
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   result?: IEither<number | undefined, string>;
@@ -47,7 +48,7 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
   return (
     <div style={{ fontFamily: "Iosevka Web" }}>
       {props.result && <EvalResultInEditor result={props.result} />}
-      <div className={className} ref={divRef}></div>
+      <div data-cy={`multiline-editor-${props.name}`} className={className} ref={divRef}></div>
     </div>
   );
 }

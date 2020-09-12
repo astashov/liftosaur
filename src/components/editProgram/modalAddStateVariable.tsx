@@ -19,6 +19,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           Variable Name
         </label>
         <input
+          data-cy="modal-add-state-variable-input-name"
           id="add_state_variable"
           ref={textInput}
           className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
@@ -30,7 +31,12 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           <label for="add_state_variable_type" className="text-sm font-bold">
             Variable Type:
           </label>
-          <select ref={typeInput} id="add_state_variable_type" className="flex-1 ml-4 text-gray-700">
+          <select
+            data-cy="modal-add-state-variable-input-type"
+            ref={typeInput}
+            id="add_state_variable_type"
+            className="flex-1 ml-4 text-gray-700"
+          >
             {[
               ["", "number"],
               ["kg", "kg"],
@@ -41,10 +47,17 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           </select>
         </div>
         <div className="mt-4 text-right">
-          <Button type="button" kind="gray" className="mr-3" onClick={() => props.onDone()}>
+          <Button
+            data-cy="modal-add-state-variable-cancel"
+            type="button"
+            kind="gray"
+            className="mr-3"
+            onClick={() => props.onDone()}
+          >
             Cancel
           </Button>
           <Button
+            data-cy="modal-add-state-variable-submit"
             kind="green"
             type="submit"
             onClick={() => props.onDone(textInput.current!.value, typeInput.current!.value)}

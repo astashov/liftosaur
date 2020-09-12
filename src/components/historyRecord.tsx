@@ -22,6 +22,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
     <div
+      data-cy="history-record"
       className="py-3 mx-3 text-xs border-b border-gray-200"
       onClick={() =>
         editHistoryRecord(
@@ -32,19 +33,19 @@ export function HistoryRecordView(props: IProps): JSX.Element {
       }
     >
       <div className="flex">
-        <div className="flex-1 font-bold">
+        <div className="flex-1 font-bold" data-cy="history-record-date">
           {Progress.isCurrent(historyRecord)
             ? Progress.isFullyEmptySet(historyRecord)
               ? "Next"
               : "Ongoing"
             : DateUtils.format(historyRecord.date)}
         </div>
-        <div className="text-gray-600">
+        <div className="text-gray-600" data-cy="history-record-program">
           {historyRecord.programName}, {historyRecord.dayName}
         </div>
       </div>
       {entries.map((group) => (
-        <div className="flex flex-row">
+        <div className="flex flex-row" data-cy="history-entry">
           {group.map((entry, i) => {
             let className: string;
             if (group.length === 1 || i !== group.length - 1) {
@@ -55,15 +56,17 @@ export function HistoryRecordView(props: IProps): JSX.Element {
             if (entry != null) {
               const excercise = Excercise.get(entry.excercise);
               return (
-                <div className={className}>
-                  <div style={{ flex: 2 }}>{excercise.name}</div>
+                <div data-cy="history-entry-excercise" className={className}>
+                  <div data-cy="history-entry-excercise-name" style={{ flex: 2 }}>
+                    {excercise.name}
+                  </div>
                   <div className="flex-1 text-right">
                     <HistoryRecordSetsView
                       sets={entry.sets}
                       isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
                     />
                   </div>
-                  <div className="w-8 ml-1 font-bold text-right">
+                  <div data-cy="history-entry-weight" className="w-8 ml-1 font-bold text-right">
                     {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
                   </div>
                 </div>
@@ -87,12 +90,24 @@ export function HistoryRecordView(props: IProps): JSX.Element {
 function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.Element {
   const { sets, isNext } = props;
   if (isNext) {
-    return <span className="text-gray-600">{Reps.display(sets, isNext)}</span>;
+    return (
+      <span data-cy="history-entry-sets-next" className="text-gray-600">
+        {Reps.display(sets, isNext)}
+      </span>
+    );
   } else {
     if (Reps.isCompleted(sets)) {
-      return <span className="text-green-600">{Reps.display(sets)}</span>;
+      return (
+        <span data-cy="history-entry-sets-completed" className="text-green-600">
+          {Reps.display(sets)}
+        </span>
+      );
     } else {
-      return <span className="text-red-600">{Reps.display(sets)}</span>;
+      return (
+        <span data-cy="history-entry-sets-incompleted" className="text-red-600">
+          {Reps.display(sets)}
+        </span>
+      );
     }
   }
 }
