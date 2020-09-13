@@ -28,3 +28,6 @@
 
 * Bug:
 Assign lb to state var of type number
+
+* Bug:
+Fix scroll position when going from screen to screen

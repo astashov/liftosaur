@@ -401,7 +401,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
             <IconDelete />
           </button>
         )}
-        <div className="flex-1 pr-4">
+        <div className="flex-1 pr-4 overflow-x-auto">
           <label for="variation-0-reps" className="font-bold">
             Reps
           </label>

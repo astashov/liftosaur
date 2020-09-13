@@ -29,7 +29,7 @@ export class CodeEditor {
 
   public attach(container: HTMLElement): void {
     CodeMirror.defineMode<IState>("liftosaur", (config, modeOptions) => {
-      const keywords = [...Object.keys(this.state), "day", "completedReps", "reps", "weight", "cr", "r", "w"];
+      const keywords = [...Object.keys(this.state), "day", "completedReps", "reps", "weights", "cr", "r", "w"];
       const stateKeywords = ["state"];
 
       return {
