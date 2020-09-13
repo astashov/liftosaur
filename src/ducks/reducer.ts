@@ -512,8 +512,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const storage: IStorage = {
         id: newStorage.id,
         settings: {
-          plates: CollectionUtils.concatBy(oldStorage.settings.plates, newStorage.settings.plates, (el) =>
-            el.weight.toString()
+          plates: CollectionUtils.concatBy(
+            oldStorage.settings.plates,
+            newStorage.settings.plates,
+            (el) => `${el.weight.value}${el.weight.unit}`
           ),
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,

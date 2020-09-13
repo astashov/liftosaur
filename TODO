@@ -17,11 +17,11 @@
 * Add changing program day when editing progress day
 * Versionize published programs
 * Lazy load Codemirror
-* Add Cypress e2e tests
 * Fix backups
 * Add comments support to parser
 * Think of a better way to pass pieces of state into lens play
 * Refactor MenuItem, to better incorporate existing use cases
+* Split editProgramExcercise into multiple files
 
 * Bug:
 This is valid code:
