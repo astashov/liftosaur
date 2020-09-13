@@ -3,12 +3,17 @@ import { Weight } from "./models/weight";
 import { Progress, IScriptBindings } from "./models/progress";
 
 const program = `
-  if (completedReps >= reps) {
-    if (completedReps[1] >= reps[1]) {
-      weights + 5lb
-    }
-  } else {
+  if (2 < 3) {
+    1
+  } else if (2 > 5) {
     2
+  }
+  if (5 > 2) {
+    if (6 > 8) {
+      10
+    } else {
+      20
+    }
   }
 `;
 

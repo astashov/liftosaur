@@ -53,7 +53,7 @@ function tokenize(text: string): IToken[] {
         tokens.push({ type: "if", value: "if", pos });
       } else if ((match = /^(else)\W/.exec(line))) {
         tokens.push({ type: "if", value: "else", pos });
-      } else if ((match = /^([a-zA-Z][a-zA-Z0-9\.\[\]]+)/.exec(line))) {
+      } else if ((match = /^([a-zA-Z][a-zA-Z0-9\.\[\]]*)/.exec(line))) {
         tokens.push({ type: "keyword", value: match[0] as ITokenKeyword["value"], pos });
       } else {
         throw SyntaxError(`Unexpected token at line ${pos.line}:${pos.offset}, ${line}`);
@@ -70,17 +70,35 @@ function tokenize(text: string): IToken[] {
 
 const allRules = {
   if: (parser: Parser): IExpr => {
-    parser.get({ type: "if", value: "if" });
-    const condition = parser.match("andOr");
-    parser.get({ type: "paren", value: "{" });
-    const then = parser.match("block");
-    let or;
-    const elseKeyword = parser.maybeGet({ type: "if", value: "else" });
-    if (elseKeyword != null) {
+    function getCondition(): IIfCondition {
+      const condition = parser.match("andOr");
       parser.get({ type: "paren", value: "{" });
-      or = parser.match("block");
+      const then = parser.match("block");
+      return { if: condition, then };
     }
-    return { type: "if", condition, then, or };
+
+    const conditions: IIfCondition[] = [];
+    parser.get({ type: "if", value: "if" });
+    conditions.push(getCondition());
+    let elseKeyword = parser.maybeGet({ type: "if", value: "else" });
+    let or;
+    if (elseKeyword != null) {
+      let anotherIf = parser.maybeGet({ type: "if", value: "if" });
+      while (anotherIf != null) {
+        conditions.push(getCondition());
+        elseKeyword = parser.maybeGet({ type: "if", value: "else" });
+        if (elseKeyword != null) {
+          anotherIf = parser.maybeGet({ type: "if", value: "if" });
+        } else {
+          break;
+        }
+      }
+      if (elseKeyword != null) {
+        parser.get({ type: "paren", value: "{" });
+        or = parser.match("block");
+      }
+    }
+    return { type: "if", conditions, or };
   },
   block: (parser: Parser): IExpr => {
     const exprs: IExpr[] = [];
@@ -202,12 +220,13 @@ const allRules = {
 } as const;
 type IRules = typeof allRules;
 
+type IIfCondition = { if: IExpr; then: IExpr };
 type IExprNumber = { type: "number"; sign: "+" | "-"; value: number | IWeight };
 type IExprBlock = { type: "block"; exprs: IExpr[] };
 type IExprKeyword = { type: "keyword"; value: string };
 type IExprExpression = { type: "expression"; operator: ITokenOperator; left: IExpr; right: IExpr };
 type IExprCond = { type: "cond"; condition: IExpr; then: IExpr; or: IExpr };
-type IExprIf = { type: "if"; condition: IExpr; then: IExpr; or?: IExpr };
+type IExprIf = { type: "if"; conditions: IIfCondition[]; or?: IExpr };
 type IExprAssign = { type: "assign"; variable: string; value: IExpr };
 type IExprFn = { type: "fn"; name: string; args: IExpr[] };
 
@@ -392,9 +411,13 @@ class Evaluator {
     } else if (expr.type === "cond") {
       return this.evaluate(expr.condition) ? this.evaluate(expr.then) : this.evaluate(expr.or);
     } else if (expr.type === "if") {
-      if (this.evaluate(expr.condition)) {
-        return this.evaluate(expr.then);
-      } else if (expr.or != null) {
+      for (let i = 0; i < expr.conditions.length; i += 1) {
+        const condition = expr.conditions[i];
+        if (this.evaluate(condition.if)) {
+          return this.evaluate(condition.then);
+        }
+      }
+      if (expr.or != null) {
         return this.evaluate(expr.or);
       } else {
         return false;
