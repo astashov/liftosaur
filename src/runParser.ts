@@ -1,33 +1,15 @@
 import { ScriptRunner } from "./parser";
-import { Progress, IScriptBindings } from "./models/progress";
 import { Weight } from "./models/weight";
+import { Progress, IScriptBindings } from "./models/progress";
 
 const program = `
-if (day == 9) {
-  state.squatTM = state.squatTM + 10
-  state.benchPressTM = state.benchPressTM + 5
-  state.deadliftTM = state.deadliftTM + 10
-  state.overheadPressTM = state.overheadPressTM + 5
-  if (state.cycle == 3) {
-    state.nextDay = 10
-    state.cycle = 1
+  if (completedReps >= reps) {
+    if (completedReps[1] >= reps[1]) {
+      weights + 5lb
+    }
   } else {
-    state.nextDay = 1
-    state.cycle = state.cycle + 1
+    2
   }
-}
-if (day == 10 && cr[1][4] < r[1][4]) {
-  state.squatTM = calculateTrainingMax(w[1][4], cr[1][4])
-}
-if (day == 11 && cr[1][4] < r[1][4]) {
-  state.overheadPressTM = calculateTrainingMax(w[1][4], cr[1][4])
-}
-if (day == 12 && cr[1][4] < r[1][4]) {
-  state.deadliftTM = calculateTrainingMax(w[1][4], cr[1][4])
-}
-if (day == 13 && cr[1][4] < r[1][4]) {
-  state.benchPressTM = calculateTrainingMax(w[1][4], cr[1][4])
-}
 `;
 
 const bindings: IScriptBindings = {
@@ -82,44 +64,7 @@ const fns = Progress.createScriptFunctions({
   units: "lb",
 });
 
-const state = {
-  dbBenchPressWeight: 40,
-  dbBenchPressFailures: 0,
-  dbBenchPressLastReps: 0,
-  dbInclineFlyWeight: 30,
-  dbInclineFlyFailures: 0,
-  dbInclineFlyLastReps: 0,
-  dbArnoldPressWeight: 50,
-  dbArnoldPressFailures: 0,
-  dbArnoldPressLastReps: 0,
-  dbTricepsExtensionWeight: 50,
-  dbTricepsExtensionFailures: 0,
-  dbTricepsExtensionLastReps: 0,
-  dbRowWeight: 50,
-  dbRowFailures: 0,
-  dbRowLastReps: 0,
-  dbLateralRaiseWeight: 20,
-  dbLateralRaiseFailures: 0,
-  dbLateralRaiseLastReps: 0,
-  dbShrugWeight: 50,
-  dbShrugFailures: 0,
-  dbShrugLastReps: 0,
-  dbBicepCurlWeight: 20,
-  dbBicepCurlFailures: 0,
-  dbBicepCurlLastReps: 0,
-  dbGobletSquatWeight: 40,
-  dbGobletSquatFailures: 0,
-  dbGobletSquatLastReps: 0,
-  dbLungeWeight: 20,
-  dbLungeFailures: 0,
-  dbLungeLastReps: 0,
-  dbSingleLegDeadliftWeight: 30,
-  dbSingleLegDeadliftFailures: 0,
-  dbSingleLegDeadliftLastReps: 0,
-  dbCalfRaiseWeight: 50,
-  dbCalfRaiseFailures: 0,
-  dbCalfRaiseLastReps: 0,
-};
+const state = {};
 
 const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb");
 console.log(scriptRunner.execute());

@@ -2,15 +2,12 @@ import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
 import { Reps } from "./set";
 import { IWeight, Weight, TWeight } from "./weight";
 import { Screen } from "./screen";
-import { IHistoryRecord, IHistoryEntry } from "./history";
 import { DateUtils } from "../utils/date";
 import { lf, lb } from "../utils/lens";
-import { IState, updateState } from "../ducks/reducer";
 import { ObjectUtils } from "../utils/object";
 import * as t from "io-ts";
 import { ISettings } from "./settings";
 import { IDispatch } from "../ducks/types";
-import { IProgramDay, IProgram, Program, IProgramState } from "./program";
 import { ScriptRunner } from "../parser";
 
 export const TProgressUi = t.partial(
@@ -42,6 +39,10 @@ export const TProgressMode = t.keyof(
 );
 
 export type IProgressMode = t.TypeOf<typeof TProgressMode>;
+
+import { IHistoryRecord, IHistoryEntry } from "./history";
+import { IState, updateState } from "../ducks/reducer";
+import { IProgramDay, IProgram, Program, IProgramState } from "./program";
 
 export interface IScriptBindings {
   day: number;

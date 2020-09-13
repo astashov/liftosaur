@@ -298,6 +298,39 @@ class Parser {
   }
 }
 
+function comparing(
+  left: number | IWeight | (number | IWeight)[],
+  right: number | IWeight | (number | IWeight)[],
+  operator: ">" | "<" | ">=" | "<=" | "=="
+): boolean {
+  function comparator(l: number | IWeight, r: number | IWeight): boolean {
+    switch (operator) {
+      case ">":
+        return Weight.gt(l, r);
+      case "<":
+        return Weight.lt(l, r);
+      case ">=":
+        return Weight.gte(l, r);
+      case "<=":
+        return Weight.lte(l, r);
+      case "==":
+        return Weight.eq(l, r);
+    }
+  }
+
+  if (Array.isArray(left) && Array.isArray(right)) {
+    return left.every((l, i) => comparator(l, right[i]));
+  } else if (Array.isArray(left) && !Array.isArray(right)) {
+    return left.every((l, i) => comparator(l, right));
+  } else if (!Array.isArray(left) && Array.isArray(right)) {
+    return right.every((r, i) => comparator(left, r));
+  } else if (!Array.isArray(left) && !Array.isArray(right)) {
+    return comparator(left, right);
+  } else {
+    throw new Error("Impossible case");
+  }
+}
+
 class Evaluator {
   private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
@@ -323,26 +356,31 @@ class Evaluator {
           throw new SyntaxError(`Unknown operator ${operator.value} between ${evalLeft} and ${evalRight}`);
         }
       } else {
-        if (operator.value === "+") {
-          return this.add(evalLeft, evalRight);
-        } else if (operator.value === "-") {
-          return this.subtract(evalLeft, evalRight);
-        } else if (operator.value === "*") {
-          return this.multiply(evalLeft, evalRight);
-        } else if (operator.value === "/") {
-          return this.divide(evalLeft, evalRight);
-        } else if (operator.value === ">") {
-          return Weight.gt(evalLeft, evalRight);
+        if (operator.value === ">") {
+          return comparing(evalLeft, evalRight, operator.value);
         } else if (operator.value === "<") {
-          return Weight.lt(evalLeft, evalRight);
+          return comparing(evalLeft, evalRight, operator.value);
         } else if (operator.value === ">=") {
-          return Weight.gte(evalLeft, evalRight);
+          return comparing(evalLeft, evalRight, operator.value);
         } else if (operator.value === "<=") {
-          return Weight.lte(evalLeft, evalRight);
+          return comparing(evalLeft, evalRight, operator.value);
         } else if (operator.value === "==") {
-          return Weight.eq(evalLeft, evalRight);
+          return comparing(evalLeft, evalRight, operator.value);
         } else {
-          throw new SyntaxError(`Unknown operator ${operator.value} between ${evalLeft} and ${evalRight}`);
+          if (Array.isArray(evalLeft) || Array.isArray(evalRight)) {
+            throw new SyntaxError(`You cannot apply ${operator.value} to arrays`);
+          }
+          if (operator.value === "+") {
+            return this.add(evalLeft, evalRight);
+          } else if (operator.value === "-") {
+            return this.subtract(evalLeft, evalRight);
+          } else if (operator.value === "*") {
+            return this.multiply(evalLeft, evalRight);
+          } else if (operator.value === "/") {
+            return this.divide(evalLeft, evalRight);
+          } else {
+            throw new SyntaxError(`Unknown operator ${operator.value} between ${evalLeft} and ${evalRight}`);
+          }
         }
       }
     } else if (expr.type === "number") {

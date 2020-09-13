@@ -13,6 +13,8 @@
 * Add deleting account
 * Add achievements
 * Add cookie banner
+* Better excercise selector (with autocomplete)
+* Add admin for managing published programs
 * Add ability to publish user programs
 * Add changing program day when editing progress day
 * Versionize published programs
@@ -22,17 +24,7 @@
 * Think of a better way to pass pieces of state into lens play
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExcercise into multiple files
-
-* Bug:
-This is valid code:
-```
-if (completedReps[1][1] >= reps[1][1]) {
-  state.benchPressWeight = weights + 5lb
-}
-```
-
-* Bug:
-If you use unexisting state var in code, and then add it, it won't recognize it.
+* Add showing what muscle groups are working for program/day/excercise
 
 * Bug:
 Assign lb to state var of type number
