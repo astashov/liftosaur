@@ -1,5 +1,5 @@
 import { IHistoryRecord, IHistoryEntry } from "./history";
-import { Excercise, TExcerciseType, IExcerciseType } from "./excercise";
+import { Exercise, TExerciseType, IExerciseType } from "./exercise";
 import * as t from "io-ts";
 import { ISet, TProgramSet, IProgramSet } from "./set";
 import { ScriptRunner } from "../parser";
@@ -15,7 +15,7 @@ import { UidFactory } from "../utils/generator";
 
 export const TProgramDayEntry = t.type(
   {
-    excercise: TExcerciseType,
+    exercise: TExerciseType,
     sets: t.array(TProgramSet),
   },
   "TProgramDayEntry"
@@ -25,7 +25,7 @@ export type IProgramDayEntry = t.TypeOf<typeof TProgramDayEntry>;
 export const TProgramDay = t.type(
   {
     name: t.string,
-    excercises: t.array(
+    exercises: t.array(
       t.type({
         id: t.string,
       })
@@ -57,31 +57,31 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = t.TypeOf<typeof TProgramTag>;
 
-export const TProgramExcerciseVariation = t.type(
+export const TProgramExerciseVariation = t.type(
   {
     sets: t.array(TProgramSet),
   },
-  "TProgramExcerciseVariation"
+  "TProgramExerciseVariation"
 );
-export type IProgramExcerciseVariation = t.TypeOf<typeof TProgramExcerciseVariation>;
+export type IProgramExerciseVariation = t.TypeOf<typeof TProgramExerciseVariation>;
 
-export const TProgramExcercise = t.type(
+export const TProgramExercise = t.type(
   {
-    excerciseType: TExcerciseType,
+    exerciseType: TExerciseType,
     id: t.string,
     name: t.string,
-    variations: t.array(TProgramExcerciseVariation),
+    variations: t.array(TProgramExerciseVariation),
     state: TProgramState,
     variationExpr: t.string,
     finishDayExpr: t.string,
   },
-  "TProgramExcercise"
+  "TProgramExercise"
 );
-export type IProgramExcercise = t.TypeOf<typeof TProgramExcercise>;
+export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
 export const TProgram = t.type(
   {
-    excercises: t.array(TProgramExcercise),
+    exercises: t.array(TProgramExercise),
     id: t.string,
     name: t.string,
     description: t.string,
@@ -119,12 +119,12 @@ export namespace Program {
   export function createDay(name: string): IProgramDay {
     return {
       name,
-      excercises: [],
+      exercises: [],
     };
   }
 
   export function nextHistoryEntry(
-    excercise: IExcerciseType,
+    exercise: IExerciseType,
     day: number,
     programSets: IProgramSet[],
     state: IProgramState,
@@ -148,13 +148,13 @@ export namespace Program {
       return {
         isAmrap: set.isAmrap,
         reps: repsValue,
-        weight: Weight.roundConvertTo(weightValue, settings, excercise.bar),
+        weight: Weight.roundConvertTo(weightValue, settings, exercise.bar),
       };
     });
     return {
-      excercise: excercise,
+      exercise: exercise,
       sets,
-      warmupSets: sets[0]?.weight != null ? Excercise.getWarmupSets(excercise, sets[0].weight, settings) : [],
+      warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings) : [],
     };
   }
 
@@ -169,24 +169,24 @@ export namespace Program {
       day,
       dayName: programDay.name,
       startTime: Date.now(),
-      entries: programDay.excercises.map(({ id }) => {
-        const programExcercise = program.excercises.find((e) => id === e.id)!;
-        const variationIndex = nextVariationIndex(programExcercise, day, settings);
-        const sets = programExcercise.variations[variationIndex].sets;
-        return nextHistoryEntry(programExcercise.excerciseType, day, sets, programExcercise.state, settings);
+      entries: programDay.exercises.map(({ id }) => {
+        const programExercise = program.exercises.find((e) => id === e.id)!;
+        const variationIndex = nextVariationIndex(programExercise, day, settings);
+        const sets = programExercise.variations[variationIndex].sets;
+        return nextHistoryEntry(programExercise.exerciseType, day, sets, programExercise.state, settings);
       }),
     };
   }
 
-  export function nextVariationIndex(programExcercise: IProgramExcercise, day: number, settings: ISettings): number {
-    const variationIndexResult = runVariationScript(programExcercise, day, settings);
+  export function nextVariationIndex(programExercise: IProgramExercise, day: number, settings: ISettings): number {
+    const variationIndexResult = runVariationScript(programExercise, day, settings);
     if (!variationIndexResult.success) {
       throw new Error(variationIndexResult.error);
     }
-    return Math.max(0, Math.min(variationIndexResult.data - 1, programExcercise.variations.length - 1));
+    return Math.max(0, Math.min(variationIndexResult.data - 1, programExercise.variations.length - 1));
   }
 
-  export function parseExcerciseFinishDayScript(
+  export function parseExerciseFinishDayScript(
     day: number,
     settings: ISettings,
     state: IProgramState,
@@ -211,7 +211,7 @@ export namespace Program {
     }
   }
 
-  export function runExcerciseFinishDayScript(
+  export function runExerciseFinishDayScript(
     entry: IHistoryEntry,
     day: number,
     settings: ISettings,
@@ -236,16 +236,16 @@ export namespace Program {
   }
 
   export function runVariationScript(
-    programExcercise: IProgramExcercise,
+    programExercise: IProgramExercise,
     day: number,
     settings: ISettings
   ): IEither<number, string> {
-    const script = programExcercise.variationExpr;
+    const script = programExercise.variationExpr;
     try {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
           script,
-          programExcercise.state,
+          programExercise.state,
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
           settings.units
@@ -264,17 +264,17 @@ export namespace Program {
   }
 
   export function runFinishDayScript(
-    programExcercise: IProgramExcercise,
+    programExercise: IProgramExercise,
     day: number,
     entry: IHistoryEntry,
     settings: ISettings
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
-    const newState: IProgramState = { ...programExcercise.state };
+    const newState: IProgramState = { ...programExercise.state };
 
     try {
-      new ScriptRunner(programExcercise.finishDayExpr, newState, bindings, fns, settings.units).execute();
+      new ScriptRunner(programExercise.finishDayExpr, newState, bindings, fns, settings.units).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -289,17 +289,17 @@ export namespace Program {
   export function runAllFinishDayScripts(program: IProgram, progress: IHistoryRecord, settings: ISettings): IProgram {
     const programDay = program.days[progress.day - 1];
     const newProgram = lf(program)
-      .p("excercises")
+      .p("exercises")
       .modify((es) =>
         es.map((e) => {
-          const excIndex = programDay.excercises.findIndex((exc) => exc.id === e.id);
+          const excIndex = programDay.exercises.findIndex((exc) => exc.id === e.id);
           if (excIndex !== -1) {
             const newStateResult = Program.runFinishDayScript(e, progress.day, progress.entries[excIndex], settings);
             if (newStateResult.success) {
               return lf(e).p("state").set(newStateResult.data);
             } else {
               alert(
-                `There's an error while executing Finish Day Script of '${e.name}' excercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that excercise. Please fix the program's Finish Day Script.`
+                `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
               );
             }
           }
@@ -309,7 +309,7 @@ export namespace Program {
     return lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day));
   }
 
-  export function createVariation(): IProgramExcerciseVariation {
+  export function createVariation(): IProgramExerciseVariation {
     return {
       sets: [
         {
@@ -321,12 +321,12 @@ export namespace Program {
     };
   }
 
-  export function createExcercise(): IProgramExcercise {
+  export function createExercise(): IProgramExercise {
     return {
       name: "Squat",
       id: UidFactory.generateUid(8),
       variations: [createVariation()],
-      excerciseType: {
+      exerciseType: {
         id: "squat",
         bar: "barbell",
       },

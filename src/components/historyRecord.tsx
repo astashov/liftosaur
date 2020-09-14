@@ -4,7 +4,7 @@ import { CollectionUtils } from "../utils/collection";
 import { Reps, ISet } from "../models/set";
 import { IHistoryRecord } from "../models/history";
 import { DateUtils } from "../utils/date";
-import { Excercise } from "../models/excercise";
+import { Exercise } from "../models/exercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ISettings } from "../models/settings";
@@ -54,11 +54,11 @@ export function HistoryRecordView(props: IProps): JSX.Element {
               className = "flex flex-row flex-1";
             }
             if (entry != null) {
-              const excercise = Excercise.get(entry.excercise);
+              const exercise = Exercise.get(entry.exercise);
               return (
-                <div data-cy="history-entry-excercise" className={className}>
-                  <div data-cy="history-entry-excercise-name" style={{ flex: 2 }}>
-                    {excercise.name}
+                <div data-cy="history-entry-exercise" className={className}>
+                  <div data-cy="history-entry-exercise-name" style={{ flex: 2 }}>
+                    {exercise.name}
                   </div>
                   <div className="flex-1 text-right">
                     <HistoryRecordSetsView

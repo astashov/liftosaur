@@ -1,9 +1,9 @@
 import { lb, lf } from "../utils/lens";
 import { IState, updateState } from "../ducks/reducer";
-import { Program, IProgramExcercise, IProgram } from "./program";
+import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExcerciseId, Excercise } from "./excercise";
+import { IExerciseId, Exercise } from "./exercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 
@@ -12,7 +12,7 @@ export namespace EditProgram {
     if (newName != null && newType != null) {
       updateState(dispatch, [
         lb<IState>()
-          .pi("editExcercise")
+          .pi("editExercise")
           .p("state")
           .recordModify((state) => {
             const newState = { ...state };
@@ -32,7 +32,7 @@ export namespace EditProgram {
   export function editStateVariable(dispatch: IDispatch, stateKey: string, newValue?: string): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("state")
         .recordModify((state) => {
           const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
@@ -48,34 +48,34 @@ export namespace EditProgram {
     ]);
   }
 
-  export function changeExcerciseName(dispatch: IDispatch, newName?: string): void {
+  export function changeExerciseName(dispatch: IDispatch, newName?: string): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("name")
         .record(newName || ""),
     ]);
   }
 
-  export function changeExcerciseId(dispatch: IDispatch, newId?: IExcerciseId): void {
+  export function changeExerciseId(dispatch: IDispatch, newId?: IExerciseId): void {
     if (newId != null) {
-      const excercise = Excercise.get({ id: newId, bar: "barbell" });
+      const exercise = Exercise.get({ id: newId, bar: "barbell" });
       updateState(dispatch, [
-        lb<IState>().pi("editExcercise").p("excerciseType").p("id").record(excercise.id),
-        lb<IState>().pi("editExcercise").p("excerciseType").p("bar").record(excercise.defaultBar),
-        lb<IState>().pi("editExcercise").p("name").record(excercise.name),
+        lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
+        lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(exercise.defaultBar),
+        lb<IState>().pi("editExercise").p("name").record(exercise.name),
       ]);
     }
   }
 
-  export function changeExcerciseBar(dispatch: IDispatch, newBar?: IBarKey): void {
-    updateState(dispatch, [lb<IState>().pi("editExcercise").p("excerciseType").p("bar").record(newBar)]);
+  export function changeExerciseBar(dispatch: IDispatch, newBar?: IBarKey): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(newBar)]);
   }
 
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -88,7 +88,7 @@ export namespace EditProgram {
   export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -101,7 +101,7 @@ export namespace EditProgram {
   export function setAmrap(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -111,18 +111,18 @@ export namespace EditProgram {
     ]);
   }
 
-  export function setExcerciseFinishDayExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [lb<IState>().pi("editExcercise").p("finishDayExpr").record(value)]);
+  export function setExerciseFinishDayExpr(dispatch: IDispatch, value: string): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("finishDayExpr").record(value)]);
   }
 
-  export function setExcerciseVariationExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [lb<IState>().pi("editExcercise").p("variationExpr").record(value)]);
+  export function setExerciseVariationExpr(dispatch: IDispatch, value: string): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("variationExpr").record(value)]);
   }
 
   export function addVariation(dispatch: IDispatch): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .recordModify((v) => {
           return [...v, Program.createVariation()];
@@ -133,7 +133,7 @@ export namespace EditProgram {
   export function removeVariation(dispatch: IDispatch, variationIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .recordModify((v) => v.filter((_, i) => i !== variationIndex)),
     ]);
@@ -171,7 +171,7 @@ export namespace EditProgram {
   ): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -193,7 +193,7 @@ export namespace EditProgram {
   export function addSet(dispatch: IDispatch, variationIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -207,7 +207,7 @@ export namespace EditProgram {
   export function removeSet(dispatch: IDispatch, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       lb<IState>()
-        .pi("editExcercise")
+        .pi("editExercise")
         .p("variations")
         .i(variationIndex)
         .p("sets")
@@ -215,25 +215,25 @@ export namespace EditProgram {
     ]);
   }
 
-  export function addProgramExcercise(dispatch: IDispatch): void {
+  export function addProgramExercise(dispatch: IDispatch): void {
     updateState(dispatch, [
-      lb<IState>().p("editExcercise").record(Program.createExcercise()),
+      lb<IState>().p("editExercise").record(Program.createExercise()),
       lb<IState>()
         .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgramExcercise")),
+        .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
     ]);
   }
 
-  export function editProgramExcercise(dispatch: IDispatch, excercise: IProgramExcercise): void {
+  export function editProgramExercise(dispatch: IDispatch, exercise: IProgramExercise): void {
     updateState(dispatch, [
-      lb<IState>().p("editExcercise").record(excercise),
+      lb<IState>().p("editExercise").record(exercise),
       lb<IState>()
         .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgramExcercise")),
+        .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
     ]);
   }
 
-  export function removeProgramExcercise(dispatch: IDispatch, program: IProgram, excerciseId: string): void {
+  export function removeProgramExercise(dispatch: IDispatch, program: IProgram, exerciseId: string): void {
     updateState(dispatch, [
       lb<IState>()
         .p("storage")
@@ -242,14 +242,14 @@ export namespace EditProgram {
           const programIndex = programs.findIndex((p) => p.id === program.id);
           return lf(programs)
             .i(programIndex)
-            .p("excercises")
-            .modify((es) => es.filter((e) => e.id !== excerciseId));
+            .p("exercises")
+            .modify((es) => es.filter((e) => e.id !== exerciseId));
         }),
     ]);
   }
 
-  export function copyProgramExcercise(dispatch: IDispatch, program: IProgram, excercise: IProgramExcercise): void {
-    const newName = `${excercise.name} Copy`;
+  export function copyProgramExercise(dispatch: IDispatch, program: IProgram, exercise: IProgramExercise): void {
+    const newName = `${exercise.name} Copy`;
     updateState(dispatch, [
       lb<IState>()
         .p("storage")
@@ -258,20 +258,20 @@ export namespace EditProgram {
           const programIndex = programs.findIndex((p) => p.id === program.id);
           return lf(programs)
             .i(programIndex)
-            .p("excercises")
+            .p("exercises")
             .modify((es) => {
-              const newExcercise: IProgramExcercise = { ...excercise, name: newName, id: UidFactory.generateUid(8) };
-              return [...es, newExcercise];
+              const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
+              return [...es, newExercise];
             });
         }),
     ]);
   }
 
-  export function toggleDayExcercise(
+  export function toggleDayExercise(
     dispatch: IDispatch,
     program: IProgram,
     dayIndex: number,
-    excerciseId: string
+    exerciseId: string
   ): void {
     updateState(dispatch, [
       lb<IState>()
@@ -283,12 +283,12 @@ export namespace EditProgram {
             .i(programIndex)
             .p("days")
             .i(dayIndex)
-            .p("excercises")
+            .p("exercises")
             .modify((es) => {
-              if (es.some((e) => e.id === excerciseId)) {
-                return es.filter((e) => e.id !== excerciseId);
+              if (es.some((e) => e.id === exerciseId)) {
+                return es.filter((e) => e.id !== exerciseId);
               } else {
-                return [...es, { id: excerciseId }];
+                return [...es, { id: exerciseId }];
               }
             });
         }),
@@ -316,11 +316,11 @@ export namespace EditProgram {
     ]);
   }
 
-  export function reorderExcercises(
+  export function reorderExercises(
     dispatch: IDispatch,
     programIndex: number,
     dayIndex: number,
-    startExcerciseIndex: number,
+    startExerciseIndex: number,
     endExceciseIndex: number
   ): void {
     updateState(dispatch, [
@@ -330,12 +330,12 @@ export namespace EditProgram {
         .i(programIndex)
         .p("days")
         .i(dayIndex)
-        .p("excercises")
-        .recordModify((excercises) => {
-          const newExcercises = [...excercises];
-          const [excercisesToMove] = newExcercises.splice(startExcerciseIndex, 1);
-          newExcercises.splice(endExceciseIndex, 0, excercisesToMove);
-          return newExcercises;
+        .p("exercises")
+        .recordModify((exercises) => {
+          const newExercises = [...exercises];
+          const [exercisesToMove] = newExercises.splice(startExerciseIndex, 1);
+          newExercises.splice(endExceciseIndex, 0, exercisesToMove);
+          return newExercises;
         }),
     ]);
   }

@@ -4,13 +4,13 @@ import { useRef, useEffect } from "preact/hooks";
 import { IHistoryRecord } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
-import { IExcerciseType, Excercise } from "../models/excercise";
+import { IExerciseType, Exercise } from "../models/exercise";
 import { ISettings } from "../models/settings";
 import { Weight } from "../models/weight";
 
 interface IGraphProps {
   history: IHistoryRecord[];
-  excercise: IExcerciseType;
+  exercise: IExerciseType;
   settings: ISettings;
 }
 
@@ -23,7 +23,7 @@ export function Graph(props: IGraphProps): JSX.Element {
       [number[], number[], number[]]
     >(
       (memo, i) => {
-        const entry = i.entries.find((e) => Excercise.eq(e.excercise, props.excercise));
+        const entry = i.entries.find((e) => Exercise.eq(e.exercise, props.exercise));
         if (entry != null) {
           const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
             return b.weight !== a.weight
@@ -41,9 +41,9 @@ export function Graph(props: IGraphProps): JSX.Element {
       [[], [], []]
     );
     const rect = graphRef.current.getBoundingClientRect();
-    const excercise = Excercise.get(props.excercise);
+    const exercise = Exercise.get(props.exercise);
     const opts: UPlot.Options = {
-      title: `${excercise.name} Max Weight`,
+      title: `${exercise.name} Max Weight`,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,

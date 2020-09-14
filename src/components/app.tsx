@@ -136,7 +136,7 @@ export function AppView(props: IProps): JSX.Element | null {
       return (
         <ScreenEditProgram
           settings={state.storage.settings}
-          editExcercise={state.editExcercise}
+          editExercise={state.editExercise}
           screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}

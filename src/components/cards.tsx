@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { ExcerciseView } from "./excercise";
+import { ExerciseView } from "./exercise";
 import { IDispatch } from "../ducks/types";
 import { IProgressMode, Progress } from "../models/progress";
 import { Button } from "./button";
@@ -19,7 +19,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
     <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
       {props.progress.entries.map((entry) => {
         return (
-          <ExcerciseView
+          <ExerciseView
             isCurrent={Progress.isCurrent(props.progress)}
             settings={props.settings}
             entry={entry}

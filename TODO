@@ -13,7 +13,7 @@
 * Add deleting account
 * Add achievements
 * Add cookie banner
-* Better excercise selector (with autocomplete)
+* Better exercise selector (with autocomplete)
 * Add admin for managing published programs
 * Add ability to publish user programs
 * Add changing program day when editing progress day
@@ -23,8 +23,8 @@
 * Add comments support to parser
 * Think of a better way to pass pieces of state into lens play
 * Refactor MenuItem, to better incorporate existing use cases
-* Split editProgramExcercise into multiple files
-* Add showing what muscle groups are working for program/day/excercise
+* Split editProgramExercise into multiple files
+* Add showing what muscle groups are working for program/day/exercise
 
 * Bug:
 Assign lb to state var of type number

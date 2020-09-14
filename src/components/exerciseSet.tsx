@@ -2,47 +2,47 @@ import { h, JSX } from "preact";
 import { Reps, ISet } from "../models/set";
 import { Weight, IWeight } from "../models/weight";
 import { ISettings } from "../models/settings";
-import { IExcerciseType } from "../models/excercise";
+import { IExerciseType } from "../models/exercise";
 
 interface IProps {
-  excercise: IExcerciseType;
+  exercise: IExerciseType;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
-interface IAmrapExcerciseSetProps {
-  excercise: IExcerciseType;
+interface IAmrapExerciseSetProps {
+  exercise: IExerciseType;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
-interface IStartedExcerciseSetProps {
-  excercise: IExcerciseType;
+interface IStartedExerciseSetProps {
+  exercise: IExerciseType;
   settings: ISettings;
   isCurrent: boolean;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
-interface INotStartedExcerciseSetProps {
-  excercise: IExcerciseType;
+interface INotStartedExerciseSetProps {
+  exercise: IExerciseType;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
   onClick: (e: Event) => void;
 }
 
-export function ExcerciseSetView(props: IProps): JSX.Element {
+export function ExerciseSetView(props: IProps): JSX.Element {
   const set = props.set;
   if (set.isAmrap) {
     return (
-      <AmrapExcerciseSet
+      <AmrapExerciseSet
         isCurrent={props.isCurrent}
-        excercise={props.excercise}
+        exercise={props.exercise}
         set={set}
         settings={props.settings}
         onClick={props.onClick}
@@ -50,9 +50,9 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
     );
   } else if (set.completedReps == null) {
     return (
-      <NotStartedExcerciseSet
+      <NotStartedExerciseSet
         isCurrent={props.isCurrent}
-        excercise={props.excercise}
+        exercise={props.exercise}
         set={set}
         settings={props.settings}
         onClick={props.onClick}
@@ -61,9 +61,9 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
   } else {
     if (set.completedReps === set.reps) {
       return (
-        <CompleteExcerciseSet
+        <CompleteExerciseSet
           isCurrent={props.isCurrent}
-          excercise={props.excercise}
+          exercise={props.exercise}
           set={set}
           settings={props.settings}
           onClick={props.onClick}
@@ -71,9 +71,9 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
       );
     } else {
       return (
-        <IncompleteExcerciseSet
+        <IncompleteExerciseSet
           isCurrent={props.isCurrent}
-          excercise={props.excercise}
+          exercise={props.exercise}
           set={set}
           settings={props.settings}
           onClick={props.onClick}
@@ -83,20 +83,15 @@ export function ExcerciseSetView(props: IProps): JSX.Element {
   }
 }
 
-function convertMaybeRound(
-  weight: IWeight,
-  settings: ISettings,
-  excercise: IExcerciseType,
-  isCurrent: boolean
-): IWeight {
+function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExerciseType, isCurrent: boolean): IWeight {
   if (isCurrent) {
-    return Weight.roundConvertTo(weight, settings, excercise.bar);
+    return Weight.roundConvertTo(weight, settings, exercise.bar);
   } else {
     return Weight.convertTo(weight, settings.units);
   }
 }
 
-function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Element {
+function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element {
   const set = props.set;
   return (
     <button
@@ -109,13 +104,13 @@ function NotStartedExcerciseSet(props: INotStartedExcerciseSetProps): JSX.Elemen
         {Reps.displayReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.excercise, props.isCurrent).value}
+        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
       </div>
     </button>
   );
 }
 
-function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
+function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   const set = props.set;
   return (
     <button
@@ -128,13 +123,13 @@ function CompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
         {Reps.displayCompletedReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.excercise, props.isCurrent).value}
+        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
       </div>
     </button>
   );
 }
 
-function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
+function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   const set = props.set;
   return (
     <button
@@ -147,13 +142,13 @@ function IncompleteExcerciseSet(props: IStartedExcerciseSetProps): JSX.Element {
         {Reps.displayCompletedReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.excercise, props.isCurrent).value}
+        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
       </div>
     </button>
   );
 }
 
-function AmrapExcerciseSet(props: IAmrapExcerciseSetProps): JSX.Element {
+function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
   let className: string;
   let cy: string;
   const set = props.set;
@@ -182,7 +177,7 @@ function AmrapExcerciseSet(props: IAmrapExcerciseSetProps): JSX.Element {
         {set.completedReps == null ? `${set.reps}+` : set.completedReps}
       </div>
       <div style={{ paddingTop: "2px" }} data-cy="weight-value" className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.excercise, props.isCurrent).value}
+        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
       </div>
     </button>
   );

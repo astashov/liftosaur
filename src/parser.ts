@@ -473,7 +473,7 @@ class Evaluator {
         const key = match[1] as "w" | "r" | "cr" | "weights" | "reps" | "completedReps";
         const setIndex = parseInt(match[2], 10) - 1;
         if (this.bindings[key][setIndex] == null) {
-          throw new SyntaxError(`${value} - There's no set ${setIndex + 1} in the excercise`);
+          throw new SyntaxError(`${value} - There's no set ${setIndex + 1} in the exercise`);
         } else {
           return this.bindings[key][setIndex];
         }

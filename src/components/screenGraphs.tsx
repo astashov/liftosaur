@@ -18,10 +18,10 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     <section className="h-full">
       <HeaderView title="Graphs" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        <Graph settings={props.settings} history={props.history} excercise={{ id: "squat", bar: "barbell" }} />
-        <Graph settings={props.settings} history={props.history} excercise={{ id: "benchPress", bar: "barbell" }} />
-        <Graph settings={props.settings} history={props.history} excercise={{ id: "overheadPress", bar: "barbell" }} />
-        <Graph settings={props.settings} history={props.history} excercise={{ id: "deadlift", bar: "barbell" }} />
+        <Graph settings={props.settings} history={props.history} exercise={{ id: "squat", bar: "barbell" }} />
+        <Graph settings={props.settings} history={props.history} exercise={{ id: "benchPress", bar: "barbell" }} />
+        <Graph settings={props.settings} history={props.history} exercise={{ id: "overheadPress", bar: "barbell" }} />
+        <Graph settings={props.settings} history={props.history} exercise={{ id: "deadlift", bar: "barbell" }} />
       </section>
 
       <FooterView dispatch={props.dispatch} />

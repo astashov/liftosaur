@@ -5,8 +5,8 @@ import { IArrayElement } from "../utils/types";
 export const units = ["kg", "lb"] as const;
 
 export const TUnit = t.keyof(
-  units.reduce<Record<IArrayElement<typeof units>, null>>((memo, excerciseType) => {
-    memo[excerciseType] = null;
+  units.reduce<Record<IArrayElement<typeof units>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
     return memo;
   }, {} as Record<IArrayElement<typeof units>, null>),
   "TUnit"

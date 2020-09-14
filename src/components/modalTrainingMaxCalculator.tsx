@@ -4,11 +4,11 @@
 // import { Modal } from "./modal";
 // import { IDispatch } from "../ducks/types";
 // import { Weight } from "../models/weight";
-// import { I5314BState, I5314BExcerciseType } from "../models/programs/the5314bProgram";
+// import { I5314BState, I5314BExerciseType } from "../models/programs/the5314bProgram";
 // import { lb } from "../utils/lens";
 
 // interface IProps {
-//   excercise: I5314BExcerciseType;
+//   exercise: I5314BExerciseType;
 //   onClose: () => void;
 //   dispatch: IDispatch;
 // }
@@ -66,7 +66,7 @@
 //                 const trainingMax = Weight.getTrainingMax(weight, reps);
 //                 const lensRecording = lb<I5314BState>()
 //                   .p("main")
-//                   .p(props.excercise)
+//                   .p(props.exercise)
 //                   .p("trainingMax")
 //                   .record(trainingMax);
 //                 props.dispatch({ type: "UpdateProgramState", name: "the5314b", lensRecording: lensRecording });

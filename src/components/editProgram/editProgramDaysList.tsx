@@ -52,17 +52,17 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             }
           }}
         />
-        <GroupHeader name="Excercises" />
-        {props.editProgram.excercises.map((excercise) => {
+        <GroupHeader name="Exercises" />
+        {props.editProgram.exercises.map((exercise) => {
           return (
             <MenuItem
-              name={excercise.name}
+              name={exercise.name}
               value={
                 <Fragment>
                   <button
                     className="mr-2 align-middle button"
                     onClick={() => {
-                      EditProgram.copyProgramExcercise(props.dispatch, props.editProgram, excercise);
+                      EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
                     }}
                   >
                     <IconDuplicate />
@@ -70,13 +70,13 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   <button
                     className="align-middle button"
                     onClick={() => {
-                      const isExcerciseUsed = props.editProgram.days.some(
-                        (d) => d.excercises.map((e) => e.id).indexOf(excercise.id) !== -1
+                      const isExerciseUsed = props.editProgram.days.some(
+                        (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
                       );
-                      if (isExcerciseUsed) {
-                        alert("You can't delete this excercise, it's used in one of the days");
+                      if (isExerciseUsed) {
+                        alert("You can't delete this exercise, it's used in one of the days");
                       } else if (confirm("Are you sure?")) {
-                        EditProgram.removeProgramExcercise(props.dispatch, props.editProgram, excercise.id);
+                        EditProgram.removeProgramExercise(props.dispatch, props.editProgram, exercise.id);
                       }
                     }}
                   >
@@ -86,14 +86,14 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               }
               onClick={(e) => {
                 if (!HtmlUtils.classInParents(e.target as Element, "button")) {
-                  EditProgram.editProgramExcercise(props.dispatch, excercise);
+                  EditProgram.editProgramExercise(props.dispatch, exercise);
                 }
               }}
             />
           );
         })}
-        <MenuItemWrapper name="add-excercise" onClick={() => EditProgram.addProgramExcercise(props.dispatch)}>
-          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Excercise +</div>
+        <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
+          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
         </MenuItemWrapper>
         <GroupHeader name="Days" />
         <DraggableList

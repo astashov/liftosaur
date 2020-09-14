@@ -4,12 +4,12 @@
 
 You can clone existing workouts and edit cloned ones, or create your own workouts from scratch.
 
-A workout consists of days. Each day consists of excercises. Each excercise consists of sets.
+A workout consists of days. Each day consists of exercises. Each exercise consists of sets.
 Each set consists of:
 
 - number of reps
 - weight to lift
-- whether it's an AMRAP excercise (As Many Reps As Possible).
+- whether it's an AMRAP exercise (As Many Reps As Possible).
 
 There's a special scripting language called Liftoscript. You can use it to describe the logic
 for the number of reps in a set, and for the set weights. It will allow to express almost any
@@ -22,27 +22,27 @@ Liftoscript will look very familiar. If not - no worries, it's a pretty simple a
 
 ### State Variables and Finish Day Script
 
-Let's start with creating our own simple workout. Open liftosaur.com (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to Settings (cog icon at the right bottom corner), and press on "Choose Program". There, press "Create new program". Let's name it "Liftosaurus".
+Let's start with creating our own simple workout. Open liftosaur.com (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to Settings (cog icon at the right bottom corner), and press "Choose Program". There, press "Create new program". Let's name it "Liftosaurus".
 
-Now, press on "Day 1", then press on "+" button to add excercise. Select "Bench Press", and press "Add". It will add Bench Press excercise, with 1 set of 5 reps and 0lb weight for each rep.
+Now, press "Day 1", then press the "+" button to add an exercise. Select "Bench Press", and press "Add". It will add Bench Press exercise, with 1 set of 5 reps and 0lb weight for each rep.
 
 Go back ("Back" button top left corner), and press "Edit Script" button.
 
-This is where we specify the logic for progressions and deloads for our excercises. Let's try to make it so when we finish a day, we increase bench press weight by 5lb.
+This is where we specify the logic for progressions and deloads for our exercises. Let's try to make it so when we finish a day, we increase bench press weight by 5lb.
 
 For that, press "Add State Variable", and create new state variable named "benchPressWeight" (one word no spaces),
 and choose "variable type" - "lb", then press "Add". Then press "0 lb" value of the variable, and change it to e.g. 45lb (empty bar).
 
-You just created a variable, that will store the weight of the bench press excercise for the next day.
+You just created a variable, that will store the weight of the bench press exercise for the next day.
 
-Now, there's "Finish Day Script" below, which will define how those variables change when we finish all excercises in a day. Press under the "Finish Day Script" label, and type this there:
+Now, there's "Finish Day Script" below, which will define how those variables change when we finish all exercises in a day. Press under the "Finish Day Script" label, and type this there:
 
 ```javascript
 state.benchPressWeight = state.benchPressWeight + 5lb
 ```
 
 This means that when we finish a day, we're going to add 5lb to the previous value of `benchPressWeight`.
-Now let's use `state.benchPressWeight` in our excercise. Press "Back" to go back to the days list, then press "Day 1" again, and press the button for the first bench press set. There, in the "Weight" field, type the following:
+Now let's use `state.benchPressWeight` in our exercise. Press "Back" to go back to the days list, then press "Day 1" again, and press the button for the first bench press set. There, in the "Weight" field, type the following:
 
 ```javascript
 state.benchPressWeight;
@@ -51,7 +51,7 @@ state.benchPressWeight;
 It should give you a hint that evaluation result will be `45lb`, which is the current value of `state.benchPressWeight`.
 You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights there're often percentages of training max weight being used, so you could write it as `state.benchPressWeight * 0.7`, for example. Or do something completely crazy like `(state.benchPressWeight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
 
-You can use any state variables you defined, both in Finish Day Script or in expressions for weight or number of reps for an excercise, by prefixing them with `state.`, like you see in the example above.
+You can use any state variables you defined, both in Finish Day Script or in expressions for weight or number of reps for an exercise, by prefixing them with `state.`, like you see in the example above.
 
 You may notice that the weight value gets rounded if you use some math operators. Liftosaur always rounds the weight so you could get it using your available plates. So, please make sure the "Available Plates" in "Settings" correctly reflect the plates you have access to in your gym.
 
@@ -73,7 +73,7 @@ if (completedReps[1][1] >= reps[1][1]) {
 }
 ```
 
-Now we only will update the weight of the bench press if the completed reps of 1 excercise and 1 set is more or equal than the defined reps for that excercise and that set (which is 5 in our case). I.e. the first number in square brackets after `completedReps` or `reps` is for what excercise, and the second number in square brackets is for what set in the excercise.
+Now we only will update the weight of the bench press if the completed reps of 1 exercise and 1 set is more or equal than the defined reps for that exercise and that set (which is 5 in our case). I.e. the first number in square brackets after `completedReps` or `reps` is for what exercise, and the second number in square brackets is for what set in the exercise.
 
 We could also write it as:
 
@@ -83,21 +83,21 @@ if (completedReps[1][1] >= 5) {
 }
 ```
 
-But in that case if we ever change the required reps for the excercise to e.g. 10, it still will bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
+But in that case if we ever change the required reps for the exercise to e.g. 10, it still will bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
 
 You can verify it works via playground. Choose "Try with Day": "Day 1 - 1", and try to set 5 completed reps, make sure in "State changes" you see that the `benchPressWeight` got bumped. And if you set less than 5 completed reps, `benchPressWeight` disappears from the state changes, meaning that state variable won't be changed anymore.
 
 The list of available variables you can use in your Finish Day Scripts:
 
-- `weights[x][y]` or `w[x][y]` - weight of an X excercise and Y set. X and Y start from 1.
-- `reps[x][y]` or `r[x][y]` - number of reps for an X excercise and Y set.
-- `completedReps[x][y]` or `cr[x][y]` - number of completed reps for an X excercise and Y set.
+- `weights[x][y]` or `w[x][y]` - weight of an X exercise and Y set. X and Y start from 1.
+- `reps[x][y]` or `r[x][y]` - number of reps for an X exercise and Y set.
+- `completedReps[x][y]` or `cr[x][y]` - number of completed reps for an X exercise and Y set.
 - `day` - current day number, starting from 1.
 
 ### Multiple days
 
-Let's add another day, with the deadlift excercise. Go to the list of days, and press "+" button under the list
-of days. There, press "+" button again to add excercise, and add "Deadlift".
+Let's add another day, with the deadlift exercise. Go to the list of days, and press "+" button under the list
+of days. There, press "+" button again to add exercise, and add "Deadlift".
 
 Go back to the list of days, and press "Edit Script".
 Now, we likely only want to only bump the bench press weight by 5lb on the day we actually do bench press, so only after the day 1. For that, we need to add additional condition to our Finish Day Script. Add the following:
@@ -207,9 +207,9 @@ state.someVar = (10 + 15) * 2;
 
 You cannot assign values to them, but you can use theirs values. There're:
 
-- `weights[x][y]` or `w[x][y]` - weight of an X excercise and Y set. X and Y start from 1.
-- `reps[x][y]` or `r[x][y]` - number of reps for an X excercise and Y set.
-- `completedReps[x][y]` or `cr[x][y]` - number of completed reps for an X excercise and Y set.
+- `weights[x][y]` or `w[x][y]` - weight of an X exercise and Y set. X and Y start from 1.
+- `reps[x][y]` or `r[x][y]` - number of reps for an X exercise and Y set.
+- `completedReps[x][y]` or `cr[x][y]` - number of completed reps for an X exercise and Y set.
 - `day` - current day number, starting from 1.
 
 ### State variables

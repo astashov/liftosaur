@@ -1,15 +1,15 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgramExcercise, Program, IProgramState, IProgramDay } from "../../models/program";
+import { IProgramExercise, Program, IProgramState, IProgramDay } from "../../models/program";
 import { GroupHeader } from "../groupHeader";
 import { HeaderView } from "../header";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ObjectUtils } from "../../utils/object";
-import { excercises, IExcerciseId } from "../../models/excercise";
+import { exercises, IExerciseId } from "../../models/exercise";
 import { ISettings, Settings } from "../../models/settings";
 import { History } from "../../models/history";
 import { Weight, IBarKey, IUnit, IWeight } from "../../models/weight";
-import { ExcerciseView } from "../excercise";
+import { ExerciseView } from "../exercise";
 import { IHistoryEntry, IHistoryRecord } from "../../models/history";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { FooterView } from "../footer";
@@ -34,13 +34,13 @@ import { StringUtils } from "../../utils/string";
 interface IProps {
   settings: ISettings;
   days: IProgramDay[];
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   programName: string;
   dispatch: IDispatch;
 }
 
 function buildProgress(
-  programExcercise: IProgramExcercise,
+  programExercise: IProgramExercise,
   day: number,
   variationIndex: number,
   settings: ISettings
@@ -48,10 +48,10 @@ function buildProgress(
   let entry: IHistoryEntry | undefined;
   try {
     entry = Program.nextHistoryEntry(
-      programExcercise.excerciseType,
+      programExercise.exerciseType,
       day,
-      programExcercise.variations[variationIndex].sets,
-      programExcercise.state,
+      programExercise.variations[variationIndex].sets,
+      programExercise.state,
       settings
     );
   } catch (e) {
@@ -60,19 +60,19 @@ function buildProgress(
   return entry != null ? History.buildFromEntry(entry, day) : undefined;
 }
 
-export function EditProgramExcercise(props: IProps): JSX.Element {
-  const { programExcercise } = props;
+export function EditProgramExercise(props: IProps): JSX.Element {
+  const { programExercise } = props;
 
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   const prevProps = useRef<IProps>(props);
   const [variationIndex, setVariationIndex] = useState<number>(0);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(() =>
-    buildProgress(programExcercise, 1, variationIndex, props.settings)
+    buildProgress(programExercise, 1, variationIndex, props.settings)
   );
 
   useEffect(() => {
-    if (props.programExcercise !== prevProps.current.programExcercise) {
-      setProgress(buildProgress(programExcercise, progress?.day || 1, variationIndex, props.settings));
+    if (props.programExercise !== prevProps.current.programExercise) {
+      setProgress(buildProgress(programExercise, progress?.day || 1, variationIndex, props.settings));
     }
     prevProps.current = props;
   });
@@ -81,31 +81,26 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
 
   const finishScriptResult =
     entry != null
-      ? Program.runExcerciseFinishDayScript(
+      ? Program.runExerciseFinishDayScript(
           entry,
           day,
           props.settings,
-          programExcercise.state,
-          programExcercise.finishDayExpr
+          programExercise.state,
+          programExercise.finishDayExpr
         )
-      : Program.parseExcerciseFinishDayScript(
-          day,
-          props.settings,
-          programExcercise.state,
-          programExcercise.finishDayExpr
-        );
+      : Program.parseExerciseFinishDayScript(day, props.settings, programExercise.state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }
     : finishScriptResult;
 
-  const variationScriptResult = Program.runVariationScript(programExcercise, day, props.settings);
-  console.log("Variation script: ", programExcercise.variationExpr);
+  const variationScriptResult = Program.runVariationScript(programExercise, day, props.settings);
+  console.log("Variation script: ", programExercise.variationExpr);
   console.log("Variation script result: ", variationScriptResult);
   console.log("Progress entries: ", progress?.entries);
 
-  const excerciseOptions = ObjectUtils.keys(excercises).map<[string, string]>((e) => [
-    excercises[e].id,
-    excercises[e].name,
+  const exerciseOptions = ObjectUtils.keys(exercises).map<[string, string]>((e) => [
+    exercises[e].id,
+    exercises[e].name,
   ]);
   const bars = Settings.bars(props.settings);
   const barOptions: [string, string][] = [
@@ -116,7 +111,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
   return (
     <section className="h-full">
       <HeaderView
-        title="Edit Program Excercise"
+        title="Edit Program Exercise"
         subtitle={props.programName}
         left={
           <button
@@ -133,39 +128,39 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItemEditable
           type="select"
-          name="Excercise"
-          value={programExcercise.excerciseType.id}
-          values={excerciseOptions}
+          name="Exercise"
+          value={programExercise.exerciseType.id}
+          values={exerciseOptions}
           onChange={(newId) => {
-            EditProgram.changeExcerciseId(props.dispatch, newId as IExcerciseId);
+            EditProgram.changeExerciseId(props.dispatch, newId as IExerciseId);
           }}
         />
         <MenuItemEditable
           type="select"
           name="Bar"
-          value={programExcercise.excerciseType.bar || ""}
+          value={programExercise.exerciseType.bar || ""}
           values={barOptions}
           onChange={(newBar) => {
-            EditProgram.changeExcerciseBar(props.dispatch, newBar ? (newBar as IBarKey) : undefined);
+            EditProgram.changeExerciseBar(props.dispatch, newBar ? (newBar as IBarKey) : undefined);
           }}
         />
         <MenuItemEditable
           type="text"
           name="Name"
-          value={programExcercise.name}
+          value={programExercise.name}
           onChange={(newName) => {
-            EditProgram.changeExcerciseName(props.dispatch, newName);
+            EditProgram.changeExerciseName(props.dispatch, newName);
           }}
         />
         <Variations
           variationIndex={variationIndex}
-          programExcercise={programExcercise}
+          programExercise={programExercise}
           dispatch={props.dispatch}
           onChangeVariation={(i) => setVariationIndex(i)}
         />
-        {programExcercise.variations.length > 1 && (
+        {programExercise.variations.length > 1 && (
           <VariationsEditor
-            programExcercise={programExcercise}
+            programExercise={programExercise}
             editorResult={variationScriptResult}
             dispatch={props.dispatch}
           />
@@ -174,7 +169,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
           variationIndex={variationIndex}
           settings={props.settings}
           day={day}
-          programExcercise={programExcercise}
+          programExercise={programExercise}
           onRemoveVariation={() => {
             setVariationIndex(Math.max(variationIndex - 1, 0));
           }}
@@ -182,7 +177,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
         />
         <EditState
           dispatch={props.dispatch}
-          programExcercise={programExcercise}
+          programExercise={programExercise}
           onAddStateVariable={() => {
             setShouldShowAddStateVariable(true);
           }}
@@ -190,7 +185,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
         {progress && entry && (
           <Fragment>
             <Playground
-              programExcercise={programExcercise}
+              programExercise={programExercise}
               progress={progress}
               settings={props.settings}
               dispatch={props.dispatch}
@@ -202,13 +197,13 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
               entry={entry}
               day={day}
               settings={props.settings}
-              state={programExcercise.state}
-              script={programExcercise.finishDayExpr}
+              state={programExercise.state}
+              script={programExercise.finishDayExpr}
             />
           </Fragment>
         )}
         <FinishDayScriptEditor
-          programExcercise={programExcercise}
+          programExercise={programExercise}
           editorResult={finishEditorResult}
           dispatch={props.dispatch}
         />
@@ -216,7 +211,7 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
           <Button
             kind="green"
             disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
-            onClick={() => props.dispatch({ type: "SaveExcercise" })}
+            onClick={() => props.dispatch({ type: "SaveExercise" })}
           >
             Save
           </Button>
@@ -235,14 +230,14 @@ export function EditProgramExcercise(props: IProps): JSX.Element {
 }
 
 interface IVariationsProps {
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   variationIndex: number;
   dispatch: IDispatch;
   onChangeVariation: (newIndex: number) => void;
 }
 
 function Variations(props: IVariationsProps): JSX.Element {
-  const { programExcercise, variationIndex, dispatch } = props;
+  const { programExercise, variationIndex, dispatch } = props;
 
   return (
     <Fragment>
@@ -251,7 +246,7 @@ function Variations(props: IVariationsProps): JSX.Element {
         type="select"
         name="Variation"
         value={variationIndex.toString()}
-        values={programExcercise.variations.map((_, i) => [i.toString(), `Variation ${i + 1}`])}
+        values={programExercise.variations.map((_, i) => [i.toString(), `Variation ${i + 1}`])}
         onChange={(newIndex) => {
           props.onChangeVariation(parseInt(newIndex!, 10));
         }}
@@ -271,7 +266,7 @@ function Variations(props: IVariationsProps): JSX.Element {
 }
 
 interface ISetsProps {
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   day: number;
   variationIndex: number;
   dispatch: IDispatch;
@@ -280,13 +275,13 @@ interface ISetsProps {
 }
 
 function Sets(props: ISetsProps): JSX.Element {
-  const { programExcercise, day, settings, variationIndex, dispatch } = props;
-  const variation = programExcercise.variations[variationIndex];
+  const { programExercise, day, settings, variationIndex, dispatch } = props;
+  const variation = programExercise.variations[variationIndex];
   const [resetCounter, setResetCounter] = useState(0);
   return (
     <Fragment>
       <GroupHeader name="Sets" />
-      {programExcercise.variations.length > 1 && (
+      {programExercise.variations.length > 1 && (
         <div className="px-1 pt-1 text-xs text-right bg-gray-100">
           <Button
             kind="red"
@@ -304,13 +299,13 @@ function Sets(props: ISetsProps): JSX.Element {
           items={variation.sets}
           element={(set, setIndex, handleTouchStart) => (
             <SetFields
-              key={`${resetCounter}_${variation.sets.length}_${programExcercise.variations.length}_${variationIndex}`}
-              bar={programExcercise.excerciseType.bar}
+              key={`${resetCounter}_${variation.sets.length}_${programExercise.variations.length}_${variationIndex}`}
+              bar={programExercise.exerciseType.bar}
               settings={settings}
               handleTouchStart={handleTouchStart}
               day={day}
               set={set}
-              state={programExcercise.state}
+              state={programExercise.state}
               variationIndex={variationIndex}
               setIndex={setIndex}
               isDeleteEnabled={variation.sets.length > 1}
@@ -449,25 +444,25 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 }
 
 interface IVariationsEditorProps {
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   dispatch: IDispatch;
   editorResult: IEither<number, string>;
 }
 
 function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
-  const { programExcercise } = props;
+  const { programExercise } = props;
 
   return (
     <Fragment>
       <GroupHeader name="Variation Selection Script" />
       <MultiLineTextEditor
         name="variation"
-        state={programExcercise.state}
+        state={programExercise.state}
         result={props.editorResult}
-        value={programExcercise.variationExpr}
+        value={programExercise.variationExpr}
         height={4}
         onChange={(value) => {
-          EditProgram.setExcerciseVariationExpr(props.dispatch, value);
+          EditProgram.setExerciseVariationExpr(props.dispatch, value);
         }}
       />
     </Fragment>
@@ -475,13 +470,13 @@ function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
 }
 
 interface IStateProps {
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   dispatch: IDispatch;
   onAddStateVariable: () => void;
 }
 
 function EditState(props: IStateProps): JSX.Element {
-  const state = props.programExcercise.state;
+  const state = props.programExercise.state;
 
   return (
     <section>
@@ -512,7 +507,7 @@ function EditState(props: IStateProps): JSX.Element {
 
 interface IPlaygroundProps {
   progress: IHistoryRecord;
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   dispatch: IDispatch;
   settings: ISettings;
   days: IProgramDay[];
@@ -520,7 +515,7 @@ interface IPlaygroundProps {
 }
 
 function Playground(props: IPlaygroundProps): JSX.Element {
-  const { programExcercise, days, settings, progress } = props;
+  const { programExercise, days, settings, progress } = props;
   const entry = progress.entries[0];
 
   const dispatch: IDispatch = async (action) => {
@@ -538,18 +533,18 @@ function Playground(props: IPlaygroundProps): JSX.Element {
         values={[...days.map<[string, string]>((d, i) => [(i + 1).toString(), `${i + 1} - ${d.name}`])]}
         onChange={(newValue) => {
           const newDay = parseInt(newValue || "1", 10);
-          const nextVariationIndex = Program.nextVariationIndex(programExcercise, newDay, settings);
+          const nextVariationIndex = Program.nextVariationIndex(programExercise, newDay, settings);
           const newEntry = Program.nextHistoryEntry(
-            programExcercise.excerciseType,
+            programExercise.exerciseType,
             newDay,
-            programExcercise.variations[nextVariationIndex].sets,
-            programExcercise.state,
+            programExercise.variations[nextVariationIndex].sets,
+            programExercise.state,
             settings
           );
           props.onProgressChange(History.buildFromEntry(newEntry, newDay));
         }}
       />
-      <ExcerciseView
+      <ExerciseView
         entry={entry}
         settings={props.settings}
         dispatch={dispatch}
@@ -578,7 +573,7 @@ interface IStateChangesProps {
 function StateChanges(props: IStateChangesProps): JSX.Element {
   const { entry, settings, state, script, day } = props;
   const { units } = settings;
-  const result = Program.runExcerciseFinishDayScript(entry, day, settings, state, script);
+  const result = Program.runExerciseFinishDayScript(entry, day, settings, state, script);
 
   if (result.success) {
     const newState = result.data;
@@ -611,24 +606,24 @@ function StateChanges(props: IStateChangesProps): JSX.Element {
 }
 
 export interface IFinishDayScriptEditorProps {
-  programExcercise: IProgramExcercise;
+  programExercise: IProgramExercise;
   dispatch: IDispatch;
   editorResult: IEither<number | undefined, string>;
 }
 
 function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element {
-  const { programExcercise } = props;
+  const { programExercise } = props;
 
   return (
     <Fragment>
       <GroupHeader name="Finish Day Script" />
       <MultiLineTextEditor
         name="finish-day"
-        state={programExcercise.state}
+        state={programExercise.state}
         result={props.editorResult}
-        value={programExcercise.finishDayExpr}
+        value={programExercise.finishDayExpr}
         onChange={(value) => {
-          EditProgram.setExcerciseFinishDayExpr(props.dispatch, value);
+          EditProgram.setExerciseFinishDayExpr(props.dispatch, value);
         }}
       />
     </Fragment>

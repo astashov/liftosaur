@@ -1,11 +1,11 @@
-import { TExcerciseType } from "./excercise";
+import { TExerciseType } from "./exercise";
 import { TSet } from "./set";
 import { Progress, TProgressUi, TProgressMode } from "./progress";
 import * as t from "io-ts";
 
 export const THistoryEntry = t.type(
   {
-    excercise: TExcerciseType,
+    exercise: TExerciseType,
     sets: t.array(TSet),
     warmupSets: t.array(TSet),
   },

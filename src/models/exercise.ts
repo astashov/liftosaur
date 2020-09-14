@@ -5,7 +5,7 @@ import { IArrayElement } from "../utils/types";
 import { ISettings, Settings } from "./settings";
 import { ObjectUtils } from "../utils/object";
 
-export const excerciseTypes = [
+export const exerciseTypes = [
   "abWheel",
   "arnoldPress",
   "backExtension",
@@ -154,7 +154,7 @@ export const excerciseTypes = [
   "zercherSquat",
 ] as const;
 
-export const excercises: Record<IExcerciseId, IExcercise> = {
+export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
     id: "abWheel",
     name: "Ab Wheel",
@@ -1033,30 +1033,30 @@ export const excercises: Record<IExcerciseId, IExcercise> = {
   },
 };
 
-export const TExcerciseId = t.keyof(
-  excerciseTypes.reduce<Record<IArrayElement<typeof excerciseTypes>, null>>((memo, excerciseType) => {
-    memo[excerciseType] = null;
+export const TExerciseId = t.keyof(
+  exerciseTypes.reduce<Record<IArrayElement<typeof exerciseTypes>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
     return memo;
-  }, {} as Record<IArrayElement<typeof excerciseTypes>, null>),
-  "TExcerciseId"
+  }, {} as Record<IArrayElement<typeof exerciseTypes>, null>),
+  "TExerciseId"
 );
-export type IExcerciseId = t.TypeOf<typeof TExcerciseId>;
+export type IExerciseId = t.TypeOf<typeof TExerciseId>;
 
-export const TExcerciseType = t.intersection(
+export const TExerciseType = t.intersection(
   [
     t.interface({
-      id: TExcerciseId,
+      id: TExerciseId,
     }),
     t.partial({
       bar: TBarKey,
     }),
   ],
-  "TExcerciseType"
+  "TExerciseType"
 );
-export type IExcerciseType = t.TypeOf<typeof TExcerciseType>;
+export type IExerciseType = t.TypeOf<typeof TExerciseType>;
 
-export type IExcercise = {
-  id: IExcerciseId;
+export type IExercise = {
+  id: IExerciseId;
   name: string;
   warmupSets: (weight: IWeight, settings: ISettings, bar?: IBarKey) => ISet[];
   bar?: keyof IBars;
@@ -1100,16 +1100,16 @@ function warmupEmpty(weight: IWeight): ISet[] {
   return [];
 }
 
-export namespace Excercise {
-  export function get(type: IExcerciseType): IExcercise {
-    return { ...excercises[type.id], bar: type.bar };
+export namespace Exercise {
+  export function get(type: IExerciseType): IExercise {
+    return { ...exercises[type.id], bar: type.bar };
   }
 
-  export function eq(a: IExcerciseType, b: IExcerciseType): boolean {
+  export function eq(a: IExerciseType, b: IExerciseType): boolean {
     return a.id === b.id && a.bar === b.bar;
   }
 
-  export function getWarmupSets(excercise: IExcerciseType, weight: IWeight, settings: ISettings): ISet[] {
-    return get(excercise).warmupSets(weight, settings, excercise.bar);
+  export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {
+    return get(exercise).warmupSets(weight, settings, exercise.bar);
   }
 }

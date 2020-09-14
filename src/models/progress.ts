@@ -1,4 +1,4 @@
-import { IExcerciseType, Excercise, TExcerciseType } from "./excercise";
+import { IExerciseType, Exercise, TExerciseType } from "./exercise";
 import { Reps } from "./set";
 import { IWeight, Weight, TWeight } from "./weight";
 import { Screen } from "./screen";
@@ -13,12 +13,12 @@ import { ScriptRunner } from "../parser";
 export const TProgressUi = t.partial(
   {
     amrapModal: t.type({
-      excercise: TExcerciseType,
+      exercise: TExerciseType,
       setIndex: t.number,
       weight: TWeight,
     }),
     weightModal: t.type({
-      excercise: TExcerciseType,
+      exercise: TExerciseType,
       weight: TWeight,
     }),
     dateModal: t.type({
@@ -122,11 +122,11 @@ export namespace Progress {
     };
   }
 
-  export function findEntryByExcercise(
+  export function findEntryByExercise(
     progress: IHistoryRecord,
-    excerciseType: IExcerciseType
+    exerciseType: IExerciseType
   ): IHistoryEntry | undefined {
-    return progress.entries.find((entry) => entry.excercise === excerciseType);
+    return progress.entries.find((entry) => entry.exercise === exerciseType);
   }
 
   export function isFullyCompletedSet(progress: IHistoryRecord): boolean {
@@ -151,7 +151,7 @@ export namespace Progress {
 
   export function showUpdateWeightModal(
     progress: IHistoryRecord,
-    excercise: IExcerciseType,
+    exercise: IExerciseType,
     weight: IWeight
   ): IHistoryRecord {
     return {
@@ -159,7 +159,7 @@ export namespace Progress {
       ui: {
         ...progress.ui,
         weightModal: {
-          excercise,
+          exercise,
           weight: weight,
         },
       },
@@ -212,20 +212,20 @@ export namespace Progress {
     }
   }
 
-  export function updateRepsInExcercise(
+  export function updateRepsInExercise(
     progress: IHistoryRecord,
-    excercise: IExcerciseType,
+    exercise: IExerciseType,
     weight: IWeight,
     setIndex: number,
     mode: IProgressMode
   ): IHistoryRecord {
     if (mode === "warmup") {
-      const firstWeight = progress.entries.find((e) => e.excercise === excercise)?.sets[0]?.weight;
+      const firstWeight = progress.entries.find((e) => e.exercise === exercise)?.sets[0]?.weight;
       if (firstWeight != null) {
         return {
           ...progress,
           entries: progress.entries.map((progressEntry) => {
-            if (progressEntry.excercise === excercise) {
+            if (progressEntry.exercise === exercise) {
               const progressSets = progressEntry.warmupSets;
               const progressSet = progressSets[setIndex];
               if (progressSet?.completedReps == null) {
@@ -249,9 +249,9 @@ export namespace Progress {
         return progress;
       }
     } else {
-      const entry = progress.entries.find((e) => e.excercise === excercise)!;
+      const entry = progress.entries.find((e) => e.exercise === exercise)!;
       if (entry.sets[setIndex].isAmrap) {
-        const amrapUi: IProgressUi = { amrapModal: { excercise, setIndex, weight } };
+        const amrapUi: IProgressUi = { amrapModal: { exercise, setIndex, weight } };
         return {
           ...progress,
           ui: {
@@ -263,7 +263,7 @@ export namespace Progress {
         return {
           ...progress,
           entries: progress.entries.map((progressEntry) => {
-            if (progressEntry.excercise === excercise) {
+            if (progressEntry.exercise === exercise) {
               const sets = [...progressEntry.sets];
               const set = sets[setIndex];
               if (set.completedReps == null) {
@@ -293,14 +293,14 @@ export namespace Progress {
     }
   }
 
-  export function updateAmrapRepsInExcercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+  export function updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
-      const { excercise, setIndex, weight } = progress.ui.amrapModal;
+      const { exercise, setIndex, weight } = progress.ui.amrapModal;
       return {
         ...progress,
         ui: { ...progress.ui, amrapModal: undefined },
         entries: progress.entries.map((progressEntry) => {
-          if (progressEntry.excercise === excercise) {
+          if (progressEntry.exercise === exercise) {
             const sets = [...progressEntry.sets];
             const set = sets[setIndex];
             if (value == null) {
@@ -321,30 +321,30 @@ export namespace Progress {
 
   export function updateWeight(progress: IHistoryRecord, settings: ISettings, weight?: IWeight): IHistoryRecord {
     if (weight != null && progress.ui?.weightModal != null) {
-      const { excercise, weight: previousWeight } = progress.ui.weightModal;
+      const { exercise, weight: previousWeight } = progress.ui.weightModal;
 
       return {
         ...progress,
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map((progressEntry) => {
           const eq = (a: IWeight, b: IWeight): boolean => {
-            const bar = progressEntry.excercise.bar;
+            const bar = progressEntry.exercise.bar;
             return Weight.eq(Weight.roundConvertTo(a, settings, bar), Weight.roundConvertTo(b, settings, bar));
           };
-          if (Excercise.eq(progressEntry.excercise, excercise)) {
+          if (Exercise.eq(progressEntry.exercise, exercise)) {
             const firstWeight = progressEntry.sets[0]?.weight;
             return {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
                 if (eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings, progressEntry.excercise.bar) };
+                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise.bar) };
                 } else {
                   return set;
                 }
               }),
               warmupSets:
                 eq(firstWeight, previousWeight) && weight != null
-                  ? Excercise.getWarmupSets(excercise, weight, settings)
+                  ? Exercise.getWarmupSets(exercise, weight, settings)
                   : progressEntry.warmupSets,
             };
           } else {
@@ -375,16 +375,16 @@ export namespace Progress {
     const day = progress.day;
     return {
       ...progress,
-      entries: programDay.excercises.map((dayEntry) => {
-        const programExcercise = program.excercises.find((e) => e.id === dayEntry.id)!;
-        const progressEntry = progress.entries.find((e) => programExcercise.excerciseType.id === e.excercise.id);
-        const variationIndex = Program.nextVariationIndex(programExcercise, day, settings);
-        const sets = programExcercise.variations[variationIndex].sets;
-        const state = programExcercise.state;
+      entries: programDay.exercises.map((dayEntry) => {
+        const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
+        const progressEntry = progress.entries.find((e) => programExercise.exerciseType.id === e.exercise.id);
+        const variationIndex = Program.nextVariationIndex(programExercise, day, settings);
+        const sets = programExercise.variations[variationIndex].sets;
+        const state = programExercise.state;
         if (progressEntry != null && sets.length === progressEntry.sets.length) {
           return {
             ...progressEntry,
-            excercise: programExcercise.excerciseType,
+            exercise: programExercise.exerciseType,
             sets: progressEntry.sets.map((set, i) => ({
               ...set,
               reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
@@ -397,14 +397,14 @@ export namespace Progress {
           const firstWeight =
             firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings, "weight") : undefined;
           return {
-            excercise: programExcercise.excerciseType,
+            exercise: programExercise.exerciseType,
             sets: sets.map((set) => ({
               reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
               weight: executeEntryScript(set.weightExpr, day, state, settings, "weight"),
               isAmrap: set.isAmrap,
             })),
             warmupSets:
-              firstWeight != null ? Excercise.getWarmupSets(programExcercise.excerciseType, firstWeight, settings) : [],
+              firstWeight != null ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings) : [],
           };
         }
       }),

@@ -25,7 +25,7 @@ interface IProps {
 }
 
 export interface IEditSet {
-  excerciseIndex: number;
+  exerciseIndex: number;
   setIndex?: number;
 }
 
@@ -53,28 +53,28 @@ export function EditProgramDay(props: IProps): JSX.Element {
               }
             }}
           />
-          <section data-cy="selected-excercises">
-            <GroupHeader name="Selected excercises" />
+          <section data-cy="selected-exercises">
+            <GroupHeader name="Selected exercises" />
             <DraggableList
-              items={day.excercises}
-              element={(excerciseRef, i, handleTouchStart) => {
-                const excercise = program.excercises.find((e) => e.id === excerciseRef.id)!;
+              items={day.exercises}
+              element={(exerciseRef, i, handleTouchStart) => {
+                const exercise = program.exercises.find((e) => e.id === exerciseRef.id)!;
                 return (
                   <MenuItem
                     handleTouchStart={handleTouchStart}
-                    name={excercise.name}
+                    name={exercise.name}
                     value={
                       <Fragment>
                         <button
                           className="p-2 align-middle button"
-                          onClick={() => EditProgram.editProgramExcercise(props.dispatch, excercise)}
+                          onClick={() => EditProgram.editProgramExercise(props.dispatch, exercise)}
                         >
                           <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                         </button>
                         <button
                           className="p-2 align-middle button"
                           onClick={() =>
-                            EditProgram.toggleDayExcercise(props.dispatch, program, props.dayIndex, excercise.id)
+                            EditProgram.toggleDayExercise(props.dispatch, program, props.dayIndex, exercise.id)
                           }
                         >
                           <IconDelete />
@@ -85,29 +85,29 @@ export function EditProgramDay(props: IProps): JSX.Element {
                 );
               }}
               onDragEnd={(startIndex, endIndex) => {
-                EditProgram.reorderExcercises(props.dispatch, programIndex, dayIndex, startIndex, endIndex);
+                EditProgram.reorderExercises(props.dispatch, programIndex, dayIndex, startIndex, endIndex);
               }}
             />
             <div class="p-1">
               <SemiButton
                 onClick={() => {
-                  EditProgram.addProgramExcercise(props.dispatch);
+                  EditProgram.addProgramExercise(props.dispatch);
                 }}
               >
-                Create New Excercise
+                Create New Exercise
               </SemiButton>
             </div>
           </section>
-          <section data-cy="available-excercises">
-            <GroupHeader name="Available excercises" />
-            {program.excercises.map((excercise) => (
+          <section data-cy="available-exercises">
+            <GroupHeader name="Available exercises" />
+            {program.exercises.map((exercise) => (
               <MenuItem
-                name={excercise.name}
+                name={exercise.name}
                 onClick={() => {
-                  EditProgram.toggleDayExcercise(props.dispatch, program, props.dayIndex, excercise.id);
+                  EditProgram.toggleDayExercise(props.dispatch, program, props.dayIndex, exercise.id);
                 }}
                 value={
-                  day.excercises.some((e) => e.id === excercise.id) ? (
+                  day.exercises.some((e) => e.id === exercise.id) ? (
                     <div className="flex flex-row-reverse">
                       <IconCheck />
                     </div>

@@ -5,7 +5,7 @@ import { lf } from "../utils/lens";
 import { Service } from "../api/service";
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "../models/weight";
-import { IExcerciseType } from "../models/excercise";
+import { IExerciseType } from "../models/exercise";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -18,7 +18,7 @@ export function getLatestMigrationVersion(): string {
   return latestMigrationVersion.toString();
 }
 
-export const excerciseMapper: Record<string, IExcerciseType> = {
+export const exerciseMapper: Record<string, IExerciseType> = {
   benchPress: { id: "benchPress", bar: "barbell" },
   squat: { id: "squat", bar: "barbell" },
   deadlift: { id: "deadlift", bar: "barbell" },
@@ -177,21 +177,21 @@ export const migrations = {
     storage.settings.units = "lb";
     return storage;
   },
-  "20200808141059_migrate_excercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20200808141059_migrate_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
-        if (typeof entry.excercise === "string") {
-          entry.excercise = excerciseMapper[(entry.excercise as unknown) as string];
+        if (typeof entry.exercise === "string") {
+          entry.exercise = exerciseMapper[(entry.exercise as unknown) as string];
         }
       }
     }
     for (const program of storage.programs) {
       for (const day of program.days) {
-        for (const excercise of day.excercises) {
-          const e = excercise as any;
-          if (typeof e.excercise === "string") {
-            e.excercise = excerciseMapper[(e.excercise as unknown) as string];
+        for (const exercise of day.exercises) {
+          const e = exercise as any;
+          if (typeof e.exercise === "string") {
+            e.exercise = exerciseMapper[(e.exercise as unknown) as string];
           }
         }
       }
@@ -208,6 +208,39 @@ export const migrations = {
   "20200907132922_remove_old_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.programs = [];
+    return storage;
+  },
+  "20200913190158_rename_excercise_to_exercise": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        if ((entry as any).excercise != null) {
+          entry.exercise = (entry as any).excercise;
+          delete (entry as any).excercise;
+        }
+      }
+    }
+    for (const program of storage.programs) {
+      for (const day of program.days) {
+        if ((day as any).excercises != null) {
+          day.exercises = (day as any).excercises;
+          delete (day as any).excercises;
+        }
+        if ((program as any).excercises != null) {
+          program.exercises = (program as any).excercises;
+          delete (program as any).excercises;
+          for (const exercise of program.exercises) {
+            if ((exercise as any).excerciseType != null) {
+              exercise.exerciseType = (exercise as any).excerciseType;
+              delete (exercise as any).excerciseType;
+            }
+          }
+        }
+      }
+    }
     return storage;
   },
 };

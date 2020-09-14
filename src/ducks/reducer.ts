@@ -1,8 +1,8 @@
 import { Reducer } from "preact/hooks";
-import { Program, TProgram, IProgram, IProgramDay, IProgramExcercise } from "../models/program";
+import { Program, TProgram, IProgram, IProgramDay, IProgramExercise } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
-import { IExcerciseType } from "../models/excercise";
+import { IExerciseType } from "../models/exercise";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
@@ -41,7 +41,7 @@ export interface IState {
     id: string;
     dayIndex?: number;
   };
-  editExcercise?: IProgramExcercise;
+  editExercise?: IProgramExercise;
 }
 
 export const TStorage = t.type(
@@ -205,7 +205,7 @@ export type IDeleteProgress = {
 
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
-  excercise: IExcerciseType;
+  exercise: IExerciseType;
   setIndex: number;
   weight: IWeight;
   mode: IProgressMode;
@@ -227,7 +227,7 @@ export type IChangeAMRAPAction = {
 export type IChangeWeightAction = {
   type: "ChangeWeightAction";
   weight: IWeight;
-  excercise: IExcerciseType;
+  exercise: IExerciseType;
 };
 
 export type IConfirmWeightAction = {
@@ -280,8 +280,8 @@ export type IEditDayAction = {
   index: number;
 };
 
-export type ISaveExcercise = {
-  type: "SaveExcercise";
+export type ISaveExercise = {
+  type: "SaveExercise";
 };
 
 export type IApplyProgramChangesToProgress = {
@@ -312,7 +312,7 @@ export type IAction =
   | ICreateProgramAction
   | ICreateDayAction
   | IEditDayAction
-  | ISaveExcercise
+  | ISaveExercise
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
@@ -349,9 +349,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "ChangeRepsAction": {
-        progress = Progress.updateRepsInExcercise(
+        progress = Progress.updateRepsInExercise(
           progress,
-          action.excercise,
+          action.exercise,
           action.weight,
           action.setIndex,
           action.mode
@@ -362,10 +362,10 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         return progress;
       }
       case "ChangeAMRAPAction": {
-        return Progress.updateAmrapRepsInExcercise(progress, action.value);
+        return Progress.updateAmrapRepsInExercise(progress, action.value);
       }
       case "ChangeWeightAction": {
-        return Progress.showUpdateWeightModal(progress, action.excercise, action.weight);
+        return Progress.showUpdateWeightModal(progress, action.exercise, action.weight);
       }
       case "ConfirmWeightAction": {
         return Progress.updateWeight(progress, settings, action.weight);
@@ -538,8 +538,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       author: "",
       description: action.name,
       nextDay: 1,
-      days: [{ name: "Day 1", excercises: [] }],
-      excercises: [],
+      days: [{ name: "Day 1", exercises: [] }],
+      exercises: [],
       tags: [],
     };
     let newState = lf(state)
@@ -571,22 +571,22 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       },
       screenStack: Screen.push(state.screenStack, "editProgramDay"),
     };
-  } else if (action.type === "SaveExcercise") {
+  } else if (action.type === "SaveExercise") {
     const programIndex = Program.getEditingProgramIndex(state);
     return {
       ...state,
-      editExcercise: undefined,
+      editExercise: undefined,
       storage: lf(state.storage)
         .p("programs")
         .i(programIndex)
-        .p("excercises")
+        .p("exercises")
         .modify((exc) => {
-          const editExcercise = state.editExcercise!;
-          const excercise = exc.find((e) => e.id === editExcercise.id);
-          if (excercise != null) {
-            return exc.map((e) => (e.id === editExcercise.id ? editExcercise : e));
+          const editExercise = state.editExercise!;
+          const exercise = exc.find((e) => e.id === editExercise.id);
+          if (exercise != null) {
+            return exc.map((e) => (e.id === editExercise.id ? editExercise : e));
           } else {
-            return [...exc, editExcercise];
+            return [...exc, editExercise];
           }
         }),
       screenStack: Screen.pull(state.screenStack),
