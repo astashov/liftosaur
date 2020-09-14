@@ -20,6 +20,11 @@ possible progressions and deloads variants.
 If you have ever written scripts in JavaScript, Python or similar programming language (or even Excel!),
 Liftoscript will look very familiar. If not - no worries, it's a pretty simple and small language.
 
+<div style="text-align: center">
+  <video src="/images/docs-video.mp4" controls style="width: 100%; max-width: 320px;"></video>
+</div>
+Check this video if you get stuck, it replicates what's written below.
+
 ### State Variables and Finish Day Script
 
 Let's start with creating our own simple workout. Open liftosaur.com (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to Settings (cog icon at the right bottom corner), and press "Choose Program". There, press "Create new program". Let's name it "Liftosaurus".
