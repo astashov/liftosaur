@@ -94,9 +94,6 @@ export function EditProgramExercise(props: IProps): JSX.Element {
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExercise, day, props.settings);
-  console.log("Variation script: ", programExercise.variationExpr);
-  console.log("Variation script result: ", variationScriptResult);
-  console.log("Progress entries: ", progress?.entries);
 
   const exerciseOptions = ObjectUtils.keys(exercises).map<[string, string]>((e) => [
     exercises[e].id,
@@ -165,6 +162,13 @@ export function EditProgramExercise(props: IProps): JSX.Element {
             dispatch={props.dispatch}
           />
         )}
+        <EditState
+          dispatch={props.dispatch}
+          programExercise={programExercise}
+          onAddStateVariable={() => {
+            setShouldShowAddStateVariable(true);
+          }}
+        />
         <Sets
           variationIndex={variationIndex}
           settings={props.settings}
@@ -174,13 +178,6 @@ export function EditProgramExercise(props: IProps): JSX.Element {
             setVariationIndex(Math.max(variationIndex - 1, 0));
           }}
           dispatch={props.dispatch}
-        />
-        <EditState
-          dispatch={props.dispatch}
-          programExercise={programExercise}
-          onAddStateVariable={() => {
-            setShouldShowAddStateVariable(true);
-          }}
         />
         {progress && entry && (
           <Fragment>
