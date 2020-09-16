@@ -49,6 +49,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     }
     return (
       <EditProgramExercise
+        programIndex={props.programIndex}
         days={props.editProgram.days}
         programName={props.editProgram.name}
         settings={props.settings}

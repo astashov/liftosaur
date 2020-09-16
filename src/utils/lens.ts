@@ -1,3 +1,6 @@
+import { ObjectUtils } from "./object";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type IGetter<T, R> = (obj: T) => R;
 type ISetter<T, R> = (obj: T, value: R) => T;
 
@@ -9,18 +12,30 @@ export type ILensRecording<T> = {
 export type ILensRecordingPayload<T> = {
   fn: ILensRecording<T>;
   str: string;
+  lens: Lens<any, any>;
+  lensGetters?: Record<string, Lens<any, any>>;
 };
 
-interface IPartialBuilder<T> {
-  p: <R extends keyof T>(key: R) => LensBuilder<T, T[R]>;
-  pi: <R extends keyof T>(key: R) => LensBuilder<T, Exclude<T[R], undefined>>;
-  i: (index: number) => LensBuilder<T, T extends unknown[] ? T[number] : never>;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type ValueFromLens<T> = T extends Lens<infer A, infer B> ? B : never;
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+type ValuesFromLens<T> = T extends { [P in keyof T]: Lens<any, any> } ? { [P in keyof T]: ValueFromLens<T[P]> } : never;
+
+export type ILensGetters<T> = { [P in string]: Lens<T, any> };
+
+export interface IPartialBuilder<T, U extends ILensGetters<T>> {
+  p: <R extends keyof T>(key: R) => LensBuilder<T, T[R], U>;
+  pi: <R extends keyof T>(key: R) => LensBuilder<T, Exclude<T[R], undefined>, U>;
+  i: (index: number) => LensBuilder<T, T extends unknown[] ? T[number] : never, U>;
+  get: () => Lens<T, T>;
 }
 
 interface IPartialBuilderWithObject<T> {
   p: <R extends keyof T>(key: R) => LensBuilderWithObject<T, T[R]>;
   pi: <R extends keyof T>(key: R) => LensBuilderWithObject<T, Exclude<T[R], undefined>>;
   i: (index: number) => LensBuilderWithObject<T, T extends unknown[] ? T[number] : never>;
+  get: () => Lens<T, T>;
 }
 
 abstract class AbstractLensBuilder<T, R> {
@@ -28,14 +43,6 @@ abstract class AbstractLensBuilder<T, R> {
 
   public get(): Lens<T, R> {
     return this.lens;
-  }
-
-  public record(value: R): ILensRecordingPayload<T> {
-    return Lens.buildLensRecording(this.lens, value);
-  }
-
-  public recordModify(fn: (v: R) => R): ILensRecordingPayload<T> {
-    return Lens.buildLensModifyRecording(this.lens, fn);
   }
 }
 
@@ -53,12 +60,18 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
         return new LensBuilderWithObject<T, T[R]>(lensFactory(key), obj);
       },
       pi: <R extends keyof T>(key: R): LensBuilderWithObject<T, Exclude<T[R], undefined>> => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new LensBuilderWithObject<T, Exclude<T[R], undefined>>(lensFactory(key) as any, obj);
       },
       i: (index: number): LensBuilderWithObject<T, T extends unknown[] ? T[number] : never> => {
         // @ts-ignore
         return new LensBuilderWithObject<T, T[number]>(lensFactory(index), obj);
+      },
+      get: (): Lens<T, T> => {
+        return new Lens(
+          (s) => s,
+          (s, v) => v,
+          { from: "obj", to: "obj" }
+        );
       },
     };
   }
@@ -68,7 +81,6 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
   }
 
   public pi<K extends keyof R>(key: K): LensBuilderWithObject<T, Exclude<R[K], undefined>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return new LensBuilderWithObject<T, Exclude<R[K], undefined>>(this.lens.then(Lens.prop<R>()(key) as any), this.obj);
   }
 
@@ -86,39 +98,50 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
   }
 }
 
-export class LensBuilder<T, R> extends AbstractLensBuilder<T, R> {
-  constructor(lens: Lens<T, R>) {
+export class LensBuilder<T, R, U extends ILensGetters<T>> extends AbstractLensBuilder<T, R> {
+  constructor(lens: Lens<T, R>, protected readonly lensGetters: U) {
     super(lens);
   }
 
-  public static start<T>(lensFactory: <R extends keyof T>(key: R) => Lens<T, T[R]>): IPartialBuilder<T> {
+  public static start<T, U extends ILensGetters<T>>(
+    lensFactory: <R extends keyof T>(key: R) => Lens<T, T[R]>,
+    lensGetters: U
+  ): IPartialBuilder<T, U> {
     return {
-      p: <R extends keyof T>(key: R): LensBuilder<T, T[R]> => {
-        return new LensBuilder<T, T[R]>(lensFactory(key));
+      p: <R extends keyof T>(key: R): LensBuilder<T, T[R], U> => {
+        return new LensBuilder<T, T[R], U>(lensFactory(key), lensGetters);
       },
-      pi: <R extends keyof T>(key: R): LensBuilder<T, Exclude<T[R], undefined>> => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return new LensBuilder<T, Exclude<T[R], undefined>>(lensFactory(key) as any);
+      pi: <R extends keyof T>(key: R): LensBuilder<T, Exclude<T[R], undefined>, U> => {
+        return new LensBuilder<T, Exclude<T[R], undefined>, U>(lensFactory(key) as any, lensGetters);
       },
-      i: (index: number): LensBuilder<T, T extends unknown[] ? T[number] : never> => {
+      i: (index: number): LensBuilder<T, T extends unknown[] ? T[number] : never, U> => {
         // @ts-ignore
-        return new LensBuilder<T, T[number]>(lensFactory(index));
+        return new LensBuilder<T, T[number]>(lensFactory(index), lensGetters);
+      },
+      get: (): Lens<T, T> => {
+        return new Lens(
+          (s) => s,
+          (s, v) => v,
+          { from: "obj", to: "obj" }
+        );
       },
     };
   }
 
-  public p<K extends keyof R>(key: K): LensBuilder<T, R[K]> {
-    return new LensBuilder<T, R[K]>(this.lens.then(Lens.prop<R>()(key)));
+  public p<K extends keyof R>(key: K): LensBuilder<T, R[K], U> {
+    return new LensBuilder<T, R[K], U>(this.lens.then(Lens.prop<R>()(key)), this.lensGetters);
   }
 
-  public i(index: number): LensBuilder<T, R extends unknown[] ? R[number] : never> {
+  public i(index: number): LensBuilder<T, R extends unknown[] ? R[number] : never, U> {
     // @ts-ignore
-    return new LensBuilder<T, R[number]>(this.lens.then(Lens.index<R>()(index)), this.obj);
+    return new LensBuilder<T, R[number], U>(this.lens.then(Lens.index<R>()(index)), this.lensGetters);
   }
 
-  public pi<K extends keyof R>(key: K): LensBuilder<T, Exclude<R[K], undefined>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new LensBuilder<T, Exclude<R[K], undefined>>(this.lens.then(Lens.prop<R>()(key) as any));
+  public pi<K extends keyof R>(key: K): LensBuilder<T, Exclude<R[K], undefined>, U> {
+    return new LensBuilder<T, Exclude<R[K], undefined>, U>(
+      this.lens.then(Lens.prop<R>()(key) as any),
+      this.lensGetters
+    );
   }
 
   public set(obj: T, value: R): T {
@@ -128,12 +151,21 @@ export class LensBuilder<T, R> extends AbstractLensBuilder<T, R> {
   public modify(obj: T, fn: (value: R) => R): T {
     return this.lens.modify(obj, fn);
   }
+
+  public record(value: R): ILensRecordingPayload<T> {
+    return Lens.buildLensRecording(this.lens, value);
+  }
+
+  public recordModify(fn: (v: R, getters: ValuesFromLens<U>) => R): ILensRecordingPayload<T> {
+    return Lens.buildLensModifyRecording(this.lens, fn, this.lensGetters);
+  }
 }
 
-export function lb<T>(lensFactory?: <R extends keyof T>(key: R) => Lens<T, T[R]>): IPartialBuilder<T>;
-export function lb<T, R>(lens: Lens<T, R>): LensBuilder<T, R>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function lb(lens: any): any {
+export function lb<T>(): IPartialBuilder<T, {}> {
+  return Lens.build({});
+}
+
+export function lbu<T, U extends ILensGetters<T>>(lens: U): IPartialBuilder<T, U> {
   return Lens.build(lens);
 }
 
@@ -147,22 +179,31 @@ export class Lens<T, R> {
   public readonly from: string;
   public readonly to: string;
 
-  public static buildLensModifyRecording<T, R>(
-    aLens: Lens<T, R> | LensBuilder<T, R>,
-    modifyFn: (v: R) => R
+  public static buildLensModifyRecording<T, R, U extends ILensGetters<T>>(
+    aLens: Lens<T, R> | LensBuilder<T, R, U>,
+    modifyFn: <Z extends ValuesFromLens<U>>(v: R, getters: Z) => R,
+    lensGetters: U
   ): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
     const fn: ILensRecording<T> = (obj: T) => {
-      return lens.modify(obj, modifyFn);
+      const getters = ObjectUtils.keys(lensGetters).reduce<ValuesFromLens<U>>((memo, key) => {
+        // @ts-ignore
+        memo[key] = lensGetters[key].get(obj) as any;
+        return memo;
+      }, {} as any);
+      return lens.modify(obj, (v) => modifyFn(v, getters));
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     fn.toString = (): string => {
       return `${lens.toString()} = \`modify\``;
     };
-    return { fn, str: fn.toString() };
+    return { fn, str: fn.toString(), lens, lensGetters };
   }
 
-  public static buildLensRecording<T, R>(aLens: Lens<T, R> | LensBuilder<T, R>, value: R): ILensRecordingPayload<T> {
+  public static buildLensRecording<T, R>(
+    aLens: Lens<T, R> | LensBuilder<T, R, {}>,
+    value: R
+  ): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
     const fn: ILensRecording<T> = (obj: T) => {
       return lens.set(obj, value);
@@ -171,20 +212,11 @@ export class Lens<T, R> {
     fn.toString = (): string => {
       return `${lens.toString()} = ${value}`;
     };
-    return { fn, str: fn.toString() };
+    return { fn, str: fn.toString(), lens };
   }
 
-  public static build<T>(lensFactory?: <R extends keyof T>(key: R) => Lens<T, T[R]>): IPartialBuilder<T>;
-  public static build<T, R>(lens: Lens<T, R>): LensBuilder<T, R>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static build(lens: any): any {
-    if (lens == null) {
-      return LensBuilder.start(Lens.prop());
-    } else if (typeof lens === "function") {
-      return LensBuilder.start(lens);
-    } else {
-      return new LensBuilder(lens);
-    }
+  public static build<T, U extends ILensGetters<T>>(lens: U): IPartialBuilder<T, U> {
+    return LensBuilder.start(Lens.prop(), lens);
   }
 
   public static from<T>(obj: T): IPartialBuilderWithObject<T> {

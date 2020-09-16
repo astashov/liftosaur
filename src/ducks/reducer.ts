@@ -504,7 +504,11 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       },
     };
   } else if (action.type === "UpdateState") {
-    return action.lensRecording.reduce((memo, recording) => recording.fn(memo), state);
+    return action.lensRecording.reduce((memo, recording) => {
+      console.log("----");
+      console.log(recording.str);
+      return recording.fn(memo);
+    }, state);
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
     const newStorage = action.storage;

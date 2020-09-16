@@ -34,6 +34,7 @@ import { StringUtils } from "../../utils/string";
 interface IProps {
   settings: ISettings;
   days: IProgramDay[];
+  programIndex: number;
   programExercise: IProgramExercise;
   programName: string;
   dispatch: IDispatch;
@@ -208,7 +209,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           <Button
             kind="green"
             disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
-            onClick={() => props.dispatch({ type: "SaveExercise" })}
+            onClick={() => EditProgram.saveExcercise(props.dispatch, props.programIndex)}
           >
             Save
           </Button>

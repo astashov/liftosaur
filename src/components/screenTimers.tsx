@@ -5,7 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
 import { ISettingsTimers, ISettings } from "../models/settings";
-import { Lens } from "../utils/lens";
+import { Lens, lb } from "../utils/lens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Thunk } from "../ducks/thunks";
 
@@ -30,7 +30,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
               valueUnits="sec"
               onChange={(newValue?: string) => {
                 const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
-                const lensRecording = Lens.buildLensRecording(Lens.build<ISettings>().p("timers").p(timerType), v);
+                const lensRecording = Lens.buildLensRecording(lb<ISettings>().p("timers").p(timerType), v);
                 props.dispatch({ type: "UpdateSettings", lensRecording });
               }}
             />
