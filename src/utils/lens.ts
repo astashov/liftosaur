@@ -14,6 +14,9 @@ export type ILensRecordingPayload<T> = {
   str: string;
   lens: Lens<any, any>;
   lensGetters?: Record<string, Lens<any, any>>;
+  type: "set" | "modify";
+  value: { v: any };
+  log: (startName: string) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -152,12 +155,12 @@ export class LensBuilder<T, R, U extends ILensGetters<T>> extends AbstractLensBu
     return this.lens.modify(obj, fn);
   }
 
-  public record(value: R): ILensRecordingPayload<T> {
-    return Lens.buildLensRecording(this.lens, value);
+  public record(value: R, name?: string): ILensRecordingPayload<T> {
+    return Lens.buildLensRecording(this.lens, value, name);
   }
 
-  public recordModify(fn: (v: R, getters: ValuesFromLens<U>) => R): ILensRecordingPayload<T> {
-    return Lens.buildLensModifyRecording(this.lens, fn, this.lensGetters);
+  public recordModify(fn: (v: R, getters: ValuesFromLens<U>) => R, name?: string): ILensRecordingPayload<T> {
+    return Lens.buildLensModifyRecording(this.lens, fn, this.lensGetters, name);
   }
 }
 
@@ -176,33 +179,51 @@ export function lf<T>(obj: T): IPartialBuilderWithObject<T> {
 export class Lens<T, R> {
   public readonly get: IGetter<T, R>;
   public readonly set: ISetter<T, R>;
-  public readonly from: string;
+  public readonly from: string[];
   public readonly to: string;
 
   public static buildLensModifyRecording<T, R, U extends ILensGetters<T>>(
     aLens: Lens<T, R> | LensBuilder<T, R, U>,
     modifyFn: <Z extends ValuesFromLens<U>>(v: R, getters: Z) => R,
-    lensGetters: U
+    lensGetters: U,
+    name?: string
   ): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
+    const value: { v: any } = { v: undefined };
     const fn: ILensRecording<T> = (obj: T) => {
       const getters = ObjectUtils.keys(lensGetters).reduce<ValuesFromLens<U>>((memo, key) => {
         // @ts-ignore
         memo[key] = lensGetters[key].get(obj) as any;
         return memo;
       }, {} as any);
-      return lens.modify(obj, (v) => modifyFn(v, getters));
+      return lens.modify(obj, (v) => {
+        const newValue = modifyFn(v, getters);
+        value.v = newValue;
+        return newValue;
+      });
     };
     // eslint-disable-next-line @typescript-eslint/unbound-method
     fn.toString = (): string => {
       return `${lens.toString()} = \`modify\``;
     };
-    return { fn, str: fn.toString(), lens, lensGetters };
+    const log = (startName: string): void => {
+      for (const g of Object.keys(lensGetters)) {
+        const l = lensGetters[g];
+        const lensGetterStr = [startName, ...l.from.slice(1), l.to].join(" -> ");
+        console.log("getter: ", lensGetterStr);
+      }
+      if (name != null) {
+        console.log(`${name}: `);
+      }
+      console.log([startName, ...lens.from.slice(1), lens.to].join(" -> "), "=", "`modify`");
+    };
+    return { fn, str: fn.toString(), lens, lensGetters, value, log, type: "modify" };
   }
 
   public static buildLensRecording<T, R>(
     aLens: Lens<T, R> | LensBuilder<T, R, {}>,
-    value: R
+    value: R,
+    name?: string
   ): ILensRecordingPayload<T> {
     const lens = aLens instanceof Lens ? aLens : aLens.get();
     const fn: ILensRecording<T> = (obj: T) => {
@@ -212,7 +233,13 @@ export class Lens<T, R> {
     fn.toString = (): string => {
       return `${lens.toString()} = ${value}`;
     };
-    return { fn, str: fn.toString(), lens };
+    const log = (startName: string): void => {
+      if (name != null) {
+        console.log(`${name}: `);
+      }
+      console.log([startName, ...lens.from.slice(1), lens.to].join(" -> "), "=", value);
+    };
+    return { fn, str: fn.toString(), lens, value: { v: value }, log, type: "set" };
   }
 
   public static build<T, U extends ILensGetters<T>>(lens: U): IPartialBuilder<T, U> {
@@ -247,10 +274,10 @@ export class Lens<T, R> {
     };
   }
 
-  constructor(getter: IGetter<T, R>, setter: ISetter<T, R>, args: { from: string; to: string }) {
+  constructor(getter: IGetter<T, R>, setter: ISetter<T, R>, args: { from: string | string[]; to: string }) {
     this.get = getter;
     this.set = setter;
-    this.from = args.from;
+    this.from = Array.isArray(args.from) ? args.from : [args.from];
     this.to = args.to;
   }
 
@@ -271,7 +298,7 @@ export class Lens<T, R> {
         return newObj;
       },
       {
-        from: this.toString(),
+        from: [...this.from, this.to],
         to: lens.to,
       }
     );
@@ -279,7 +306,7 @@ export class Lens<T, R> {
 
   public toString(): string {
     if (this.from != null && this.to != null) {
-      return `${this.from} -> ${this.to}`;
+      return `${this.from.join(" -> ")} -> ${this.to}`;
     } else {
       return "Lens";
     }

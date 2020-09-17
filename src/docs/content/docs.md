@@ -57,7 +57,7 @@ You may notice that the weight value gets rounded if you use some math operators
 
 Above "Finish Day Script" you could see the "State Changes" section, which should show something like `weight: 50lb -> 55lb` - it should how the state variable are going to change after we finish the day. It says that the `weight` state variable will be increased by `5lb`, which is exactly what we want.
 
-Now, scroll to the very bottom and press "Save". You'll get back to the day editing screen. In the "Available Excercises" you'll see our new "Bench Press" exercise. Press it, and it should appear in the "Selected exercises". That means our first day now has this exercise added.
+Now, scroll to the very bottom and press "Save". You'll get back to the day editing screen. In the "Available Exercises" you'll see our new "Bench Press" exercise. Press it, and it should appear in the "Selected exercises". That means our first day now has this exercise added.
 
 You can give it a try for real now - go back to the list of days, and then go back again to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Press "Start Next Workout", then press "Finish the workout". You'll see that for the next workout the weight will be 50lb now.
 

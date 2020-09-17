@@ -79,7 +79,7 @@ export const migrations = {
     return storage;
   },
   "20200723011153_upgrade_to_new_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
-    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const storage: any = JSON.parse(JSON.stringify(aStorage));
     if (aStorage.programs != null && aStorage.programs.length > 0) {
       return storage;
     }
@@ -97,7 +97,7 @@ export const migrations = {
       delete (program as any).initialState;
       delete (program as any).isProgram2;
       storage.programs = storage.programs || [];
-      if (storage.programs.findIndex((p) => p.id === programId) === -1) {
+      if (storage.programs.findIndex((p: any) => p.id === programId) === -1) {
         storage.programs.push(program);
       }
 
@@ -206,7 +206,7 @@ export const migrations = {
     return storage;
   },
   "20200907132922_remove_old_programs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
-    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const storage: any = JSON.parse(JSON.stringify(aStorage));
     storage.programs = [];
     return storage;
   },

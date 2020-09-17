@@ -20,7 +20,7 @@ export const TProgramDayEntry = t.type(
   },
   "TProgramDayEntry"
 );
-export type IProgramDayEntry = t.TypeOf<typeof TProgramDayEntry>;
+export type IProgramDayEntry = Readonly<t.TypeOf<typeof TProgramDayEntry>>;
 
 export const TProgramDay = t.type(
   {
@@ -33,15 +33,7 @@ export const TProgramDay = t.type(
   },
   "TProgramDay"
 );
-export type IProgramDay = t.TypeOf<typeof TProgramDay>;
-
-export const TProgramInternalState = t.type(
-  {
-    nextDay: t.number,
-  },
-  "TProgramInternalState"
-);
-export type IProgramInternalState = t.TypeOf<typeof TProgramInternalState>;
+export type IProgramDay = Readonly<t.TypeOf<typeof TProgramDay>>;
 
 export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
@@ -55,7 +47,7 @@ export const TProgramTag = t.keyof(
   }, {} as Record<IArrayElement<typeof tags>, null>),
   "TProgramTag"
 );
-export type IProgramTag = t.TypeOf<typeof TProgramTag>;
+export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
 
 export const TProgramExerciseVariation = t.type(
   {
@@ -63,7 +55,7 @@ export const TProgramExerciseVariation = t.type(
   },
   "TProgramExerciseVariation"
 );
-export type IProgramExerciseVariation = t.TypeOf<typeof TProgramExerciseVariation>;
+export type IProgramExerciseVariation = Readonly<t.TypeOf<typeof TProgramExerciseVariation>>;
 
 export const TProgramExercise = t.type(
   {
@@ -77,7 +69,7 @@ export const TProgramExercise = t.type(
   },
   "TProgramExercise"
 );
-export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
+export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
 
 export const TProgram = t.type(
   {
@@ -93,7 +85,7 @@ export const TProgram = t.type(
   },
   "TProgram"
 );
-export type IProgram = t.TypeOf<typeof TProgram>;
+export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {

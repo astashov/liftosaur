@@ -209,7 +209,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           <Button
             kind="green"
             disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
-            onClick={() => EditProgram.saveExcercise(props.dispatch, props.programIndex)}
+            onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}
           >
             Save
           </Button>

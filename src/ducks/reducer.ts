@@ -22,6 +22,7 @@ import { IDispatch } from "./types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 
 declare let Rollbar: RB;
+const isLoggingEnabled = false;
 
 export type IEnv = {
   service: Service;
@@ -55,7 +56,7 @@ export const TStorage = t.type(
   },
   "TStorage"
 );
-export type IStorage = t.TypeOf<typeof TStorage>;
+export type IStorage = Readonly<t.TypeOf<typeof TStorage>>;
 
 export interface IWebpushr {
   sid: number;
@@ -280,10 +281,6 @@ export type IEditDayAction = {
   index: number;
 };
 
-export type ISaveExercise = {
-  type: "SaveExercise";
-};
-
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
 };
@@ -312,7 +309,6 @@ export type IAction =
   | ICreateProgramAction
   | ICreateDayAction
   | IEditDayAction
-  | ISaveExercise
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
@@ -504,10 +500,18 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       },
     };
   } else if (action.type === "UpdateState") {
+    if (isLoggingEnabled) {
+      console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");
+    }
     return action.lensRecording.reduce((memo, recording) => {
-      console.log("----");
-      console.log(recording.str);
-      return recording.fn(memo);
+      if (isLoggingEnabled) {
+        recording.log("state");
+      }
+      const newState = recording.fn(memo);
+      if (isLoggingEnabled && recording.type === "modify") {
+        console.log("New Value: ", recording.value.v);
+      }
+      return newState;
     }, state);
   } else if (action.type === "SyncStorage") {
     const oldStorage = state.storage;
@@ -574,26 +578,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         dayIndex: action.index,
       },
       screenStack: Screen.push(state.screenStack, "editProgramDay"),
-    };
-  } else if (action.type === "SaveExercise") {
-    const programIndex = Program.getEditingProgramIndex(state);
-    return {
-      ...state,
-      editExercise: undefined,
-      storage: lf(state.storage)
-        .p("programs")
-        .i(programIndex)
-        .p("exercises")
-        .modify((exc) => {
-          const editExercise = state.editExercise!;
-          const exercise = exc.find((e) => e.id === editExercise.id);
-          if (exercise != null) {
-            return exc.map((e) => (e.id === editExercise.id ? editExercise : e));
-          } else {
-            return [...exc, editExercise];
-          }
-        }),
-      screenStack: Screen.pull(state.screenStack),
     };
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];

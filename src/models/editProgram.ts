@@ -340,30 +340,34 @@ export namespace EditProgram {
     ]);
   }
 
-  export function saveExcercise(dispatch: IDispatch, programIndex: number): void {
+  export function saveExercise(dispatch: IDispatch, programIndex: number): void {
     const exerciseLensGetters = {
       editExercise: lb<IState>().p("editExercise").get(),
       state: lb<IState>().get(),
     };
-    updateState(dispatch, [
-      lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
-        .p("storage")
-        .p("programs")
-        .i(programIndex)
-        .p("exercises")
-        .recordModify((exc, getters) => {
-          const editExercise = getters.editExercise!;
-          const exercise = exc.find((e) => e.id === editExercise.id);
-          if (exercise != null) {
-            return exc.map((e) => (e.id === editExercise.id ? editExercise : e));
-          } else {
-            return [...exc, editExercise];
-          }
-        }),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.pull(s)),
-      lb<IState>().p("editExercise").record(undefined),
-    ]);
+    updateState(
+      dispatch,
+      [
+        lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
+          .p("storage")
+          .p("programs")
+          .i(programIndex)
+          .p("exercises")
+          .recordModify((exc, getters) => {
+            const editExercise = getters.editExercise!;
+            const exercise = exc.find((e) => e.id === editExercise.id);
+            if (exercise != null) {
+              return exc.map((e) => (e.id === editExercise.id ? editExercise : e));
+            } else {
+              return [...exc, editExercise];
+            }
+          }),
+        lb<IState>()
+          .p("screenStack")
+          .recordModify((s) => Screen.pull(s)),
+        lb<IState>().p("editExercise").record(undefined),
+      ],
+      "Save Exercise"
+    );
   }
 }
