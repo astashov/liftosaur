@@ -22,7 +22,7 @@ import { IDispatch } from "./types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 
 declare let Rollbar: RB;
-const isLoggingEnabled = false;
+const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
 
 export type IEnv = {
   service: Service;
