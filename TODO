@@ -21,7 +21,6 @@
 * Lazy load Codemirror
 * Fix backups
 * Add comments support to parser
-* Think of a better way to pass pieces of state into lens play
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add showing what muscle groups are working for program/day/exercise
