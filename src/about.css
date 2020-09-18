@@ -442,10 +442,12 @@ footer nav {
   padding: 48px 12px;
   text-align: right;
   display: flex;
+  align-items: center;
 }
 
 .footer-menu {
   flex: 1;
+  padding-right: 1.5em;
 }
 
 footer nav ul,
@@ -597,6 +599,10 @@ footer nav li {
     text-align: left;
     padding: 24px 0;
     line-height: 2em;
+  }
+
+  .footer-menu {
+    padding-right: 0;
   }
 }
 /* purgecss end ignore */
