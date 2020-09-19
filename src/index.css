@@ -33,6 +33,11 @@
   font-family: "Iosevka Web";
 }
 
+.program-description a {
+  color: #2b6cb0;
+  text-decoration: underline;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

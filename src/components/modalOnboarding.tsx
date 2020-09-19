@@ -8,7 +8,8 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
       <h3 className="pb-2 font-bold text-center">Welcome to Liftosaur!</h3>
       <section className="text-sm">
         <p className="mb-2">
-          It's an app, that helps you to track your progress when you follow weightlifting routines from{" "}
+          It's an app, that allows you to create custom weightlifting routines with flexible progression schemes, using
+          a built-in scripting language called Liftoscript. It also contains a bunch of pre-built routines from{" "}
           <a
             className="text-blue-700 underline"
             href="https://thefitness.wiki/routines/strength-training-muscle-building/"
@@ -16,8 +17,15 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
           >
             /r/fitness and /r/weightroom on Reddit
           </a>
-          . With simple and friendly user interface, it will walk you through the routines, handling weights
-          progressing.
+          , which helped thousands of lifters already to achieve their weightlifting goals.
+        </p>
+        <p className="mb-2">
+          With simple and friendly user interface, this app will walk you through the routines, handling weights
+          progressing and deloading. You can read more and check some screenshots/videos on our{" "}
+          <a className="text-blue-700 underline" href="https://www.liftosaur.com/about" target="_blank">
+            landing page
+          </a>
+          .
         </p>
         <p>
           The features include:
@@ -27,34 +35,17 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
             <li>History view</li>
             <li>Rest Timer</li>
             <li>Plates calculator</li>
+            <li>Rounding up the weights according to available plates in your gym</li>
             <li>Progress graphs for main lifts</li>
+            <li>Custom routines builder</li>
+            <li>Ability to create progression schemes using built-in scripting language Liftoscript.</li>
           </ul>
-        </p>
-        <p className="mb-2">
-          It's still in beta version, and there's only few routines right now - like{" "}
-          <a
-            target="_blank"
-            className="text-blue-700 underline"
-            href="https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/"
-          >
-            Fitness Basic Beginner Routine
-          </a>
-          ,{" "}
-          <a
-            target="_blank"
-            className="text-blue-700 underline"
-            href="https://thefitness.wiki/routines/5-3-1-for-beginners/"
-          >
-            5/3/1 for Beginners
-          </a>
-          , and few more but you can definitely give it a try, it's a great balanced program, that nicely balances
-          volume and intensity.
         </p>
         <p>
           There're more features on the roadmap, like:
           <ul className="py-2 pl-4 list-disc">
             <li>More routines added. The app is designed to be very flexible and allow almost any possible routine.</li>
-            <li>Custom routine visual builder</li>
+            <li>Showing muscles map and activated muscles per exercise, workout day or whole program</li>
             <li>Achievements</li>
             <li>And much more!</li>
           </ul>

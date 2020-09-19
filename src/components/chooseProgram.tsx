@@ -7,11 +7,14 @@ import { useState } from "preact/hooks";
 import { IProgram, Program } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
+import { Thunk } from "../ducks/thunks";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
   customPrograms: IProgram[];
+  screenStack: IScreen[];
   editProgramId?: string;
 }
 
@@ -23,7 +26,14 @@ export function ChooseProgramView(props: IProps): JSX.Element {
 
   return (
     <section className="h-full">
-      <HeaderView title="Choose a program" />
+      <HeaderView
+        left={
+          props.screenStack.length > 1 ? (
+            <button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>
+          ) : undefined
+        }
+        title="Choose a program"
+      />
       <ProgramListView
         onCreateProgram={() => setShouldCreateProgram(true)}
         onSelectProgram={(id) => setSelectedProgramId(id)}

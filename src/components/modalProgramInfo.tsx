@@ -19,7 +19,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
         </a>{" "}
         <span>by {program.author}</span>
       </h3>
-      <div dangerouslySetInnerHTML={{ __html: program.description }} />
+      <div dangerouslySetInnerHTML={{ __html: program.description }} className="program-description" />
       <p className="mt-4 text-center">
         <Button type="button" kind="gray" className="mr-3" onClick={props.onClose}>
           Cancel

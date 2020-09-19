@@ -70,6 +70,7 @@ export function AppView(props: IProps): JSX.Element | null {
     return (
       <Fragment>
         <ChooseProgramView
+          screenStack={state.screenStack}
           dispatch={dispatch}
           programs={state.programs || []}
           customPrograms={state.storage.programs || []}
