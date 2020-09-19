@@ -398,11 +398,15 @@ export namespace Progress {
             firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings, "weight") : undefined;
           return {
             exercise: programExercise.exerciseType,
-            sets: sets.map((set) => ({
-              reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
-              weight: executeEntryScript(set.weightExpr, day, state, settings, "weight"),
-              isAmrap: set.isAmrap,
-            })),
+            sets: sets.map((set) => {
+              const weight = executeEntryScript(set.weightExpr, day, state, settings, "weight");
+              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.bar);
+              return {
+                reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
+                weight: roundedWeight,
+                isAmrap: set.isAmrap,
+              };
+            }),
             warmupSets:
               firstWeight != null ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings) : [],
           };
