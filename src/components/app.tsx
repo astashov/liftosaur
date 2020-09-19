@@ -44,6 +44,13 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     },
+    (action, oldState, newState) => {
+      if (oldState.screenStack !== newState.screenStack) {
+        setTimeout(() => {
+          window.scroll(0, 0);
+        }, 0);
+      }
+    },
   ]);
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
 
