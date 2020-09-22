@@ -385,12 +385,16 @@ export namespace Progress {
           return {
             ...progressEntry,
             exercise: programExercise.exerciseType,
-            sets: progressEntry.sets.map((set, i) => ({
-              ...set,
-              reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
-              weight: executeEntryScript(sets[i].weightExpr, day, state, settings, "weight"),
-              isAmrap: sets[i].isAmrap,
-            })),
+            sets: progressEntry.sets.map((set, i) => {
+              const weight = executeEntryScript(sets[i].weightExpr, day, state, settings, "weight");
+              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.bar);
+              return {
+                ...set,
+                reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
+                weight: roundedWeight,
+                isAmrap: sets[i].isAmrap,
+              };
+            }),
           };
         } else {
           const firstWeightExpr = sets[0]?.weightExpr;
