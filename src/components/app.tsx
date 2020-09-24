@@ -18,6 +18,7 @@ import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
+import { ScreenMuscles } from "./muscles/screenMuscles";
 
 interface IProps {
   client: Window["fetch"];
@@ -155,6 +156,14 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
     }
+  } else if (Screen.current(state.screenStack) === "musclesProgram") {
+    return (
+      <ScreenMuscles
+        dispatch={dispatch}
+        program={Program.getProgram(state, state.storage.currentProgramId)!}
+        settings={state.storage.settings}
+      />
+    );
   } else {
     return null;
   }

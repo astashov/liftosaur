@@ -7,6 +7,7 @@ export type IScreen =
   | "programs"
   | "progress"
   | "graphs"
+  | "musclesProgram"
   | "editProgram"
   | "editProgramExercise"
   | "editProgramDay"
