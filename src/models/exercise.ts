@@ -1105,6 +1105,10 @@ export namespace Exercise {
     return { ...exercises[type.id], bar: type.bar };
   }
 
+  export function all(): IExercise[] {
+    return ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], bar: exercises[k].defaultBar }));
+  }
+
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
     return a.id === b.id && a.bar === b.bar;
   }

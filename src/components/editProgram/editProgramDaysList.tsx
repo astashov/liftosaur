@@ -8,12 +8,12 @@ import { FooterView } from "../footer";
 import { IconDuplicate } from "../iconDuplicate";
 import { lb } from "../../utils/lens";
 import { IState } from "../../ducks/reducer";
-import { HtmlUtils } from "../../utils/html";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
+import { IconEdit } from "../iconEdit";
 
 interface IProps {
   editProgram: IProgram;
@@ -60,7 +60,15 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               value={
                 <Fragment>
                   <button
-                    className="mr-2 align-middle button"
+                    className="px-2 align-middle button"
+                    onClick={() => {
+                      EditProgram.editProgramExercise(props.dispatch, exercise);
+                    }}
+                  >
+                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                  </button>
+                  <button
+                    className="px-2 align-middle button"
                     onClick={() => {
                       EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
                     }}
@@ -68,7 +76,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconDuplicate />
                   </button>
                   <button
-                    className="align-middle button"
+                    className="px-2 align-middle button"
                     onClick={() => {
                       const isExerciseUsed = props.editProgram.days.some(
                         (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
@@ -84,11 +92,6 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   </button>
                 </Fragment>
               }
-              onClick={(e) => {
-                if (!HtmlUtils.classInParents(e.target as Element, "button")) {
-                  EditProgram.editProgramExercise(props.dispatch, exercise);
-                }
-              }}
             />
           );
         })}
@@ -106,15 +109,18 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               <MenuItem
                 handleTouchStart={handleTouchStart}
                 name={day.name}
-                onClick={(e) => {
-                  if (!HtmlUtils.classInParents(e.target as Element, "button")) {
-                    props.dispatch({ type: "EditDayAction", index });
-                  }
-                }}
                 value={
                   <Fragment>
                     <button
-                      className="mr-2 align-middle button"
+                      className="px-2 align-middle button"
+                      onClick={() => {
+                        props.dispatch({ type: "EditDayAction", index });
+                      }}
+                    >
+                      <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                    </button>
+                    <button
+                      className="px-2 align-middle button"
                       onClick={() => {
                         const newName = `${day.name} Copy`;
                         props.dispatch({
@@ -139,7 +145,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     {props.editProgram.days.length > 1 && (
                       <button
                         data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
-                        className="align-middle button"
+                        className="px-2 align-middle button"
                         onClick={() => {
                           props.dispatch({
                             type: "UpdateState",

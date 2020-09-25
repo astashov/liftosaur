@@ -5,7 +5,6 @@ import { HeaderView } from "../header";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ObjectUtils } from "../../utils/object";
-import { exercises, IExerciseId } from "../../models/exercise";
 import { ISettings, Settings } from "../../models/settings";
 import { History } from "../../models/history";
 import { Weight, IBarKey, IUnit, IWeight } from "../../models/weight";
@@ -30,6 +29,10 @@ import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
 import { SemiButton } from "../semiButton";
 import { StringUtils } from "../../utils/string";
+import { IconEdit } from "../iconEdit";
+import { MenuItem } from "../menuItem";
+import { ModalExercise } from "../modalExercise";
+import { Exercise } from "../../models/exercise";
 
 interface IProps {
   settings: ISettings;
@@ -71,6 +74,8 @@ export function EditProgramExercise(props: IProps): JSX.Element {
     buildProgress(programExercise, 1, variationIndex, props.settings)
   );
 
+  const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
+
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
       setProgress(buildProgress(programExercise, progress?.day || 1, variationIndex, props.settings));
@@ -96,10 +101,6 @@ export function EditProgramExercise(props: IProps): JSX.Element {
 
   const variationScriptResult = Program.runVariationScript(programExercise, day, props.settings);
 
-  const exerciseOptions = ObjectUtils.keys(exercises).map<[string, string]>((e) => [
-    exercises[e].id,
-    exercises[e].name,
-  ]);
   const bars = Settings.bars(props.settings);
   const barOptions: [string, string][] = [
     ["", "No Bar"],
@@ -124,14 +125,16 @@ export function EditProgramExercise(props: IProps): JSX.Element {
         }
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        <MenuItemEditable
-          type="select"
+        <MenuItem
           name="Exercise"
-          value={programExercise.exerciseType.id}
-          values={exerciseOptions}
-          onChange={(newId) => {
-            EditProgram.changeExerciseId(props.dispatch, newId as IExerciseId);
-          }}
+          value={
+            <Fragment>
+              <button className="px-4 align-middle" onClick={() => setShowModalExercise(true)}>
+                <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+              </button>
+              <span>{Exercise.get(programExercise.exerciseType).name}</span>
+            </Fragment>
+          }
         />
         <MenuItemEditable
           type="select"
@@ -220,6 +223,15 @@ export function EditProgramExercise(props: IProps): JSX.Element {
         onDone={(newName, newType) => {
           EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined);
           setShouldShowAddStateVariable(false);
+        }}
+      />
+      <ModalExercise
+        isHidden={!showModalExercise}
+        onChange={(exerciseId) => {
+          setShowModalExercise(false);
+          if (exerciseId != null) {
+            EditProgram.changeExerciseId(props.dispatch, exerciseId);
+          }
         }}
       />
       <FooterView dispatch={props.dispatch} />
