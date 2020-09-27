@@ -32,6 +32,9 @@ export function ProgramListView(props: IProps): JSX.Element {
 
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+      <p className="px-4 py-1 text-sm italic">
+        If you're new to weight-lifting, consider starting with Basic Beginner Routine.
+      </p>
       {customPrograms.length > 0 && (
         <Fragment>
           <GroupHeader name="Your Programs" />

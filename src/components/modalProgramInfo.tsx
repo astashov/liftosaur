@@ -13,6 +13,13 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
   const { program } = props;
   return (
     <Modal>
+      <p className="px-1 pb-1 text-sm italic">
+        Make sure to{" "}
+        <a className="text-blue-700 underline" href={program.url} target="_blank">
+          read about the program
+        </a>{" "}
+        before starting it!!!
+      </p>
       <h3 className="pb-2 font-bold text-center">
         <a className="text-blue-700 underline" href={program.url} target="_blank">
           {program.name}
