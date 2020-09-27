@@ -9,10 +9,13 @@ import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
 import { IScreen } from "../models/screen";
+import { ModalPostClone } from "./modalPostClone";
+import { ISettings } from "../models/settings";
 
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
+  settings: ISettings;
   customPrograms: IProgram[];
   screenStack: IScreen[];
   editProgramId?: string;
@@ -21,6 +24,7 @@ interface IProps {
 export function ChooseProgramView(props: IProps): JSX.Element {
   const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
   const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
+  const [shouldShowPostCloneModal, setShouldShowPostCloneModal] = useState<boolean>(false);
 
   const program = props.programs.find((p) => p.id === selectedProgramId);
 
@@ -48,6 +52,11 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           onClose={() => setSelectedProgramId(undefined)}
           onSelect={() => {
             Program.cloneProgram(props.dispatch, program);
+            if (program.id === "the5314b") {
+              setShouldShowPostCloneModal(true);
+            } else {
+              props.dispatch(Thunk.pushScreen("main"));
+            }
           }}
         />
       )}
@@ -58,6 +67,15 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           props.dispatch({ type: "CreateProgramAction", name });
         }}
       />
+      {shouldShowPostCloneModal && program && (
+        <ModalPostClone
+          settings={props.settings}
+          programIndex={props.customPrograms.indexOf(program)}
+          program={program}
+          onClose={() => props.dispatch(Thunk.pushScreen("main"))}
+          dispatch={props.dispatch}
+        />
+      )}
       <FooterView dispatch={props.dispatch} />
     </section>
   );

@@ -24,7 +24,8 @@ describe("Program", () => {
     cy.contains("Back").click();
     cy.contains("Add Exercise +").click();
 
-    g("menu-item-value-exercise").select("Deadlift");
+    g("select-exercise").click();
+    g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
     g("menu-item-value-bar").should("have.value", "barbell");
     g("menu-item-value-name").should("have.value", "Deadlift");
 
@@ -97,7 +98,7 @@ describe("Program", () => {
 
     cy.contains("Save").click();
     g("menu-item-delete-day-2").click();
-    g("menu-item-day-1").click();
+    g("menu-item-day-1").find('[data-cy="edit-day"]').click();
 
     g("available-exercises").find("[data-cy=menu-item-deadlift]").click();
     g("selected-exercises").find("[data-cy=menu-item-deadlift]").should("exist");

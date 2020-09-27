@@ -7,7 +7,7 @@ import { Progress } from "./progress";
 import { ISettings } from "./settings";
 import { Screen } from "./screen";
 import { updateState, IState } from "../ducks/reducer";
-import { lb, ILensRecordingPayload, lf } from "../utils/lens";
+import { lb, lf } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight } from "./weight";
@@ -348,12 +348,17 @@ export namespace Program {
             return [...programs, program];
           }
         }),
-      ...selectProgram2LensRecordings(program.id),
+      lb<IState>().p("storage").p("currentProgramId").record(program.id),
     ]);
   }
 
   export function selectProgram(dispatch: IDispatch, programId: string): void {
-    updateState(dispatch, selectProgram2LensRecordings(programId));
+    updateState(dispatch, [
+      lb<IState>().p("storage").p("currentProgramId").record(programId),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((s) => Screen.push(s, "main")),
+    ]);
   }
 
   export function nextDay(program: IProgram, day?: number): number {
@@ -367,14 +372,5 @@ export namespace Program {
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "editProgram")),
     ]);
-  }
-
-  function selectProgram2LensRecordings(programId: string): ILensRecordingPayload<IState>[] {
-    return [
-      lb<IState>().p("storage").p("currentProgramId").record(programId),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.push(s, "main")),
-    ];
   }
 }

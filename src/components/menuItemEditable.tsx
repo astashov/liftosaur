@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IconDelete } from "./iconDelete";
 import { MenuItemWrapper } from "./menuItem";
-import { useState, StateUpdater } from "preact/hooks";
+import { useState, StateUpdater, useEffect } from "preact/hooks";
 import { StringUtils } from "../utils/string";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean";
@@ -20,9 +20,14 @@ interface IMenuItemEditableValueProps {
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
   hasClear?: boolean;
   after?: JSX.Element;
+  nextLine?: JSX.Element;
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
+  console.log(props);
+  useEffect(() => {
+    console.log("Remount menu item");
+  }, []);
   const [patternError, setPatternError] = useState<boolean>(false);
   return (
     <MenuItemWrapper name={props.name}>
@@ -59,6 +64,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             {props.patternMessage}
           </div>
         )}
+        {props.nextLine}
       </label>
     </MenuItemWrapper>
   );
@@ -67,6 +73,9 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 function MenuItemValue(
   props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
+  useEffect(() => {
+    console.log("Remount menu item value");
+  }, []);
   if (props.type === "select") {
     return (
       <select

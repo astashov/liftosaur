@@ -6,6 +6,14 @@ import { IDispatch } from "../ducks/types";
 import { IExerciseId, Exercise } from "./exercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
+import { ObjectUtils } from "../utils/object";
+
+interface I531Tms {
+  squat: IWeight;
+  benchPress: IWeight;
+  deadlift: IWeight;
+  overheadPress: IWeight;
+}
 
 export namespace EditProgram {
   export function addStateVariable(dispatch: IDispatch, newName?: string, newType?: IUnit): void {
@@ -368,6 +376,25 @@ export namespace EditProgram {
         lb<IState>().p("editExercise").record(undefined),
       ],
       "Save Exercise"
+    );
+  }
+
+  export function set531Tms(dispatch: IDispatch, programIndex: number, tms: I531Tms): void {
+    console.log("Program index", programIndex);
+    updateState(
+      dispatch,
+      ObjectUtils.keys(tms).map((exerciseId) => {
+        return lb<IState>()
+          .p("storage")
+          .p("programs")
+          .i(programIndex)
+          .p("exercises")
+          .recordModify((exercises) => {
+            return exercises.map((e) =>
+              e.exerciseType.id === exerciseId ? { ...e, state: { ...e.state, tm: tms[exerciseId] } } : e
+            );
+          });
+      })
     );
   }
 }

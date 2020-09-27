@@ -2,11 +2,11 @@ module.exports = {
   extends: ["plugin:prettier/recommended"],
   env: {
     browser: true,
-    es6: true
+    es6: true,
   },
   parser: "babel-eslint",
   parserOptions: {
-    ecmaVersion: 2017
+    ecmaVersion: 2017,
   },
   overrides: [
     {
@@ -14,14 +14,13 @@ module.exports = {
       parser: "@typescript-eslint/parser",
       parserOptions: {
         project: "tsconfig.json",
-        sourceType: "module"
+        sourceType: "module",
       },
       plugins: ["@typescript-eslint"],
       rules: {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-types": "error",
-        "@typescript-eslint/class-name-casing": "error",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "off",
         "@typescript-eslint/explicit-member-accessibility": [
@@ -29,9 +28,9 @@ module.exports = {
           {
             accessibility: "explicit",
             overrides: {
-              constructors: "off"
-            }
-          }
+              constructors: "off",
+            },
+          },
         ],
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/interface-name-prefix": "off",
@@ -41,13 +40,13 @@ module.exports = {
           {
             multiline: {
               delimiter: "none",
-              requireLast: true
+              requireLast: true,
             },
             singleline: {
               delimiter: "semi",
-              requireLast: false
-            }
-          }
+              requireLast: false,
+            },
+          },
         ],
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-empty-interface": "error",
@@ -74,16 +73,16 @@ module.exports = {
           {
             selector: "interface",
             format: ["PascalCase"],
-            prefix: ["I"]
+            prefix: ["I"],
           },
           {
             selector: "typeAlias",
             format: ["PascalCase"],
-            prefix: ["I"]
-          }
-        ]
-      }
-    }
+            prefix: ["I"],
+          },
+        ],
+      },
+    },
   ],
   rules: {
     "arrow-parens": ["off", "as-needed"],
@@ -118,8 +117,8 @@ module.exports = {
     "no-plusplus": [
       "error",
       {
-        allowForLoopAfterthoughts: true
-      }
+        allowForLoopAfterthoughts: true,
+      },
     ],
     "no-return-await": "error",
     "no-shadow": "error",
@@ -140,6 +139,6 @@ module.exports = {
     "spaced-comment": "error",
     "use-isnan": "error",
     "valid-typeof": "off",
-    "prettier/prettier": "error"
-  }
+    "prettier/prettier": "error",
+  },
 };

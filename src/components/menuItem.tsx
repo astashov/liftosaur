@@ -2,6 +2,7 @@ import { h, JSX, ComponentChildren } from "preact";
 import { IconArrowRight } from "./iconArrowRight";
 import { IconHandle } from "./iconHandle";
 import { StringUtils } from "../utils/string";
+import { useEffect } from "preact/hooks";
 
 interface IMenuItemProps {
   name: string;

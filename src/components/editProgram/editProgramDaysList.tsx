@@ -60,6 +60,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               value={
                 <Fragment>
                   <button
+                    data-cy="edit-exercise"
                     className="px-2 align-middle button"
                     onClick={() => {
                       EditProgram.editProgramExercise(props.dispatch, exercise);
@@ -112,6 +113,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                 value={
                   <Fragment>
                     <button
+                      data-cy="edit-day"
                       className="px-2 align-middle button"
                       onClick={() => {
                         props.dispatch({ type: "EditDayAction", index });

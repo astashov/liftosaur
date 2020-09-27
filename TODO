@@ -13,7 +13,6 @@
 * Add deleting account
 * Add achievements
 * Add cookie banner
-* Better exercise selector (with autocomplete)
 * Add admin for managing published programs
 * Add ability to publish user programs
 * Add changing program day when editing progress day
@@ -24,6 +23,8 @@
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add showing what muscle groups are working for program/day/exercise
+* Add showing if next weight/reps gonna change in progress
+* Add findBy to lenses recordings
 
 * Bug:
 Assign lb to state var of type number

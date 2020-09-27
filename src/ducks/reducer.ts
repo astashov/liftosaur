@@ -148,7 +148,7 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateStorage(data: object, type: t.Type<any, any, any>, name: string): boolean {
+function validateStorage(data: Record<string, unknown>, type: t.Type<any, any, any>, name: string): boolean {
   const decoded = type.decode(data);
   if ("left" in decoded) {
     const error = PathReporter.report(decoded);

@@ -1105,6 +1105,10 @@ export namespace Exercise {
     return { ...exercises[type.id], bar: type.bar };
   }
 
+  export function getById(id: IExerciseId): IExercise {
+    return { ...exercises[id], bar: exercises[id].defaultBar };
+  }
+
   export function all(): IExercise[] {
     return ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], bar: exercises[k].defaultBar }));
   }

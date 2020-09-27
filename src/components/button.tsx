@@ -1,11 +1,18 @@
 import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+  buttonSize?: "sm" | "lg";
   kind: "green" | "red" | "blue" | "gray";
 }
 
 export function Button(props: IProps): JSX.Element {
-  let className = "px-4 py-2 font-bold text-white border rounded ";
+  let className = "font-bold text-white border rounded ";
+  if (props.buttonSize === "sm") {
+    className += "px-2 py-1 ";
+  } else {
+    className += "px-4 py-2 ";
+  }
+
   if (!props.disabled) {
     switch (props.kind) {
       case "blue":

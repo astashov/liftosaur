@@ -77,6 +77,7 @@ export function AppView(props: IProps): JSX.Element | null {
     return (
       <Fragment>
         <ChooseProgramView
+          settings={state.storage.settings}
           screenStack={state.screenStack}
           dispatch={dispatch}
           programs={state.programs || []}

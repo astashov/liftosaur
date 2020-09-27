@@ -129,7 +129,11 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           name="Exercise"
           value={
             <Fragment>
-              <button className="px-4 align-middle" onClick={() => setShowModalExercise(true)}>
+              <button
+                data-cy="select-exercise"
+                className="px-4 align-middle"
+                onClick={() => setShowModalExercise(true)}
+              >
                 <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
               </button>
               <span>{Exercise.get(programExercise.exerciseType).name}</span>
