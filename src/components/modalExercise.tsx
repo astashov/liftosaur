@@ -2,7 +2,6 @@ import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Exercise, IExerciseId } from "../models/exercise";
-import { Input } from "./input";
 import { MenuItem } from "./menuItem";
 import { StringUtils } from "../utils/string";
 
@@ -29,8 +28,9 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
       onClose={() => props.onChange()}
     >
       <form onSubmit={(e) => e.preventDefault()}>
-        <Input
+        <input
           ref={textInput}
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           placeholder="Filter"
           onChange={() => {
