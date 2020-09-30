@@ -19,6 +19,7 @@ import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
 import { HelpOverlay } from "./helpOverlay";
+import { Progress } from "../models/progress";
 
 interface IProps {
   client: Window["fetch"];
@@ -108,6 +109,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ProgramDayView
         progress={progress}
+        program={Progress.isCurrent(progress) ? program : undefined}
         history={state.storage.history}
         dispatch={dispatch}
         webpushr={state.webpushr}

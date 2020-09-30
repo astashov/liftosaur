@@ -52,6 +52,9 @@ describe("Progress", () => {
     cy.get("@thirdSet").click();
     cy.get("[data-cy=modal-amrap-input]").clear().type("8");
     cy.get("[data-cy=modal-amrap-submit]").click();
+
+    cy.contains("Got it!").click();
+
     cy.get("@thirdSet").find("[data-cy=reps-value]").should("have.text", "8");
     cy.get("@thirdSet").find("[data-cy=reps-completed-amrap]").should("have.text", "5+");
     cy.get("@thirdSet").should("have.data", "cy", "set-amrap-completed");

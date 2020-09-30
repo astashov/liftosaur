@@ -21,6 +21,8 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=modal-amrap-input]").clear().type("5");
     cy.get("[data-cy=modal-amrap-submit]").click();
 
+    cy.contains("Got it!").click();
+
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy=change-weight]").click();
     cy.get("[data-cy=modal-weight-input]").clear().type("140");
     cy.get("[data-cy=modal-weight-submit]").click();

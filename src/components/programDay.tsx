@@ -13,9 +13,11 @@ import { IProgressMode, Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
+import { IProgram } from "../models/program";
 
 interface IProps {
   progress: IHistoryRecord;
+  program?: IProgram;
   history: IHistoryRecord[];
   settings: ISettings;
   dispatch: IDispatch;
@@ -29,7 +31,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const timers = props.settings.timers;
 
   if (progress != null) {
-    // TODO: What to do if program missing?
     return (
       <section className="relative h-full">
         <HeaderView
@@ -72,6 +73,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         <CardsView
           settings={props.settings}
+          program={props.program}
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}

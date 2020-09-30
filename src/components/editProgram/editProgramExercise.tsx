@@ -28,7 +28,6 @@ import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
 import { SemiButton } from "../semiButton";
-import { StringUtils } from "../../utils/string";
 import { IconEdit } from "../iconEdit";
 import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
@@ -188,24 +187,15 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           dispatch={props.dispatch}
         />
         {progress && entry && (
-          <Fragment>
-            <Playground
-              programExercise={programExercise}
-              progress={progress}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              days={props.days}
-              onProgressChange={(p) => setProgress(p)}
-            />
-            <GroupHeader name="State Changes" />
-            <StateChanges
-              entry={entry}
-              day={day}
-              settings={props.settings}
-              state={programExercise.state}
-              script={programExercise.finishDayExpr}
-            />
-          </Fragment>
+          <Playground
+            day={day}
+            programExercise={programExercise}
+            progress={progress}
+            settings={props.settings}
+            dispatch={props.dispatch}
+            days={props.days}
+            onProgressChange={(p) => setProgress(p)}
+          />
         )}
         <FinishDayScriptEditor
           programExercise={programExercise}
@@ -524,6 +514,7 @@ interface IPlaygroundProps {
   programExercise: IProgramExercise;
   dispatch: IDispatch;
   settings: ISettings;
+  day: number;
   days: IProgramDay[];
   onProgressChange: (p: IHistoryRecord) => void;
 }
@@ -560,6 +551,9 @@ function Playground(props: IPlaygroundProps): JSX.Element {
       />
       <ExerciseView
         entry={entry}
+        day={props.day}
+        programExercise={programExercise}
+        forceShowStateChanges={true}
         settings={props.settings}
         dispatch={dispatch}
         onChangeReps={() => undefined}
@@ -574,49 +568,6 @@ function Playground(props: IPlaygroundProps): JSX.Element {
       />
     </Fragment>
   );
-}
-
-interface IStateChangesProps {
-  entry: IHistoryEntry;
-  day: number;
-  settings: ISettings;
-  state: IProgramState;
-  script: string;
-}
-
-function StateChanges(props: IStateChangesProps): JSX.Element {
-  const { entry, settings, state, script, day } = props;
-  const { units } = settings;
-  const result = Program.runExerciseFinishDayScript(entry, day, settings, state, script);
-
-  if (result.success) {
-    const newState = result.data;
-    const diffState = ObjectUtils.keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
-      const oldValue = state[key];
-      const newValue = newState[key];
-      if (!Weight.eq(oldValue, newValue)) {
-        memo[key] = `${Weight.display(Weight.convertTo(oldValue as number, units))} -> ${Weight.display(
-          Weight.convertTo(newValue as number, units)
-        )}`;
-      }
-      return memo;
-    }, {});
-    return (
-      <ul data-cy="state-changes" className="px-6 py-4 text-sm">
-        {ObjectUtils.keys(diffState).map((key) => (
-          <li data-cy={`state-changes-key-${StringUtils.dashcase(key)}`}>
-            {key}: <strong data-cy={`state-changes-value-${StringUtils.dashcase(key)}`}>{diffState[key]}</strong>
-          </li>
-        ))}
-      </ul>
-    );
-  } else {
-    return (
-      <ul data-cy="state-changes" className="px-6 py-4 text-sm">
-        <li></li>
-      </ul>
-    );
-  }
 }
 
 export interface IFinishDayScriptEditorProps {

@@ -8,48 +8,52 @@ import { Reps } from "../models/set";
 import { IHistoryEntry } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { ISettings } from "../models/settings";
+import { IProgramExercise } from "../models/program";
+import { ProgressStateChanges } from "./progressStateChanges";
 
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
+  day: number;
+  programExercise?: IProgramExercise;
   index?: number;
   isCurrent?: boolean;
+  forceShowStateChanges?: boolean;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
 }
 
 export function ExerciseView(props: IProps): JSX.Element {
   const { entry } = props;
+  let className = "px-4 pt-4 pb-2 mb-2 border rounded-lg";
+  let dataCy;
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
-      return (
-        <section
-          data-cy="exercise-completed"
-          className="px-4 pt-4 pb-2 mb-2 bg-green-100 border border-green-300 rounded-lg"
-        >
-          <ExerciseContentView {...props} />
-        </section>
-      );
+      dataCy = "exercise-completed";
+      className += " bg-green-100 border-green-300";
     } else {
-      return (
-        <section
-          data-cy="exercise-finished"
-          className="px-4 pt-4 pb-2 mb-2 bg-red-100 border border-red-300 rounded-lg"
-        >
-          <ExerciseContentView {...props} />
-        </section>
-      );
+      dataCy = "exercise-finished";
+      className += " bg-red-100 border-red-300";
     }
   } else {
-    return (
-      <section
-        data-cy="exercise-progress"
-        className="px-4 pt-4 pb-2 mb-2 bg-gray-100 border border-gray-300 rounded-lg"
-      >
-        <ExerciseContentView {...props} />
-      </section>
-    );
+    dataCy = "exercise-progress";
+    className += " bg-gray-100 border-gray-300";
   }
+  return (
+    <section data-cy={dataCy} className={className}>
+      <ExerciseContentView {...props} />
+      {props.programExercise && (
+        <ProgressStateChanges
+          entry={props.entry}
+          forceShow={props.forceShowStateChanges}
+          settings={props.settings}
+          day={props.day}
+          state={props.programExercise.state}
+          script={props.programExercise.finishDayExpr}
+        />
+      )}
+    </section>
+  );
 }
 
 function ExerciseContentView(props: IProps): JSX.Element {
