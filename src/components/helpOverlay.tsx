@@ -112,7 +112,7 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
           </div>
         );
       })}
-      <div className="absolute bottom-0 left-0 w-full my-4 text-center">
+      <div className="absolute bottom-0 left-0 w-full mb-6 text-center">
         <Button
           kind="green"
           onClick={() => {
