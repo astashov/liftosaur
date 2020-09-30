@@ -101,7 +101,7 @@ function ExerciseContentView(props: IProps): JSX.Element {
                 <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                 <button
                   data-help-id={props.index === 0 && i === 0 ? "progress-change-weight" : undefined}
-                  data-help="Press to change weight of the sets."
+                  data-help="Press here to change weight of the sets."
                   data-help-offset-x={-80}
                   data-help-width={140}
                   data-cy="change-weight"

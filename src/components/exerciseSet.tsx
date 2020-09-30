@@ -105,7 +105,7 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
   return (
     <button
       data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press to record completed ${props.set.reps} reps, press again to lower completed reps.`}
+      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={230}
       data-cy="set-nonstarted"
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg"
@@ -128,7 +128,7 @@ function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
     <button
       data-cy="set-completed"
       data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press to record completed ${props.set.reps} reps, press again to lower completed reps.`}
+      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={230}
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg"
       onClick={props.onClick}
@@ -150,7 +150,7 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
     <button
       data-cy="set-incompleted"
       data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press to record completed ${props.set.reps} reps, press again to lower completed reps.`}
+      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={230}
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg"
       onClick={props.onClick}
@@ -184,7 +184,7 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
     <button
       key={cy}
       data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press to record completed ${props.set.reps} reps, press again to lower completed reps.`}
+      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={230}
       data-cy={cy}
       className={className}
