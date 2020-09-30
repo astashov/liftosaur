@@ -56,7 +56,7 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
       console.log(seenIds);
       if (seenIds.indexOf(id) === -1) {
         const rect = e.getBoundingClientRect();
-        rects[id] = { x: rect.left - 2, y: rect.top - 2, w: rect.width + 4, h: rect.height + 4, text };
+        rects[id] = { x: rect.left - 4, y: rect.top - 4, w: rect.width + 8, h: rect.height + 8, text };
       }
     }
     isChanged =
