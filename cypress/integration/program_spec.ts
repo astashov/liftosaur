@@ -124,6 +124,7 @@ describe("Program", () => {
     );
 
     cy.contains("Start Next Workout").click();
+    cy.contains("Got it!").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").click({ multiple: true });
     cy.contains("Finish the workout").click();

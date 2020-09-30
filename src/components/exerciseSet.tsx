@@ -6,6 +6,7 @@ import { IExerciseType } from "../models/exercise";
 
 interface IProps {
   exercise: IExerciseType;
+  showHelp?: boolean;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
@@ -14,6 +15,7 @@ interface IProps {
 
 interface IAmrapExerciseSetProps {
   exercise: IExerciseType;
+  showHelp?: boolean;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
@@ -22,6 +24,7 @@ interface IAmrapExerciseSetProps {
 
 interface IStartedExerciseSetProps {
   exercise: IExerciseType;
+  showHelp?: boolean;
   settings: ISettings;
   isCurrent: boolean;
   set: ISet;
@@ -30,6 +33,7 @@ interface IStartedExerciseSetProps {
 
 interface INotStartedExerciseSetProps {
   exercise: IExerciseType;
+  showHelp?: boolean;
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
@@ -37,11 +41,13 @@ interface INotStartedExerciseSetProps {
 }
 
 export function ExerciseSetView(props: IProps): JSX.Element {
+  console.log("show help", props.showHelp);
   const set = props.set;
   if (set.isAmrap) {
     return (
       <AmrapExerciseSet
         isCurrent={props.isCurrent}
+        showHelp={props.showHelp}
         exercise={props.exercise}
         set={set}
         settings={props.settings}
@@ -52,6 +58,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
     return (
       <NotStartedExerciseSet
         isCurrent={props.isCurrent}
+        showHelp={props.showHelp}
         exercise={props.exercise}
         set={set}
         settings={props.settings}
@@ -63,6 +70,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
       return (
         <CompleteExerciseSet
           isCurrent={props.isCurrent}
+          showHelp={props.showHelp}
           exercise={props.exercise}
           set={set}
           settings={props.settings}
@@ -72,6 +80,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
     } else {
       return (
         <IncompleteExerciseSet
+          showHelp={props.showHelp}
           isCurrent={props.isCurrent}
           exercise={props.exercise}
           set={set}
@@ -95,6 +104,9 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
   const set = props.set;
   return (
     <button
+      data-help-id={props.showHelp ? "progress-set" : undefined}
+      data-help={`Press to record completed ${props.set.reps} reps, press more to lower completed reps.`}
+      data-help-width={230}
       data-cy="set-nonstarted"
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg"
       onClick={props.onClick}
@@ -115,6 +127,9 @@ function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   return (
     <button
       data-cy="set-completed"
+      data-help-id={props.showHelp ? "progress-set" : undefined}
+      data-help={`Press to record completed ${props.set.reps} reps, press more to lower completed reps.`}
+      data-help-width={230}
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg"
       onClick={props.onClick}
       style={{ userSelect: "none" }}
@@ -134,6 +149,9 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   return (
     <button
       data-cy="set-incompleted"
+      data-help-id={props.showHelp ? "progress-set" : undefined}
+      data-help={`Press to record completed ${props.set.reps} reps, press more to lower completed reps.`}
+      data-help-width={230}
       className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg"
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
@@ -163,7 +181,16 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
     cy = "set-amrap-completed";
   }
   return (
-    <button key={cy} data-cy={cy} className={className} onClick={props.onClick} style={{ userSelect: "none" }}>
+    <button
+      key={cy}
+      data-help-id={props.showHelp ? "progress-set" : undefined}
+      data-help={`Press to record completed ${props.set.reps} reps, press more to lower completed reps.`}
+      data-help-width={230}
+      data-cy={cy}
+      className={className}
+      onClick={props.onClick}
+      style={{ userSelect: "none" }}
+    >
       {set.completedReps != null && (
         <div
           data-cy="reps-completed-amrap"

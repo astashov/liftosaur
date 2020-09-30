@@ -17,11 +17,12 @@ interface ICardsViewProps {
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
-      {props.progress.entries.map((entry) => {
+      {props.progress.entries.map((entry, index) => {
         return (
           <ExerciseView
             isCurrent={Progress.isCurrent(props.progress)}
             settings={props.settings}
+            index={index}
             entry={entry}
             dispatch={props.dispatch}
             onChangeReps={props.onChangeReps}

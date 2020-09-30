@@ -53,6 +53,7 @@ export const TStorage = t.type(
     currentProgramId: t.union([t.string, t.undefined]),
     version: t.string,
     programs: t.array(TProgram),
+    helps: t.array(t.string),
   },
   "TStorage"
 );
@@ -143,6 +144,7 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
       history: [],
       version: getLatestMigrationVersion(),
       programs: [],
+      helps: [],
     },
   };
 }
@@ -533,6 +535,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,
         programs: newStorage.programs,
+        helps: newStorage.helps,
       };
       return { ...state, storage };
     } else {

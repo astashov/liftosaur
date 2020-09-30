@@ -18,6 +18,7 @@ import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
+import { HelpOverlay } from "./helpOverlay";
 
 interface IProps {
   client: Window["fetch"];
@@ -70,11 +71,12 @@ export function AppView(props: IProps): JSX.Element | null {
   const program =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
+  let content: JSX.Element;
   if (
     Screen.current(state.screenStack) === "programs" ||
     (Screen.current(state.screenStack) === "main" && program == null)
   ) {
-    return (
+    content = (
       <Fragment>
         <ChooseProgramView
           settings={state.storage.settings}
@@ -89,7 +91,7 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "main") {
     if (program != null) {
-      return (
+      content = (
         <ProgramHistoryView
           program={program}
           progress={state.progress?.[0]}
@@ -103,7 +105,7 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   } else if (Screen.current(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
-    return (
+    content = (
       <ProgramDayView
         progress={progress}
         history={state.storage.history}
@@ -115,7 +117,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "settings") {
-    return (
+    content = (
       <ScreenSettings
         dispatch={dispatch}
         email={state.email}
@@ -124,11 +126,11 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
-    return <ScreenAccount dispatch={dispatch} email={state.email} />;
+    content = <ScreenAccount dispatch={dispatch} email={state.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {
-    return <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
+    content = <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
-    return (
+    content = (
       <ScreenPlates
         dispatch={dispatch}
         bars={Settings.bars(state.storage.settings)}
@@ -137,12 +139,12 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
-    return <ScreenGraphs settings={state.storage.settings} dispatch={dispatch} history={state.storage.history} />;
+    content = <ScreenGraphs settings={state.storage.settings} dispatch={dispatch} history={state.storage.history} />;
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
     if (editProgram != null) {
-      return (
+      content = (
         <ScreenEditProgram
           settings={state.storage.settings}
           editExercise={state.editExercise}
@@ -159,4 +161,11 @@ export function AppView(props: IProps): JSX.Element | null {
   } else {
     return null;
   }
+
+  return (
+    <Fragment>
+      {content}
+      <HelpOverlay dispatch={dispatch} seenIds={state.storage.helps} />
+    </Fragment>
+  );
 }

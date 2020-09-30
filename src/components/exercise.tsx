@@ -12,6 +12,7 @@ import { ISettings } from "../models/settings";
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
+  index?: number;
   isCurrent?: boolean;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
@@ -85,7 +86,7 @@ function ExerciseContentView(props: IProps): JSX.Element {
               </div>
             );
           })}
-          {workoutWeights.map((w) => {
+          {workoutWeights.map((w, i) => {
             const className =
               nextSet != null &&
               Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.bar), w)
@@ -95,6 +96,10 @@ function ExerciseContentView(props: IProps): JSX.Element {
               <div className={className}>
                 <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                 <button
+                  data-help-id={props.index === 0 && i === 0 ? "progress-change-weight" : undefined}
+                  data-help="Press to change weight of the sets."
+                  data-help-offset-x={-80}
+                  data-help-width={140}
                   data-cy="change-weight"
                   className="text-blue-500 underline cursor-pointer"
                   style={{ fontWeight: "inherit" }}
@@ -123,6 +128,7 @@ function ExerciseContentView(props: IProps): JSX.Element {
                     Warmup
                   </div>
                   <ExerciseSetView
+                    showHelp={props.index === 0 && i === 0}
                     settings={props.settings}
                     exercise={props.entry.exercise}
                     isCurrent={!!props.isCurrent}
@@ -142,6 +148,7 @@ function ExerciseContentView(props: IProps): JSX.Element {
         {props.entry.sets.map((set, i) => {
           return (
             <ExerciseSetView
+              showHelp={(warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
               exercise={props.entry.exercise}
               settings={props.settings}
               set={set}

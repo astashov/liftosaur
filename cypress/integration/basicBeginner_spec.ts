@@ -9,9 +9,10 @@ describe("Basic Beginner Program", () => {
   it("increments and deloads properly", () => {
     cy.visit("http://local.liftosaur.com:8080");
     cy.contains("Let's choose a program!").click();
-    cy.contains("Basic Beginner Routine").click();
+    cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
     cy.contains("Start Next Workout").click();
+    cy.contains("Got it!").click();
 
     // Workout A
 
