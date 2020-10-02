@@ -93,6 +93,20 @@ export function ScreenSettings(props: IProps): JSX.Element {
         >
           Terms &amp; Conditions
         </a>
+        <a
+          href="/docs/docs.html"
+          target="_blank"
+          className="block w-full px-6 py-3 text-left border-b border-gray-200"
+          onClick={(e) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if ((window.navigator as any).standalone) {
+              e.preventDefault();
+              window.open("https://liftosaur.netlify.app/docs/docs.html", "_blank");
+            }
+          }}
+        >
+          Documentation
+        </a>
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>
