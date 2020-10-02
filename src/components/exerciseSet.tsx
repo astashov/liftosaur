@@ -41,7 +41,6 @@ interface INotStartedExerciseSetProps {
 }
 
 export function ExerciseSetView(props: IProps): JSX.Element {
-  console.log("show help", props.showHelp);
   const set = props.set;
   if (set.isAmrap) {
     return (

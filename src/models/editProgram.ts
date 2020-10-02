@@ -380,7 +380,6 @@ export namespace EditProgram {
   }
 
   export function set531Tms(dispatch: IDispatch, programIndex: number, tms: I531Tms): void {
-    console.log("Program index", programIndex);
     updateState(
       dispatch,
       ObjectUtils.keys(tms).map((exerciseId) => {

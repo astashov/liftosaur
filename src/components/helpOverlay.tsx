@@ -53,7 +53,6 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
         offsetX: e.getAttribute("data-help-offset-x") ? parseInt(e.getAttribute("data-help-offset-x")!, 10) : 0,
         width: e.getAttribute("data-help-width") ? parseInt(e.getAttribute("data-help-width")!, 10) : undefined,
       };
-      console.log(seenIds);
       if (seenIds.indexOf(id) === -1) {
         const rect = e.getBoundingClientRect();
         rects[id] = { x: rect.left - 4, y: rect.top - 4, w: rect.width + 8, h: rect.height + 8, text };
@@ -67,7 +66,6 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
         const b = rects[k];
         return a?.w !== b?.w || a?.h !== b?.h || a?.x !== b?.x || a?.y !== b?.y;
       });
-    console.log(isChanged, windows, rects);
     if (isChanged) {
       setWindows(rects);
     }

@@ -24,10 +24,6 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
-  console.log(props);
-  useEffect(() => {
-    console.log("Remount menu item");
-  }, []);
   const [patternError, setPatternError] = useState<boolean>(false);
   return (
     <MenuItemWrapper name={props.name}>
@@ -73,9 +69,6 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 function MenuItemValue(
   props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
-  useEffect(() => {
-    console.log("Remount menu item value");
-  }, []);
   if (props.type === "select") {
     return (
       <select

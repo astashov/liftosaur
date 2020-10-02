@@ -19,7 +19,6 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
     exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter, e.name.toLowerCase()));
   }
 
-  console.log(filter);
   return (
     <Modal
       isHidden={props.isHidden}
