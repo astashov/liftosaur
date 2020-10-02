@@ -8,6 +8,7 @@ import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 
 declare let Rollbar: RB;
+declare let __ENV__: string;
 
 export namespace Thunk {
   export function googleSignIn(): IThunk {
@@ -83,7 +84,7 @@ export namespace Thunk {
 
 function handleLogin(dispatch: IDispatch, result: IGetStorageResponse): void {
   if (result.email != null) {
-    Rollbar.configure({ payload: { person: { email: result.email, id: result.user_id } } });
+    Rollbar.configure({ environment: __ENV__, payload: { person: { email: result.email, id: result.user_id } } });
     dispatch({ type: "Login", email: result.email });
     dispatch({ type: "SyncStorage", storage: result.storage });
   }

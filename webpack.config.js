@@ -50,6 +50,7 @@ module.exports = {
       __API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:8787"
       ),
+      __ENV__: JSON.stingify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
         process.env.NODE_ENV === "production" ? "https://www.liftosaur.com" : "http://local.liftosaur.com:8080"
       ),

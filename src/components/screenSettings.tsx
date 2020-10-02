@@ -65,10 +65,32 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Contact Us
         </a>
-        <a href="/privacy.html" target="_blank" className="block w-full px-6 py-3 text-left border-b border-gray-200">
+        <a
+          href="/privacy.html"
+          target="_blank"
+          className="block w-full px-6 py-3 text-left border-b border-gray-200"
+          onClick={(e) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if ((window.navigator as any).standalone) {
+              e.preventDefault();
+              window.open("https://liftosaur.netlify.app/privacy.html", "_blank");
+            }
+          }}
+        >
           Privacy Policy
         </a>
-        <a href="/terms.html" target="_blank" className="block w-full px-6 py-3 text-left border-b border-gray-200">
+        <a
+          href="/terms.html"
+          target="_blank"
+          className="block w-full px-6 py-3 text-left border-b border-gray-200"
+          onClick={(e) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if ((window.navigator as any).standalone) {
+              e.preventDefault();
+              window.open("https://liftosaur.netlify.app/terms.html", "_blank");
+            }
+          }}
+        >
           Terms &amp; Conditions
         </a>
       </section>

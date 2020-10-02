@@ -45,10 +45,14 @@ export function Timer(props: IProps): JSX.Element | null {
   const timer = props.timers[props.mode];
   if (timer != null && props.timerStart != null) {
     const timeDifference = Date.now() - props.timerStart;
-    const className = timeDifference > timer * 1000 ? "text-red-500" : "text-gray-200";
+    const isTimeOut = timeDifference > timer * 1000;
+    const className = isTimeOut ? "text-red-500" : "text-gray-200";
     return (
       <section className="fixed w-full p-3 text-center bg-gray-800 col" style={{ bottom: "4rem" }}>
-        <span className={className}>{TimeUtils.formatMMSS(timeDifference)}</span>
+        <span className={className}>
+          {TimeUtils.formatMMSS(timeDifference)}
+          {isTimeOut ? " - Time to start next set!" : ""}
+        </span>
       </section>
     );
   } else {
