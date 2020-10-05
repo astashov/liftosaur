@@ -8,6 +8,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings } from "../models/settings";
 import { lb } from "../utils/lens";
 import { IUnit } from "../models/weight";
+import { InternalLink } from "../internalLink";
 
 interface IProps {
   dispatch: IDispatch;
@@ -65,48 +66,15 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Contact Us
         </a>
-        <a
-          href="/privacy.html"
-          target="_blank"
-          className="block w-full px-6 py-3 text-left border-b border-gray-200"
-          onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((window.navigator as any).standalone) {
-              e.preventDefault();
-              window.open("https://liftosaur.netlify.app/privacy.html", "_blank");
-            }
-          }}
-        >
+        <InternalLink href="/privacy.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Privacy Policy
-        </a>
-        <a
-          href="/terms.html"
-          target="_blank"
-          className="block w-full px-6 py-3 text-left border-b border-gray-200"
-          onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((window.navigator as any).standalone) {
-              e.preventDefault();
-              window.open("https://liftosaur.netlify.app/terms.html", "_blank");
-            }
-          }}
-        >
+        </InternalLink>
+        <InternalLink href="/terms.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Terms &amp; Conditions
-        </a>
-        <a
-          href="/docs/docs.html"
-          target="_blank"
-          className="block w-full px-6 py-3 text-left border-b border-gray-200"
-          onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((window.navigator as any).standalone) {
-              e.preventDefault();
-              window.open("https://liftosaur.netlify.app/docs/docs.html", "_blank");
-            }
-          }}
-        >
+        </InternalLink>
+        <InternalLink href="/docs/docs.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Documentation
-        </a>
+        </InternalLink>
       </section>
       <FooterView dispatch={props.dispatch} />
     </section>

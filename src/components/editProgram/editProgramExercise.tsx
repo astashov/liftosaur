@@ -14,7 +14,7 @@ import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { FooterView } from "../footer";
 import { Button } from "../button";
 import { OneLineTextEditor } from "./oneLineTextEditor";
-import { EditProgram } from "../../models/editProgram";
+import { EditProgram, addVariation } from "../../models/editProgram";
 import { useState, useRef, useEffect } from "preact/hooks";
 import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IProgramSet } from "../../models/set";
@@ -32,6 +32,7 @@ import { IconEdit } from "../iconEdit";
 import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise } from "../../models/exercise";
+import { InternalLink } from "../../internalLink";
 
 interface IProps {
   settings: ISettings;
@@ -124,6 +125,14 @@ export function EditProgramExercise(props: IProps): JSX.Element {
         }
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        <p className="px-6 py-1 text-xs italic">
+          This is advanced exercise editing screen. It is very flexible, but you may want to read{" "}
+          <InternalLink href="/docs/docs.html" className="text-blue-700 underline">
+            Documentation
+          </InternalLink>{" "}
+          first to get familiar with the <strong>state variables</strong>, <strong>variations</strong> and{" "}
+          <strong>Liftoscript scripting language</strong>.
+        </p>
         <MenuItem
           name="Exercise"
           value={
@@ -245,7 +254,16 @@ function Variations(props: IVariationsProps): JSX.Element {
 
   return (
     <Fragment>
-      <GroupHeader name="Variations" />
+      <GroupHeader
+        name="Variations"
+        help={
+          <span>
+            Variations allow you to use various <strong>sets x reps x weight</strong> schemes in exercises. It's useful
+            in some programs, e.g. in GZCLP program you follow 5x3, and if you fail it, you switch to 6x2 scheme. If you
+            don't need anything like that, please ignore it.
+          </span>
+        }
+      />
       <MenuItemEditable
         type="select"
         name="Variation"
@@ -284,7 +302,17 @@ function Sets(props: ISetsProps): JSX.Element {
   const [resetCounter, setResetCounter] = useState(0);
   return (
     <Fragment>
-      <GroupHeader name="Sets" />
+      <GroupHeader
+        name="Sets"
+        help={
+          <span>
+            Sets, reps and weights of chosen <strong>Variation</strong>. Note that <strong>Reps</strong> and{" "}
+            <strong>Weight</strong> fields are Liftoscript scripts, and the returning value will be used for
+            reps/weight. <strong>AMRAP</strong> means "As Many Reps As Possible", i.e. you do as many reps as you can
+            for it.
+          </span>
+        }
+      />
       {programExercise.variations.length > 1 && (
         <div className="px-1 pt-1 text-xs text-right bg-gray-100">
           <Button
@@ -458,7 +486,15 @@ function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
 
   return (
     <Fragment>
-      <GroupHeader name="Variation Selection Script" />
+      <GroupHeader
+        name="Variation Selection Script"
+        help={
+          <span>
+            Liftoscript script, it should return Variation number (e.g. <strong>1</strong> or <strong>2</strong>), and
+            that variation will be used in the workout.
+          </span>
+        }
+      />
       <MultiLineTextEditor
         name="variation"
         state={programExercise.state}
@@ -484,7 +520,15 @@ function EditState(props: IStateProps): JSX.Element {
 
   return (
     <section>
-      <GroupHeader name="State Variables" />
+      <GroupHeader
+        name="State Variables"
+        help={
+          <span>
+            Variables you can use in all Liftoscript scripts of this exercise. They will preserve their values between
+            workouts, allowing to use them for progressive overload, for tracking failures, or for anything really.
+          </span>
+        }
+      />
       {ObjectUtils.keys(state).map((stateKey) => {
         const value = state[stateKey];
         const displayValue = Weight.is(value) ? value.value : value;
@@ -530,7 +574,15 @@ function Playground(props: IPlaygroundProps): JSX.Element {
 
   return (
     <Fragment>
-      <GroupHeader name="Playground" />
+      <GroupHeader
+        name="Playground"
+        help={
+          <span>
+            Allows to try out the logic added to this exercise. Choose a day, simulate workout, and verify that the{" "}
+            <strong>State Variables</strong> changes are what you expect.
+          </span>
+        }
+      />
       <MenuItemEditable
         name="Choose Day"
         type="select"
@@ -581,7 +633,19 @@ function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element 
 
   return (
     <Fragment>
-      <GroupHeader name="Finish Day Script" />
+      <GroupHeader
+        name="Finish Day Script"
+        help={
+          <span>
+            Liftoscript script, that's run after finishing a day. You should update <strong>State Variables</strong>{" "}
+            here. You also have access to weights, completed reps, etc from the workout. Refer to the{" "}
+            <InternalLink href="/docs/docs.html" className="text-blue-700 underline">
+              documentation
+            </InternalLink>{" "}
+            to learn how to write the scripts.
+          </span>
+        }
+      />
       <MultiLineTextEditor
         name="finish-day"
         state={programExercise.state}

@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
 import { Button } from "./button";
 import { Modal } from "./modal";
+import { InternalLink } from "../internalLink";
 
 export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
   return (
@@ -22,9 +23,9 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
         <p className="mb-2">
           With simple and friendly user interface, this app will walk you through the routines, handling weights
           progressing and deloading. You can read more and check some screenshots/videos on our{" "}
-          <a className="text-blue-700 underline" href="https://www.liftosaur.com/about" target="_blank">
+          <InternalLink href="/about" className="text-blue-700 underline">
             landing page
-          </a>
+          </InternalLink>
           .
         </p>
         <p>
