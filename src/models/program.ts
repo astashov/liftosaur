@@ -10,7 +10,7 @@ import { updateState, IState } from "../ducks/reducer";
 import { lb, lf } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
-import { TWeight, Weight } from "./weight";
+import { TWeight, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 
 export const TProgramDayEntry = t.type(
@@ -255,6 +255,49 @@ export namespace Program {
     }
   }
 
+  export function runScript(
+    programExercise: IProgramExercise,
+    script: string,
+    day: number,
+    settings: ISettings,
+    type: "reps"
+  ): IEither<number, string>;
+  export function runScript(
+    programExercise: IProgramExercise,
+    script: string,
+    day: number,
+    settings: ISettings,
+    type: "weight"
+  ): IEither<IWeight, string>;
+  export function runScript(
+    programExercise: IProgramExercise,
+    script: string,
+    day: number,
+    settings: ISettings,
+    type: string
+  ): IEither<IWeight | number, string> {
+    try {
+      if (script) {
+        const scriptRunnerResult = new ScriptRunner(
+          script,
+          programExercise.state,
+          Progress.createEmptyScriptBindings(day),
+          Progress.createScriptFunctions(settings),
+          settings.units
+        );
+        return { success: true, data: scriptRunnerResult.execute(type as "reps") };
+      } else {
+        return { success: false, error: "Empty expression" };
+      }
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+  }
+
   export function runFinishDayScript(
     programExercise: IProgramExercise,
     day: number,
@@ -301,12 +344,12 @@ export namespace Program {
     return lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day));
   }
 
-  export function createVariation(): IProgramExerciseVariation {
+  export function createVariation(useStateWeight?: boolean): IProgramExerciseVariation {
     return {
       sets: [
         {
           repsExpr: "5",
-          weightExpr: "0lb",
+          weightExpr: useStateWeight ? "state.weight" : "0lb",
           isAmrap: false,
         },
       ],
@@ -317,12 +360,14 @@ export namespace Program {
     return {
       name: "Squat",
       id: UidFactory.generateUid(8),
-      variations: [createVariation()],
+      variations: [createVariation(true)],
       exerciseType: {
         id: "squat",
         bar: "barbell",
       },
-      state: {},
+      state: {
+        weight: Weight.build(45, "lb"),
+      },
       finishDayExpr: "",
       variationExpr: "1",
     };
@@ -372,5 +417,40 @@ export namespace Program {
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "editProgram")),
     ]);
+  }
+
+  export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
+    const errors = [];
+    if (Object.keys(programExercise.state).length !== 1 || programExercise.state.weight == null) {
+      const keys = Object.keys(programExercise.state)
+        .map((k) => `<strong>${k}</strong>`)
+        .join(", ");
+      errors.push(`Should only have one state variable - <strong>weight</strong>. But has - ${keys}`);
+    }
+    if (programExercise.variations.length !== 1) {
+      errors.push("Should only have one variation");
+    }
+    const variation = programExercise.variations[0];
+    const sets = variation.sets;
+    if (!/^\d*$/.test(sets[0].repsExpr.trim())) {
+      errors.push("The reps can't be a Liftoscript expression");
+    }
+    if (sets.some((s) => sets[0].repsExpr !== s.repsExpr)) {
+      errors.push("All sets should have the same reps");
+    }
+    if (sets[0].weightExpr !== "state.weight") {
+      errors.push("All sets should have the weight = <strong>state.weight</strong>");
+    }
+    if (sets.some((s) => sets[0].weightExpr !== s.weightExpr)) {
+      errors.push("All sets should have the same weight expression");
+    }
+    if (programExercise.finishDayExpr.trim()) {
+      errors.push("Should have empty finish day script");
+    }
+    if (errors.length > 0) {
+      return { success: false, error: errors };
+    } else {
+      return { success: true, data: true };
+    }
   }
 }

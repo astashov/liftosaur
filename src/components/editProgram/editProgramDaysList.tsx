@@ -52,7 +52,15 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             }
           }}
         />
-        <GroupHeader name="Exercises" />
+        <GroupHeader
+          name="Exercises"
+          help={
+            <span>
+              Exercises available in this program. You need to add them to <strong>days</strong> to make them appear in
+              workouts.
+            </span>
+          }
+        />
         {props.editProgram.exercises.map((exercise) => {
           return (
             <MenuItem
@@ -99,7 +107,14 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
         </MenuItemWrapper>
-        <GroupHeader name="Days" />
+        <GroupHeader
+          name="Days"
+          help={
+            <span>
+              Program consists of days, and days consist of exercises. Add exercises to days so they appear in workouts.
+            </span>
+          }
+        />
         <DraggableList
           onDragEnd={(startIndex, endIndex) => {
             EditProgram.reorderDays(props.dispatch, props.programIndex, startIndex, endIndex);

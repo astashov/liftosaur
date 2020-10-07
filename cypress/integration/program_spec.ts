@@ -23,6 +23,7 @@ describe("Program", () => {
     cy.contains("Add Day +").click();
     cy.contains("Back").click();
     cy.contains("Add Exercise +").click();
+    cy.contains("Advanced").click();
 
     g("select-exercise").click();
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();

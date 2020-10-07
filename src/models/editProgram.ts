@@ -3,7 +3,7 @@ import { IState, updateState } from "../ducks/reducer";
 import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExerciseId, Exercise } from "./exercise";
+import { IExerciseId, Exercise, exercises } from "./exercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
@@ -395,5 +395,31 @@ export namespace EditProgram {
           });
       })
     );
+  }
+
+  export function updateSimpleExercise(
+    dispatch: IDispatch,
+    units: IUnit,
+    sets?: number,
+    reps?: number,
+    weight?: number
+  ): void {
+    if (sets != null && reps != null && weight != null) {
+      updateState(dispatch, [
+        lb<IState>()
+          .pi("editExercise")
+          .p("variations")
+          .i(0)
+          .p("sets")
+          .record(
+            Array.apply(null, Array(sets)).map(() => ({
+              repsExpr: reps.toString(),
+              weightExpr: "state.weight",
+              isAmrap: false,
+            }))
+          ),
+        lb<IState>().pi("editExercise").p("state").p("weight").record(Weight.build(weight, units)),
+      ]);
+    }
   }
 }
