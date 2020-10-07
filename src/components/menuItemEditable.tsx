@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IconDelete } from "./iconDelete";
 import { MenuItemWrapper } from "./menuItem";
-import { useState, StateUpdater, useEffect } from "preact/hooks";
+import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean";
@@ -49,7 +49,11 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             {props.value != null && <span className="flex items-center text-gray-700">{props.valueUnits}</span>}
           </Fragment>
           {props.value != null && props.hasClear && (
-            <button onClick={() => props.onChange && props.onChange(undefined)} className="p-2">
+            <button
+              data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
+              onClick={() => props.onChange && props.onChange(undefined)}
+              className="p-2"
+            >
               <IconDelete />
             </button>
           )}

@@ -121,6 +121,7 @@ function Edit(props: IProps): JSX.Element {
             <label>
               <div className="text-xs italic">Sets</div>
               <input
+                data-cy="sets-input"
                 ref={setsRef}
                 type="number"
                 max={100}
@@ -146,6 +147,7 @@ function Edit(props: IProps): JSX.Element {
             <label>
               <div className="text-xs italic">Reps</div>
               <input
+                data-cy="reps-input"
                 max={100}
                 min={1}
                 ref={repsRef}
@@ -171,6 +173,7 @@ function Edit(props: IProps): JSX.Element {
             <label>
               <div className="text-xs italic">Weight</div>
               <input
+                data-cy="weight-input"
                 max={2000}
                 min={0}
                 type="number"
@@ -223,7 +226,7 @@ function Errors(props: IErrorsProps): JSX.Element {
         You can't use <strong>Simple</strong> exercise editing, only <strong>Advanced</strong>, because to make it
         possible to use Simple editing, the exercise:
       </p>
-      <ul className="pl-4 mt-2 list-disc">
+      <ul className="pl-4 mt-2 list-disc" data-cy="simple-errors">
         {props.errors.map((e) => (
           <li dangerouslySetInnerHTML={{ __html: e }} />
         ))}

@@ -3,7 +3,7 @@ import { IState, updateState } from "../ducks/reducer";
 import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExerciseId, Exercise, exercises } from "./exercise";
+import { IExerciseId, Exercise } from "./exercise";
 import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
