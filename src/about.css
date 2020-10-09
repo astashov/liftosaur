@@ -101,7 +101,7 @@ a {
 
 .hero-content {
   flex: 5;
-  padding: 60px 24px;
+  padding: 10px 24px;
 }
 
 @media (max-width: 940px) {
