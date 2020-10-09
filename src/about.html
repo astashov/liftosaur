@@ -7,6 +7,7 @@
       href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
     <meta property="og:title" content="Liftosaur: Weightlifting Tracking App" />
@@ -49,9 +50,12 @@
               <h1>Liftosaur</h1>
             </a>
             <p>
-              The most flexible weightlifting tracker app ever. Build any routine you want, with any progression and
-              deloading logic using built-in scripting language. Or choose one of the pre-created weightlifting routines
-              from <a href="https://thefitness.wiki/" target="_blank">r/fitness and r/weightroom</a>.
+              The most flexible weightlifting tracker app ever. Build complex routines like
+              <a href="https://stronglifts.com/5x5/" target="_blank">Stronglifts 5x5</a>,
+              <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP</a>,
+              <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1</a>, etc and define the logic of
+              progressions and deloads using built-in scripting language. Or choose one of the pre-created weightlifting
+              routines from <a href="https://thefitness.wiki/" target="_blank">r/fitness and r/weightroom</a>.
             </p>
             <div class="hero-content-cta">
               <a href="/" class="hero-content-cta-button">Check it out</a>
@@ -67,6 +71,40 @@
       </section>
     </div>
     <div class="hero-wave"></div>
+    <section class="intro">
+      <h2>Summary</h2>
+      <p>
+        This app allows you to get experience similar to e.g.
+        <a href="https://stronglifts.com/apps/" target="_blank">Stronglifts 5x5 app</a>, but for any possible
+        weightlifting routine ever. <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP</a>,
+        <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1</a>,
+        <a href="https://thefitness.wiki/routines/nsuns-lp/" target="_blank">nSuns LP</a>, or any variation of those
+        could be expressed via built-in scripting language <a href="/docs/docs.html"><strong>Liftoscript</strong></a
+        >. E.g. Squats progression and deload logic in Stronglifts 5x5 could be expressed in
+        <strong>Liftoscript</strong> as:
+      </p>
+
+      <pre><code class="code language-javascript">
+if (completedReps >= reps) {
+  state.weight = state.weight + 5lb
+} else {
+  state.failures = state.failures + 1
+}
+if (state.failures > 2) {
+  state.failures = 0
+  state.weight = state.weight * 0.9
+}
+</code>
+</pre>
+      <p>
+        And you can modify it in any way you want. E.g. you may change increments to 2.5lb, change max number of
+        failures to 5, you may completely change the logic to anything you want. You have access to completed sets,
+        reps, weights, you can create any state variables you want. There's also a bunch of example routines written in
+        the same Liftoscript language from
+        <a href="https://thefitness.wiki/" target="_blank">thefitness.wiki</a>.
+      </p>
+      <p class="intro-more">Read more or watch the video tutorial in <a href="/docs/docs.html">Documentation</a></p>
+    </section>
     <section class="features">
       <h2>Features</h2>
       <ul class="features-list">
@@ -224,5 +262,7 @@
         </div>
       </div>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
   </body>
 </html>
