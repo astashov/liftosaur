@@ -36,10 +36,14 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             <button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>
           ) : undefined
         }
+        right={
+          <button className="p-4" onClick={() => setShouldCreateProgram(true)}>
+            Create
+          </button>
+        }
         title="Choose a program"
       />
       <ProgramListView
-        onCreateProgram={() => setShouldCreateProgram(true)}
         onSelectProgram={(id) => setSelectedProgramId(id)}
         programs={props.programs}
         customPrograms={props.customPrograms}

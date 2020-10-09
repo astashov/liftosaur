@@ -1,6 +1,5 @@
 import { h, JSX, Fragment } from "preact";
 import { Program, IProgram } from "../models/program";
-import { Button } from "./button";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IconDelete } from "./iconDelete";
@@ -11,7 +10,6 @@ import { IState } from "../ducks/reducer";
 import { HtmlUtils } from "../utils/html";
 
 interface IProps {
-  onCreateProgram: () => void;
   onSelectProgram: (id: string) => void;
   programs: IProgram[];
   customPrograms?: IProgram[];
@@ -32,8 +30,8 @@ export function ProgramListView(props: IProps): JSX.Element {
 
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-      <p className="px-4 py-1 text-sm italic">
-        If you're new to weight-lifting, consider starting with Basic Beginner Routine.
+      <p className="px-4 py-1 text-sm italic text-center">
+        If you're new to weight lifting, consider starting with <strong>Basic Beginner Routine</strong>.
       </p>
       {customPrograms.length > 0 && (
         <Fragment>
@@ -88,12 +86,6 @@ export function ProgramListView(props: IProps): JSX.Element {
           ))}
         </Fragment>
       )}
-
-      <div className="p-2 text-center">
-        <Button kind="green" onClick={() => props.onCreateProgram()}>
-          Create new program
-        </Button>
-      </div>
 
       {programs.length > 0 && (
         <Fragment>
