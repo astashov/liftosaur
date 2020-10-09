@@ -15,6 +15,7 @@ interface IProps {
   days: IProgramDay[];
   programIndex: number;
   programExercise: IProgramExercise;
+  isChanged: boolean;
   programName: string;
   dispatch: IDispatch;
 }
@@ -31,7 +32,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
         left={
           <button
             onClick={() => {
-              if (confirm("Are you sure? Your changes won't be saved")) {
+              if (!props.isChanged || confirm("Are you sure? Your changes won't be saved")) {
                 props.dispatch(Thunk.pullScreen());
               }
             }}

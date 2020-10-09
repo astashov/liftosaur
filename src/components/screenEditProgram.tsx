@@ -6,6 +6,7 @@ import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { IScreen } from "../models/screen";
 import { ISettings } from "../models/settings";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
+import { dequal } from "dequal/lite";
 
 interface IProps {
   editProgram: IProgram;
@@ -47,6 +48,8 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     if (editExercise == null) {
       throw new Error("Opened 'editProgramExercise' screen, but 'state.editExercise' is null");
     }
+    const exercise = props.editProgram.exercises.find((e) => e.id === editExercise.id);
+    const isChanged = exercise != null && !dequal(editExercise, exercise);
     return (
       <EditProgramExercise
         programIndex={props.programIndex}
@@ -55,6 +58,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         settings={props.settings}
         dispatch={props.dispatch}
         programExercise={editExercise}
+        isChanged={isChanged}
       />
     );
   } else {

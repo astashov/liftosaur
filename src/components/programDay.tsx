@@ -18,8 +18,8 @@ import { IProgram } from "../models/program";
 interface IProps {
   progress: IHistoryRecord;
   program?: IProgram;
-  history: IHistoryRecord[];
   settings: ISettings;
+  isChanged: boolean;
   dispatch: IDispatch;
   timerSince?: number;
   timerMode?: IProgressMode;
@@ -49,7 +49,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           left={
             <button
               onClick={() => {
-                if (Progress.isCurrent(progress) || confirm("Are you sure?")) {
+                if (!props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure?")) {
                   props.dispatch({ type: "CancelProgress" });
                 }
               }}

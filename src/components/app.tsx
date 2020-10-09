@@ -20,6 +20,7 @@ import { ScreenEditProgram } from "./screenEditProgram";
 import { Settings } from "../models/settings";
 import { HelpOverlay } from "./helpOverlay";
 import { Progress } from "../models/progress";
+import { dequal } from "dequal";
 
 interface IProps {
   client: Window["fetch"];
@@ -106,11 +107,13 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   } else if (Screen.current(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
+    const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
+    const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
     content = (
       <ProgramDayView
         progress={progress}
+        isChanged={isChanged}
         program={Progress.isCurrent(progress) ? program : undefined}
-        history={state.storage.history}
         dispatch={dispatch}
         webpushr={state.webpushr}
         timerSince={progress.timerSince}
