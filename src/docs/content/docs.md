@@ -29,16 +29,13 @@ Check this video if you get stuck, it replicates what's written below.
 
 Let's start with creating our own simple workout. Open liftosaur.com (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to Settings (cog icon at the right bottom corner), and press "Choose Program". There, press "Create new program". Let's name it "Liftosaurus".
 
-Now, press "Day 1", then press the "Create New Exercise" button to add an exercise. In the "Exercise" field select "Bench Press".
+Now, press "Day 1", then press the "Create New Exercise" button to add an exercise. There, switch to "Advanced" tab. In the "Exercise" field select "Bench Press".
 
-Skip the variations section for now, and scroll to the "State Variables" section. Let's create a variable here, that will control the weights of the sets of this exercise. We will increase or decrease the value of this variable in the script, and it will be reflected in the sets' weight. This way, we can program progressions and deloads.
+Skip the variations section for now, and scroll to the "State Variables" section. We can create various variables there, that we can use in Liftoscript scripts, and they will persist their values between workouts. There's one already existing, `weight`. We will increase or decrease the value of this variable in the script, and it will be reflected in the sets' weight. This way, we can program progressions and deloads.
 
-Press "Add Variable +", and name it `weight`. Select type - `lb`. That means this variable will contain pounds.
-Press `0 lb` value of the variable, and change it to e.g. `50lb`.
+Press `0 lb` value of the `weight` variable, and change it to e.g. `50lb`.
 
-You just created a variable, that will store the weight of the bench press exercise for the next day.
-
-Now, let's put that variable in use. Scroll down to the "Sets" section. For simplicity, we'll only have 1 set of 5 reps for our exercise. The weight of it though will be controlled by the `weight` state variable we created above. For that, in the **Weight** field, type `state.weight`.
+Now, let's put that variable in use. Scroll down to the "Sets" section. For simplicity, we'll only have 1 set of 5 reps for our exercise. The weight of it though will be controlled by the `weight` state variable we set above. You could see in the **Weight** field it's already entered `state.weight`.
 
 It should give you a hint that evaluation result will be `50lb`, which is the current value of `state.weight`.
 You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights there're often percentages of training max weight being used, so you could write it as `state.weight * 0.7`, for example. Or do something completely crazy like `(state.weight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
