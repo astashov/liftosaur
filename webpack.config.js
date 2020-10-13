@@ -10,6 +10,7 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
+    record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
@@ -64,6 +65,13 @@ module.exports = {
         },
       },
       {
+        from: `src/record.html`,
+        to: `record/index.html`,
+        transform: (content) => {
+          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
+        },
+      },
+      {
         from: `src/editor.html`,
         to: `editor.html`,
       },
@@ -77,6 +85,10 @@ module.exports = {
       {
         from: `src/about.css`,
         to: `about.css`,
+      },
+      {
+        from: `src/record.css`,
+        to: `record.css`,
       },
       {
         from: `docs`,

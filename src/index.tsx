@@ -1,4 +1,10 @@
 import { h, render } from "preact";
+import RB from "rollbar";
+
+declare let Rollbar: RB;
+declare let __ENV__: string;
+Rollbar.configure({ payload: { environment: __ENV__ } });
+
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
 import * as IDB from "idb-keyval";

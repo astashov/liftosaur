@@ -7,6 +7,10 @@ export namespace StringUtils {
     return string[0].toUpperCase() + string.slice(1);
   }
 
+  export function pluralize(string: string, count: number): string {
+    return `${string}${count !== 1 ? "s" : ""}`;
+  }
+
   export function dashcase(string: string): string {
     return string.replace(/:/g, "").replace(/\s+/g, "-").toLowerCase();
   }

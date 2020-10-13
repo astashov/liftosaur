@@ -14,7 +14,7 @@ describe("Program", () => {
     // Creating the program
 
     cy.contains("Let's choose a program!").click();
-    cy.contains("Create new program").click();
+    cy.contains("Create").click();
 
     g("modal-create-program-input").clear().type("A Program");
     g("modal-create-program-submit").click();

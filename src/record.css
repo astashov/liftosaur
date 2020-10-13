@@ -1,0 +1,249 @@
+/* purgecss start ignore */
+body {
+  font-size: 16px;
+  line-height: 1.55em;
+  font-family: Arial, sans-serif;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#app {
+  flex: 1;
+}
+
+.top-nav {
+  width: 100%;
+  padding: 48px 24px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.top-nav a,
+footer a {
+  color: #2b6cb0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.top-nav-menu {
+  flex: 1;
+  padding-right: 1.5em;
+}
+
+.top-nav-menu,
+.top-nav-menu li {
+  display: inline-block;
+  vertical-align: middle;
+  list-style: none;
+}
+
+.top-nav-menu li {
+  margin: 0 1em;
+  line-height: 1.5em;
+}
+
+.top-nav-social,
+.top-nav-social li {
+  display: inline-block;
+  vertical-align: middle;
+  list-style: none;
+  font-size: 26px;
+}
+
+.top-nav-social li {
+  margin: 0;
+}
+
+.top-nav-social a span {
+  visibility: hidden;
+}
+
+.logo-facebook,
+.logo-twitter,
+.logo-reddit {
+  width: 1.5em;
+  height: 1.5em;
+  text-indent: -9999px;
+  display: inline-block;
+  padding: 0.5em;
+  background-position: center;
+  background-size: 60%;
+  background-repeat: no-repeat;
+}
+
+.logo-facebook {
+  background-image: url(/images/logo-facebook.svg);
+}
+
+.logo-reddit {
+  background-image: url(/images/logo-reddit.svg);
+}
+
+.logo-twitter {
+  background-image: url(/images/logo-twitter.svg);
+}
+
+.top-nav-left {
+  align-items: center;
+  display: flex;
+}
+
+a.top-nav-logo {
+  color: #1a202c;
+  text-decoration: none;
+}
+
+.top-nav-logo img {
+  width: 4em;
+  height: 4em;
+  vertical-align: middle;
+  display: inline;
+}
+
+.top-nav-logo span {
+  display: inline;
+  font-size: 2em;
+  font-weight: bold;
+  font-family: Poppins;
+  color: #1a202c;
+  vertical-align: middle;
+  margin-left: 8px;
+  line-height: 2em;
+}
+
+.footer-wave {
+  background-image: url(/images/desktop-wave-footer.svg);
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  padding-bottom: 9%;
+  width: 100%;
+}
+
+.footer-wrapper {
+  background-color: #fafafa;
+}
+
+.footer-wrapper-content {
+  display: flex;
+  max-width: 800px;
+  padding: 0 24px;
+  margin: 0 auto;
+}
+
+.footer-left {
+  align-items: center;
+  display: flex;
+}
+
+a.footer-logo {
+  color: #1a202c;
+  text-decoration: none;
+}
+
+.footer-logo img {
+  width: 4em;
+  height: 4em;
+  vertical-align: middle;
+}
+
+.footer-logo span {
+  display: inline;
+  font-size: 2em;
+  font-weight: bold;
+  font-family: Poppins;
+  color: #1a202c;
+  vertical-align: middle;
+  margin-left: 8px;
+  line-height: 2em;
+}
+
+.footer-right {
+  flex: 1;
+}
+
+footer nav {
+  padding: 48px 12px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+}
+
+footer img {
+  display: inline;
+}
+
+.footer-menu {
+  flex: 1;
+  padding-right: 1.5em;
+}
+
+footer nav ul,
+footer nav li {
+  display: inline-block;
+}
+
+footer nav li {
+  margin: 0 16px;
+}
+
+.footer-social,
+.footer-social li {
+  display: inline-block;
+  vertical-align: middle;
+  list-style: none;
+  font-size: 26px;
+}
+
+.footer-social li {
+  margin: 0;
+}
+
+.footer-social a span {
+  visibility: hidden;
+}
+
+@media (max-width: 780px) {
+  .top-nav {
+    text-align: left;
+    padding: 24px 12px;
+  }
+
+  .top-nav-menu {
+    padding-right: 0;
+  }
+
+  .footer-wrapper-content {
+    flex-direction: column;
+    padding: 24px 24px 0;
+  }
+
+  footer nav {
+    text-align: left;
+    padding: 24px 0;
+    line-height: 2em;
+  }
+
+  .footer-menu {
+    padding-right: 0;
+  }
+}
+
+.record-graph {
+  width: 25em;
+}
+
+@media (max-width: 640px) {
+  .record-graph {
+    width: 100%;
+  }
+}
+
+/* purgecss end ignore */

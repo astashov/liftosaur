@@ -1,5 +1,6 @@
 import { Reducer } from "preact/hooks";
-import { Program, TProgram, IProgram, IProgramDay, IProgramExercise } from "../models/program";
+import "../models/state";
+import { Program, IProgram } from "../models/program";
 import { IHistoryRecord, THistoryRecord } from "../models/history";
 import { Progress, IProgressMode } from "../models/progress";
 import { IExerciseType } from "../models/exercise";
@@ -9,69 +10,18 @@ import { Screen, IScreen } from "../models/screen";
 import { IWeight, Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
-import { Service } from "../api/service";
-import { AudioInterface } from "../lib/audioInterface";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "../utils/lens";
-import { ISettings, TSettings } from "../models/settings";
+import { ISettings } from "../models/settings";
 import * as IDB from "idb-keyval";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
-import { IDispatch } from "./types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
+import { ILocalStorage, TStorage, IState, IStorage } from "../models/state";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
-
-export type IEnv = {
-  service: Service;
-  audio: AudioInterface;
-  googleAuth?: gapi.auth2.GoogleAuth;
-};
-
-export interface IState {
-  email?: string;
-  storage: IStorage;
-  programs: IProgram[];
-  webpushr?: IWebpushr;
-  screenStack: IScreen[];
-  currentHistoryRecord?: number;
-  progress: Record<number, IHistoryRecord | undefined>;
-  editProgram?: {
-    id: string;
-    dayIndex?: number;
-  };
-  editExercise?: IProgramExercise;
-}
-
-export const TStorage = t.type(
-  {
-    id: t.number,
-    history: t.array(THistoryRecord),
-    settings: TSettings,
-    currentProgramId: t.union([t.string, t.undefined]),
-    version: t.string,
-    programs: t.array(TProgram),
-    helps: t.array(t.string),
-  },
-  "TStorage"
-);
-export type IStorage = Readonly<t.TypeOf<typeof TStorage>>;
-
-export interface IWebpushr {
-  sid: number;
-}
-
-export interface ILocalStorage {
-  storage?: IStorage;
-  progress?: IHistoryRecord;
-  editDay?: IProgramDay;
-}
-
-export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc?: string): void {
-  dispatch({ type: "UpdateState", lensRecording, desc });
-}
 
 export async function getInitialState(client: Window["fetch"], rawStorage?: string): Promise<IState> {
   if (rawStorage == null) {

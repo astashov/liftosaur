@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { IStorage } from "../ducks/reducer";
 import { CollectionUtils } from "../utils/collection";
+import { IStorage } from "../models/state";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {

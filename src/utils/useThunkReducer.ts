@@ -1,6 +1,7 @@
 import { useRef, useCallback, Reducer, useState } from "preact/hooks";
 import { IDispatch, IThunk } from "../ducks/types";
-import { IAction, IState, IEnv } from "../ducks/reducer";
+import { IAction } from "../ducks/reducer";
+import { IState, IEnv } from "../models/state";
 
 export function useThunkReducer(
   reducer: Reducer<IState, IAction>,

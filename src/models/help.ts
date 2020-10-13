@@ -1,6 +1,6 @@
 import { lb } from "../utils/lens";
-import { IState, updateState } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
+import { updateState, IState } from "./state";
 
 export namespace Help {
   export function markSeen(dispatch: IDispatch, ids: string[]): void {

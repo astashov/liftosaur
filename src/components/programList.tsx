@@ -6,8 +6,8 @@ import { IconDelete } from "./iconDelete";
 import { IconEdit } from "./iconEdit";
 import { IDispatch } from "../ducks/types";
 import { lb } from "../utils/lens";
-import { IState } from "../ducks/reducer";
 import { HtmlUtils } from "../utils/html";
+import { IState } from "../models/state";
 
 interface IProps {
   onSelectProgram: (id: string) => void;

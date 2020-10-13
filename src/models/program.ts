@@ -6,12 +6,12 @@ import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { ISettings } from "./settings";
 import { Screen } from "./screen";
-import { updateState, IState } from "../ducks/reducer";
 import { lb, lf } from "../utils/lens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
+import { IState, updateState } from "./state";
 
 export const TProgramDayEntry = t.type(
   {

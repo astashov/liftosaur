@@ -3,9 +3,9 @@ import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
 import { lb } from "../utils/lens";
-import { IState } from "./reducer";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
+import { IState } from "../models/state";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -84,7 +84,7 @@ export namespace Thunk {
 
 function handleLogin(dispatch: IDispatch, result: IGetStorageResponse): void {
   if (result.email != null) {
-    Rollbar.configure({ environment: __ENV__, payload: { person: { email: result.email, id: result.user_id } } });
+    Rollbar.configure({ payload: { environment: __ENV__, person: { email: result.email, id: result.user_id } } });
     dispatch({ type: "Login", email: result.email });
     dispatch({ type: "SyncStorage", storage: result.storage });
   }

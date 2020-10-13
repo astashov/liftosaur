@@ -1,5 +1,7 @@
-import { IStorage } from "../ducks/reducer";
 import { IProgram } from "../models/program";
+import { IHistoryRecord } from "../models/history";
+import { ISettings } from "../models/settings";
+import { IStorage } from "../models/state";
 
 export interface IGetStorageResponse {
   email: string;
@@ -8,6 +10,12 @@ export interface IGetStorageResponse {
 }
 
 declare let __API_HOST__: string;
+
+export interface IRecordResponse {
+  history: IHistoryRecord[];
+  record: IHistoryRecord;
+  settings: ISettings;
+}
 
 export class Service {
   private readonly client: Window["fetch"];
@@ -66,5 +74,12 @@ export class Service {
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
+  }
+
+  public record(user: string, id: string): Promise<{ data: IRecordResponse } | { error: string }> {
+    const url = new URL(`${__API_HOST__}/api/record`);
+    url.searchParams.set("user", user);
+    url.searchParams.set("id", id);
+    return this.client(url.toString(), { credentials: "include" }).then((response) => response.json());
   }
 }

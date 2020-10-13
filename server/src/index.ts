@@ -5,6 +5,7 @@ import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
 import { CollectionUtils } from "./utils/collection";
+import { IStorage } from "../../src/models/state";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -152,6 +153,37 @@ async function getStorageHandler(request: Request): Promise<Response> {
   return new Response(JSON.stringify({}), { headers: getHeaders(request) });
 }
 
+async function getHistoryRecord(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user");
+  const exerciseId = parseInt(url.searchParams.get("id") || "", 10);
+  const error: { message?: string } = {};
+  if (userId != null && exerciseId != null && !isNaN(exerciseId)) {
+    const resultRaw = await kv_liftosaur_users.get(userId);
+    if (resultRaw != null) {
+      const result = JSON.parse(resultRaw);
+      const storage: IStorage = result.storage;
+      const history = storage.history;
+      const historyRecord = history.find((hi) => hi.id === exerciseId);
+      if (historyRecord != null) {
+        return new Response(
+          JSON.stringify({ data: { history: storage.history, record: historyRecord, settings: storage.settings } }),
+          {
+            headers: getHeaders(request),
+          }
+        );
+      } else {
+        error.message = "Can't find history record";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user' or 'id'";
+  }
+  return new Response(JSON.stringify({ error }), { headers: getHeaders(request), status: 400 });
+}
+
 async function saveStorageHandler(request: Request): Promise<Response> {
   const user = await getCurrentUser(request);
   if (user != null) {
@@ -209,6 +241,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
   r.post(".*/api/backup", (req: Request) => backupHandler(req));
+  r.get(".*/api/record", (req: Request) => getHistoryRecord(req));
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   const resp = await r.route(request);

@@ -41,8 +41,8 @@ export const TProgressMode = t.keyof(
 export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
 import { IHistoryRecord, IHistoryEntry } from "./history";
-import { IState, updateState } from "../ducks/reducer";
 import { IProgramDay, IProgram, Program, IProgramState } from "./program";
+import { IState, updateState } from "./state";
 
 export interface IScriptBindings {
   day: number;

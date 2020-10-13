@@ -1,11 +1,11 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
-import { IWebpushr } from "../ducks/reducer";
 import { IProgressMode } from "../models/progress";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ISettingsTimers } from "../models/settings";
+import { IWebpushr } from "../models/state";
 
 interface IProps {
   timers: ISettingsTimers;

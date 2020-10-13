@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import * as t from "io-ts";
-import { TWeight } from "./weight";
+import { TWeight, Weight } from "./weight";
 
 export type IProgramReps = number;
 
@@ -41,7 +41,7 @@ export namespace Reps {
     } else {
       const arr = sets.map((s) => (isNext ? displayReps(s) : displayCompletedReps(s)));
       const groups = CollectionUtils.inGroupsOf(5, arr);
-      return groups.map((group) => group.join("/")).join("/ ");
+      return groups.map((g) => g.join("/")).join("/ ");
     }
   }
 
@@ -82,5 +82,21 @@ export namespace Reps {
 
   export function isFinished(sets: ISet[]): boolean {
     return sets.every((s) => s.completedReps != null);
+  }
+
+  export function group(sets: ISet[]): ISet[][] {
+    return sets.reduce<ISet[][]>(
+      (memo, set) => {
+        let lastGroup = memo[memo.length - 1];
+        const last = lastGroup[lastGroup.length - 1];
+        if (last != null && (!Weight.eq(last.weight, set.weight) || last.completedReps !== set.completedReps)) {
+          memo.push([]);
+          lastGroup = memo[memo.length - 1];
+        }
+        lastGroup.push(set);
+        return memo;
+      },
+      [[]]
+    );
   }
 }

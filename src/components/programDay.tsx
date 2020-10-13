@@ -2,7 +2,6 @@ import { h, JSX } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { IWebpushr } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord } from "../models/history";
 import { ModalAmrap } from "./modalAmrap";
@@ -14,6 +13,7 @@ import { ModalDate } from "./modalDate";
 import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
 import { IProgram } from "../models/program";
+import { IWebpushr } from "../models/state";
 
 interface IProps {
   progress: IHistoryRecord;

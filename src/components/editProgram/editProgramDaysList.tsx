@@ -7,13 +7,13 @@ import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { FooterView } from "../footer";
 import { IconDuplicate } from "../iconDuplicate";
 import { lb } from "../../utils/lens";
-import { IState } from "../../ducks/reducer";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
 import { IconEdit } from "../iconEdit";
+import { IState } from "../../models/state";
 
 interface IProps {
   editProgram: IProgram;

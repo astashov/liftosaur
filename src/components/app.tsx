@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { reducerWrapper, IState } from "../ducks/reducer";
+import { reducerWrapper } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
@@ -21,6 +21,7 @@ import { Settings } from "../models/settings";
 import { HelpOverlay } from "./helpOverlay";
 import { Progress } from "../models/progress";
 import { dequal } from "dequal";
+import { IState } from "../models/state";
 
 interface IProps {
   client: Window["fetch"];
