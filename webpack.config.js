@@ -65,11 +65,8 @@ module.exports = {
         },
       },
       {
-        from: `src/record.html`,
-        to: `record/index.html`,
-        transform: (content) => {
-          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
-        },
+        from: "_redirects",
+        to: "",
       },
       {
         from: `src/editor.html`,
@@ -141,5 +138,8 @@ module.exports = {
     liveReload: false,
     host: "0.0.0.0",
     disableHostCheck: true,
+    proxy: {
+      "/record": "http://local-api.liftosaur.com:8787/api",
+    },
   },
 };

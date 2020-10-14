@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
@@ -14,12 +14,16 @@ import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
 import { IProgram } from "../models/program";
 import { IWebpushr } from "../models/state";
+import { IconShare } from "./iconShare";
+import { ModalShare } from "./modalShare";
+import { useState } from "preact/hooks";
 
 interface IProps {
   progress: IHistoryRecord;
   program?: IProgram;
   settings: ISettings;
   isChanged: boolean;
+  userId?: string;
   dispatch: IDispatch;
   timerSince?: number;
   timerMode?: IProgressMode;
@@ -29,6 +33,7 @@ interface IProps {
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
   const timers = props.settings.timers;
+  const [isShareShown, setIsShareShown] = useState<boolean>(false);
 
   if (progress != null) {
     return (
@@ -93,14 +98,21 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         <FooterView
           dispatch={props.dispatch}
           buttons={
-            Progress.isCurrent(props.progress) ? (
-              <button
-                className="p-4"
-                onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
-              >
-                <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
-              </button>
-            ) : undefined
+            <Fragment>
+              {/* {!Progress.isCurrent(props.progress) ? (
+                <button className="p-4" onClick={() => setIsShareShown(true)}>
+                  <IconShare />
+                </button>
+              ) : undefined} */}
+              {Progress.isCurrent(props.progress) ? (
+                <button
+                  className="p-4"
+                  onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
+                >
+                  <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
+                </button>
+              ) : undefined}
+            </Fragment>
           }
         />
         <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
@@ -115,6 +127,9 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           date={progress.ui?.dateModal?.date ?? ""}
         />
+        {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (
+          <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
+        )}
       </section>
     );
   } else {

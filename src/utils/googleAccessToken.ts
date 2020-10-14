@@ -7,7 +7,7 @@ let receiveMessage: ((event: MessageEvent) => void) | undefined;
 export function getGoogleAccessToken(): Promise<string | undefined> {
   return new Promise((resolve) => {
     const urlBuilder = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    urlBuilder.searchParams.append("scope", "openid");
+    urlBuilder.searchParams.append("scope", "openid email");
     urlBuilder.searchParams.append("include_granted_scopes", "true");
     urlBuilder.searchParams.append("response_type", "token");
     urlBuilder.searchParams.append("redirect_uri", `${__HOST__}/googleauthcallback.html`);

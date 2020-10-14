@@ -68,6 +68,7 @@
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "preact": "^10.3.2",
+    "preact-render-to-string": "^5.1.10",
     "uplot": "^1.0.9"
   }
 }

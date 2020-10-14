@@ -44,7 +44,7 @@ interface IPersonalRecordsProps {
   data: IRecordResponse;
 }
 
-function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
+function PersonalRecords(props: IPersonalRecordsProps): JSX.Element | null {
   const { history, record } = props.data;
   const prs: Partial<Record<IExerciseId, Record<IBarKey | "none", ISet>>> = {};
   for (const entry of record.entries) {
@@ -56,24 +56,28 @@ function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
     }
   }
 
-  return (
-    <section className="p-4 my-6 bg-orange-100 border border-orange-800 rounded-lg">
-      <h3 className="text-lg font-bold">🏆 New Personal Records</h3>
-      <ul>
-        {ObjectUtils.keys(prs).map((exerciseId) => {
-          return ObjectUtils.keys(prs[exerciseId]!).map((bar) => {
-            const set = prs[exerciseId]![bar];
-            const exercise = Exercise.get({ id: exerciseId, bar: bar === "none" ? undefined : bar });
-            return (
-              <li>
-                <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
-              </li>
-            );
-          });
-        })}
-      </ul>
-    </section>
-  );
+  if (Object.keys(prs).length > 0) {
+    return (
+      <section className="p-4 my-6 bg-orange-100 border border-orange-800 rounded-lg">
+        <h3 className="text-lg font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
+        <ul>
+          {ObjectUtils.keys(prs).map((exerciseId) => {
+            return ObjectUtils.keys(prs[exerciseId]!).map((bar) => {
+              const set = prs[exerciseId]![bar];
+              const exercise = Exercise.get({ id: exerciseId, bar: bar === "none" ? undefined : bar });
+              return (
+                <li>
+                  <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
+                </li>
+              );
+            });
+          })}
+        </ul>
+      </section>
+    );
+  } else {
+    return null;
+  }
 }
 
 interface IMaxWeightsProps {
@@ -83,7 +87,10 @@ interface IMaxWeightsProps {
 function MaxWeights(props: IMaxWeightsProps): JSX.Element {
   return (
     <section className="px-4 my-6">
-      <h3 className="text-lg font-bold">🏋️ Max lifted weights at the workout</h3>
+      <h3
+        className="text-lg font-bold"
+        dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted weights at the workout" }}
+      />
       <ul>
         {props.data.record.entries.map((entry) => {
           const exercise = Exercise.get(entry.exercise);

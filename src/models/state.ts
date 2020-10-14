@@ -7,6 +7,7 @@ import * as t from "io-ts";
 import { TSettings } from "./settings";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "../utils/lens";
+import { IUser } from "./user";
 
 export type IEnv = {
   service: Service;
@@ -15,7 +16,7 @@ export type IEnv = {
 };
 
 export interface IState {
-  email?: string;
+  user?: IUser;
   storage: IStorage;
   programs: IProgram[];
   webpushr?: IWebpushr;

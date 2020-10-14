@@ -133,6 +133,7 @@ export type ISyncStorage = {
 export type ILoginAction = {
   type: "Login";
   email: string;
+  userId: string;
 };
 
 export type ILogoutAction = {
@@ -433,9 +434,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
   } else if (action.type === "Login") {
-    return { ...state, email: action.email };
+    return { ...state, user: { email: action.email, id: action.userId } };
   } else if (action.type === "Logout") {
-    return { ...state, email: undefined };
+    return { ...state, user: undefined };
   } else if (action.type === "StartTimer") {
     return Progress.setProgress(
       state,

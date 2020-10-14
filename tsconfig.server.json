@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "es2018",
     "module": "commonjs",
     "lib": ["esnext", "webworker"],
     "outDir": "./build",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "h"
   },
   "include": ["server/**/*"]
 }

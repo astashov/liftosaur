@@ -112,6 +112,7 @@ export function AppView(props: IProps): JSX.Element | null {
     const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
     content = (
       <ProgramDayView
+        userId={state.user?.id}
         progress={progress}
         isChanged={isChanged}
         program={Progress.isCurrent(progress) ? program : undefined}
@@ -126,13 +127,13 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenSettings
         dispatch={dispatch}
-        email={state.email}
+        email={state.user?.email}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
         settings={state.storage.settings}
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
-    content = <ScreenAccount dispatch={dispatch} email={state.email} />;
+    content = <ScreenAccount dispatch={dispatch} email={state.user?.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {
     content = <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {

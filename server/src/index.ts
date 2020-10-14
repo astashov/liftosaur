@@ -6,6 +6,7 @@ import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
 import { CollectionUtils } from "./utils/collection";
 import { IStorage } from "../../src/models/state";
+import { renderRecordHtml } from "./record";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -42,7 +43,7 @@ function getHeaders(request: Request): Record<string, string> {
     "content-type": "application/json",
   };
 
-  if (allowedHosts.some((h) => h === url.host)) {
+  if (allowedHosts.some((host) => host === url.host)) {
     headers = {
       ...headers,
       "access-control-allow-origin": `${url.protocol}//${url.host}`,
@@ -82,7 +83,9 @@ async function timerHandler(request: Request): Promise<Response> {
 
 async function googleLoginHandler(request: Request): Promise<Response> {
   const token = (await request.json()).token;
-  const response = await fetch(`https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`);
+  const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
+  console.log(url);
+  const response = await fetch(url);
   const openIdJson: IOpenIdResponse = await response.json();
   await kv_liftosaur_google_access_tokens.put(token, openIdJson.sub);
   let userId = await kv_liftosaur_google_ids.get(openIdJson.sub);
@@ -90,6 +93,7 @@ async function googleLoginHandler(request: Request): Promise<Response> {
     userId = UidFactory.generateUid(12);
     await kv_liftosaur_google_ids.put(openIdJson.sub, userId);
   }
+  console.log(openIdJson);
   const storageStr = await kv_liftosaur_users.get(userId);
   let storage;
   if (storageStr == null) {
@@ -99,7 +103,9 @@ async function googleLoginHandler(request: Request): Promise<Response> {
     storage = JSON.parse(storageStr);
   }
   const session = JWT.sign({ userId: userId }, cookieSecret);
-  return new Response(JSON.stringify({ email: openIdJson.email, user_id: userId, storage: storage.storage }), {
+  const resp = { email: openIdJson.email, user_id: userId, storage: storage.storage };
+  console.log(resp);
+  return new Response(JSON.stringify(resp), {
     headers: {
       ...getHeaders(request),
       "set-cookie": Cookie.serialize("session", session, {
@@ -166,12 +172,15 @@ async function getHistoryRecord(request: Request): Promise<Response> {
       const history = storage.history;
       const historyRecord = history.find((hi) => hi.id === exerciseId);
       if (historyRecord != null) {
-        return new Response(
-          JSON.stringify({ data: { history: storage.history, record: historyRecord, settings: storage.settings } }),
-          {
-            headers: getHeaders(request),
-          }
-        );
+        return new Response(renderRecordHtml({ history, record: historyRecord, settings: storage.settings }), {
+          headers: { "content-type": "text/html" },
+        });
+        // return new Response(
+        //   JSON.stringify({ data: { history: storage.history, record: historyRecord, settings: storage.settings } }),
+        //   {
+        //     headers: getHeaders(request),
+        //   }
+        // );
       } else {
         error.message = "Can't find history record";
       }
