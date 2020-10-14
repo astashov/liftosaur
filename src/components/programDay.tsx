@@ -14,7 +14,6 @@ import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
 import { IProgram } from "../models/program";
 import { IWebpushr } from "../models/state";
-import { IconShare } from "./iconShare";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 

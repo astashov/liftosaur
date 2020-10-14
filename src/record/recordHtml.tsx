@@ -125,7 +125,9 @@ export function RecordHtml({ data }: { data: IRecordResponse }): JSX.Element {
             </div>
           </footer>
         </div>
-        <div id="data" style={{ display: "none" }} dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+        <div id="data" style={{ display: "none" }}>
+          {JSON.stringify(data)}
+        </div>
         <script src="/record.js?version=xxxxxxxx"></script>
       </body>
     </html>

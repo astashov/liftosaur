@@ -9,7 +9,10 @@ import { RecordContent } from "./record/recordContent";
 import { IRecordResponse } from "./api/service";
 
 function main(): void {
-  const data = JSON.parse(document.querySelector("#data")?.innerHTML || "{}") as IRecordResponse;
+  const escapedRawData = document.querySelector("#data")?.innerHTML || "{}";
+  const parser = new DOMParser();
+  const unescapedRawData = parser.parseFromString(escapedRawData, "text/html").documentElement.textContent || "{}";
+  const data = JSON.parse(unescapedRawData) as IRecordResponse;
   hydrate(<RecordContent data={data} />, document.getElementById("app")!);
 }
 
