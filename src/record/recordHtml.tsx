@@ -34,7 +34,7 @@ export function RecordHtml({ data }: { data: IRecordResponse }): JSX.Element {
         />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://www.liftosaur.com/images/og_image.png" />
-        <meta property="twitter:image" content="https://www.liftosaur.com/images/twitter_image.png" />
+        <meta property="twitter:image" content="https://www.liftosaur.com/images/twitter_image_2.png" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <style>
           {`
