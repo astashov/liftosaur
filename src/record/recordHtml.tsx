@@ -33,7 +33,7 @@ export function RecordHtml({ data }: { data: IRecordResponse }): JSX.Element {
           content="Liftosaur Workout Summary - what exercises were done, with what sets, reps, weights, new personal records."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://www.liftosaur.com/images/logo-square.png" />
+        <meta property="og:image" content="https://www.liftosaur.com/images/og_image.png" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <style>
           {`
