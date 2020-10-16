@@ -44,7 +44,7 @@ export function RecordHtml({
         <meta property="og:url" content={`https://www.liftosaur.com/record?user=${userId}&id=${recordId}`} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`} />
-        <meta property="twitter:image" content="https://www.liftosaur.com/images/twitter_image_3.png" />
+        <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <style>
           {`
