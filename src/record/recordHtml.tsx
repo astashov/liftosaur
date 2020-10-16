@@ -10,7 +10,15 @@ global.navigator = global.navigator || { language: "en" };
 import { IRecordResponse } from "../api/service";
 import { RecordContent } from "./recordContent";
 
-export function RecordHtml({ data }: { data: IRecordResponse }): JSX.Element {
+export function RecordHtml({
+  data,
+  userId,
+  recordId,
+}: {
+  data: IRecordResponse;
+  userId: string;
+  recordId: number;
+}): JSX.Element {
   return (
     <html lang="en">
       <head>
@@ -32,8 +40,10 @@ export function RecordHtml({ data }: { data: IRecordResponse }): JSX.Element {
           property="og:description"
           content="Liftosaur Workout Summary - what exercises were done, with what sets, reps, weights, new personal records."
         />
+        <meta property="fb:app_id" content="3448767138535273" />
+        <meta property="og:url" content={`https://www.liftosaur.com/record?user=${userId}&id=${recordId}`} />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://www.liftosaur.com/images/og_image_2.png" />
+        <meta property="og:image" content={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`} />
         <meta property="twitter:image" content="https://www.liftosaur.com/images/twitter_image_3.png" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <style>

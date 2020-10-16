@@ -10,8 +10,8 @@ import { StringUtils } from "../../src/utils/string";
 import { Weight } from "../../src/models/weight";
 import { IEither } from "../../src/utils/types";
 
-export function renderRecordHtml(data: IRecordResponse): string {
-  return "<!DOCTYPE html>" + render(<RecordHtml data={data} />);
+export function renderRecordHtml(data: IRecordResponse, userId: string, recordId: number): string {
+  return "<!DOCTYPE html>" + render(<RecordHtml data={data} userId={userId} recordId={recordId} />);
 }
 
 export async function recordImage(storage: IStorage, recordId: number): Promise<IEither<ArrayBuffer, string>> {

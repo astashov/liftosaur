@@ -172,15 +172,12 @@ async function getHistoryRecord(request: Request): Promise<Response> {
       const history = storage.history;
       const historyRecord = history.find((hi) => hi.id === recordId);
       if (historyRecord != null) {
-        return new Response(renderRecordHtml({ history, record: historyRecord, settings: storage.settings }), {
-          headers: { "content-type": "text/html" },
-        });
-        // return new Response(
-        //   JSON.stringify({ data: { history: storage.history, record: historyRecord, settings: storage.settings } }),
-        //   {
-        //     headers: getHeaders(request),
-        //   }
-        // );
+        return new Response(
+          renderRecordHtml({ history, record: historyRecord, settings: storage.settings }, userId, recordId),
+          {
+            headers: { "content-type": "text/html" },
+          }
+        );
       } else {
         error.message = "Can't find history record";
       }

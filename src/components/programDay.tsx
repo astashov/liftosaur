@@ -16,6 +16,7 @@ import { IProgram } from "../models/program";
 import { IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
+import { IconShare } from "./iconShare";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -98,11 +99,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           buttons={
             <Fragment>
-              {/* {!Progress.isCurrent(props.progress) ? (
+              {new URL(document.location.href).searchParams.get("share") && !Progress.isCurrent(props.progress) ? (
                 <button className="p-4" onClick={() => setIsShareShown(true)}>
                   <IconShare />
                 </button>
-              ) : undefined} */}
+              ) : undefined}
               {Progress.isCurrent(props.progress) ? (
                 <button
                   className="p-4"
