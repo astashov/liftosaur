@@ -64,7 +64,7 @@ export function ModalShare(props: IProps): JSX.Element {
             url.searchParams.set("display", "popup");
             url.searchParams.set("href", link);
             url.searchParams.set("hashtag", "liftosaur");
-            url.searchParams.set("quote", "Check out my workout!");
+            url.searchParams.set("quote", "Check out my weightlifting workout!");
             url.searchParams.set("redirect_url", link);
             window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
           }}
@@ -77,7 +77,7 @@ export function ModalShare(props: IProps): JSX.Element {
           kind="blue"
           onClick={() => {
             const url = new URL("https://twitter.com/intent/tweet");
-            url.searchParams.set("text", `Check out my workout! ${link}`);
+            url.searchParams.set("text", `Check out my weightlifting workout!`);
             url.searchParams.set("url", link);
             url.searchParams.set("hashtag", "liftosaur");
             window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
