@@ -6,7 +6,7 @@ import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
 import { CollectionUtils } from "./utils/collection";
 import { IStorage } from "../../src/models/state";
-import { renderRecordHtml } from "./record";
+import { renderRecordHtml, recordImage } from "./record";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -162,15 +162,15 @@ async function getStorageHandler(request: Request): Promise<Response> {
 async function getHistoryRecord(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const userId = url.searchParams.get("user");
-  const exerciseId = parseInt(url.searchParams.get("id") || "", 10);
+  const recordId = parseInt(url.searchParams.get("id") || "", 10);
   const error: { message?: string } = {};
-  if (userId != null && exerciseId != null && !isNaN(exerciseId)) {
+  if (userId != null && recordId != null && !isNaN(recordId)) {
     const resultRaw = await kv_liftosaur_users.get(userId);
     if (resultRaw != null) {
       const result = JSON.parse(resultRaw);
       const storage: IStorage = result.storage;
       const history = storage.history;
-      const historyRecord = history.find((hi) => hi.id === exerciseId);
+      const historyRecord = history.find((hi) => hi.id === recordId);
       if (historyRecord != null) {
         return new Response(renderRecordHtml({ history, record: historyRecord, settings: storage.settings }), {
           headers: { "content-type": "text/html" },
@@ -183,6 +183,45 @@ async function getHistoryRecord(request: Request): Promise<Response> {
         // );
       } else {
         error.message = "Can't find history record";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user' or 'id'";
+  }
+  return new Response(JSON.stringify({ error }), { headers: getHeaders(request), status: 400 });
+}
+
+async function getHistoryRecordImage(request: Request): Promise<Response> {
+  const cache = caches.default;
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse != null) {
+    return cachedResponse;
+  }
+
+  const error: { message?: string } = {};
+
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user");
+  const recordId = parseInt(url.searchParams.get("id") || "", 10);
+  if (userId != null && recordId != null && !isNaN(recordId)) {
+    const resultRaw = await kv_liftosaur_users.get(userId);
+    if (resultRaw != null) {
+      const result = JSON.parse(resultRaw);
+      const imageResult = await recordImage(result.storage, recordId);
+      if (imageResult.success) {
+        const response = new Response(imageResult.data, {
+          headers: {
+            "content-type": "image/png",
+            "cache-control": "max-age=86400",
+          },
+          status: 200,
+        });
+        cache.put(request, response.clone());
+        return response;
+      } else {
+        error.message = imageResult.error;
       }
     } else {
       error.message = "Can't find user";
@@ -251,6 +290,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
   r.post(".*/api/backup", (req: Request) => backupHandler(req));
   r.get(".*/api/record", (req: Request) => getHistoryRecord(req));
+  r.get(".*/api/recordimage", (req: Request) => getHistoryRecordImage(req));
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   const resp = await r.route(request);
