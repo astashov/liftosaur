@@ -2,6 +2,8 @@ import { h, JSX } from "preact";
 import { Modal } from "./modal";
 import { Share } from "../models/share";
 import { Button } from "./button";
+import { useRef, useState, useEffect } from "preact/hooks";
+import { ClipboardUtils } from "../utils/clipboard";
 
 interface IProps {
   userId: string;
@@ -11,17 +13,49 @@ interface IProps {
 
 export function ModalShare(props: IProps): JSX.Element {
   const link = Share.generateLink(props.userId, props.id);
+  const linkRef = useRef<HTMLDivElement>();
+  const timerRef = useRef<number | undefined>(undefined);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isCopied) {
+      if (timerRef.current != null) {
+        window.clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => {
+        setIsCopied(false);
+        timerRef.current = undefined;
+      }, 3000);
+    }
+  });
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 font-bold text-center">Share this workout</h3>
-      <div className="p-4 overflow-x-auto whitespace-no-wrap bg-gray-100 border border-gray-600 rounded-lg">{link}</div>
-
-      <div className="m-4 text-center">
-        <button>Copy the link to clipboard</button>
+      <div
+        className="p-2 overflow-x-auto whitespace-no-wrap bg-gray-100 border border-gray-600 rounded-lg"
+        ref={linkRef}
+      >
+        {link}
       </div>
-      <div className="text-center">or</div>
-      <div className="m-4 text-center">
+
+      <div className="m-1">
+        <button
+          className="text-blue-700 underline"
+          onClick={() => {
+            const text = linkRef.current.textContent;
+            if (text != null) {
+              ClipboardUtils.copy(text);
+              setIsCopied(true);
+            }
+          }}
+        >
+          Copy the link to clipboard
+        </button>
+        {isCopied && <span className="ml-4 text-gray-600">Copied!</span>}
+      </div>
+      <div className="font-bold text-center">OR</div>
+      <div className="m-2 text-center">
         <Button
           kind="blue"
           onClick={() => {
