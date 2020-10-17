@@ -8,7 +8,6 @@ body {
 .content {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 #app {
@@ -31,6 +30,14 @@ footer a {
   color: #2b6cb0;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.top-nav-left {
+  flex: 1;
+}
+
+.top-nav-right {
+  margin-left: 0;
 }
 
 .top-nav-menu {
@@ -242,6 +249,21 @@ footer nav li {
 
 @media (max-width: 640px) {
   .record-graph {
+    width: 100%;
+  }
+
+  .top-nav {
+    flex-direction: column;
+  }
+
+  .top-nav-left {
+    margin-bottom: 1em;
+  }
+
+  .top-nav-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
   }
 }

@@ -25,6 +25,10 @@ export function RecordHtml({
         <title>Liftosaur: Weight Lifting Tracking App | Workout summary</title>
         <link rel="stylesheet" type="text/css" href="/main.css?version=xxxxxxxx" />
         <link rel="stylesheet" type="text/css" href="/record.css?version=xxxxxxxx" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://api.liftosaur.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -63,31 +67,33 @@ export function RecordHtml({
                 <span>Liftosaur</span>
               </a>
             </div>
-            <ul class="top-nav-menu">
-              <li>
-                <a href="/">App</a>
-              </li>
-              <li>
-                <a href="/docs/docs.html">Documentation</a>
-              </li>
-            </ul>
-            <ul class="top-nav-social">
-              <li>
-                <a target="_blank" href="https://www.facebook.com/liftosaur" class="logo-facebook">
-                  <span>Facebook</span>
-                </a>
-              </li>
-              <li>
-                <a target="_blank" href="https://www.twitter.com/liftosaur" class="logo-twitter">
-                  <span>Twitter</span>
-                </a>
-              </li>
-              <li>
-                <a target="_blank" href="https://www.reddit.com/r/liftosaur" class="logo-reddit">
-                  <span>Reddit</span>
-                </a>
-              </li>
-            </ul>
+            <div class="top-nav-right">
+              <ul class="top-nav-menu">
+                <li>
+                  <a href="/">App</a>
+                </li>
+                <li>
+                  <a href="/docs/docs.html">Documentation</a>
+                </li>
+              </ul>
+              <ul class="top-nav-social">
+                <li>
+                  <a target="_blank" href="https://www.facebook.com/liftosaur" class="logo-facebook">
+                    <span>Facebook</span>
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="https://www.twitter.com/liftosaur" class="logo-twitter">
+                    <span>Twitter</span>
+                  </a>
+                </li>
+                <li>
+                  <a target="_blank" href="https://www.reddit.com/r/liftosaur" class="logo-reddit">
+                    <span>Reddit</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
           </nav>
           <div id="app" style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
             <RecordContent data={data} />
