@@ -66,7 +66,10 @@ export namespace History {
   }
 
   export function getMaxSet(entry: IHistoryEntry): ISet | undefined {
-    return CollectionUtils.sort(entry.sets, (a, b) => Weight.compare(b.weight, a.weight))[0];
+    return CollectionUtils.sort(
+      entry.sets.filter((s) => (s.completedReps || 0) > 0),
+      (a, b) => Weight.compare(b.weight, a.weight)
+    )[0];
   }
 
   export function findPersonalRecord(id: number, entry: IHistoryEntry, history: IHistoryRecord[]): ISet | undefined {
@@ -101,7 +104,12 @@ export namespace History {
   export function totalEntryWeight(entry: IHistoryEntry): IWeight {
     if (entry.sets.length > 0) {
       const firstSet = entry.sets[0];
-      return entry.sets.reduce((memo, set) => Weight.add(memo, set.weight), Weight.build(0, firstSet.weight.unit));
+      return entry.sets
+        .filter((s) => (s.completedReps || 0) > 0)
+        .reduce(
+          (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps || 0)),
+          Weight.build(0, firstSet.weight.unit)
+        );
     } else {
       return Weight.build(0, "lb");
     }

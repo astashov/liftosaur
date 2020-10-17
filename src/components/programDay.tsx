@@ -99,8 +99,17 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           buttons={
             <Fragment>
-              {new URL(document.location.href).searchParams.get("share") && !Progress.isCurrent(props.progress) ? (
-                <button className="p-4" onClick={() => setIsShareShown(true)}>
+              {!Progress.isCurrent(props.progress) ? (
+                <button
+                  className="p-4"
+                  onClick={() => {
+                    if (props.userId == null) {
+                      alert("You should be logged in to share workouts.");
+                    } else {
+                      setIsShareShown(true);
+                    }
+                  }}
+                >
                   <IconShare />
                 </button>
               ) : undefined}

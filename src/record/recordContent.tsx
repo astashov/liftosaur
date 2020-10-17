@@ -92,15 +92,17 @@ function MaxWeights(props: IMaxWeightsProps): JSX.Element {
         dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted weights at the workout" }}
       />
       <ul>
-        {props.data.record.entries.map((entry) => {
-          const exercise = Exercise.get(entry.exercise);
-          const set = CollectionUtils.sort(entry.sets, (a, b) => Weight.compare(b.weight, a.weight))[0];
-          return (
-            <li>
-              <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
-            </li>
-          );
-        })}
+        {props.data.record.entries
+          .filter((e) => (History.getMaxSet(e)?.completedReps || 0) > 0)
+          .map((entry) => {
+            const exercise = Exercise.get(entry.exercise);
+            const set = History.getMaxSet(entry)!;
+            return (
+              <li>
+                <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
+              </li>
+            );
+          })}
       </ul>
     </section>
   );
@@ -134,15 +136,17 @@ function Entry(props: IEntryProps): JSX.Element {
           )}
           <p>Completed sets x reps x weight</p>
           <ul>
-            {setGroups.map((group) => {
-              let line: string;
-              if (group.length > 1) {
-                line = `${group.length} x ${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
-              } else {
-                line = `${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
-              }
-              return <li>{line}</li>;
-            })}
+            {setGroups
+              .filter((group) => (group[0]?.completedReps || 0) > 0)
+              .map((group) => {
+                let line: string;
+                if (group.length > 1) {
+                  line = `${group.length} x ${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
+                } else {
+                  line = `${group[0].completedReps} x ${Weight.display(group[0].weight)}`;
+                }
+                return <li>{line}</li>;
+              })}
           </ul>
           <div className="mt-4">
             <p>
