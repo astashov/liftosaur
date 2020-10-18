@@ -1,4 +1,4 @@
-import { TExerciseType } from "./exercise";
+import { TExerciseType, IExerciseType, Exercise } from "./exercise";
 import { TSet, ISet } from "./set";
 import { Progress, TProgressUi, TProgressMode } from "./progress";
 import * as t from "io-ts";
@@ -70,6 +70,34 @@ export namespace History {
       entry.sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => Weight.compare(b.weight, a.weight)
     )[0];
+  }
+
+  export function findAllPersonalRecords(record: IHistoryRecord, history: IHistoryRecord[]): Map<IExerciseType, ISet> {
+    const prs: Map<IExerciseType, ISet> = new Map();
+    for (const entry of record.entries) {
+      const set = History.findPersonalRecord(record.id, entry, history);
+      if (set != null) {
+        prs.set(entry.exercise, set);
+      }
+    }
+    return prs;
+  }
+
+  export function findMaxSet(exerciseType: IExerciseType, history: IHistoryRecord[]): ISet | undefined {
+    let maxSet: ISet | undefined = undefined;
+    for (const r of history) {
+      for (const e of r.entries) {
+        if (Exercise.eq(e.exercise, exerciseType)) {
+          const entryMaxSet = getMaxSet(e);
+          if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
+            if (maxSet == null || Weight.gt(entryMaxSet.weight, maxSet.weight)) {
+              maxSet = entryMaxSet;
+            }
+          }
+        }
+      }
+    }
+    return maxSet;
   }
 
   export function findPersonalRecord(id: number, entry: IHistoryEntry, history: IHistoryRecord[]): ISet | undefined {

@@ -22,6 +22,7 @@ import { HelpOverlay } from "./helpOverlay";
 import { Progress } from "../models/progress";
 import { dequal } from "dequal";
 import { IState } from "../models/state";
+import { ScreenFinishDay } from "./screenFinishDay";
 
 interface IProps {
   client: Window["fetch"];
@@ -165,6 +166,15 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       throw new Error("Opened 'editProgram' screen, but 'state.editProgram' is null");
     }
+  } else if (Screen.current(state.screenStack) === "finishDay") {
+    content = (
+      <ScreenFinishDay
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        history={state.storage.history}
+        userId={state.user?.id}
+      />
+    );
   } else {
     return null;
   }

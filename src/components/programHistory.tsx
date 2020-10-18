@@ -8,6 +8,7 @@ import { Program } from "../models/program";
 import { Button } from "./button";
 import { HistoryRecordView } from "./historyRecord";
 import { ISettings } from "../models/settings";
+import { StringUtils } from "../utils/string";
 
 interface IProps {
   program: IProgram;
@@ -29,7 +30,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   return (
     <section className="h-full">
       <HeaderView
-        title={props.program.name}
+        title={StringUtils.truncate(props.program.name, 25)}
         subtitle="Current program"
         right={
           props.progress == null ? (

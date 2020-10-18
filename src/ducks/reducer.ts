@@ -387,7 +387,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           history: newHistory,
           programs: newPrograms,
         },
-        screenStack: Screen.pull(state.screenStack),
+        screenStack: Progress.isCurrent(progress) ? ["finishDay"] : Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,
         progress: Progress.stop(state.progress, progress.id),
       };

@@ -82,20 +82,6 @@ export namespace Thunk {
       dispatch({ type: "UpdateState", lensRecording: [lb<IState>().p("programs").record(programs)] });
     };
   }
-
-  export function share(id: number): IThunk {
-    return async (dispatch, getState, env) => {
-      const userId = getState().user?.id;
-      if (userId != null) {
-        const link = `${__HOST__}/record?id=${id}&user=${userId}`;
-        console.log(link);
-      } else {
-        alert(
-          "You should be logged in to share workouts. You can log in in Settings (the cog icon in the bottom right corner)."
-        );
-      }
-    };
-  }
 }
 
 function handleLogin(dispatch: IDispatch, result: IGetStorageResponse): void {

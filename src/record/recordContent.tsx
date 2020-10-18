@@ -2,13 +2,11 @@ import { h, JSX } from "preact";
 import "../models/state";
 import { DateUtils } from "../utils/date";
 import { IRecordResponse } from "../api/service";
-import { Weight, IBarKey, IUnit } from "../models/weight";
+import { Weight, IUnit } from "../models/weight";
 import { ISet, Reps } from "../models/set";
-import { ObjectUtils } from "../utils/object";
-import { Exercise, IExerciseId } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { IHistoryRecord, IHistoryEntry } from "../models/history";
-import { CollectionUtils } from "../utils/collection";
 import { Graph } from "../components/graph";
 import { ISettings } from "../models/settings";
 import { History } from "../models/history";
@@ -46,31 +44,21 @@ interface IPersonalRecordsProps {
 
 function PersonalRecords(props: IPersonalRecordsProps): JSX.Element | null {
   const { history, record } = props.data;
-  const prs: Partial<Record<IExerciseId, Record<IBarKey | "none", ISet>>> = {};
-  for (const entry of record.entries) {
-    const set = History.findPersonalRecord(record.id, entry, history);
-    if (set != null) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      prs[entry.exercise.id] = (prs[entry.exercise.id] || {}) as any;
-      prs[entry.exercise.id]![entry.exercise.bar || "none"] = set;
-    }
-  }
+  const prs = History.findAllPersonalRecords(record, history);
 
   if (Object.keys(prs).length > 0) {
     return (
       <section className="p-4 my-6 bg-orange-100 border border-orange-800 rounded-lg">
         <h3 className="text-lg font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
         <ul>
-          {ObjectUtils.keys(prs).map((exerciseId) => {
-            return ObjectUtils.keys(prs[exerciseId]!).map((bar) => {
-              const set = prs[exerciseId]![bar];
-              const exercise = Exercise.get({ id: exerciseId, bar: bar === "none" ? undefined : bar });
-              return (
-                <li>
-                  <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
-                </li>
-              );
-            });
+          {Array.from(prs.keys()).map((exerciseType) => {
+            const set = prs.get(exerciseType)!;
+            const exercise = Exercise.get(exerciseType);
+            return (
+              <li>
+                <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
+              </li>
+            );
           })}
         </ul>
       </section>

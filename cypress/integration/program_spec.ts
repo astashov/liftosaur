@@ -132,6 +132,7 @@ describe("Program", () => {
     cy.contains("Got it!").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Check next exercise conditions
     cy.get("[data-cy=history-record]")

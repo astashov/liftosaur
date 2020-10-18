@@ -84,7 +84,6 @@ async function timerHandler(request: Request): Promise<Response> {
 async function googleLoginHandler(request: Request): Promise<Response> {
   const token = (await request.json()).token;
   const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
-  console.log(url);
   const response = await fetch(url);
   const openIdJson: IOpenIdResponse = await response.json();
   await kv_liftosaur_google_access_tokens.put(token, openIdJson.sub);
@@ -93,7 +92,6 @@ async function googleLoginHandler(request: Request): Promise<Response> {
     userId = UidFactory.generateUid(12);
     await kv_liftosaur_google_ids.put(openIdJson.sub, userId);
   }
-  console.log(openIdJson);
   const storageStr = await kv_liftosaur_users.get(userId);
   let storage;
   if (storageStr == null) {
@@ -104,7 +102,6 @@ async function googleLoginHandler(request: Request): Promise<Response> {
   }
   const session = JWT.sign({ userId: userId }, cookieSecret);
   const resp = { email: openIdJson.email, user_id: userId, storage: storage.storage };
-  console.log(resp);
   return new Response(JSON.stringify(resp), {
     headers: {
       ...getHeaders(request),

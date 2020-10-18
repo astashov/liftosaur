@@ -96,6 +96,7 @@ describe("Progress", () => {
     cy.get("[data-cy=modal-amrap-submit]").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Checking the history record
     cy.get("[data-cy=history-entry-exercise]:contains('Bent Over Row')").as("history-entry");

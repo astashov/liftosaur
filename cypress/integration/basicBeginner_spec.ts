@@ -37,6 +37,7 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=modal-weight-submit]").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Workout B
 
@@ -67,6 +68,7 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=modal-weight-submit]").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Check next exercise conditions
     cy.get("[data-cy=history-record]")
@@ -102,6 +104,7 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=modal-amrap-submit]").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Check next exercise conditions
     cy.get("[data-cy=history-record]")
@@ -122,6 +125,7 @@ describe("Basic Beginner Program", () => {
     cy.contains("Start Next Workout").click();
 
     cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
 
     // Check next exercise conditions
     cy.get("[data-cy=history-record]")

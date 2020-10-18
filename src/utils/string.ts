@@ -15,6 +15,10 @@ export namespace StringUtils {
     return string.replace(/:/g, "").replace(/\s+/g, "-").toLowerCase();
   }
 
+  export function truncate(string: string, length: number): string {
+    return string.slice(0, length);
+  }
+
   export function fuzzySearch(needle: string, haystack: string): boolean {
     if (needle.length > haystack.length) {
       return false;
