@@ -30,6 +30,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        <p className="px-4 py-1 text-sm italic text-center">
+          A program consists of days, a day consists of exercises. Add exercises to days here.
+        </p>
         <MenuItemEditable
           type="text"
           name="Name:"
@@ -52,69 +55,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             }
           }}
         />
-        <GroupHeader
-          name="Exercises"
-          help={
-            <span>
-              Exercises available in this program. You need to add them to <strong>days</strong> to make them appear in
-              workouts.
-            </span>
-          }
-        />
-        {props.editProgram.exercises.map((exercise) => {
-          return (
-            <MenuItem
-              name={exercise.name}
-              value={
-                <Fragment>
-                  <button
-                    data-cy="edit-exercise"
-                    className="px-2 align-middle button"
-                    onClick={() => {
-                      EditProgram.editProgramExercise(props.dispatch, exercise);
-                    }}
-                  >
-                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
-                  </button>
-                  <button
-                    className="px-2 align-middle button"
-                    onClick={() => {
-                      EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
-                    }}
-                  >
-                    <IconDuplicate />
-                  </button>
-                  <button
-                    className="px-2 align-middle button"
-                    onClick={() => {
-                      const isExerciseUsed = props.editProgram.days.some(
-                        (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
-                      );
-                      if (isExerciseUsed) {
-                        alert("You can't delete this exercise, it's used in one of the days");
-                      } else if (confirm("Are you sure?")) {
-                        EditProgram.removeProgramExercise(props.dispatch, props.editProgram, exercise.id);
-                      }
-                    }}
-                  >
-                    <IconDelete />
-                  </button>
-                </Fragment>
-              }
-            />
-          );
-        })}
-        <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
-          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
-        </MenuItemWrapper>
-        <GroupHeader
-          name="Days"
-          help={
-            <span>
-              Program consists of days, and days consist of exercises. Add exercises to days so they appear in workouts.
-            </span>
-          }
-        />
+        <GroupHeader name="Days" help={<span>Add exercises to days so they appear in workouts.</span>} />
         <DraggableList
           onDragEnd={(startIndex, endIndex) => {
             EditProgram.reorderDays(props.dispatch, props.programIndex, startIndex, endIndex);
@@ -193,6 +134,61 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           }}
         >
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Day +</div>
+        </MenuItemWrapper>
+        <GroupHeader
+          name="Available Exercises"
+          help={
+            <span>
+              Exercises available in this program. You need to add them to <strong>days</strong> to make them appear in
+              workouts. They could be reused inbetween days.
+            </span>
+          }
+        />
+        {props.editProgram.exercises.map((exercise) => {
+          return (
+            <MenuItem
+              name={exercise.name}
+              value={
+                <Fragment>
+                  <button
+                    data-cy="edit-exercise"
+                    className="px-2 align-middle button"
+                    onClick={() => {
+                      EditProgram.editProgramExercise(props.dispatch, exercise);
+                    }}
+                  >
+                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                  </button>
+                  <button
+                    className="px-2 align-middle button"
+                    onClick={() => {
+                      EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
+                    }}
+                  >
+                    <IconDuplicate />
+                  </button>
+                  <button
+                    className="px-2 align-middle button"
+                    onClick={() => {
+                      const isExerciseUsed = props.editProgram.days.some(
+                        (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
+                      );
+                      if (isExerciseUsed) {
+                        alert("You can't delete this exercise, it's used in one of the days");
+                      } else if (confirm("Are you sure?")) {
+                        EditProgram.removeProgramExercise(props.dispatch, props.editProgram, exercise.id);
+                      }
+                    }}
+                  >
+                    <IconDelete />
+                  </button>
+                </Fragment>
+              }
+            />
+          );
+        })}
+        <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
+          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
         </MenuItemWrapper>
       </section>
 

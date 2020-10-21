@@ -397,7 +397,7 @@ export namespace EditProgram {
     );
   }
 
-  export function updateSimpleExercise(
+  export function updateSimpleExerciseCombined(
     dispatch: IDispatch,
     units: IUnit,
     sets?: number,
@@ -421,5 +421,55 @@ export namespace EditProgram {
         lb<IState>().pi("editExercise").p("state").p("weight").record(Weight.build(weight, units)),
       ]);
     }
+  }
+
+  export function setWeightVar(dispatch: IDispatch, value: IWeight): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("state").p("weight").record(value)]);
+  }
+
+  export function splitExercise(dispatch: IDispatch): void {
+    const exerciseLensGetters = {
+      weight: lb<IState>().pi("editExercise").p("state").p("weight").get(),
+      units: lb<IState>().p("storage").p("settings").p("units").get(),
+    };
+    updateState(dispatch, [
+      lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
+        .pi("editExercise")
+        .p("variations")
+        .i(0)
+        .p("sets")
+        .recordModify((sets, getters) => {
+          const weight =
+            typeof getters.weight === "number" ? Weight.build(getters.weight, getters.units) : getters.weight;
+          return sets.map((s) => lf(s).p("weightExpr").set(`${weight.value}${weight.unit}`));
+        }),
+    ]);
+  }
+
+  export function combineExercise(dispatch: IDispatch): void {
+    const exerciseLensGetters = {
+      programExercise: lb<IState>().pi("editExercise").get(),
+      sets: lb<IState>().pi("editExercise").p("variations").i(0).p("sets").get(),
+      settings: lb<IState>().p("storage").p("settings").get(),
+    };
+    updateState(dispatch, [
+      lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
+        .pi("editExercise")
+        .p("state")
+        .recordModify((state, getters) => {
+          const set = getters.sets[0];
+          const result = Program.runScript(getters.programExercise, set.weightExpr, 1, getters.settings, "weight");
+          const weight = result.success ? result.data : Weight.build(0, getters.settings.units);
+          return { ...state, weight };
+        }),
+      lb<IState>()
+        .pi("editExercise")
+        .p("variations")
+        .i(0)
+        .p("sets")
+        .recordModify((sets) => {
+          return sets.map((s) => lf(s).p("weightExpr").set("state.weight"));
+        }),
+    ]);
   }
 }
