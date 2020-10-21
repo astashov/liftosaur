@@ -31,7 +31,6 @@ import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
-import { IconQuestion } from "../iconQuestion";
 
 interface IProps {
   settings: ISettings;
@@ -421,10 +420,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         </div>
         <div>
           <label className="font-bold" for="variation-0-amrap">
-            AMRAP{" "}
-            <button onClick={() => alert("As Many Reps As Possible.")}>
-              <IconQuestion width={12} height={12} />
-            </button>
+            Is AMRAP?
           </label>
           <input
             checked={set.isAmrap}

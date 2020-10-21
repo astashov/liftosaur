@@ -421,6 +421,12 @@ export namespace Program {
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
     const errors = [];
+    if (Object.keys(programExercise.state).length !== 1 || programExercise.state.weight == null) {
+      const keys = Object.keys(programExercise.state)
+        .map((k) => `<strong>${k}</strong>`)
+        .join(", ");
+      errors.push(`Should only have one state variable - <strong>weight</strong>. But has - ${keys}`);
+    }
     if (programExercise.variations.length !== 1) {
       errors.push("Should only have one variation");
     }
@@ -429,15 +435,22 @@ export namespace Program {
     if (!/^\d*$/.test(sets[0].repsExpr.trim())) {
       errors.push("The reps can't be a Liftoscript expression");
     }
+    if (sets.some((s) => sets[0].repsExpr !== s.repsExpr)) {
+      errors.push("All sets should have the same reps");
+    }
+    if (sets[0].weightExpr !== "state.weight") {
+      errors.push("All sets should have the weight = <strong>state.weight</strong>");
+    }
+    if (sets.some((s) => sets[0].weightExpr !== s.weightExpr)) {
+      errors.push("All sets should have the same weight expression");
+    }
+    if (programExercise.finishDayExpr.trim()) {
+      errors.push("Should have empty finish day script");
+    }
     if (errors.length > 0) {
       return { success: false, error: errors };
     } else {
       return { success: true, data: true };
     }
-  }
-
-  export function isEligibleForCombined(programExercise: IProgramExercise): boolean {
-    const sets = programExercise.variations[0].sets;
-    return sets.every((s) => s.repsExpr === sets[0].repsExpr && s.weightExpr === "state.weight");
   }
 }
