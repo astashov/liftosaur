@@ -7,7 +7,7 @@ type IPos = { readonly line: number; readonly offset: number };
 type ITokenNumber = { readonly type: "number"; readonly value: number; unit?: IUnit; readonly pos: IPos };
 type ITokenOperator = {
   readonly type: "operator";
-  readonly value: "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":" | "&&" | "||";
+  readonly value: "!=" | "!" | "+" | "-" | "*" | "/" | ">=" | ">" | "=" | "==" | "<=" | "<" | "?" | ":" | "&&" | "||";
   readonly pos: IPos;
 };
 type ITokenIf = { readonly type: "if"; readonly value: "if" | "else"; readonly pos: IPos };
@@ -39,13 +39,15 @@ function tokenize(text: string): IToken[] {
     while (line.length > 0) {
       let match: RegExpExecArray | null;
       const pos = { line: lineNumber + 1, offset: offset + 1 };
-      if ((match = /^([(){}\[\]])/.exec(line))) {
+      if ((match = /^\/\/.*$/.exec(line))) {
+        // comments, ignoring
+      } else if ((match = /^([(){}\[\]])/.exec(line))) {
         tokens.push({ type: "paren", value: match[0] as ITokenParen["value"], pos });
       } else if ((match = /^([\d\.]+)(lb|kg)?/.exec(line))) {
         tokens.push({ type: "number", value: parseFloat(match[1]), unit: match[2] as IUnit | undefined, pos });
       } else if ((match = /^(,)/.exec(line))) {
         tokens.push({ type: "comma", value: ",", pos });
-      } else if ((match = /^([\+\-*<>=&|\?:/]+)/.exec(line))) {
+      } else if ((match = /^([\!\+\-*<>=&|\?:/]+)/.exec(line))) {
         tokens.push({ type: "operator", value: match[0] as ITokenOperator["value"], pos });
       } else if ((match = /^(;)/.exec(line))) {
         tokens.push({ type: "semicolon", value: ";", pos });
@@ -159,13 +161,19 @@ const allRules = {
     }
   },
   cmp: (parser: Parser): IExpr => {
-    const left = parser.match("expression");
-    const operator = parser.maybeGet({ type: "operator", value: /[<>=]+/ });
-    if (operator != null) {
-      const right = parser.match("cmp");
-      return { type: "expression", left, operator: operator as ITokenOperator, right };
+    const not = parser.maybeGet({ type: "operator", value: "!" });
+    if (not != null) {
+      const condition = parser.match("cmp");
+      return { type: "not", condition };
     } else {
-      return left;
+      const left = parser.match("expression");
+      const operator = parser.maybeGet({ type: "operator", value: /(==|!=|>|<|>=|<=)/ });
+      if (operator != null) {
+        const right = parser.match("cmp");
+        return { type: "expression", left, operator: operator as ITokenOperator, right };
+      } else {
+        return left;
+      }
     }
   },
   ternary: (parser: Parser): IExpr => {
@@ -229,8 +237,18 @@ type IExprCond = { type: "cond"; condition: IExpr; then: IExpr; or: IExpr };
 type IExprIf = { type: "if"; conditions: IIfCondition[]; or?: IExpr };
 type IExprAssign = { type: "assign"; variable: string; value: IExpr };
 type IExprFn = { type: "fn"; name: string; args: IExpr[] };
+type IExprNot = { type: "not"; condition: IExpr };
 
-type IExpr = IExprNumber | IExprKeyword | IExprExpression | IExprCond | IExprIf | IExprAssign | IExprBlock | IExprFn;
+type IExpr =
+  | IExprNumber
+  | IExprKeyword
+  | IExprExpression
+  | IExprCond
+  | IExprIf
+  | IExprAssign
+  | IExprBlock
+  | IExprFn
+  | IExprNot;
 
 class Parser {
   private tokens: IToken[];
@@ -320,7 +338,7 @@ class Parser {
 function comparing(
   left: number | IWeight | (number | IWeight)[],
   right: number | IWeight | (number | IWeight)[],
-  operator: ">" | "<" | ">=" | "<=" | "=="
+  operator: ">" | "<" | ">=" | "<=" | "==" | "!="
 ): boolean {
   function comparator(l: number | IWeight, r: number | IWeight): boolean {
     switch (operator) {
@@ -334,6 +352,8 @@ function comparing(
         return Weight.lte(l, r);
       case "==":
         return Weight.eq(l, r);
+      case "!=":
+        return !Weight.eq(l, r);
     }
   }
 
@@ -384,6 +404,8 @@ class Evaluator {
         } else if (operator.value === "<=") {
           return comparing(evalLeft, evalRight, operator.value);
         } else if (operator.value === "==") {
+          return comparing(evalLeft, evalRight, operator.value);
+        } else if (operator.value === "!=") {
           return comparing(evalLeft, evalRight, operator.value);
         } else {
           if (Array.isArray(evalLeft) || Array.isArray(evalRight)) {
@@ -459,6 +481,9 @@ class Evaluator {
       } else {
         throw new SyntaxError(`Unknown function '${name}'`);
       }
+    } else if (expr.type === "not") {
+      const evaluated = this.evaluate(expr.condition);
+      return !evaluated;
     } else {
       const value = expr.value;
       let match: RegExpExecArray | null;
@@ -502,7 +527,7 @@ class Evaluator {
     return this.operation(one, two, (a, b) => a / b);
   }
 
-  private operation(a: IWeight | number, b: IWeight | number, op: (a: number, b: number) => number): IWeight | number {
+  private operation(a: IWeight | number, b: IWeight | number, op: (x: number, y: number) => number): IWeight | number {
     if (typeof a === "number" && typeof b === "number") {
       return op(a, b);
     } else {

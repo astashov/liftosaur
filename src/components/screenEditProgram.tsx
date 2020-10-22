@@ -49,7 +49,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       throw new Error("Opened 'editProgramExercise' screen, but 'state.editExercise' is null");
     }
     const exercise = props.editProgram.exercises.find((e) => e.id === editExercise.id);
-    const isChanged = exercise != null && !dequal(editExercise, exercise);
+    const isChanged = exercise == null || !dequal(editExercise, exercise);
     return (
       <EditProgramExercise
         programIndex={props.programIndex}

@@ -1,19 +1,15 @@
+import "./models/state";
 import { ScriptRunner } from "./parser";
 import { Weight } from "./models/weight";
 import { Progress, IScriptBindings } from "./models/progress";
 
 const program = `
-  if (2 < 3) {
+  // a program
+  if (!(completedReps >= reps) && 3 == 5) {
+    // some comments
     1
-  } else if (2 > 5) {
+  } else {
     2
-  }
-  if (5 > 2) {
-    if (6 > 8) {
-      10
-    } else {
-      20
-    }
   }
 `;
 

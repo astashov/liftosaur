@@ -21,6 +21,7 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
   hasClear?: boolean;
   after?: JSX.Element;
   nextLine?: JSX.Element;
+  isNameHtml?: boolean;
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
@@ -32,8 +33,9 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
             className="flex items-center flex-1 py-2"
+            {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
-            {props.name}
+            {props.isNameHtml ? "" : props.name}
           </span>
           <Fragment>
             <MenuItemValue

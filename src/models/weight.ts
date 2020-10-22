@@ -57,6 +57,10 @@ export namespace Weight {
     }
   }
 
+  export function print(weight: IWeight): string {
+    return `${weight.value}${weight.unit}`;
+  }
+
   export function build(value: number, unit: IUnit): IWeight {
     return { value, unit };
   }

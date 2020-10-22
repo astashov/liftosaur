@@ -19,6 +19,28 @@ export namespace StringUtils {
     return string.slice(0, length);
   }
 
+  export function unindent(string: string): string {
+    const indent = string.split("\n").reduce<number | undefined>((memo, line) => {
+      const match = line.match(/^(\s*)\S/);
+      if (match != null) {
+        const spaces = match[1];
+        if (memo == null || memo > spaces.length) {
+          return spaces.length;
+        }
+      }
+      return memo;
+    }, undefined);
+    if (indent != null) {
+      return string
+        .split("\n")
+        .filter((s) => s.trim() !== "")
+        .map((s) => s.slice(indent, s.length).trimEnd())
+        .join("\n");
+    } else {
+      return string;
+    }
+  }
+
   export function fuzzySearch(needle: string, haystack: string): boolean {
     if (needle.length > haystack.length) {
       return false;

@@ -1,4 +1,4 @@
-import { lb, lf, lbu } from "../utils/lens";
+import { lb, lf, lbu, ILensRecordingPayload } from "../utils/lens";
 import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
@@ -7,6 +7,7 @@ import { IBarKey, IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
+import { StringUtils } from "../utils/string";
 
 interface I531Tms {
   squat: IWeight;
@@ -421,5 +422,53 @@ export namespace EditProgram {
         lb<IState>().pi("editExercise").p("state").p("weight").record(Weight.build(weight, units)),
       ]);
     }
+  }
+
+  export function setProgression(
+    dispatch: IDispatch,
+    progression?: { increment: IWeight; attempts: number },
+    deload?: { decrement: IWeight; attempts: number }
+  ): void {
+    const lbs: ILensRecordingPayload<IState>[] = [
+      lb<IState>().pi("editExercise").p("state").p("successes").record(0),
+      lb<IState>().pi("editExercise").p("state").p("failures").record(0),
+    ];
+    const finishDayExpr = [];
+    if (progression != null) {
+      finishDayExpr.push(
+        StringUtils.unindent(`
+          // Simple Exercise Progression script '${Weight.print(progression.increment)},${progression.attempts}'
+          if (completedReps >= reps) {
+            state.successes = state.successes + 1
+            if (state.successes >= ${progression.attempts}) {
+              state.weight = state.weight + ${Weight.print(progression.increment)}
+              state.successes = 0
+              state.failures = 0
+            }
+          }
+          // End Simple Exercise Progression script
+        `)
+      );
+    }
+    if (deload != null) {
+      finishDayExpr.push(
+        StringUtils.unindent(`
+          // Simple Exercise Deload script '${Weight.print(deload.decrement)},${deload.attempts}'
+          if (!(completedReps >= reps)) {
+            state.failures = state.failures + 1
+            if (state.failures >= ${deload.attempts}) {
+              state.weight = state.weight - ${Weight.print(deload.decrement)}
+              state.successes = 0
+              state.failures = 0
+            }
+          }
+          // End Simple Exercise Deload script
+        `)
+      );
+    }
+    console.log(finishDayExpr);
+    lbs.push(lb<IState>().pi("editExercise").p("finishDayExpr").record(finishDayExpr.join("\n")));
+
+    updateState(dispatch, lbs);
   }
 }

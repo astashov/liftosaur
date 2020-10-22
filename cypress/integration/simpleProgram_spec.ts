@@ -27,24 +27,16 @@ describe("Program", () => {
 
     cy.contains("Advanced").click();
 
-    cy.contains("Add Variable +").click();
-
-    g("modal-add-state-variable-input-name").clear().type("foo");
-    g("modal-add-state-variable-input-type").select("lb");
-    g("modal-add-state-variable-submit").click();
-
-    clearCodeMirror("multiline-editor-finish-day");
-    typeCodeMirror("multiline-editor-finish-day", "state.weight");
+    cy.contains("Add Variation +").click();
 
     cy.contains("Simple").click();
 
-    g("simple-errors").should("contain.text", "Should only have one state variable - weight. But has - weight, foo");
-    g("simple-errors").should("contain.text", "Should have empty finish day script");
+    g("simple-errors").should("contain.text", "Should only have one variation");
 
     cy.contains("Advanced").click();
 
-    g("menu-item-delete-foo").click();
-    clearCodeMirror("multiline-editor-finish-day");
+    g("menu-item-value-variation").select("Variation 2");
+    cy.contains("Remove Variation").click();
 
     cy.contains("Simple").click();
 

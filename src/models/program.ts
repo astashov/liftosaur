@@ -421,11 +421,11 @@ export namespace Program {
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
     const errors = [];
-    if (Object.keys(programExercise.state).length !== 1 || programExercise.state.weight == null) {
+    if (programExercise.state.weight == null) {
       const keys = Object.keys(programExercise.state)
         .map((k) => `<strong>${k}</strong>`)
         .join(", ");
-      errors.push(`Should only have one state variable - <strong>weight</strong>. But has - ${keys}`);
+      errors.push(`Must have 'weight' state variable. But has - ${keys}`);
     }
     if (programExercise.variations.length !== 1) {
       errors.push("Should only have one variation");
@@ -443,9 +443,6 @@ export namespace Program {
     }
     if (sets.some((s) => sets[0].weightExpr !== s.weightExpr)) {
       errors.push("All sets should have the same weight expression");
-    }
-    if (programExercise.finishDayExpr.trim()) {
-      errors.push("Should have empty finish day script");
     }
     if (errors.length > 0) {
       return { success: false, error: errors };

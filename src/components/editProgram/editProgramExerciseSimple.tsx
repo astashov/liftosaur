@@ -10,8 +10,9 @@ import { Exercise } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { ObjectUtils } from "../../utils/object";
-import { IBarKey } from "../../models/weight";
+import { IBarKey, IWeight, Weight } from "../../models/weight";
 import { Button } from "../button";
+import { ReactUtils } from "../../utils/react";
 
 interface IProps {
   settings: ISettings;
@@ -197,6 +198,7 @@ function Edit(props: IProps): JSX.Element {
           <span className="pt-3 pl-1">{settings.units}</span>
         </section>
       </MenuItemWrapper>
+      <Progression settings={props.settings} dispatch={props.dispatch} finishDayExpr={programExercise.finishDayExpr} />
       <div className="p-2 text-center">
         <Button kind="green" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
           Save
@@ -234,6 +236,162 @@ function Errors(props: IErrorsProps): JSX.Element {
       <p className="mt-2">
         So, please use <strong>Advanced</strong> editing mode.
       </p>
+    </section>
+  );
+}
+
+interface IProgressionProps {
+  finishDayExpr: string;
+  settings: ISettings;
+  dispatch: IDispatch;
+}
+
+interface IProgression {
+  increment: IWeight;
+  attempts: number;
+}
+
+interface IDeload {
+  decrement: IWeight;
+  attempts: number;
+}
+
+function Progression(props: IProgressionProps): JSX.Element {
+  const { settings, dispatch, finishDayExpr } = props;
+  const inputClassName = `inline-block w-8 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
+
+  const initialProgression = (): IProgression | undefined => {
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '(\d+)(kg|lb),(\d+)'/im);
+    if (match) {
+      const increment = parseInt(match[1], 10);
+      const unit = match[2];
+      const attempts = parseInt(match[3], 10);
+      return { increment: Weight.build(increment, unit as "kg" | "lb"), attempts };
+    } else {
+      return undefined;
+    }
+  };
+
+  const initialDeload = (): IDeload | undefined => {
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '(\d+)(kg|lb),(\d+)'/im);
+    if (match) {
+      const decrement = parseInt(match[1], 10);
+      const unit = match[2];
+      const attempts = parseInt(match[3], 10);
+      return { decrement: Weight.build(decrement, unit as "kg" | "lb"), attempts };
+    } else {
+      return undefined;
+    }
+  };
+
+  const [progression, setProgression] = ReactUtils.useStateWithCallback<IProgression | undefined>(
+    initialProgression,
+    () => {
+      EditProgram.setProgression(dispatch, progression, deload);
+    }
+  );
+
+  const [deload, setDeload] = ReactUtils.useStateWithCallback<IDeload | undefined>(initialDeload, () => {
+    EditProgram.setProgression(dispatch, progression, deload);
+  });
+
+  const progressionIncrementRef = useRef<HTMLInputElement>();
+  const progressionAttemptsRef = useRef<HTMLInputElement>();
+  const deloadDecrementsRef = useRef<HTMLInputElement>();
+  const deloadFailuresRef = useRef<HTMLInputElement>();
+
+  return (
+    <section>
+      <MenuItemEditable
+        type="boolean"
+        isNameHtml={true}
+        name="&#x2B06&nbsp;&nbsp;Enable&nbsp;Progression"
+        value={progression != null ? "true" : "false"}
+        onChange={(v) => {
+          const newProgression =
+            progression == null ? { increment: Weight.build(5, settings.units), attempts: 1 } : undefined;
+          setProgression(newProgression);
+        }}
+      />
+      {progression != null && (
+        <MenuItemWrapper name="progression">
+          <span>Increase by </span>
+          <input
+            min="0"
+            max="100"
+            ref={progressionIncrementRef}
+            className={inputClassName}
+            type="number"
+            value={progression.increment.value}
+            onInput={() => {
+              let value: number | undefined = parseInt(progressionIncrementRef.current.value, 10);
+              value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
+              if (value != null) {
+                setProgression({ ...progression, increment: Weight.build(value, settings.units) });
+              }
+            }}
+          />
+          <span> {settings.units} after </span>
+          <input
+            ref={progressionAttemptsRef}
+            className={inputClassName}
+            type="number"
+            value={progression.attempts}
+            onInput={() => {
+              let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
+              value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
+              if (value != null) {
+                setProgression({ ...progression, attempts: value });
+              }
+            }}
+          />
+          <span> successful attempts.</span>
+        </MenuItemWrapper>
+      )}
+      <MenuItemEditable
+        type="boolean"
+        isNameHtml={true}
+        name="&#x2B07&nbsp;&nbsp;Enable&nbsp;Deload"
+        value={deload != null ? "true" : "false"}
+        onChange={(v) => {
+          const newDeload = deload == null ? { decrement: Weight.build(5, settings.units), attempts: 1 } : undefined;
+          setDeload(newDeload);
+          EditProgram.setProgression(dispatch, progression, newDeload);
+        }}
+      />
+      {deload != null && (
+        <MenuItemWrapper name="deload">
+          <span>Decrease by </span>
+          <input
+            ref={deloadDecrementsRef}
+            className={inputClassName}
+            type="number"
+            value={deload.decrement.value}
+            onInput={() => {
+              let value: number | undefined = parseInt(deloadDecrementsRef.current.value, 10);
+              value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
+              if (value != null) {
+                setDeload({ ...deload, decrement: Weight.build(value, settings.units) });
+              }
+            }}
+          />
+          <span> {deload.decrement.unit} after </span>
+          <input
+            ref={deloadFailuresRef}
+            className={inputClassName}
+            type="number"
+            value={deload.attempts}
+            onInput={() => {
+              let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
+              value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
+              if (value != null) {
+                setDeload({ ...deload, attempts: value });
+              }
+            }}
+          />
+          <span> failed attempts.</span>
+        </MenuItemWrapper>
+      )}
     </section>
   );
 }
