@@ -338,7 +338,7 @@ function Progression(props: IProgressionProps): JSX.Element {
             type="number"
             value={progression.attempts}
             onInput={() => {
-              let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
+              let value: number | undefined = parseFloat(progressionAttemptsRef.current.value, 10);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
               if (value != null) {
                 setProgression({ ...progression, attempts: value });
@@ -368,7 +368,7 @@ function Progression(props: IProgressionProps): JSX.Element {
             type="text"
             value={deload.decrement.value}
             onInput={() => {
-              let value: number | undefined = parseInt(deloadDecrementsRef.current.value, 10);
+              let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
               if (value != null) {
                 setDeload({ ...deload, decrement: Weight.build(value, settings.units) });
