@@ -321,7 +321,7 @@ function Progression(props: IProgressionProps): JSX.Element {
             max="100"
             ref={progressionIncrementRef}
             className={inputClassName}
-            type="number"
+            type="text"
             value={progression.increment.value}
             onInput={() => {
               let value: number | undefined = parseInt(progressionIncrementRef.current.value, 10);
@@ -365,7 +365,7 @@ function Progression(props: IProgressionProps): JSX.Element {
           <input
             ref={deloadDecrementsRef}
             className={inputClassName}
-            type="number"
+            type="text"
             value={deload.decrement.value}
             onInput={() => {
               let value: number | undefined = parseInt(deloadDecrementsRef.current.value, 10);
