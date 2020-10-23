@@ -258,12 +258,12 @@ interface IDeload {
 
 function Progression(props: IProgressionProps): JSX.Element {
   const { settings, dispatch, finishDayExpr } = props;
-  const inputClassName = `inline-block w-8 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
+  const inputClassName = `inline-block w-10 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
   const initialProgression = (): IProgression | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '(\d+)(kg|lb),(\d+)'/im);
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '([\d\.]+)(kg|lb),(\d+)'/im);
     if (match) {
-      const increment = parseInt(match[1], 10);
+      const increment = parseFloat(match[1]);
       const unit = match[2];
       const attempts = parseInt(match[3], 10);
       return { increment: Weight.build(increment, unit as "kg" | "lb"), attempts };
@@ -273,9 +273,9 @@ function Progression(props: IProgressionProps): JSX.Element {
   };
 
   const initialDeload = (): IDeload | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '(\d+)(kg|lb),(\d+)'/im);
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '([\d\.]+)(kg|lb),(\d+)'/im);
     if (match) {
-      const decrement = parseInt(match[1], 10);
+      const decrement = parseFloat(match[1]);
       const unit = match[2];
       const attempts = parseInt(match[3], 10);
       return { decrement: Weight.build(decrement, unit as "kg" | "lb"), attempts };
@@ -323,8 +323,8 @@ function Progression(props: IProgressionProps): JSX.Element {
             className={inputClassName}
             type="text"
             value={progression.increment.value}
-            onInput={() => {
-              let value: number | undefined = parseInt(progressionIncrementRef.current.value, 10);
+            onBlur={() => {
+              let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
               if (value != null) {
                 setProgression({ ...progression, increment: Weight.build(value, settings.units) });
@@ -337,8 +337,8 @@ function Progression(props: IProgressionProps): JSX.Element {
             className={inputClassName}
             type="number"
             value={progression.attempts}
-            onInput={() => {
-              let value: number | undefined = parseFloat(progressionAttemptsRef.current.value, 10);
+            onBlur={() => {
+              let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
               if (value != null) {
                 setProgression({ ...progression, attempts: value });
@@ -367,7 +367,7 @@ function Progression(props: IProgressionProps): JSX.Element {
             className={inputClassName}
             type="text"
             value={deload.decrement.value}
-            onInput={() => {
+            onBlur={() => {
               let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
               if (value != null) {
@@ -381,7 +381,7 @@ function Progression(props: IProgressionProps): JSX.Element {
             className={inputClassName}
             type="number"
             value={deload.attempts}
-            onInput={() => {
+            onBlur={() => {
               let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
               if (value != null) {
