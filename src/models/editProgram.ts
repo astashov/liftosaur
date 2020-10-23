@@ -466,7 +466,6 @@ export namespace EditProgram {
         `)
       );
     }
-    console.log(finishDayExpr);
     lbs.push(lb<IState>().pi("editExercise").p("finishDayExpr").record(finishDayExpr.join("\n")));
 
     updateState(dispatch, lbs);
