@@ -27,13 +27,13 @@ Check this video if you get stuck, it replicates what's written below.
 
 ### State Variables and Finish Day Script
 
-Let's start with creating our own simple workout. Open liftosaur.com (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to Settings (cog icon at the right bottom corner), and press "Choose Program". There, press "Create new program". Let's name it "Liftosaurus".
+Let's start with creating our own simple workout. Open <a href="https://www.liftosaur.com">www.liftosaur.com</a> (you may want to use laptop or desktop computer for that, not a phone, so you'd have access to keyboard. It's not required, but in my opinion - way more handy). Go to the Settings (cog icon at the right bottom corner), and press "Choose Program". There, press "Create" at the top right corner. Let's name it "Liftosaurus".
 
 Now, press "Day 1", then press the "Create New Exercise" button to add an exercise. There, switch to "Advanced" tab. In the "Exercise" field select "Bench Press".
 
 Skip the variations section for now, and scroll to the "State Variables" section. We can create various variables there, that we can use in Liftoscript scripts, and they will persist their values between workouts. There's one already existing, `weight`. We will increase or decrease the value of this variable in the script, and it will be reflected in the sets' weight. This way, we can program progressions and deloads.
 
-Press `0 lb` value of the `weight` variable, and change it to e.g. `50lb`.
+Press `45 lb` value of the `weight` variable, and change it to e.g. `50`.
 
 Now, let's put that variable in use. Scroll down to the "Sets" section. For simplicity, we'll only have 1 set of 5 reps for our exercise. The weight of it though will be controlled by the `weight` state variable we set above. You could see in the **Weight** field it's already entered `state.weight`.
 

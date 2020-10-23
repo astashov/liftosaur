@@ -371,6 +371,29 @@ export namespace EditProgram {
               return [...exc, editExercise];
             }
           }),
+        lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
+          .p("storage")
+          .p("programs")
+          .recordModify((programs, getters) => {
+            if (getters.state.screenStack[getters.state.screenStack.length - 2] === "editProgramDay") {
+              const dayIndex = getters.state.editProgram!.dayIndex!;
+              const exerciseId = getters.editExercise!.id;
+              return lf(programs)
+                .i(programIndex)
+                .p("days")
+                .i(dayIndex)
+                .p("exercises")
+                .modify((es) => {
+                  if (es.every((e) => e.id !== exerciseId)) {
+                    return [...es, { id: exerciseId }];
+                  } else {
+                    return es;
+                  }
+                });
+            } else {
+              return programs;
+            }
+          }),
         lb<IState>()
           .p("screenStack")
           .recordModify((s) => Screen.pull(s)),
@@ -429,10 +452,9 @@ export namespace EditProgram {
     progression?: { increment: IWeight; attempts: number },
     deload?: { decrement: IWeight; attempts: number }
   ): void {
-    const lbs: ILensRecordingPayload<IState>[] = [
-      lb<IState>().pi("editExercise").p("state").p("successes").record(0),
-      lb<IState>().pi("editExercise").p("state").p("failures").record(0),
-    ];
+    const lbs: ILensRecordingPayload<IState>[] = [];
+    lbs.push(lb<IState>().pi("editExercise").p("state").p("successes").record(0));
+    lbs.push(lb<IState>().pi("editExercise").p("state").p("failures").record(0));
     const finishDayExpr = [];
     if (progression != null) {
       finishDayExpr.push(
