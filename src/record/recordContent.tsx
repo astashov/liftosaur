@@ -46,7 +46,7 @@ function PersonalRecords(props: IPersonalRecordsProps): JSX.Element | null {
   const { history, record } = props.data;
   const prs = History.findAllPersonalRecords(record, history);
 
-  if (Object.keys(prs).length > 0) {
+  if (prs.size > 0) {
     return (
       <section className="p-4 my-6 bg-orange-100 border border-orange-800 rounded-lg">
         <h3 className="text-lg font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />

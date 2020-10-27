@@ -18,7 +18,6 @@
 * Versionize published programs
 * Lazy load Codemirror
 * Fix backups
-* Add comments support to parser
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add showing what muscle groups are working for program/day/exercise
@@ -26,6 +25,3 @@
 
 * Bug:
 Assign lb to state var of type number
-
-* Bug:
-Fix scroll position when going from screen to screen
