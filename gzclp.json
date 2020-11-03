@@ -1,0 +1,838 @@
+{"program": {
+  "id": "gzclp",
+  "name": "GZCLP",
+  "url": "https://thefitness.wiki/routines/gzclp/",
+  "author": "Cody LeFever",
+  "description": "Popular linear progression workout routine, based on the <a target='_blank' href='http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html'>GZCL method</a>, featuring well-balanced exercise selection, and proven progression scheme. It's great for beginners, you could choose it right after 3-month course of 'Basic Beginner' program.",
+  "nextDay": 1,
+  "days": [
+    {
+      "name": "Day 1",
+      "exercises": [
+        {
+          "id": "arcbxrdq"
+        },
+        {
+          "id": "obornhqj"
+        },
+        {
+          "id": "funewull"
+        }
+      ]
+    },
+    {
+      "name": "Day 2",
+      "exercises": [
+        {
+          "id": "mspcbocr"
+        },
+        {
+          "id": "nzzpijbv"
+        },
+        {
+          "id": "hbyrdbsw"
+        }
+      ]
+    },
+    {
+      "name": "Day 3",
+      "exercises": [
+        {
+          "id": "gtydkkay"
+        },
+        {
+          "id": "lrzellmp"
+        },
+        {
+          "id": "funewull"
+        }
+      ]
+    },
+    {
+      "name": "Day 4",
+      "exercises": [
+        {
+          "id": "sowdutxd"
+        },
+        {
+          "id": "ygknxmbg"
+        },
+        {
+          "id": "hbyrdbsw"
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "name": "Tier 1 Squat",
+      "id": "arcbxrdq",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "squat",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 150,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[5] + 10lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight * 0.85\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 1 Deadlift",
+      "id": "sowdutxd",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "deadlift",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 200,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[5] + 10lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight * 0.85\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 1 Bench Press",
+      "id": "gtydkkay",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "benchPress",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 135,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[5] + 5lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight * 0.85\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 1 Overhead Press",
+      "id": "mspcbocr",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "3",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "2",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        },
+        {
+          "sets": [
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "1",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "overheadPress",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 100,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[5] + 5lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight * 0.85\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 2 Deadlift",
+      "id": "nzzpijbv",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "deadlift",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 140,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[3] + 10lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight - 20lb\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 2 Squat",
+      "id": "lrzellmp",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "squat",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 135,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[3] + 10lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight - 20lb\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 2 Bench Press",
+      "id": "obornhqj",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "benchPress",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 95,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[3] + 5lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight - 15lb\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Tier 2 Overhead Press",
+      "id": "ygknxmbg",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "state.stage == 1 ? 10 : (state.stage == 2 ? 8 : 6)",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "overheadPress",
+        "bar": "barbell"
+      },
+      "state": {
+        "weight": {
+          "value": 75,
+          "unit": "lb"
+        },
+        "stage": 1
+      },
+      "finishDayExpr": "if (cr >= r) {\n  state.weight = w[3] + 5lb\n} else if (state.stage < 3) {\n  state.stage = state.stage + 1\n} else {\n  state.stage = 1\n  state.weight = state.weight - 15lb\n}",
+      "variationExpr": "state.stage"
+    },
+    {
+      "name": "Lat Pulldown",
+      "id": "funewull",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "latPulldown"
+      },
+      "state": {
+        "weight": {
+          "value": 50,
+          "unit": "lb"
+        }
+      },
+      "finishDayExpr": "if (cr[3] >= 25) {\n  state.weight = state.weight + 5lb\n}",
+      "variationExpr": "1"
+    },
+    {
+      "name": "Bent Over Row",
+      "id": "hbyrdbsw",
+      "variations": [
+        {
+          "sets": [
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": false
+            },
+            {
+              "repsExpr": "15",
+              "weightExpr": "state.weight",
+              "isAmrap": true
+            }
+          ]
+        }
+      ],
+      "exerciseType": {
+        "id": "bentOverRow",
+        "bar": "dumbbell"
+      },
+      "state": {
+        "weight": {
+          "value": 50,
+          "unit": "lb"
+        }
+      },
+      "finishDayExpr": "if (cr[3] >= 25) {\n  state.weight = state.weight + 5lb\n}",
+      "variationExpr": "1"
+    }
+  ],
+  "tags": ["beginner", "barbell"]
+}, "id":"udyzmlufjode","timestamp":1600534516276}

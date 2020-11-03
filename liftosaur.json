@@ -1,0 +1,1089 @@
+{
+  "program": {
+    "id": "the5314b",
+    "name": "5/3/1 For Beginners",
+    "author": "Jim Wendler",
+    "url": "https://thefitness.wiki/routines/5-3-1-for-beginners",
+    "description": "<div><p>A very popular weight lifting routine - 5/3/1 by Jim Wendler, adapted for beginners.</p><p>Good both for strength and size, it's well tested by time and helped thousands of lifters to achieve their goals</p></div>",
+    "nextDay": 2,
+    "days": [
+      {
+        "name": "Week 1 Day 1",
+        "exercises": [
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "muxcjlnj"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 Day 2",
+        "exercises": [
+          {
+            "id": "qmgmhghb"
+          },
+          {
+            "id": "gourotgq"
+          },
+          {
+            "id": "qytkptrm"
+          },
+          {
+            "id": "eaqzsxix"
+          },
+          {
+            "id": "dadirdeh"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 Day 3",
+        "exercises": [
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "utlkbjvu"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 Day 1",
+        "exercises": [
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "muxcjlnj"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 Day 2",
+        "exercises": [
+          {
+            "id": "qmgmhghb"
+          },
+          {
+            "id": "gourotgq"
+          },
+          {
+            "id": "qytkptrm"
+          },
+          {
+            "id": "eaqzsxix"
+          },
+          {
+            "id": "dadirdeh"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 Day 3",
+        "exercises": [
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "utlkbjvu"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 Day 1",
+        "exercises": [
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "muxcjlnj"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 Day 2",
+        "exercises": [
+          {
+            "id": "qmgmhghb"
+          },
+          {
+            "id": "gourotgq"
+          },
+          {
+            "id": "qytkptrm"
+          },
+          {
+            "id": "eaqzsxix"
+          },
+          {
+            "id": "dadirdeh"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 Day 3",
+        "exercises": [
+          {
+            "id": "tjvruqaq"
+          },
+          {
+            "id": "cqwecfka"
+          },
+          {
+            "id": "knnvjouy"
+          },
+          {
+            "id": "utlkbjvu"
+          },
+          {
+            "id": "qpysyaui"
+          }
+        ]
+      }
+    ],
+    "exercises": [
+      {
+        "name": "Squat",
+        "id": "cqwecfka",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.8",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.9",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "1",
+                "weightExpr": "state.tm * 0.95",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "squat",
+          "bar": "barbell"
+        },
+        "state": {
+          "tm": {
+            "value": 200,
+            "unit": "lb"
+          }
+        },
+        "finishDayExpr": "if (day == 9) {\n  state.tm = state.tm + 10lb\n}",
+        "variationExpr": "if (day >= 4 && day <= 6) {\n  2\n} else { if (day >= 7 && day <= 9) {\n  3\n} else {\n  1\n}}"
+      },
+      {
+        "name": "Deadlift",
+        "id": "qmgmhghb",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.8",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.9",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "1",
+                "weightExpr": "state.tm * 0.95",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "deadlift",
+          "bar": "barbell"
+        },
+        "state": {
+          "tm": {
+            "value": 200,
+            "unit": "lb"
+          }
+        },
+        "finishDayExpr": "if (day == 9) {\n  state.tm = state.tm + 10lb\n}",
+        "variationExpr": "if (day >= 4 && day <= 6) {\n  2\n} else { if (day >= 7 && day <= 9) {\n  3\n} else {\n  1\n}}"
+      },
+      {
+        "name": "Bench Press",
+        "id": "tjvruqaq",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.8",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.9",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "1",
+                "weightExpr": "state.tm * 0.95",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "benchPress",
+          "bar": "barbell"
+        },
+        "state": {
+          "tm": {
+            "value": 150,
+            "unit": "lb"
+          }
+        },
+        "finishDayExpr": "if (day == 9) {\n  state.tm = state.tm + 5lb\n}",
+        "variationExpr": "if (day >= 4 && day <= 6) {\n  2\n} else { if (day >= 7 && day <= 9) {\n  3\n} else {\n  1\n}}"
+      },
+      {
+        "name": "Overhead Press",
+        "id": "gourotgq",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.65",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.8",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.9",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.7",
+                "isAmrap": false
+              }
+            ]
+          },
+          {
+            "sets": [
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "3",
+                "weightExpr": "state.tm * 0.85",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "1",
+                "weightExpr": "state.tm * 0.95",
+                "isAmrap": true
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "5",
+                "weightExpr": "state.tm * 0.75",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "overheadPress",
+          "bar": "barbell"
+        },
+        "state": {
+          "tm": {
+            "value": 115,
+            "unit": "lb"
+          }
+        },
+        "finishDayExpr": "if (day == 9) {\n  state.tm = state.tm + 5lb\n}",
+        "variationExpr": "if (day >= 4 && day <= 6) {\n  2\n} else { if (day >= 7 && day <= 9) {\n  3\n} else {\n  1\n}}"
+      },
+      {
+        "name": "Pull Up",
+        "id": "utlkbjvu",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "pullUp"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Push Up",
+        "id": "qpysyaui",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "15",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "15",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "15",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "15",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "15",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "pushUp"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Hanging Leg Raise",
+        "id": "knnvjouy",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "hangingLegRaise"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Triceps Dip",
+        "id": "qytkptrm",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "tricepsDip"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Chin Up",
+        "id": "muxcjlnj",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "chinUp"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Bulgarian Split Squat",
+        "id": "dadirdeh",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "bulgarianSplitSquat"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      },
+      {
+        "name": "Inverted Row",
+        "id": "eaqzsxix",
+        "variations": [
+          {
+            "sets": [
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              },
+              {
+                "repsExpr": "10",
+                "weightExpr": "0lb",
+                "isAmrap": false
+              }
+            ]
+          }
+        ],
+        "exerciseType": {
+          "id": "invertedRow"
+        },
+        "state": {},
+        "finishDayExpr": "",
+        "variationExpr": "1"
+      }
+    ],
+    "tags": ["beginner", "barbell"]
+  },
+  "id": "udyzmlufjode",
+  "timestamp": 1595172411402
+}

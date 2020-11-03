@@ -1,0 +1,2958 @@
+{
+  "the5314b": {
+    "program": {
+      "isProgram2": true,
+      "id": "the5314b",
+      "name": "5/3/1 For Beginners",
+      "author": "Jim Wendler",
+      "url": "https://thefitness.wiki/routines/5-3-1-for-beginners",
+      "description": "<div><p>A very popular weight lifting routine - 5/3/1 by Jim Wendler, adapted for beginners.</p><p>Good both for strength and size, it's well tested by time and helped thousands of lifters to achieve their goals</p></div>",
+      "days": [
+        {
+          "name": "Week 1 Day 1",
+          "exercises": [
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "chinups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 1 Day 2",
+          "exercises": [
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dips",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "invertedRows",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "singleLegSplitSquat",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 1 Day 3",
+          "exercises": [
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pullups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 2 Day 1",
+          "exercises": [
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "chinups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 2 Day 2",
+          "exercises": [
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dips",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "invertedRows",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "singleLegSplitSquat",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 2 Day 3",
+          "exercises": [
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.9",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pullups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 3 Day 1",
+          "exercises": [
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.squatTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.benchPressTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "chinups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 3 Day 2",
+          "exercises": [
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.deadliftTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.overheadPressTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dips",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "invertedRows",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "singleLegSplitSquat",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Week 3 Day 3",
+          "exercises": [
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.benchPressTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.85",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "1",
+                  "weightExpr": "state.squatTM * 0.95",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pullups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Squat Testing Day",
+          "exercises": [
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM * 0.9",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.squatTM",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "chinups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Overhead Press Testing Day",
+          "exercises": [
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM * 0.9",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.overheadPressTM",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dips",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "invertedRows",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "singleLegSplitSquat",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Deadlift Testing Day",
+          "exercises": [
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadliftTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM * 0.9",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.deadliftTM",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPressTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dips",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "invertedRows",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "singleLegSplitSquat",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Bench Press Testing Day",
+          "exercises": [
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.7",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPressTM * 0.8",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM * 0.9",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "3",
+                  "weightExpr": "state.benchPressTM",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.75",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.85",
+                  "isAmrap": true
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squatTM * 0.65",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pullups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "pushups",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "10",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "initialState": {
+        "benchPressTM": 95,
+        "squatTM": 135,
+        "deadliftTM": 185,
+        "overheadPressTM": 85
+      },
+      "finishDayExpr": "if (day == 9) {\n  state.squatTM = state.squatTM + 10lb\n  state.benchPressTM = state.benchPressTM + 5lb\n  state.deadliftTM = state.deadliftTM + 10lb\n  state.overheadPressTM = state.overheadPressTM + 5lb\n  if (state.cycle == 3) {\n    state.nextDay = 10\n    state.cycle = 1\n  } else {\n    state.nextDay = 1\n    state.cycle = state.cycle + 1\n  }\n}\nif (day == 10 && cr[1][4] < r[1][4]) {\n  state.squatTM = calculateTrainingMax(w[1][4], cr[1][4])\n}\nif (day == 11 && cr[1][4] < r[1][4]) {\n  state.overheadPressTM = calculateTrainingMax(w[1][4], cr[1][4])\n}\nif (day == 12 && cr[1][4] < r[1][4]) {\n  state.deadliftTM = calculateTrainingMax(w[1][4], cr[1][4])\n}\nif (day == 13 && cr[1][4] < r[1][4]) {\n  state.benchPressTM = calculateTrainingMax(w[1][4], cr[1][4])\n}\n",
+      "state": {
+        "benchPressTM": {
+          "value": 190,
+          "unit": "lb"
+        },
+        "squatTM": {
+          "value": 225,
+          "unit": "lb"
+        },
+        "deadliftTM": {
+          "value": 290,
+          "unit": "lb"
+        },
+        "overheadPressTM": {
+          "value": 130,
+          "unit": "lb"
+        },
+        "cycle": 1
+      },
+      "internalState": {
+        "nextDay": 9
+      },
+      "tags": [
+        "beginner",
+        "barbell"
+      ]
+    },
+    "id": "udyzmlufjode",
+    "timestamp": 1595172411402
+  },
+  "basicBeginner": {
+    "program": {
+      "isProgram2": true,
+      "id": "basicBeginner",
+      "name": "Basic Beginner Routine",
+      "author": "/r/fitness",
+      "url": "https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/",
+      "description": "<div><p>This is a great starting routine for complete beginners.</p><p>It's simple, easy to follow routine, which will introduce you to weight lifting.</p><p>You should run it for ~3 months, and then switch to some other routine, like '5/3/1 for beginners'.</p></div>",
+      "days": [
+        {
+          "name": "Workout A",
+          "exercises": [
+            {
+              "exercise": "barbellRows",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.barbellRows",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.barbellRows",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.barbellRows",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "benchPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPress",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPress",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.benchPress",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "squat",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squat",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squat",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.squat",
+                  "isAmrap": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Workout B",
+          "exercises": [
+            {
+              "exercise": "chinups",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "0",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "overheadPress",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPress",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPress",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.overheadPress",
+                  "isAmrap": true
+                }
+              ]
+            },
+            {
+              "exercise": "deadlift",
+              "sets": [
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadlift",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadlift",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "5",
+                  "weightExpr": "state.deadlift",
+                  "isAmrap": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "state": {
+        "barbellRows": {
+          "value": 95,
+          "unit": "lb"
+        },
+        "benchPress": {
+          "value": 45,
+          "unit": "lb"
+        },
+        "overheadPress": {
+          "value": 45,
+          "unit": "lb"
+        },
+        "deadlift": {
+          "value": 95,
+          "unit": "lb"
+        },
+        "squat": {
+          "value": 45,
+          "unit": "lb"
+        }
+      },
+      "internalState": {
+        "nextDay": 1
+      },
+      "finishDayExpr": "if (day == 1) {\n  if (cr[1][1] + cr[1][2] + cr[1][3] >= 15) {\n    state.barbellRows = state.barbellRows + (cr[1][3] > 10 ? 5lb : 2.5lb)\n  } else {\n    state.barbellRows = state.barbellRows * 0.9\n  }\n  if (cr[2][1] + cr[2][2] + cr[2][3] >= 15) {\n    state.benchPress = state.benchPress + (cr[2][3] > 10 ? 5lb : 2.5lb)\n  } else {\n    state.benchPress = state.benchPress * 0.9\n  }\n  if (cr[3][1] + cr[3][2] + cr[3][3] >= 15) {\n    state.squat = state.squat + (cr[3][3] > 10 ? 10lb : 5lb)\n  } else {\n    state.squat = state.squat * 0.9\n  }\n} else {\n  if (cr[2][1] + cr[2][2] + cr[2][3] >= 15) {\n    state.overheadPress = state.overheadPress + (cr[2][3] > 10 ? 5lb : 2.5lb)\n  } else {\n    state.overheadPress = state.overheadPress * 0.9\n  }\n  if (cr[3][1] + cr[3][2] + cr[3][3] >= 15) {\n    state.deadlift = state.deadlift + (cr[3][3] > 10 ? 10lb : 5lb)\n  } else {\n    state.deadlift = state.deadlift * 0.9\n  }\n}",
+      "tags": [
+        "first-starter",
+        "barbell"
+      ]
+    },
+    "id": "udyzmlufjode",
+    "timestamp": 1594775816507
+  },
+  "dbPpl": {
+    "program": {
+      "isProgram2": true,
+      "id": "dbPpl",
+      "name": "Dumbbell P/P/L",
+      "author": "/u/gregariousHermit",
+      "url": "https://old.reddit.com/r/Fitness/comments/2e79y4/dumbbell_ppl_proposed_alternative_to_dumbbell/",
+      "description": "<div><p>This is a great starting routine for beginners if you only have dumbbells available. If you have a barbell, then your better bet is 'Basic Beginner Routine'.</p><p>It's a Push/Pull/Legs routine with linear progressing, each day is focused on either Push, Pull or Legs.</p><p>You'll need a bench, adjustable dumbbells and a pull-up bar.</p></div>",
+      "days": [
+        {
+          "name": "Day 1",
+          "exercises": [
+            {
+              "exercise": "dbBenchPress",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBenchPressWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBenchPressWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBenchPressWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbInclineFly",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbInclineFlyWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbInclineFlyWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbInclineFlyWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbArnoldPress",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbArnoldPressWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbArnoldPressWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbArnoldPressWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbTricepsExtension",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbTricepsExtensionWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbTricepsExtensionWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbTricepsExtensionWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Day 2",
+          "exercises": [
+            {
+              "exercise": "pullups",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbRow",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbRowWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbRowWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbRowWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbLateralRaise",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLateralRaiseWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLateralRaiseWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLateralRaiseWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbShrug",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbShrugWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbShrugWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbShrugWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbBicepCurl",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBicepCurlWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBicepCurlWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbBicepCurlWeight",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Day 3",
+          "exercises": [
+            {
+              "exercise": "dbGobletSquat",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbGobletSquatWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbGobletSquatWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbGobletSquatWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbLunge",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLungeWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLungeWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbLungeWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbSingleLegDeadlift",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbSingleLegDeadliftWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbSingleLegDeadliftWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbSingleLegDeadliftWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "dbCalfRaise",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbCalfRaiseWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbCalfRaiseWeight",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "state.dbCalfRaiseWeight",
+                  "isAmrap": false
+                }
+              ]
+            },
+            {
+              "exercise": "legRaises",
+              "sets": [
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                },
+                {
+                  "repsExpr": "12",
+                  "weightExpr": "0",
+                  "isAmrap": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internalState": {
+        "nextDay": 1
+      },
+      "state": {
+        "dbBenchPressWeight": {
+          "value": 40,
+          "unit": "lb"
+        },
+        "dbBenchPressFailures": 0,
+        "dbBenchPressLastReps": 0,
+        "dbInclineFlyWeight": {
+          "value": 30,
+          "unit": "lb"
+        },
+        "dbInclineFlyFailures": 0,
+        "dbInclineFlyLastReps": 0,
+        "dbArnoldPressWeight": {
+          "value": 50,
+          "unit": "lb"
+        },
+        "dbArnoldPressFailures": 0,
+        "dbArnoldPressLastReps": 0,
+        "dbTricepsExtensionWeight": {
+          "value": 50,
+          "unit": "lb"
+        },
+        "dbTricepsExtensionFailures": 0,
+        "dbTricepsExtensionLastReps": 0,
+        "dbRowWeight": {
+          "value": 50,
+          "unit": "lb"
+        },
+        "dbRowFailures": 0,
+        "dbRowLastReps": 0,
+        "dbLateralRaiseWeight": {
+          "value": 20,
+          "unit": "lb"
+        },
+        "dbLateralRaiseFailures": 0,
+        "dbLateralRaiseLastReps": 0,
+        "dbShrugWeight": {
+          "value": 50,
+          "unit": "lb"
+        },
+        "dbShrugFailures": 0,
+        "dbShrugLastReps": 0,
+        "dbBicepCurlWeight": {
+          "value": 20,
+          "unit": "lb"
+        },
+        "dbBicepCurlFailures": 0,
+        "dbBicepCurlLastReps": 0,
+        "dbGobletSquatWeight": {
+          "value": 40,
+          "unit": "lb"
+        },
+        "dbGobletSquatFailures": 0,
+        "dbGobletSquatLastReps": 0,
+        "dbLungeWeight": {
+          "value": 20,
+          "unit": "lb"
+        },
+        "dbLungeFailures": 0,
+        "dbLungeLastReps": 0,
+        "dbSingleLegDeadliftWeight": {
+          "value": 30,
+          "unit": "lb"
+        },
+        "dbSingleLegDeadliftFailures": 0,
+        "dbSingleLegDeadliftLastReps": 0,
+        "dbCalfRaiseWeight": {
+          "value": 50,
+          "unit": "lb"
+        },
+        "dbCalfRaiseFailures": 0,
+        "dbCalfRaiseLastReps": 0
+      },
+      "finishDayExpr": "if (day == 1) {\n  if (cr[1][1] >= r[1][1] && cr[1][2] >= r[1][2] && cr[1][3] >= r[1][3]) {\n    state.dbBenchPressWeight = state.dbBenchPressWeight + 2.5lb\n  } else {\n    if (cr[1][1] + cr[1][2] + cr[1][3] <= state.dbBenchPressLastReps) {\n      state.dbBenchPressFailures = state.dbBenchPressFailures + 1\n    }\n  }\n  if (state.dbBenchPressFailures >= 3) {\n    state.dbBenchPressWeight = state.dbBenchPressWeight - 5lb\n  }\n  state.dbBenchPressLastReps = cr[1][1] + cr[1][2] + cr[1][3]\n\n  if (cr[2][1] >= r[2][1] && cr[2][2] >= r[2][2] && cr[2][3] >= r[2][3]) {\n    state.dbInclineFlyWeight = state.dbInclineFlyWeight + 2.5lb\n  } else {\n    if (cr[2][1] + cr[2][2] + cr[2][3] <= state.dbInclineFlyLastReps) {\n      state.dbInclineFlyFailures = state.dbInclineFlyFailures + 1\n    }\n  }\n  if (state.dbInclineFlyFailures >= 3) {\n    state.dbInclineFlyWeight = state.dbInclineFlyWeight - 5lb\n  }\n  state.dbInclineFlyLastReps = cr[2][1] + cr[2][2] + cr[2][3]\n\n  if (cr[3][1] >= r[3][1] && cr[3][2] >= r[3][2] && cr[3][3] >= r[3][3]) {\n    state.dbArnoldPressWeight = state.dbArnoldPressWeight + 2.5lb\n  } else {\n    if (cr[3][1] + cr[3][2] + cr[3][3] <= state.dbArnoldPressLastReps) {\n      state.dbArnoldPressFailures = state.dbArnoldPressFailures + 1\n    }\n  }\n  if (state.dbArnoldPressFailures >= 3) {\n    state.dbArnoldPressWeight = state.dbArnoldPressWeight - 5lb\n  }\n  state.dbArnoldPressLastReps = cr[3][1] + cr[3][2] + cr[3][3]\n\n  if (cr[4][1] >= r[4][1] && cr[4][2] >= r[4][2] && cr[4][3] >= r[4][3]) {\n    state.dbTricepsExtensionWeight = state.dbTricepsExtensionWeight + 2.5lb\n  } else {\n    if (cr[4][1] + cr[4][2] + cr[4][3] <= state.dbTricepsExtensionLastReps) {\n      state.dbTricepsExtensionFailures = state.dbTricepsExtensionFailures + 1\n    }\n  }\n  if (state.dbTricepsExtensionFailures >= 3) {\n    state.dbTricepsExtensionWeight = state.dbTricepsExtensionWeight - 5lb\n  }\n  state.dbTricepsExtensionLastReps = cr[4][1] + cr[4][2] + cr[4][3]\n} else {\n  if (day == 2) {\n    if (cr[2][1] >= r[2][1] && cr[2][2] >= r[2][2] && cr[2][3] >= r[2][3]) {\n      state.dbRowWeight = state.dbRowWeight + 2.5lb\n    } else {\n      if (cr[2][1] + cr[2][2] + cr[2][3] <= state.dbRowLastReps) {\n        state.dbRowFailures = state.dbRowFailures + 1\n      }\n    }\n    if (state.dbRowFailures >= 3) {\n      state.dbRowWeight = state.dbRowWeight - 5lb\n    }\n    state.dbRowLastReps = cr[2][1] + cr[2][2] + cr[2][3]\n\n    if (cr[3][1] >= r[3][1] && cr[3][2] >= r[3][2] && cr[3][3] >= r[3][3]) {\n      state.dbLateralRaiseWeight = state.dbLateralRaiseWeight + 2.5lb\n    } else {\n      if (cr[3][1] + cr[3][2] + cr[3][3] <= state.dbLateralRaiseLastReps) {\n        state.dbLateralRaiseFailures = state.dbLateralRaiseFailures + 1\n      }\n    }\n    if (state.dbLateralRaiseFailures >= 3) {\n      state.dbLateralRaiseWeight = state.dbLateralRaiseWeight - 5lb\n    }\n    state.dbLateralRaiseLastReps = cr[3][1] + cr[3][2] + cr[3][3]\n\n    if (cr[4][1] >= r[4][1] && cr[4][2] >= r[4][2] && cr[4][3] >= r[4][3]) {\n      state.dbShrugWeight = state.dbShrugWeight + 2.5lb\n    } else {\n      if (cr[4][1] + cr[4][2] + cr[4][3] <= state.dbShrugLastReps) {\n        state.dbShrugFailures = state.dbShrugFailures + 1\n      }\n    }\n    if (state.dbShrugFailures >= 3) {\n      state.dbShrugWeight = state.dbShrugWeight - 5lb\n    }\n    state.dbShrugLastReps = cr[4][1] + cr[4][2] + cr[4][3]\n\n    if (cr[5][1] >= r[5][1] && cr[5][2] >= r[5][2] && cr[5][3] >= r[5][3]) {\n      state.dbBicepCurlWeight = state.dbBicepCurlWeight + 2.5lb\n    } else {\n      if (cr[5][1] + cr[5][2] + cr[5][3] <= state.dbBicepCurlLastReps) {\n        state.dbBicepCurlFailures = state.dbBicepCurlFailures + 1\n      }\n    }\n    if (state.dbBicepCurlFailures >= 3) {\n      state.dbBicepCurlWeight = state.dbBicepCurlWeight - 5lb\n    }\n    state.dbBicepCurlLastReps = cr[5][1] + cr[5][2] + cr[5][3]\n  } else {\n    if (cr[1][1] >= r[1][1] && cr[1][2] >= r[1][2] && cr[1][3] >= r[1][3]) {\n      state.dbGobletSquatWeight = state.dbGobletSquatWeight + 2.5lb\n    } else {\n      if (cr[1][1] + cr[1][2] + cr[1][3] <= state.dbGobletSquatLastReps) {\n        state.dbGobletSquatFailures = state.dbGobletSquatFailures + 1\n      }\n    }\n    if (state.dbGobletSquatFailures >= 3) {\n      state.dbGobletSquatWeight = state.dbGobletSquatWeight - 5lb\n    }\n    state.dbGobletSquatLastReps = cr[1][1] + cr[1][2] + cr[1][3]\n\n    if (cr[2][1] >= r[2][1] && cr[2][2] >= r[2][2] && cr[2][3] >= r[2][3]) {\n      state.dbLungeWeight = state.dbLungeWeight + 2.5lb\n    } else {\n      if (cr[2][1] + cr[2][2] + cr[2][3] <= state.dbLungeLastReps) {\n        state.dbLungeFailures = state.dbLungeFailures + 1\n      }\n    }\n    if (state.dbLungeFailures >= 3) {\n      state.dbLungeWeight = state.dbLungeWeight - 5lb\n    }\n    state.dbLungeLastReps = cr[2][1] + cr[2][2] + cr[2][3]\n\n    if (cr[3][1] >= r[3][1] && cr[3][2] >= r[3][2] && cr[3][3] >= r[3][3]) {\n      state.dbSingleLegDeadliftWeight = state.dbSingleLegDeadliftWeight + 2.5lb\n    } else {\n      if (cr[3][1] + cr[3][2] + cr[3][3] <= state.dbSingleLegDeadliftLastReps) {\n        state.dbSingleLegDeadliftFailures = state.dbSingleLegDeadliftFailures + 1\n      }\n    }\n    if (state.dbSingleLegDeadliftFailures >= 3) {\n      state.dbSingleLegDeadliftWeight = state.dbSingleLegDeadliftWeight - 5lb\n    }\n    state.dbSingleLegDeadliftLastReps = cr[3][1] + cr[3][2] + cr[3][3]\n\n    if (cr[4][1] >= r[4][1] && cr[4][2] >= r[4][2] && cr[4][3] >= r[4][3]) {\n      state.dbCalfRaiseWeight = state.dbCalfRaiseWeight + 2.5lb\n    } else {\n      if (cr[4][1] + cr[4][2] + cr[4][3] <= state.dbCalfRaiseLastReps) {\n        state.dbCalfRaiseFailures = state.dbCalfRaiseFailures + 1\n      }\n    }\n    if (state.dbCalfRaiseFailures >= 3) {\n      state.dbCalfRaiseWeight = state.dbCalfRaiseWeight - 5lb\n    }\n    state.dbCalfRaiseLastReps = cr[4][1] + cr[4][2] + cr[4][3]\n  }\n}\n",
+      "tags": [
+        "dumbbell"
+      ]
+    },
+    "id": "udyzmlufjode",
+    "timestamp": 1594947090817
+  }
+}

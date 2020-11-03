@@ -20,6 +20,7 @@
   "devDependencies": {
     "@cloudflare/wrangler": "^1.8.4",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "@types/cheerio": "^0.22.22",
     "@types/codemirror": "^0.0.96",
     "@types/cookie": "^0.3.3",
     "@types/deepmerge": "^2.2.0",
@@ -27,6 +28,7 @@
     "@types/gapi.auth2": "^0.0.51",
     "@types/jest": "^25.2.1",
     "@types/jsonwebtoken": "^8.3.9",
+    "@types/node-fetch": "^2.5.7",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "@udacity/types-service-worker-mock": "^1.1.2",
@@ -59,14 +61,17 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
     "codemirror": "^5.54.0",
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
     "dequal": "^2.0.2",
+    "fast-csv": "^4.3.2",
     "fp-ts": "^2.6.2",
     "idb-keyval": "^3.2.0",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.1",
     "preact": "^10.3.2",
     "preact-render-to-string": "^5.1.10",
     "uplot": "^1.0.9"
