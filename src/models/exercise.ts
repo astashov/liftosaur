@@ -8,6 +8,7 @@ import { ObjectUtils } from "../utils/object";
 export const exerciseTypes = [
   "abWheel",
   "arnoldPress",
+  "aroundTheWorld",
   "backExtension",
   "ballSlams",
   "battleRopes",
@@ -164,6 +165,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
   arnoldPress: {
     id: "arnoldPress",
     name: "Arnold Press",
+    warmupSets: warmup10,
+    defaultBar: "dumbbell",
+  },
+  aroundTheWorld: {
+    id: "aroundTheWorld",
+    name: "Arount The World",
     warmupSets: warmup10,
     defaultBar: "dumbbell",
   },
@@ -1033,6 +1040,2156 @@ export const exercises: Record<IExerciseId, IExercise> = {
   },
 };
 
+type IBodyPart = "Back" | "Calves" | "Chest" | "Forearms" | "Hips" | "Shoulders" | "Thighs" | "Upper Arms" | "Waist";
+
+interface IMetaExercises {
+  bodyParts: IBodyPart[];
+  targetMuscles: IMuscle[];
+  synergistMuscles: IMuscle[];
+}
+
+type IEquipment =
+  | "barbell"
+  | "cable"
+  | "dumbbell"
+  | "smith"
+  | "band"
+  | "kettlebell"
+  | "bodyweight"
+  | "leverageMachine"
+  | "medicineball"
+  | "ezbar"
+  | "trapbar";
+
+type IMuscle =
+  | "Adductor Brevis"
+  | "Adductor Longus"
+  | "Adductor Magnus"
+  | "Biceps Brachii"
+  | "Brachialis"
+  | "Brachioradialis"
+  | "Deltoid Anterior"
+  | "Deltoid Lateral"
+  | "Deltoid Posterior"
+  | "Erector Spinae"
+  | "Gastrocnemius"
+  | "Gluteus Maximus"
+  | "Gluteus Medius"
+  | "Hamstrings"
+  | "Iliopsoas"
+  | "Infraspinatus"
+  | "Latissimus Dorsi"
+  | "Levator Scapulae"
+  | "Obliques"
+  | "Pectineous"
+  | "Pectoralis Major Clavicular Head"
+  | "Pectoralis Major Sternal Head"
+  | "Quadriceps"
+  | "Rectus Abdominis"
+  | "Sartorius"
+  | "Serratus Ante"
+  | "Serratus Anterior"
+  | "Soleus"
+  | "Splenius"
+  | "Sternocleidomastoid"
+  | "Tensor Fasciae Latae"
+  | "Teres Major"
+  | "Teres Minor"
+  | "Tibialis Anterior"
+  | "Trapezius Lower Fibers"
+  | "Trapezius Middle Fibers"
+  | "Trapezius Upper Fibers"
+  | "Triceps Brachii"
+  | "Wrist Extensors"
+  | "Wrist Flexors";
+
+const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>> = {
+  abWheel: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Deltoid Posterior",
+        "Latissimus Dorsi",
+        "Pectineous",
+        "Pectoralis Major Sternal Head",
+        "Sartorius",
+        "Teres Major",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  arnoldPress: {
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    kettlebell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  aroundTheWorld: {
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Lateral", "Deltoid Posterior", "Latissimus Dorsi", "Serratus Anterior"],
+      bodyParts: ["Chest", "Shoulders"],
+    },
+  },
+  backExtension: {
+    bodyweight: {
+      targetMuscles: ["Erector Spinae"],
+      synergistMuscles: ["Gluteus Maximus", "Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Erector Spinae"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+  },
+  ballSlams: {
+    medicineball: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Rectus Abdominis"],
+      bodyParts: ["Back"],
+    },
+  },
+  battleRopes: {
+    bodyweight: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  benchDip: {
+    bodyweight: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [
+        "Deltoid Anterior",
+        "Latissimus Dorsi",
+        "Levator Scapulae",
+        "Pectoralis Major Clavicular Head",
+        "Pectoralis Major Sternal Head",
+      ],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  benchPress: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    cable: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    smith: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    band: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    kettlebell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  benchPressCloseGrip: {
+    barbell: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Upper Arms"],
+    },
+    ezbar: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Upper Arms"],
+    },
+    smith: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  benchPressWideGrip: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    smith: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  bentOverOneArmRow: {
+    dumbbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  bentOverRow: {
+    barbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Middle Fibers",
+        "Trapezius Upper Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    dumbbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    band: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    leverageMachine: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    smith: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  bicepCurl: {
+    barbell: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    band: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii"],
+      bodyParts: ["Upper Arms"],
+    },
+    cable: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    ezbar: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  bicycleCrunch: {
+    bodyweight: {
+      targetMuscles: ["Obliques", "Rectus Abdominis"],
+      synergistMuscles: ["Gluteus Maximus", "Iliopsoas", "Quadriceps"],
+      bodyParts: ["Waist"],
+    },
+  },
+  boxJump: {},
+  boxSquat: {
+    barbell: {
+      targetMuscles: ["Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  bulgarianSplitSquat: {
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+  },
+  burpee: {},
+  cableCrossover: {
+    cable: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior"],
+      bodyParts: ["Chest"],
+    },
+  },
+  cableCrunch: {
+    cable: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+  },
+  cableKickback: {
+    cable: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  cablePullThrough: {
+    cable: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Erector Spinae", "Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+  },
+  cableTwist: {
+    barbell: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+    bodyweight: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Rectus Abdominis"],
+      bodyParts: ["Waist"],
+    },
+    cable: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas", "Tensor Fasciae Latae"],
+      bodyParts: ["Waist"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+    band: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Adductor Magnus",
+        "Gluteus Medius",
+        "Iliopsoas",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Waist"],
+    },
+  },
+  calfPressOnLegPress: {
+    leverageMachine: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+  },
+  calfPressOnSeatedLegPress: {
+    leverageMachine: {
+      targetMuscles: ["Gastrocnemius", "Quadriceps"],
+      synergistMuscles: ["Gluteus Maximus", "Hamstrings", "Soleus"],
+      bodyParts: ["Calves"],
+    },
+  },
+  chestDip: {
+    bodyweight: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: [
+        "Deltoid Anterior",
+        "Latissimus Dorsi",
+        "Levator Scapulae",
+        "Pectoralis Major Clavicular Head",
+        "Triceps Brachii",
+      ],
+      bodyParts: ["Chest"],
+    },
+  },
+  chestFly: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Anterior", "Pectoralis Major Clavicular Head"],
+      bodyParts: ["Chest"],
+    },
+    cable: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Anterior"],
+      bodyParts: ["Chest"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Anterior"],
+      bodyParts: ["Chest"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Chest"],
+    },
+  },
+  chestPress: {
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Chest"],
+    },
+    band: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Lateral", "Pectoralis Major Clavicular Head"],
+      bodyParts: ["Chest"],
+    },
+  },
+  chinUp: {
+    leverageMachine: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+    bodyweight: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Pectoralis Major Sternal Head",
+        "Teres Major",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  clean: {},
+  cleanandJerk: {},
+  concentrationCurl: {
+    barbell: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    band: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    cable: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  crossBodyCrunch: {
+    bodyweight: {
+      targetMuscles: ["Obliques", "Rectus Abdominis"],
+      synergistMuscles: ["Gluteus Maximus", "Quadriceps"],
+      bodyParts: ["Waist"],
+    },
+  },
+  crunch: {
+    cable: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+    bodyweight: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+  },
+  cycling: {},
+  deadlift: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    cable: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Back"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    smith: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Hamstrings", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    kettlebell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Gastrocnemius", "Hamstrings", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+    bodyweight: {
+      targetMuscles: ["Deltoid Anterior", "Erector Spinae", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Hamstrings",
+        "Pectoralis Major Clavicular Head",
+      ],
+      bodyParts: ["Hips", "Shoulders", "Thighs"],
+    },
+  },
+  deadliftHighPull: {
+    barbell: {
+      targetMuscles: ["Deltoid Lateral", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Gastrocnemius",
+        "Infraspinatus",
+        "Soleus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  declineBenchPress: {
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    smith: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  declineCrunch: {},
+  deficitDeadlift: {},
+  ellipticalMachine: {
+    leverageMachine: {
+      targetMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Deltoid Lateral",
+        "Deltoid Posterior",
+        "Gluteus Maximus",
+        "Hamstrings",
+        "Latissimus Dorsi",
+        "Levator Scapulae",
+        "Pectoralis Major Clavicular Head",
+        "Pectoralis Major Sternal Head",
+        "Quadriceps",
+        "Serratus Ante",
+      ],
+      synergistMuscles: [],
+      bodyParts: [],
+    },
+  },
+  facePull: {
+    band: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  flatKneeRaise: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas"],
+      synergistMuscles: ["Adductor Brevis", "Adductor Longus", "Pectineous", "Sartorius"],
+      bodyParts: ["Hips"],
+    },
+  },
+  flatLegRaise: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Adductor Magnus",
+        "Obliques",
+        "Pectineous",
+        "Quadriceps",
+        "Sartorius",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Hips", "Waist"],
+    },
+  },
+  frontRaise: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    cable: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    bodyweight: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    band: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  frontSquat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    kettlebell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+    cable: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    smith: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  gobletSquat: {
+    kettlebell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus", "Tensor Fasciae Latae"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Gluteus Medius", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus", "Tensor Fasciae Latae"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+  },
+  goodMorning: {
+    barbell: {
+      targetMuscles: ["Hamstrings"],
+      synergistMuscles: ["Adductor Magnus", "Gluteus Maximus"],
+      bodyParts: ["Thighs"],
+    },
+    smith: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  hackSquat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    smith: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
+  hammerCurl: {
+    cable: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    band: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+  },
+  handstandPushUp: {
+    bodyweight: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [
+        "Deltoid Anterior",
+        "Deltoid Lateral",
+        "Pectoralis Major Clavicular Head",
+        "Pectoralis Major Sternal Head",
+        "Serratus Anterior",
+        "Teres Major",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  hangClean: {
+    kettlebell: {
+      targetMuscles: ["Biceps Brachii", "Brachialis", "Brachioradialis"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head"],
+      bodyParts: ["Forearms"],
+    },
+  },
+  hangSnatch: {},
+  hangingLegRaise: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Pectineous",
+        "Serratus Anterior",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Hips"],
+    },
+    cable: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: ["Obliques", "Quadriceps", "Sartorius", "Tensor Fasciae Latae"],
+      bodyParts: ["Waist"],
+    },
+  },
+  highKneeSkips: {},
+  hipAbductor: {
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus", "Gluteus Medius"],
+      synergistMuscles: ["Tensor Fasciae Latae"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Medius", "Tensor Fasciae Latae"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+    cable: {
+      targetMuscles: ["Gluteus Medius", "Tensor Fasciae Latae"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+    band: {
+      targetMuscles: ["Gluteus Medius", "Tensor Fasciae Latae"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  hipThrust: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+  },
+  inclineBenchPress: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    cable: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    smith: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  inclineChestFly: {
+    cable: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Anterior"],
+      bodyParts: ["Chest"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Anterior"],
+      bodyParts: ["Chest"],
+    },
+  },
+  inclineChestPress: {
+    leverageMachine: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    band: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  inclineCurl: {
+    dumbbell: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  inclineRow: {
+    barbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Minor",
+        "Tibialis Anterior",
+        "Trapezius Middle Fibers",
+        "Trapezius Upper Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    dumbbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  invertedRow: {
+    bodyweight: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  isoLateralChestPress: {},
+  isoLateralRow: {},
+  jackknifeSitUp: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Obliques",
+        "Pectineous",
+        "Quadriceps",
+        "Sartorius",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Waist"],
+    },
+  },
+  jumpRope: {},
+  jumpSquat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Gastrocnemius", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  jumpingJack: {},
+  kettlebellSwing: {
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior", "Gluteus Maximus", "Hamstrings"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Deltoid Lateral",
+        "Pectoralis Major Clavicular Head",
+        "Quadriceps",
+        "Serratus Anterior",
+        "Soleus",
+      ],
+      bodyParts: ["Hips", "Shoulders", "Thighs"],
+    },
+    kettlebell: {
+      targetMuscles: ["Deltoid Anterior", "Gluteus Maximus"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Hamstrings",
+        "Pectoralis Major Clavicular Head",
+        "Serratus Anterior",
+        "Soleus",
+      ],
+      bodyParts: ["Hips", "Shoulders"],
+    },
+  },
+  kettlebellTurkishGetUp: {},
+  kippingPullUp: {},
+  kneeRaise: {},
+  kneelingPulldown: {
+    band: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Infraspinatus",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  kneestoElbows: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: ["Obliques", "Quadriceps", "Sartorius"],
+      bodyParts: ["Waist"],
+    },
+  },
+  latPulldown: {
+    cable: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Obliques",
+        "Pectoralis Major Sternal Head",
+        "Teres Major",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  lateralBoxJump: {},
+  lateralRaise: {
+    cable: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    band: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    kettlebell: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  legExtension: {
+    leverageMachine: {
+      targetMuscles: ["Quadriceps"],
+      synergistMuscles: [],
+      bodyParts: ["Thighs"],
+    },
+    band: {
+      targetMuscles: ["Quadriceps"],
+      synergistMuscles: ["Tensor Fasciae Latae"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  legPress: {
+    smith: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+  },
+  lunge: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    cable: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [],
+      bodyParts: ["Thighs"],
+    },
+  },
+  lyingLegCurl: {
+    leverageMachine: {
+      targetMuscles: ["Hamstrings"],
+      synergistMuscles: ["Gastrocnemius", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    band: {
+      targetMuscles: ["Hamstrings"],
+      synergistMuscles: ["Gastrocnemius", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  mountainClimber: {},
+  muscleUp: {
+    bodyweight: {
+      targetMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Pectoralis Major Sternal Head",
+        "Teres Major",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+        "Triceps Brachii",
+      ],
+      synergistMuscles: [],
+      bodyParts: ["Back"],
+    },
+  },
+  obliqueCrunch: {
+    bodyweight: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Rectus Abdominis"],
+      bodyParts: ["Waist"],
+    },
+  },
+  overheadPress: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    ezbar: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  overheadSquat: {
+    barbell: {
+      targetMuscles: ["Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Gluteus Maximus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+  },
+  pecDeck: {
+    leverageMachine: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Chest"],
+    },
+  },
+  pendlayRow: {
+    barbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+  },
+  pistolSquat: {
+    kettlebell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Splenius"],
+      synergistMuscles: ["Levator Scapulae", "Sternocleidomastoid"],
+      bodyParts: ["Thighs"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  plank: {
+    bodyweight: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: [
+        "Deltoid Anterior",
+        "Gluteus Maximus",
+        "Gluteus Medius",
+        "Obliques",
+        "Sartorius",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Waist"],
+    },
+  },
+  powerClean: {},
+  powerSnatch: {},
+  preacherCurl: {
+    barbell: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    ezbar: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  pressUnder: {},
+  pullUp: {
+    leverageMachine: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Infraspinatus",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Middle Fibers",
+        "Trapezius Upper Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+    bodyweight: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Infraspinatus",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+    band: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Infraspinatus",
+        "Levator Scapulae",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  pullover: {
+    barbell: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Pectoralis Major Clavicular Head",
+        "Pectoralis Major Sternal Head",
+        "Teres Major",
+        "Triceps Brachii",
+      ],
+      bodyParts: ["Back"],
+    },
+    dumbbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Posterior", "Latissimus Dorsi", "Teres Major", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  pushPress: {
+    bodyweight: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    kettlebell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Deltoid Lateral",
+        "Pectoralis Major Clavicular Head",
+        "Serratus Anterior",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  pushUp: {
+    bodyweight: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+    band: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
+  reverseCrunch: {
+    bodyweight: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+    cable: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+  },
+  reverseCurl: {
+    barbell: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+    cable: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+    band: {
+      targetMuscles: ["Brachioradialis"],
+      synergistMuscles: ["Biceps Brachii", "Brachialis"],
+      bodyParts: ["Forearms"],
+    },
+  },
+  reverseFly: {
+    dumbbell: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+    band: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  reverseGripConcentrationCurl: {},
+  reversePlank: {},
+  romanianDeadlift: {
+    barbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Hamstrings", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Hamstrings"],
+      synergistMuscles: ["Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
+  rowing: {},
+  russianTwist: {
+    bodyweight: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+    dumbbell: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Rectus Abdominis"],
+      bodyParts: ["Waist"],
+    },
+    cable: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+  },
+  seatedCalfRaise: {
+    barbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Soleus"],
+      synergistMuscles: ["Gastrocnemius"],
+      bodyParts: ["Calves"],
+    },
+  },
+  seatedLegCurl: {
+    leverageMachine: {
+      targetMuscles: ["Hamstrings"],
+      synergistMuscles: ["Gastrocnemius", "Sartorius"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  seatedLegPress: {
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips", "Thighs"],
+    },
+  },
+  seatedOverheadPress: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  seatedPalmsUpWristCurl: {
+    dumbbell: {
+      targetMuscles: ["Wrist Flexors"],
+      synergistMuscles: [],
+      bodyParts: ["Forearms"],
+    },
+  },
+  seatedRow: {
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    band: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+    leverageMachine: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  seatedWideGripRow: {
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+  },
+  shoulderPress: {
+    cable: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    band: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+    smith: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  shrug: {
+    barbell: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Levator Scapulae", "Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+    cable: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+    dumbbell: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Levator Scapulae", "Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+    band: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Levator Scapulae", "Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+    smith: {
+      targetMuscles: ["Trapezius Upper Fibers"],
+      synergistMuscles: ["Levator Scapulae", "Trapezius Middle Fibers"],
+      bodyParts: ["Back"],
+    },
+  },
+  sideBend: {
+    cable: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+    dumbbell: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+    band: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+  },
+  sidePlank: {
+    bodyweight: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: [],
+      bodyParts: ["Waist"],
+    },
+  },
+  singleLegBridge: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Rectus Abdominis"],
+      synergistMuscles: ["Deltoid Anterior", "Hamstrings", "Obliques", "Serratus Anterior", "Tensor Fasciae Latae"],
+      bodyParts: ["Hips"],
+    },
+  },
+  singleLegDeadlift: {
+    dumbbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Deltoid Anterior", "Erector Spinae", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Hamstrings",
+        "Pectoralis Major Clavicular Head",
+      ],
+      bodyParts: ["Hips", "Shoulders", "Thighs"],
+    },
+  },
+  sitUp: {
+    bodyweight: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Iliopsoas", "Obliques"],
+      bodyParts: ["Waist"],
+    },
+    kettlebell: {
+      targetMuscles: ["Rectus Abdominis"],
+      synergistMuscles: ["Obliques"],
+      bodyParts: ["Waist"],
+    },
+  },
+  skullcrusher: {
+    barbell: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    cable: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    ezbar: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  snatch: {
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior", "Erector Spinae", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Deltoid Lateral",
+        "Gastrocnemius",
+        "Serratus Anterior",
+        "Soleus",
+        "Triceps Brachii",
+      ],
+      bodyParts: ["Hips", "Shoulders", "Thighs"],
+    },
+  },
+  snatchPull: {},
+  splitJerk: {},
+  squat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    smith: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  squatRow: {
+    band: {
+      targetMuscles: [
+        "Gluteus Maximus",
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Deltoid Posterior",
+        "Pectoralis Major Sternal Head",
+        "Quadriceps",
+        "Soleus",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  standingCalfRaise: {
+    barbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    cable: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+  },
+  stepUp: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Gastrocnemius", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Gastrocnemius", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Gastrocnemius", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
+  stiffLegDeadlift: {
+    barbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    dumbbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+  },
+  straightLegDeadlift: {
+    barbell: {
+      targetMuscles: ["Erector Spinae", "Hamstrings"],
+      synergistMuscles: ["Adductor Magnus", "Gluteus Maximus"],
+      bodyParts: ["Thighs"],
+    },
+    dumbbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Waist"],
+    },
+    band: {
+      targetMuscles: ["Erector Spinae"],
+      synergistMuscles: ["Adductor Magnus", "Gluteus Maximus", "Hamstrings"],
+      bodyParts: ["Back"],
+    },
+    kettlebell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
+  sumoDeadlift: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus", "Tensor Fasciae Latae"],
+      bodyParts: ["Hips"],
+    },
+  },
+  sumoDeadliftHighPull: {
+    barbell: {
+      targetMuscles: ["Deltoid Lateral", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Gastrocnemius",
+        "Infraspinatus",
+        "Soleus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  superman: {
+    bodyweight: {
+      targetMuscles: ["Erector Spinae"],
+      synergistMuscles: ["Gluteus Maximus", "Hamstrings"],
+      bodyParts: ["Waist"],
+    },
+    dumbbell: {
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+  },
+  tBarRow: {
+    leverageMachine: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+  },
+  thruster: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior", "Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: [
+        "Adductor Magnus",
+        "Deltoid Lateral",
+        "Pectoralis Major Clavicular Head",
+        "Serratus Anterior",
+        "Soleus",
+        "Triceps Brachii",
+      ],
+      bodyParts: ["Shoulders", "Thighs"],
+    },
+  },
+  toesToBar: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: ["Obliques", "Quadriceps", "Sartorius", "Tensor Fasciae Latae"],
+      bodyParts: ["Waist"],
+    },
+  },
+  torsoRotation: {},
+  trapBarDeadlift: {
+    trapbar: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Thighs"],
+    },
+  },
+  tricepsDip: {
+    bodyweight: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [
+        "Deltoid Anterior",
+        "Latissimus Dorsi",
+        "Levator Scapulae",
+        "Pectoralis Major Clavicular Head",
+        "Pectoralis Major Sternal Head",
+      ],
+      bodyParts: ["Upper Arms"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: ["Latissimus Dorsi", "Pectoralis Major Sternal Head", "Teres Major"],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  tricepsExtension: {
+    barbell: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    cable: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    band: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  tricepsPushdown: {
+    cable: {
+      targetMuscles: ["Triceps Brachii"],
+      synergistMuscles: [],
+      bodyParts: ["Upper Arms"],
+    },
+  },
+  uprightRow: {
+    barbell: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Infraspinatus",
+        "Serratus Anterior",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+    cable: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Infraspinatus",
+        "Serratus Anterior",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Infraspinatus",
+        "Serratus Anterior",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+    band: {
+      targetMuscles: ["Deltoid Lateral"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Anterior",
+        "Infraspinatus",
+        "Serratus Anterior",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  vUp: {
+    bodyweight: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Obliques",
+        "Pectineous",
+        "Quadriceps",
+        "Sartorius",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Waist"],
+    },
+    band: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: [
+        "Adductor Brevis",
+        "Adductor Longus",
+        "Obliques",
+        "Pectineous",
+        "Quadriceps",
+        "Sartorius",
+        "Tensor Fasciae Latae",
+      ],
+      bodyParts: ["Waist"],
+    },
+    dumbbell: {
+      targetMuscles: ["Iliopsoas", "Rectus Abdominis"],
+      synergistMuscles: ["Obliques", "Quadriceps", "Sartorius"],
+      bodyParts: ["Waist"],
+    },
+  },
+  widePullUp: {
+    bodyweight: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Biceps Brachii",
+        "Brachialis",
+        "Brachioradialis",
+        "Teres Major",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
+  wristRoller: {
+    bodyweight: {
+      targetMuscles: ["Wrist Extensors", "Wrist Flexors"],
+      synergistMuscles: [],
+      bodyParts: ["Forearms"],
+    },
+  },
+  zercherSquat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
+};
+
 export const TExerciseId = t.keyof(
   exerciseTypes.reduce<Record<IArrayElement<typeof exerciseTypes>, null>>((memo, exerciseType) => {
     memo[exerciseType] = null;
@@ -1119,5 +3276,32 @@ export namespace Exercise {
 
   export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {
     return get(exercise).warmupSets(weight, settings, exercise.bar);
+  }
+
+  export function targetMuscles(type: IExerciseType): IMuscle[] {
+    const meta = metadata[type.id][type.bar || "bodyweight"];
+    return meta != null ? meta.targetMuscles : [];
+  }
+
+  export function defaultEquipment(type: IExerciseId): IEquipment | undefined {
+    const priorities: Record<IEquipment, IEquipment[]> = {
+      barbell: ["ezbar", "trapbar", "dumbbell", "kettlebell"],
+      cable: ["band", "leverageMachine"],
+      dumbbell: ["barbell", "kettlebell", "bodyweight"],
+      smith: ["leverageMachine", "dumbbell", "barbell", "kettlebell", "cable"],
+      band: ["cable", "bodyweight", "leverageMachine", "smith"],
+      kettlebell: ["dumbbell", "barbell", "cable"],
+      bodyweight: ["cable", "dumbbell", "barbell", "band"],
+      leverageMachine: ["smith", "cable", "dumbbell", "barbell", "kettlebell"],
+      medicineball: ["bodyweight", "cable"],
+      ezbar: ["barbell", "dumbbell", "cable"],
+      trapbar: ["barbell", "dumbbell", "cable"],
+    };
+
+    const bar = exercises[type].defaultBar || "bodyweight";
+    let equipment: IEquipment | undefined = ObjectUtils.keys(metadata[type]).find((b) => b === bar);
+    equipment = equipment || priorities[bar].find((eqp) => ObjectUtils.keys(metadata[type]).indexOf(eqp) !== -1);
+    equipment = equipment || ObjectUtils.keys(metadata[type])[0];
+    return equipment;
   }
 }
