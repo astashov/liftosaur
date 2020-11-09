@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Exercise, IExerciseId } from "../models/exercise";
-import { MenuItem } from "./menuItem";
+import { MenuItem, MenuItemWrapper } from "./menuItem";
 import { StringUtils } from "../utils/string";
 
 interface IModalDateProps {
@@ -38,12 +38,25 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
         />
         {exercises.map((e) => {
           return (
-            <MenuItem
-              name={e.name}
+            <section
+              data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+              className="w-full px-2 py-0 text-left border-b border-gray-200"
               onClick={() => {
                 props.onChange(e.id);
               }}
-            />
+            >
+              <section className="flex items-center">
+                <div className="w-12 pr-2">
+                  <img
+                    src={`/images/exercises/${e.id.toLowerCase()}_${(
+                      e.defaultBar || "bodyweight"
+                    ).toLowerCase()}_single_small.png`}
+                    alt={`${e.name} image`}
+                  />
+                </div>
+                <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
+              </section>
+            </section>
           );
         })}
       </form>
