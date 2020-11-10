@@ -1,2 +1,3 @@
 /record id=:id user=:user https://api.liftosaur.com/api/record?id=:id&user=:user  200
 /recordimage id=:id user=:user https://api.liftosaur.com/api/recordimage?id=:id&user=:user  200
+/externalimages/* https://f002.backblazeb2.com/file/liftosaurimages/:splat  200
