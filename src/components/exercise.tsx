@@ -10,6 +10,9 @@ import { CollectionUtils } from "../utils/collection";
 import { ISettings } from "../models/settings";
 import { IProgramExercise } from "../models/program";
 import { ProgressStateChanges } from "./progressStateChanges";
+import { useState } from "preact/hooks";
+import { IconQuestion } from "./iconQuestion";
+import { IconClose } from "./iconClose";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -25,7 +28,11 @@ interface IProps {
 
 export function ExerciseView(props: IProps): JSX.Element {
   const { entry } = props;
+  const [isImageView, setIsImageView] = useState<boolean>(false);
   let className = "px-4 pt-4 pb-2 mb-2 border rounded-lg";
+  if (isImageView) {
+    className += " hidden";
+  }
   let dataCy;
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
@@ -40,23 +47,50 @@ export function ExerciseView(props: IProps): JSX.Element {
     className += " bg-gray-100 border-gray-300";
   }
   return (
-    <section data-cy={dataCy} className={className}>
-      <ExerciseContentView {...props} />
-      {props.programExercise && (
-        <ProgressStateChanges
-          entry={props.entry}
-          forceShow={props.forceShowStateChanges}
-          settings={props.settings}
-          day={props.day}
-          state={props.programExercise.state}
-          script={props.programExercise.finishDayExpr}
+    <Fragment>
+      <div className={!isImageView ? "h-0 overflow-hidden p-0 m-0" : ""}>
+        <ExerciseImageView {...props} onCloseClick={() => setIsImageView(false)} />
+      </div>
+      <section data-cy={dataCy} className={className}>
+        <ExerciseContentView {...props} onInfoClick={() => setIsImageView(true)} />
+        {props.programExercise && (
+          <ProgressStateChanges
+            entry={props.entry}
+            forceShow={props.forceShowStateChanges}
+            settings={props.settings}
+            day={props.day}
+            state={props.programExercise.state}
+            script={props.programExercise.finishDayExpr}
+          />
+        )}
+      </section>
+    </Fragment>
+  );
+}
+
+function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
+  const e = props.entry.exercise;
+  const exercise = Exercise.get(e);
+  const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
+  return (
+    <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
+      <div className="text-left">{exercise.name}</div>
+      {targetMuscles.length > 0 ? (
+        <img
+          className="inline"
+          src={`https://www.liftosaur.com/externalimages/exercises/full/large/${e.id.toLowerCase()}_${(
+            e.bar || "bodyweight"
+          ).toLowerCase()}_full_large.png`}
         />
-      )}
+      ) : undefined}
+      <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
+        <IconClose />
+      </button>
     </section>
   );
 }
 
-function ExerciseContentView(props: IProps): JSX.Element {
+function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.Element {
   const exercise = Exercise.get(props.entry.exercise);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
   const workoutWeights = CollectionUtils.compatBy(
@@ -70,10 +104,18 @@ function ExerciseContentView(props: IProps): JSX.Element {
     (w) => w.value.toString()
   ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.bar).plates).length > 0);
   warmupWeights.sort(Weight.compare);
+  const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
   return (
     <Fragment>
       <header className="flex">
-        <div className="flex-1 mr-auto">{exercise.name}</div>
+        <div className="flex-1 mr-auto">
+          {exercise.name}
+          {targetMuscles.length > 0 && (
+            <button style={{ marginBottom: "2px" }} className="px-2 py-0 align-middle" onClick={props.onInfoClick}>
+              <IconQuestion width={15} height={15} />
+            </button>
+          )}
+        </div>
         <div className="text-right">
           {warmupWeights.map((w) => {
             const className =

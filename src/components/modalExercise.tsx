@@ -2,7 +2,6 @@ import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Exercise, IExerciseId } from "../models/exercise";
-import { MenuItem, MenuItemWrapper } from "./menuItem";
 import { StringUtils } from "../utils/string";
 
 interface IModalDateProps {
@@ -50,7 +49,7 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
                 <div className="w-12 pr-2">
                   {equipment && (
                     <img
-                      src={`/images/exercises/${e.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
+                      src={`https://www.liftosaur.com/externalimages/exercises/single/small/${e.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
                       alt={`${e.name} image`}
                     />
                   )}
