@@ -1,4 +1,4 @@
-import { g, clearCodeMirror, typeCodeMirror } from "../support/utils";
+import { g } from "../support/utils";
 
 describe("Program", () => {
   beforeEach(() => {

@@ -107,7 +107,7 @@ function Edit(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Equipment"
-        value={programExercise.exerciseType.bar || ""}
+        value={programExercise.exerciseType.equipment || ""}
         values={equipmentOptions}
         onChange={(newEquipment) => {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);

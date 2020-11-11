@@ -3215,7 +3215,7 @@ export const TExerciseType = t.intersection(
       id: TExerciseId,
     }),
     t.partial({
-      bar: TEquipment,
+      equipment: TEquipment,
     }),
   ],
   "TExerciseType"
@@ -3314,7 +3314,7 @@ function warmupEmpty(weight: IWeight): ISet[] {
 
 export namespace Exercise {
   export function get(type: IExerciseType): IExercise {
-    return { ...exercises[type.id], equipment: type.bar };
+    return { ...exercises[type.id], equipment: type.equipment };
   }
 
   export function getById(id: IExerciseId): IExercise {
@@ -3326,11 +3326,11 @@ export namespace Exercise {
   }
 
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
-    return a.id === b.id && a.bar === b.bar;
+    return a.id === b.id && a.equipment === b.equipment;
   }
 
   export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {
-    return get(exercise).warmupSets(weight, settings, exercise.bar);
+    return get(exercise).warmupSets(weight, settings, exercise.equipment);
   }
 
   export function sortedEquipments(id: IExerciseId): IEquipment[] {
@@ -3349,7 +3349,7 @@ export namespace Exercise {
   }
 
   export function targetMuscles(type: IExerciseType): IMuscle[] {
-    const meta = metadata[type.id][type.bar || "bodyweight"];
+    const meta = metadata[type.id][type.equipment || "bodyweight"];
     return meta != null ? meta.targetMuscles : [];
   }
 

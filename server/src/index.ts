@@ -4,9 +4,10 @@ import { UidFactory } from "./utils/generator";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
-import { CollectionUtils } from "./utils/collection";
 import { IStorage } from "../../src/models/state";
 import { renderRecordHtml, recordImage } from "./record";
+import { ProgramModel } from "./models/program";
+import { runMigrations } from "./migrations/runner";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -253,6 +254,20 @@ async function backupHandler(request: Request): Promise<Response> {
   }
 }
 
+async function migrationHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
+    try {
+      await runMigrations();
+      return new Response("ok");
+    } catch (e) {
+      return new Response(JSON.stringify(e), { status: 500 });
+    }
+  } else {
+    return new Response("wrong_key", { status: 400 });
+  }
+}
+
 async function publishProgramHandler(request: Request): Promise<Response> {
   const user = await getCurrentUser(request);
   if (user != null) {
@@ -266,12 +281,7 @@ async function publishProgramHandler(request: Request): Promise<Response> {
 }
 
 async function getProgramsHandler(request: Request): Promise<Response> {
-  const keys = (await kv_liftosaur_programs.list()).keys;
-  const groups = CollectionUtils.inGroupsOf(100, keys);
-  let programs: unknown[] = [];
-  for (const group of groups) {
-    programs = programs.concat(await Promise.all(group.map((key) => kv_liftosaur_programs.get(key.name, "json"))));
-  }
+  const programs = await ProgramModel.getAll();
   return new Response(JSON.stringify({ programs }), { headers: getHeaders(request) });
 }
 
@@ -286,6 +296,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.get(".*/api/record", (req: Request) => getHistoryRecord(req));
   r.get(".*/api/recordimage", (req: Request) => getHistoryRecordImage(req));
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
+  r.post(".*/api/migrate", (req: Request) => migrationHandler(req));
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   const resp = await r.route(request);
   return resp;

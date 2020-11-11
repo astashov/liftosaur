@@ -128,7 +128,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Equipment"
-        value={programExercise.exerciseType.bar || ""}
+        value={programExercise.exerciseType.equipment || ""}
         values={equipmentOptions}
         onChange={(newEquipment) => {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
@@ -307,7 +307,7 @@ function Sets(props: ISetsProps): JSX.Element {
           element={(set, setIndex, handleTouchStart) => (
             <SetFields
               key={`${resetCounter}_${variation.sets.length}_${programExercise.variations.length}_${variationIndex}`}
-              equipment={programExercise.exerciseType.bar}
+              equipment={programExercise.exerciseType.equipment}
               settings={settings}
               handleTouchStart={handleTouchStart}
               day={day}

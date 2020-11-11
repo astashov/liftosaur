@@ -140,7 +140,7 @@ export namespace Program {
       return {
         isAmrap: set.isAmrap,
         reps: repsValue,
-        weight: Weight.roundConvertTo(weightValue, settings, exercise.bar),
+        weight: Weight.roundConvertTo(weightValue, settings, exercise.equipment),
       };
     });
     return {
@@ -363,7 +363,7 @@ export namespace Program {
       variations: [createVariation(true)],
       exerciseType: {
         id: "squat",
-        bar: "barbell",
+        equipment: "barbell",
       },
       state: {
         weight: Weight.build(45, "lb"),

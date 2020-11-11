@@ -20,4 +20,27 @@ export const migrations = {
     storage.helps = [];
     return storage;
   },
+  "20201111073526_rename_exercise_bar_to_exercise_equipment": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        if ("bar" in (entry as any).exercise) {
+          entry.exercise.equipment = (entry as any).exercise.bar;
+          delete (entry as any).exercise.bar;
+        }
+      }
+    }
+    for (const program of storage.programs) {
+      for (const exercise of program.exercises) {
+        if ("bar" in (exercise as any).exerciseType) {
+          exercise.exerciseType.equipment = (exercise as any).exerciseType.bar;
+          delete (exercise as any).exerciseType.bar;
+        }
+      }
+    }
+    return storage;
+  },
 };

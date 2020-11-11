@@ -79,7 +79,7 @@ function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.El
         <img
           className="inline"
           src={`https://www.liftosaur.com/externalimages/exercises/full/large/${e.id.toLowerCase()}_${(
-            e.bar || "bodyweight"
+            e.equipment || "bodyweight"
           ).toLowerCase()}_full_large.png`}
         />
       ) : undefined}
@@ -94,15 +94,17 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
   const exercise = Exercise.get(props.entry.exercise);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
   const workoutWeights = CollectionUtils.compatBy(
-    props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.bar)),
+    props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
     (w) => w.value.toString()
   );
   workoutWeights.sort(Weight.compare);
   const warmupSets = props.entry.warmupSets;
   const warmupWeights = CollectionUtils.compatBy(
-    props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.bar)),
+    props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
     (w) => w.value.toString()
-  ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.bar).plates).length > 0);
+  ).filter(
+    (w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.equipment).plates).length > 0
+  );
   warmupWeights.sort(Weight.compare);
   const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
   return (
@@ -120,7 +122,7 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
           {warmupWeights.map((w) => {
             const className =
               nextSet != null &&
-              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.bar), w)
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
                 ? "font-bold"
                 : "";
             return (
@@ -135,7 +137,7 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
           {workoutWeights.map((w, i) => {
             const className =
               nextSet != null &&
-              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.bar), w)
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
                 ? "font-bold"
                 : "";
             return (
@@ -223,11 +225,15 @@ function handleClick(
 }
 
 function WeightView(props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element {
-  const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.settings, props.exercise.bar);
+  const { plates, totalWeight: weight } = Weight.calculatePlates(
+    props.weight,
+    props.settings,
+    props.exercise.equipment
+  );
   const className = Weight.eq(weight, props.weight) ? "text-gray-600" : "text-red-600";
   return (
     <span className="mx-2 text-xs break-all">
-      <span className={className}>{Weight.formatOneSide(plates, props.exercise.bar)}</span>
+      <span className={className}>{Weight.formatOneSide(plates, props.exercise.equipment)}</span>
     </span>
   );
 }

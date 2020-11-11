@@ -68,17 +68,17 @@ export namespace EditProgram {
 
   export function changeExerciseId(dispatch: IDispatch, newId?: IExerciseId): void {
     if (newId != null) {
-      const exercise = Exercise.get({ id: newId, bar: "barbell" });
+      const exercise = Exercise.get({ id: newId, equipment: "barbell" });
       updateState(dispatch, [
         lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
-        lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(exercise.defaultEquipment),
+        lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(exercise.defaultEquipment),
         lb<IState>().pi("editExercise").p("name").record(exercise.name),
       ]);
     }
   }
 
   export function changeExerciseEquipment(dispatch: IDispatch, newEquipment?: IEquipment): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(newEquipment)]);
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(newEquipment)]);
   }
 
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
