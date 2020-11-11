@@ -23,7 +23,7 @@ describe("Program", () => {
 
     g("select-exercise").click();
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
-    g("menu-item-value-bar").should("have.value", "barbell");
+    g("menu-item-value-equipment").should("have.value", "barbell");
 
     cy.contains("Advanced").click();
 
