@@ -13,12 +13,16 @@ export function ExerciseImage({ exerciseType }: IProps): JSX.Element | null {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   useEffect(() => {
-    imgRef.current.addEventListener("load", () => {
+    if (imgRef.current.complete) {
       setIsLoading(false);
-    });
-    imgRef.current.addEventListener("error", () => {
-      setIsError(true);
-    });
+    } else {
+      imgRef.current.addEventListener("load", () => {
+        setIsLoading(false);
+      });
+      imgRef.current.addEventListener("error", () => {
+        setIsError(true);
+      });
+    }
   }, []);
   let className = "inline";
   if (isLoading || isError) {
