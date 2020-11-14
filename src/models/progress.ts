@@ -328,7 +328,7 @@ export namespace Progress {
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map((progressEntry) => {
           const eq = (a: IWeight, b: IWeight): boolean => {
-            const bar = progressEntry.exercise.bar;
+            const bar = progressEntry.exercise.equipment;
             return Weight.eq(Weight.roundConvertTo(a, settings, bar), Weight.roundConvertTo(b, settings, bar));
           };
           if (Exercise.eq(progressEntry.exercise, exercise)) {
@@ -337,7 +337,7 @@ export namespace Progress {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
                 if (eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise.bar) };
+                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise.equipment) };
                 } else {
                   return set;
                 }
@@ -387,7 +387,7 @@ export namespace Progress {
             exercise: programExercise.exerciseType,
             sets: progressEntry.sets.map((set, i) => {
               const weight = executeEntryScript(sets[i].weightExpr, day, state, settings, "weight");
-              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.bar);
+              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
               return {
                 ...set,
                 reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
@@ -404,7 +404,7 @@ export namespace Progress {
             exercise: programExercise.exerciseType,
             sets: sets.map((set) => {
               const weight = executeEntryScript(set.weightExpr, day, state, settings, "weight");
-              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.bar);
+              const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
               return {
                 reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
                 weight: roundedWeight,

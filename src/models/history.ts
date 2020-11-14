@@ -107,7 +107,7 @@ export namespace History {
       for (const r of history) {
         if (r.id < id) {
           for (const e of r.entries) {
-            if (e.exercise.id === entry.exercise.id && e.exercise.bar === entry.exercise.bar) {
+            if (e.exercise.id === entry.exercise.id && e.exercise.equipment === entry.exercise.equipment) {
               if (isMax == null) {
                 isMax = true;
               }

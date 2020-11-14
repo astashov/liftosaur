@@ -5,6 +5,7 @@ const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 const filesToCache = [
   `/main.css?version=${__COMMIT_HASH__}`,
   `/main.js?version=${__COMMIT_HASH__}`,
+  /\/externalimages\/exercises\//,
   "/",
   "/index.html",
   "/icons/icon192.png",
@@ -16,7 +17,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
   service.addEventListener("install", (event) => {
     event.waitUntil(
       caches.open(cacheName).then((cache) => {
-        return cache.addAll(filesToCache);
+        return cache.addAll(filesToCache.filter((f) => typeof f === "string") as string[]);
       })
     );
   });
@@ -33,8 +34,13 @@ function initialize(service: ServiceWorkerGlobalScope): void {
             if (
               e.request.method === "GET" &&
               filesToCache.some((f) => {
-                const u = new URL(e.request.url);
-                return `${u.pathname}${u.search}` === f;
+                if (typeof f === "string") {
+                  const u = new URL(e.request.url);
+                  return `${u.pathname}${u.search}` === f;
+                } else {
+                  const u = new URL(e.request.url);
+                  return f.test(`${u.pathname}${u.search}`);
+                }
               })
             ) {
               return caches.open(cacheName).then((cache) => {
@@ -52,6 +58,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
     );
   });
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   self.addEventListener("activate", async (event: object) => {
     console.log("Activate Service Worker", event);
     const keys = (await caches.keys()).filter((k) => k !== cacheName);

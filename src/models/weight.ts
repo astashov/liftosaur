@@ -47,6 +47,7 @@ export const TBars = t.record(TBarKey, TWeight, "TBars");
 export type IBars = t.TypeOf<typeof TBars>;
 
 import { ISettings, Settings } from "./settings";
+import { IEquipment, equipmentToBarKey } from "./exercise";
 
 export namespace Weight {
   export function display(weight: IWeight | number): string {
@@ -69,8 +70,8 @@ export namespace Weight {
     return object instanceof Object && "unit" in object && "value" in object;
   }
 
-  export function round(weight: IWeight, settings: ISettings, bar?: IBarKey): IWeight {
-    return Weight.calculatePlates(weight, settings, bar).totalWeight;
+  export function round(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
+    return Weight.calculatePlates(weight, settings, equipment).totalWeight;
   }
 
   export function getOneRepMax(weight: IWeight, reps: number, settings: ISettings, bar?: IBarKey): IWeight {
@@ -94,7 +95,8 @@ export namespace Weight {
     );
   }
 
-  export function formatOneSide(platesArr: IPlate[], bar?: IBarKey): string {
+  export function formatOneSide(platesArr: IPlate[], equipment?: IEquipment): string {
+    const bar = equipmentToBarKey(equipment);
     const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
     plates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const arr: number[] = [];
@@ -114,11 +116,12 @@ export namespace Weight {
   export function calculatePlates(
     allWeight: IWeight,
     settings: ISettings,
-    bar?: IBarKey
+    equipment?: IEquipment
   ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
     const availablePlatesArr = Settings.plates(settings);
     let barWeight: IWeight;
     let multiplier: number;
+    const bar = equipmentToBarKey(equipment);
     if (bar != null) {
       barWeight = Settings.bars(settings)[bar];
       multiplier = 2;
@@ -197,8 +200,8 @@ export namespace Weight {
     return CollectionUtils.sort([weight, ...weights], Weight.compareReverse)[0];
   }
 
-  export function roundConvertTo(weight: IWeight, settings: ISettings, bar?: IBarKey): IWeight {
-    return round(convertTo(weight, settings.units), settings, bar);
+  export function roundConvertTo(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
+    return round(convertTo(weight, settings.units), settings, equipment);
   }
 
   export function convertTo(weight: IWeight, unit: IUnit): IWeight;

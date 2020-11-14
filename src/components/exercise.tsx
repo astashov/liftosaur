@@ -10,6 +10,10 @@ import { CollectionUtils } from "../utils/collection";
 import { ISettings } from "../models/settings";
 import { IProgramExercise } from "../models/program";
 import { ProgressStateChanges } from "./progressStateChanges";
+import { useState } from "preact/hooks";
+import { IconQuestion } from "./iconQuestion";
+import { IconClose } from "./iconClose";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -25,7 +29,11 @@ interface IProps {
 
 export function ExerciseView(props: IProps): JSX.Element {
   const { entry } = props;
+  const [isImageView, setIsImageView] = useState<boolean>(false);
   let className = "px-4 pt-4 pb-2 mb-2 border rounded-lg";
+  if (isImageView) {
+    className += " hidden";
+  }
   let dataCy;
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
@@ -40,45 +48,74 @@ export function ExerciseView(props: IProps): JSX.Element {
     className += " bg-gray-100 border-gray-300";
   }
   return (
-    <section data-cy={dataCy} className={className}>
-      <ExerciseContentView {...props} />
-      {props.programExercise && (
-        <ProgressStateChanges
-          entry={props.entry}
-          forceShow={props.forceShowStateChanges}
-          settings={props.settings}
-          day={props.day}
-          state={props.programExercise.state}
-          script={props.programExercise.finishDayExpr}
-        />
-      )}
+    <Fragment>
+      <div className={!isImageView ? "h-0 overflow-hidden p-0 m-0" : ""}>
+        <ExerciseImageView {...props} onCloseClick={() => setIsImageView(false)} />
+      </div>
+      <section data-cy={dataCy} className={className}>
+        <ExerciseContentView {...props} onInfoClick={() => setIsImageView(true)} />
+        {props.programExercise && (
+          <ProgressStateChanges
+            entry={props.entry}
+            forceShow={props.forceShowStateChanges}
+            settings={props.settings}
+            day={props.day}
+            state={props.programExercise.state}
+            script={props.programExercise.finishDayExpr}
+          />
+        )}
+      </section>
+    </Fragment>
+  );
+}
+
+function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
+  const e = props.entry.exercise;
+  const exercise = Exercise.get(e);
+  return (
+    <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
+      <div className="text-left">{exercise.name}</div>
+      <ExerciseImage exerciseType={e} />
+      <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
+        <IconClose />
+      </button>
     </section>
   );
 }
 
-function ExerciseContentView(props: IProps): JSX.Element {
+function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.Element {
   const exercise = Exercise.get(props.entry.exercise);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
   const workoutWeights = CollectionUtils.compatBy(
-    props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.bar)),
+    props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
     (w) => w.value.toString()
   );
   workoutWeights.sort(Weight.compare);
   const warmupSets = props.entry.warmupSets;
   const warmupWeights = CollectionUtils.compatBy(
-    props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.bar)),
+    props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
     (w) => w.value.toString()
-  ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.bar).plates).length > 0);
+  ).filter(
+    (w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.equipment).plates).length > 0
+  );
   warmupWeights.sort(Weight.compare);
+  const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
   return (
     <Fragment>
       <header className="flex">
-        <div className="flex-1 mr-auto">{exercise.name}</div>
+        <div className="flex-1 mr-auto">
+          {exercise.name}
+          {targetMuscles.length > 0 && (
+            <button style={{ marginBottom: "2px" }} className="px-2 py-0 align-middle" onClick={props.onInfoClick}>
+              <IconQuestion width={15} height={15} />
+            </button>
+          )}
+        </div>
         <div className="text-right">
           {warmupWeights.map((w) => {
             const className =
               nextSet != null &&
-              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.bar), w)
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
                 ? "font-bold"
                 : "";
             return (
@@ -93,7 +130,7 @@ function ExerciseContentView(props: IProps): JSX.Element {
           {workoutWeights.map((w, i) => {
             const className =
               nextSet != null &&
-              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.bar), w)
+              Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
                 ? "font-bold"
                 : "";
             return (
@@ -181,11 +218,15 @@ function handleClick(
 }
 
 function WeightView(props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element {
-  const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.settings, props.exercise.bar);
+  const { plates, totalWeight: weight } = Weight.calculatePlates(
+    props.weight,
+    props.settings,
+    props.exercise.equipment
+  );
   const className = Weight.eq(weight, props.weight) ? "text-gray-600" : "text-red-600";
   return (
     <span className="mx-2 text-xs break-all">
-      <span className={className}>{Weight.formatOneSide(plates, props.exercise.bar)}</span>
+      <span className={className}>{Weight.formatOneSide(plates, props.exercise.equipment)}</span>
     </span>
   );
 }

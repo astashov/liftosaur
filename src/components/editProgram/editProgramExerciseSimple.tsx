@@ -1,4 +1,4 @@
-import { ISettings, Settings } from "../../models/settings";
+import { ISettings } from "../../models/settings";
 import { IProgramDay, IProgramExercise, Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { h, JSX, Fragment } from "preact";
@@ -6,13 +6,13 @@ import { ModalExercise } from "../modalExercise";
 import { useState, useRef } from "preact/hooks";
 import { EditProgram } from "../../models/editProgram";
 import { IconEdit } from "../iconEdit";
-import { Exercise } from "../../models/exercise";
+import { Exercise, equipmentName, IEquipment } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { ObjectUtils } from "../../utils/object";
-import { IBarKey, IWeight, Weight } from "../../models/weight";
+import { IWeight, Weight } from "../../models/weight";
 import { Button } from "../button";
 import { ReactUtils } from "../../utils/react";
+import { ExerciseImage } from "../exerciseImage";
 
 interface IProps {
   settings: ISettings;
@@ -39,11 +39,9 @@ function Edit(props: IProps): JSX.Element {
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const inputClassName = `block w-full px-2 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
-  const bars = Settings.bars(props.settings);
-  const barOptions: [string, string][] = [
-    ["", "No Bar"],
-    ...ObjectUtils.keys(bars).map<[string, string]>((b) => [b, b]),
-  ];
+  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
+    programExercise.exerciseType.id
+  ).map((e) => [e, equipmentName(e)]);
 
   const sets = programExercise.variations[0].sets;
   const reps = Program.runScript(programExercise, sets[0].repsExpr, 1, settings, "reps");
@@ -109,13 +107,16 @@ function Edit(props: IProps): JSX.Element {
       />
       <MenuItemEditable
         type="select"
-        name="Bar"
-        value={programExercise.exerciseType.bar || ""}
-        values={barOptions}
-        onChange={(newBar) => {
-          EditProgram.changeExerciseBar(props.dispatch, newBar ? (newBar as IBarKey) : undefined);
+        name="Equipment"
+        value={programExercise.exerciseType.equipment || ""}
+        values={equipmentOptions}
+        onChange={(newEquipment) => {
+          EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
+      <MenuItemWrapper name="exercise-image">
+        <ExerciseImage exerciseType={programExercise.exerciseType} />
+      </MenuItemWrapper>
       <MenuItemWrapper name="sets-reps-weight">
         <section className="flex items-center py-1">
           <div className="flex-1">

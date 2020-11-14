@@ -2,8 +2,8 @@ import { lb, lf, lbu, ILensRecordingPayload } from "../utils/lens";
 import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExerciseId, Exercise } from "./exercise";
-import { IBarKey, IUnit, Weight, IWeight } from "./weight";
+import { IExerciseId, Exercise, IEquipment } from "./exercise";
+import { IUnit, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
@@ -68,17 +68,17 @@ export namespace EditProgram {
 
   export function changeExerciseId(dispatch: IDispatch, newId?: IExerciseId): void {
     if (newId != null) {
-      const exercise = Exercise.get({ id: newId, bar: "barbell" });
+      const exercise = Exercise.get({ id: newId, equipment: "barbell" });
       updateState(dispatch, [
         lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
-        lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(exercise.defaultBar),
+        lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(exercise.defaultEquipment),
         lb<IState>().pi("editExercise").p("name").record(exercise.name),
       ]);
     }
   }
 
-  export function changeExerciseBar(dispatch: IDispatch, newBar?: IBarKey): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("bar").record(newBar)]);
+  export function changeExerciseEquipment(dispatch: IDispatch, newEquipment?: IEquipment): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(newEquipment)]);
   }
 
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {

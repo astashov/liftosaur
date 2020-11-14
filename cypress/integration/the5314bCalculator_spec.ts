@@ -1,5 +1,4 @@
 import { g } from "../support/utils";
-import { getNewLibraryCopy } from "cypress/types/bluebird";
 
 describe("5/3/1 for beginners calculator", () => {
   beforeEach(() => {

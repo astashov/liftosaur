@@ -93,7 +93,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
 
 function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExerciseType, isCurrent: boolean): IWeight {
   if (isCurrent) {
-    return Weight.roundConvertTo(weight, settings, exercise.bar);
+    return Weight.roundConvertTo(weight, settings, exercise.equipment);
   } else {
     return Weight.convertTo(weight, settings.units);
   }

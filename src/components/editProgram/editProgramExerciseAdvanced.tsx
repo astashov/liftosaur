@@ -4,9 +4,9 @@ import { GroupHeader } from "../groupHeader";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ObjectUtils } from "../../utils/object";
-import { ISettings, Settings } from "../../models/settings";
+import { ISettings } from "../../models/settings";
 import { History } from "../../models/history";
-import { Weight, IBarKey, IUnit, IWeight } from "../../models/weight";
+import { Weight, IUnit, IWeight } from "../../models/weight";
 import { ExerciseView } from "../exercise";
 import { IHistoryEntry, IHistoryRecord } from "../../models/history";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
@@ -27,11 +27,12 @@ import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
 import { SemiButton } from "../semiButton";
 import { IconEdit } from "../iconEdit";
-import { MenuItem } from "../menuItem";
+import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
-import { Exercise } from "../../models/exercise";
+import { Exercise, IEquipment, equipmentName } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
 import { IconQuestion } from "../iconQuestion";
+import { ExerciseImage } from "../exerciseImage";
 
 interface IProps {
   settings: ISettings;
@@ -100,11 +101,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   const variationScriptResult = Program.runVariationScript(programExercise, day, props.settings);
 
-  const bars = Settings.bars(props.settings);
-  const barOptions: [string, string][] = [
-    ["", "No Bar"],
-    ...ObjectUtils.keys(bars).map<[string, string]>((b) => [b, b]),
-  ];
+  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
+    programExercise.exerciseType.id
+  ).map((e) => [e, equipmentName(e)]);
 
   return (
     <div>
@@ -129,13 +128,16 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       />
       <MenuItemEditable
         type="select"
-        name="Bar"
-        value={programExercise.exerciseType.bar || ""}
-        values={barOptions}
-        onChange={(newBar) => {
-          EditProgram.changeExerciseBar(props.dispatch, newBar ? (newBar as IBarKey) : undefined);
+        name="Equipment"
+        value={programExercise.exerciseType.equipment || ""}
+        values={equipmentOptions}
+        onChange={(newEquipment) => {
+          EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
+      <MenuItemWrapper name="exercise-image">
+        <ExerciseImage exerciseType={programExercise.exerciseType} />
+      </MenuItemWrapper>
       <MenuItemEditable
         type="text"
         name="Name"
@@ -309,7 +311,7 @@ function Sets(props: ISetsProps): JSX.Element {
           element={(set, setIndex, handleTouchStart) => (
             <SetFields
               key={`${resetCounter}_${variation.sets.length}_${programExercise.variations.length}_${variationIndex}`}
-              bar={programExercise.exerciseType.bar}
+              equipment={programExercise.exerciseType.equipment}
               settings={settings}
               handleTouchStart={handleTouchStart}
               day={day}
@@ -341,14 +343,14 @@ interface ISetFieldsProps {
   settings: ISettings;
   variationIndex: number;
   setIndex: number;
-  bar?: IBarKey;
+  equipment?: IEquipment;
   isDeleteEnabled: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   dispatch: IDispatch;
 }
 
 function SetFields(props: ISetFieldsProps): JSX.Element {
-  const { set, state, bar, settings } = props;
+  const { set, state, equipment, settings } = props;
   const propsRef = useRef<ISetFieldsProps>(props);
   propsRef.current = props;
 
@@ -370,7 +372,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         } else {
           return {
             success: true,
-            data: Weight.roundConvertTo(scriptRunnerResult.execute(type), settings, bar),
+            data: Weight.roundConvertTo(scriptRunnerResult.execute(type), settings, equipment),
           };
         }
       } else {
