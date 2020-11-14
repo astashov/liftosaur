@@ -27,11 +27,12 @@ import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
 import { SemiButton } from "../semiButton";
 import { IconEdit } from "../iconEdit";
-import { MenuItem } from "../menuItem";
+import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise, IEquipment, equipmentName } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
 import { IconQuestion } from "../iconQuestion";
+import { ExerciseImage } from "../exerciseImage";
 
 interface IProps {
   settings: ISettings;
@@ -134,6 +135,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
+      <MenuItemWrapper name="exercise-image">
+        <ExerciseImage exerciseType={programExercise.exerciseType} />
+      </MenuItemWrapper>
       <MenuItemEditable
         type="text"
         name="Name"

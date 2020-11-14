@@ -12,6 +12,7 @@ import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { IWeight, Weight } from "../../models/weight";
 import { Button } from "../button";
 import { ReactUtils } from "../../utils/react";
+import { ExerciseImage } from "../exerciseImage";
 
 interface IProps {
   settings: ISettings;
@@ -113,6 +114,9 @@ function Edit(props: IProps): JSX.Element {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
+      <MenuItemWrapper name="exercise-image">
+        <ExerciseImage exerciseType={programExercise.exerciseType} />
+      </MenuItemWrapper>
       <MenuItemWrapper name="sets-reps-weight">
         <section className="flex items-center py-1">
           <div className="flex-1">

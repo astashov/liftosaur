@@ -13,6 +13,7 @@ import { ProgressStateChanges } from "./progressStateChanges";
 import { useState } from "preact/hooks";
 import { IconQuestion } from "./iconQuestion";
 import { IconClose } from "./iconClose";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -71,18 +72,10 @@ export function ExerciseView(props: IProps): JSX.Element {
 function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
   const e = props.entry.exercise;
   const exercise = Exercise.get(e);
-  const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
   return (
     <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
       <div className="text-left">{exercise.name}</div>
-      {targetMuscles.length > 0 ? (
-        <img
-          className="inline"
-          src={`https://www.liftosaur.com/externalimages/exercises/full/large/${e.id.toLowerCase()}_${(
-            e.equipment || "bodyweight"
-          ).toLowerCase()}_full_large.png`}
-        />
-      ) : undefined}
+      <ExerciseImage exerciseType={e} />
       <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
         <IconClose />
       </button>
