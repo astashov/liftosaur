@@ -115,7 +115,10 @@ function Edit(props: IProps): JSX.Element {
         }}
       />
       <MenuItemWrapper name="exercise-image">
-        <ExerciseImage exerciseType={programExercise.exerciseType} />
+        <ExerciseImage
+          key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
+          exerciseType={programExercise.exerciseType}
+        />
       </MenuItemWrapper>
       <MenuItemWrapper name="sets-reps-weight">
         <section className="flex items-center py-1">

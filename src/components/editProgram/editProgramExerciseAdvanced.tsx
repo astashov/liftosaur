@@ -136,7 +136,10 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         }}
       />
       <MenuItemWrapper name="exercise-image">
-        <ExerciseImage exerciseType={programExercise.exerciseType} />
+        <ExerciseImage
+          key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
+          exerciseType={programExercise.exerciseType}
+        />
       </MenuItemWrapper>
       <MenuItemEditable
         type="text"
