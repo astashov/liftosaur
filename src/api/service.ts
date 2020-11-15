@@ -60,9 +60,10 @@ export class Service {
     this.client(`${__API_HOST__}/timernotification?sid=${sid}`, { method: "POST" });
   }
 
-  public async publishProgram(program: IProgram): Promise<void> {
-    // TODO: Cover with API key
-    await this.client(`${__API_HOST__}/api/publishprogram`, {
+  public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
+    const url = new URL(`${__API_HOST__}/api/publishprogram`);
+    url.searchParams.set("key", adminKey);
+    await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ program }),
       credentials: "include",
@@ -70,7 +71,6 @@ export class Service {
   }
 
   public programs(): Promise<IProgram[]> {
-    // TODO: Cover with API key
     return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
       .then((response) => response.json())
       .then((json) => json.programs.map((p: { program: IProgram }) => p.program));

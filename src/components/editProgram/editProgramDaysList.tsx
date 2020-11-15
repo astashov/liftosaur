@@ -14,14 +14,20 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
 import { IconEdit } from "../iconEdit";
 import { IState } from "../../models/state";
+import { Button } from "../button";
+import { useState } from "preact/hooks";
+import { ModalPublishProgram } from "../modalPublishProgram";
 
 interface IProps {
   editProgram: IProgram;
   programIndex: number;
   dispatch: IDispatch;
+  adminKey?: string;
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
+  const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
+
   return (
     <section className="h-full">
       <HeaderView
@@ -190,9 +196,30 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
         </MenuItemWrapper>
+        {props.adminKey && (
+          <div className="py-3 text-center">
+            <Button
+              kind="green"
+              onClick={() => {
+                setShouldShowPublishModal(true);
+              }}
+            >
+              Publish
+            </Button>
+          </div>
+        )}
       </section>
 
       <FooterView dispatch={props.dispatch} />
+      {shouldShowPublishModal && (
+        <ModalPublishProgram
+          program={props.editProgram}
+          dispatch={props.dispatch}
+          onClose={() => {
+            setShouldShowPublishModal(false);
+          }}
+        />
+      )}
     </section>
   );
 }

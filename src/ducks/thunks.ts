@@ -3,7 +3,7 @@ import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
 import { lb } from "../utils/lens";
-import { Program } from "../models/program";
+import { Program, IProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IState } from "../models/state";
 
@@ -68,11 +68,22 @@ export namespace Thunk {
     };
   }
 
-  export function publishProgram(): IThunk {
+  export function publishProgram(args: Pick<IProgram, "id" | "author" | "name" | "description" | "url">): IThunk {
+    const { id, author, name, description, url } = args;
     return async (dispatch, getState, env) => {
       const state = getState();
-      const program = Program.getEditingProgram(state)!;
-      env.service.publishProgram(program);
+      const program = {
+        ...Program.getEditingProgram(state)!,
+        id,
+        author,
+        name,
+        description,
+        url,
+      };
+      if (state.adminKey) {
+        await env.service.publishProgram(program, state.adminKey);
+        alert("Published");
+      }
     };
   }
 

@@ -28,6 +28,7 @@ export interface IState {
     dayIndex?: number;
   };
   editExercise?: IProgramExercise;
+  adminKey?: string;
 }
 
 export const TStorage = t.type(

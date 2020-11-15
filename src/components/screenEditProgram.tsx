@@ -16,6 +16,7 @@ interface IProps {
   programIndex: number;
   dayIndex: number;
   settings: ISettings;
+  adminKey?: string;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
@@ -25,6 +26,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         dispatch={props.dispatch}
         programIndex={props.programIndex}
         editProgram={props.editProgram}
+        adminKey={props.adminKey}
       />
     );
   } else if (props.screen === "editProgramDay") {

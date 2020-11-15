@@ -35,4 +35,10 @@ export namespace ProgramModel {
       );
     }
   }
+
+  export async function save(program: IProgram): Promise<void> {
+    const oldProgram: IProgramPayload | undefined = await kv_liftosaur_programs.get(program.id, "json");
+    const payload = { program, id: oldProgram?.id || "", timestamp: Date.now() };
+    await kv_liftosaur_programs.put(program.id, JSON.stringify(payload));
+  }
 }

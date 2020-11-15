@@ -269,11 +269,10 @@ async function migrationHandler(request: Request): Promise<Response> {
 }
 
 async function publishProgramHandler(request: Request): Promise<Response> {
-  const user = await getCurrentUser(request);
-  if (user != null) {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
     const program = (await request.json()).program;
-    const payload = { program, id: user.id, timestamp: Date.now() };
-    await kv_liftosaur_published_programs.put(program.id, JSON.stringify(payload));
+    await ProgramModel.save(program);
     return new Response(JSON.stringify({ data: "ok" }), { headers: getHeaders(request) });
   } else {
     return new Response(JSON.stringify({}), { status: 401, headers: getHeaders(request) });

@@ -154,6 +154,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (editProgram != null) {
       content = (
         <ScreenEditProgram
+          adminKey={state.adminKey}
           settings={state.storage.settings}
           editExercise={state.editExercise}
           screen={Screen.current(state.screenStack)}
