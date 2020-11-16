@@ -152,7 +152,7 @@ const allRules = {
   },
   andOr: (parser: Parser): IExpr => {
     const left = parser.match("cmp");
-    const operator = parser.maybeGet({ type: "operator", value: /(&&|\|\})/ });
+    const operator = parser.maybeGet({ type: "operator", value: /(&&|\|\|)/ });
     if (operator != null) {
       const right = parser.match("andOr");
       return { type: "expression", left, operator: operator as ITokenOperator, right };
