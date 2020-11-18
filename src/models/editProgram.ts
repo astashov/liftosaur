@@ -44,7 +44,7 @@ export namespace EditProgram {
         .pi("editExercise")
         .p("state")
         .recordModify((state) => {
-          const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
+          const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
           const newState = { ...state };
           const value = state[stateKey];
           if (v != null) {
