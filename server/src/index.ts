@@ -12,7 +12,6 @@ import { runMigrations } from "./migrations/runner";
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
 declare let kv_liftosaur_users: CloudflareWorkerKV;
-declare let kv_liftosaur_published_programs: CloudflareWorkerKV;
 declare let kv_liftosaur_programs: CloudflareWorkerKV;
 
 interface IOpenIdResponse {
@@ -245,7 +244,6 @@ async function backupHandler(request: Request): Promise<Response> {
     let result = true;
     result = result && (await new Backup(kv_liftosaur_users, "kv_liftosaur_users").backup());
     result = result && (await new Backup(kv_liftosaur_google_ids, "kv_liftosaur_google_ids").backup());
-    result = result && (await new Backup(kv_liftosaur_published_programs, "kv_liftosaur_published_programs").backup());
     result =
       result && (await new Backup(kv_liftosaur_google_access_tokens, "kv_liftosaur_google_access_tokens").backup());
     return new Response(result ? "ok" : "error");
@@ -284,6 +282,36 @@ async function getProgramsHandler(request: Request): Promise<Response> {
   return new Response(JSON.stringify({ programs }), { headers: getHeaders(request) });
 }
 
+async function syncToProdHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
+    const ids =
+      url.searchParams
+        .get("ids")
+        ?.split(",")
+        .map((id) => id.trim()) || [];
+    const syncedIds = await ProgramModel.syncToProd(ids);
+    return new Response(JSON.stringify({ data: { ids: syncedIds } }), { headers: getHeaders(request) });
+  } else {
+    return new Response(JSON.stringify({}), { status: 401, headers: getHeaders(request) });
+  }
+}
+
+async function syncToDevHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
+    const ids =
+      url.searchParams
+        .get("ids")
+        ?.split(",")
+        .map((id) => id.trim()) || [];
+    const syncedIds = await ProgramModel.syncToDev(ids);
+    return new Response(JSON.stringify({ data: { ids: syncedIds } }), { headers: getHeaders(request) });
+  } else {
+    return new Response(JSON.stringify({}), { status: 401, headers: getHeaders(request) });
+  }
+}
+
 async function handleRequest(request: Request): Promise<Response> {
   const r = new Router();
   r.post(".*timernotification", (req: Request) => timerHandler(req));
@@ -297,6 +325,8 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
   r.post(".*/api/migrate", (req: Request) => migrationHandler(req));
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
+  r.post(".*/api/synctoprod", (req: Request) => syncToProdHandler(req));
+  r.post(".*/api/synctodev", (req: Request) => syncToDevHandler(req));
   const resp = await r.route(request);
   return resp;
 }

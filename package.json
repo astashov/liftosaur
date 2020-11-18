@@ -15,6 +15,8 @@
     "start:server": "wrangler dev --host local-api.liftosaur.com",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:8787/api/migrate?key=$KEY",
     "migrate:prod": "curl -v -X POST http://api.liftosaur.com/api/migrate?key=$KEY",
+    "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:8787/api/synctoprod?ids=$IDS\\&key=$KEY",
+    "synctodev": "curl -v -X POST http://local-api.liftosaur.com:8787/api/synctodev?ids=$IDS\\&key=$KEY",
     "test": "jest"
   },
   "author": "Anton Astashov",

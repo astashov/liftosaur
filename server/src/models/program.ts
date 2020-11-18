@@ -3,6 +3,7 @@ import { CollectionUtils } from "../../../src/utils/collection";
 import { CloudflareWorkerKV } from "types-cloudflare-worker";
 
 declare let kv_liftosaur_programs: CloudflareWorkerKV;
+declare let kv_liftosaur_programs_prod: CloudflareWorkerKV;
 
 interface IProgramPayload {
   program: IProgram;
@@ -40,5 +41,33 @@ export namespace ProgramModel {
     const oldProgram: IProgramPayload | undefined = await kv_liftosaur_programs.get(program.id, "json");
     const payload = { program, id: oldProgram?.id || "", timestamp: Date.now() };
     await kv_liftosaur_programs.put(program.id, JSON.stringify(payload));
+  }
+
+  export async function syncToProd(ids: string[]): Promise<string[]> {
+    const syncedIds: string[] = [];
+    await Promise.all(
+      ids.map(async (id) => {
+        const program: IProgramPayload | undefined = await kv_liftosaur_programs.get(id, "json");
+        if (program != null) {
+          syncedIds.push(id);
+          await kv_liftosaur_programs_prod.put(id, JSON.stringify(program));
+        }
+      })
+    );
+    return syncedIds;
+  }
+
+  export async function syncToDev(ids: string[]): Promise<string[]> {
+    const syncedIds: string[] = [];
+    await Promise.all(
+      ids.map(async (id) => {
+        const program: IProgramPayload | undefined = await kv_liftosaur_programs_prod.get(id, "json");
+        if (program != null) {
+          syncedIds.push(id);
+          await kv_liftosaur_programs.put(id, JSON.stringify(program));
+        }
+      })
+    );
+    return syncedIds;
   }
 }
