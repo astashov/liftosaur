@@ -50,8 +50,13 @@ export class Service {
     });
   }
 
-  public async getStorage(): Promise<IGetStorageResponse> {
-    const result = await this.client(`${__API_HOST__}/api/storage`, { credentials: "include" });
+  public async getStorage(userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
+    const url = new URL(`${__API_HOST__}/api/storage`);
+    if (userId != null && adminKey != null) {
+      url.searchParams.set("userid", userId);
+      url.searchParams.set("key", adminKey);
+    }
+    const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }

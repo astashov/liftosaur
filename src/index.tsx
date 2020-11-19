@@ -9,7 +9,7 @@ Rollbar.configure({ payload: { environment: __ENV__ } });
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
 import * as IDB from "idb-keyval";
-import { getInitialState } from "./ducks/reducer";
+import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
 
 if ("serviceWorker" in navigator) {
@@ -20,10 +20,12 @@ if ("serviceWorker" in navigator) {
 console.log(DateUtils.formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
-IDB.get("liftosaur").then(async (loadedData) => {
+const url = new URL(document.location.href);
+const userId = url.searchParams.get("userid") || undefined;
+const adminKey = url.searchParams.get("admin");
+IDB.get(getIdbKey(userId, !!adminKey)).then(async (loadedData) => {
   (window as any).loadedData = loadedData;
-  const initialState = await getInitialState(client, loadedData as string | undefined);
-  const adminKey = new URL(document.location.href).searchParams.get("admin");
+  const initialState = await getInitialState(client, userId, loadedData as string | undefined);
   if (adminKey) {
     initialState.adminKey = adminKey;
   }
@@ -32,7 +34,7 @@ IDB.get("liftosaur").then(async (loadedData) => {
 });
 
 (window as any).storeData = (data: any) => {
-  IDB.set("liftosaur", typeof data === "string" ? data : JSON.stringify(data)).catch((e) => {
+  IDB.set(getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch((e) => {
     console.error(e);
   });
 };

@@ -23,10 +23,11 @@ import { ILocalStorage, TStorage, IState, IStorage } from "../models/state";
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
 
-export async function getInitialState(client: Window["fetch"], rawStorage?: string): Promise<IState> {
-  if (rawStorage == null) {
-    rawStorage = window.localStorage.getItem("liftosaur") || undefined;
-  }
+export function getIdbKey(userId?: string, isAdmin?: boolean): string {
+  return userId != null && isAdmin ? `liftosaur_${userId}` : "liftosaur";
+}
+
+export async function getInitialState(client: Window["fetch"], userId?: string, rawStorage?: string): Promise<IState> {
   let storage: ILocalStorage | undefined;
   if (rawStorage != null) {
     try {
@@ -49,6 +50,7 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
       programs: [],
       currentHistoryRecord: 0,
       screenStack,
+      user: userId ? { email: userId, id: userId } : undefined,
     };
   }
   return {
@@ -96,6 +98,7 @@ export async function getInitialState(client: Window["fetch"], rawStorage?: stri
       programs: [],
       helps: [],
     },
+    user: userId ? { email: userId, id: userId } : undefined,
   };
 }
 
@@ -287,7 +290,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   timerId = window.setTimeout(() => {
     clearTimeout(timerId);
     timerId = undefined;
-    IDB.set("liftosaur", JSON.stringify(localStorage)).catch((e) => {
+    IDB.set(getIdbKey(newState.user?.id, !!newState.adminKey), JSON.stringify(localStorage)).catch((e) => {
       console.error(e);
     });
   }, 100);

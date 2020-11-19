@@ -25,11 +25,13 @@ export async function recordImage(storage: IStorage, recordId: number): Promise<
       exercises: historyRecord.entries.map((entry) => {
         const exercise = Exercise.get(entry.exercise);
         const prSet = History.findPersonalRecord(recordId, entry, history);
-        const set = History.getMaxSet(entry)!;
-        const value = `${set.completedReps || 0} ${StringUtils.pluralize(
+        const set = History.getMaxSet(entry);
+        const value = `${set?.completedReps || 0} ${StringUtils.pluralize(
           "rep",
-          set.completedReps || 0
-        )} x ${Weight.display(Weight.convertTo(set.weight, storage.settings.units))}`;
+          set?.completedReps || 0
+        )} x ${Weight.display(
+          Weight.convertTo(set?.weight || Weight.build(0, storage.settings.units), storage.settings.units)
+        )}`;
         return {
           name: exercise.name,
           value,

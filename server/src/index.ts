@@ -12,7 +12,6 @@ import { runMigrations } from "./migrations/runner";
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
 declare let kv_liftosaur_users: CloudflareWorkerKV;
-declare let kv_liftosaur_programs: CloudflareWorkerKV;
 
 interface IOpenIdResponse {
   sub: string;
@@ -133,17 +132,32 @@ async function getCurrentUser(request: Request): Promise<IUser | undefined> {
   const cookies = Cookie.parse(request.headers.get("cookie") || "");
   if (cookies.session != null && JWT.verify(cookies.session, cookieSecret)) {
     const session = JWT.decode(cookies.session) as Record<string, string>;
-    const resultRaw = await kv_liftosaur_users.get(session.userId);
-    if (resultRaw != null) {
-      const result = JSON.parse(resultRaw);
-      return { id: result.id, email: result.email };
-    }
+    return getUser(session.userId);
+  } else {
+    return undefined;
   }
-  return undefined;
+}
+
+async function getUser(userId: string): Promise<IUser | undefined> {
+  const resultRaw = await kv_liftosaur_users.get(userId);
+  if (resultRaw != null) {
+    const result = JSON.parse(resultRaw);
+    return { id: result.id, email: result.email };
+  } else {
+    return undefined;
+  }
 }
 
 async function getStorageHandler(request: Request): Promise<Response> {
-  const user = await getCurrentUser(request);
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("userid");
+  const adminKey = url.searchParams.get("key");
+  let user: IUser | undefined;
+  if (userId != null && adminKey === apiKey) {
+    user = await getUser(userId);
+  } else {
+    user = await getCurrentUser(request);
+  }
   if (user != null) {
     const resultRaw = await kv_liftosaur_users.get(user.id);
     if (resultRaw != null) {
