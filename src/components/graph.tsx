@@ -59,9 +59,17 @@ export function Graph(props: IGraphProps): JSX.Element {
                 const date = new Date(data[0][idx] * 1000);
                 const weight = data[1][idx];
                 const reps = data[2][idx];
-                legendRef.current.innerHTML = `${DateUtils.format(
-                  date
-                )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
+                let text: string;
+                if (weight != null && units != null && reps != null) {
+                  text = `${DateUtils.format(
+                    date
+                  )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
+                } else {
+                  text = "";
+                }
+                if (legendRef.current != null) {
+                  legendRef.current.innerHTML = text;
+                }
               },
             ],
           },
