@@ -8,6 +8,8 @@ import { IStorage } from "../../src/models/state";
 import { renderRecordHtml, recordImage } from "./record";
 import { ProgramModel } from "./models/program";
 import { runMigrations } from "./migrations/runner";
+import { UserModel } from "./models/user";
+import { renderUsersHtml } from "../../src/components/admin/usersHtml";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -326,6 +328,29 @@ async function syncToDevHandler(request: Request): Promise<Response> {
   }
 }
 
+async function getUsersHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const key = url.searchParams.get("key");
+  if (key === apiKey) {
+    const users = await UserModel.getAll();
+    const processedUsers = users.map((u) => {
+      return {
+        id: u.id,
+        email: u.email,
+        history: u.storage.history.slice(0, 4),
+        totalHistory: u.storage.history.length,
+        programs: u.storage.programs.map((p) => p.name),
+        settings: u.storage.settings,
+      };
+    });
+    return new Response(renderUsersHtml({ users: processedUsers, apiKey: key }), {
+      headers: { "content-type": "text/html" },
+    });
+  } else {
+    return new Response("Unauthorized", { status: 401, headers: getHeaders(request) });
+  }
+}
+
 async function handleRequest(request: Request): Promise<Response> {
   const r = new Router();
   r.post(".*timernotification", (req: Request) => timerHandler(req));
@@ -341,6 +366,8 @@ async function handleRequest(request: Request): Promise<Response> {
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   r.post(".*/api/synctoprod", (req: Request) => syncToProdHandler(req));
   r.post(".*/api/synctodev", (req: Request) => syncToDevHandler(req));
+
+  r.get(".*/admin/users", (req: Request) => getUsersHandler(req));
   const resp = await r.route(request);
   return resp;
 }

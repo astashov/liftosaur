@@ -1,0 +1,93 @@
+/* purgecss start ignore */
+
+@tailwind base;
+@tailwind components;
+
+body {
+  font-size: 16px;
+  line-height: 1.55em;
+  font-family: Arial, sans-serif;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+#app {
+  flex: 1;
+}
+
+.top-nav {
+  width: 100%;
+  padding: 48px 24px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.top-nav a {
+  color: #2b6cb0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.top-nav-left {
+  flex: 1;
+}
+
+.top-nav-right {
+  margin-left: 0;
+}
+
+.top-nav-menu {
+  flex: 1;
+  padding-right: 1.5em;
+}
+
+.top-nav-menu,
+.top-nav-menu li {
+  display: inline-block;
+  vertical-align: middle;
+  list-style: none;
+}
+
+.top-nav-menu li {
+  margin: 0 1em;
+  line-height: 1.5em;
+}
+
+.top-nav-left {
+  align-items: center;
+  display: flex;
+}
+
+a.top-nav-logo {
+  color: #1a202c;
+  text-decoration: none;
+}
+
+.top-nav-logo img {
+  width: 4em;
+  height: 4em;
+  vertical-align: middle;
+  display: inline;
+}
+
+.top-nav-logo span {
+  display: inline;
+  font-size: 2em;
+  font-weight: bold;
+  font-family: Poppins;
+  color: #1a202c;
+  vertical-align: middle;
+  margin-left: 8px;
+  line-height: 2em;
+}
+
+/* purgecss end ignore */
+
+@tailwind utilities;

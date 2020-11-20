@@ -10,6 +10,7 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
+    admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
@@ -88,6 +89,10 @@ module.exports = {
         to: `record.css`,
       },
       {
+        from: `src/admin.css`,
+        to: `admin.css`,
+      },
+      {
         from: `docs`,
         to: `docs`,
       },
@@ -140,6 +145,7 @@ module.exports = {
     disableHostCheck: true,
     proxy: {
       "/record": "http://local-api.liftosaur.com:8787/api",
+      "/admin": "http://local-api.liftosaur.com:8787/admin",
     },
   },
 };
