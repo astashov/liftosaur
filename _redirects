@@ -1,4 +1,4 @@
 /record id=:id user=:user https://api.liftosaur.com/api/record?id=:id&user=:user  200
 /recordimage id=:id user=:user https://api.liftosaur.com/api/recordimage?id=:id&user=:user  200
 /externalimages/* https://liftosaurimages.s3-us-west-2.amazonaws.com/:splat  200
-/admin/* https://api.liftosaur.com/admin/:splat  200
+/admin/users admin=:admin userid=:userid https://api.liftosaur.com/admin/users?admin=:admin&userid=:userid  200
