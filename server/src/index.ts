@@ -343,6 +343,13 @@ async function getUsersHandler(request: Request): Promise<Response> {
         settings: u.storage.settings,
       };
     });
+    processedUsers.sort((a, b) => {
+      try {
+        return Date.parse(b.history[0].date) - Date.parse(a.history[0].date);
+      } catch (_) {
+        return 0;
+      }
+    });
     return new Response(renderUsersHtml({ users: processedUsers, apiKey: key }), {
       headers: { "content-type": "text/html" },
     });

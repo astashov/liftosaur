@@ -1071,7 +1071,7 @@ export const TEquipment = t.keyof(
 );
 export type IEquipment = t.TypeOf<typeof TEquipment>;
 
-type IMuscle =
+export type IMuscle =
   | "Adductor Brevis"
   | "Adductor Longus"
   | "Adductor Magnus"
@@ -1097,7 +1097,6 @@ type IMuscle =
   | "Quadriceps"
   | "Rectus Abdominis"
   | "Sartorius"
-  | "Serratus Ante"
   | "Serratus Anterior"
   | "Soleus"
   | "Splenius"
@@ -1708,7 +1707,7 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
         "Pectoralis Major Clavicular Head",
         "Pectoralis Major Sternal Head",
         "Quadriceps",
-        "Serratus Ante",
+        "Serratus Anterior",
       ],
       synergistMuscles: [],
       bodyParts: [],
@@ -3351,6 +3350,20 @@ export namespace Exercise {
   export function targetMuscles(type: IExerciseType): IMuscle[] {
     const meta = metadata[type.id][type.equipment || "bodyweight"];
     return meta != null ? meta.targetMuscles : [];
+  }
+
+  export function synergistMuscles(type: IExerciseType): IMuscle[] {
+    const meta = metadata[type.id][type.equipment || "bodyweight"];
+    return meta != null ? meta.synergistMuscles : [];
+  }
+
+  export function toKey(type: IExerciseType): string {
+    return `${type.id}_${type.equipment || "bodyweight"}`;
+  }
+
+  export function fromKey(type: string): IExerciseType {
+    const [id, equipment] = type.split("_");
+    return { id: id as IExerciseId, equipment: (equipment || "bodyweight") as IEquipment };
   }
 
   export function defaultEquipment(type: IExerciseId): IEquipment | undefined {

@@ -115,6 +115,16 @@ export namespace Program {
     };
   }
 
+  export function programExerciseToHistoryEntry(
+    programExercise: IProgramExercise,
+    day: number,
+    settings: ISettings
+  ): IHistoryEntry {
+    const variationIndex = nextVariationIndex(programExercise, day, settings);
+    const sets = programExercise.variations[variationIndex].sets;
+    return nextHistoryEntry(programExercise.exerciseType, day, sets, programExercise.state, settings);
+  }
+
   export function nextHistoryEntry(
     exercise: IExerciseType,
     day: number,
@@ -163,9 +173,7 @@ export namespace Program {
       startTime: Date.now(),
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
-        const variationIndex = nextVariationIndex(programExercise, day, settings);
-        const sets = programExercise.variations[variationIndex].sets;
-        return nextHistoryEntry(programExercise.exerciseType, day, sets, programExercise.state, settings);
+        return programExerciseToHistoryEntry(programExercise, day, settings);
       }),
     };
   }

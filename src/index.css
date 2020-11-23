@@ -47,6 +47,10 @@
   }
 }
 
+.muscle {
+  width: 100%;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

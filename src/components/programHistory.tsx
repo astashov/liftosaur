@@ -9,6 +9,8 @@ import { Button } from "./button";
 import { HistoryRecordView } from "./historyRecord";
 import { ISettings } from "../models/settings";
 import { StringUtils } from "../utils/string";
+import { IconMuscles } from "./iconMuscles";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   program: IProgram;
@@ -50,7 +52,14 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           <HistoryRecordView settings={props.settings} historyRecord={historyRecord} dispatch={dispatch} />
         ))}
       </section>
-      <FooterView dispatch={props.dispatch} />
+      <FooterView
+        buttons={
+          <button className="p-4" aria-label="Muscles" onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}>
+            <IconMuscles />
+          </button>
+        }
+        dispatch={props.dispatch}
+      />
     </section>
   );
 }

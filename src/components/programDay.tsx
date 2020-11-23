@@ -17,6 +17,8 @@ import { IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { IconShare } from "./iconShare";
+import { IconMuscles } from "./iconMuscles";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -99,6 +101,13 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           buttons={
             <Fragment>
+              <button
+                className="p-4"
+                aria-label="Muscles"
+                onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
+              >
+                <IconMuscles />
+              </button>
               {!Progress.isCurrent(props.progress) ? (
                 <button
                   className="p-4"

@@ -13,6 +13,8 @@ import { IconCheck } from "../iconCheck";
 import { IconDelete } from "../iconDelete";
 import { IconEdit } from "../iconEdit";
 import { SemiButton } from "../semiButton";
+import { IconMuscles } from "../iconMuscles";
+import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
   isProgress: boolean;
@@ -119,7 +121,14 @@ export function EditProgramDay(props: IProps): JSX.Element {
         </section>
       </section>
 
-      <FooterView dispatch={props.dispatch} />
+      <FooterView
+        buttons={
+          <button className="p-4" aria-label="Muscles" onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}>
+            <IconMuscles />
+          </button>
+        }
+        dispatch={props.dispatch}
+      />
     </section>
   );
 }

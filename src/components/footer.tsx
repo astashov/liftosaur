@@ -7,7 +7,7 @@ import { Thunk } from "../ducks/thunks";
 export function FooterView(props: { dispatch: IDispatch; buttons?: JSX.Element }): JSX.Element {
   return (
     <div className="fixed bottom-0 left-0 z-10 flex items-center w-full pb-2 text-center text-white bg-blue-700">
-      <div className="flex-1 px-3 text-sm text-left text-blue-500">{__COMMIT_HASH__}</div>
+      <div className="px-3 text-sm text-left text-blue-500">{__COMMIT_HASH__}</div>
       <div className="flex-1 text-right">
         {props.buttons}
         <button className="p-4" aria-label="Graphs" onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}>

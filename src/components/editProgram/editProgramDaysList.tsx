@@ -17,6 +17,8 @@ import { IState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
+import { IconMuscles } from "../iconMuscles";
+import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
   editProgram: IProgram;
@@ -210,7 +212,18 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         )}
       </section>
 
-      <FooterView dispatch={props.dispatch} />
+      <FooterView
+        buttons={
+          <button
+            className="p-4"
+            aria-label="Muscles"
+            onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
+          >
+            <IconMuscles />
+          </button>
+        }
+        dispatch={props.dispatch}
+      />
       {shouldShowPublishModal && (
         <ModalPublishProgram
           program={props.editProgram}

@@ -26,6 +26,7 @@ export function ProgramListView(props: IProps): JSX.Element {
     beginner: "bg-orange-700",
     barbell: "bg-green-700",
     dumbbell: "bg-green-700",
+    intermediate: "bg-orange-700",
   };
 
   return (

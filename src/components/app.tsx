@@ -23,6 +23,8 @@ import { Progress } from "../models/progress";
 import { dequal } from "dequal";
 import { IState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
+import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
+import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
 
 interface IProps {
   client: Window["fetch"];
@@ -175,6 +177,13 @@ export function AppView(props: IProps): JSX.Element | null {
         history={state.storage.history}
         userId={state.user?.id}
       />
+    );
+  } else if (Screen.current(state.screenStack) === "musclesProgram") {
+    return <ScreenMusclesProgram dispatch={dispatch} program={program!} settings={state.storage.settings} />;
+  } else if (Screen.current(state.screenStack) === "musclesDay") {
+    const day = program!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
+    return (
+      <ScreenMusclesDay dispatch={dispatch} program={program!} programDay={day} settings={state.storage.settings} />
     );
   } else {
     return null;
