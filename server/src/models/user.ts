@@ -8,6 +8,7 @@ interface IUserPayload {
   storage: IStorage;
   id: string;
   email: string;
+  timestamp?: number;
 }
 
 export namespace UserModel {

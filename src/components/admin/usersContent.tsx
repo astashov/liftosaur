@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { IHistoryRecord } from "../../models/history";
 import { ISettings } from "../../models/settings";
 import { HistoryRecordView } from "../historyRecord";
+import { DateUtils } from "../../../server/src/utils/date";
 
 export interface IUsersContentProps {
   users: IProcessedUser[];
@@ -15,16 +16,18 @@ export interface IProcessedUser {
   totalHistory: number;
   settings: ISettings;
   programs: string[];
+  timestamp?: number;
 }
 
 export function UsersContent(props: IUsersContentProps): JSX.Element {
   return (
     <div>
-      <h1>Users</h1>
+      <h1>Users ({props.users.length})</h1>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left">
             <th className="w-32 px-2">Name</th>
+            <th className="w-32 px-2">Created</th>
             <th className="px-2" style={{ width: "240px" }}>
               Email
             </th>
@@ -48,6 +51,7 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                     {user.id}
                   </a>
                 </td>
+                <td className="px-2 align-top">{user.timestamp ? DateUtils.formatYYYYMMDD(user.timestamp) : ""}</td>
                 <td className="px-2 align-top">{user.email}</td>
                 <td className="px-2 align-top">{user.programs.join(", ")}</td>
                 <td className="px-2 align-top">{user.totalHistory}</td>

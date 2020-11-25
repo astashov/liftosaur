@@ -96,7 +96,7 @@ async function googleLoginHandler(request: Request): Promise<Response> {
   const storageStr = await kv_liftosaur_users.get(userId);
   let storage;
   if (storageStr == null) {
-    storage = { email: openIdJson.email, id: userId };
+    storage = { email: openIdJson.email, id: userId, timestamp: Date.now() };
     await kv_liftosaur_users.put(userId, JSON.stringify(storage));
   } else {
     storage = JSON.parse(storageStr);
@@ -341,14 +341,13 @@ async function getUsersHandler(request: Request): Promise<Response> {
         totalHistory: u.storage.history.length,
         programs: u.storage.programs.map((p) => p.name),
         settings: u.storage.settings,
+        timestamp: u.timestamp,
       };
     });
     processedUsers.sort((a, b) => {
-      try {
-        return Date.parse(b.history[0].date) - Date.parse(a.history[0].date);
-      } catch (_) {
-        return 0;
-      }
+      const h1 = a.history[0];
+      const h2 = b.history[0];
+      return (h2 == null ? 0 : Date.parse(h2.date)) - (h1 == null ? 0 : Date.parse(h1.date));
     });
     return new Response(renderUsersHtml({ users: processedUsers, apiKey: key }), {
       headers: { "content-type": "text/html" },
