@@ -18,7 +18,6 @@ import { Thunk } from "../../ducks/thunks";
 
 interface IProps {
   isProgress: boolean;
-  programIndex: number;
   dayIndex: number;
   settings: ISettings;
   editProgram: IProgram;
@@ -34,7 +33,7 @@ export interface IEditSet {
 export function EditProgramDay(props: IProps): JSX.Element {
   const program = props.editProgram;
   const day = props.editDay;
-  const { programIndex, dayIndex } = props;
+  const { dayIndex } = props;
 
   return (
     <section className="h-full">
@@ -51,7 +50,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
             value={day.name}
             onChange={(newValue) => {
               if (newValue != null) {
-                EditProgram.setDayName(props.dispatch, programIndex, dayIndex, newValue);
+                EditProgram.setDayName(props.dispatch, program, dayIndex, newValue);
               }
             }}
           />
@@ -87,7 +86,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
                 );
               }}
               onDragEnd={(startIndex, endIndex) => {
-                EditProgram.reorderExercises(props.dispatch, programIndex, dayIndex, startIndex, endIndex);
+                EditProgram.reorderExercises(props.dispatch, program, dayIndex, startIndex, endIndex);
               }}
             />
             <div class="p-1">

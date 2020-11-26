@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable no-shadow */
 import { ObjectUtils } from "./object";
+import { IArrayElement } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type IGetter<T, R> = (obj: T) => R;
@@ -31,6 +34,13 @@ export interface IPartialBuilder<T, U extends ILensGetters<T>> {
   p: <R extends keyof T>(key: R) => LensBuilder<T, T[R], U>;
   pi: <R extends keyof T>(key: R) => LensBuilder<T, Exclude<T[R], undefined>, U>;
   i: (index: number) => LensBuilder<T, T extends unknown[] ? T[number] : never, U>;
+  find: <A extends T extends unknown[] ? IArrayElement<T> : never>(
+    cb: (el: A) => boolean
+  ) => LensBuilder<T, T extends unknown[] ? T[number] : never, U>;
+  findBy: <A extends T extends unknown[] ? IArrayElement<T> : never, B extends keyof A>(
+    key: B,
+    value: A[B]
+  ) => LensBuilder<T, T extends unknown[] ? T[number] : never, U>;
   get: () => Lens<T, T>;
 }
 
@@ -38,6 +48,13 @@ interface IPartialBuilderWithObject<T> {
   p: <R extends keyof T>(key: R) => LensBuilderWithObject<T, T[R]>;
   pi: <R extends keyof T>(key: R) => LensBuilderWithObject<T, Exclude<T[R], undefined>>;
   i: (index: number) => LensBuilderWithObject<T, T extends unknown[] ? T[number] : never>;
+  find: <A extends T extends unknown[] ? IArrayElement<T> : never>(
+    cb: (el: A) => boolean
+  ) => LensBuilderWithObject<T, T extends unknown[] ? T[number] : never>;
+  findBy: <A extends T extends unknown[] ? IArrayElement<T> : never, B extends keyof A>(
+    key: B,
+    value: A[B]
+  ) => LensBuilderWithObject<T, T extends unknown[] ? T[number] : never>;
   get: () => Lens<T, T>;
 }
 
@@ -69,6 +86,19 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
         // @ts-ignore
         return new LensBuilderWithObject<T, T[number]>(lensFactory(index), obj);
       },
+      find: <A extends T extends unknown[] ? IArrayElement<T> : never>(
+        cb: (el: A) => boolean
+      ): LensBuilderWithObject<T, T extends unknown[] ? T[number] : never> => {
+        // @ts-ignore
+        return new LensBuilderWithObject<T, T[number], U>(lensFactory(cb), obj);
+      },
+      findBy: <A extends T extends unknown[] ? IArrayElement<T> : never, B extends keyof A>(
+        key: B,
+        value: A[B]
+      ): LensBuilderWithObject<T, T extends unknown[] ? T[number] : never> => {
+        // @ts-ignore
+        return new LensBuilderWithObject<T, T[number], U>(lensFactory(key, value), obj);
+      },
       get: (): Lens<T, T> => {
         return new Lens(
           (s) => s,
@@ -90,6 +120,21 @@ export class LensBuilderWithObject<T, R> extends AbstractLensBuilder<T, R> {
   public i(index: number): LensBuilderWithObject<T, R extends unknown[] ? R[number] : never> {
     // @ts-ignore
     return new LensBuilderWithObject<T, R[number]>(this.lens.then(Lens.index<R>()(index)), this.obj);
+  }
+
+  public find<A extends R extends unknown[] ? IArrayElement<R> : never>(
+    cb: (el: A) => boolean
+  ): LensBuilderWithObject<T, R extends unknown[] ? R[number] : never> {
+    // @ts-ignore
+    return new LensBuilderWithObject<T, R[number], U>(this.lens.then(Lens.find<R>()(cb)), this.obj);
+  }
+
+  public findBy<A extends R extends unknown[] ? IArrayElement<R> : never, B extends keyof A>(
+    key: B,
+    value: A[B]
+  ): LensBuilderWithObject<T, R extends unknown[] ? R[number] : never> {
+    // @ts-ignore
+    return new LensBuilderWithObject<T, R[number], U>(this.lens.then(Lens.findBy<R>()(key, value)), this.obj);
   }
 
   public set(value: R): T {
@@ -121,6 +166,19 @@ export class LensBuilder<T, R, U extends ILensGetters<T>> extends AbstractLensBu
         // @ts-ignore
         return new LensBuilder<T, T[number]>(lensFactory(index), lensGetters);
       },
+      find: <A extends T extends unknown[] ? IArrayElement<T> : never>(
+        cb: (el: A) => boolean
+      ): LensBuilder<T, T extends unknown[] ? T[number] : never, U> => {
+        // @ts-ignore
+        return new LensBuilder<T, T[number], U>(lensFactory(cb), this.lensGetters);
+      },
+      findBy: <A extends T extends unknown[] ? IArrayElement<T> : never, B extends keyof A>(
+        key: B,
+        value: A[B]
+      ): LensBuilder<T, T extends unknown[] ? T[number] : never, U> => {
+        // @ts-ignore
+        return new LensBuilder<T, T[number], U>(lensFactory(key, value), this.lensGetters);
+      },
       get: (): Lens<T, T> => {
         return new Lens(
           (s) => s,
@@ -145,6 +203,21 @@ export class LensBuilder<T, R, U extends ILensGetters<T>> extends AbstractLensBu
       this.lens.then(Lens.prop<R>()(key) as any),
       this.lensGetters
     );
+  }
+
+  public find<A extends R extends unknown[] ? IArrayElement<R> : never>(
+    cb: (el: A) => boolean
+  ): LensBuilder<T, R extends unknown[] ? R[number] : never, U> {
+    // @ts-ignore
+    return new LensBuilder<T, R[number], U>(this.lens.then(Lens.find<R>()(cb)), this.lensGetters);
+  }
+
+  public findBy<A extends R extends unknown[] ? IArrayElement<R> : never, B extends keyof A>(
+    key: B,
+    value: A[B]
+  ): LensBuilder<T, R extends unknown[] ? R[number] : never, U> {
+    // @ts-ignore
+    return new LensBuilder<T, R[number], U>(this.lens.then(Lens.findBy<R>()(key, value)), this.lensGetters);
   }
 
   public set(obj: T, value: R): T {
@@ -270,6 +343,29 @@ export class Lens<T, R> {
         (a) => a[index],
         (a, v) => a.map((e, i) => (i === index ? v : e)) as T,
         { from: "obj", to: `${index}` }
+      );
+    };
+  }
+
+  public static find<T extends any[], A extends IArrayElement<T>>(): (cb: (el: A) => boolean) => Lens<T, T[number]> {
+    return (cb: (el: A) => boolean) => {
+      return new Lens<T, T[keyof T]>(
+        (a) => a.filter(cb)[0],
+        (a, v) => a.map((e) => (cb(e) ? v : e)) as T,
+        { from: "obj", to: `find()` }
+      );
+    };
+  }
+
+  public static findBy<T extends any[], A extends IArrayElement<T>, B extends keyof A>(): (
+    key: A,
+    value: A[B]
+  ) => Lens<T, T[number]> {
+    return (key: A, value: A[B]) => {
+      return new Lens<T, T[keyof T]>(
+        (a) => a.filter((e) => e[key] === value)[0],
+        (a, v) => a.map((e) => (e[key] === value ? v : e)) as T,
+        { from: "obj", to: `${key} == ${value}` }
       );
     };
   }

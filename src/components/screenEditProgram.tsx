@@ -34,7 +34,6 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       return (
         <EditProgramDay
           settings={props.settings}
-          programIndex={props.programIndex}
           dayIndex={props.dayIndex}
           isProgress={false}
           dispatch={props.dispatch}

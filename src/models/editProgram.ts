@@ -149,26 +149,12 @@ export namespace EditProgram {
   }
 
   export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((programs) => {
-          const programIndex = programs.findIndex((p) => p.id === program.id);
-          return lf(programs).i(programIndex).p("name").set(name);
-        }),
-    ]);
+    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name)]);
   }
 
   export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
     updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((programs) => {
-          const programIndex = programs.findIndex((p) => p.id === program.id);
-          return lf(programs).i(programIndex).p("nextDay").set(nextDay);
-        }),
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(nextDay),
     ]);
   }
 
@@ -193,9 +179,9 @@ export namespace EditProgram {
     ]);
   }
 
-  export function setDayName(dispatch: IDispatch, programIndex: number, dayIndex: number, name: string): void {
+  export function setDayName(dispatch: IDispatch, program: IProgram, dayIndex: number, name: string): void {
     updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").i(programIndex).p("days").i(dayIndex).p("name").record(name),
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("days").i(dayIndex).p("name").record(name),
     ]);
   }
 
@@ -247,13 +233,9 @@ export namespace EditProgram {
       lb<IState>()
         .p("storage")
         .p("programs")
-        .recordModify((programs) => {
-          const programIndex = programs.findIndex((p) => p.id === program.id);
-          return lf(programs)
-            .i(programIndex)
-            .p("exercises")
-            .modify((es) => es.filter((e) => e.id !== exerciseId));
-        }),
+        .findBy("id", program.id)
+        .p("exercises")
+        .recordModify((es) => es.filter((e) => e.id !== exerciseId)),
     ]);
   }
 
@@ -263,15 +245,11 @@ export namespace EditProgram {
       lb<IState>()
         .p("storage")
         .p("programs")
-        .recordModify((programs) => {
-          const programIndex = programs.findIndex((p) => p.id === program.id);
-          return lf(programs)
-            .i(programIndex)
-            .p("exercises")
-            .modify((es) => {
-              const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
-              return [...es, newExercise];
-            });
+        .findBy("id", program.id)
+        .p("exercises")
+        .recordModify((es) => {
+          const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
+          return [...es, newExercise];
         }),
     ]);
   }
@@ -286,20 +264,16 @@ export namespace EditProgram {
       lb<IState>()
         .p("storage")
         .p("programs")
-        .recordModify((programs) => {
-          const programIndex = programs.findIndex((p) => p.id === program.id);
-          return lf(programs)
-            .i(programIndex)
-            .p("days")
-            .i(dayIndex)
-            .p("exercises")
-            .modify((es) => {
-              if (es.some((e) => e.id === exerciseId)) {
-                return es.filter((e) => e.id !== exerciseId);
-              } else {
-                return [...es, { id: exerciseId }];
-              }
-            });
+        .findBy("id", program.id)
+        .p("days")
+        .i(dayIndex)
+        .p("exercises")
+        .recordModify((es) => {
+          if (es.some((e) => e.id === exerciseId)) {
+            return es.filter((e) => e.id !== exerciseId);
+          } else {
+            return [...es, { id: exerciseId }];
+          }
         }),
     ]);
   }
@@ -327,7 +301,7 @@ export namespace EditProgram {
 
   export function reorderExercises(
     dispatch: IDispatch,
-    programIndex: number,
+    program: IProgram,
     dayIndex: number,
     startExerciseIndex: number,
     endExceciseIndex: number
@@ -336,7 +310,7 @@ export namespace EditProgram {
       lb<IState>()
         .p("storage")
         .p("programs")
-        .i(programIndex)
+        .findBy("id", program.id)
         .p("days")
         .i(dayIndex)
         .p("exercises")
@@ -412,11 +386,10 @@ export namespace EditProgram {
           .p("programs")
           .i(programIndex)
           .p("exercises")
-          .recordModify((exercises) => {
-            return exercises.map((e) =>
-              e.exerciseType.id === exerciseId ? { ...e, state: { ...e.state, tm: tms[exerciseId] } } : e
-            );
-          });
+          .find((e) => e.exerciseType.id === exerciseId)
+          .p("state")
+          .p("tm")
+          .record(tms[exerciseId]);
       })
     );
   }
