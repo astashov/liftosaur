@@ -1,0 +1,5 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target" : { "namespace": "android_app", "package_name": "com.liftosaur.www.twa",
+                   "sha256_cert_fingerprints": ["1F:7A:E9:B2:04:9F:FF:AE:23:6D:1D:0F:13:22:7D:0F:20:07:7D:68:19:FB:59:7E:A5:2B:40:DF:32:41:80:44"] }
+    }]

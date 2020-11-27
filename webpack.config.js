@@ -132,6 +132,10 @@ module.exports = {
         from: "manifest.webmanifest",
         to: "manifest.webmanifest",
       },
+      {
+        from: "assetlinks.json",
+        to: ".well-known/assetlinks.json",
+      },
     ]),
     new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
