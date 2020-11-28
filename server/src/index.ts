@@ -14,6 +14,7 @@ import { renderUsersHtml } from "../../src/components/admin/usersHtml";
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
 declare let kv_liftosaur_users: CloudflareWorkerKV;
+declare let kv_liftosaur_programs: CloudflareWorkerKV;
 
 interface IOpenIdResponse {
   sub: string;
@@ -258,8 +259,13 @@ async function backupHandler(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.searchParams.get("key") === apiKey) {
     let result = true;
+    console.log("Backing up users...");
     result = result && (await new Backup(kv_liftosaur_users, "kv_liftosaur_users").backup());
+    console.log("Google IDS...");
     result = result && (await new Backup(kv_liftosaur_google_ids, "kv_liftosaur_google_ids").backup());
+    console.log("Programs...");
+    result = result && (await new Backup(kv_liftosaur_programs, "kv_liftosaur_programs").backup());
+    console.log("Access Tokens...");
     result =
       result && (await new Backup(kv_liftosaur_google_access_tokens, "kv_liftosaur_google_access_tokens").backup());
     return new Response(result ? "ok" : "error");
@@ -364,7 +370,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/signout", (req: Request) => signoutHandler(req));
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
-  r.post(".*/api/backup", (req: Request) => backupHandler(req));
+  r.get(".*/api/backup", (req: Request) => backupHandler(req));
   r.get(".*/api/record", (req: Request) => getHistoryRecord(req));
   r.get(".*/api/recordimage", (req: Request) => getHistoryRecordImage(req));
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));
