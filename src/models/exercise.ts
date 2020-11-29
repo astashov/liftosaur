@@ -4,6 +4,7 @@ import * as t from "io-ts";
 import { IArrayElement } from "../utils/types";
 import { ISettings, Settings } from "./settings";
 import { ObjectUtils } from "../utils/object";
+import { CollectionUtils } from "../utils/collection";
 
 export const exerciseTypes = [
   "abWheel",
@@ -170,7 +171,7 @@ export const exercises: Record<IExerciseId, IExercise> = {
   },
   aroundTheWorld: {
     id: "aroundTheWorld",
-    name: "Arount The World",
+    name: "Around The World",
     warmupSets: warmup10,
     defaultEquipment: "dumbbell",
   },
@@ -3386,5 +3387,58 @@ export namespace Exercise {
     equipment = equipment || priorities[bar].find((eqp) => ObjectUtils.keys(metadata[type]).indexOf(eqp) !== -1);
     equipment = equipment || ObjectUtils.keys(metadata[type])[0];
     return equipment;
+  }
+
+  export function similar(type: IExerciseType): [IExercise, number][] {
+    const tm = Exercise.targetMuscles(type);
+    const sm = Exercise.synergistMuscles(type);
+    if (tm.length === 0 && sm.length === 0) {
+      return [];
+    }
+    const rated = Exercise.all().map<[IExercise, number]>((e) => {
+      const etm = Exercise.targetMuscles(e);
+      const esm = Exercise.synergistMuscles(e);
+      let rating = 0;
+      if (e.id === type.id || (etm.length === 0 && esm.length === 0)) {
+        rating = -Infinity;
+      } else {
+        for (const muscle of etm) {
+          if (tm.indexOf(muscle) !== -1) {
+            rating += 50;
+          } else {
+            rating -= 5;
+          }
+          if (sm.indexOf(muscle) !== -1) {
+            rating += 20;
+          }
+        }
+        for (const muscle of tm) {
+          if (etm.indexOf(muscle) === -1) {
+            rating -= 5;
+          }
+        }
+        for (const muscle of esm) {
+          if (sm.indexOf(muscle) !== -1) {
+            rating += 30;
+          } else {
+            rating -= 5;
+          }
+          if (tm.indexOf(muscle) !== -1) {
+            rating += 10;
+          }
+        }
+        for (const muscle of sm) {
+          if (esm.indexOf(muscle) === -1) {
+            rating -= 5;
+          }
+        }
+        if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
+          rating -= 20;
+        }
+      }
+      return [e, rating];
+    });
+    rated.sort((a, b) => b[1] - a[1]);
+    return rated.filter(([, r]) => r > 0);
   }
 }

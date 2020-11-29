@@ -33,6 +33,7 @@ import { Exercise, IEquipment, equipmentName } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
 import { IconQuestion } from "../iconQuestion";
 import { ExerciseImage } from "../exerciseImage";
+import { ModalSubstitute } from "../modalSubstitute";
 
 interface IProps {
   settings: ISettings;
@@ -75,6 +76,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
+  const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
 
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
@@ -123,6 +125,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
             </button>
             <span>{Exercise.get(programExercise.exerciseType).name}</span>
+            <div className="text-xs text-blue-700 underline" onClick={() => setShowModalSubstitute(true)}>
+              Substitute
+            </div>
           </Fragment>
         }
       />
@@ -211,6 +216,17 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           setShouldShowAddStateVariable(false);
         }}
       />
+      {showModalSubstitute && (
+        <ModalSubstitute
+          exerciseType={programExercise.exerciseType}
+          onChange={(exerciseId) => {
+            setShowModalSubstitute(false);
+            if (exerciseId != null) {
+              EditProgram.changeExerciseId(props.dispatch, exerciseId);
+            }
+          }}
+        />
+      )}
       <ModalExercise
         isHidden={!showModalExercise}
         onChange={(exerciseId) => {

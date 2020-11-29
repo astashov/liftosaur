@@ -13,6 +13,7 @@ import { IWeight, Weight } from "../../models/weight";
 import { Button } from "../button";
 import { ReactUtils } from "../../utils/react";
 import { ExerciseImage } from "../exerciseImage";
+import { ModalSubstitute } from "../modalSubstitute";
 
 interface IProps {
   settings: ISettings;
@@ -37,6 +38,7 @@ function Edit(props: IProps): JSX.Element {
   const { programExercise, settings } = props;
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
+  const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const inputClassName = `block w-full px-2 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
@@ -102,6 +104,9 @@ function Edit(props: IProps): JSX.Element {
               <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
             </button>
             <span>{Exercise.get(programExercise.exerciseType).name}</span>
+            <div className="text-xs text-blue-700 underline" onClick={() => setShowModalSubstitute(true)}>
+              Substitute
+            </div>
           </Fragment>
         }
       />
@@ -208,6 +213,17 @@ function Edit(props: IProps): JSX.Element {
           Save
         </Button>
       </div>
+      {showModalSubstitute && (
+        <ModalSubstitute
+          exerciseType={programExercise.exerciseType}
+          onChange={(exerciseId) => {
+            setShowModalSubstitute(false);
+            if (exerciseId != null) {
+              EditProgram.changeExerciseId(props.dispatch, exerciseId);
+            }
+          }}
+        />
+      )}
       <ModalExercise
         isHidden={!showModalExercise}
         onChange={(exerciseId) => {

@@ -69,4 +69,8 @@ export namespace CollectionUtils {
     arrCopy.sort(compareFn);
     return arrCopy;
   }
+
+  export function diff<T>(from: T[], to: T[]): T[] {
+    return from.filter((x) => !to.includes(x)).concat(to.filter((x) => !from.includes(x)));
+  }
 }

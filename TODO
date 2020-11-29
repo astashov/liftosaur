@@ -3,8 +3,6 @@
     - BBB
     - Building the monolith
   - Greyskull LP
-  - GZCL Method
-  - GZCLP
   - Strong Curves
   - nSuns LP
 * Add errors handling to HTTP calls
@@ -13,15 +11,12 @@
 * Add deleting account
 * Add achievements
 * Add cookie banner
-* Add admin for managing published programs
 * Add ability to publish user programs
 * Versionize published programs
 * Lazy load Codemirror
-* Fix backups
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
-* Add showing what muscle groups are working for program/day/exercise
-* Add findBy to lenses recordings
+* Add muscles to the exercise selector
 
 * Bug:
 Assign lb to state var of type number
