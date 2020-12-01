@@ -2,7 +2,7 @@ declare let backblazeApplicationKeyId: string;
 declare let backblazeApplicationKey: string;
 
 export class Backblaze {
-  public async upload(filename: string, data: object): Promise<boolean> {
+  public async upload(filename: string, data: unknown): Promise<boolean> {
     const encodedKey = `Basic ${Buffer.from(`${backblazeApplicationKeyId}:${backblazeApplicationKey}`).toString(
       "base64"
     )}`;

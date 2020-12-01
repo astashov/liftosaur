@@ -4,7 +4,6 @@ import * as t from "io-ts";
 import { IArrayElement } from "../utils/types";
 import { ISettings, Settings } from "./settings";
 import { ObjectUtils } from "../utils/object";
-import { CollectionUtils } from "../utils/collection";
 
 export const exerciseTypes = [
   "abWheel",
@@ -53,6 +52,8 @@ export const exerciseTypes = [
   "flatLegRaise",
   "frontRaise",
   "frontSquat",
+  "gluteBridge",
+  "gluteBridgeMarch",
   "gobletSquat",
   "goodMorning",
   "hackSquat",
@@ -110,6 +111,7 @@ export const exerciseTypes = [
   "reverseCurl",
   "reverseFly",
   "reverseGripConcentrationCurl",
+  "reverseHyperextension",
   "reversePlank",
   "romanianDeadlift",
   "rowing",
@@ -124,9 +126,16 @@ export const exerciseTypes = [
   "shoulderPress",
   "shrug",
   "sideBend",
+  "sideCrunch",
+  "sideHipAbductor",
+  "sideLyingClam",
   "sidePlank",
   "singleLegBridge",
   "singleLegDeadlift",
+  "singleLegGluteBridgeBench",
+  "singleLegGluteBridgeStraight",
+  "singleLegGluteBridgeBentKnee",
+  "singleLegHipThrust",
   "sitUp",
   "skullcrusher",
   "snatch",
@@ -444,6 +453,18 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Good Morning",
     warmupSets: warmup45,
     defaultEquipment: "barbell",
+  },
+  gluteBridge: {
+    id: "gluteBridge",
+    name: "Glute Bridge",
+    warmupSets: warmup45,
+    defaultEquipment: "dumbbell",
+  },
+  gluteBridgeMarch: {
+    id: "gluteBridgeMarch",
+    name: "Glute Bridge March",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
   },
   hackSquat: {
     id: "hackSquat",
@@ -787,6 +808,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     warmupSets: warmup10,
     defaultEquipment: "dumbbell",
   },
+  reverseHyperextension: {
+    id: "reverseHyperextension",
+    name: "Reverse Hyperextension",
+    warmupSets: warmup45,
+    defaultEquipment: "band",
+  },
   rowing: {
     id: "rowing",
     name: "Rowing",
@@ -859,6 +886,24 @@ export const exercises: Record<IExerciseId, IExercise> = {
     warmupSets: warmup10,
     defaultEquipment: "dumbbell",
   },
+  sideCrunch: {
+    id: "sideCrunch",
+    name: "Side Crunch",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
+  sideHipAbductor: {
+    id: "sideHipAbductor",
+    name: "Side Hip Abductor",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
+  sideLyingClam: {
+    id: "sideLyingClam",
+    name: "Side Lying Clam",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
   sidePlank: {
     id: "sidePlank",
     name: "Side Plank",
@@ -876,6 +921,30 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Single Leg Deadlift",
     warmupSets: warmup10,
     defaultEquipment: "dumbbell",
+  },
+  singleLegGluteBridgeBench: {
+    id: "singleLegGluteBridgeBench",
+    name: "Single Leg Glute Bridge On Bench",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
+  singleLegGluteBridgeStraight: {
+    id: "singleLegGluteBridgeStraight",
+    name: "Single Leg Glute Bridge Straight Leg",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
+  singleLegGluteBridgeBentKnee: {
+    id: "singleLegGluteBridgeBentKnee",
+    name: "Single Leg Glute Bridge Bent Knee",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
+  },
+  singleLegHipThrust: {
+    id: "singleLegHipThrust",
+    name: "Single Leg Hip Thrust",
+    warmupSets: warmup45,
+    defaultEquipment: "bodyweight",
   },
   sitUp: {
     id: "sitUp",
@@ -1779,6 +1848,30 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Shoulders"],
     },
   },
+  gluteBridge: {
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    barbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+  },
+  gluteBridgeMarch: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus", "Rectus Abdominis"],
+      synergistMuscles: ["Hamstrings", "Quadriceps", "Sartorius"],
+      bodyParts: ["Hips"],
+    },
+  },
   frontSquat: {
     barbell: {
       targetMuscles: ["Gluteus Maximus", "Quadriceps"],
@@ -2539,6 +2632,18 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Hips"],
     },
   },
+  reverseHyperextension: {
+    band: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings"],
+      bodyParts: ["Hips"],
+    },
+  },
   rowing: {},
   russianTwist: {
     bodyweight: {
@@ -2730,6 +2835,47 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Waist"],
     },
   },
+  sideCrunch: {
+    bodyweight: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+    band: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+    cable: {
+      targetMuscles: ["Obliques"],
+      synergistMuscles: ["Iliopsoas"],
+      bodyParts: ["Waist"],
+    },
+  },
+  sideHipAbductor: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Medius"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+    barbell: {
+      targetMuscles: ["Gluteus Medius"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Medius", "Tensor Fasciae Latae"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  sideLyingClam: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Medius"],
+      synergistMuscles: ["Tensor Fasciae Latae"],
+      bodyParts: ["Hips"],
+    },
+  },
   sidePlank: {
     bodyweight: {
       targetMuscles: ["Obliques"],
@@ -2760,6 +2906,44 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
         "Pectoralis Major Clavicular Head",
       ],
       bodyParts: ["Hips", "Shoulders", "Thighs"],
+    },
+  },
+  singleLegGluteBridgeBench: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  singleLegGluteBridgeStraight: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  singleLegGluteBridgeBentKnee: {
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: [],
+      bodyParts: ["Hips"],
+    },
+  },
+  singleLegHipThrust: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Hamstrings", "Quadriceps"],
+      bodyParts: ["Hips"],
     },
   },
   sitUp: {
