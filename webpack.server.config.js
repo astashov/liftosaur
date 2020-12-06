@@ -6,7 +6,7 @@ module.exports = {
     index: "./server/src/index.ts",
   },
   output: {
-    filename: "script.js",
+    filename: "worker.js",
     path: path.resolve(__dirname, "worker"),
   },
   target: "webworker",

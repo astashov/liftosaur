@@ -12,7 +12,7 @@
     "build:dev": "webpack",
     "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
     "start": "webpack-dev-server",
-    "start:server": "wrangler dev --host local-api.liftosaur.com",
+    "start:server": "wrangler dev",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:8787/api/migrate?key=$KEY",
     "migrate:prod": "curl -v -X POST http://api.liftosaur.com/api/migrate?key=$KEY",
     "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:8787/api/synctoprod?ids=$IDS\\&key=$KEY",
@@ -22,7 +22,7 @@
   "author": "Anton Astashov",
   "license": "MIT",
   "devDependencies": {
-    "@cloudflare/wrangler": "^1.8.4",
+    "@cloudflare/wrangler": "^1.12.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@types/codemirror": "^0.0.96",
     "@types/cookie": "^0.3.3",
@@ -60,7 +60,8 @@
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.7.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.10.3",
+    "wrangler-js": "^0.1.11"
   },
   "dependencies": {
     "codemirror": "^5.54.0",
