@@ -38,7 +38,7 @@ export type IProgramDay = Readonly<t.TypeOf<typeof TProgramDay>>;
 export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
 
-const tags = ["first-starter", "beginner", "barbell", "dumbbell", "intermediate"] as const;
+const tags = ["first-starter", "beginner", "barbell", "dumbbell", "intermediate", "woman"] as const;
 
 export const TProgramTag = t.keyof(
   tags.reduce<Record<IArrayElement<typeof tags>, null>>((memo, barKey) => {
