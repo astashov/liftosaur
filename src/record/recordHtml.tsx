@@ -9,6 +9,8 @@ global.navigator = global.navigator || { language: "en" };
 
 import { IRecordResponse } from "../api/service";
 import { RecordContent } from "./recordContent";
+import { TopNavMenu } from "../components/topNavMenu";
+import { FooterPage } from "../components/footerPage";
 
 export function RecordHtml({
   data,
@@ -50,97 +52,14 @@ export function RecordHtml({
         <meta property="og:image" content={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`} />
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
-        <style>
-          {`
-      html,
-      body {
-        height: 100%;
-      }`}
-        </style>
       </head>
       <body>
         <div class="content">
-          <nav class="top-nav">
-            <div class="top-nav-left">
-              <a href="/" class="top-nav-logo">
-                <img src="/images/logo.svg" alt="Liftosaur Logo" />
-                <span>Liftosaur</span>
-              </a>
-            </div>
-            <div class="top-nav-right">
-              <ul class="top-nav-menu">
-                <li>
-                  <a href="/">App</a>
-                </li>
-                <li>
-                  <a href="/docs/docs.html">Documentation</a>
-                </li>
-              </ul>
-              <ul class="top-nav-social">
-                <li>
-                  <a target="_blank" href="https://www.facebook.com/liftosaur" class="logo-facebook">
-                    <span>Facebook</span>
-                  </a>
-                </li>
-                <li>
-                  <a target="_blank" href="https://www.twitter.com/liftosaur" class="logo-twitter">
-                    <span>Twitter</span>
-                  </a>
-                </li>
-                <li>
-                  <a target="_blank" href="https://www.reddit.com/r/liftosaur" class="logo-reddit">
-                    <span>Reddit</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </nav>
+          <TopNavMenu />
           <div id="app" style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
             <RecordContent data={data} />
           </div>
-          <footer>
-            <div class="footer-wave"></div>
-            <div class="footer-wrapper">
-              <div class="footer-wrapper-content">
-                <div class="footer-left"></div>
-                <div class="footer-right">
-                  <nav>
-                    <ul class="footer-menu">
-                      <li>
-                        <a href="/">App</a>
-                      </li>
-                      <li>
-                        <a href="/docs/docs.html">Documentation</a>
-                      </li>
-                      <li>
-                        <a href="/terms.html">Terms &amp; Conditions</a>
-                      </li>
-                      <li>
-                        <a href="/privacy.html">Privacy</a>
-                      </li>
-                    </ul>
-                    <ul class="footer-social">
-                      <li>
-                        <a target="_blank" href="https://www.facebook.com/liftosaur" class="logo-facebook">
-                          <span>Facebook</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a target="_blank" href="https://www.twitter.com/liftosaur" class="logo-twitter">
-                          <span>Twitter</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a target="_blank" href="https://www.reddit.com/r/liftosaur" class="logo-reddit">
-                          <span>Reddit</span>
-                        </a>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </footer>
+          <FooterPage />
         </div>
         <div id="data" style={{ display: "none" }}>
           {JSON.stringify(data)}
