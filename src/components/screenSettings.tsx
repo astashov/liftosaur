@@ -10,6 +10,9 @@ import { lb } from "../utils/lens";
 import { IUnit } from "../models/weight";
 import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
+import { ClipboardUtils } from "../utils/clipboard";
+import { Share } from "../models/share";
+import { useState } from "preact/hooks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -19,6 +22,8 @@ interface IProps {
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
   return (
     <section className="h-full">
       <HeaderView title="Settings" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
@@ -73,10 +78,30 @@ export function ScreenSettings(props: IProps): JSX.Element {
             ["false", "No"],
           ]}
           nextLine={
-            props.user && props.settings.isPublicProfile ? (
-              <InternalLink href={`/profile/${props.user.id}`} className="text-xs text-right text-blue-700 underline">
-                Open Public Profile Page
-              </InternalLink>
+            props.user?.id && props.settings.isPublicProfile ? (
+              <div>
+                <div className="flex">
+                  <button
+                    className="mr-auto text-xs text-left text-blue-700 underline"
+                    onClick={() => {
+                      const text = Share.generateProfileLink(props.user!.id);
+                      if (text != null) {
+                        ClipboardUtils.copy(text);
+                        setIsCopied(true);
+                      }
+                    }}
+                  >
+                    Copy Link To Clipboard
+                  </button>
+                  <InternalLink
+                    href={`/profile/${props.user.id}`}
+                    className="ml-4 text-xs text-right text-blue-700 underline"
+                  >
+                    Open Public Profile Page
+                  </InternalLink>
+                </div>
+                {isCopied && <div className="text-xs italic text-green-600">Copied!</div>}
+              </div>
             ) : undefined
           }
           onChange={(newValue) => {
