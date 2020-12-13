@@ -9,10 +9,11 @@ import { ISettings } from "../models/settings";
 import { lb } from "../utils/lens";
 import { IUnit } from "../models/weight";
 import { InternalLink } from "../internalLink";
+import { IUser } from "../models/user";
 
 interface IProps {
   dispatch: IDispatch;
-  email?: string;
+  user?: IUser;
   currentProgramName?: string;
   settings: ISettings;
 }
@@ -24,7 +25,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItem
           name="Account"
-          value={props.email}
+          value={props.user?.email}
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
@@ -60,6 +61,48 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("units")
                 .record(newValue as IUnit),
+            });
+          }}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Is Profile Page Public?"
+          value={props.settings.isPublicProfile ? "true" : "false"}
+          values={[
+            ["true", "Yes"],
+            ["false", "No"],
+          ]}
+          nextLine={
+            props.user && props.settings.isPublicProfile ? (
+              <InternalLink href={`/profile/${props.user.id}`} className="text-xs text-right text-blue-700 underline">
+                Open Public Profile Page
+              </InternalLink>
+            ) : undefined
+          }
+          onChange={(newValue) => {
+            if (props.user != null) {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>()
+                  .p("isPublicProfile")
+                  .record(newValue === "true"),
+              });
+            } else {
+              alert("You should be logged in to enable public profile");
+            }
+          }}
+        />
+        <MenuItemEditable
+          type="text"
+          name="Nickname"
+          value={props.settings.nickname || ""}
+          nextLine={<div className="text-xs italic text-right">Used for profile page</div>}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("nickname")
+                .record(newValue ? newValue : undefined),
             });
           }}
         />

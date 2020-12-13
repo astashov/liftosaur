@@ -10,13 +10,19 @@ export const TSettingsTimers = t.type(
 );
 export type ISettingsTimers = t.TypeOf<typeof TSettingsTimers>;
 
-export const TSettings = t.type(
-  {
-    timers: TSettingsTimers,
-    plates: t.array(TPlate),
-    bars: t.record(TUnit, TBars),
-    units: TUnit,
-  },
+export const TSettings = t.intersection(
+  [
+    t.interface({
+      timers: TSettingsTimers,
+      plates: t.array(TPlate),
+      bars: t.record(TUnit, TBars),
+      units: TUnit,
+    }),
+    t.partial({
+      isPublicProfile: t.boolean,
+      nickname: t.string,
+    }),
+  ],
   "TSettings"
 );
 

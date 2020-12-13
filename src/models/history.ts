@@ -1,4 +1,4 @@
-import { TExerciseType, IExerciseType, Exercise } from "./exercise";
+import { TExerciseType, IExerciseType, Exercise, IExerciseId } from "./exercise";
 import { TSet, ISet } from "./set";
 import { Progress, TProgressUi, TProgressMode } from "./progress";
 import * as t from "io-ts";
@@ -81,6 +81,23 @@ export namespace History {
       }
     }
     return prs;
+  }
+
+  export function findAllMaxSets(history: IHistoryRecord[]): Partial<Record<IExerciseId, ISet>> {
+    const maxSets: Partial<Record<IExerciseId, ISet>> = {};
+    for (const r of history) {
+      for (const e of r.entries) {
+        const entryMaxSet = getMaxSet(e);
+        if (
+          entryMaxSet != null &&
+          (entryMaxSet.completedReps || 0) > 0 &&
+          Weight.lt(maxSets[e.exercise.id]?.weight || 0, entryMaxSet.weight)
+        ) {
+          maxSets[e.exercise.id] = entryMaxSet;
+        }
+      }
+    }
+    return maxSets;
   }
 
   export function findMaxSet(exerciseType: IExerciseType, history: IHistoryRecord[]): ISet | undefined {

@@ -10,6 +10,7 @@ import { ProgramModel } from "./models/program";
 import { runMigrations } from "./migrations/runner";
 import { UserModel } from "./models/user";
 import { renderUsersHtml } from "../../src/components/admin/usersHtml";
+import { renderUserHtml, userImage } from "./user";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -204,6 +205,73 @@ async function getHistoryRecord(request: Request): Promise<Response> {
   return new Response(JSON.stringify({ error }), { headers: getHeaders(request), status: 400 });
 }
 
+async function getProfileHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user");
+  const error: { message?: string } = {};
+  if (userId != null) {
+    const resultRaw = await kv_liftosaur_users.get(userId);
+    if (resultRaw != null) {
+      const result = JSON.parse(resultRaw);
+      const storage: IStorage = result.storage;
+      if (storage.settings.isPublicProfile) {
+        return new Response(renderUserHtml(storage, userId), {
+          headers: { "content-type": "text/html" },
+        });
+      } else {
+        error.message = "The user's profile is not public";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user'";
+  }
+  return new Response(JSON.stringify({ error }), { headers: getHeaders(request), status: 400 });
+}
+
+async function getProfileImage(request: Request): Promise<Response> {
+  const cache = caches.default;
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse != null) {
+    return cachedResponse;
+  }
+
+  const error: { message?: string } = {};
+
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user");
+  if (userId != null) {
+    const resultRaw = await kv_liftosaur_users.get(userId);
+    if (resultRaw != null) {
+      const result = JSON.parse(resultRaw);
+      if (result?.storage?.settings?.isPublicProfile) {
+        const imageResult = await userImage(result.storage);
+        if (imageResult.success) {
+          const response = new Response(imageResult.data, {
+            headers: {
+              "content-type": "image/png",
+              "cache-control": "max-age=86400",
+            },
+            status: 200,
+          });
+          cache.put(request, response.clone());
+          return response;
+        } else {
+          error.message = imageResult.error;
+        }
+      } else {
+        error.message = "The user's profile is not public";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user'";
+  }
+  return new Response(JSON.stringify({ error }), { headers: getHeaders(request), status: 400 });
+}
+
 async function getHistoryRecordImage(request: Request): Promise<Response> {
   const cache = caches.default;
   const cachedResponse = await cache.match(request);
@@ -380,6 +448,8 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/synctodev", (req: Request) => syncToDevHandler(req));
 
   r.get(".*/admin/users", (req: Request) => getUsersHandler(req));
+  r.get(".*/profile", (req: Request) => getProfileHandler(req));
+  r.get(".*/profileimage", (req: Request) => getProfileImage(req));
   const resp = await r.route(request);
   return resp;
 }

@@ -12,6 +12,7 @@ module.exports = {
     main: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
+    user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
@@ -89,6 +90,10 @@ module.exports = {
         to: `record.css`,
       },
       {
+        from: `src/user.css`,
+        to: `user.css`,
+      },
+      {
         from: `src/admin.css`,
         to: `admin.css`,
       },
@@ -150,6 +155,20 @@ module.exports = {
     proxy: {
       "/record": "http://local-api.liftosaur.com:8787/api",
       "/admin": "http://local-api.liftosaur.com:8787/admin",
+      "/profileimage/*": {
+        target: "http://local-api.liftosaur.com:8787",
+        pathRewrite: (p, req) => {
+          const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
+          return `/profileimage?user=${user}`;
+        },
+      },
+      "/profile/*": {
+        target: "http://local-api.liftosaur.com:8787",
+        pathRewrite: (p, req) => {
+          const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
+          return `/profile?user=${user}`;
+        },
+      },
     },
   },
 };

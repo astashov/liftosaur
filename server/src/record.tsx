@@ -1,6 +1,5 @@
-import render from "preact-render-to-string";
 import { h } from "preact";
-import { RecordHtml } from "../../src/record/recordHtml";
+import { RecordHtml } from "../../src/pages/record/recordHtml";
 import { IRecordResponse } from "../../src/api/service";
 import { IStorage } from "../../src/models/state";
 import { DateUtils } from "../../src/utils/date";
@@ -9,9 +8,10 @@ import { History } from "../../src/models/history";
 import { StringUtils } from "../../src/utils/string";
 import { Weight } from "../../src/models/weight";
 import { IEither } from "../../src/utils/types";
+import { renderPage } from "./render";
 
 export function renderRecordHtml(data: IRecordResponse, userId: string, recordId: number): string {
-  return "<!DOCTYPE html>" + render(<RecordHtml data={data} userId={userId} recordId={recordId} />);
+  return renderPage(<RecordHtml data={data} userId={userId} recordId={recordId} />);
 }
 
 export async function recordImage(storage: IStorage, recordId: number): Promise<IEither<ArrayBuffer, string>> {
@@ -42,7 +42,7 @@ export async function recordImage(storage: IStorage, recordId: number): Promise<
 
     const response = await fetch("https://xns95doaoh.execute-api.us-west-2.amazonaws.com/prod/recordogimage", {
       method: "POST",
-      headers: { "content-type": "applicaiton/json" },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(json),
     });
 

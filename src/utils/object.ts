@@ -12,6 +12,19 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function sortedByKeys<T extends {}>(obj: T, sortedKeys: Array<keyof T>): Array<[keyof T, T[keyof T]]> {
+    const arr: Array<[keyof T, T[keyof T]]> = [];
+    const copyObj = { ...obj };
+    for (const k of sortedKeys) {
+      arr.push([k, copyObj[k]]);
+      delete copyObj[k];
+    }
+    for (const k of ObjectUtils.keys(copyObj)) {
+      arr.push([k, copyObj[k]]);
+    }
+    return arr;
+  }
+
   export function combinedKeys<T extends Record<string, unknown>, U extends Record<string, unknown>>(
     obj1: T,
     obj2: U

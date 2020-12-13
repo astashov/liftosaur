@@ -1,32 +1,27 @@
-import { h, JSX } from "preact";
+import { JSX, h, ComponentChildren } from "preact";
+import { TopNavMenu } from "./topNavMenu";
+import { FooterPage } from "./footerPage";
 
-// Overrides to make sure Graphs will render server-side
-global.requestAnimationFrame = global.requestAnimationFrame || undefined;
-global.document = global.document || undefined;
-global.window = global.window || undefined;
-global.devicePixelRatio = global.devicePixelRatio || 1;
-global.navigator = global.navigator || { language: "en" };
+interface IProps<T> {
+  title: string;
+  css: string[];
+  js: string[];
+  ogTitle?: string;
+  ogDescription?: string;
+  ogUrl?: string;
+  ogImage?: string;
+  data: T;
+  children?: ComponentChildren;
+}
 
-import { IRecordResponse } from "../api/service";
-import { RecordContent } from "./recordContent";
-import { TopNavMenu } from "../components/topNavMenu";
-import { FooterPage } from "../components/footerPage";
-
-export function RecordHtml({
-  data,
-  userId,
-  recordId,
-}: {
-  data: IRecordResponse;
-  userId: string;
-  recordId: number;
-}): JSX.Element {
+export function Page<T>(props: IProps<T>): JSX.Element {
   return (
     <html lang="en">
       <head>
-        <title>Liftosaur: Weight Lifting Tracking App | Workout summary</title>
-        <link rel="stylesheet" type="text/css" href="/main.css?version=xxxxxxxx" />
-        <link rel="stylesheet" type="text/css" href="/record.css?version=xxxxxxxx" />
+        <title>Liftosaur: Weight Lifting Tracking App | {props.title}</title>
+        {props.css.map((c) => (
+          <link rel="stylesheet" type="text/css" href={`/${c}.css?version=xxxxxxxx`} />
+        ))}
         <link
           href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&display=swap"
           rel="stylesheet"
@@ -41,15 +36,12 @@ export function RecordHtml({
           name="description"
           content="A weight lifting tracking app, that allows you to follow popular weight lifting routines"
         />
-        <meta property="og:title" content="Liftosaur: Workout summary" />
-        <meta
-          property="og:description"
-          content="Liftosaur Workout Summary - what exercises were done, with what sets, reps, weights, new personal records."
-        />
+        {props.ogTitle && <meta property="og:title" content={props.ogTitle} />}
+        {props.ogDescription && <meta property="og:description" content={props.ogDescription} />}
         <meta property="fb:app_id" content="3448767138535273" />
-        <meta property="og:url" content={`https://www.liftosaur.com/record?user=${userId}&id=${recordId}`} />
+        {props.ogUrl && <meta property="og:url" content={props.ogUrl} />}
         <meta property="og:type" content="website" />
-        <meta property="og:image" content={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`} />
+        {props.ogImage && <meta property="og:image" content={props.ogImage} />}
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
       </head>
@@ -57,20 +49,22 @@ export function RecordHtml({
         <div class="content">
           <TopNavMenu />
           <div id="app" style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
-            <RecordContent data={data} />
+            {props.children}
           </div>
           <FooterPage />
         </div>
         <div id="data" style={{ display: "none" }}>
-          {JSON.stringify(data)}
+          {JSON.stringify(props.data)}
         </div>
-        <script src="/record.js?version=xxxxxxxx"></script>
+        {props.js.map((js) => (
+          <script src={`/${js}.js?version=xxxxxxxx`}></script>
+        ))}
       </body>
     </html>
   );
 }
 
-export function rollbar(): string {
+function rollbar(): string {
   return `
     var _rollbarConfig = {
         accessToken: "f29180c0746c4922996ff41dfc2527d2",

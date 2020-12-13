@@ -11,7 +11,7 @@ import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight, IWeight } from "./weight";
 import { UidFactory } from "../utils/generator";
-import { IState, updateState } from "./state";
+import { IState, updateState, IStorage } from "./state";
 
 export const TProgramDayEntry = t.type(
   {
@@ -106,6 +106,10 @@ export namespace Program {
 
   export function getProgramIndex(state: IState, id: string): number {
     return state.storage.programs.findIndex((p) => p.id === id);
+  }
+
+  export function getCurrentProgram(storage: IStorage): IProgram | undefined {
+    return storage.programs.filter((p) => p.id === storage.currentProgramId)[0];
   }
 
   export function createDay(name: string): IProgramDay {

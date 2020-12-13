@@ -3510,7 +3510,7 @@ export namespace Exercise {
   }
 
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
-    return a.id === b.id && a.equipment === b.equipment;
+    return a.id === b.id && (a.equipment || "bodyweight") === (b.equipment || "bodyweight");
   }
 
   export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {

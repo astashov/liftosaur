@@ -130,7 +130,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenSettings
         dispatch={dispatch}
-        email={state.user?.email}
+        user={state.user}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
         settings={state.storage.settings}
       />

@@ -12,6 +12,7 @@ interface IGraphProps {
   history: IHistoryRecord[];
   exercise: IExerciseType;
   settings: ISettings;
+  title?: string;
 }
 
 export function Graph(props: IGraphProps): JSX.Element {
@@ -43,7 +44,7 @@ export function Graph(props: IGraphProps): JSX.Element {
     const rect = graphRef.current.getBoundingClientRect();
     const exercise = Exercise.get(props.exercise);
     const opts: UPlot.Options = {
-      title: `${exercise.name} Max Weight`,
+      title: props.title || `${exercise.name} Max Weight`,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,

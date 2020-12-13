@@ -1,19 +1,10 @@
-import { h, hydrate } from "preact";
-import RB from "rollbar";
-
-declare let Rollbar: RB;
-declare let __ENV__: string;
-Rollbar.configure({ payload: { environment: __ENV__ } });
-
-import { RecordContent } from "./record/recordContent";
+import { h } from "preact";
+import { RecordContent } from "./pages/record/recordContent";
 import { IRecordResponse } from "./api/service";
+import { HydrateUtils } from "./utils/hydrate";
 
 function main(): void {
-  const escapedRawData = document.querySelector("#data")?.innerHTML || "{}";
-  const parser = new DOMParser();
-  const unescapedRawData = parser.parseFromString(escapedRawData, "text/html").documentElement.textContent || "{}";
-  const data = JSON.parse(unescapedRawData) as IRecordResponse;
-  hydrate(<RecordContent data={data} />, document.getElementById("app")!);
+  HydrateUtils.hydratePage<IRecordResponse>((data) => <RecordContent data={data} />);
 }
 
 main();
