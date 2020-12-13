@@ -7,6 +7,15 @@ import { IArrayElement } from "./types";
 type IGetter<T, R> = (obj: T) => R;
 type ISetter<T, R> = (obj: T, value: R) => T;
 
+export class LensError<T> extends Error {
+  constructor(m: string, public readonly type: "get" | "set", public readonly err: Error, public readonly value?: T) {
+    super(m);
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, LensError.prototype);
+  }
+}
+
 export type ILensRecording<T> = {
   (obj: T): T;
   toString(): string;
@@ -371,8 +380,31 @@ export class Lens<T, R> {
   }
 
   constructor(getter: IGetter<T, R>, setter: ISetter<T, R>, args: { from: string | string[]; to: string }) {
-    this.get = getter;
-    this.set = setter;
+    this.get = (obj) => {
+      try {
+        return getter(obj);
+      } catch (e) {
+        const nestedErr = e instanceof LensError ? e.err : e;
+        throw new LensError(
+          `LensError: Error when getting ${args.from} -> ${args.to} (${nestedErr.message})`,
+          "get",
+          nestedErr
+        );
+      }
+    };
+    this.set = (obj, value) => {
+      try {
+        return setter(obj, value);
+      } catch (e) {
+        const nestedErr = e instanceof LensError ? e.err : e;
+        throw new LensError(
+          `LensError: Error when setting ${args.from} -> ${args.to} - ${value} (${nestedErr.message})`,
+          "set",
+          nestedErr,
+          value
+        );
+      }
+    };
     this.from = Array.isArray(args.from) ? args.from : [args.from];
     this.to = args.to;
   }
