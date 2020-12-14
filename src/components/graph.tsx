@@ -24,7 +24,7 @@ export function Graph(props: IGraphProps): JSX.Element {
       [number[], number[], number[]]
     >(
       (memo, i) => {
-        const entry = i.entries.find((e) => Exercise.eq(e.exercise, props.exercise));
+        const entry = i.entries.filter((e) => e.exercise.id === props.exercise.id)[0];
         if (entry != null) {
           const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
             return b.weight !== a.weight
