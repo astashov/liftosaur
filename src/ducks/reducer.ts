@@ -11,7 +11,7 @@ import { IWeight, Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { runMigrations } from "../migrations/runner";
-import { ILensRecordingPayload, lf } from "../utils/lens";
+import { ILensRecordingPayload, lf } from "lens-shmens";
 import { ISettings } from "../models/settings";
 import * as IDB from "idb-keyval";
 import * as t from "io-ts";

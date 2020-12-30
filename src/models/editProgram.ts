@@ -1,4 +1,4 @@
-import { lb, lf, lbu, ILensRecordingPayload } from "../utils/lens";
+import { lb, lf, lbu, ILensRecordingPayload } from "lens-shmens";
 import { Program, IProgramExercise, IProgram } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";

@@ -1,4 +1,4 @@
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { updateState, IState } from "./state";
 

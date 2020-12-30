@@ -5,7 +5,7 @@ import { MenuItem } from "./menuItem";
 import { IconDelete } from "./iconDelete";
 import { IconEdit } from "./iconEdit";
 import { IDispatch } from "../ducks/types";
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
 import { IState } from "../models/state";
 

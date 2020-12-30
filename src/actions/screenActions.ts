@@ -1,7 +1,7 @@
 import { updateState, IState } from "../models/state";
 import { IDispatch } from "../ducks/types";
 import { IScreen } from "../models/screen";
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 
 export namespace ScreenActions {
   export function setScreen(dispatch: IDispatch, screen: IScreen): void {

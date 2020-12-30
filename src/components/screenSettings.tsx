@@ -6,7 +6,7 @@ import { MenuItem } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings } from "../models/settings";
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 import { IUnit } from "../models/weight";
 import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";

@@ -3,7 +3,7 @@ import { Reps } from "./set";
 import { IWeight, Weight, TWeight } from "./weight";
 import { Screen } from "./screen";
 import { DateUtils } from "../utils/date";
-import { lf, lb } from "../utils/lens";
+import { lf, lb } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
 import * as t from "io-ts";
 import { ISettings } from "./settings";

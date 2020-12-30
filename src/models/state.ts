@@ -6,13 +6,12 @@ import { IHistoryRecord, THistoryRecord } from "./history";
 import * as t from "io-ts";
 import { TSettings } from "./settings";
 import { IDispatch } from "../ducks/types";
-import { ILensRecordingPayload } from "../utils/lens";
+import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
 
 export type IEnv = {
   service: Service;
   audio: AudioInterface;
-  googleAuth?: gapi.auth2.GoogleAuth;
 };
 
 export interface IState {

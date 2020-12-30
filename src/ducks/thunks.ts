@@ -2,7 +2,7 @@ import { IThunk, IDispatch } from "./types";
 import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 import { Program, IProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IState } from "../models/state";

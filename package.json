@@ -70,6 +70,7 @@
     "idb-keyval": "^3.2.0",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
+    "lens-shmens": "^1.0.3",
     "preact": "^10.3.2",
     "preact-render-to-string": "^5.1.10",
     "uplot": "^1.0.9"

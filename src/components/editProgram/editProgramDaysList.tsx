@@ -6,7 +6,7 @@ import { GroupHeader } from "../groupHeader";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { FooterView } from "../footer";
 import { IconDuplicate } from "../iconDuplicate";
-import { lb } from "../../utils/lens";
+import { lb } from "lens-shmens";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";

@@ -6,7 +6,7 @@ import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { ISettings } from "./settings";
 import { Screen } from "./screen";
-import { lb, lf } from "../utils/lens";
+import { lb, lf } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { IEither, IArrayElement } from "../utils/types";
 import { TWeight, Weight, IWeight } from "./weight";

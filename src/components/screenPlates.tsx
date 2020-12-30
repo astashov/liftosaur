@@ -7,7 +7,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { Button } from "./button";
 import { useState } from "preact/hooks";
 import { ModalPlates } from "./modalPlates";
-import { lb } from "../utils/lens";
+import { lb } from "lens-shmens";
 import { ISettings } from "../models/settings";
 import { Thunk } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
