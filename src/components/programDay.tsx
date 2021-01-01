@@ -7,7 +7,7 @@ import { IHistoryRecord } from "../models/history";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
-import { Timer } from "./timer";
+import { RestTimer } from "./restTimer";
 import { IProgressMode, Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { ISettings } from "../models/settings";
@@ -90,7 +90,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             }
           }}
         />
-        <Timer
+        <RestTimer
           mode={props.timerMode ?? "workout"}
           timerStart={props.timerSince}
           webpushr={props.webpushr}

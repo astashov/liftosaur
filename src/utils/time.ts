@@ -5,7 +5,7 @@ export namespace TimeUtils {
     const minutes = Math.floor((ms / 1000 / 60) % 60);
     const hours = Math.floor(ms / 1000 / 60 / 60);
 
-    const result = [hours.toString(), StringUtils.pad(minutes.toString(), 2)].join(":");
+    const result = [StringUtils.pad(hours.toString(), 2), StringUtils.pad(minutes.toString(), 2)].join(":");
 
     return result;
   }

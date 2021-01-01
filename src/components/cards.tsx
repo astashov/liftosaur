@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { IHistoryRecord } from "../models/history";
 import { ISettings } from "../models/settings";
 import { IProgram, IProgramExercise } from "../models/program";
+import { Timer } from "./timer";
 
 interface ICardsViewProps {
   progress: IHistoryRecord;
@@ -19,6 +20,7 @@ interface ICardsViewProps {
 export function CardsView(props: ICardsViewProps): JSX.Element {
   return (
     <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
+      <Timer startTime={props.progress.startTime} />
       {props.progress.entries.map((entry, index) => {
         let programExercise: IProgramExercise | undefined;
         if (props.program) {
