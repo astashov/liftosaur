@@ -24,6 +24,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
   const prs = History.findAllPersonalRecords(record, props.history);
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
+  const totalWeight = History.totalRecordWeight(record, props.settings.units);
 
   return (
     <section className="h-full">
@@ -37,6 +38,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="text-gray-700">{record.dayName}</div>
           <div>
             Time: <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong> hours
+          </div>
+          <div>
+            Total weight lifted: <strong>{Weight.display(totalWeight)}</strong>
           </div>
         </section>
         {prs.size > 0 ? (

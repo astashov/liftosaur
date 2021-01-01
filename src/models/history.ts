@@ -38,7 +38,7 @@ export const THistoryRecord = t.intersection(
 );
 export type IHistoryRecord = t.TypeOf<typeof THistoryRecord>;
 
-import { Weight, IWeight } from "./weight";
+import { Weight, IWeight, IUnit } from "./weight";
 
 export namespace History {
   export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {
@@ -146,18 +146,17 @@ export namespace History {
     }
   }
 
-  export function totalEntryWeight(entry: IHistoryEntry): IWeight {
-    if (entry.sets.length > 0) {
-      const firstSet = entry.sets[0];
-      return entry.sets
-        .filter((s) => (s.completedReps || 0) > 0)
-        .reduce(
-          (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps || 0)),
-          Weight.build(0, firstSet.weight.unit)
-        );
-    } else {
-      return Weight.build(0, "lb");
-    }
+  export function totalRecordWeight(record: IHistoryRecord, unit: IUnit): IWeight {
+    return record.entries.reduce((memo, e) => Weight.add(memo, totalEntryWeight(e, unit)), Weight.build(0, unit));
+  }
+
+  export function totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
+    return entry.sets
+      .filter((s) => (s.completedReps || 0) > 0)
+      .reduce(
+        (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps || 0)),
+        Weight.build(0, unit)
+      );
   }
 
   export function totalEntryReps(entry: IHistoryEntry): number {

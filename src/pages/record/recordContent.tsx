@@ -109,7 +109,7 @@ function Entry(props: IEntryProps): JSX.Element {
   const prSet = History.findPersonalRecord(props.recordId, props.entry, props.history);
   const setGroups = Reps.group(props.entry.sets);
 
-  const totalWeight = History.totalEntryWeight(props.entry);
+  const totalWeight = History.totalEntryWeight(props.entry, props.settings.units);
   const totalReps = History.totalEntryReps(props.entry);
 
   return (
