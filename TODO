@@ -6,7 +6,6 @@
   - Strong Curves
   - nSuns LP
 * Add errors handling to HTTP calls
-* Extract lens lib into a separate npm package
 * Add exporting all data to downloadable CSV
 * Add deleting account
 * Add achievements

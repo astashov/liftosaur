@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="Description" content="{{ title }}" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/docs/assets/css/menu.css" />
+    <link rel="stylesheet" href="/docs/assets/css/github-markdown.css" />
+    <link rel="stylesheet" href="/docs/assets/css/pilcrow.css" />
+    <link rel="stylesheet" href="{{ '/styles/blog.css' | url }}" />
+  </head>
+  <body>
+    <div class="markdown-body">
+      {% include menu %}
+      <article class="post-container">
+        <h1>{{ title }}</h1>
+        <div class='content'>{{ content }}</div>
+        <div class="back-link">
+          <a href="{{ '/' | url}}">← Back</a>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>

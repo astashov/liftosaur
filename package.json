@@ -4,10 +4,11 @@
   "description": "App for tracking weight lifting progress",
   "main": "dist/index.js",
   "scripts": {
-    "build": "yarn docs && NODE_ENV=production yarn build:dev",
+    "build": "yarn docs && NODE_ENV=production yarn build:dev && yarn blog",
     "publish": "wrangler publish --env production",
     "analyze": "open dist/report.html",
     "docs": "generate-md --layout ./src/docs/layout/ --input ./src/docs/content/ --output ./docs",
+    "blog": "eleventy",
     "build:server": "webpack --config webpack.server.config.js",
     "build:dev": "webpack",
     "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
@@ -22,6 +23,7 @@
   "author": "Anton Astashov",
   "license": "MIT",
   "devDependencies": {
+    "@11ty/eleventy": "^0.11.1",
     "@cloudflare/wrangler": "^1.12.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@types/codemirror": "^0.0.96",
