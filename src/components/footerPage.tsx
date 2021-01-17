@@ -18,6 +18,7 @@ export function FooterPage(): JSX.Element {
               {[
                 ["App", "/"],
                 ["Documentation", "/docs/docs.html"],
+                ["Blog", "/blog"],
                 ["Terms & Conditions", "/terms.html"],
                 ["Privacy", "/privacy.html"],
               ].map(([text, link]) => {

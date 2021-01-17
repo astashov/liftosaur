@@ -1,5 +1,6 @@
 https://www.liftosaur.com
 https://www.liftosaur.com/about/
 https://www.liftosaur.com/docs/docs.html
+https://www.liftosaur.com/blog
 https://www.liftosaur.com/privacy.html
 https://www.liftosaur.com/terms.html
