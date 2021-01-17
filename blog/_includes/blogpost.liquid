@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta name="Description" content="{{ title }}" />
+    <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/docs/assets/css/menu.css" />
     <link rel="stylesheet" href="/docs/assets/css/github-markdown.css" />
     <link rel="stylesheet" href="/docs/assets/css/pilcrow.css" />
     <link rel="stylesheet" href="{{ '/styles/blog.css' | url }}" />
+    <meta property="og:title" content="{{ og_title }}" />
+    <meta property="og:description" content="{{ og_description }}" />
+    <meta property="fb:app_id" content="3448767138535273" />
+    <meta property="og:url" content="https://www.liftosaur.com{{ page.url | url }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://www.liftosaur.com{{ og_image | url }}" />
+    <meta property="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div class="markdown-body">

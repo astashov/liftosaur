@@ -1,6 +1,9 @@
 ---
 date: "2021-01-17"
 title: How to start weightlifting
+og_title: How to start weightlifting
+og_description: Simple and straightforward steps how to start weightlifting
+og_image: /images/how-to-start-weightlifting-intro.jpg
 ---
 
 ![Man adding weights to barbell](../../images/how-to-start-weightlifting-intro.jpg)
