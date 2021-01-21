@@ -20,6 +20,7 @@ import { IconDelete } from "./iconDelete";
 import { EditProgressEntry } from "../models/editProgressEntry";
 
 interface IProps {
+  showHelp: boolean;
   entry: IHistoryEntry;
   settings: ISettings;
   day: number;
@@ -158,7 +159,7 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
               <div className={className}>
                 <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                 <button
-                  data-help-id={props.index === 0 && i === 0 ? "progress-change-weight" : undefined}
+                  data-help-id={props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined}
                   data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
                   data-help-offset-x={-80}
                   data-help-width={140}
@@ -191,7 +192,7 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
                   </div>
                   <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
                     <ExerciseSetView
-                      showHelp={props.index === 0 && i === 0}
+                      showHelp={props.showHelp && props.index === 0 && i === 0}
                       settings={props.settings}
                       exercise={props.entry.exercise}
                       isCurrent={!!props.isCurrent}
@@ -248,7 +249,7 @@ function ExerciseContentView(props: IProps & { onInfoClick: () => void }): JSX.E
           return (
             <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
               <ExerciseSetView
-                showHelp={(warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
+                showHelp={props.showHelp && (warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
                 exercise={props.entry.exercise}
                 settings={props.settings}
                 set={set}

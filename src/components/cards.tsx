@@ -31,6 +31,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
 
         return (
           <ExerciseView
+            showHelp={true}
             isCurrent={Progress.isCurrent(props.progress)}
             settings={props.settings}
             index={index}

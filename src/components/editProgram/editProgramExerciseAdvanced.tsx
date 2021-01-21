@@ -603,6 +603,7 @@ function Playground(props: IPlaygroundProps): JSX.Element {
         }}
       />
       <ExerciseView
+        showHelp={false}
         entry={entry}
         day={props.day}
         programExercise={programExercise}
