@@ -19,6 +19,9 @@ import { useState } from "preact/hooks";
 import { IconShare } from "./iconShare";
 import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
+import { ModalEditSet } from "./modalEditSet";
+import { ISet } from "../models/set";
+import { EditProgressEntry } from "../models/editProgressEntry";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -89,6 +92,9 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });
             }
           }}
+          onStartSetChanging={(isWarmup: boolean, entryIndex: number, setIndex?: number) => {
+            EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex);
+          }}
         />
         <RestTimer
           mode={props.timerMode ?? "workout"}
@@ -145,6 +151,15 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           date={progress.ui?.dateModal?.date ?? ""}
         />
+        <ModalEditSet
+          isHidden={progress.ui?.editSetModal == null}
+          dispatch={props.dispatch}
+          units={props.settings.units}
+          set={getEditSetData(props.progress)}
+          isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+          entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+          setIndex={progress.ui?.editSetModal?.setIndex}
+        />
         {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (
           <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
         )}
@@ -153,4 +168,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   } else {
     return null;
   }
+}
+
+function getEditSetData(progress: IHistoryRecord): ISet | undefined {
+  const uiData = progress.ui?.editSetModal;
+  if (uiData != null && uiData.setIndex != null) {
+    const entry = progress.entries[uiData.entryIndex];
+    if (entry != null) {
+      const set = uiData.isWarmup ? entry.warmupSets[uiData.setIndex] : entry.sets[uiData.setIndex];
+      return set;
+    }
+  }
+  return undefined;
 }

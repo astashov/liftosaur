@@ -606,6 +606,7 @@ function Playground(props: IPlaygroundProps): JSX.Element {
         entry={entry}
         day={props.day}
         programExercise={programExercise}
+        index={0}
         forceShowStateChanges={true}
         settings={props.settings}
         dispatch={dispatch}

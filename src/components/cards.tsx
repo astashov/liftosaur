@@ -15,6 +15,7 @@ interface ICardsViewProps {
   settings: ISettings;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
+  onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
 }
 
 export function CardsView(props: ICardsViewProps): JSX.Element {
@@ -38,6 +39,7 @@ export function CardsView(props: ICardsViewProps): JSX.Element {
             day={props.progress.day}
             dispatch={props.dispatch}
             onChangeReps={props.onChangeReps}
+            onStartSetChanging={props.onStartSetChanging}
           />
         );
       })}

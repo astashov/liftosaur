@@ -24,6 +24,11 @@ export const TProgressUi = t.partial(
     dateModal: t.type({
       date: t.string,
     }),
+    editSetModal: t.type({
+      isWarmup: t.boolean,
+      entryIndex: t.number,
+      setIndex: t.union([t.number, t.undefined]),
+    }),
   },
   "TProgressUi"
 );

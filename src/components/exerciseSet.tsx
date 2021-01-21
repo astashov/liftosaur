@@ -10,6 +10,7 @@ interface IProps {
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
+  isEditMode: boolean;
   onClick: (e: Event) => void;
 }
 
@@ -19,6 +20,7 @@ interface IAmrapExerciseSetProps {
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
+  isEditMode: boolean;
   onClick: (e: Event) => void;
 }
 
@@ -28,6 +30,7 @@ interface IStartedExerciseSetProps {
   settings: ISettings;
   isCurrent: boolean;
   set: ISet;
+  isEditMode: boolean;
   onClick: (e: Event) => void;
 }
 
@@ -37,6 +40,7 @@ interface INotStartedExerciseSetProps {
   isCurrent: boolean;
   settings: ISettings;
   set: ISet;
+  isEditMode: boolean;
   onClick: (e: Event) => void;
 }
 
@@ -46,6 +50,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
     return (
       <AmrapExerciseSet
         isCurrent={props.isCurrent}
+        isEditMode={props.isEditMode}
         showHelp={props.showHelp}
         exercise={props.exercise}
         set={set}
@@ -57,6 +62,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
     return (
       <NotStartedExerciseSet
         isCurrent={props.isCurrent}
+        isEditMode={props.isEditMode}
         showHelp={props.showHelp}
         exercise={props.exercise}
         set={set}
@@ -69,6 +75,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
       return (
         <CompleteExerciseSet
           isCurrent={props.isCurrent}
+          isEditMode={props.isEditMode}
           showHelp={props.showHelp}
           exercise={props.exercise}
           set={set}
@@ -80,6 +87,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
       return (
         <IncompleteExerciseSet
           showHelp={props.showHelp}
+          isEditMode={props.isEditMode}
           isCurrent={props.isCurrent}
           exercise={props.exercise}
           set={set}
@@ -107,7 +115,7 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy="set-nonstarted"
-      className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg"
+      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -129,7 +137,7 @@ function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg"
+      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none" }}
     >
@@ -151,7 +159,7 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg"
+      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
