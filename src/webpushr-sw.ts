@@ -1,10 +1,13 @@
 declare let __COMMIT_HASH__: string;
+declare let __VENDOR_VERSION__: string;
 declare let __API_HOST__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 
 const filesToCache = [
   `/main.css?version=${__COMMIT_HASH__}`,
   `/main.js?version=${__COMMIT_HASH__}`,
+  `/vendors.css?vendor=${__VENDOR_VERSION__}`,
+  `/vendors.js?vendor=${__VENDOR_VERSION__}`,
   `/images/back-muscles.svg`,
   `/images/front-muscles.svg`,
   /\/externalimages\/exercises\//,

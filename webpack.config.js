@@ -6,6 +6,7 @@ const { DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
+const vendorVersion = "1";
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
@@ -44,6 +45,17 @@ module.exports = {
       },
     ],
   },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          chunks: (chunk) => chunk.name === "main",
+        },
+      },
+    },
+  },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
@@ -51,6 +63,7 @@ module.exports = {
     new MiniCssExtractPlugin(),
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
+      __VENDOR_VERSION__: JSON.stringify(vendorVersion),
       __API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:8787"
       ),
@@ -64,7 +77,10 @@ module.exports = {
         from: `src/index.html`,
         to: `index.html`,
         transform: (content) => {
-          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
+          return content
+            .toString()
+            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${vendorVersion}`);
         },
       },
       {
@@ -79,7 +95,10 @@ module.exports = {
         from: `src/about.html`,
         to: `about/index.html`,
         transform: (content) => {
-          return content.toString().replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`);
+          return content
+            .toString()
+            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${vendorVersion}`);
         },
       },
       {
