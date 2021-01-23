@@ -5,6 +5,8 @@ const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 const filesToCache = [
   `/main.css?version=${__COMMIT_HASH__}`,
   `/main.js?version=${__COMMIT_HASH__}`,
+  `/images/back-muscles.svg`,
+  `/images/front-muscles.svg`,
   /\/externalimages\/exercises\//,
   "/",
   "/index.html",

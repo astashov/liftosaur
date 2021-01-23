@@ -13,6 +13,8 @@
     "build:dev": "webpack",
     "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
     "start": "webpack-dev-server",
+    "trust": "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert/private.crt",
+    "start:https": "webpack-dev-server --https --cert cert/private.pem --key cert/private.key --port 8443",
     "start:server": "wrangler dev",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:8787/api/migrate?key=$KEY",
     "migrate:prod": "curl -v -X POST http://api.liftosaur.com/api/migrate?key=$KEY",
