@@ -9,6 +9,8 @@ import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ISettings } from "../models/settings";
 import { Weight } from "../models/weight";
+import { ComparerUtils } from "../utils/comparer";
+import { memo } from "preact/compat";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -16,7 +18,7 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-export function HistoryRecordView(props: IProps): JSX.Element {
+export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   const { historyRecord, dispatch } = props;
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
@@ -85,7 +87,7 @@ export function HistoryRecordView(props: IProps): JSX.Element {
       )}
     </div>
   );
-}
+}, ComparerUtils.noFns);
 
 function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.Element {
   const { sets, isNext } = props;

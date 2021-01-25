@@ -1,8 +1,10 @@
 import { h, JSX } from "preact";
+import { memo } from "preact/compat";
 import { Reps, ISet } from "../models/set";
 import { Weight, IWeight } from "../models/weight";
 import { ISettings } from "../models/settings";
 import { IExerciseType } from "../models/exercise";
+import { ComparerUtils } from "../utils/comparer";
 
 interface IProps {
   exercise: IExerciseType;
@@ -44,7 +46,7 @@ interface INotStartedExerciseSetProps {
   onClick: (e: Event) => void;
 }
 
-export function ExerciseSetView(props: IProps): JSX.Element {
+export const ExerciseSetView = memo((props: IProps): JSX.Element => {
   const set = props.set;
   if (set.isAmrap) {
     return (
@@ -97,7 +99,7 @@ export function ExerciseSetView(props: IProps): JSX.Element {
       );
     }
   }
-}
+}, ComparerUtils.noFns);
 
 function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExerciseType, isCurrent: boolean): IWeight {
   if (isCurrent) {

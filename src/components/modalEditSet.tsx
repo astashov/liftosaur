@@ -50,6 +50,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               value={Weight.is(set?.weight) ? set?.weight.value : set?.weight}
               required
               type="number"
+              step="0.05"
               min="0"
               placeholder="Weight"
             />

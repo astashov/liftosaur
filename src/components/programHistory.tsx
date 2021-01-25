@@ -11,6 +11,7 @@ import { ISettings } from "../models/settings";
 import { StringUtils } from "../utils/string";
 import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
+import { useState, useEffect, useRef } from "preact/hooks";
 
 interface IProps {
   program: IProgram;
@@ -26,6 +27,21 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
   const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
+  const [visibleRecords, setVisibleRecords] = useState<number>(20);
+  const visibleRecordsRef = useRef<number>(visibleRecords);
+  const containerRef = useRef<HTMLElement>();
+
+  useEffect(() => {
+    function scrollHandler(): void {
+      if (window.pageYOffset + window.innerHeight > containerRef.current.clientHeight - 500) {
+        const vr = Math.min(visibleRecordsRef.current + 20, history.length);
+        setVisibleRecords(vr);
+        visibleRecordsRef.current = vr;
+      }
+    }
+    window.addEventListener("scroll", scrollHandler);
+    return () => window.removeEventListener("scroll", scrollHandler);
+  }, []);
 
   const history = [nextHistoryRecord, ...sortedHistory];
 
@@ -42,13 +58,13 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           ) : undefined
         }
       />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }} ref={containerRef}>
         <div className="py-3 text-center border-b border-gray-200">
           <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
             {props.progress ? "Continue Workout" : "Start Next Workout"}
           </Button>
         </div>
-        {history.map((historyRecord) => (
+        {history.slice(0, visibleRecordsRef.current).map((historyRecord) => (
           <HistoryRecordView settings={props.settings} historyRecord={historyRecord} dispatch={dispatch} />
         ))}
       </section>

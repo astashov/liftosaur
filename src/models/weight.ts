@@ -49,6 +49,8 @@ export type IBars = t.TypeOf<typeof TBars>;
 import { ISettings, Settings } from "./settings";
 import { IEquipment, equipmentToBarKey } from "./exercise";
 
+const prebuiltWeights: Partial<Record<string, IWeight>> = {};
+
 export namespace Weight {
   export function display(weight: IWeight | number): string {
     if (typeof weight === "number") {
@@ -63,7 +65,15 @@ export namespace Weight {
   }
 
   export function build(value: number, unit: IUnit): IWeight {
-    return { value, unit };
+    const key = `${value}_${unit}`;
+    const prebuiltWeight = prebuiltWeights[key];
+    if (prebuiltWeight != null) {
+      return prebuiltWeight;
+    } else {
+      const v = { value: typeof value === "string" ? parseFloat(value) : value, unit };
+      prebuiltWeights[`${value}_${unit}`] = v;
+      return v;
+    }
   }
 
   export function is(object: unknown): object is IWeight {

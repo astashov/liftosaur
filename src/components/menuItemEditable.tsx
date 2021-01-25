@@ -100,7 +100,7 @@ function MenuItemValue(
         className="flex-1 text-right text-gray-700"
         value={props.value || undefined}
         title={props.patternMessage}
-        onChange={handleChange(props.onChange, props.setPatternError)}
+        onBlur={handleChange(props.onChange, props.setPatternError)}
         pattern={props.pattern}
       />
     );
@@ -130,7 +130,7 @@ function MenuItemValue(
         <input
           data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
           key={props.value}
-          onChange={handleChange(props.onChange, props.setPatternError)}
+          onBlur={handleChange(props.onChange, props.setPatternError)}
           type="number"
           title={props.patternMessage}
           className="items-center flex-1 w-0 min-w-0 p-2 text-right text-gray-700 outline-none"

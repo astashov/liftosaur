@@ -139,7 +139,7 @@ function Edit(props: IProps): JSX.Element {
                 className={inputClassName}
                 placeholder="Sets"
                 value={sets.length}
-                onChange={() => {
+                onBlur={() => {
                   EditProgram.updateSimpleExercise(
                     props.dispatch,
                     props.settings.units,
@@ -165,7 +165,7 @@ function Edit(props: IProps): JSX.Element {
                 className={inputClassName}
                 placeholder="Reps"
                 value={reps.success ? reps.data : ""}
-                onChange={() => {
+                onBlur={() => {
                   EditProgram.updateSimpleExercise(
                     props.dispatch,
                     props.settings.units,
@@ -191,7 +191,7 @@ function Edit(props: IProps): JSX.Element {
                 className={inputClassName}
                 placeholder="0"
                 value={weight.success ? weight.data.value : ""}
-                onChange={() => {
+                onBlur={() => {
                   EditProgram.updateSimpleExercise(
                     props.dispatch,
                     props.settings.units,

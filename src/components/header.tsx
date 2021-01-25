@@ -10,7 +10,7 @@ interface IHeaderProps extends IHeaderCenterProps {
   right?: JSX.Element;
 }
 
-export function HeaderView(props: IHeaderProps): JSX.Element {
+export const HeaderView = (props: IHeaderProps): JSX.Element => {
   return (
     <div className="fixed top-0 left-0 z-20 flex items-center justify-center w-full text-center text-white bg-blue-700 HeaderView">
       <div style={{ minWidth: "5rem" }} className="flex items-center justify-center">
@@ -22,7 +22,7 @@ export function HeaderView(props: IHeaderProps): JSX.Element {
       </div>
     </div>
   );
-}
+};
 
 export function HeaderCenterView(props: IHeaderCenterProps): JSX.Element {
   if (props.subtitle != null) {
