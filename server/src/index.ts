@@ -437,7 +437,7 @@ async function logHandler(request: Request): Promise<Response> {
   const key = `${user}:${action}`;
   const value = await kv_liftosaur_logs.get(key);
   const newValue = `${parseInt(value || "0", 10) + 1}`;
-  await kv_liftosaur_logs.put(key, newValue);
+  await kv_liftosaur_logs.put(key, JSON.stringify({ value: newValue, ts: Date.now() }));
   return new Response(JSON.stringify({}), { status: 200, headers: getHeaders(request) });
 }
 
