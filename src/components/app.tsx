@@ -86,7 +86,9 @@ export function AppView(props: IProps): JSX.Element | null {
       if (button != null) {
         const name = (button.getAttribute("class") || "").split(" ")[0];
         if (name && name.startsWith("ls-")) {
-          LogUtils.log(state.user?.id || state.storage.tempUserId, name);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const st = (window as any).state as IState;
+          LogUtils.log(st.user?.id || st.storage.tempUserId, name);
         }
       }
     });
