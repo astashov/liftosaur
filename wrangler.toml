@@ -11,6 +11,7 @@ kv-namespaces = [
   { binding = "kv_liftosaur_google_ids", id = "d551834d828446af94e74467036dbd8b", preview_id = "d551834d828446af94e74467036dbd8b" },
   { binding = "kv_liftosaur_users", id = "385f0c1293b94aee954bc00c7eef1a46", preview_id = "385f0c1293b94aee954bc00c7eef1a46" },
   { binding = "kv_liftosaur_programs", id = "0df7609ecee04f92b17d667ece6b6951", preview_id = "0df7609ecee04f92b17d667ece6b6951" },
+  { binding = "kv_liftosaur_logs", id = "3a6ad05b15f24b519a578177d1e8c59b", preview_id = "3a6ad05b15f24b519a578177d1e8c59b" },
   { binding = "kv_liftosaur_google_access_tokens_prod", id = "0c65756ad516430389f32c8ef85b1372", preview_id = "0c65756ad516430389f32c8ef85b1372" },
   { binding = "kv_liftosaur_google_ids_prod", id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5", preview_id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5" },
   { binding = "kv_liftosaur_users_prod", id = "d66a4540147046de80f8a497fcb244c5", preview_id = "d66a4540147046de80f8a497fcb244c5" },
@@ -22,7 +23,8 @@ kv-namespaces = [
   { binding = "kv_liftosaur_google_access_tokens", id = "0c65756ad516430389f32c8ef85b1372", preview_id = "0c65756ad516430389f32c8ef85b1372"  },
   { binding = "kv_liftosaur_google_ids", id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5", preview_id = "3cfb9b5b2dba4f6ab114f738a5f5e0a5"  },
   { binding = "kv_liftosaur_users", id = "d66a4540147046de80f8a497fcb244c5", preview_id = "d66a4540147046de80f8a497fcb244c5"  },
-  { binding = "kv_liftosaur_programs", id = "e839711eb5424410a0cc9c015ddc9a03", preview_id = "e839711eb5424410a0cc9c015ddc9a03"  }
+  { binding = "kv_liftosaur_programs", id = "e839711eb5424410a0cc9c015ddc9a03", preview_id = "e839711eb5424410a0cc9c015ddc9a03"  },
+  { binding = "kv_liftosaur_logs", id = "26e5406cd4584aea8cf16b799fe6d77b", preview_id = "26e5406cd4584aea8cf16b799fe6d77b" }
 ]
 zone_id = "70fd832552237d1dd9cf1d2d8b97f8ee"
 route="api.liftosaur.com/*"

@@ -53,7 +53,7 @@ export function ModalOnboarding(props: { onClose: () => void }): JSX.Element {
         </p>
         <p className="mb-4">So check it out! Hopefully you like it :)</p>
         <p className="text-center">
-          <Button type="button" kind="green" className="mr-3" onClick={props.onClose}>
+          <Button type="button" kind="green" className="ls-modal-onboarding mr-3" onClick={props.onClose}>
             Let's choose a program!
           </Button>
         </p>

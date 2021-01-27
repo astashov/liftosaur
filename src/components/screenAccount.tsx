@@ -27,7 +27,10 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
 function ScreenAccountLoggedOut(props: { dispatch: IDispatch }): JSX.Element {
   return (
-    <button className="w-full px-6 py-4 border-b border-gray-200" onClick={() => props.dispatch(Thunk.googleSignIn())}>
+    <button
+      className="ls-login w-full px-6 py-4 border-b border-gray-200"
+      onClick={() => props.dispatch(Thunk.googleSignIn())}
+    >
       <span className="flex-1">Log In</span>
     </button>
   );
@@ -40,7 +43,10 @@ function ScreenAccountLoggedIn(props: { email: string; dispatch: IDispatch }): J
         Current account: <span className="text-gray-500">{props.email}</span>
       </section>
       <section className="flex-1 w-full">
-        <button className="w-full px-6 py-4 border-b border-gray-200" onClick={() => props.dispatch(Thunk.logOut())}>
+        <button
+          className="ls-logout w-full px-6 py-4 border-b border-gray-200"
+          onClick={() => props.dispatch(Thunk.logOut())}
+        >
           <span className="flex-1">Log Out</span>
         </button>
       </section>

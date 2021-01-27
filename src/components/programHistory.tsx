@@ -52,7 +52,10 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         subtitle="Current program"
         right={
           props.progress == null ? (
-            <button className="p-3" onClick={() => Program.editAction(props.dispatch, props.program.id)}>
+            <button
+              className="ls-history-edit-program p-3"
+              onClick={() => Program.editAction(props.dispatch, props.program.id)}
+            >
               Edit Program
             </button>
           ) : undefined
@@ -60,7 +63,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }} ref={containerRef}>
         <div className="py-3 text-center border-b border-gray-200">
-          <Button kind="green" onClick={() => props.dispatch({ type: "StartProgramDayAction" })}>
+          <Button
+            kind="green"
+            className="ls-start-workout"
+            onClick={() => props.dispatch({ type: "StartProgramDayAction" })}
+          >
             {props.progress ? "Continue Workout" : "Start Next Workout"}
           </Button>
         </div>
@@ -70,7 +77,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       </section>
       <FooterView
         buttons={
-          <button className="p-4" aria-label="Muscles" onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}>
+          <button
+            className="ls-footer-muscles p-4"
+            aria-label="Muscles"
+            onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
+          >
             <IconMuscles />
           </button>
         }

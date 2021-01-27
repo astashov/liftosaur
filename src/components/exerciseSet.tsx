@@ -117,7 +117,7 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy="set-nonstarted"
-      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -139,7 +139,7 @@ function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none" }}
     >
@@ -161,7 +161,7 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -196,7 +196,7 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy={cy}
-      className={className}
+      className={`ls-progress ${className}`}
       onClick={props.onClick}
       style={{ userSelect: "none" }}
     >

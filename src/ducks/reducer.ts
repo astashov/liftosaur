@@ -19,6 +19,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { ILocalStorage, TStorage, IState, IStorage } from "../models/state";
+import { UidFactory } from "../utils/generator";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
@@ -60,6 +61,7 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
     storage: {
       id: 0,
       currentProgramId: undefined,
+      tempUserId: UidFactory.generateUid(10),
       settings: {
         plates: [
           { weight: Weight.build(45, "lb"), num: 4 },
@@ -485,6 +487,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
         },
+        tempUserId: newStorage.tempUserId,
         currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,

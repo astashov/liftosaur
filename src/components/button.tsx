@@ -6,7 +6,7 @@ interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button(props: IProps): JSX.Element {
-  let className = "font-bold text-white border rounded ";
+  let className = [props.className, "font-bold text-white border rounded "].filter((l) => l).join(" ");
   if (props.buttonSize === "sm") {
     className += "px-2 py-1 ";
   } else if (props.buttonSize === "xs") {

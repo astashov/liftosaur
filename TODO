@@ -9,10 +9,8 @@
 * Add exporting all data to downloadable CSV
 * Add deleting account
 * Add achievements
-* Add cookie banner
 * Add ability to publish user programs
 * Versionize published programs
-* Lazy load Codemirror
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add muscles to the exercise selector

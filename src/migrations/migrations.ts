@@ -2,6 +2,7 @@
 
 import { CollectionUtils } from "../utils/collection";
 import { IStorage } from "../models/state";
+import { UidFactory } from "../utils/generator";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -41,6 +42,11 @@ export const migrations = {
         }
       }
     }
+    return storage;
+  },
+  "20210125164435_add_temp_user_id": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    (storage as any).tempUserId = storage.tempUserId || UidFactory.generateUid(10);
     return storage;
   },
 };

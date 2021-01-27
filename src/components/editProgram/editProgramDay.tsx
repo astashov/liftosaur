@@ -67,13 +67,13 @@ export function EditProgramDay(props: IProps): JSX.Element {
                     value={
                       <Fragment>
                         <button
-                          className="p-2 align-middle button"
+                          className="ls-day-edit-exercise button p-2 align-middle"
                           onClick={() => EditProgram.editProgramExercise(props.dispatch, exercise)}
                         >
                           <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                         </button>
                         <button
-                          className="p-2 align-middle button"
+                          className="ls-day-toggle-exercise button p-2 align-middle"
                           onClick={() =>
                             EditProgram.toggleDayExercise(props.dispatch, program, props.dayIndex, exercise.id)
                           }
@@ -91,6 +91,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
             />
             <div class="p-1">
               <SemiButton
+                className="ls-day-add-exercise"
                 onClick={() => {
                   EditProgram.addProgramExercise(props.dispatch);
                 }}
@@ -122,7 +123,11 @@ export function EditProgramDay(props: IProps): JSX.Element {
 
       <FooterView
         buttons={
-          <button className="p-4" aria-label="Muscles" onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}>
+          <button
+            className="ls-footer-muscles p-4"
+            aria-label="Muscles"
+            onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
+          >
             <IconMuscles />
           </button>
         }

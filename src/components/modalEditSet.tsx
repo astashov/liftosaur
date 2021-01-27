@@ -85,6 +85,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
           <Button
             kind="green"
             data-cy="modal-edit-set-submit"
+            className="ls-modal-edit-set"
             type="submit"
             onClick={() => {
               if (repsInput.current.validity.valid && weightInput.current.validity.valid) {

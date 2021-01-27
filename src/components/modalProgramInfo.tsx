@@ -31,7 +31,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
         <Button type="button" kind="gray" className="mr-3" onClick={props.onClose}>
           Cancel
         </Button>
-        <Button type="button" kind="green" className="mr-3" onClick={props.onSelect}>
+        <Button type="button" kind="green" className="ls-modal-clone-program mr-3" onClick={props.onSelect}>
           Clone
         </Button>
       </p>

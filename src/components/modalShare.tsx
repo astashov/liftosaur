@@ -41,7 +41,7 @@ export function ModalShare(props: IProps): JSX.Element {
 
       <div className="m-1">
         <button
-          className="text-blue-700 underline"
+          className="ls-modal-share-copy text-blue-700 underline"
           onClick={() => {
             const text = linkRef.current.textContent;
             if (text != null) {
@@ -58,6 +58,7 @@ export function ModalShare(props: IProps): JSX.Element {
       <div className="m-2 text-center">
         <Button
           kind="blue"
+          className="ls-modal-share-facebook"
           onClick={() => {
             const url = new URL("https://www.facebook.com/dialog/share");
             url.searchParams.set("app_id", "3448767138535273");
@@ -75,6 +76,7 @@ export function ModalShare(props: IProps): JSX.Element {
       <div className="m-4 text-center">
         <Button
           kind="blue"
+          className="ls-modal-share-twitter"
           onClick={() => {
             const url = new URL("https://twitter.com/intent/tweet");
             url.searchParams.set("text", `Check out my weightlifting workout!`);

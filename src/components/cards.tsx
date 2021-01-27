@@ -49,6 +49,7 @@ export const CardsView = memo(
         <div className="py-3 text-center">
           <Button
             kind="green"
+            className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
             onClick={() => {
               if (
                 (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||

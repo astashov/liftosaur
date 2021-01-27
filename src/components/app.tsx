@@ -25,6 +25,7 @@ import { IState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
+import { LogUtils } from "../utils/log";
 
 interface IProps {
   client: Window["fetch"];
@@ -72,6 +73,23 @@ export function AppView(props: IProps): JSX.Element | null {
     if (state.storage.currentProgramId == null) {
       setShouldShowOnboarding(true);
     }
+    window.addEventListener("click", (e) => {
+      let button: HTMLButtonElement | undefined;
+      let el: HTMLElement | undefined = e.target as HTMLElement;
+      while (el != null) {
+        if ((el as HTMLElement).tagName?.toLowerCase() === "button") {
+          button = el as HTMLButtonElement;
+          break;
+        }
+        el = el.parentNode as HTMLElement | undefined;
+      }
+      if (button != null) {
+        const name = (button.getAttribute("class") || "").split(" ")[0];
+        if (name && name.startsWith("ls-")) {
+          LogUtils.log(state.user?.id || state.storage.tempUserId, name);
+        }
+      }
+    });
   }, []);
 
   const program =

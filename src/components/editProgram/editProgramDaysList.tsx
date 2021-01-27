@@ -78,7 +78,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   <Fragment>
                     <button
                       data-cy="edit-day"
-                      className="px-2 align-middle button"
+                      className="ls-days-list-edit-day button px-2 align-middle"
                       onClick={() => {
                         props.dispatch({ type: "EditDayAction", index });
                       }}
@@ -86,7 +86,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                     </button>
                     <button
-                      className="px-2 align-middle button"
+                      className="ls-days-list-copy-day button px-2 align-middle"
                       onClick={() => {
                         const newName = `${day.name} Copy`;
                         props.dispatch({
@@ -111,7 +111,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     {props.editProgram.days.length > 1 && (
                       <button
                         data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
-                        className="px-2 align-middle button"
+                        className="ls-days-list-delete-day button px-2 align-middle"
                         onClick={() => {
                           props.dispatch({
                             type: "UpdateState",
@@ -160,7 +160,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                 <Fragment>
                   <button
                     data-cy="edit-exercise"
-                    className="px-2 align-middle button"
+                    className="ls-days-list-edit-exercise button px-2 align-middle"
                     onClick={() => {
                       EditProgram.editProgramExercise(props.dispatch, exercise);
                     }}
@@ -168,7 +168,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                   </button>
                   <button
-                    className="px-2 align-middle button"
+                    className="ls-days-list-copy-exercise button px-2 align-middle"
                     onClick={() => {
                       EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
                     }}
@@ -176,7 +176,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconDuplicate />
                   </button>
                   <button
-                    className="px-2 align-middle button"
+                    className="ls-days-list-delete-exercise button px-2 align-middle"
                     onClick={() => {
                       const isExerciseUsed = props.editProgram.days.some(
                         (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
@@ -215,7 +215,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       <FooterView
         buttons={
           <button
-            className="p-4"
+            className="ls-footer-muscles p-4"
             aria-label="Muscles"
             onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
           >

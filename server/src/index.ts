@@ -16,6 +16,7 @@ declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
 declare let kv_liftosaur_users: CloudflareWorkerKV;
 declare let kv_liftosaur_programs: CloudflareWorkerKV;
+declare let kv_liftosaur_logs: CloudflareWorkerKV;
 
 interface IOpenIdResponse {
   sub: string;
@@ -431,6 +432,15 @@ async function getUsersHandler(request: Request): Promise<Response> {
   }
 }
 
+async function logHandler(request: Request): Promise<Response> {
+  const { user, action } = await request.json();
+  const key = `${user}:${action}`;
+  const value = await kv_liftosaur_logs.get(key);
+  const newValue = `${parseInt(value || "0", 10) + 1}`;
+  await kv_liftosaur_logs.put(key, newValue);
+  return new Response(JSON.stringify({}), { status: 200, headers: getHeaders(request) });
+}
+
 async function handleRequest(request: Request): Promise<Response> {
   const r = new Router();
   r.post(".*timernotification", (req: Request) => timerHandler(req));
@@ -446,6 +456,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.get(".*/api/programs", (req: Request) => getProgramsHandler(req));
   r.post(".*/api/synctoprod", (req: Request) => syncToProdHandler(req));
   r.post(".*/api/synctodev", (req: Request) => syncToDevHandler(req));
+  r.post(".*/api/log", (req: Request) => logHandler(req));
 
   r.get(".*/admin/users", (req: Request) => getUsersHandler(req));
   r.get(".*/profile", (req: Request) => getProfileHandler(req));

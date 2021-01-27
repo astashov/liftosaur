@@ -18,7 +18,7 @@ export function ModalPlates(props: IProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
           type="number"
           min="0"
           placeholder={`Plate weight in ${props.units}`}
@@ -30,6 +30,7 @@ export function ModalPlates(props: IProps): JSX.Element {
           <Button
             kind="green"
             type="submit"
+            className="ls-add-plate"
             onClick={() => {
               const value = textInput.current?.value;
               const numValue = value != null ? parseFloat(value) : undefined;

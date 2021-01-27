@@ -10,10 +10,18 @@ export function FooterView(props: { dispatch: IDispatch; buttons?: JSX.Element }
       <div className="px-3 text-sm text-left text-blue-500">{__COMMIT_HASH__}</div>
       <div className="flex-1 text-right">
         {props.buttons}
-        <button className="p-4" aria-label="Graphs" onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}>
+        <button
+          className="ls-footer-graphs p-4"
+          aria-label="Graphs"
+          onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
+        >
           <IconGraphs />
         </button>
-        <button className="p-4" aria-label="Settings" onClick={() => props.dispatch(Thunk.pushScreen("settings"))}>
+        <button
+          className="ls-footer-settings p-4"
+          aria-label="Settings"
+          onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+        >
           <IconCog />
         </button>
       </div>

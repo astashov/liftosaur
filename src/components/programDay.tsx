@@ -108,7 +108,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           buttons={
             <Fragment>
               <button
-                className="p-4"
+                className="ls-footer-muscles p-4"
                 aria-label="Muscles"
                 onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
               >
@@ -116,7 +116,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               </button>
               {!Progress.isCurrent(props.progress) ? (
                 <button
-                  className="p-4"
+                  className="ls-footer-share p-4"
                   onClick={() => {
                     if (props.userId == null) {
                       alert("You should be logged in to share workouts.");
@@ -130,7 +130,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               ) : undefined}
               {Progress.isCurrent(props.progress) ? (
                 <button
-                  className="p-4"
+                  className="ls-footer-edit-day p-4"
                   onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
                 >
                   <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />

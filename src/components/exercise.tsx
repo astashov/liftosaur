@@ -120,7 +120,7 @@ const ExerciseContentView = memo(
             {targetMuscles.length > 0 && (
               <button
                 style={{ marginBottom: "2px" }}
-                className="px-2 py-0 ml-2 align-middle"
+                className="ls-show-exercise-image px-2 py-0 ml-2 align-middle"
                 onClick={props.onInfoClick}
               >
                 <IconQuestion width={15} height={15} />
@@ -128,14 +128,20 @@ const ExerciseContentView = memo(
             )}
             {props.onStartSetChanging &&
               (isEditMode ? (
-                <Button data-cy="done-edit-exercise" buttonSize="xs" kind="green" onClick={() => setIsEditMode(false)}>
+                <Button
+                  className="ls-edit-set-done"
+                  data-cy="done-edit-exercise"
+                  buttonSize="xs"
+                  kind="green"
+                  onClick={() => setIsEditMode(false)}
+                >
                   Done
                 </Button>
               ) : (
                 <button
                   style={{ marginBottom: "2px" }}
                   data-cy="edit-exercise"
-                  className="px-2 py-0 align-middle"
+                  className="ls-edit-set px-2 py-0 align-middle"
                   onClick={() => setIsEditMode(true)}
                 >
                   <IconEdit size={15} lineColor="#0D2B3E" penColor="#A5B3BB" />
@@ -173,7 +179,7 @@ const ExerciseContentView = memo(
                     data-help-offset-x={-80}
                     data-help-width={140}
                     data-cy="change-weight"
-                    className="text-blue-500 underline cursor-pointer"
+                    className="ls-progress-open-change-weight-modal text-blue-500 underline cursor-pointer"
                     style={{ fontWeight: "inherit" }}
                     onClick={() =>
                       props.dispatch({ type: "ChangeWeightAction", weight: w, exercise: props.entry.exercise })
@@ -221,7 +227,7 @@ const ExerciseContentView = memo(
                         <button
                           data-cy="set-edit-mode-remove"
                           style={{ top: "-0.5rem", left: "-0.5rem" }}
-                          className="absolute p-1"
+                          className="ls-edit-set-remove absolute p-1"
                           onClick={() => {
                             EditProgressEntry.removeSet(props.dispatch, true, props.index, i);
                           }}
@@ -245,7 +251,7 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="add-warmup-set"
                     onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
-                    className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg is-edit-mode"
+                    className="ls-edit-set-open-modal-add-warmup is-edit-mode w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg"
                   >
                     +
                   </button>
@@ -278,7 +284,7 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="set-edit-mode-remove"
                     style={{ top: "-0.5rem", left: "-0.5rem" }}
-                    className="absolute p-1"
+                    className="ls-edit-set-remove absolute p-1"
                     onClick={() => {
                       EditProgressEntry.removeSet(props.dispatch, false, props.index, i);
                     }}
@@ -293,7 +299,7 @@ const ExerciseContentView = memo(
             <button
               data-cy="add-set"
               onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-              className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg is-edit-mode"
+              className="ls-edit-set-open-modal-add is-edit-mode w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg"
             >
               +
             </button>

@@ -17,7 +17,7 @@ export function GroupHeader(props: IProps): JSX.Element {
       <div className="flex px-6 py-1 text-sm font-bold bg-gray-200">
         <div className="">{name}</div>
         {help && (
-          <button className="ml-auto" onClick={() => setIsHelpShown(!isHelpShown)}>
+          <button className={`ls-group-header-help-${name} ml-auto`} onClick={() => setIsHelpShown(!isHelpShown)}>
             <IconQuestion />
           </button>
         )}

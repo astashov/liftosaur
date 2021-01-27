@@ -17,7 +17,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
       <input
         data-cy="modal-create-program-input"
         ref={textInput}
-        className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+        className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
         type="text"
         placeholder="Program Name"
       />
@@ -35,7 +35,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           data-cy="modal-create-program-submit"
           type="button"
           kind="green"
-          className="mr-3"
+          className="ls-modal-create-program mr-3"
           onClick={() => props.onSelect(textInput.current.value)}
         >
           Select

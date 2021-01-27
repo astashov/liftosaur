@@ -78,6 +78,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         <div className="fixed left-0 z-10 flex w-full px-16 py-4" style={{ bottom: "40px" }}>
           <div className="flex-1">
             <Button
+              className="ls-finish-day-share"
               kind="blue"
               onClick={() => {
                 if (props.userId == null) {

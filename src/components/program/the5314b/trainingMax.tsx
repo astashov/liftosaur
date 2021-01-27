@@ -48,6 +48,7 @@ export function TrainingMax(props: IProps): JSX.Element {
       <div className="p-2 text-center">
         <Button
           kind="green"
+          className="ls-save-training-max"
           onClick={() => {
             EditProgram.set531Tms(props.dispatch, props.programIndex, tms);
             props.dispatch(Thunk.pushScreen("main"));
@@ -136,7 +137,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             <input
               data-cy="input-reps"
               ref={repsInput}
-              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+              className="focus:outline-none focus:shadow-outline flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
               type="number"
               min="0"
               onInput={() => calculate()}
@@ -152,7 +153,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             <input
               data-cy="input-weight"
               ref={weightInput}
-              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+              className="focus:outline-none focus:shadow-outline flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
               type="number"
               min="0"
               onInput={() => calculate()}

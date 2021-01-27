@@ -39,6 +39,7 @@ export const TStorage = t.type(
     version: t.string,
     programs: t.array(TProgram),
     helps: t.array(t.string),
+    tempUserId: t.string,
   },
   "TStorage"
 );

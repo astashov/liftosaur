@@ -37,7 +37,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           ) : undefined
         }
         right={
-          <button className="p-4" onClick={() => setShouldCreateProgram(true)}>
+          <button className="ls-open-create-new-program-modal p-4" onClick={() => setShouldCreateProgram(true)}>
             Create
           </button>
         }
