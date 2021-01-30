@@ -37,3 +37,8 @@ body {
   line-height: 1;
   margin-bottom: 0.5rem;
 }
+
+.post-tags {
+  font-size: 12px;
+  font-style: italic;
+}

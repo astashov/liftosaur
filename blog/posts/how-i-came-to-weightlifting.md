@@ -4,6 +4,7 @@ title: How I came to weightlifting
 og_title: How I came to weightlifting
 og_description: My journey to weightlifting
 og_image: /images/how-i-came-to-weightlifting-intro.jpg
+tags: ["weightlifting"]
 ---
 
 <div><img src="../../images/how-i-came-to-weightlifting-intro.jpg" width="100%" alt="Boots and a plate" /></div>

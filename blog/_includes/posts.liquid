@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include head %}
+    <meta property="og:url" content="https://www.liftosaur.com/blog" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://www.liftosaur.com/images/logo-square.png" />
+  </head>
+  <body>
+    <div class="markdown-body">
+      {% include menu foo: "foo" %}
+      <h1>{{ h1 }}</h1>
+      <ul class="posts">
+      {% for post in posts reversed %}
+        <li class="post">
+          <div>
+            <span class="post-title">
+              {% if post.data.externalLink %}
+                <a href="{{ post.data.externalLink }}" target="__blank">{{ post.data.title }}</a>
+              {% else %}
+                <a href="{{ post.url | url }}">{{ post.data.title }}</a>
+              {% endif %}
+            </span>
+            <span class="post-date">
+              - 
+              {{ post.date | date: "%Y/%m/%d" }}
+            </span>
+            <span class="post-tags">
+              {% for tag in post.data.tags %}
+                <a href="{{ '/' | append: tag | url }}">#{{ tag }}</a>
+              {% endfor %}
+            </span>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    </div>
+  </body>
+</html>
