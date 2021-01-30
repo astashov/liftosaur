@@ -435,9 +435,10 @@ async function getUsersHandler(request: Request): Promise<Response> {
 async function logHandler(request: Request): Promise<Response> {
   const { user, action } = await request.json();
   const key = `${user}:${action}`;
-  const value = await kv_liftosaur_logs.get(key);
+  const data = await kv_liftosaur_logs.get(key);
+  const value = data != null ? JSON.parse(data).value : undefined;
   const newValue = `${parseInt(value || "0", 10) + 1}`;
-  await kv_liftosaur_logs.put(key, newValue);
+  await kv_liftosaur_logs.put(key, JSON.stringify({ value: newValue, ts: Date.now() }));
   return new Response(JSON.stringify({}), { status: 200, headers: getHeaders(request) });
 }
 
