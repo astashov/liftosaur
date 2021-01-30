@@ -1,5 +1,5 @@
 ---
-date: "2021-01-10"
+date: "2021-01-30"
 title: How I came to weightlifting
 og_title: How I came to weightlifting
 og_description: My journey to weightlifting
