@@ -489,7 +489,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
         },
-        tempUserId: newStorage.tempUserId,
+        tempUserId: newStorage.tempUserId || UidFactory.generateUid(10),
         currentProgramId: newStorage.currentProgramId,
         history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
         version: newStorage.version,
