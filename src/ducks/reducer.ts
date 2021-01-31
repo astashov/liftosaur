@@ -484,7 +484,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             newStorage.settings.plates,
             (el) => `${el.weight.value}${el.weight.unit}`
           ),
-          graphs: newStorage.settings.graphs,
+          graphs: newStorage.settings.graphs || [],
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
