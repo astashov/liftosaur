@@ -52,7 +52,7 @@ export const migrations = {
     (storage as any).tempUserId = storage.tempUserId || UidFactory.generateUid(10);
     return storage;
   },
-  "20210130193710_add_settings_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+  "20210130224533_add_settings_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     const historyExercises = ObjectUtils.keys(History.findAllMaxSets(storage.history));
     const exerciseIds: IExerciseId[] = ["squat", "benchPress", "overheadPress", "deadlift"];
