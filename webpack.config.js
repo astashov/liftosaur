@@ -6,7 +6,7 @@ const { DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
-const vendorVersion = "1";
+const vendorVersion = "2";
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
