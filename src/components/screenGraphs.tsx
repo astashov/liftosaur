@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";

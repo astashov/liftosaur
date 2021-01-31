@@ -4,6 +4,7 @@ import { ISettings } from "../src/models/settings";
 function buildSettings(plates: IPlate[]): ISettings {
   return {
     plates,
+    graphs: [],
     bars: {
       lb: {
         barbell: Weight.build(45, "lb"),
