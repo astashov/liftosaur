@@ -6,6 +6,7 @@ interface IProps {
   children: ComponentChildren;
   autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement>;
   isHidden?: boolean;
+  isFullWidth?: boolean;
   shouldShowClose?: boolean;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
@@ -14,7 +15,7 @@ interface IProps {
 export function Modal(props: IProps): JSX.Element {
   const modalRef = useRef<HTMLElement>();
 
-  let className = "fixed inset-0 z-20 flex items-center justify-center";
+  let className = "fixed inset-0 flex items-center justify-center";
   if (props.isHidden) {
     className += " invisible";
   }
@@ -35,16 +36,16 @@ export function Modal(props: IProps): JSX.Element {
   }
 
   return (
-    <section ref={modalRef} className={className}>
-      <div data-name="overlay" className="absolute inset-0 bg-gray-400 opacity-50"></div>
+    <section ref={modalRef} className={className} style={{ zIndex: 100 }}>
+      <div data-name="overlay" className="z- absolute inset-0 bg-gray-400 opacity-50"></div>
       <div
         data-name="modal"
         className="relative flex flex-col px-4 py-6 bg-white rounded-lg shadow-lg"
-        style={{ maxWidth: "85%", maxHeight: "90%", ...props.style }}
+        style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
         <div className="h-full overflow-auto">{props.children}</div>
         {props.shouldShowClose && (
-          <button onClick={props.onClose} className="absolute top-0 right-0 p-2">
+          <button data-cy="modal-close" onClick={props.onClose} className="absolute top-0 right-0 p-2">
             <IconClose />
           </button>
         )}

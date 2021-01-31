@@ -1,3 +1,4 @@
+import { TExerciseId } from "./exercise";
 import { TPlate, TBars, IBars, IPlate, TUnit } from "./weight";
 import * as t from "io-ts";
 
@@ -16,6 +17,7 @@ export const TSettings = t.intersection(
       timers: TSettingsTimers,
       plates: t.array(TPlate),
       bars: t.record(TUnit, TBars),
+      graphs: t.array(TExerciseId),
       units: TUnit,
     }),
     t.partial({

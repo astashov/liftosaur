@@ -1,8 +1,6 @@
-import { IWeight, Weight, IBarKey } from "./weight";
 import { ISet } from "./set";
 import * as t from "io-ts";
 import { IArrayElement } from "../utils/types";
-import { ISettings, Settings } from "./settings";
 import { ObjectUtils } from "../utils/object";
 
 export const exerciseTypes = [
@@ -3406,6 +3404,8 @@ export const TExerciseType = t.intersection(
 );
 export type IExerciseType = t.TypeOf<typeof TExerciseType>;
 
+import { IWeight, Weight, IBarKey } from "./weight";
+
 export function equipmentToBarKey(equipment?: IEquipment): IBarKey | undefined {
   switch (equipment) {
     case "barbell":
@@ -3447,6 +3447,8 @@ export function equipmentName(equipment?: IEquipment): string {
       return "Bodyweight";
   }
 }
+
+import { ISettings, Settings } from "./settings";
 
 export type IExercise = {
   id: IExerciseId;
@@ -3503,6 +3505,10 @@ export namespace Exercise {
 
   export function getById(id: IExerciseId): IExercise {
     return { ...exercises[id], equipment: exercises[id].defaultEquipment };
+  }
+
+  export function getByIds(ids: IExerciseId[]): IExercise[] {
+    return ids.map((id) => ({ ...exercises[id], equipment: exercises[id].defaultEquipment }));
   }
 
   export function all(): IExercise[] {

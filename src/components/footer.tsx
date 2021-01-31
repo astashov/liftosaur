@@ -11,6 +11,7 @@ export function FooterView(props: { dispatch: IDispatch; buttons?: JSX.Element }
       <div className="flex-1 text-right">
         {props.buttons}
         <button
+          data-cy="footer-graphs"
           className="ls-footer-graphs p-4"
           aria-label="Graphs"
           onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
@@ -18,6 +19,7 @@ export function FooterView(props: { dispatch: IDispatch; buttons?: JSX.Element }
           <IconGraphs />
         </button>
         <button
+          data-cy="footer-settings"
           className="ls-footer-settings p-4"
           aria-label="Settings"
           onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
