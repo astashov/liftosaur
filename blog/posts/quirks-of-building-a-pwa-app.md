@@ -5,6 +5,8 @@ og_title: Quirks of building a PWA app
 og_description: "Main pain points of building a PWA app, and how I worked around them"
 og_image: /images/quirks-of-building-a-pwa-app-pwa.png
 tags: ["tech"]
+twitter: https://twitter.com/liftosaur/status/1358790417102348289
+reddit: https://www.reddit.com/r/liftosaur/comments/lfdd6p/quirks_of_building_a_pwa_app/
 ---
 
 ![PWA Logo](../../images/quirks-of-building-a-pwa-app-pwa.png)
