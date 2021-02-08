@@ -19,6 +19,22 @@ body {
   margin-bottom: 1rem;
 }
 
+.highlight-block-flex {
+  display: flex;
+  flex-direction: row;
+}
+
+.highlight-img-flex {
+  flex: 1;
+  margin: 0 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .highlight-block-flex {
+    flex-direction: column;
+  }
+}
+
 .highlight-block-sum {
   font-size: 0.8em;
   font-style: italic;
@@ -41,4 +57,14 @@ body {
 .post-tags {
   font-size: 12px;
   font-style: italic;
+}
+
+.discuss {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.discuss-reddit,
+.discuss-twitter {
+  margin: 0 1rem;
 }

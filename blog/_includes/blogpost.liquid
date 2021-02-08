@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     {% include head %}
+    <link rel="stylesheet" href="{{ '/styles/prism-vs.css' | url }}" />
     <meta property="og:url" content="https://www.liftosaur.com{{ page.url | url }}" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://www.liftosaur.com{{ og_image | url }}" />
@@ -13,10 +14,20 @@
       <article class="post-container">
         <h1>{{ title }}</h1>
         <div class='content'>{{ content }}</div>
+        <div class='discuss'>
+          {% if twitter %}
+            <a class="discuss-twitter" href="{{ twitter }}">Discuss on Twitter</a>
+          {% endif %}
+          {% if reddit %}
+            <a class="discuss-reddit" href="{{ reddit }}">Discuss on Reddit</a>
+          {% endif %}
+        </div>
         <div class="back-link">
           <a href="{{ '/' | url}}">← Back</a>
         </div>
       </article>
     </div>
+    <script src="https://myCDN.com/prism@v1.x/components/prism-core.min.js"></script>
+    <script src="https://myCDN.com/prism@v1.x/plugins/autoloader/prism-autoloader.min.js"></script>
   </body>
 </html>
