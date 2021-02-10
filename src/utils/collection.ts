@@ -60,6 +60,18 @@ export namespace CollectionUtils {
     return Object.keys(map).map((key) => map[key]);
   }
 
+  export function groupByKey<T, K extends keyof T, U extends T[K] extends string ? string : never>(
+    arr: T[],
+    key: K
+  ): Partial<Record<U, T[]>> {
+    return arr.reduce<Partial<Record<U, T[]>>>((memo, item) => {
+      const value = (item[key] as unknown) as U;
+      memo[value] = memo[value] || [];
+      memo[value]!.push(item);
+      return memo;
+    }, {});
+  }
+
   export function flat<T>(from: T[][]): T[] {
     return from.reduce((acc, val) => acc.concat(val), []);
   }

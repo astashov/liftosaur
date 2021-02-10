@@ -11,6 +11,10 @@ import { runMigrations } from "./migrations/runner";
 import { UserModel } from "./models/user";
 import { renderUsersHtml } from "../../src/components/admin/usersHtml";
 import { renderUserHtml, userImage } from "./user";
+import { LogModel } from "./models/log";
+import { ObjectUtils } from "../../src/utils/object";
+import { CollectionUtils } from "../../src/utils/collection";
+import { renderLogsHtml } from "../../src/components/admin/logsHtml";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;
@@ -432,6 +436,27 @@ async function getUsersHandler(request: Request): Promise<Response> {
   }
 }
 
+async function getAdminLogsHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  const key = url.searchParams.get("key");
+  if (key === apiKey) {
+    const userLogs = await LogModel.getAll();
+    const users = await UserModel.getAll();
+    const usersByKey = CollectionUtils.groupByKey(users, "id");
+    for (const userId of ObjectUtils.keys(userLogs)) {
+      const user = usersByKey[userId];
+      if (user != null && userLogs[userId] != null) {
+        userLogs[userId]!.email = user[0]?.email;
+      }
+    }
+    return new Response(renderLogsHtml({ logs: userLogs, apiKey: key }), {
+      headers: { "content-type": "text/html" },
+    });
+  } else {
+    return new Response("Unauthorized", { status: 401, headers: getHeaders(request) });
+  }
+}
+
 async function logHandler(request: Request): Promise<Response> {
   const { user, action } = await request.json();
   const key = `${user}:${action}`;
@@ -460,6 +485,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/log", (req: Request) => logHandler(req));
 
   r.get(".*/admin/users", (req: Request) => getUsersHandler(req));
+  r.get(".*/admin/logs", (req: Request) => getAdminLogsHandler(req));
   r.get(".*/profile", (req: Request) => getProfileHandler(req));
   r.get(".*/profileimage", (req: Request) => getProfileImage(req));
   const resp = await r.route(request);

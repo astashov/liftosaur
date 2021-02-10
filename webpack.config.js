@@ -6,7 +6,6 @@ const { DefinePlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
-const vendorVersion = "2";
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
@@ -63,7 +62,6 @@ module.exports = {
     new MiniCssExtractPlugin(),
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
-      __VENDOR_VERSION__: JSON.stringify(vendorVersion),
       __API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:8787"
       ),
@@ -80,7 +78,7 @@ module.exports = {
           return content
             .toString()
             .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${vendorVersion}`);
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
         },
       },
       {
@@ -98,7 +96,7 @@ module.exports = {
           return content
             .toString()
             .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${vendorVersion}`);
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
         },
       },
       {

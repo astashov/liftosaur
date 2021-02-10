@@ -88,6 +88,44 @@ a.top-nav-logo {
   line-height: 2em;
 }
 
+h1 {
+  font-weight: bold;
+  font-size: 32px;
+  margin-bottom: 24px;
+}
+
+.logs th,
+.logs td {
+  vertical-align: top;
+  text-align: left;
+}
+
+.logs-key {
+  padding-right: 20px;
+}
+
+.logs-actions {
+  padding-bottom: 20px;
+}
+
+.logs-action {
+  color: gray;
+}
+
+.logs-action-name {
+  color: black;
+}
+
+.logs-action-count {
+  color: green;
+  font-weight: bold;
+}
+
+.logs-action-date {
+  color: #986200;
+  margin-left: 20px;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;
