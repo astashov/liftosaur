@@ -29,7 +29,7 @@ body {
   margin: 0 auto;
 }
 
-.top-nav a {
+a {
   color: #2b6cb0;
   cursor: pointer;
   text-decoration: underline;

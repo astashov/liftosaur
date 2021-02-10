@@ -49,7 +49,7 @@ export function LogsContent(props: ILogsContentProps): JSX.Element {
           return (
             <tr>
               <td className="logs-key">
-                {payload.email ? <a href={`/?admin=Dy8oxgtn,Nkew&userid=${key}`}>key</a> : key}
+                {payload.email ? <a href={`/?admin=Dy8oxgtn,Nkew&userid=${key}`}>{key}</a> : key}{" "}
                 {payload.email ? <span className="logs-key-email">({payload.email})</span> : ""}
               </td>
               <td className="logs-actions">
