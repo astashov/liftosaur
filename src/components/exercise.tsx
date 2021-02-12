@@ -1,14 +1,10 @@
 import { h, JSX, Fragment } from "preact";
 import { ExerciseSetView } from "./exerciseSet";
-import { Exercise, IExerciseType } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
-import { IProgressMode } from "../models/progress";
-import { Weight, IWeight } from "../models/weight";
+import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
-import { IHistoryEntry } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
-import { ISettings } from "../models/settings";
-import { IProgramExercise } from "../models/program";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { useState } from "preact/hooks";
 import { IconQuestion } from "./iconQuestion";
@@ -20,6 +16,7 @@ import { IconDelete } from "./iconDelete";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
+import { IHistoryEntry, ISettings, IProgramExercise, IProgressMode, IExerciseType, IWeight } from "../types";
 
 interface IProps {
   showHelp: boolean;

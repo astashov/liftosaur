@@ -1,7 +1,6 @@
 import { h } from "preact";
 import { RecordHtml } from "../../src/pages/record/recordHtml";
 import { IRecordResponse } from "../../src/api/service";
-import { IStorage } from "../../src/models/state";
 import { DateUtils } from "../../src/utils/date";
 import { Exercise } from "../../src/models/exercise";
 import { History } from "../../src/models/history";
@@ -9,6 +8,7 @@ import { StringUtils } from "../../src/utils/string";
 import { Weight } from "../../src/models/weight";
 import { IEither } from "../../src/utils/types";
 import { renderPage } from "./render";
+import { IStorage } from "../../src/types";
 
 export function renderRecordHtml(data: IRecordResponse, userId: string, recordId: number): string {
   return renderPage(<RecordHtml data={data} userId={userId} recordId={recordId} />);

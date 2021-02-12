@@ -1,21 +1,18 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgramExercise, Program, IProgramState, IProgramDay } from "../../models/program";
+import { Program } from "../../models/program";
 import { GroupHeader } from "../groupHeader";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ObjectUtils } from "../../utils/object";
-import { ISettings } from "../../models/settings";
 import { History } from "../../models/history";
-import { Weight, IUnit, IWeight } from "../../models/weight";
+import { Weight } from "../../models/weight";
 import { ExerciseView } from "../exercise";
-import { IHistoryEntry, IHistoryRecord } from "../../models/history";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { Button } from "../button";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 import { EditProgram } from "../../models/editProgram";
 import { useState, useRef, useEffect } from "preact/hooks";
 import { ModalAddStateVariable } from "./modalAddStateVariable";
-import { IProgramSet } from "../../models/set";
 import { IEither } from "../../utils/types";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
@@ -29,11 +26,23 @@ import { SemiButton } from "../semiButton";
 import { IconEdit } from "../iconEdit";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
-import { Exercise, IEquipment, equipmentName } from "../../models/exercise";
+import { Exercise, equipmentName } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
 import { IconQuestion } from "../iconQuestion";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
+import {
+  ISettings,
+  IProgramDay,
+  IProgramExercise,
+  IHistoryRecord,
+  IHistoryEntry,
+  IEquipment,
+  IUnit,
+  IProgramSet,
+  IProgramState,
+  IWeight,
+} from "../../types";
 
 interface IProps {
   settings: ISettings;

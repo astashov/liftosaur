@@ -2,14 +2,14 @@ import { h } from "preact";
 
 import { renderPage } from "./render";
 import { UserHtml } from "../../src/pages/user/userHtml";
-import { IStorage } from "../../src/models/state";
 import { IEither } from "../../src/utils/types";
 import { Program } from "../../src/models/program";
 import { History } from "../../src/models/history";
-import { IExerciseId, Exercise } from "../../src/models/exercise";
+import { Exercise } from "../../src/models/exercise";
 import { ObjectUtils } from "../../src/utils/object";
 import { StringUtils } from "../../src/utils/string";
 import { Weight } from "../../src/models/weight";
+import { IStorage, IExerciseId } from "../../src/types";
 
 export function renderUserHtml(storage: IStorage, userId: string): string {
   return renderPage(<UserHtml data={storage} userId={userId} />);

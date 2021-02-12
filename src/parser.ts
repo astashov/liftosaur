@@ -1,6 +1,6 @@
 import { IScriptBindings, IScriptFunctions } from "./models/progress";
-import { IProgramState } from "./models/program";
-import { IWeight, Weight, IUnit } from "./models/weight";
+import { Weight } from "./models/weight";
+import { IUnit, IWeight, IProgramState } from "./types";
 
 type IPos = { readonly line: number; readonly offset: number };
 

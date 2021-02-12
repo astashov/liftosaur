@@ -1,9 +1,10 @@
 import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
-import { Exercise, IExerciseId, IExerciseType, IExercise, IMuscle } from "../models/exercise";
+import { Exercise, IExercise, IMuscle } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
+import { IExerciseType, IExerciseId } from "../types";
 
 interface IModalDateProps {
   exerciseType: IExerciseType;

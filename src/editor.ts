@@ -1,7 +1,7 @@
 import CodeMirror, { StringStream } from "codemirror";
 import "codemirror/mode/diff/diff";
 import "codemirror/addon/hint/show-hint";
-import { IProgramState } from "./models/program";
+import { IProgramState } from "./types";
 
 type IState = Record<string, string | null>;
 

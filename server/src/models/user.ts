@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../../../src/utils/collection";
 import { CloudflareWorkerKV } from "types-cloudflare-worker";
-import { IStorage } from "../../../src/models/state";
+import { IStorage } from "../../../src/types";
 
 declare let kv_liftosaur_users: CloudflareWorkerKV;
 

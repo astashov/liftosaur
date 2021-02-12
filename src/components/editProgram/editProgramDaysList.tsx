@@ -1,5 +1,4 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
@@ -19,6 +18,7 @@ import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { IconMuscles } from "../iconMuscles";
 import { Thunk } from "../../ducks/thunks";
+import { IProgram } from "../../types";
 
 interface IProps {
   editProgram: IProgram;

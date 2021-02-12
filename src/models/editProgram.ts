@@ -1,13 +1,14 @@
 import { lb, lf, lbu, ILensRecordingPayload } from "lens-shmens";
-import { Program, IProgramExercise, IProgram } from "./program";
+import { Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { IExerciseId, Exercise, IEquipment } from "./exercise";
-import { IUnit, Weight, IWeight } from "./weight";
+import { Exercise } from "./exercise";
+import { Weight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { StringUtils } from "../utils/string";
+import { IWeight, IUnit, IExerciseId, IEquipment, IProgram, IProgramExercise } from "../types";
 
 interface I531Tms {
   squat: IWeight;

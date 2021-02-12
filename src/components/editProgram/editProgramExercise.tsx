@@ -1,5 +1,4 @@
-import { ISettings } from "../../models/settings";
-import { IProgramDay, IProgramExercise, Program } from "../../models/program";
+import { Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { h, JSX } from "preact";
 import { HeaderView } from "../header";
@@ -9,6 +8,7 @@ import { useState } from "preact/hooks";
 import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { FooterView } from "../footer";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
+import { ISettings, IProgramDay, IProgramExercise } from "../../types";
 
 interface IProps {
   settings: ISettings;

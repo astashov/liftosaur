@@ -1,6 +1,7 @@
 import { IEither } from "../utils/types";
 import { h, JSX } from "preact";
-import { IWeight, Weight } from "../models/weight";
+import { Weight } from "../models/weight";
+import { IWeight } from "../types";
 
 export function EvalResultInEditor(props: { result: IEither<number | IWeight | undefined, string> }): JSX.Element {
   if (props.result.success) {

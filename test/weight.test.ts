@@ -1,5 +1,5 @@
-import { Weight, IPlate } from "../src/models/weight";
-import { ISettings } from "../src/models/settings";
+import { Weight } from "../src/models/weight";
+import { IPlate, ISettings } from "../src/types";
 
 function buildSettings(plates: IPlate[]): ISettings {
   return {

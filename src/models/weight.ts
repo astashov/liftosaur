@@ -1,53 +1,8 @@
-import * as t from "io-ts";
 import { CollectionUtils } from "../utils/collection";
-import { IArrayElement } from "../utils/types";
 
-export const units = ["kg", "lb"] as const;
-
-export const TUnit = t.keyof(
-  units.reduce<Record<IArrayElement<typeof units>, null>>((memo, exerciseType) => {
-    memo[exerciseType] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof units>, null>),
-  "TUnit"
-);
-
-export type IUnit = t.TypeOf<typeof TUnit>;
-
-export const TWeight = t.type(
-  {
-    value: t.number,
-    unit: TUnit,
-  },
-  "TWeight"
-);
-export type IWeight = t.TypeOf<typeof TWeight>;
-
-export const TPlate = t.type(
-  {
-    weight: TWeight,
-    num: t.number,
-  },
-  "TPlate"
-);
-export type IPlate = t.TypeOf<typeof TPlate>;
-
-const barKeys = ["barbell", "ezbar", "dumbbell"] as const;
-
-export const TBarKey = t.keyof(
-  barKeys.reduce<Record<IArrayElement<typeof barKeys>, null>>((memo, barKey) => {
-    memo[barKey] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof barKeys>, null>),
-  "TBarKey"
-);
-export type IBarKey = t.TypeOf<typeof TBarKey>;
-
-export const TBars = t.record(TBarKey, TWeight, "TBars");
-export type IBars = t.TypeOf<typeof TBars>;
-
-import { ISettings, Settings } from "./settings";
-import { IEquipment, equipmentToBarKey } from "./exercise";
+import { Settings } from "./settings";
+import { equipmentToBarKey } from "./exercise";
+import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 

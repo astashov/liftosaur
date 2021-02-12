@@ -2,14 +2,13 @@ import { h, JSX } from "preact";
 import "../../models/state";
 import { DateUtils } from "../../utils/date";
 import { IRecordResponse } from "../../api/service";
-import { Weight, IUnit } from "../../models/weight";
-import { ISet, Reps } from "../../models/set";
+import { Weight } from "../../models/weight";
+import { Reps } from "../../models/set";
 import { Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
-import { IHistoryRecord, IHistoryEntry } from "../../models/history";
 import { Graph } from "../../components/graph";
-import { ISettings } from "../../models/settings";
 import { History } from "../../models/history";
+import { IHistoryRecord, IHistoryEntry, ISettings, ISet, IUnit } from "../../types";
 
 interface IProps {
   data: IRecordResponse;

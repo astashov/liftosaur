@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IUnit } from "../models/weight";
+import { IUnit } from "../types";
 
 interface IProps {
   units: IUnit;

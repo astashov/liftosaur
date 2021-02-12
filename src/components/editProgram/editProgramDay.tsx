@@ -1,12 +1,10 @@
 import { h, JSX, Fragment } from "preact";
-import { IProgram, IProgramDay } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { HeaderView } from "../header";
 import { FooterView } from "../footer";
 import { MenuItemEditable } from "../menuItemEditable";
 import { EditProgram } from "../../models/editProgram";
 import { DraggableList } from "../draggableList";
-import { ISettings } from "../../models/settings";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { IconCheck } from "../iconCheck";
@@ -15,6 +13,7 @@ import { IconEdit } from "../iconEdit";
 import { SemiButton } from "../semiButton";
 import { IconMuscles } from "../iconMuscles";
 import { Thunk } from "../../ducks/thunks";
+import { ISettings, IProgram, IProgramDay } from "../../types";
 
 interface IProps {
   isProgress: boolean;

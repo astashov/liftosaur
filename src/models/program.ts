@@ -1,91 +1,28 @@
-import { IHistoryRecord, IHistoryEntry } from "./history";
-import { Exercise, TExerciseType, IExerciseType } from "./exercise";
-import * as t from "io-ts";
-import { ISet, TProgramSet, IProgramSet } from "./set";
+import { Exercise } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
-import { ISettings } from "./settings";
 import { Screen } from "./screen";
 import { lb, lf } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
-import { IEither, IArrayElement } from "../utils/types";
-import { TWeight, Weight, IWeight } from "./weight";
+import { IEither } from "../utils/types";
+import { Weight } from "./weight";
 import { UidFactory } from "../utils/generator";
-import { IState, updateState, IStorage } from "./state";
-
-export const TProgramDayEntry = t.type(
-  {
-    exercise: TExerciseType,
-    sets: t.array(TProgramSet),
-  },
-  "TProgramDayEntry"
-);
-export type IProgramDayEntry = Readonly<t.TypeOf<typeof TProgramDayEntry>>;
-
-export const TProgramDay = t.type(
-  {
-    name: t.string,
-    exercises: t.array(
-      t.type({
-        id: t.string,
-      })
-    ),
-  },
-  "TProgramDay"
-);
-export type IProgramDay = Readonly<t.TypeOf<typeof TProgramDay>>;
-
-export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
-export type IProgramState = t.TypeOf<typeof TProgramState>;
-
-const tags = ["first-starter", "beginner", "barbell", "dumbbell", "intermediate", "woman"] as const;
-
-export const TProgramTag = t.keyof(
-  tags.reduce<Record<IArrayElement<typeof tags>, null>>((memo, barKey) => {
-    memo[barKey] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof tags>, null>),
-  "TProgramTag"
-);
-export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
-
-export const TProgramExerciseVariation = t.type(
-  {
-    sets: t.array(TProgramSet),
-  },
-  "TProgramExerciseVariation"
-);
-export type IProgramExerciseVariation = Readonly<t.TypeOf<typeof TProgramExerciseVariation>>;
-
-export const TProgramExercise = t.type(
-  {
-    exerciseType: TExerciseType,
-    id: t.string,
-    name: t.string,
-    variations: t.array(TProgramExerciseVariation),
-    state: TProgramState,
-    variationExpr: t.string,
-    finishDayExpr: t.string,
-  },
-  "TProgramExercise"
-);
-export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
-
-export const TProgram = t.type(
-  {
-    exercises: t.array(TProgramExercise),
-    id: t.string,
-    name: t.string,
-    description: t.string,
-    url: t.string,
-    author: t.string,
-    nextDay: t.number,
-    days: t.array(TProgramDay),
-    tags: t.array(TProgramTag),
-  },
-  "TProgram"
-);
-export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;
+import { IState, updateState } from "./state";
+import {
+  IProgram,
+  IProgramDay,
+  IStorage,
+  IProgramExercise,
+  ISettings,
+  IHistoryEntry,
+  IExerciseType,
+  IProgramSet,
+  IProgramState,
+  ISet,
+  IHistoryRecord,
+  IWeight,
+  IProgramExerciseVariation,
+} from "../types";
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {

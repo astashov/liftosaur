@@ -1,11 +1,10 @@
 import { h, JSX } from "preact";
-import { IHistoryEntry } from "../models/history";
-import { IProgramState, Program } from "../models/program";
-import { ISettings } from "../models/settings";
+import { Program } from "../models/program";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
+import { IHistoryEntry, ISettings, IProgramState } from "../types";
 
 interface IProps {
   entry: IHistoryEntry;

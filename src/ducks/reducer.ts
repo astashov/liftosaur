@@ -1,25 +1,32 @@
 import { Reducer } from "preact/hooks";
-import "../models/state";
-import { Program, IProgram } from "../models/program";
-import { IHistoryRecord, THistoryRecord } from "../models/history";
-import { Progress, IProgressMode } from "../models/progress";
-import { IExerciseType } from "../models/exercise";
+import { Program } from "../models/program";
+import { Progress } from "../models/progress";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
-import { IWeight, Weight } from "../models/weight";
+import { Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "lens-shmens";
-import { ISettings } from "../models/settings";
 import * as IDB from "idb-keyval";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { ILocalStorage, TStorage, IState, IStorage } from "../models/state";
+import { ILocalStorage, IState } from "../models/state";
 import { UidFactory } from "../utils/generator";
+import {
+  TStorage,
+  THistoryRecord,
+  IStorage,
+  IExerciseType,
+  IWeight,
+  IProgressMode,
+  ISettings,
+  IHistoryRecord,
+  IProgram,
+} from "../types";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");

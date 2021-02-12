@@ -4,10 +4,10 @@ import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
-import { ISettingsTimers, ISettings } from "../models/settings";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Thunk } from "../ducks/thunks";
+import { ISettingsTimers, ISettings } from "../types";
 
 interface IProps {
   dispatch: IDispatch;

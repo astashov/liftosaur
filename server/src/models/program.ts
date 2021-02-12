@@ -1,6 +1,6 @@
-import { IProgram } from "../../../src/models/program";
 import { CollectionUtils } from "../../../src/utils/collection";
 import { CloudflareWorkerKV } from "types-cloudflare-worker";
+import { IProgram } from "../../../src/types";
 
 declare let kv_liftosaur_programs: CloudflareWorkerKV;
 declare let kv_liftosaur_programs_prod: CloudflareWorkerKV;

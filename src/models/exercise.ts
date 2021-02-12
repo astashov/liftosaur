@@ -1,167 +1,7 @@
-import { ISet } from "./set";
-import * as t from "io-ts";
-import { IArrayElement } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
-
-export const exerciseTypes = [
-  "abWheel",
-  "arnoldPress",
-  "aroundTheWorld",
-  "backExtension",
-  "ballSlams",
-  "battleRopes",
-  "benchDip",
-  "benchPress",
-  "benchPressCloseGrip",
-  "benchPressWideGrip",
-  "bentOverOneArmRow",
-  "bentOverRow",
-  "bicepCurl",
-  "bicycleCrunch",
-  "boxJump",
-  "boxSquat",
-  "bulgarianSplitSquat",
-  "burpee",
-  "cableCrossover",
-  "cableCrunch",
-  "cableKickback",
-  "cablePullThrough",
-  "cableTwist",
-  "calfPressOnLegPress",
-  "calfPressOnSeatedLegPress",
-  "chestDip",
-  "chestFly",
-  "chestPress",
-  "chinUp",
-  "clean",
-  "cleanandJerk",
-  "concentrationCurl",
-  "crossBodyCrunch",
-  "crunch",
-  "cycling",
-  "deadlift",
-  "deadliftHighPull",
-  "declineBenchPress",
-  "declineCrunch",
-  "deficitDeadlift",
-  "ellipticalMachine",
-  "facePull",
-  "flatKneeRaise",
-  "flatLegRaise",
-  "frontRaise",
-  "frontSquat",
-  "gluteBridge",
-  "gluteBridgeMarch",
-  "gobletSquat",
-  "goodMorning",
-  "hackSquat",
-  "hammerCurl",
-  "handstandPushUp",
-  "hangClean",
-  "hangSnatch",
-  "hangingLegRaise",
-  "highKneeSkips",
-  "hipAbductor",
-  "hipThrust",
-  "inclineBenchPress",
-  "inclineChestFly",
-  "inclineChestPress",
-  "inclineCurl",
-  "inclineRow",
-  "invertedRow",
-  "isoLateralChestPress",
-  "isoLateralRow",
-  "jackknifeSitUp",
-  "jumpRope",
-  "jumpSquat",
-  "jumpingJack",
-  "kettlebellSwing",
-  "kettlebellTurkishGetUp",
-  "kippingPullUp",
-  "kneeRaise",
-  "kneelingPulldown",
-  "kneestoElbows",
-  "latPulldown",
-  "lateralBoxJump",
-  "lateralRaise",
-  "legExtension",
-  "legPress",
-  "lunge",
-  "lyingLegCurl",
-  "mountainClimber",
-  "muscleUp",
-  "obliqueCrunch",
-  "overheadPress",
-  "overheadSquat",
-  "pecDeck",
-  "pendlayRow",
-  "pistolSquat",
-  "plank",
-  "powerClean",
-  "powerSnatch",
-  "preacherCurl",
-  "pressUnder",
-  "pullUp",
-  "pullover",
-  "pushPress",
-  "pushUp",
-  "reverseCrunch",
-  "reverseCurl",
-  "reverseFly",
-  "reverseGripConcentrationCurl",
-  "reverseHyperextension",
-  "reversePlank",
-  "romanianDeadlift",
-  "rowing",
-  "russianTwist",
-  "seatedCalfRaise",
-  "seatedLegCurl",
-  "seatedLegPress",
-  "seatedOverheadPress",
-  "seatedPalmsUpWristCurl",
-  "seatedRow",
-  "seatedWideGripRow",
-  "shoulderPress",
-  "shrug",
-  "sideBend",
-  "sideCrunch",
-  "sideHipAbductor",
-  "sideLyingClam",
-  "sidePlank",
-  "singleLegBridge",
-  "singleLegDeadlift",
-  "singleLegGluteBridgeBench",
-  "singleLegGluteBridgeStraight",
-  "singleLegGluteBridgeBentKnee",
-  "singleLegHipThrust",
-  "sitUp",
-  "skullcrusher",
-  "snatch",
-  "snatchPull",
-  "splitJerk",
-  "squat",
-  "squatRow",
-  "standingCalfRaise",
-  "stepUp",
-  "stiffLegDeadlift",
-  "straightLegDeadlift",
-  "sumoDeadlift",
-  "sumoDeadliftHighPull",
-  "superman",
-  "tBarRow",
-  "thruster",
-  "toesToBar",
-  "torsoRotation",
-  "trapBarDeadlift",
-  "tricepsDip",
-  "tricepsExtension",
-  "tricepsPushdown",
-  "uprightRow",
-  "vUp",
-  "widePullUp",
-  "wristRoller",
-  "zercherSquat",
-] as const;
+import { Weight } from "./weight";
+import { Settings } from "./settings";
+import { IExerciseId, IEquipment, IBarKey, IWeight, ISet, IExerciseType, equipments, ISettings } from "../types";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -1115,29 +955,6 @@ interface IMetaExercises {
   targetMuscles: IMuscle[];
   synergistMuscles: IMuscle[];
 }
-
-export const equipments = [
-  "barbell",
-  "cable",
-  "dumbbell",
-  "smith",
-  "band",
-  "kettlebell",
-  "bodyweight",
-  "leverageMachine",
-  "medicineball",
-  "ezbar",
-  "trapbar",
-] as const;
-
-export const TEquipment = t.keyof(
-  equipments.reduce<Record<IArrayElement<typeof equipments>, null>>((memo, barKey) => {
-    memo[barKey] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof equipments>, null>),
-  "TEquipment"
-);
-export type IEquipment = t.TypeOf<typeof TEquipment>;
 
 export type IMuscle =
   | "Adductor Brevis"
@@ -3382,30 +3199,6 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
   },
 };
 
-export const TExerciseId = t.keyof(
-  exerciseTypes.reduce<Record<IArrayElement<typeof exerciseTypes>, null>>((memo, exerciseType) => {
-    memo[exerciseType] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof exerciseTypes>, null>),
-  "TExerciseId"
-);
-export type IExerciseId = t.TypeOf<typeof TExerciseId>;
-
-export const TExerciseType = t.intersection(
-  [
-    t.interface({
-      id: TExerciseId,
-    }),
-    t.partial({
-      equipment: TEquipment,
-    }),
-  ],
-  "TExerciseType"
-);
-export type IExerciseType = t.TypeOf<typeof TExerciseType>;
-
-import { IWeight, Weight, IBarKey } from "./weight";
-
 export function equipmentToBarKey(equipment?: IEquipment): IBarKey | undefined {
   switch (equipment) {
     case "barbell":
@@ -3447,8 +3240,6 @@ export function equipmentName(equipment?: IEquipment): string {
       return "Bodyweight";
   }
 }
-
-import { ISettings, Settings } from "./settings";
 
 export type IExercise = {
   id: IExerciseId;

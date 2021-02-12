@@ -1,13 +1,11 @@
 import { h, JSX } from "preact";
 import { ExerciseView } from "./exercise";
 import { IDispatch } from "../ducks/types";
-import { IProgressMode, Progress } from "../models/progress";
+import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { IHistoryRecord } from "../models/history";
-import { ISettings } from "../models/settings";
-import { IProgram, IProgramExercise } from "../models/program";
 import { Timer } from "./timer";
 import { memo } from "preact/compat";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
 
 interface ICardsViewProps {
   progress: IHistoryRecord;

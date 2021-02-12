@@ -1,11 +1,11 @@
 import { h, JSX } from "preact";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { inputClassName } from "./input";
 import { useRef } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
+import { IProgram } from "../types";
 
 interface IProps {
   program: IProgram;

@@ -3,13 +3,12 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { Graph } from "./graph";
-import { IHistoryRecord, History } from "../models/history";
+import { History } from "../models/history";
 import { Thunk } from "../ducks/thunks";
-import { ISettings } from "../models/settings";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
-import { IExerciseId, IEquipment } from "../models/exercise";
+import { ISettings, IHistoryRecord, IExerciseId, IEquipment } from "../types";
 
 interface IProps {
   dispatch: IDispatch;

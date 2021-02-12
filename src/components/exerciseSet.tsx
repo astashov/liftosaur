@@ -1,10 +1,9 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
-import { Reps, ISet } from "../models/set";
-import { Weight, IWeight } from "../models/weight";
-import { ISettings } from "../models/settings";
-import { IExerciseType } from "../models/exercise";
+import { Reps } from "../models/set";
+import { Weight } from "../models/weight";
 import { ComparerUtils } from "../utils/comparer";
+import { IExerciseType, ISettings, ISet, IWeight } from "../types";
 
 interface IProps {
   exercise: IExerciseType;

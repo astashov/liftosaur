@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IProgram } from "../models/program";
+import { IProgram } from "../types";
 
 interface IProps {
   program: IProgram;

@@ -1,12 +1,11 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IProgram, IProgramExercise } from "../models/program";
 import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { IScreen } from "../models/screen";
-import { ISettings } from "../models/settings";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { dequal } from "dequal/lite";
+import { IProgram, IProgramExercise, ISettings } from "../types";
 
 interface IProps {
   editProgram: IProgram;

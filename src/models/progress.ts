@@ -1,53 +1,27 @@
-import { IExerciseType, Exercise, TExerciseType } from "./exercise";
+import { Exercise } from "./exercise";
 import { Reps } from "./set";
-import { IWeight, Weight, TWeight } from "./weight";
+import { Weight } from "./weight";
 import { Screen } from "./screen";
 import { DateUtils } from "../utils/date";
 import { lf, lb } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
-import * as t from "io-ts";
-import { ISettings } from "./settings";
 import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
 
-export const TProgressUi = t.partial(
-  {
-    amrapModal: t.type({
-      exercise: TExerciseType,
-      setIndex: t.number,
-      weight: TWeight,
-    }),
-    weightModal: t.type({
-      exercise: TExerciseType,
-      weight: TWeight,
-    }),
-    dateModal: t.type({
-      date: t.string,
-    }),
-    editSetModal: t.type({
-      isWarmup: t.boolean,
-      entryIndex: t.number,
-      setIndex: t.union([t.number, t.undefined]),
-    }),
-  },
-  "TProgressUi"
-);
-
-export type IProgressUi = t.TypeOf<typeof TProgressUi>;
-
-export const TProgressMode = t.keyof(
-  {
-    warmup: null,
-    workout: null,
-  },
-  "TProgressMode"
-);
-
-export type IProgressMode = t.TypeOf<typeof TProgressMode>;
-
-import { IHistoryRecord, IHistoryEntry } from "./history";
-import { IProgramDay, IProgram, Program, IProgramState } from "./program";
+import { Program } from "./program";
 import { IState, updateState } from "./state";
+import {
+  IWeight,
+  IHistoryEntry,
+  ISettings,
+  IHistoryRecord,
+  IProgressMode,
+  IExerciseType,
+  IProgressUi,
+  IProgram,
+  IProgramDay,
+  IProgramState,
+} from "../types";
 
 export interface IScriptBindings {
   day: number;

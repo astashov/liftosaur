@@ -1,44 +1,9 @@
-import { TExerciseType, IExerciseType, Exercise, IExerciseId } from "./exercise";
-import { TSet, ISet } from "./set";
-import { Progress, TProgressUi, TProgressMode } from "./progress";
-import * as t from "io-ts";
+import { Exercise } from "./exercise";
+import { Progress } from "./progress";
 import { CollectionUtils } from "../utils/collection";
 
-export const THistoryEntry = t.type(
-  {
-    exercise: TExerciseType,
-    sets: t.array(TSet),
-    warmupSets: t.array(TSet),
-  },
-  "THistoryEntry"
-);
-export type IHistoryEntry = t.TypeOf<typeof THistoryEntry>;
-
-export const THistoryRecord = t.intersection(
-  [
-    t.interface({
-      // ISO8601, like 2020-02-29T18:02:05+00:00
-      date: t.string,
-      programId: t.string,
-      programName: t.string,
-      day: t.number,
-      dayName: t.string,
-      entries: t.array(THistoryEntry),
-      startTime: t.number,
-      id: t.number,
-    }),
-    t.partial({
-      endTime: t.number,
-      ui: TProgressUi,
-      timerSince: t.number,
-      timerMode: TProgressMode,
-    }),
-  ],
-  "THistoryRecord"
-);
-export type IHistoryRecord = t.TypeOf<typeof THistoryRecord>;
-
-import { Weight, IWeight, IUnit } from "./weight";
+import { Weight } from "./weight";
+import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight } from "../types";
 
 export namespace History {
   export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {

@@ -1,19 +1,19 @@
-import { ISettings } from "../../models/settings";
-import { IProgramDay, IProgramExercise, Program } from "../../models/program";
+import { Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
 import { h, JSX, Fragment } from "preact";
 import { ModalExercise } from "../modalExercise";
 import { useState, useRef } from "preact/hooks";
 import { EditProgram } from "../../models/editProgram";
 import { IconEdit } from "../iconEdit";
-import { Exercise, equipmentName, IEquipment } from "../../models/exercise";
+import { Exercise, equipmentName } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { IWeight, Weight } from "../../models/weight";
+import { Weight } from "../../models/weight";
 import { Button } from "../button";
 import { ReactUtils } from "../../utils/react";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
+import { ISettings, IProgramDay, IProgramExercise, IEquipment, IWeight } from "../../types";
 
 interface IProps {
   settings: ISettings;

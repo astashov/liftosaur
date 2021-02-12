@@ -1,8 +1,9 @@
 import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
-import { Exercise, IExerciseId } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
+import { IExerciseId } from "../types";
 
 interface IModalDateProps {
   isHidden: boolean;
@@ -28,7 +29,7 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
           type="text"
           placeholder="Filter"
           onInput={() => {

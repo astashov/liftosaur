@@ -3,16 +3,13 @@ import { CardsView } from "./cards";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord } from "../models/history";
 import { ModalAmrap } from "./modalAmrap";
 import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
 import { RestTimer } from "./restTimer";
-import { IProgressMode, Progress } from "../models/progress";
+import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { ISettings } from "../models/settings";
 import { IconEdit } from "./iconEdit";
-import { IProgram } from "../models/program";
 import { IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
@@ -20,8 +17,8 @@ import { IconShare } from "./iconShare";
 import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
-import { ISet } from "../models/set";
 import { EditProgressEntry } from "../models/editProgressEntry";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet } from "../types";
 
 interface IProps {
   progress: IHistoryRecord;

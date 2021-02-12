@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { Modal } from "./modal";
-import { Exercise, IExerciseId, IExercise } from "../models/exercise";
+import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { IDispatch } from "../ducks/types";
 import { GroupHeader } from "./groupHeader";
@@ -8,6 +8,7 @@ import { DraggableList } from "./draggableList";
 import { IconHandle } from "./iconHandle";
 import { IconDelete } from "./iconDelete";
 import { EditGraphs } from "../models/editGraphs";
+import { IExerciseId } from "../types";
 
 interface IModalGraphsProps {
   isHidden: boolean;

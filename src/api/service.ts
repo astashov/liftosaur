@@ -1,7 +1,4 @@
-import { IProgram } from "../models/program";
-import { IHistoryRecord } from "../models/history";
-import { ISettings } from "../models/settings";
-import { IStorage } from "../models/state";
+import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
 
 export interface IGetStorageResponse {
   email: string;

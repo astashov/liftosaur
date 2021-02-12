@@ -3,11 +3,11 @@ import { JSX, h } from "preact";
 import { useRef } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
-import { IUnit, Weight } from "../models/weight";
+import { Weight } from "../models/weight";
 import { inputClassName } from "./input";
-import { ISet } from "../models/set";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./iconQuestion";
+import { IUnit, ISet } from "../types";
 
 interface IModalWeightProps {
   dispatch: IDispatch;

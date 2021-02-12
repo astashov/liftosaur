@@ -4,13 +4,13 @@ import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { ProgramListView } from "./programList";
 import { useState } from "preact/hooks";
-import { IProgram, Program } from "../models/program";
+import { Program } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
 import { IScreen } from "../models/screen";
 import { ModalPostClone } from "./modalPostClone";
-import { ISettings } from "../models/settings";
+import { IProgram, ISettings } from "../types";
 
 interface IProps {
   dispatch: IDispatch;

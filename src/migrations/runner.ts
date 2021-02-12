@@ -1,6 +1,6 @@
 import { migrations } from "./migrations";
 import { ObjectUtils } from "../utils/object";
-import { IStorage } from "../models/state";
+import { IStorage } from "../types";
 
 export async function runMigrations(client: Window["fetch"], storage: IStorage): Promise<IStorage> {
   const currentVersion = storage.version != null ? parseInt(storage.version.toString(), 10) : 0;

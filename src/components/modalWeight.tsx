@@ -3,7 +3,8 @@ import { JSX, h } from "preact";
 import { useRef } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
-import { IUnit, Weight, IWeight } from "../models/weight";
+import { Weight } from "../models/weight";
+import { IUnit, IWeight } from "../types";
 
 interface IModalWeightProps {
   dispatch: IDispatch;

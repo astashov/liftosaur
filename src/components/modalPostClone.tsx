@@ -1,9 +1,8 @@
 import { h, JSX } from "preact";
 import { Modal } from "./modal";
-import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { TrainingMax } from "./program/the5314b/trainingMax";
-import { ISettings } from "../models/settings";
+import { IProgram, ISettings } from "../types";
 
 interface IProps {
   program: IProgram;

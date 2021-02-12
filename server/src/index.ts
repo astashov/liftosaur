@@ -4,7 +4,6 @@ import { UidFactory } from "./utils/generator";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { Backup } from "./backup";
-import { IStorage } from "../../src/models/state";
 import { renderRecordHtml, recordImage } from "./record";
 import { ProgramModel } from "./models/program";
 import { runMigrations } from "./migrations/runner";
@@ -15,6 +14,7 @@ import { LogModel } from "./models/log";
 import { ObjectUtils } from "../../src/utils/object";
 import { CollectionUtils } from "../../src/utils/collection";
 import { renderLogsHtml } from "../../src/components/admin/logsHtml";
+import { IStorage } from "../../src/types";
 
 declare let kv_liftosaur_google_access_tokens: CloudflareWorkerKV;
 declare let kv_liftosaur_google_ids: CloudflareWorkerKV;

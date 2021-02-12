@@ -1,9 +1,8 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { IProgram, IProgramDay } from "../../models/program";
-import { ISettings } from "../../models/settings";
 import { Muscle } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
+import { ISettings, IProgram, IProgramDay } from "../../types";
 
 interface IProps {
   dispatch: IDispatch;

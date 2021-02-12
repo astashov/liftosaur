@@ -1,15 +1,12 @@
 import { h, JSX, Fragment } from "preact";
 import "../../models/state";
-import { IStorage } from "../../models/state";
-import { IHistoryRecord } from "../../models/history";
-import { ISettings } from "../../models/settings";
-import { Exercise, IExerciseId } from "../../models/exercise";
+import { Exercise } from "../../models/exercise";
 import { History } from "../../models/history";
-import { ISet } from "../../models/set";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
 import { Graph } from "../../components/graph";
 import { Program } from "../../models/program";
+import { IStorage, IExerciseId, IHistoryRecord, ISet, ISettings } from "../../types";
 
 interface IProps {
   data: IStorage;

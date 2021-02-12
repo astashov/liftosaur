@@ -1,17 +1,15 @@
 import { h, JSX } from "preact";
-import { IProgram } from "../models/program";
 import { IDispatch } from "../ducks/types";
 import { HeaderView } from "./header";
 import { FooterView } from "./footer";
-import { IHistoryRecord } from "../models/history";
 import { Program } from "../models/program";
 import { Button } from "./button";
 import { HistoryRecordView } from "./historyRecord";
-import { ISettings } from "../models/settings";
 import { StringUtils } from "../utils/string";
 import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
 import { useState, useEffect, useRef } from "preact/hooks";
+import { IProgram, IHistoryRecord, ISettings } from "../types";
 
 interface IProps {
   program: IProgram;

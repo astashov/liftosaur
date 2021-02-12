@@ -1,11 +1,10 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
-import { IProgressMode } from "../models/progress";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { ISettingsTimers } from "../models/settings";
 import { IWebpushr } from "../models/state";
+import { ISettingsTimers, IProgressMode } from "../types";
 
 interface IProps {
   timers: ISettingsTimers;
@@ -48,7 +47,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const isTimeOut = timeDifference > timer * 1000;
     const className = isTimeOut ? "text-red-500" : "text-gray-200";
     return (
-      <section className="fixed w-full p-3 text-center bg-gray-800 col" style={{ bottom: "4rem" }}>
+      <section className="col fixed w-full p-3 text-center bg-gray-800" style={{ bottom: "4rem" }}>
         <span className={className}>
           {TimeUtils.formatMMSS(timeDifference)}
           {isTimeOut ? " - Time to start next set!" : ""}

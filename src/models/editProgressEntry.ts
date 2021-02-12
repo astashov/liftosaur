@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
-import { ISet } from "./set";
+import { ISet } from "../types";
 
 export namespace EditProgressEntry {
   export function showEditSetModal(

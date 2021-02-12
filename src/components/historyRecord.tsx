@@ -1,16 +1,15 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { CollectionUtils } from "../utils/collection";
-import { Reps, ISet } from "../models/set";
-import { IHistoryRecord } from "../models/history";
+import { Reps } from "../models/set";
 import { DateUtils } from "../utils/date";
 import { Exercise } from "../models/exercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
-import { ISettings } from "../models/settings";
 import { Weight } from "../models/weight";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
+import { IHistoryRecord, ISettings, ISet } from "../types";
 
 interface IProps {
   historyRecord: IHistoryRecord;

@@ -3,9 +3,10 @@ import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse } from "../api/service";
 import { lb } from "lens-shmens";
-import { Program, IProgram } from "../models/program";
+import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IState } from "../models/state";
+import { IProgram } from "../types";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;

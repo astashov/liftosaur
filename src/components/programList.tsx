@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Program, IProgram } from "../models/program";
+import { Program } from "../models/program";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IconDelete } from "./iconDelete";
@@ -8,6 +8,7 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
 import { IState } from "../models/state";
+import { IProgram } from "../types";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -49,7 +50,7 @@ export function ProgramListView(props: IProps): JSX.Element {
               value={
                 <Fragment>
                   <button
-                    className="p-2 align-middle button"
+                    className="button p-2 align-middle"
                     onClick={() => {
                       if (props.editProgramId == null || props.editProgramId !== program.id) {
                         Program.editAction(props.dispatch, program.id);
@@ -61,7 +62,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                     <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                   </button>
                   <button
-                    className="p-2 align-middle button"
+                    className="button p-2 align-middle"
                     onClick={() => {
                       if (props.editProgramId == null || props.editProgramId !== program.id) {
                         if (confirm("Are you sure?")) {

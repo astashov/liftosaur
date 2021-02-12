@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { ISettings } from "../models/settings";
-import { IHistoryRecord, History } from "../models/history";
+import { History } from "../models/history";
 import { HeaderView } from "./header";
 import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
@@ -12,6 +11,7 @@ import { Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
 import { ModalShare } from "./modalShare";
 import { Confetti } from "./confetti";
+import { IHistoryRecord, ISettings } from "../types";
 
 interface IProps {
   history: IHistoryRecord[];

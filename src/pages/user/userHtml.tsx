@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { UserContent } from "./userContent";
-import { IStorage } from "../../models/state";
+import { IStorage } from "../../types";
 
 // Overrides to make sure Graphs will render server-side
 global.requestAnimationFrame = global.requestAnimationFrame || undefined;

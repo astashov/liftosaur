@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { CollectionUtils } from "../utils/collection";
-import { IStorage } from "../models/state";
 import { History } from "../models/history";
 import { UidFactory } from "../utils/generator";
-import { IExerciseId } from "../models/exercise";
 import { ObjectUtils } from "../utils/object";
+import { IStorage, IExerciseId } from "../types";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {

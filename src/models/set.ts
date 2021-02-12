@@ -1,38 +1,8 @@
 import { CollectionUtils } from "../utils/collection";
-import * as t from "io-ts";
-import { TWeight, Weight } from "./weight";
+import { Weight } from "./weight";
+import { ISet } from "../types";
 
 export type IProgramReps = number;
-
-export const TSet = t.intersection(
-  [
-    t.interface({
-      reps: t.number,
-      weight: TWeight,
-    }),
-    t.partial({
-      completedReps: t.number,
-      timestamp: t.number,
-      isAmrap: t.boolean,
-    }),
-  ],
-  "TSet"
-);
-export type ISet = t.TypeOf<typeof TSet>;
-
-export const TProgramSet = t.intersection(
-  [
-    t.interface({
-      repsExpr: t.string,
-      weightExpr: t.string,
-    }),
-    t.partial({
-      isAmrap: t.boolean,
-    }),
-  ],
-  "TProgramSet"
-);
-export type IProgramSet = t.TypeOf<typeof TProgramSet>;
 
 export namespace Reps {
   export function display(sets: ISet[], isNext: boolean = false): string {

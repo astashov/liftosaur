@@ -1,13 +1,10 @@
 import { Service } from "../api/service";
 import { AudioInterface } from "../lib/audioInterface";
-import { IProgram, IProgramExercise, TProgram, IProgramDay } from "./program";
 import { IScreen } from "./screen";
-import { IHistoryRecord, THistoryRecord } from "./history";
-import * as t from "io-ts";
-import { TSettings } from "./settings";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
+import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay } from "../types";
 
 export type IEnv = {
   service: Service;
@@ -29,21 +26,6 @@ export interface IState {
   editExercise?: IProgramExercise;
   adminKey?: string;
 }
-
-export const TStorage = t.type(
-  {
-    id: t.number,
-    history: t.array(THistoryRecord),
-    settings: TSettings,
-    currentProgramId: t.union([t.string, t.undefined]),
-    version: t.string,
-    programs: t.array(TProgram),
-    helps: t.array(t.string),
-    tempUserId: t.string,
-  },
-  "TStorage"
-);
-export type IStorage = Readonly<t.TypeOf<typeof TStorage>>;
 
 export interface IWebpushr {
   sid: number;

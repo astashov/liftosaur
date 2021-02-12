@@ -2,17 +2,17 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { IPlate, IBars, IUnit, Weight } from "../models/weight";
+import { Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Button } from "./button";
 import { useState } from "preact/hooks";
 import { ModalPlates } from "./modalPlates";
 import { lb } from "lens-shmens";
-import { ISettings } from "../models/settings";
 import { Thunk } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
+import { IPlate, IBars, IUnit, ISettings } from "../types";
 
 interface IProps {
   dispatch: IDispatch;

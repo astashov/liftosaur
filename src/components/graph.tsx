@@ -1,12 +1,11 @@
 import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
-import { IHistoryRecord } from "../models/history";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
-import { IExerciseType, Exercise } from "../models/exercise";
-import { ISettings } from "../models/settings";
+import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
+import { IHistoryRecord, IExerciseType, ISettings } from "../types";
 
 interface IGraphProps {
   history: IHistoryRecord[];

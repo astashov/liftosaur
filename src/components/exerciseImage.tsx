@@ -1,7 +1,8 @@
 import { JSX, h, ComponentChildren, Fragment } from "preact";
-import { IExerciseType, Exercise } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "./iconSpinner";
+import { IExerciseType } from "../types";
 
 interface IProps {
   exerciseType: IExerciseType;

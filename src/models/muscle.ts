@@ -1,7 +1,7 @@
-import { IProgramExercise, Program, IProgramDay, IProgram } from "./program";
+import { Program } from "./program";
 import { Exercise, IMuscle } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { ISettings } from "./settings";
+import { IProgram, ISettings, IProgramDay, IProgramExercise } from "../types";
 
 export type IScreenMuscle =
   | "shoulders"
