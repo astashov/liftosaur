@@ -1,11 +1,11 @@
 /* purgecss start ignore */
-@import "~uplot/dist/uPlot.min.css";
+@import "uplot/dist/uPlot.min.css";
 
-@tailwind base;
-@tailwind components;
+@import "tailwindcss/dist/base.css";
+@import "tailwindcss/dist/components.css";
 
-@import "~codemirror/lib/codemirror.css";
-@import "~codemirror/addon/hint/show-hint.css";
+@import "codemirror/lib/codemirror.css";
+@import "codemirror/addon/hint/show-hint.css";
 
 .CodeMirror {
   font-size: 16px;
@@ -74,5 +74,6 @@
 }
 
 /* purgecss end ignore */
+/*! Copyright notice 1*/
 
-@tailwind utilities;
+@import "tailwindcss/dist/utilities.css";

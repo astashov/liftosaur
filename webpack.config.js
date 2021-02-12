@@ -10,13 +10,12 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 // Export a function. Accept the base config as the only param.
 module.exports = {
   entry: {
-    main: ["./src/index.tsx", "./src/index.css"],
-    admin: ["./src/admin.tsx", "./src/admin.css"],
-    record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
-    user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
-    editor: ["./src/editor.ts", "./src/editor.css"],
+    main: ["./src/index.css"],
+    admin: ["./src/admin.css"],
+    record: ["./src/record.css", "./src/index.css"],
+    user: ["./src/user.css", "./src/index.css"],
+    editor: ["./src/editor.css"],
     about: ["./src/about.css"],
-    "webpushr-sw": "./src/webpushr-sw.ts",
   },
   output: {
     filename: "[name].js",
@@ -30,138 +29,12 @@ module.exports = {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
-      {
-        test: /\.tsx?$/,
-        use: [
-          {
-            loader: "ts-loader",
-            options: {
-              transpileOnly: true,
-              configFile: "tsconfig.json",
-            },
-          },
-        ],
-      },
     ],
-  },
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          name: "vendors",
-          chunks: (chunk) => chunk.name === "main",
-        },
-      },
-    },
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
-  plugins: [
-    new MiniCssExtractPlugin(),
-    new DefinePlugin({
-      __COMMIT_HASH__: JSON.stringify(commitHash),
-      __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:8787"
-      ),
-      __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
-      __HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://www.liftosaur.com" : "http://local.liftosaur.com:8080"
-      ),
-    }),
-    new CopyPlugin([
-      {
-        from: `src/index.html`,
-        to: `index.html`,
-        transform: (content) => {
-          return content
-            .toString()
-            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
-        },
-      },
-      {
-        from: "_redirects",
-        to: "",
-      },
-      {
-        from: `src/editor.html`,
-        to: `editor.html`,
-      },
-      {
-        from: `src/about.html`,
-        to: `about/index.html`,
-        transform: (content) => {
-          return content
-            .toString()
-            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
-        },
-      },
-      {
-        from: `src/about.css`,
-        to: `about.css`,
-      },
-      {
-        from: `src/record.css`,
-        to: `record.css`,
-      },
-      {
-        from: `src/user.css`,
-        to: `user.css`,
-      },
-      {
-        from: `src/admin.css`,
-        to: `admin.css`,
-      },
-      {
-        from: `docs`,
-        to: `docs`,
-      },
-      {
-        from: `src/googleauthcallback.html`,
-        to: `googleauthcallback.html`,
-      },
-      {
-        from: `src/privacy.html`,
-        to: `privacy.html`,
-      },
-      {
-        from: `src/terms.html`,
-        to: `terms.html`,
-      },
-      {
-        from: `src/sitemap.txt`,
-        to: `sitemap.txt`,
-      },
-      {
-        from: `src/notification.m4r`,
-        to: `notification.m4r`,
-      },
-      {
-        from: "icons",
-        to: "icons",
-      },
-      {
-        from: "fonts",
-        to: "fonts",
-      },
-      {
-        from: "images",
-        to: "images",
-      },
-      {
-        from: "manifest.webmanifest",
-        to: "manifest.webmanifest",
-      },
-      {
-        from: "assetlinks.json",
-        to: ".well-known/assetlinks.json",
-      },
-    ]),
-    new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
-  ],
+  plugins: [new MiniCssExtractPlugin()],
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     compress: true,

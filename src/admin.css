@@ -1,7 +1,7 @@
 /* purgecss start ignore */
 
-@tailwind base;
-@tailwind components;
+@import "tailwindcss/dist/base.css";
+@import "tailwindcss/dist/components.css";
 
 body {
   font-size: 16px;
@@ -128,4 +128,4 @@ h1 {
 
 /* purgecss end ignore */
 
-@tailwind utilities;
+@import "tailwindcss/dist/utilities.css";
