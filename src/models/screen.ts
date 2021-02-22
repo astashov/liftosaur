@@ -10,6 +10,7 @@ export type IScreen =
   | "finishDay"
   | "musclesProgram"
   | "musclesDay"
+  | "stats"
   | "editProgram"
   | "editProgramExercise"
   | "editProgramDay"

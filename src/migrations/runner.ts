@@ -1,4 +1,4 @@
-import { migrations } from "./migrations";
+import { getLatestMigrationVersion, migrations } from "./migrations";
 import { ObjectUtils } from "../utils/object";
 import { IStorage } from "../types";
 
@@ -14,5 +14,6 @@ export async function runMigrations(client: Window["fetch"], storage: IStorage):
   for (const version of newVersions) {
     result = await migrations[version](client, result);
   }
+  result = { ...result, version: getLatestMigrationVersion() };
   return result;
 }

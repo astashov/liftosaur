@@ -69,7 +69,13 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
       id: 0,
       currentProgramId: undefined,
       tempUserId: UidFactory.generateUid(10),
+      stats: {
+        weight: {},
+        length: {},
+      },
       settings: {
+        lengthUnits: "in",
+        statsEnabled: { weight: { weight: true }, length: {} },
         plates: [
           { weight: Weight.build(45, "lb"), num: 4 },
           { weight: Weight.build(25, "lb"), num: 4 },
@@ -485,12 +491,90 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (newStorage?.id != null && oldStorage?.id != null && newStorage.id > oldStorage.id) {
       const storage: IStorage = {
         id: newStorage.id,
+        stats: {
+          weight: {
+            weight: CollectionUtils.concatBy(
+              oldStorage.stats.weight.weight || [],
+              newStorage.stats.weight.weight || [],
+              (el) => `${el.timestamp}`
+            ),
+          },
+          length: {
+            neck: CollectionUtils.concatBy(
+              oldStorage.stats.length.neck || [],
+              newStorage.stats.length.neck || [],
+              (el) => `${el.timestamp}`
+            ),
+            shoulders: CollectionUtils.concatBy(
+              oldStorage.stats.length.shoulders || [],
+              newStorage.stats.length.shoulders || [],
+              (el) => `${el.timestamp}`
+            ),
+            bicepLeft: CollectionUtils.concatBy(
+              oldStorage.stats.length.bicepLeft || [],
+              newStorage.stats.length.bicepLeft || [],
+              (el) => `${el.timestamp}`
+            ),
+            bicepRight: CollectionUtils.concatBy(
+              oldStorage.stats.length.bicepRight || [],
+              newStorage.stats.length.bicepRight || [],
+              (el) => `${el.timestamp}`
+            ),
+            forearmLeft: CollectionUtils.concatBy(
+              oldStorage.stats.length.forearmLeft || [],
+              newStorage.stats.length.forearmLeft || [],
+              (el) => `${el.timestamp}`
+            ),
+            forearmRight: CollectionUtils.concatBy(
+              oldStorage.stats.length.forearmRight || [],
+              newStorage.stats.length.forearmRight || [],
+              (el) => `${el.timestamp}`
+            ),
+            chest: CollectionUtils.concatBy(
+              oldStorage.stats.length.chest || [],
+              newStorage.stats.length.chest || [],
+              (el) => `${el.timestamp}`
+            ),
+            waist: CollectionUtils.concatBy(
+              oldStorage.stats.length.waist || [],
+              newStorage.stats.length.waist || [],
+              (el) => `${el.timestamp}`
+            ),
+            hips: CollectionUtils.concatBy(
+              oldStorage.stats.length.hips || [],
+              newStorage.stats.length.hips || [],
+              (el) => `${el.timestamp}`
+            ),
+            thighLeft: CollectionUtils.concatBy(
+              oldStorage.stats.length.thighLeft || [],
+              newStorage.stats.length.thighLeft || [],
+              (el) => `${el.timestamp}`
+            ),
+            thighRight: CollectionUtils.concatBy(
+              oldStorage.stats.length.thighRight || [],
+              newStorage.stats.length.thighRight || [],
+              (el) => `${el.timestamp}`
+            ),
+            calfLeft: CollectionUtils.concatBy(
+              oldStorage.stats.length.calfLeft || [],
+              newStorage.stats.length.calfLeft || [],
+              (el) => `${el.timestamp}`
+            ),
+            calfRight: CollectionUtils.concatBy(
+              oldStorage.stats.length.calfRight || [],
+              newStorage.stats.length.calfRight || [],
+              (el) => `${el.timestamp}`
+            ),
+          },
+        },
         settings: {
           plates: CollectionUtils.concatBy(
             oldStorage.settings.plates,
             newStorage.settings.plates,
             (el) => `${el.weight.value}${el.weight.unit}`
           ),
+          lengthUnits: newStorage.settings.lengthUnits,
+          statsEnabled: newStorage.settings.statsEnabled,
           graphs: newStorage.settings.graphs || [],
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,

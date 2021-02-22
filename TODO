@@ -14,6 +14,10 @@
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add muscles to the exercise selector
+* Add ability to add friends
+* Add ability to watch friends feeds
+* Add ability to comment friends workouts
+* Add ability to like friends workouts
 
 * Bug:
 Assign lb to state var of type number

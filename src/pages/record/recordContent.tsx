@@ -6,7 +6,7 @@ import { Weight } from "../../models/weight";
 import { Reps } from "../../models/set";
 import { Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
-import { Graph } from "../../components/graph";
+import { GraphExercise } from "../../components/graphExercise";
 import { History } from "../../models/history";
 import { IHistoryRecord, IHistoryEntry, ISettings, ISet, IUnit } from "../../types";
 
@@ -145,7 +145,7 @@ function Entry(props: IEntryProps): JSX.Element {
           </div>
         </div>
         <div className="record-graph">
-          <Graph history={props.history} exercise={props.entry.exercise} settings={props.settings} />
+          <GraphExercise history={props.history} exercise={props.entry.exercise} settings={props.settings} />
         </div>
       </div>
     </section>

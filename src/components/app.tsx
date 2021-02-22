@@ -26,6 +26,7 @@ import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
 import { LogUtils } from "../utils/log";
+import { ScreenStats } from "./screenStats";
 
 interface IProps {
   client: Window["fetch"];
@@ -121,6 +122,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramHistoryView
           program={program}
           progress={state.progress?.[0]}
+          stats={state.storage.stats}
           settings={state.storage.settings}
           history={state.storage.history}
           dispatch={dispatch}
@@ -155,6 +157,8 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
+  } else if (Screen.current(state.screenStack) === "stats") {
+    content = <ScreenStats dispatch={dispatch} settings={state.storage.settings} stats={state.storage.stats} />;
   } else if (Screen.current(state.screenStack) === "account") {
     content = <ScreenAccount dispatch={dispatch} email={state.user?.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {
@@ -169,7 +173,14 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "graphs") {
-    content = <ScreenGraphs settings={state.storage.settings} dispatch={dispatch} history={state.storage.history} />;
+    content = (
+      <ScreenGraphs
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        history={state.storage.history}
+        stats={state.storage.stats}
+      />
+    );
   } else if (Screen.editProgramScreens.indexOf(Screen.current(state.screenStack)) !== -1) {
     let editProgram = Program.getEditingProgram(state);
     editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);

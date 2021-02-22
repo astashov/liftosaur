@@ -7,6 +7,7 @@ import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IState } from "../models/state";
 import { IProgram } from "../types";
+import { runMigrations } from "../migrations/runner";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -18,7 +19,7 @@ export namespace Thunk {
       const accessToken = await getGoogleAccessToken();
       if (accessToken != null) {
         const result = await env.service.googleSignIn(accessToken);
-        handleLogin(dispatch, result);
+        await handleLogin(dispatch, result, env.service.client);
         dispatch(sync());
       }
     };
@@ -42,7 +43,7 @@ export namespace Thunk {
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
       const result = await env.service.getStorage(getState().user?.id, getState().adminKey);
-      handleLogin(dispatch, result);
+      await handleLogin(dispatch, result, env.service.client);
     };
   }
 
@@ -98,10 +99,11 @@ export namespace Thunk {
   }
 }
 
-function handleLogin(dispatch: IDispatch, result: IGetStorageResponse): void {
+async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, client: Window["fetch"]): Promise<void> {
   if (result.email != null) {
     Rollbar.configure({ payload: { environment: __ENV__, person: { email: result.email, id: result.user_id } } });
+    const storage = await runMigrations(client, result.storage);
     dispatch({ type: "Login", email: result.email, userId: result.user_id });
-    dispatch({ type: "SyncStorage", storage: result.storage });
+    dispatch({ type: "SyncStorage", storage });
   }
 }

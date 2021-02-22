@@ -32,7 +32,14 @@ export namespace Weight {
   }
 
   export function is(object: unknown): object is IWeight {
-    return object instanceof Object && "unit" in object && "value" in object;
+    const objWeight = object as IWeight;
+    return (
+      objWeight &&
+      typeof objWeight === "object" &&
+      "unit" in objWeight &&
+      "value" in objWeight &&
+      (objWeight.unit === "kg" || objWeight.unit === "lb")
+    );
   }
 
   export function round(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {

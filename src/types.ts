@@ -1,4 +1,5 @@
 import * as t from "io-ts";
+import { ObjectUtils } from "./utils/object";
 import { IArrayElement } from "./utils/types";
 
 export const equipments = [
@@ -215,7 +216,6 @@ export const TUnit = t.keyof(
   }, {} as Record<IArrayElement<typeof units>, null>),
   "TUnit"
 );
-
 export type IUnit = t.TypeOf<typeof TUnit>;
 
 export const TWeight = t.type(
@@ -423,6 +423,85 @@ export const TProgram = t.type(
 );
 export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;
 
+export const lengthUnits = ["in", "cm"] as const;
+
+export const TLengthUnit = t.keyof(
+  lengthUnits.reduce<Record<IArrayElement<typeof lengthUnits>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof lengthUnits>, null>),
+  "TUnit"
+);
+export type ILengthUnit = t.TypeOf<typeof TLengthUnit>;
+
+export const TLength = t.type(
+  {
+    value: t.number,
+    unit: TLengthUnit,
+  },
+  "TLength"
+);
+export type ILength = t.TypeOf<typeof TLength>;
+
+export const TStatsWeightValue = t.type({ value: TWeight, timestamp: t.number }, "TStatsWeightValue");
+export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
+
+export const statsWeightDef = {
+  weight: t.array(TStatsWeightValue),
+};
+export const TStatsWeight = t.partial(statsWeightDef, "TStatsWeight");
+export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
+
+export const TStatsLengthValue = t.type({ value: TLength, timestamp: t.number }, "TStatsLengthValue");
+export type IStatsLengthValue = t.TypeOf<typeof TStatsLengthValue>;
+
+export const statsLengthDef = {
+  neck: t.array(TStatsLengthValue),
+  shoulders: t.array(TStatsLengthValue),
+  bicepLeft: t.array(TStatsLengthValue),
+  bicepRight: t.array(TStatsLengthValue),
+  forearmLeft: t.array(TStatsLengthValue),
+  forearmRight: t.array(TStatsLengthValue),
+  chest: t.array(TStatsLengthValue),
+  waist: t.array(TStatsLengthValue),
+  hips: t.array(TStatsLengthValue),
+  thighLeft: t.array(TStatsLengthValue),
+  thighRight: t.array(TStatsLengthValue),
+  calfLeft: t.array(TStatsLengthValue),
+  calfRight: t.array(TStatsLengthValue),
+};
+export const TStatsLength = t.partial(statsLengthDef, "TStatsLength");
+export type IStatsLength = t.TypeOf<typeof TStatsLength>;
+
+export type IStatsKey = keyof IStatsLength | keyof IStatsWeight;
+
+export const TStatsWeightEnabled = t.partial(
+  ObjectUtils.keys(statsWeightDef).reduce<Record<keyof IStatsWeight, t.BooleanC>>((memo, key) => {
+    memo[key] = t.boolean;
+    return memo;
+  }, {} as Record<keyof IStatsWeight, t.BooleanC>),
+  "TStatsWeightEnabled"
+);
+export type IStatsWeightEnabled = t.TypeOf<typeof TStatsWeightEnabled>;
+
+export const TStatsLengthEnabled = t.partial(
+  ObjectUtils.keys(statsLengthDef).reduce<Record<keyof IStatsLength, t.BooleanC>>((memo, key) => {
+    memo[key] = t.boolean;
+    return memo;
+  }, {} as Record<keyof IStatsLength, t.BooleanC>),
+  "TStatsLengthEnabled"
+);
+export type IStatsLengthEnabled = t.TypeOf<typeof TStatsLengthEnabled>;
+
+export const TStatsEnabled = t.type(
+  {
+    weight: TStatsWeightEnabled,
+    length: TStatsLengthEnabled,
+  },
+  "TStatsEnabled"
+);
+export type IStatsEnabled = Readonly<t.TypeOf<typeof TStatsEnabled>>;
+
 export const TSettingsTimers = t.type(
   {
     warmup: t.union([t.number, t.null]),
@@ -432,14 +511,23 @@ export const TSettingsTimers = t.type(
 );
 export type ISettingsTimers = t.TypeOf<typeof TSettingsTimers>;
 
+export const TGraph = t.union([
+  t.type({ type: t.literal("exercise"), id: TExerciseId }),
+  t.type({ type: t.literal("statsWeight"), id: t.keyof(statsWeightDef) }),
+  t.type({ type: t.literal("statsLength"), id: t.keyof(statsLengthDef) }),
+]);
+export type IGraph = t.TypeOf<typeof TGraph>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
       plates: t.array(TPlate),
       bars: t.record(TUnit, TBars),
-      graphs: t.array(TExerciseId),
+      graphs: t.array(TGraph),
+      statsEnabled: TStatsEnabled,
       units: TUnit,
+      lengthUnits: TLengthUnit,
     }),
     t.partial({
       isPublicProfile: t.boolean,
@@ -451,10 +539,17 @@ export const TSettings = t.intersection(
 
 export type ISettings = t.TypeOf<typeof TSettings>;
 
+export const TStats = t.type({
+  weight: TStatsWeight,
+  length: TStatsLength,
+});
+export type IStats = t.TypeOf<typeof TStats>;
+
 export const TStorage = t.type(
   {
     id: t.number,
     history: t.array(THistoryRecord),
+    stats: TStats,
     settings: TSettings,
     currentProgramId: t.union([t.string, t.undefined]),
     version: t.string,

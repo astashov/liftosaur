@@ -5,6 +5,8 @@ function buildSettings(plates: IPlate[]): ISettings {
   return {
     plates,
     graphs: [],
+    lengthUnits: "in",
+    statsEnabled: { weight: { weight: true }, length: {} },
     bars: {
       lb: {
         barbell: Weight.build(45, "lb"),

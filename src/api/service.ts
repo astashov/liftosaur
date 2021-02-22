@@ -15,7 +15,7 @@ export interface IRecordResponse {
 }
 
 export class Service {
-  private readonly client: Window["fetch"];
+  public readonly client: Window["fetch"];
 
   constructor(client: Window["fetch"]) {
     this.client = client;
