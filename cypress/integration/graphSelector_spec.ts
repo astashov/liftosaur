@@ -19,7 +19,7 @@ describe("Graphs", () => {
 
     g("graphs-back").click();
 
-    cy.contains("Start Next Workout").click();
+    cy.contains("Start New Workout").click();
     cy.contains("Got it!").click();
 
     // Complete workout
@@ -53,7 +53,7 @@ describe("Graphs", () => {
 
     g("graphs-modify").click();
 
-    g("item-graph-bent-over-row").find("[data-cy=remove-graph]").click();
+    g("item-graph-exercise-bentoverrow").find("[data-cy=remove-graph]").click();
     g("item-graph-squat").click();
 
     g("modal-close").click();

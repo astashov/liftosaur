@@ -59,7 +59,7 @@ describe("Program", () => {
 
     // Running the program
 
-    cy.contains("Start Next Workout").click();
+    cy.contains("Start New Workout").click();
     cy.contains("Got it!").click();
 
     g("set-nonstarted").should("have.length", 5);

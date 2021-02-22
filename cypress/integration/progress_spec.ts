@@ -11,7 +11,7 @@ describe("Progress", () => {
     cy.contains("Let's choose a program!").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
-    cy.contains("Start Next Workout").click();
+    cy.contains("Start New Workout").click();
     cy.contains("Got it!").click();
 
     // Testing set clicks

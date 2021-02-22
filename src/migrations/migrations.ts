@@ -64,4 +64,27 @@ export const migrations = {
     (storage as any).settings.graphs = storage.settings.graphs || graphs;
     return storage;
   },
+  "20210222215108_add_stats": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.statsEnabled = storage.settings.statsEnabled || {
+      weight: {
+        weight: true,
+      },
+      length: {
+        chest: true,
+        shoulders: true,
+        bicepLeft: true,
+        bicepRight: true,
+        waist: true,
+        thighLeft: true,
+        thighRight: true,
+      },
+    };
+    storage.settings.lengthUnits = storage.settings.lengthUnits || "in";
+    storage.settings.graphs = storage.settings.graphs.map((g: any) =>
+      typeof g === "string" ? { type: "exercise", id: g } : g
+    );
+    (storage as any).stats = storage.stats || { weight: {}, length: {} };
+    return storage;
+  },
 };

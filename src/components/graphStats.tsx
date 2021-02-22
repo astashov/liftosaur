@@ -2,48 +2,49 @@ import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
 import { CollectionUtils } from "../utils/collection";
-import { DateUtils } from "../utils/date";
-import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
-import { IHistoryRecord, IExerciseType, ISettings } from "../types";
+import { ILengthUnit, ISettings, IStatsKey, IStatsLengthValue, IStatsWeightValue, IUnit } from "../types";
+import { Length } from "../models/length";
+import { Stats } from "../models/stats";
+import { DateUtils } from "../utils/date";
 
-interface IGraphProps {
-  history: IHistoryRecord[];
-  exercise: IExerciseType;
+interface IGraphStatsProps {
+  collection: [number, number][];
+  units: IUnit | ILengthUnit;
+  statsKey: IStatsKey;
   settings: ISettings;
   title?: string;
 }
 
-export function Graph(props: IGraphProps): JSX.Element {
+export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
+  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  return sortedCollection.map((i) => {
+    return [i.timestamp / 1000, Weight.convertTo(i.value, settings.units).value];
+  });
+}
+
+export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISettings): [number, number][] {
+  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  return sortedCollection.map((i) => {
+    return [i.timestamp / 1000, Length.convertTo(i.value, settings.lengthUnits).value];
+  });
+}
+
+export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
-  const units = props.settings.units;
   useEffect(() => {
-    const data = CollectionUtils.sort(props.history, (a, b) => a.startTime - b.startTime).reduce<
-      [number[], number[], number[]]
-    >(
+    const data = props.collection.reduce<[number[], number[]]>(
       (memo, i) => {
-        const entry = i.entries.filter((e) => e.exercise.id === props.exercise.id)[0];
-        if (entry != null) {
-          const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
-            return b.weight !== a.weight
-              ? Weight.compare(b.weight, a.weight)
-              : (b.completedReps || 0) - (a.completedReps || 0);
-          }).find((s) => s.completedReps != null && s.completedReps > 0);
-          if (maxSet != null) {
-            memo[0].push(new Date(Date.parse(i.date)).getTime() / 1000);
-            memo[1].push(Weight.convertTo(maxSet.weight, props.settings.units).value);
-            memo[2].push(maxSet.completedReps!);
-          }
-        }
+        memo[0].push(i[0]);
+        memo[1].push(i[1]);
         return memo;
       },
-      [[], [], []]
+      [[], []]
     );
     const rect = graphRef.current.getBoundingClientRect();
-    const exercise = Exercise.get(props.exercise);
     const opts: UPlot.Options = {
-      title: props.title || `${exercise.name} Max Weight`,
+      title: props.title || `${Stats.name(props.statsKey)}`,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,
@@ -57,13 +58,10 @@ export function Graph(props: IGraphProps): JSX.Element {
               (self: UPlot): void => {
                 const idx = self.cursor.idx!;
                 const date = new Date(data[0][idx] * 1000);
-                const weight = data[1][idx];
-                const reps = data[2][idx];
+                const value = data[1][idx];
                 let text: string;
-                if (weight != null && units != null && reps != null) {
-                  text = `${DateUtils.format(
-                    date
-                  )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
+                if (value != null && props.units != null) {
+                  text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
                 } else {
                   text = "";
                 }
@@ -81,15 +79,9 @@ export function Graph(props: IGraphProps): JSX.Element {
       series: [
         {},
         {
-          label: "Weight",
-          value: (self, rawValue) => `${rawValue} ${units}`,
+          label: props.statsKey === "weight" ? "Weight" : "Size",
+          value: (self, rawValue) => `${rawValue} ${props.units}`,
           stroke: "red",
-          width: 1,
-        },
-        {
-          show: false,
-          label: "Reps",
-          stroke: "blue",
           width: 1,
         },
       ],

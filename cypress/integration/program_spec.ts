@@ -124,7 +124,7 @@ describe("Program", () => {
       "2x8"
     );
 
-    cy.contains("Start Next Workout").click();
+    cy.contains("Start New Workout").click();
     cy.contains("Got it!").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").click({ multiple: true });

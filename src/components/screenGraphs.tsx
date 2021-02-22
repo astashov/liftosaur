@@ -2,17 +2,19 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { Graph } from "./graph";
+import { GraphExercise } from "./graphExercise";
 import { History } from "../models/history";
 import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
-import { ISettings, IHistoryRecord, IExerciseId, IEquipment } from "../types";
+import { ISettings, IHistoryRecord, IExerciseId, IEquipment, IStats } from "../types";
+import { getLengthDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
+  stats: IStats;
   history: IHistoryRecord[];
 }
 
@@ -54,15 +56,39 @@ export function ScreenGraphs(props: IProps): JSX.Element {
             Select graphs you want to display by clicking "Modify" at right top corner.
           </div>
         ) : (
-          props.settings.graphs.map((exerciseId) => {
-            return (
-              <Graph
-                key={exerciseId}
-                settings={props.settings}
-                history={props.history}
-                exercise={{ id: exerciseId, equipment: exerciseTypes[exerciseId] }}
-              />
-            );
+          props.settings.graphs.map((graph) => {
+            if (graph.type === "exercise") {
+              return (
+                <GraphExercise
+                  key={graph}
+                  settings={props.settings}
+                  history={props.history}
+                  exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
+                />
+              );
+            } else if (graph.type === "statsWeight") {
+              const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
+              return (
+                <GraphStats
+                  units={props.settings.units}
+                  key={graph.id}
+                  settings={props.settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              );
+            } else {
+              const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
+              return (
+                <GraphStats
+                  units={props.settings.lengthUnits}
+                  key={graph.id}
+                  settings={props.settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              );
+            }
           })
         )}
       </section>
@@ -71,7 +97,8 @@ export function ScreenGraphs(props: IProps): JSX.Element {
       <ModalGraphs
         isHidden={!isModalOpen}
         exerciseIds={exerciseIds}
-        selectedExerciseIds={props.settings.graphs}
+        stats={props.stats}
+        graphs={props.settings.graphs}
         onClose={() => setIsModalOpen(false)}
         dispatch={props.dispatch}
       />

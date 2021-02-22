@@ -9,12 +9,17 @@ import { StringUtils } from "../utils/string";
 import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
 import { useState, useEffect, useRef } from "preact/hooks";
-import { IProgram, IHistoryRecord, ISettings } from "../types";
+import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
+import { Tabs } from "./tabs";
+import { StatsList } from "./statsList";
+
+type ITab = "Workouts" | "Stats";
 
 interface IProps {
   program: IProgram;
   progress?: IHistoryRecord;
   history: IHistoryRecord[];
+  stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
 }
@@ -41,6 +46,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     return () => window.removeEventListener("scroll", scrollHandler);
   }, []);
 
+  const [tab, setTab] = useState<ITab>("Workouts");
+
   const history = [nextHistoryRecord, ...sortedHistory];
 
   return (
@@ -60,18 +67,35 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         }
       />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }} ref={containerRef}>
-        <div className="py-3 text-center border-b border-gray-200">
-          <Button
-            kind="green"
-            className="ls-start-workout"
-            onClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-          >
-            {props.progress ? "Continue Workout" : "Start Next Workout"}
-          </Button>
+        <div className="flex py-3 mb-3 text-center border-b border-gray-200">
+          <div className="text-center" style={{ flex: 5 }}>
+            <Button
+              data-cy="enter-stats"
+              kind="blue"
+              className="ls-enter-stats"
+              onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+            >
+              Enter Stats
+            </Button>
+          </div>
+          <div className="text-center" style={{ flex: 7 }}>
+            <Button
+              kind="green"
+              className="ls-start-workout"
+              onClick={() => props.dispatch({ type: "StartProgramDayAction" })}
+            >
+              {props.progress ? "Continue Workout" : "Start New Workout"}
+            </Button>
+          </div>
         </div>
-        {history.slice(0, visibleRecordsRef.current).map((historyRecord) => (
-          <HistoryRecordView settings={props.settings} historyRecord={historyRecord} dispatch={dispatch} />
-        ))}
+        <Tabs left="Workouts" right="Stats" selected={tab} onChange={setTab} />
+        {tab === "Workouts" &&
+          history
+            .slice(0, visibleRecordsRef.current)
+            .map((historyRecord) => (
+              <HistoryRecordView settings={props.settings} historyRecord={historyRecord} dispatch={dispatch} />
+            ))}
+        {tab === "Stats" && <StatsList dispatch={props.dispatch} settings={props.settings} stats={props.stats} />}
       </section>
       <FooterView
         buttons={

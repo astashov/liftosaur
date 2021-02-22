@@ -2,9 +2,10 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
 import { IExercise } from "./exercise";
+import { IGraph, ISettings, IStatsLength, IStatsWeight } from "../types";
 
 export namespace EditGraphs {
-  export function removeGraph(dispatch: IDispatch, exercise: IExercise): void {
+  export function removeGraph(dispatch: IDispatch, graph: IGraph): void {
     dispatch({
       type: "UpdateState",
       lensRecording: [
@@ -13,7 +14,7 @@ export namespace EditGraphs {
           .p("settings")
           .p("graphs")
           .recordModify((exs) => {
-            return exs.filter((ex) => ex !== exercise.id);
+            return exs.filter((ex) => ex.id !== graph.id);
           }),
       ],
     });
@@ -37,7 +38,7 @@ export namespace EditGraphs {
     });
   }
 
-  export function addGraph(dispatch: IDispatch, exercise: IExercise): void {
+  export function addExerciseGraph(dispatch: IDispatch, exercise: IExercise): void {
     dispatch({
       type: "UpdateState",
       lensRecording: [
@@ -46,9 +47,31 @@ export namespace EditGraphs {
           .p("settings")
           .p("graphs")
           .recordModify((ex) => {
-            return Array.from(new Set([...ex, exercise.id]));
+            return Array.from(new Set([...ex, { type: "exercise", id: exercise.id }]));
           }),
       ],
+    });
+  }
+
+  export function addStatsWeightGraph(dispatch: IDispatch, statsKey: keyof IStatsWeight): void {
+    dispatch({
+      type: "UpdateSettings",
+      lensRecording: lb<ISettings>()
+        .p("graphs")
+        .recordModify((ex) => {
+          return Array.from(new Set([...ex, { type: "statsWeight", id: statsKey }]));
+        }),
+    });
+  }
+
+  export function addStatsLengthGraph(dispatch: IDispatch, statsKey: keyof IStatsLength): void {
+    dispatch({
+      type: "UpdateSettings",
+      lensRecording: lb<ISettings>()
+        .p("graphs")
+        .recordModify((ex) => {
+          return Array.from(new Set([...ex, { type: "statsLength", id: statsKey }]));
+        }),
     });
   }
 }

@@ -4,7 +4,7 @@ import { Exercise } from "../../models/exercise";
 import { History } from "../../models/history";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
-import { Graph } from "../../components/graph";
+import { GraphExercise } from "../../components/graphExercise";
 import { Program } from "../../models/program";
 import { IStorage, IExerciseId, IHistoryRecord, ISet, ISettings } from "../../types";
 
@@ -83,7 +83,7 @@ function Entry(props: IEntryProps): JSX.Element {
         </p>
       </div>
       <div className="record-graph">
-        <Graph title="Progress Graph" history={history} exercise={exercise} settings={settings} />
+        <GraphExercise title="Progress Graph" history={history} exercise={exercise} settings={settings} />
       </div>
     </section>
   );

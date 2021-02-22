@@ -56,7 +56,7 @@ Above "Finish Day Script" you could see the "State Changes" section, which shoul
 
 Now, scroll to the very bottom and press "Save". You'll get back to the day editing screen. In the "Available Exercises" you'll see our new "Bench Press" exercise. Press it, and it should appear in the "Selected exercises". That means our first day now has this exercise added.
 
-You can give it a try for real now - go back to the list of days, and then go back again to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Press "Start Next Workout", then press "Finish the workout". You'll see that for the next workout the weight will be 50lb now.
+You can give it a try for real now - go back to the list of days, and then go back again to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Press "Start New Workout", then press "Finish the workout". You'll see that for the next workout the weight will be 50lb now.
 
 ### Conditional logic
 

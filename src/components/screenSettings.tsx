@@ -11,7 +11,7 @@ import { IUser } from "../models/user";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
 import { useState } from "preact/hooks";
-import { ISettings, IUnit } from "../types";
+import { ILengthUnit, ISettings, IUnit } from "../types";
 
 interface IProps {
   dispatch: IDispatch;
@@ -25,7 +25,14 @@ export function ScreenSettings(props: IProps): JSX.Element {
 
   return (
     <section className="h-full">
-      <HeaderView title="Settings" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
+      <HeaderView
+        title="Settings"
+        left={
+          <button data-cy="back" onClick={() => props.dispatch(Thunk.pullScreen())}>
+            Back
+          </button>
+        }
+      />
       <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
         <MenuItem
           name="Account"
@@ -53,7 +60,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
         <MenuItemEditable
           type="select"
-          name="Units"
+          name="Weight Units"
           value={props.settings.units}
           values={[
             ["kg", "kg"],
@@ -65,6 +72,23 @@ export function ScreenSettings(props: IProps): JSX.Element {
               lensRecording: lb<ISettings>()
                 .p("units")
                 .record(newValue as IUnit),
+            });
+          }}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Length Units"
+          value={props.settings.lengthUnits}
+          values={[
+            ["cm", "cm"],
+            ["in", "in"],
+          ]}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("lengthUnits")
+                .record(newValue as ILengthUnit),
             });
           }}
         />

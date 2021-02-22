@@ -46,6 +46,8 @@ const fns = Progress.createScriptFunctions({
     { weight: Weight.build(1.25, "kg"), num: 4 },
     { weight: Weight.build(0.5, "kg"), num: 2 },
   ],
+  lengthUnits: "in",
+  statsEnabled: { weight: { weight: true }, length: {} },
   graphs: [],
   bars: {
     lb: {
