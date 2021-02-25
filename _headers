@@ -1,3 +1,7 @@
 /webpushr-sw.js
   Cache-Control = "public, max-age=0"
-  x-foo: bar
+/*.js?version=*
+  Cache-Control = "public, max-age=86400"
+/*.css?version=*
+  Cache-Control = "public, max-age=86400"
+
