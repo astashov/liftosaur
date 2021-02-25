@@ -1,7 +1,11 @@
 /webpushr-sw.js
   Cache-Control = "public, max-age=0"
-/*.js?version=*
+/main.js
   Cache-Control = "public, max-age=86400"
-/*.css?version=*
+/vendors.js
+  Cache-Control = "public, max-age=86400"
+/main.css
+  Cache-Control = "public, max-age=86400"
+/vendors.css
   Cache-Control = "public, max-age=86400"
 
