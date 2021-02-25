@@ -17,6 +17,15 @@ const filesToCache = [
   "/notification.m4r",
 ];
 
+function cacheRequest(request: Request, response: Response): Promise<Response> {
+  return caches.open(cacheName).then((cache) => {
+    console.log("[Service Worker] Caching new resource: " + request.url);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    cache.put(request, response.clone());
+    return response;
+  });
+}
+
 function initialize(service: ServiceWorkerGlobalScope): void {
   service.addEventListener("install", (event) => {
     event.waitUntil(
@@ -27,39 +36,56 @@ function initialize(service: ServiceWorkerGlobalScope): void {
   });
 
   service.addEventListener("fetch", (e) => {
-    console.log("[Service Worker] Fetched resource " + e.request.url);
+    const url = new URL(e.request.url);
+    if (e.request.method === "GET" && (url.pathname === "/" || url.pathname === "index.html")) {
+      console.log("[Service Worker] Fetching " + e.request.url);
+      e.respondWith(
+        caches.match(e.request).then((r) => {
+          return fetch(e.request)
+            .then((response) => cacheRequest(e.request, response))
+            .catch((err) => {
+              if (r != null) {
+                console.log("[Service Worker] Can't fetch, so using cache for: " + e.request.url);
+                console.error(err);
+                return r;
+              } else {
+                throw e;
+              }
+            });
+        })
+      );
+    } else {
+      console.log("[Service Worker] Checking the resource in cache: " + e.request.url);
 
-    e.respondWith(
-      caches.match(e.request).then((r) => {
-        console.log("[Service Worker] Fetching resource: " + e.request.url);
-        return (
-          r ||
-          fetch(e.request).then((response) => {
-            if (
-              e.request.method === "GET" &&
-              filesToCache.some((f) => {
-                if (typeof f === "string") {
-                  const u = new URL(e.request.url);
-                  return `${u.pathname}${u.search}` === f;
-                } else {
-                  const u = new URL(e.request.url);
-                  return f.test(`${u.pathname}${u.search}`);
-                }
-              })
-            ) {
-              return caches.open(cacheName).then((cache) => {
-                console.log("[Service Worker] Caching new resource: " + e.request.url);
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                cache.put(e.request, response.clone());
+      e.respondWith(
+        caches.match(e.request).then((r) => {
+          if (r) {
+            console.log("[Service Worker] Returning from cache: " + e.request.url);
+            return r;
+          } else {
+            console.log("[Service Worker] Missing from cache, fetching resource: " + e.request.url);
+            return fetch(e.request).then((response) => {
+              if (
+                e.request.method === "GET" &&
+                filesToCache.some((f) => {
+                  if (typeof f === "string") {
+                    const u = new URL(e.request.url);
+                    return `${u.pathname}${u.search}` === f;
+                  } else {
+                    const u = new URL(e.request.url);
+                    return f.test(`${u.pathname}${u.search}`);
+                  }
+                })
+              ) {
+                return cacheRequest(e.request, response);
+              } else {
                 return response;
-              });
-            } else {
-              return response;
-            }
-          })
-        );
-      })
-    );
+              }
+            });
+          }
+        })
+      );
+    }
   });
 
   // eslint-disable-next-line @typescript-eslint/ban-types
