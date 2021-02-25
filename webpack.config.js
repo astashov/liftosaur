@@ -86,6 +86,10 @@ module.exports = {
         to: "",
       },
       {
+        from: "_headers",
+        to: "",
+      },
+      {
         from: `src/editor.html`,
         to: `editor.html`,
       },
