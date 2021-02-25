@@ -1,2 +1,3 @@
 /webpushr-sw.js
   cache-control: max-age=0
+  x-foo: bar
