@@ -104,18 +104,6 @@ a {
   padding: 10px 24px;
 }
 
-@media (max-width: 940px) {
-  .hero-section {
-    font-size: 0.8em;
-  }
-}
-
-@media (max-width: 820px) {
-  .hero-section {
-    font-size: 0.7em;
-  }
-}
-
 .hero-content-wrapper {
   max-width: 600px;
   margin: 0 auto;
@@ -133,12 +121,15 @@ a {
   margin: 0 auto;
 }
 
-.hero-content-cta {
-  margin-top: 60px;
-  text-align: center;
+.content-cta {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.hero-content-cta-button {
+.content-cta-button {
+  white-space: nowrap;
   color: #fff;
   padding: 0.5em 1em;
   font-weight: bold;
@@ -147,6 +138,75 @@ a {
   background-color: #48bb78;
   text-decoration: none;
   font-size: 1.5em;
+  display: block;
+}
+
+.content-cta-button-sub {
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.content-cta-or {
+  margin-left: 13px;
+  font-size: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.content-cta-android a {
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.content-cta-android img {
+  width: 13rem;
+  height: 5rem;
+}
+
+@media (max-width: 940px) {
+  .hero-section {
+    font-size: 0.8em;
+  }
+
+  .footer-content-cta {
+    font-size: 0.8em;
+  }
+
+  .content-cta-android img {
+    width: 11rem;
+    height: 4.5rem;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero-section {
+    font-size: 0.7em;
+  }
+
+  .footer-content-cta {
+    font-size: 0.7em;
+  }
+
+  .content-cta-android img {
+    width: 10rem;
+    height: 4rem;
+  }
+}
+
+@media (max-width: 780px) {
+  .content-cta-android img {
+    width: 13rem;
+    height: 5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .content-cta {
+    flex-direction: column;
+  }
+
+  .content-cta-or {
+    padding-bottom: 0;
+  }
 }
 
 .hero-phone-frame {
@@ -532,7 +592,7 @@ footer nav li {
     padding: 12px 24px;
   }
 
-  .hero-content-cta-button {
+  .content-cta-button {
     font-size: 2em;
   }
 
