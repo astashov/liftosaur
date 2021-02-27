@@ -145,7 +145,14 @@ function Entry(props: IEntryProps): JSX.Element {
           </div>
         </div>
         <div className="record-graph">
-          <GraphExercise history={props.history} exercise={props.entry.exercise} settings={props.settings} />
+          <GraphExercise
+            isSameXAxis={false}
+            minX={0}
+            maxX={0}
+            history={props.history}
+            exercise={props.entry.exercise}
+            settings={props.settings}
+          />
         </div>
       </div>
     </section>

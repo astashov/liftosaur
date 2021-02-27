@@ -14,6 +14,9 @@ interface IGraphStatsProps {
   statsKey: IStatsKey;
   settings: ISettings;
   title?: string;
+  isSameXAxis: boolean;
+  minX: number;
+  maxX: number;
 }
 
 export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
@@ -76,6 +79,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       legend: {
         show: false,
       },
+      scales: props.isSameXAxis ? { x: { min: props.minX, max: props.maxX } } : undefined,
       series: [
         {},
         {

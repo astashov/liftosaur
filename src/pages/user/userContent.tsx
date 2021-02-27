@@ -83,7 +83,15 @@ function Entry(props: IEntryProps): JSX.Element {
         </p>
       </div>
       <div className="record-graph">
-        <GraphExercise title="Progress Graph" history={history} exercise={exercise} settings={settings} />
+        <GraphExercise
+          isSameXAxis={false}
+          minX={0}
+          maxX={0}
+          title="Progress Graph"
+          history={history}
+          exercise={exercise}
+          settings={settings}
+        />
       </div>
     </section>
   );
