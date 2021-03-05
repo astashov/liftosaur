@@ -5,6 +5,8 @@ og_title: Offline mode in Liftosaur
 og_description: "How I built offline mode in Liftosaur"
 og_image: /images/offline-mode-in-liftosaur-no-internet.png
 tags: ["tech"]
+twitter: https://twitter.com/liftosaur/status/1367685947446489091
+reddit: https://www.reddit.com/r/liftosaur/comments/ly3ffc/offline_mode_in_liftosaur/
 ---
 
 ![No Internet in Chrome](../../images/offline-mode-in-liftosaur-no-internet.png)
@@ -248,7 +250,7 @@ As a solution, we can move the migrations to the client code - to the JS bundles
 1. Get the local storage state, and run migrations on it.
 2. Fetch the storage state from the cloud, and run migrations on it.
 3. Merge the cloud state into the local storage state.
-4. Upload the updated, merged state back to the cloud
+4. Upload the updated, merged state back to the cloud and to local storage.
 
 <object data="../../images/offline-mode-in-liftosaur-migration-diagram.svg" style="width: 100%" type="image/svg+xml"></object>
 
