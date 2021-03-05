@@ -166,3 +166,22 @@ code[class*="language-css"] {
   background: -webkit-linear-gradient(left, rgba(193, 222, 241, 0.2) 70%, rgba(221, 222, 241, 0));
   background: linear-gradient(to right, rgba(193, 222, 241, 0.2) 70%, rgba(221, 222, 241, 0));
 }
+
+@font-face {
+  font-family: "Iosevka Web";
+  font-display: swap;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+  src: url(/fonts/iosevka-regular.woff2) format("woff2");
+}
+
+@media (max-width: 600px) {
+  code[class*="language-"],
+  pre[class*="language-"] {
+    margin-left: -16px;
+    font-size: 0.7em;
+    width: calc(100% + 32px);
+    font-family: "Iosevka Web", "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+  }
+}
