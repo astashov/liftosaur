@@ -5,6 +5,8 @@ og_title: Tailwind CSS colors in Chrome Devtools
 og_description: "How to export Tailwind CSS colors as CSS variables in devtools"
 og_image: /images/tailwind-css-colors-in-devtools-intro.png
 tags: ["tech"]
+twitter: https://twitter.com/liftosaur/status/1368627453112029188
+reddit: https://www.reddit.com/r/liftosaur/comments/lzvo3n/how_to_add_tailwind_css_colors_to_chrome_devtools/
 ---
 
 <img style="box-shadow: 0 0 18px 4px rgba(0, 0, 0, 0.1); margin: 15px 0 60px" src="../../images/tailwind-css-colors-in-devtools-intro.png" width="100%" alt="Tailwind colors in devtools" />
