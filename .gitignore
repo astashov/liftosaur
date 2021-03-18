@@ -8,3 +8,12 @@
 /docs
 /cypress/videos
 /cypress/screenshots
+
+/liftosaur-cdk/*.d.ts
+/dist-lambda
+/lambda/node_modules
+/template.yaml
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out

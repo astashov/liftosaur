@@ -1,0 +1,11 @@
+{
+  "name": "liftosaur-lambda",
+  "version": "1.0.0",
+  "description": "Lambda for Liftosaur",
+  "scripts": {},
+  "author": "Anton Astashov",
+  "license": "MIT",
+  "dependencies": {
+    "source-map-support": "^0.5.19"
+  }
+}

@@ -30,6 +30,7 @@
     "@11ty/eleventy-plugin-syntaxhighlight": "^3.0.6",
     "@cloudflare/wrangler": "^1.12.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "@types/aws-lambda": "^8.10.72",
     "@types/codemirror": "^0.0.96",
     "@types/cookie": "^0.3.3",
     "@types/deepmerge": "^2.2.0",
@@ -39,6 +40,7 @@
     "@typescript-eslint/parser": "^4.2.0",
     "@udacity/types-service-worker-mock": "^1.1.2",
     "autoprefixer": "^9.7.4",
+    "aws-sdk": "^2.867.0",
     "babel-eslint": "^10.1.0",
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.4.2",
@@ -68,6 +70,10 @@
     "wrangler-js": "^0.1.11"
   },
   "dependencies": {
+    "@aws-cdk/aws-apigateway": "^1.94.0",
+    "@aws-cdk/aws-dynamodb": "^1.94.0",
+    "@aws-cdk/aws-lambda": "^1.94.0",
+    "@aws-cdk/core": "^1.94.0",
     "codemirror": "^5.54.0",
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
