@@ -20,6 +20,13 @@
     "migrate:prod": "curl -v -X POST http://api.liftosaur.com/api/migrate?key=$KEY",
     "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:8787/api/synctoprod?ids=$IDS\\&key=$KEY",
     "synctodev": "curl -v -X POST http://local-api.liftosaur.com:8787/api/synctodev?ids=$IDS\\&key=$KEY",
+    "build:lambda": "yarn tsc -p tsconfig.lambda.json",
+    "watch:lambda": "yarn tsc -p tsconfig.lambda.json --watch",
+    "build-and-start:lambda": "yarn build:lambda && yarn start:lambda",
+    "start:lambda": "yarn cdk-synth && yarn sam-start-api",
+    "sam-start-api": "sam local start-api",
+    "cdk-synth": "cdk synth --no-staging LiftosaurStackDev > template.yaml",
+    "cdk-deploy": "cdk deploy --all",
     "test": "jest"
   },
   "author": "Anton Astashov",

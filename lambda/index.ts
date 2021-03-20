@@ -3,6 +3,15 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDB } from "aws-sdk";
 import { Router } from "./router";
 
+const tableNames = {
+  dev: {
+    hits: "liftosaurHitsDev",
+  },
+  prod: {
+    hits: "liftosaurHits",
+  },
+} as const;
+
 async function blahHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   console.log("HERE PLEASE");
   console.log(`Table name: ${process.env.HITS_TABLE_NAME}`);
@@ -12,10 +21,11 @@ async function blahHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   const dynamo = new DynamoDB();
 
   console.log("About to make a call");
+  const env = process.env.IS_DEV ? "dev" : "prod";
 
   await dynamo
     .updateItem({
-      TableName: "liftosaur_Hits",
+      TableName: tableNames[env].hits,
       Key: { path: { S: event.path } },
       UpdateExpression: "ADD hits :incr",
       ExpressionAttributeValues: { ":incr": { N: "1" } },
