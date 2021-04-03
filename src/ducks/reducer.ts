@@ -27,6 +27,7 @@ import {
   IHistoryRecord,
   IProgram,
 } from "../types";
+import { Settings } from "../models/settings";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
@@ -73,42 +74,7 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
         weight: {},
         length: {},
       },
-      settings: {
-        lengthUnits: "in",
-        statsEnabled: { weight: { weight: true }, length: {} },
-        plates: [
-          { weight: Weight.build(45, "lb"), num: 4 },
-          { weight: Weight.build(25, "lb"), num: 4 },
-          { weight: Weight.build(10, "lb"), num: 4 },
-          { weight: Weight.build(5, "lb"), num: 4 },
-          { weight: Weight.build(2.5, "lb"), num: 4 },
-          { weight: Weight.build(1.25, "lb"), num: 2 },
-          { weight: Weight.build(20, "kg"), num: 4 },
-          { weight: Weight.build(10, "kg"), num: 4 },
-          { weight: Weight.build(5, "kg"), num: 4 },
-          { weight: Weight.build(2.5, "kg"), num: 4 },
-          { weight: Weight.build(1.25, "kg"), num: 4 },
-          { weight: Weight.build(0.5, "kg"), num: 2 },
-        ],
-        graphs: [],
-        bars: {
-          lb: {
-            barbell: Weight.build(45, "lb"),
-            ezbar: Weight.build(20, "lb"),
-            dumbbell: Weight.build(10, "lb"),
-          },
-          kg: {
-            barbell: Weight.build(20, "kg"),
-            ezbar: Weight.build(10, "kg"),
-            dumbbell: Weight.build(5, "kg"),
-          },
-        },
-        timers: {
-          warmup: 90,
-          workout: 180,
-        },
-        units: "lb",
-      },
+      settings: Settings.build(),
       history: [],
       version: getLatestMigrationVersion(),
       programs: [],

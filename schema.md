@@ -9,6 +9,12 @@ Users
 - version: string;
 - helps: string[];
 
+GoogleAuthKeys
+
+- userId: string;
+- googleId: string;
+- accessToken: string;
+
 HistoryRecords
 
 - userId: string;

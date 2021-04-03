@@ -6,6 +6,11 @@
   "author": "Anton Astashov",
   "license": "MIT",
   "dependencies": {
+    "cookie": "^0.4.1",
+    "fp-ts": "^2.9.5",
+    "io-ts": "^2.2.16",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.1",
     "source-map-support": "^0.5.19"
   }
 }
