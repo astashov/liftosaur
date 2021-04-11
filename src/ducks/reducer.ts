@@ -4,7 +4,6 @@ import { Progress } from "../models/progress";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Screen, IScreen } from "../models/screen";
-import { Weight } from "../models/weight";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { runMigrations } from "../migrations/runner";

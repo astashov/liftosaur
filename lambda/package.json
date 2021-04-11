@@ -10,7 +10,11 @@
     "fp-ts": "^2.9.5",
     "io-ts": "^2.2.16",
     "jsonwebtoken": "^8.5.1",
+    "lens-shmens": "^1.0.3",
     "node-fetch": "^2.6.1",
-    "source-map-support": "^0.5.19"
+    "preact": "^10.5.13",
+    "preact-render-to-string": "^5.1.19",
+    "source-map-support": "^0.5.19",
+    "uplot": "^1.6.8"
   }
 }

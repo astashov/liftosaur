@@ -25,7 +25,7 @@
     "watch:lambda": "yarn copy:lambda && yarn tsc -p tsconfig.lambda.json --watch",
     "build-and-start:lambda": "yarn build:lambda && yarn start:lambda",
     "start:lambda": "yarn cdk-synth && yarn sam-start-api",
-    "sam-start-api": "sam local start-api 2>&1 | tr \"\\r\" \"\\n\"",
+    "sam-start-api": "sam local start-api --skip-pull-image 2>&1 | tr \"\\r\" \"\\n\"",
     "cdk-synth": "cdk synth --no-staging LiftosaurStackDev > template.yaml",
     "cdk-deploy": "yarn build:lambda && rm -rf ./dist-lambda/node_modules && cdk deploy --all",
     "test": "jest"
@@ -78,11 +78,12 @@
     "wrangler-js": "^0.1.11"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "^1.95.1",
-    "@aws-cdk/aws-dynamodb": "^1.95.1",
-    "@aws-cdk/aws-lambda": "^1.95.1",
-    "@aws-cdk/aws-secretsmanager": "^1.95.1",
-    "@aws-cdk/core": "^1.95.1",
+    "@aws-cdk/aws-apigateway": "^1.97.0",
+    "@aws-cdk/aws-dynamodb": "^1.97.0",
+    "@aws-cdk/aws-lambda": "^1.97.0",
+    "@aws-cdk/aws-s3": "^1.97.0",
+    "@aws-cdk/aws-secretsmanager": "^1.97.0",
+    "@aws-cdk/core": "^1.97.0",
     "codemirror": "^5.54.0",
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",

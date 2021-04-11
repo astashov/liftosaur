@@ -3,11 +3,16 @@ import fetch from "node-fetch";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Router } from "./router";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
-import { UserDao } from "./dao/userDao";
+import { UserDao, IUserDao } from "./dao/userDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import AWS from "aws-sdk";
+import { Utils } from "./utils";
+import { IStorage } from "../src/types";
+import { ProgramDao } from "./dao/programDao";
+import { renderRecordHtml, recordImage } from "./record";
+// import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -24,7 +29,7 @@ export type IEnv = "dev" | "prod";
 const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com"];
 
 function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
-  const origin = event.headers.origin || "http://example.com";
+  const origin = event.headers.Origin || event.headers.origin || "http://example.com";
   const url = new URL(origin);
   let headers: Record<string, string> = {
     "content-type": "application/json",
@@ -41,17 +46,121 @@ function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
   return headers;
 }
 
+async function getSecret(arns: { dev: string; prod: string }): Promise<string> {
+  const sm = new AWS.SecretsManager();
+  return sm
+    .getSecretValue({ SecretId: arns[Utils.getEnv()] })
+    .promise()
+    .then((s) => s.SecretString!);
+}
+
+async function getCookieSecret(): Promise<string> {
+  return getSecret({
+    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
+    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
+  });
+}
+
+async function getApiKey(): Promise<string> {
+  return getSecret({
+    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
+    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
+  });
+}
+
+async function getWebpushrKey(): Promise<string> {
+  return getSecret({
+    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
+    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
+  });
+}
+
+async function getWebpushrAuthToken(): Promise<string> {
+  return getSecret({
+    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
+    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
+  });
+}
+
+async function getCurrentUserId(event: APIGatewayProxyEvent): Promise<string | undefined> {
+  const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
+  const cookieSecret = await getCookieSecret();
+  if (cookies.session != null && JWT.verify(cookies.session, cookieSecret)) {
+    const session = JWT.decode(cookies.session) as Record<string, string>;
+    return session.userId;
+  } else {
+    return undefined;
+  }
+}
+
+async function getCurrentUser(event: APIGatewayProxyEvent): Promise<IUserDao | undefined> {
+  const userId = await getCurrentUserId(event);
+  if (userId != null) {
+    return UserDao.getById(userId);
+  } else {
+    return undefined;
+  }
+}
+
+async function timerHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const response = await fetch("https://app.webpushr.com/api/v1/notification/send/sid", {
+    method: "POST",
+    headers: {
+      webpushrKey: await getWebpushrKey(),
+      webpushrAuthToken: await getWebpushrAuthToken(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: "Timer",
+      message: "Time to make another attempt",
+      target_url: "https://www.liftosaur.com",
+      expire_push: "5m",
+      sid: (event.queryStringParameters || {}).sid,
+    }),
+  });
+
+  const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
+  return { statusCode: response.status, body, headers: getHeaders(event) };
+}
+
+async function getStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const querystringParams = event.queryStringParameters || {};
+  const adminKey = querystringParams.key;
+  const userId =
+    adminKey != null && adminKey === (await getApiKey()) ? querystringParams.userid : await getCurrentUserId(event);
+  if (userId != null) {
+    const user = await UserDao.getById(userId);
+    if (user != null) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ storage: user.storage, email: user.email, user_id: user.id }),
+        headers: getHeaders(event),
+      };
+    }
+  }
+  return { statusCode: 200, body: "{}", headers: getHeaders(event) };
+}
+
+async function saveStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const user = await getCurrentUser(event);
+  if (user != null) {
+    const storage: IStorage = JSON.parse(event.body || "{}").storage;
+    await UserDao.saveStorage(user, storage);
+  }
+  return {
+    statusCode: 200,
+    body: "{}",
+    headers: getHeaders(event),
+  };
+}
+
 async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const token = JSON.parse(event.body || "{}").token;
   const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
   const googleApiResponse = await fetch(url);
   const openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError = await googleApiResponse.json();
   const env = process.env.IS_DEV === "true" ? "dev" : "prod";
-  const sm = new AWS.SecretsManager();
-  const cookieSecret = await sm
-    .getSecretValue({ SecretId: `LftKeyCookieSecret${env === "dev" ? "Dev" : ""}` })
-    .promise();
-  console.log("Cookie Secret", cookieSecret.SecretString);
+  const cookieSecret = await getCookieSecret();
 
   if ("error" in openIdJson) {
     return {
@@ -61,20 +170,18 @@ async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatew
     };
   }
 
-  // { error: 'invalid_request', error_description: 'Invalid Credentials' }
-
   await GoogleAuthTokenDao.store(env, token, openIdJson.sub);
-  let user = await UserDao.getByGoogleId(env, openIdJson.sub);
+  let user = await UserDao.getByGoogleId(openIdJson.sub);
   let userId = user?.id;
 
   if (userId == null) {
     userId = UidFactory.generateUid(12);
     user = UserDao.build(userId, openIdJson.sub, openIdJson.email);
-    await UserDao.store(env, user);
+    await UserDao.store(user);
   }
 
-  const session = JWT.sign({ userId: userId }, process.env.COOKIE_SECRET!);
-  const resp = { email: openIdJson.email, user_id: userId, storage: {} };
+  const session = JWT.sign({ userId: userId }, cookieSecret);
+  const resp = { email: openIdJson.email, user_id: userId, storage: user!.storage };
 
   return {
     statusCode: 200,
@@ -91,10 +198,140 @@ async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatew
   };
 }
 
+async function signoutHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  return {
+    statusCode: 200,
+    headers: {
+      ...getHeaders(event),
+      "set-cookie": Cookie.serialize("session", "", {
+        httpOnly: true,
+        domain: ".liftosaur.com",
+        path: "/",
+        expires: new Date(1970, 0, 1),
+      }),
+    },
+    body: "{}",
+  };
+}
+
+async function getProgramsHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const programs = await ProgramDao.getAll();
+  return { statusCode: 200, body: JSON.stringify({ programs }), headers: getHeaders(event) };
+}
+
+async function getHistoryRecord(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const userId = event.queryStringParameters?.user;
+  const recordId = parseInt(event.queryStringParameters?.id || "", 10);
+  const error: { message?: string } = {};
+  if (userId != null && recordId != null && !isNaN(recordId)) {
+    const result = await UserDao.getById(userId);
+    if (result != null) {
+      const storage: IStorage = result.storage;
+      const history = storage.history;
+      const historyRecord = history.find((hi) => hi.id === recordId);
+      if (historyRecord != null) {
+        return {
+          statusCode: 200,
+          body: renderRecordHtml({ history, record: historyRecord, settings: storage.settings }, userId, recordId),
+          headers: { "content-type": "text/html" },
+        };
+      } else {
+        error.message = "Can't find history record";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user' or 'id'";
+  }
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ error }),
+    headers: getHeaders(event),
+  };
+}
+
+async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const s3 = new AWS.S3();
+  const env = Utils.getEnv();
+  const userId = event.queryStringParameters?.user;
+  const recordId = parseInt(event.queryStringParameters?.id || "", 10);
+  const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
+  const key = `historyrecordimage${event.path}-${userId}-${recordId}.png`;
+  console.log(key);
+  let body: AWS.S3.GetObjectOutput["Body"];
+  try {
+    const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
+    body = cachedResponse.Body;
+  } catch (e) {
+    if (e.code !== "NoSuchKey") {
+      throw e;
+    }
+  }
+  const headers = {
+    "content-type": "image/png",
+    "cache-control": "max-age=86400",
+  };
+  if (body != null) {
+    console.log(body);
+    return {
+      statusCode: 200,
+      body: `${body.toString("base64")}`,
+      headers,
+      isBase64Encoded: true,
+    };
+  }
+
+  const error: { message?: string } = {};
+
+  if (userId != null && recordId != null && !isNaN(recordId)) {
+    const result = await UserDao.getById(userId);
+    if (result != null) {
+      const imageResult = await recordImage(result.storage, recordId);
+      if (imageResult.success) {
+        const buffer = Buffer.from(imageResult.data);
+        await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+        console.log(buffer.toString("base64"));
+        return {
+          statusCode: 200,
+          body: buffer.toString("base64"),
+          headers,
+          isBase64Encoded: true,
+        };
+      } else {
+        error.message = imageResult.error;
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user' or 'id'";
+  }
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ error }),
+    headers: getHeaders(event),
+  };
+}
+
+// async function storePrograms(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+//   for (const programPayload of programsJson) {
+//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//     await ProgramDao.add(programPayload as any);
+//   }
+//   return { statusCode: 200, body: "{}", headers: getHeaders(event) };
+// }
+
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const r = new Router();
-  console.log(event.httpMethod, event.path);
+  r.post(".*timernotification", timerHandler);
   r.post(".*/api/signin/google", googleLoginHandler);
+  r.post(".*/api/signout", signoutHandler);
+  r.get(".*/api/programs", getProgramsHandler);
+  r.post(".*/api/storage", saveStorageHandler);
+  r.get(".*/api/storage", getStorageHandler);
+  r.get(".*/api/record", getHistoryRecord);
+  r.get(".*/api/recordimage", getHistoryRecordImage);
   const resp = await r.route(event);
   return resp;
 };

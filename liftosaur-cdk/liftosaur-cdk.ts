@@ -3,6 +3,7 @@ import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as sm from "@aws-cdk/aws-secretsmanager";
+import * as s3 from "@aws-cdk/aws-s3";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -45,54 +46,101 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const historyRecordsTable = new dynamodb.Table(this, `LftHistoryRecords${suffix}`, {
       tableName: `lftHistoryRecords${suffix}`,
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "date", type: dynamodb.AttributeType.NUMBER },
+      sortKey: { name: "id", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+    historyRecordsTable.addGlobalSecondaryIndex({
+      indexName: `lftHistoryRecordsDate${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "date", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     const statsTable = new dynamodb.Table(this, `LftStats${suffix}`, {
       tableName: `lftStats${suffix}`,
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "name", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+    statsTable.addGlobalSecondaryIndex({
+      indexName: `lftStatsTimestamp${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    const logsTable = new dynamodb.Table(this, `LftLogs${suffix}`, {
+      tableName: `lftLogs${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "action", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+
+    const userProgramsTable = new dynamodb.Table(this, `LftUserPrograms${suffix}`, {
+      tableName: `lftUserPrograms${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
     const programsTable = new dynamodb.Table(this, `LftPrograms${suffix}`, {
       tableName: `lftPrograms${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
     const secretArns = {
       dev: {
+        apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
       },
       prod: {
+        apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
       },
     };
 
-    const secret = sm.Secret.fromSecretAttributes(this, `LftKeyCookieSecret${suffix}`, {
+    const keyCookieSecret = sm.Secret.fromSecretAttributes(this, `LftKeyCookieSecret${suffix}`, {
       secretArn: secretArns[env].cookieSecret,
+    });
+    const keyApiKey = sm.Secret.fromSecretAttributes(this, `LftKeyApiKey${suffix}`, {
+      secretArn: secretArns[env].apiKey,
+    });
+
+    const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
+      bucketName: `liftosaurcaches${suffix.toLowerCase()}`,
+      lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
     });
 
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       layers: [depsLayer],
+      timeout: cdk.Duration.seconds(isDev ? 10 : 3),
       handler: "lambda/index.handler",
       environment: {
         IS_DEV: `${isDev}`,
       },
     });
 
-    new apigw.LambdaRestApi(this, `LftEndpoint${suffix}`, { handler: lambdaFunction });
+    new apigw.LambdaRestApi(this, `LftEndpoint${suffix}`, {
+      handler: lambdaFunction,
+      options: {
+        binaryMediaTypes: ["*/*"],
+      },
+    });
 
-    secret.grantRead(lambdaFunction);
+    bucket.grantReadWrite(lambdaFunction);
+    keyCookieSecret.grantRead(lambdaFunction);
+    keyApiKey.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);
     statsTable.grantReadWriteData(lambdaFunction);
     programsTable.grantReadWriteData(lambdaFunction);
+    userProgramsTable.grantReadWriteData(lambdaFunction);
+    logsTable.grantReadWriteData(lambdaFunction);
   }
 }
 

@@ -7,6 +7,16 @@ global.window = global.window || undefined;
 global.devicePixelRatio = global.devicePixelRatio || 1;
 global.navigator = global.navigator || { language: "en" };
 
+global.requestAnimationFrame = global.requestAnimationFrame || undefined;
+global.document = global.document || undefined;
+global.window = global.window || {
+  addEventListener: () => {
+    // nothing
+  },
+};
+global.devicePixelRatio = global.devicePixelRatio || 1;
+global.navigator = global.navigator || { language: "en" };
+
 import { IRecordResponse } from "../../api/service";
 import { RecordContent } from "./recordContent";
 import { Page } from "../../components/page";

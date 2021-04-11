@@ -63,7 +63,7 @@ module.exports = {
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:8787"
+        process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:3000"
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
@@ -175,17 +175,17 @@ module.exports = {
     host: "0.0.0.0",
     disableHostCheck: true,
     proxy: {
-      "/record": "http://local-api.liftosaur.com:8787/api",
-      "/admin": "http://local-api.liftosaur.com:8787/admin",
+      "/record": "http://local-api.liftosaur.com:3000/api",
+      "/admin": "http://local-api.liftosaur.com:3000/admin",
       "/profileimage/*": {
-        target: "http://local-api.liftosaur.com:8787",
+        target: "http://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profileimage?user=${user}`;
         },
       },
       "/profile/*": {
-        target: "http://local-api.liftosaur.com:8787",
+        target: "http://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profile?user=${user}`;

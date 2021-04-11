@@ -16,7 +16,8 @@
     "jsxFactory": "h",
     "skipLibCheck": true,
     "noEmit": true,
-    "outDir": "out"
+    "outDir": "out",
+    "resolveJsonModule": true
   },
   "include": ["src/**/*", "server/**/*", "lambda/**/*", "liftosaur-cdk/**/*", "test/**/*"]
 }
