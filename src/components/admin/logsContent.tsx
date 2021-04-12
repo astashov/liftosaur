@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
-import { ILogPayloads } from "../../../server/src/models/log";
 import { DateUtils } from "../../utils/date";
 import { CollectionUtils } from "../../utils/collection";
+import { ILogPayloads } from "./logsHtml";
 
 export interface ILogsContentProps {
   logs: ILogPayloads;

@@ -158,19 +158,7 @@ export class UserDao {
         })
         .promise()
         .then((r) => (r.Items || []) as IStatDb[]);
-      const stats: IStats = statsDb.reduce<{
-        weight: Partial<Record<string, unknown[]>>;
-        length: Partial<Record<string, unknown[]>>;
-      }>(
-        (memo, statDb) => {
-          const type = statDb.type;
-          const name = statDb.name.split("_")[1];
-          memo[type][name] = memo[type][name] || [];
-          memo[type][name]!.push({ timestamp: statDb.timestamp, value: statDb.value });
-          return memo;
-        },
-        { weight: {}, length: {} }
-      );
+      const stats = convertStatsFromDb(statsDb);
 
       return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
     } else {
@@ -234,4 +222,65 @@ export class UserDao {
 
     await Promise.all([UserDao.store(updatedUser), ...historyUpdates, ...programUpdates, ...statsUpdates]);
   }
+
+  public static async getAllLimited(): Promise<ILimitedUserDao[]> {
+    const dynamo = new DynamoDB.DocumentClient();
+    const env = Utils.getEnv();
+    return dynamo
+      .scan({ TableName: tableNames[env].users })
+      .promise()
+      .then((r) => (r.Items || []) as ILimitedUserDao[]);
+  }
+
+  public static async getAll(): Promise<IUserDao[]> {
+    const dynamo = new DynamoDB.DocumentClient();
+    const env = Utils.getEnv();
+    const allUsers = await UserDao.getAllLimited();
+
+    const allHistory = await dynamo
+      .scan({ TableName: tableNames[env].historyRecords })
+      .promise()
+      .then((r) => (r.Items || []) as (IHistoryRecord & { userId: string })[]);
+
+    const allPrograms = await dynamo
+      .scan({ TableName: tableNames[env].programs })
+      .promise()
+      .then((r) => (r.Items || []) as (IProgram & { userId: string })[]);
+
+    const allStatsDbs = await dynamo
+      .scan({ TableName: tableNames[env].stats })
+      .promise()
+      .then((r) => (r.Items || []) as (IStatDb & { userId: string })[]);
+
+    const allStatsDbsByUser = CollectionUtils.groupByKey(allStatsDbs, "userId");
+
+    return allUsers.map<IUserDao>((user) => {
+      const statsDb = allStatsDbsByUser[user.id];
+      return {
+        ...user,
+        storage: {
+          ...user.storage,
+          history: allHistory.filter((r) => r.userId === user.id),
+          programs: allPrograms.filter((r) => r.userId === user.id),
+          stats: statsDb ? convertStatsFromDb(statsDb) : { weight: {}, length: {} },
+        },
+      };
+    });
+  }
+}
+
+function convertStatsFromDb(statsDb: IStatDb[]): IStats {
+  return statsDb.reduce<{
+    weight: Partial<Record<string, unknown[]>>;
+    length: Partial<Record<string, unknown[]>>;
+  }>(
+    (memo, statDb) => {
+      const type = statDb.type;
+      const name = statDb.name.split("_")[1];
+      memo[type][name] = memo[type][name] || [];
+      memo[type][name]!.push({ timestamp: statDb.timestamp, value: statDb.value });
+      return memo;
+    },
+    { weight: {}, length: {} }
+  );
 }

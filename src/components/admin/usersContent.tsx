@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { HistoryRecordView } from "../historyRecord";
-import { DateUtils } from "../../../server/src/utils/date";
 import { IHistoryRecord, ISettings } from "../../types";
+import { DateUtils } from "../../utils/date";
 
 export interface IUsersContentProps {
   users: IProcessedUser[];

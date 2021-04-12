@@ -3,6 +3,8 @@
   "compilerOptions": {
     "target": "ES2018",
     "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
     "outDir": "./dist-lambda"
   },
   "include": ["lambda/**/*"]

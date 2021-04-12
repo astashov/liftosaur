@@ -12,6 +12,11 @@ import { Utils } from "./utils";
 import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
+import { LogDao } from "./dao/logDao";
+import { renderUserHtml, userImage } from "./user";
+import { renderUsersHtml } from "../src/components/admin/usersHtml";
+import { CollectionUtils } from "../src/utils/collection";
+import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -314,6 +319,190 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
   };
 }
 
+async function publishProgramHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const key = event.queryStringParameters?.key;
+  if (key != null && key === (await getApiKey())) {
+    const program = JSON.parse(event.body || "{}").program;
+    if (program != null) {
+      await ProgramDao.save(program);
+      return { statusCode: 200, body: JSON.stringify({ data: "ok" }), headers: getHeaders(event) };
+    } else {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "missing program in payload" }),
+        headers: getHeaders(event),
+      };
+    }
+  } else {
+    return {
+      statusCode: 401,
+      body: "{}",
+      headers: getHeaders(event),
+    };
+  }
+}
+
+async function logHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const { user, action } = JSON.parse(event.body || "{}");
+  let data;
+  if (user && action) {
+    await LogDao.increment(user, action);
+    data = "ok";
+  } else {
+    data = "error";
+  }
+  return { statusCode: 200, body: JSON.stringify({ data }), headers: getHeaders(event) };
+}
+
+async function getProfileHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const userId = event.queryStringParameters?.user;
+  const error: { message?: string } = {};
+  if (userId != null) {
+    const result = await UserDao.getById(userId);
+    if (result != null) {
+      const storage = result.storage;
+      if (storage.settings.isPublicProfile) {
+        return {
+          statusCode: 200,
+          body: renderUserHtml(storage, userId),
+          headers: { "content-type": "text/html" },
+        };
+      } else {
+        error.message = "The user's profile is not public";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user'";
+  }
+  return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
+}
+
+async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const s3 = new AWS.S3();
+  const env = Utils.getEnv();
+  const userId = event.queryStringParameters?.user;
+  const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
+  const key = `profileimage${event.path}-${userId}.png`;
+  console.log(key);
+  let body: AWS.S3.GetObjectOutput["Body"];
+  try {
+    const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
+    body = cachedResponse.Body;
+  } catch (e) {
+    if (e.code !== "NoSuchKey") {
+      throw e;
+    }
+  }
+  const headers = {
+    "content-type": "image/png",
+    "cache-control": "max-age=86400",
+  };
+  if (body != null) {
+    console.log(body);
+    return {
+      statusCode: 200,
+      body: `${body.toString("base64")}`,
+      headers,
+      isBase64Encoded: true,
+    };
+  }
+
+  const error: { message?: string } = {};
+  if (userId != null) {
+    const result = await UserDao.getById(userId);
+    if (result != null) {
+      if (result?.storage?.settings?.isPublicProfile) {
+        const imageResult = await userImage(result.storage);
+        if (imageResult.success) {
+          const buffer = Buffer.from(imageResult.data);
+          await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+          console.log(buffer.toString("base64"));
+          return {
+            statusCode: 200,
+            body: buffer.toString("base64"),
+            headers,
+            isBase64Encoded: true,
+          };
+        } else {
+          error.message = imageResult.error;
+        }
+      } else {
+        error.message = "The user's profile is not public";
+      }
+    } else {
+      error.message = "Can't find user";
+    }
+  } else {
+    error.message = "Missing required params - 'user'";
+  }
+  return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
+}
+
+async function getUsersHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const key = event.queryStringParameters?.key;
+  if (key != null && key === (await getApiKey())) {
+    const users = await UserDao.getAll();
+    const processedUsers = users.map((u) => {
+      return {
+        id: u.id,
+        email: u.email,
+        history: u.storage.history.slice(0, 4),
+        totalHistory: u.storage.history.length,
+        programs: u.storage.programs.map((p) => p.name),
+        settings: u.storage.settings,
+        timestamp: u.createdAt,
+      };
+    });
+    processedUsers.sort((a, b) => {
+      const h1 = a.history[0];
+      const h2 = b.history[0];
+      return (h2 == null ? 0 : Date.parse(h2.date)) - (h1 == null ? 0 : Date.parse(h1.date));
+    });
+    return {
+      statusCode: 200,
+      body: renderUsersHtml({ users: processedUsers, apiKey: key }),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ data: "Unauthorized" }),
+      headers: getHeaders(event),
+    };
+  }
+}
+
+async function getAdminLogsHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const key = event.queryStringParameters?.key;
+  if (key != null && key === (await getApiKey())) {
+    const userLogs = await LogDao.getAll();
+    const users = await UserDao.getAllLimited();
+    const usersByKey = CollectionUtils.groupByKey(users, "id");
+    const logPayloads = userLogs.reduce<ILogPayloads>((memo, log) => {
+      memo[log.userId] = memo[log.userId] || { logs: [], email: usersByKey[log.userId]?.[0].email };
+      memo[log.userId]!.logs.push({
+        action: log.action,
+        count: log.cnt,
+        timestamp: log.ts,
+      });
+      return memo;
+    }, {});
+    return {
+      statusCode: 200,
+      body: renderLogsHtml({ logs: logPayloads, apiKey: key }),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ data: "Unauthorized" }),
+      headers: getHeaders(event),
+    };
+  }
+}
+
 // async function storePrograms(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   for (const programPayload of programsJson) {
 //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -327,11 +516,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   r.post(".*timernotification", timerHandler);
   r.post(".*/api/signin/google", googleLoginHandler);
   r.post(".*/api/signout", signoutHandler);
-  r.get(".*/api/programs", getProgramsHandler);
   r.post(".*/api/storage", saveStorageHandler);
   r.get(".*/api/storage", getStorageHandler);
   r.get(".*/api/record", getHistoryRecord);
   r.get(".*/api/recordimage", getHistoryRecordImage);
+  r.post(".*/api/publishprogram", publishProgramHandler);
+  r.get(".*/api/programs", getProgramsHandler);
+  r.post(".*/api/log", logHandler);
+  r.get(".*/profile", getProfileHandler);
+  r.get(".*/profileimage", getProfileImage);
+
+  r.get(".*/admin/users", getUsersHandler);
+  r.get(".*/admin/logs", getAdminLogsHandler);
   const resp = await r.route(event);
   return resp;
 };

@@ -18,7 +18,6 @@ const Trace = Method("trace");
 
 const Path = (regExp: RegExp | string) => (req: APIGatewayProxyEvent) => {
   const url = new URL(req.path, "http://example.com");
-  console.log(url, regExp, req.path);
   const path = url.pathname;
   const match = path.match(regExp) || [];
   return match[0] === path;
