@@ -4,6 +4,7 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as sm from "@aws-cdk/aws-secretsmanager";
 import * as s3 from "@aws-cdk/aws-s3";
+import * as acm from "@aws-cdk/aws-certificatemanager";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -124,12 +125,21 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
-    new apigw.LambdaRestApi(this, `LftEndpoint${suffix}`, {
-      handler: lambdaFunction,
-      options: {
-        binaryMediaTypes: ["*/*"],
+    const cert = acm.Certificate.fromCertificateArn(
+      this,
+      `LftEndpointCert${suffix}`,
+      "arn:aws:acm:us-west-2:547433167554:certificate/9b0ad338-9f91-45c0-9cd6-5ba854748035"
+    );
+
+    const restApi = new apigw.RestApi(this, `LftEndpoint${suffix}`, {
+      defaultIntegration: new apigw.LambdaIntegration(lambdaFunction),
+      binaryMediaTypes: ["*/*"],
+      domainName: {
+        domainName: `api2${isDev ? "-dev" : ""}.liftosaur.com`,
+        certificate: cert,
       },
     });
+    restApi.root.addProxy();
 
     bucket.grantReadWrite(lambdaFunction);
     keyCookieSecret.grantRead(lambdaFunction);

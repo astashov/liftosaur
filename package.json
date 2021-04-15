@@ -79,6 +79,7 @@
   },
   "dependencies": {
     "@aws-cdk/aws-apigateway": "^1.97.0",
+    "@aws-cdk/aws-certificatemanager": "^1.97.0",
     "@aws-cdk/aws-dynamodb": "^1.97.0",
     "@aws-cdk/aws-lambda": "^1.97.0",
     "@aws-cdk/aws-s3": "^1.97.0",

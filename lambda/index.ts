@@ -33,6 +33,15 @@ export type IEnv = "dev" | "prod";
 
 const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com"];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getBodyJson(event: APIGatewayProxyEvent): any {
+  try {
+    return JSON.parse(Buffer.from(event.body || "e30=", "base64").toString("utf8"));
+  } catch (e) {
+    return JSON.parse(event.body || "{}");
+  }
+}
+
 function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
   const origin = event.headers.Origin || event.headers.origin || "http://example.com";
   const url = new URL(origin);
@@ -149,7 +158,7 @@ async function getStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
 async function saveStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const user = await getCurrentUser(event);
   if (user != null) {
-    const storage: IStorage = JSON.parse(event.body || "{}").storage;
+    const storage: IStorage = getBodyJson(event).storage;
     await UserDao.saveStorage(user, storage);
   }
   return {
@@ -160,7 +169,7 @@ async function saveStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatew
 }
 
 async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const token = JSON.parse(event.body || "{}").token;
+  const token = getBodyJson(event).token;
   const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
   const googleApiResponse = await fetch(url);
   const openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError = await googleApiResponse.json();
@@ -322,7 +331,7 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
 async function publishProgramHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const key = event.queryStringParameters?.key;
   if (key != null && key === (await getApiKey())) {
-    const program = JSON.parse(event.body || "{}").program;
+    const program = getBodyJson(event).program;
     if (program != null) {
       await ProgramDao.save(program);
       return { statusCode: 200, body: JSON.stringify({ data: "ok" }), headers: getHeaders(event) };
@@ -343,7 +352,7 @@ async function publishProgramHandler(event: APIGatewayProxyEvent): Promise<APIGa
 }
 
 async function logHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const { user, action } = JSON.parse(event.body || "{}");
+  const { user, action } = getBodyJson(event);
   let data;
   if (user && action) {
     await LogDao.increment(user, action);
