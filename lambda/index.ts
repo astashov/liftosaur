@@ -519,46 +519,46 @@ async function getAdminLogsHandler(event: APIGatewayProxyEvent): Promise<APIGate
   }
 }
 
-async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
+// async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+//   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
-  for (const userId in json.users) {
-    if (json.users.hasOwnProperty(userId)) {
-      const { storage, email } = JSON.parse(json.users[userId]) as { storage: IStorage; email: string };
-      if (storage != null) {
-        const googleId = Object.keys(json.google_ids).find((k) => json.google_ids[k] === userId);
-        const user = UserDao.build(userId, googleId!, email);
-        await UserDao.store(user);
-        await UserDao.saveStorage(user, storage);
-      } else {
-        console.error("There's no storage for", userId);
-      }
-    }
-  }
+//   for (const userId in json.users) {
+//     if (json.users.hasOwnProperty(userId)) {
+//       const { storage, email } = JSON.parse(json.users[userId]) as { storage: IStorage; email: string };
+//       if (storage != null) {
+//         const googleId = Object.keys(json.google_ids).find((k) => json.google_ids[k] === userId);
+//         const user = UserDao.build(userId, googleId!, email);
+//         await UserDao.store(user);
+//         await UserDao.saveStorage(user, storage);
+//       } else {
+//         console.error("There's no storage for", userId);
+//       }
+//     }
+//   }
 
-  for (const token in json.google_access_tokens) {
-    if (json.google_access_tokens.hasOwnProperty(token)) {
-      const googleId = json.google_access_tokens[token];
-      await GoogleAuthTokenDao.store(Utils.getEnv(), token, googleId);
-    }
-  }
+//   for (const token in json.google_access_tokens) {
+//     if (json.google_access_tokens.hasOwnProperty(token)) {
+//       const googleId = json.google_access_tokens[token];
+//       await GoogleAuthTokenDao.store(Utils.getEnv(), token, googleId);
+//     }
+//   }
 
-  for (const programId in json.programs) {
-    if (json.programs.hasOwnProperty(programId)) {
-      const { program, timestamp } = JSON.parse(json.programs[programId]) as {
-        program: IProgram;
-        timestamp: number;
-      };
-      await ProgramDao.save(program, timestamp);
-    }
-  }
+//   for (const programId in json.programs) {
+//     if (json.programs.hasOwnProperty(programId)) {
+//       const { program, timestamp } = JSON.parse(json.programs[programId]) as {
+//         program: IProgram;
+//         timestamp: number;
+//       };
+//       await ProgramDao.save(program, timestamp);
+//     }
+//   }
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ data: "ok" }),
-    headers: getHeaders(event),
-  };
-}
+//   return {
+//     statusCode: 200,
+//     body: JSON.stringify({ data: "ok" }),
+//     headers: getHeaders(event),
+//   };
+// }
 
 // async function storePrograms(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   for (const programPayload of programsJson) {
@@ -592,7 +592,7 @@ export const handler = rollbar.lambdaHandler(
     r.post(".*/api/log", logHandler);
     r.get(".*/profile", getProfileHandler);
     r.get(".*/profileimage", getProfileImage);
-    r.post(".*/api/loadbackup", loadBackupHandler);
+    // r.post(".*/api/loadbackup", loadBackupHandler);
 
     r.get(".*/admin/users", getUsersHandler);
     r.get(".*/admin/logs", getAdminLogsHandler);
