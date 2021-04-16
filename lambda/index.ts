@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import AWS from "aws-sdk";
 import { Utils } from "./utils";
-import { IStorage, IProgram } from "../src/types";
+import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -17,7 +17,6 @@ import { renderUserHtml, userImage } from "./user";
 import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
-import fs from "fs";
 import Rollbar from "rollbar";
 // import programsJson from "./programs.json";
 
