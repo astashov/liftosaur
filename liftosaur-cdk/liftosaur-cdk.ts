@@ -122,6 +122,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 2048,
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(isDev ? 120 : 60),
       handler: "lambda/index.handler",
@@ -160,5 +161,5 @@ export class LiftosaurCdkStack extends cdk.Stack {
 }
 
 const app = new cdk.App();
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
+new LiftosaurCdkStack(app, "LiftosaurStack", false);

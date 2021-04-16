@@ -100,12 +100,21 @@ async function getWebpushrAuthToken(): Promise<string> {
 async function getCurrentUserId(event: APIGatewayProxyEvent): Promise<string | undefined> {
   const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
   const cookieSecret = await getCookieSecret();
-  if (cookies.session != null && JWT.verify(cookies.session, cookieSecret)) {
-    const session = JWT.decode(cookies.session) as Record<string, string>;
-    return session.userId;
-  } else {
-    return undefined;
+  if (cookies.session) {
+    let isValid = false;
+    try {
+      isValid = !!JWT.verify(cookies.session, cookieSecret);
+    } catch (e) {
+      if (e.constructor.name !== "JsonWebTokenError") {
+        throw e;
+      }
+    }
+    if (isValid) {
+      const session = JWT.decode(cookies.session) as Record<string, string>;
+      return session.userId;
+    }
   }
+  return undefined;
 }
 
 async function getCurrentUser(event: APIGatewayProxyEvent): Promise<IUserDao | undefined> {
