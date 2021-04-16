@@ -10,6 +10,7 @@ import { ObjectUtils } from "../src/utils/object";
 import { Exercise } from "../src/models/exercise";
 import { StringUtils } from "../src/utils/string";
 import { Weight } from "../src/models/weight";
+import fetch from "node-fetch";
 
 export function renderUserHtml(storage: IStorage, userId: string): string {
   return renderPage(<UserHtml data={storage} userId={userId} />);

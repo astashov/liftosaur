@@ -121,6 +121,7 @@ export class UserDao {
           TableName: tableNames[env].historyRecords,
           IndexName: tableNames[env].historyRecordsDate,
           KeyConditionExpression: "#userId = :userId",
+          ScanIndexForward: false,
           ExpressionAttributeNames: {
             "#userId": "userId",
           },
@@ -149,6 +150,7 @@ export class UserDao {
         .query({
           TableName: tableNames[env].stats,
           KeyConditionExpression: "#userId = :userId",
+          ScanIndexForward: false,
           ExpressionAttributeNames: {
             "#userId": "userId",
           },
@@ -241,7 +243,8 @@ export class UserDao {
     const allHistory = await dynamo
       .scan({ TableName: tableNames[env].historyRecords })
       .promise()
-      .then((r) => (r.Items || []) as (IHistoryRecord & { userId: string })[]);
+      .then((r) => (r.Items || []) as (IHistoryRecord & { userId: string })[])
+      .then((r) => r.sort((a, b) => new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime()));
 
     const allPrograms = await dynamo
       .scan({ TableName: tableNames[env].programs })
