@@ -1,6 +1,6 @@
 import "source-map-support/register";
 import fetch from "node-fetch";
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Router } from "./router";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
 import { UserDao, IUserDao } from "./dao/userDao";
