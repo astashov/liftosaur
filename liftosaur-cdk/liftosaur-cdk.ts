@@ -31,6 +31,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftUsers${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
     usersTable.addGlobalSecondaryIndex({
       indexName: `lftUsersGoogleId${suffix}`,
@@ -42,6 +43,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       tableName: `lftGoogleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
 
     const historyRecordsTable = new dynamodb.Table(this, `LftHistoryRecords${suffix}`, {
@@ -49,6 +51,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "id", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
     historyRecordsTable.addGlobalSecondaryIndex({
       indexName: `lftHistoryRecordsDate${suffix}`,
@@ -62,6 +65,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "name", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
     statsTable.addGlobalSecondaryIndex({
       indexName: `lftStatsTimestamp${suffix}`,
@@ -82,13 +86,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
 
     const programsTable = new dynamodb.Table(this, `LftPrograms${suffix}`, {
       tableName: `lftPrograms${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
 
     const secretArns = {
@@ -118,7 +123,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       layers: [depsLayer],
-      timeout: cdk.Duration.seconds(isDev ? 10 : 3),
+      timeout: cdk.Duration.seconds(isDev ? 900 : 3),
       handler: "lambda/index.handler",
       environment: {
         IS_DEV: `${isDev}`,

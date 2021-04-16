@@ -347,6 +347,35 @@ async function backupHandler(request: Request): Promise<Response> {
   }
 }
 
+async function getDataHandler(request: Request): Promise<Response> {
+  const url = new URL(request.url);
+  if (url.searchParams.get("key") === apiKey) {
+    const result: Record<string, unknown> = {};
+    console.log("Backing up users...");
+    result.users = await new Backup(kv_liftosaur_users, "kv_liftosaur_users").getData();
+    console.log("");
+    console.log("");
+    console.log("Google IDS...");
+    result.google_ids = await new Backup(kv_liftosaur_google_ids, "kv_liftosaur_google_ids").getData();
+    console.log("");
+    console.log("");
+    console.log("Programs...");
+    result.programs = await new Backup(kv_liftosaur_programs, "kv_liftosaur_programs").getData();
+    console.log("");
+    console.log("");
+    console.log("Access Tokens...");
+    result.google_access_tokens = await new Backup(
+      kv_liftosaur_google_access_tokens,
+      "kv_liftosaur_google_access_tokens"
+    ).getData();
+    console.log("");
+    console.log("");
+    return new Response(JSON.stringify(result));
+  } else {
+    return new Response("wrong_key", { status: 400 });
+  }
+}
+
 async function migrationHandler(request: Request): Promise<Response> {
   const url = new URL(request.url);
   if (url.searchParams.get("key") === apiKey) {
@@ -475,6 +504,7 @@ async function handleRequest(request: Request): Promise<Response> {
   r.post(".*/api/storage", (req: Request) => saveStorageHandler(req));
   r.get(".*/api/storage", (req: Request) => getStorageHandler(req));
   r.get(".*/api/backup", (req: Request) => backupHandler(req));
+  r.get(".*/api/getdata", (req: Request) => getDataHandler(req));
   r.get(".*/api/record", (req: Request) => getHistoryRecord(req));
   r.get(".*/api/recordimage", (req: Request) => getHistoryRecordImage(req));
   r.post(".*/api/publishprogram", (req: Request) => publishProgramHandler(req));

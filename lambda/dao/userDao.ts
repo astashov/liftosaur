@@ -169,6 +169,7 @@ export class UserDao {
   public static async saveStorage(user: IUserDao, storage: IStorage): Promise<void> {
     const dynamo = new DynamoDB.DocumentClient();
     const { history, programs, stats, ...userStorage } = storage;
+    const statsObj = stats || { length: {}, weight: {} };
     const env = Utils.getEnv();
     const updatedUser: ILimitedUserDao = { ...user, storage: userStorage };
     const historyUpdates = CollectionUtils.inGroupsOf(23, history).map(async (group) => {
@@ -197,12 +198,12 @@ export class UserDao {
         })
         .promise();
     });
-    const statsLengthArray: IStatDb[] = ObjectUtils.keys(stats.length).flatMap((key) => {
-      const st = stats.length[key] || [];
+    const statsLengthArray: IStatDb[] = ObjectUtils.keys(statsObj.length).flatMap((key) => {
+      const st = statsObj.length[key] || [];
       return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "length" }));
     });
-    const statsWeightArray: IStatDb[] = ObjectUtils.keys(stats.weight).flatMap((key) => {
-      const st = stats.weight[key] || [];
+    const statsWeightArray: IStatDb[] = ObjectUtils.keys(statsObj.weight).flatMap((key) => {
+      const st = statsObj.weight[key] || [];
       return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "weight" }));
     });
     const statsArray = statsLengthArray.concat(statsWeightArray);

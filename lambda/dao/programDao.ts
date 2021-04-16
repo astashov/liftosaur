@@ -14,7 +14,7 @@ const tableNames = {
 interface IProgramPayload {
   program: IProgram;
   id: string;
-  timestamp: number;
+  ts: number;
   version: number;
 }
 
@@ -26,7 +26,7 @@ export namespace ProgramDao {
     return (result.Items || []) as IProgramPayload[];
   }
 
-  export async function save(program: IProgram): Promise<void> {
+  export async function save(program: IProgram, timestamp?: number): Promise<void> {
     const dynamo = new DynamoDB.DocumentClient();
     const env = Utils.getEnv();
 
@@ -34,10 +34,10 @@ export namespace ProgramDao {
       .update({
         TableName: tableNames[env].programs,
         Key: { id: program.id },
-        UpdateExpression: "SET timestamp = :timestamp, program = :program",
+        UpdateExpression: "SET ts = :ts, program = :program",
         ExpressionAttributeValues: {
-          ":timestamp": Date.now(),
-          program: program,
+          ":ts": timestamp || Date.now(),
+          ":program": program,
         },
       })
       .promise();
