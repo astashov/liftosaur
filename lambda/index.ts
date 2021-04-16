@@ -1,6 +1,6 @@
 import "source-map-support/register";
 import fetch from "node-fetch";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { Router } from "./router";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
 import { UserDao, IUserDao } from "./dao/userDao";
@@ -18,6 +18,7 @@ import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import fs from "fs";
+import Rollbar from "rollbar";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -567,24 +568,35 @@ async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
 //   return { statusCode: 200, body: "{}", headers: getHeaders(event) };
 // }
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const r = new Router();
-  r.post(".*timernotification", timerHandler);
-  r.post(".*/api/signin/google", googleLoginHandler);
-  r.post(".*/api/signout", signoutHandler);
-  r.post(".*/api/storage", saveStorageHandler);
-  r.get(".*/api/storage", getStorageHandler);
-  r.get(".*/api/record", getHistoryRecord);
-  r.get(".*/api/recordimage", getHistoryRecordImage);
-  r.post(".*/api/publishprogram", publishProgramHandler);
-  r.get(".*/api/programs", getProgramsHandler);
-  r.post(".*/api/log", logHandler);
-  r.get(".*/profile", getProfileHandler);
-  r.get(".*/profileimage", getProfileImage);
-  r.post(".*/api/loadbackup", loadBackupHandler);
+const rollbar = new Rollbar({
+  accessToken: "3b3e1e0fe50041debced953e58707402",
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+  payload: {
+    environment: `${Utils.getEnv()}-lambda`,
+  },
+});
 
-  r.get(".*/admin/users", getUsersHandler);
-  r.get(".*/admin/logs", getAdminLogsHandler);
-  const resp = await r.route(event);
-  return resp;
-};
+export const handler = rollbar.lambdaHandler(
+  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const r = new Router();
+    r.post(".*timernotification", timerHandler);
+    r.post(".*/api/signin/google", googleLoginHandler);
+    r.post(".*/api/signout", signoutHandler);
+    r.post(".*/api/storage", saveStorageHandler);
+    r.get(".*/api/storage", getStorageHandler);
+    r.get(".*/api/record", getHistoryRecord);
+    r.get(".*/api/recordimage", getHistoryRecordImage);
+    r.post(".*/api/publishprogram", publishProgramHandler);
+    r.get(".*/api/programs", getProgramsHandler);
+    r.post(".*/api/log", logHandler);
+    r.get(".*/profile", getProfileHandler);
+    r.get(".*/profileimage", getProfileImage);
+    r.post(".*/api/loadbackup", loadBackupHandler);
+
+    r.get(".*/admin/users", getUsersHandler);
+    r.get(".*/admin/logs", getAdminLogsHandler);
+    const resp = await r.route(event);
+    return resp;
+  }
+);
