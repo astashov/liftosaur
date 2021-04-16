@@ -141,8 +141,13 @@ async function timerHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProx
 async function getStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const querystringParams = event.queryStringParameters || {};
   const adminKey = querystringParams.key;
-  const userId =
-    adminKey != null && adminKey === (await getApiKey()) ? querystringParams.userid : await getCurrentUserId(event);
+  const userIdKey = querystringParams.userid;
+  let userId;
+  if (adminKey != null && userIdKey != null && adminKey === (await getApiKey())) {
+    userId = querystringParams.userid;
+  } else {
+    userId = await getCurrentUserId(event);
+  }
   if (userId != null) {
     const user = await UserDao.getById(userId);
     if (user != null) {

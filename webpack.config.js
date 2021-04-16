@@ -63,7 +63,7 @@ module.exports = {
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://api.liftosaur.com" : "http://local-api.liftosaur.com:3000"
+        process.env.NODE_ENV === "production" ? "https://api2.liftosaur.com" : "http://local-api.liftosaur.com:3000"
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
