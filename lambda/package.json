@@ -9,6 +9,7 @@
     "cookie": "^0.4.1",
     "fp-ts": "^2.9.5",
     "io-ts": "^2.2.16",
+    "jimp": "^0.16.1",
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",
     "node-fetch": "^2.6.1",

@@ -287,7 +287,6 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
   const recordId = parseInt(event.queryStringParameters?.id || "", 10);
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
   const key = `historyrecordimage${event.path}-${userId}-${recordId}.png`;
-  console.log(key);
   let body: AWS.S3.GetObjectOutput["Body"];
   try {
     const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
@@ -302,7 +301,6 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
     "cache-control": "max-age=86400",
   };
   if (body != null) {
-    console.log(body);
     return {
       statusCode: 200,
       body: `${body.toString("base64")}`,
@@ -318,9 +316,8 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
     if (result != null) {
       const imageResult = await recordImage(result.storage, recordId);
       if (imageResult.success) {
-        const buffer = Buffer.from(imageResult.data);
+        const buffer = imageResult.data;
         await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
-        console.log(buffer.toString("base64"));
         return {
           statusCode: 200,
           body: buffer.toString("base64"),
@@ -409,7 +406,6 @@ async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayP
   const userId = event.queryStringParameters?.user;
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
   const key = `profileimage${event.path}-${userId}.png`;
-  console.log(key);
   let body: AWS.S3.GetObjectOutput["Body"];
   try {
     const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
@@ -424,7 +420,6 @@ async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayP
     "cache-control": "max-age=86400",
   };
   if (body != null) {
-    console.log(body);
     return {
       statusCode: 200,
       body: `${body.toString("base64")}`,
@@ -439,19 +434,14 @@ async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayP
     if (result != null) {
       if (result?.storage?.settings?.isPublicProfile) {
         const imageResult = await userImage(result.storage);
-        if (imageResult.success) {
-          const buffer = Buffer.from(imageResult.data);
-          await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
-          console.log(buffer.toString("base64"));
-          return {
-            statusCode: 200,
-            body: buffer.toString("base64"),
-            headers,
-            isBase64Encoded: true,
-          };
-        } else {
-          error.message = imageResult.error;
-        }
+        const buffer = Buffer.from(imageResult);
+        await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+        return {
+          statusCode: 200,
+          body: buffer.toString("base64"),
+          headers,
+          isBase64Encoded: true,
+        };
       } else {
         error.message = "The user's profile is not public";
       }
