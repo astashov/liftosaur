@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "yarn docs && NODE_ENV=production yarn build:dev && yarn blog",
-    "publish": "wrangler publish --env production",
     "analyze": "open dist/report.html",
     "docs": "generate-md --layout ./src/docs/layout/ --input ./src/docs/content/ --output ./docs",
     "blog": "eleventy",
@@ -15,7 +14,6 @@
     "start": "webpack-dev-server",
     "trust": "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert/private.crt",
     "start:https": "webpack-dev-server --https --cert cert/private.pem --key cert/private.key --port 8443",
-    "start:server": "wrangler dev",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:3000/api/migrate?key=$KEY",
     "migrate:prod": "curl -v -X POST https://api2.liftosaur.com/api/migrate?key=$KEY",
     "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:3000/api/synctoprod?ids=$IDS\\&key=$KEY",
@@ -36,7 +34,6 @@
     "@11ty/eleventy": "^0.11.1",
     "@11ty/eleventy-plugin-rss": "^1.1.0",
     "@11ty/eleventy-plugin-syntaxhighlight": "^3.0.6",
-    "@cloudflare/wrangler": "^1.12.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@types/aws-lambda": "^8.10.72",
     "@types/codemirror": "^0.0.96",
@@ -46,7 +43,6 @@
     "@types/jsonwebtoken": "^8.3.9",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
-    "@udacity/types-service-worker-mock": "^1.1.2",
     "autoprefixer": "^9.7.4",
     "aws-sdk": "^2.867.0",
     "babel-eslint": "^10.1.0",
@@ -70,13 +66,11 @@
     "ts-jest": "^25.3.1",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.6.2",
-    "types-cloudflare-worker": "^1.1.2",
     "typescript": "^3.8.2",
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.7.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3",
-    "wrangler-js": "^0.1.11"
+    "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
     "@aws-cdk/aws-apigateway": "^1.97.0",
