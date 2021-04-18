@@ -1,9 +1,10 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDB, AWSError, Request } from "aws-sdk";
 import { IStorage, IHistoryRecord, IProgram, IWeight, ILength, IStats } from "../../src/types";
 import { Settings } from "../../src/models/settings";
 import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
 
 const tableNames = {
   dev: {
@@ -116,11 +117,12 @@ export class UserDao {
       .then((r) => r.Item as ILimitedUserDao | undefined);
 
     if (userDao != null) {
-      const history = await dynamo
-        .query({
+      const history = await query<IHistoryRecord>((key) =>
+        dynamo.query({
           TableName: tableNames[env].historyRecords,
           IndexName: tableNames[env].historyRecordsDate,
           KeyConditionExpression: "#userId = :userId",
+          ExclusiveStartKey: key,
           ScanIndexForward: false,
           ExpressionAttributeNames: {
             "#userId": "userId",
@@ -129,13 +131,13 @@ export class UserDao {
             ":userId": userId,
           },
         })
-        .promise()
-        .then((r) => (r.Items || []) as IHistoryRecord[]);
+      );
 
-      const programs = await dynamo
-        .query({
+      const programs = await query<IProgram>((key) =>
+        dynamo.query({
           TableName: tableNames[env].programs,
           KeyConditionExpression: "#userId = :userId",
+          ExclusiveStartKey: key,
           ExpressionAttributeNames: {
             "#userId": "userId",
           },
@@ -143,14 +145,14 @@ export class UserDao {
             ":userId": userId,
           },
         })
-        .promise()
-        .then((r) => (r.Items || []) as IProgram[]);
+      );
 
-      const statsDb = await dynamo
-        .query({
+      const statsDb = await query<IStatDb>((key) =>
+        dynamo.query({
           TableName: tableNames[env].stats,
           KeyConditionExpression: "#userId = :userId",
           ScanIndexForward: false,
+          ExclusiveStartKey: key,
           ExpressionAttributeNames: {
             "#userId": "userId",
           },
@@ -158,8 +160,7 @@ export class UserDao {
             ":userId": userId,
           },
         })
-        .promise()
-        .then((r) => (r.Items || []) as IStatDb[]);
+      );
       const stats = convertStatsFromDb(statsDb);
 
       return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
@@ -240,21 +241,17 @@ export class UserDao {
     const env = Utils.getEnv();
     const allUsers = await UserDao.getAllLimited();
 
-    const allHistory = await dynamo
-      .scan({ TableName: tableNames[env].historyRecords })
-      .promise()
-      .then((r) => (r.Items || []) as (IHistoryRecord & { userId: string })[])
-      .then((r) => r.sort((a, b) => new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime()));
+    const allHistory = await query<IHistoryRecord & { userId: string }>((key) =>
+      dynamo.scan({ TableName: tableNames[env].historyRecords, ExclusiveStartKey: key })
+    ).then((r) => r.sort((a, b) => new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime()));
 
-    const allPrograms = await dynamo
-      .scan({ TableName: tableNames[env].programs })
-      .promise()
-      .then((r) => (r.Items || []) as (IProgram & { userId: string })[]);
+    const allPrograms = await query<IProgram & { userId: string }>((key) =>
+      dynamo.scan({ TableName: tableNames[env].programs, ExclusiveStartKey: key })
+    );
 
-    const allStatsDbs = await dynamo
-      .scan({ TableName: tableNames[env].stats })
-      .promise()
-      .then((r) => (r.Items || []) as (IStatDb & { userId: string })[]);
+    const allStatsDbs = await query<IStatDb & { userId: string }>((key) =>
+      dynamo.scan({ TableName: tableNames[env].stats, ExclusiveStartKey: key })
+    );
 
     const allStatsDbsByUser = CollectionUtils.groupByKey(allStatsDbs, "userId");
 
@@ -287,4 +284,15 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
     },
     { weight: {}, length: {} }
   );
+}
+
+async function query<T>(cb: (key?: DocumentClient.Key) => Request<DocumentClient.QueryOutput, AWSError>): Promise<T[]> {
+  let key: DocumentClient.Key | undefined;
+  let items: DynamoDB.DocumentClient.ItemList = [];
+  do {
+    const result = await cb(key).promise();
+    items = items.concat(result.Items || []);
+    key = result.LastEvaluatedKey;
+  } while (key);
+  return items as T[];
 }
