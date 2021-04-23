@@ -567,7 +567,7 @@ export class ScriptRunner {
       if (typeof result !== "number") {
         throw new SyntaxError("Expected to get number as a result");
       } else if (result < 0) {
-        throw new SyntaxError("Result should be > 0");
+        return 0;
       } else {
         return result;
       }
@@ -579,7 +579,7 @@ export class ScriptRunner {
           result = Weight.build(result, this.units);
         }
         if (Weight.lt(result, 0)) {
-          throw new SyntaxError("Result should be > 0");
+          return Weight.build(0, this.units);
         } else {
           return result;
         }

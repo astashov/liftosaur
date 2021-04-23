@@ -576,9 +576,11 @@ interface IPlaygroundProps {
 function Playground(props: IPlaygroundProps): JSX.Element {
   const { programExercise, days, settings, progress } = props;
   const entry = progress.entries[0];
+  const progressRef = useRef(props.progress);
+  progressRef.current = props.progress;
 
   const dispatch: IDispatch = async (action) => {
-    const newProgress = buildCardsReducer(settings)(progress, action as ICardsAction);
+    const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
     props.onProgressChange(newProgress);
   };
 
