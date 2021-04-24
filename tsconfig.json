@@ -19,5 +19,5 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "server/**/*", "lambda/**/*", "liftosaur-cdk/**/*", "test/**/*"]
+  "include": ["src/**/*", "server/**/*", "lambda/**/*", "liftosaur-cdk/**/*", "test/**/*", "devserver.ts"]
 }

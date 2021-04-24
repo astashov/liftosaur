@@ -597,4 +597,4 @@ export const handler = rollbar.lambdaHandler(
     const resp = await r.route(event);
     return resp;
   }
-);
+) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;

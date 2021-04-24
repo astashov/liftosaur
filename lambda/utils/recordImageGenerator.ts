@@ -9,13 +9,14 @@ export interface IRecordImageGeneratorArgs {
 
 export class RecordImageGenerator {
   public async generate(json: IRecordImageGeneratorArgs): Promise<Buffer> {
+    const prefix = process.env.IMGPREFIX || "";
     const [img, trophy, poppinsRegular, poppinsBold, arialBold, arialBoldGray] = await Promise.all([
-      jimp.read("images/og_image_bg.png"),
-      jimp.read("images/trophy.png"),
-      jimp.loadFont("images/poppins-regular.fnt"),
-      jimp.loadFont("images/Poppins-Bold.ttf.fnt"),
-      jimp.loadFont("images/arial-bold.ttf.fnt"),
-      jimp.loadFont("images/arial-bold-gray.ttf.fnt"),
+      jimp.read(`${prefix}images/og_image_bg.png`),
+      jimp.read(`${prefix}images/trophy.png`),
+      jimp.loadFont(`${prefix}images/poppins-regular.fnt`),
+      jimp.loadFont(`${prefix}images/Poppins-Bold.ttf.fnt`),
+      jimp.loadFont(`${prefix}images/arial-bold.ttf.fnt`),
+      jimp.loadFont(`${prefix}images/arial-bold-gray.ttf.fnt`),
     ]);
 
     img.print(
