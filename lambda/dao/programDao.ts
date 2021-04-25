@@ -1,6 +1,6 @@
 import { IProgram } from "../../src/types";
-import { DynamoDB } from "aws-sdk";
 import { Utils } from "../utils";
+import { IDI } from "../utils/di";
 
 const tableNames = {
   dev: {
@@ -18,42 +18,28 @@ interface IProgramPayload {
   version: number;
 }
 
-export namespace ProgramDao {
-  export async function getAll(): Promise<IProgramPayload[]> {
-    const dynamo = new DynamoDB.DocumentClient();
+export class ProgramDao {
+  constructor(private readonly di: IDI) {}
+
+  public async getAll(): Promise<IProgramPayload[]> {
     const env = Utils.getEnv();
-    const result = await dynamo.scan({ TableName: tableNames[env].programs }).promise();
-    return (result.Items || []) as IProgramPayload[];
+    return this.di.dynamo.scan({ tableName: tableNames[env].programs });
   }
 
-  export async function save(program: IProgram, timestamp?: number): Promise<void> {
-    const dynamo = new DynamoDB.DocumentClient();
+  public async save(program: IProgram, timestamp?: number): Promise<void> {
     const env = Utils.getEnv();
 
-    await dynamo
-      .update({
-        TableName: tableNames[env].programs,
-        Key: { id: program.id },
-        UpdateExpression: "SET ts = :ts, program = :program",
-        ExpressionAttributeValues: {
-          ":ts": timestamp || Date.now(),
-          ":program": program,
-        },
-      })
-      .promise();
+    await this.di.dynamo.update({
+      tableName: tableNames[env].programs,
+      key: { id: program.id },
+      expression: "SET ts = :ts, program = :program",
+      values: { ":ts": timestamp || Date.now(), ":program": program },
+    });
   }
 
-  export async function add(programPayload: IProgramPayload): Promise<void> {
-    const dynamo = new DynamoDB.DocumentClient();
+  public async add(programPayload: IProgramPayload): Promise<void> {
     const env = Utils.getEnv();
-    console.log(programPayload);
     programPayload.id = programPayload.program.id;
-
-    await dynamo
-      .put({
-        TableName: tableNames[env].programs,
-        Item: programPayload,
-      })
-      .promise();
+    await this.di.dynamo.put({ tableName: tableNames[env].programs, item: programPayload });
   }
 }

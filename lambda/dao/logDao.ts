@@ -1,5 +1,5 @@
-import { DynamoDB } from "aws-sdk";
 import { Utils } from "../utils";
+import { IDI } from "../utils/di";
 
 const tableNames = {
   dev: {
@@ -18,28 +18,22 @@ export interface ILogDao {
 }
 
 export class LogDao {
-  public static async getAll(): Promise<ILogDao[]> {
+  constructor(private readonly di: IDI) {}
+
+  public async getAll(): Promise<ILogDao[]> {
     const env = Utils.getEnv();
-    const dynamo = new DynamoDB.DocumentClient();
-    const result = await dynamo.scan({ TableName: tableNames[env].logs }).promise();
-    return (result.Items || []) as ILogDao[];
+    return this.di.dynamo.scan({ tableName: tableNames[env].logs });
   }
 
-  public static async increment(userId: string, action: string): Promise<void> {
+  public async increment(userId: string, action: string): Promise<void> {
     const env = Utils.getEnv();
-    const dynamo = new DynamoDB.DocumentClient();
-    const record = await dynamo.get({ TableName: tableNames[env].logs, Key: { userId, action } }).promise();
-    const count: number = record?.Item?.cnt || 0;
-    await dynamo
-      .update({
-        TableName: tableNames[env].logs,
-        Key: { userId, action },
-        UpdateExpression: "SET ts = :timestamp, cnt = :cnt",
-        ExpressionAttributeValues: {
-          ":timestamp": Date.now(),
-          ":cnt": count + 1,
-        },
-      })
-      .promise();
+    const item = await this.di.dynamo.get<ILogDao>({ tableName: tableNames[env].logs, key: { userId, action } });
+    const count: number = item?.cnt || 0;
+    await this.di.dynamo.update({
+      tableName: tableNames[env].logs,
+      key: { userId, action },
+      expression: "SET ts = :timestamp, cnt = :cnt",
+      values: { ":timestamp": Date.now(), ":cnt": count + 1 },
+    });
   }
 }

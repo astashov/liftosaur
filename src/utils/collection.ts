@@ -72,6 +72,14 @@ export namespace CollectionUtils {
     }, {});
   }
 
+  export function collectToSet<T, K extends keyof T>(arr: T[], key: K): Set<T[K]> {
+    const set = new Set<T[K]>();
+    for (const el of arr) {
+      set.add(el[key]);
+    }
+    return set;
+  }
+
   export function flat<T>(from: T[][]): T[] {
     return from.reduce((acc, val) => acc.concat(val), []);
   }

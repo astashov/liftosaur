@@ -7,7 +7,6 @@ import { UserDao, IUserDao } from "./dao/userDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
-import AWS from "aws-sdk";
 import { Utils } from "./utils";
 import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
@@ -18,6 +17,11 @@ import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
+import { DynamoUtil } from "./utils/dynamo";
+import { IDI } from "./utils/di";
+import { LogUtil } from "./utils/log";
+import { SecretsUtil } from "./utils/secrets";
+import { S3Util } from "./utils/s3";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -61,45 +65,9 @@ function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
   return headers;
 }
 
-async function getSecret(arns: { dev: string; prod: string }): Promise<string> {
-  const sm = new AWS.SecretsManager();
-  return sm
-    .getSecretValue({ SecretId: arns[Utils.getEnv()] })
-    .promise()
-    .then((s) => s.SecretString!);
-}
-
-async function getCookieSecret(): Promise<string> {
-  return getSecret({
-    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
-    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
-  });
-}
-
-async function getApiKey(): Promise<string> {
-  return getSecret({
-    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
-    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
-  });
-}
-
-async function getWebpushrKey(): Promise<string> {
-  return getSecret({
-    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
-    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
-  });
-}
-
-async function getWebpushrAuthToken(): Promise<string> {
-  return getSecret({
-    dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
-    prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
-  });
-}
-
-async function getCurrentUserId(event: APIGatewayProxyEvent): Promise<string | undefined> {
+async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<string | undefined> {
   const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
-  const cookieSecret = await getCookieSecret();
+  const cookieSecret = await di.secrets.getCookieSecret();
   if (cookies.session) {
     let isValid = false;
     try {
@@ -117,21 +85,21 @@ async function getCurrentUserId(event: APIGatewayProxyEvent): Promise<string | u
   return undefined;
 }
 
-async function getCurrentUser(event: APIGatewayProxyEvent): Promise<IUserDao | undefined> {
-  const userId = await getCurrentUserId(event);
+async function getCurrentUser(event: APIGatewayProxyEvent, di: IDI): Promise<IUserDao | undefined> {
+  const userId = await getCurrentUserId(event, di);
   if (userId != null) {
-    return UserDao.getById(userId);
+    return new UserDao(di).getById(userId);
   } else {
     return undefined;
   }
 }
 
-async function timerHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function timerHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const response = await fetch("https://app.webpushr.com/api/v1/notification/send/sid", {
     method: "POST",
     headers: {
-      webpushrKey: await getWebpushrKey(),
-      webpushrAuthToken: await getWebpushrAuthToken(),
+      webpushrKey: await di.secrets.getWebpushrKey(),
+      webpushrAuthToken: await di.secrets.getWebpushrAuthToken(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -147,18 +115,18 @@ async function timerHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProx
   return { statusCode: response.status, body, headers: getHeaders(event) };
 }
 
-async function getStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function getStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const querystringParams = event.queryStringParameters || {};
   const adminKey = querystringParams.key;
   const userIdKey = querystringParams.userid;
   let userId;
-  if (adminKey != null && userIdKey != null && adminKey === (await getApiKey())) {
+  if (adminKey != null && userIdKey != null && adminKey === (await di.secrets.getApiKey())) {
     userId = querystringParams.userid;
   } else {
-    userId = await getCurrentUserId(event);
+    userId = await getCurrentUserId(event, di);
   }
   if (userId != null) {
-    const user = await UserDao.getById(userId);
+    const user = await new UserDao(di).getById(userId);
     if (user != null) {
       return {
         statusCode: 200,
@@ -170,11 +138,11 @@ async function getStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
   return { statusCode: 200, body: "{}", headers: getHeaders(event) };
 }
 
-async function saveStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const user = await getCurrentUser(event);
+async function saveStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+  const user = await getCurrentUser(event, di);
   if (user != null) {
     const storage: IStorage = getBodyJson(event).storage;
-    await UserDao.saveStorage(user, storage);
+    await new UserDao(di).saveStorage(user, storage);
   }
   return {
     statusCode: 200,
@@ -183,13 +151,13 @@ async function saveStorageHandler(event: APIGatewayProxyEvent): Promise<APIGatew
   };
 }
 
-async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function googleLoginHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const token = getBodyJson(event).token;
   const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
   const googleApiResponse = await fetch(url);
   const openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError = await googleApiResponse.json();
   const env = process.env.IS_DEV === "true" ? "dev" : "prod";
-  const cookieSecret = await getCookieSecret();
+  const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
     return {
@@ -199,14 +167,15 @@ async function googleLoginHandler(event: APIGatewayProxyEvent): Promise<APIGatew
     };
   }
 
-  await GoogleAuthTokenDao.store(env, token, openIdJson.sub);
-  let user = await UserDao.getByGoogleId(openIdJson.sub);
+  await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);
+  const userDao = new UserDao(di);
+  let user = await userDao.getByGoogleId(openIdJson.sub);
   let userId = user?.id;
 
   if (userId == null) {
     userId = UidFactory.generateUid(12);
     user = UserDao.build(userId, openIdJson.sub, openIdJson.email);
-    await UserDao.store(user);
+    await userDao.store(user);
   }
 
   const session = JWT.sign({ userId: userId }, cookieSecret);
@@ -243,17 +212,17 @@ async function signoutHandler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   };
 }
 
-async function getProgramsHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const programs = await ProgramDao.getAll();
+async function getProgramsHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+  const programs = await new ProgramDao(di).getAll();
   return { statusCode: 200, body: JSON.stringify({ programs }), headers: getHeaders(event) };
 }
 
-async function getHistoryRecord(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function getHistoryRecord(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const userId = event.queryStringParameters?.user;
   const recordId = parseInt(event.queryStringParameters?.id || "", 10);
   const error: { message?: string } = {};
   if (userId != null && recordId != null && !isNaN(recordId)) {
-    const result = await UserDao.getById(userId);
+    const result = await new UserDao(di).getById(userId);
     if (result != null) {
       const storage: IStorage = result.storage;
       const history = storage.history;
@@ -280,22 +249,13 @@ async function getHistoryRecord(event: APIGatewayProxyEvent): Promise<APIGateway
   };
 }
 
-async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const s3 = new AWS.S3();
+async function getHistoryRecordImage(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const env = Utils.getEnv();
   const userId = event.queryStringParameters?.user;
   const recordId = parseInt(event.queryStringParameters?.id || "", 10);
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
   const key = `historyrecordimage${event.path}-${userId}-${recordId}.png`;
-  let body: AWS.S3.GetObjectOutput["Body"];
-  try {
-    const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
-    body = cachedResponse.Body;
-  } catch (e) {
-    if (e.code !== "NoSuchKey") {
-      throw e;
-    }
-  }
+  const body = await di.s3.getObject({ bucket, key });
   const headers = {
     "content-type": "image/png",
     "cache-control": "max-age=86400",
@@ -312,12 +272,12 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
   const error: { message?: string } = {};
 
   if (userId != null && recordId != null && !isNaN(recordId)) {
-    const result = await UserDao.getById(userId);
+    const result = await new UserDao(di).getById(userId);
     if (result != null) {
       const imageResult = await recordImage(result.storage, recordId);
       if (imageResult.success) {
         const buffer = imageResult.data;
-        await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+        await di.s3.putObject({ bucket, key, body: buffer });
         return {
           statusCode: 200,
           body: buffer.toString("base64"),
@@ -340,12 +300,12 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent): Promise<APIGa
   };
 }
 
-async function publishProgramHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function publishProgramHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const key = event.queryStringParameters?.key;
-  if (key != null && key === (await getApiKey())) {
+  if (key != null && key === (await di.secrets.getApiKey())) {
     const program = getBodyJson(event).program;
     if (program != null) {
-      await ProgramDao.save(program);
+      await new ProgramDao(di).save(program);
       return { statusCode: 200, body: JSON.stringify({ data: "ok" }), headers: getHeaders(event) };
     } else {
       return {
@@ -363,11 +323,11 @@ async function publishProgramHandler(event: APIGatewayProxyEvent): Promise<APIGa
   }
 }
 
-async function logHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function logHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const { user, action } = getBodyJson(event);
   let data;
   if (user && action) {
-    await LogDao.increment(user, action);
+    await new LogDao(di).increment(user, action);
     data = "ok";
   } else {
     data = "error";
@@ -375,11 +335,11 @@ async function logHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyR
   return { statusCode: 200, body: JSON.stringify({ data }), headers: getHeaders(event) };
 }
 
-async function getProfileHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function getProfileHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const userId = event.queryStringParameters?.user;
   const error: { message?: string } = {};
   if (userId != null) {
-    const result = await UserDao.getById(userId);
+    const result = await new UserDao(di).getById(userId);
     if (result != null) {
       const storage = result.storage;
       if (storage.settings.isPublicProfile) {
@@ -400,21 +360,12 @@ async function getProfileHandler(event: APIGatewayProxyEvent): Promise<APIGatewa
   return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
 }
 
-async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const s3 = new AWS.S3();
+async function getProfileImage(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const env = Utils.getEnv();
   const userId = event.queryStringParameters?.user;
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
   const key = `profileimage${event.path}-${userId}.png`;
-  let body: AWS.S3.GetObjectOutput["Body"];
-  try {
-    const cachedResponse = await s3.getObject({ Bucket: bucket, Key: key }).promise();
-    body = cachedResponse.Body;
-  } catch (e) {
-    if (e.code !== "NoSuchKey") {
-      throw e;
-    }
-  }
+  const body = await di.s3.getObject({ bucket, key });
   const headers = {
     "content-type": "image/png",
     "cache-control": "max-age=86400",
@@ -430,12 +381,12 @@ async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayP
 
   const error: { message?: string } = {};
   if (userId != null) {
-    const result = await UserDao.getById(userId);
+    const result = await new UserDao(di).getById(userId);
     if (result != null) {
       if (result?.storage?.settings?.isPublicProfile) {
         const imageResult = await userImage(result.storage);
         const buffer = Buffer.from(imageResult);
-        await s3.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+        await di.s3.putObject({ bucket, key, body: buffer });
         return {
           statusCode: 200,
           body: buffer.toString("base64"),
@@ -454,10 +405,10 @@ async function getProfileImage(event: APIGatewayProxyEvent): Promise<APIGatewayP
   return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
 }
 
-async function getUsersHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function getUsersHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const key = event.queryStringParameters?.key;
-  if (key != null && key === (await getApiKey())) {
-    const users = await UserDao.getAll();
+  if (key != null && key === (await di.secrets.getApiKey())) {
+    const users = await new UserDao(di).getAll();
     const processedUsers = users.map((u) => {
       return {
         id: u.id,
@@ -488,11 +439,11 @@ async function getUsersHandler(event: APIGatewayProxyEvent): Promise<APIGatewayP
   }
 }
 
-async function getAdminLogsHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+async function getAdminLogsHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
   const key = event.queryStringParameters?.key;
-  if (key != null && key === (await getApiKey())) {
-    const userLogs = await LogDao.getAll();
-    const users = await UserDao.getAllLimited();
+  if (key != null && key === (await di.secrets.getApiKey())) {
+    const userLogs = await new LogDao(di).getAll();
+    const users = await new UserDao(di).getAllLimited();
     const usersByKey = CollectionUtils.groupByKey(users, "id");
     const logPayloads = userLogs.reduce<ILogPayloads>((memo, log) => {
       memo[log.userId] = memo[log.userId] || { logs: [], email: usersByKey[log.userId]?.[0].email };
@@ -576,8 +527,15 @@ const rollbar = new Rollbar({
 });
 
 export const handler = rollbar.lambdaHandler(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const r = new Router();
+  async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
+    const log = context?.log || new LogUtil();
+    const utils = {
+      dynamo: new DynamoUtil(log),
+      secrets: new SecretsUtil(log),
+      s3: new S3Util(log),
+      log: log,
+    };
+    const r = new Router(utils);
     r.post(".*timernotification", timerHandler);
     r.post(".*/api/signin/google", googleLoginHandler);
     r.post(".*/api/signout", signoutHandler);

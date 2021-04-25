@@ -2,6 +2,7 @@ import http from "http";
 import { handler } from "./lambda/index";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
 import { URL } from "url";
+import { LogUtil } from "./lambda/utils/log";
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -40,27 +41,17 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   };
 }
 
-function prefixTime(time: number): string {
-  return `${time}`.padStart(2, "0");
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function log(...str: any[]): void {
-  const time = new Date();
-  const timeStr = `${prefixTime(time.getHours())}:${prefixTime(time.getMinutes())}:${prefixTime(time.getSeconds())}`;
-  console.log("[\x1b[36m" + timeStr + "\x1b[0m]", ...str);
-}
-
 const server = http.createServer(async (req, res) => {
   try {
     const time = Date.now();
-    log("Starting request", req.method, req.url);
+    const log = new LogUtil();
+    log.log("--------> Starting request", req.method, req.url);
     const result = (await handler(
       await requestToProxyEvent(req),
-      { getRemainingTimeInMillis: () => 10000 },
+      { getRemainingTimeInMillis: () => 10000, log },
       () => undefined
     )) as APIGatewayProxyResult;
-    log("Responding for", req.method, req.url, result.statusCode, `${Date.now() - time}ms`);
+    log.log("<-------- Responding for", req.method, req.url, result.statusCode, `${Date.now() - time}ms`);
     const body = result.isBase64Encoded ? Buffer.from(result.body, "base64") : result.body;
     res.statusCode = result.statusCode;
     for (const k of Object.keys(result.headers || {})) {
@@ -74,5 +65,5 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.listen(3000, "localhost", () => {
-  log(`Server is running`);
+  console.log(`--------- Server is running ----------`);
 });

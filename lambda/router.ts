@@ -1,4 +1,5 @@
 import { APIGatewayProxyResult, APIGatewayProxyEvent } from "aws-lambda";
+import { IDI } from "./utils/di";
 
 /**
  * Helper functions that when passed a request will return a
@@ -30,7 +31,7 @@ interface IRoute {
   handler: IHandler;
 }
 
-type IHandler = (req: APIGatewayProxyEvent) => APIGatewayProxyResult | Promise<APIGatewayProxyResult>;
+type IHandler = (req: APIGatewayProxyEvent, utils: IDI) => APIGatewayProxyResult | Promise<APIGatewayProxyResult>;
 
 /**
  * The Router handles determines which handler is matched given the
@@ -38,9 +39,11 @@ type IHandler = (req: APIGatewayProxyEvent) => APIGatewayProxyResult | Promise<A
  */
 export class Router {
   private readonly routes: IRoute[];
+  private readonly utils: IDI;
 
-  constructor() {
+  constructor(utils: IDI) {
     this.routes = [];
+    this.utils = utils;
   }
 
   public handle(conditions: ICondition | ICondition[], handler: IHandler): this {
@@ -95,7 +98,7 @@ export class Router {
     const route = this.resolve(req);
 
     if (route) {
-      return route.handler(req);
+      return route.handler(req, this.utils);
     }
 
     return {

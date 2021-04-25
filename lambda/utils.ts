@@ -3,3 +3,14 @@ export namespace Utils {
     return process.env.IS_DEV === "true" ? "dev" : "prod";
   }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function log(...str: any[]): void {
+  const time = new Date();
+  const timeStr = `${prefixTime(time.getHours())}:${prefixTime(time.getMinutes())}:${prefixTime(time.getSeconds())}`;
+  console.log("[\x1b[36m" + timeStr + "\x1b[0m]", ...str);
+}
+
+function prefixTime(time: number): string {
+  return `${time}`.padStart(2, "0");
+}

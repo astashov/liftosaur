@@ -1,5 +1,4 @@
-import { DynamoDB, AWSError } from "aws-sdk";
-import { PromiseResult } from "aws-sdk/lib/request";
+import { IDI } from "../utils/di";
 
 const tableNames = {
   dev: {
@@ -11,21 +10,9 @@ const tableNames = {
 } as const;
 
 export class GoogleAuthTokenDao {
-  public static async store(
-    env: "dev" | "prod",
-    token: string,
-    googleId: string
-  ): Promise<PromiseResult<DynamoDB.PutItemOutput, AWSError>> {
-    const dynamo = new DynamoDB();
+  constructor(private readonly di: IDI) {}
 
-    return dynamo
-      .putItem({
-        TableName: tableNames[env].googleAuthToken,
-        Item: {
-          token: { S: token },
-          googleId: { S: googleId },
-        },
-      })
-      .promise();
+  public async store(env: "dev" | "prod", token: string, googleId: string): Promise<void> {
+    return this.di.dynamo.put({ tableName: tableNames[env].googleAuthToken, item: { token, googleId } });
   }
 }
