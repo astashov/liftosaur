@@ -144,7 +144,7 @@ export class UserDao {
     const historyDeletes = CollectionUtils.inGroupsOf(23, historyToDelete).map(async (group) => {
       await this.di.dynamo.batchDelete({
         tableName: tableNames[env].historyRecords,
-        keys: group.map((record) => ({ id: record.id })),
+        keys: group.map((record) => ({ id: record.id, userId: user.id })),
       });
     });
 
@@ -158,7 +158,7 @@ export class UserDao {
     const programDeletes = CollectionUtils.inGroupsOf(23, programsToDelete).map(async (group) => {
       await this.di.dynamo.batchDelete({
         tableName: tableNames[env].programs,
-        keys: group.map((record) => ({ id: record.id })),
+        keys: group.map((record) => ({ id: record.id, userId: user.id })),
       });
     });
 
@@ -227,10 +227,10 @@ export class UserDao {
     await Promise.all([
       this.store(updatedUser),
       ...historyUpdates,
-      ...programUpdates,
-      ...statsUpdates,
       ...historyDeletes,
+      ...programUpdates,
       ...programDeletes,
+      ...statsUpdates,
       ...statsDeletes,
     ]);
   }
