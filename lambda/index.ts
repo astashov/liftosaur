@@ -528,7 +528,9 @@ const rollbar = new Rollbar({
 
 export const handler = rollbar.lambdaHandler(
   async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
-    const log = context?.log || new LogUtil();
+    const log = new LogUtil();
+    const time = Date.now();
+    log.log("--------> Starting request", event.httpMethod, event.path);
     const utils = {
       dynamo: new DynamoUtil(log),
       secrets: new SecretsUtil(log),
@@ -553,6 +555,7 @@ export const handler = rollbar.lambdaHandler(
     r.get(".*/admin/users", getUsersHandler);
     r.get(".*/admin/logs", getAdminLogsHandler);
     const resp = await r.route(event);
+    log.log("<-------- Responding for", event.httpMethod, event.path, resp.statusCode, `${Date.now() - time}ms`);
     return resp;
   }
 ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;

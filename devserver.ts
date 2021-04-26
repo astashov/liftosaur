@@ -2,7 +2,6 @@ import http from "http";
 import { handler } from "./lambda/index";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
 import { URL } from "url";
-import { LogUtil } from "./lambda/utils/log";
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -43,15 +42,11 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
 
 const server = http.createServer(async (req, res) => {
   try {
-    const time = Date.now();
-    const log = new LogUtil();
-    log.log("--------> Starting request", req.method, req.url);
     const result = (await handler(
       await requestToProxyEvent(req),
-      { getRemainingTimeInMillis: () => 10000, log },
+      { getRemainingTimeInMillis: () => 10000 },
       () => undefined
     )) as APIGatewayProxyResult;
-    log.log("<-------- Responding for", req.method, req.url, result.statusCode, `${Date.now() - time}ms`);
     const body = result.isBase64Encoded ? Buffer.from(result.body, "base64") : result.body;
     res.statusCode = result.statusCode;
     for (const k of Object.keys(result.headers || {})) {
