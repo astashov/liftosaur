@@ -544,6 +544,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
+          isPublicProfile: newStorage.settings.isPublicProfile,
+          nickname: newStorage.settings.nickname,
         },
         tempUserId: newStorage.tempUserId || UidFactory.generateUid(10),
         currentProgramId: newStorage.currentProgramId,
