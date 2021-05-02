@@ -64,7 +64,6 @@ function getData(
     },
     [[], [], [], []]
   );
-  console.log(data);
   return data;
 }
 

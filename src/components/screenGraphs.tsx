@@ -31,7 +31,6 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   if (hasBodyweight && isWithBodyweight) {
     bodyweightData = getWeightDataForGraph(props.stats.weight.weight || [], props.settings);
   }
-  console.log("BW", bodyweightData);
   let maxX = 0;
   let minX = Infinity;
   const exerciseTypes = props.history.reduce<Partial<Record<IExerciseId, IEquipment>>>((memo, hr) => {
