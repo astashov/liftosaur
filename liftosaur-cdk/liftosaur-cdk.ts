@@ -100,10 +100,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       dev: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
+        webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
+        webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
       },
       prod: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
+        webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
+        webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
       },
     };
 
@@ -112,6 +116,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     const keyApiKey = sm.Secret.fromSecretAttributes(this, `LftKeyApiKey${suffix}`, {
       secretArn: secretArns[env].apiKey,
+    });
+    const webpushrKey = sm.Secret.fromSecretAttributes(this, `LftWebpushrKey${suffix}`, {
+      secretArn: secretArns[env].webpushrKey,
+    });
+    const webpushrAuthToken = sm.Secret.fromSecretAttributes(this, `LftWebpushrAuthToken${suffix}`, {
+      secretArn: secretArns[env].webpushrAuthToken,
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
@@ -150,6 +160,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
     bucket.grantReadWrite(lambdaFunction);
     keyCookieSecret.grantRead(lambdaFunction);
     keyApiKey.grantRead(lambdaFunction);
+    webpushrKey.grantRead(lambdaFunction);
+    webpushrAuthToken.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);

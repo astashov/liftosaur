@@ -90,7 +90,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             onClick={() => {
               if (repsInput.current.validity.valid && weightInput.current.validity.valid) {
                 const reps = parseInt(repsInput.current.value, 10);
-                const weight = parseInt(weightInput.current.value, 10);
+                const weight = parseFloat(weightInput.current.value);
                 const isAmrap = !!(isAmrapInput.current?.checked || false);
                 if (!isNaN(reps) && !isNaN(weight)) {
                   const newSet: ISet = { reps, weight: Weight.build(weight, props.units), isAmrap };

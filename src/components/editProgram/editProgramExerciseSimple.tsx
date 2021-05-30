@@ -82,7 +82,7 @@ function Edit(props: IProps): JSX.Element {
   function getWeightNum(): number | undefined {
     const value = weightRef.current.value;
     if (value != null) {
-      let weightNum = parseInt(value, 10);
+      let weightNum = parseFloat(value);
       if (isNaN(weightNum)) {
         weightNum = 1;
       }
