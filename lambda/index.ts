@@ -1,7 +1,7 @@
 import "source-map-support/register";
 import fetch from "node-fetch";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { Router } from "./router";
+import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
 import { UserDao, IUserDao } from "./dao/userDao";
 import * as Cookie from "cookie";
@@ -32,6 +32,11 @@ interface IOpenIdResponseSuccess {
 interface IOpenIdResponseError {
   error: string;
   error_description: string;
+}
+
+interface IPayload {
+  event: APIGatewayProxyEvent;
+  di: IDI;
 }
 
 export type IEnv = "dev" | "prod";
@@ -94,7 +99,9 @@ async function getCurrentUser(event: APIGatewayProxyEvent, di: IDI): Promise<IUs
   }
 }
 
-async function timerHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const timerEndpoint = Endpoint.build("/timernotification");
+const timerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof timerEndpoint> = async ({ payload }) => {
+  const { event, di } = payload;
   const response = await fetch("https://app.webpushr.com/api/v1/notification/send/sid", {
     method: "POST",
     headers: {
@@ -113,14 +120,17 @@ async function timerHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGa
 
   const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
   return { statusCode: response.status, body, headers: getHeaders(event) };
-}
+};
 
-async function getStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const getStorageEndpoint = Endpoint.build("/api/storage", { key: "string?", userid: "string?" });
+const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
+  payload,
+  match,
+}) => {
+  const { event, di } = payload;
   const querystringParams = event.queryStringParameters || {};
-  const adminKey = querystringParams.key;
-  const userIdKey = querystringParams.userid;
   let userId;
-  if (adminKey != null && userIdKey != null && adminKey === (await di.secrets.getApiKey())) {
+  if (match.params.key != null && match.params.userid != null && match.params.key === (await di.secrets.getApiKey())) {
     userId = querystringParams.userid;
   } else {
     userId = await getCurrentUserId(event, di);
@@ -136,9 +146,13 @@ async function getStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise<
     }
   }
   return { statusCode: 200, body: "{}", headers: getHeaders(event) };
-}
+};
 
-async function saveStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const saveStorageEndpoint = Endpoint.build("/api/storage");
+const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveStorageEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
   const user = await getCurrentUser(event, di);
   if (user != null) {
     const storage: IStorage = getBodyJson(event).storage;
@@ -149,9 +163,13 @@ async function saveStorageHandler(event: APIGatewayProxyEvent, di: IDI): Promise
     body: "{}",
     headers: getHeaders(event),
   };
-}
+};
 
-async function googleLoginHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const googleLoginEndpoint = Endpoint.build("/api/signin/google");
+const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof googleLoginEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
   const token = getBodyJson(event).token;
   const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
   const googleApiResponse = await fetch(url);
@@ -194,9 +212,11 @@ async function googleLoginHandler(event: APIGatewayProxyEvent, di: IDI): Promise
       }),
     },
   };
-}
+};
 
-async function signoutHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+const signoutEndpoint = Endpoint.build("/api/signout");
+const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signoutEndpoint> = async ({ payload }) => {
+  const { event } = payload;
   return {
     statusCode: 200,
     headers: {
@@ -210,27 +230,38 @@ async function signoutHandler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     },
     body: "{}",
   };
-}
+};
 
-async function getProgramsHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const getProgramsEndpoint = Endpoint.build("/api/programs");
+const getProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
   const programs = await new ProgramDao(di).getAll();
   return { statusCode: 200, body: JSON.stringify({ programs }), headers: getHeaders(event) };
-}
+};
 
-async function getHistoryRecord(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
-  const userId = event.queryStringParameters?.user;
-  const recordId = parseInt(event.queryStringParameters?.id || "", 10);
+const getHistoryRecordEndpoint = Endpoint.build("/api/record", { user: "string?", id: "number?" });
+const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getHistoryRecordEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
   const error: { message?: string } = {};
-  if (userId != null && recordId != null && !isNaN(recordId)) {
-    const result = await new UserDao(di).getById(userId);
+  if (params.user != null && params.id != null && !isNaN(params.id)) {
+    const result = await new UserDao(di).getById(params.user);
     if (result != null) {
       const storage: IStorage = result.storage;
       const history = storage.history;
-      const historyRecord = history.find((hi) => hi.id === recordId);
+      const historyRecord = history.find((hi) => hi.id === params.id);
       if (historyRecord != null) {
         return {
           statusCode: 200,
-          body: renderRecordHtml({ history, record: historyRecord, settings: storage.settings }, userId, recordId),
+          body: renderRecordHtml(
+            { history, record: historyRecord, settings: storage.settings },
+            params.user,
+            params.id
+          ),
           headers: { "content-type": "text/html" },
         };
       } else {
@@ -247,14 +278,21 @@ async function getHistoryRecord(event: APIGatewayProxyEvent, di: IDI): Promise<A
     body: JSON.stringify({ error }),
     headers: getHeaders(event),
   };
-}
+};
 
-async function getHistoryRecordImage(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const getHistoryRecordImageEndpoint = Endpoint.build("/api/recordimage", {
+  user: "string",
+  id: "number",
+});
+const getHistoryRecordImageHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getHistoryRecordImageEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
   const env = Utils.getEnv();
-  const userId = event.queryStringParameters?.user;
-  const recordId = parseInt(event.queryStringParameters?.id || "", 10);
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
-  const key = `historyrecordimage${event.path}-${userId}-${recordId}.png`;
+  const key = `historyrecordimage${event.path}-${params.user}-${params.id}.png`;
   const body = await di.s3.getObject({ bucket, key });
   const headers = {
     "content-type": "image/png",
@@ -271,38 +309,38 @@ async function getHistoryRecordImage(event: APIGatewayProxyEvent, di: IDI): Prom
 
   const error: { message?: string } = {};
 
-  if (userId != null && recordId != null && !isNaN(recordId)) {
-    const result = await new UserDao(di).getById(userId);
-    if (result != null) {
-      const imageResult = await recordImage(result.storage, recordId);
-      if (imageResult.success) {
-        const buffer = imageResult.data;
-        await di.s3.putObject({ bucket, key, body: buffer });
-        return {
-          statusCode: 200,
-          body: buffer.toString("base64"),
-          headers,
-          isBase64Encoded: true,
-        };
-      } else {
-        error.message = imageResult.error;
-      }
+  const result = await new UserDao(di).getById(params.user);
+  if (result != null) {
+    const imageResult = await recordImage(result.storage, params.id);
+    if (imageResult.success) {
+      const buffer = imageResult.data;
+      await di.s3.putObject({ bucket, key, body: buffer });
+      return {
+        statusCode: 200,
+        body: buffer.toString("base64"),
+        headers,
+        isBase64Encoded: true,
+      };
     } else {
-      error.message = "Can't find user";
+      error.message = imageResult.error;
     }
   } else {
-    error.message = "Missing required params - 'user' or 'id'";
+    error.message = "Can't find user";
   }
   return {
     statusCode: 400,
     body: JSON.stringify({ error }),
     headers: getHeaders(event),
   };
-}
+};
 
-async function publishProgramHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
-  const key = event.queryStringParameters?.key;
-  if (key != null && key === (await di.secrets.getApiKey())) {
+const publishProgramEndpoint = Endpoint.build("/api/publishprogram", { key: "string" });
+const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof publishProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key === (await di.secrets.getApiKey())) {
     const program = getBodyJson(event).program;
     if (program != null) {
       await new ProgramDao(di).save(program);
@@ -321,9 +359,11 @@ async function publishProgramHandler(event: APIGatewayProxyEvent, di: IDI): Prom
       headers: getHeaders(event),
     };
   }
-}
+};
 
-async function logHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const logEndpoint = Endpoint.build("/api/log");
+const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
+  const { event, di } = payload;
   const { user, action } = getBodyJson(event);
   let data;
   if (user && action) {
@@ -333,38 +373,42 @@ async function logHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGate
     data = "error";
   }
   return { statusCode: 200, body: JSON.stringify({ data }), headers: getHeaders(event) };
-}
+};
 
-async function getProfileHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
-  const userId = event.queryStringParameters?.user;
+const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
+const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProfileEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
   const error: { message?: string } = {};
-  if (userId != null) {
-    const result = await new UserDao(di).getById(userId);
-    if (result != null) {
-      const storage = result.storage;
-      if (storage.settings.isPublicProfile) {
-        return {
-          statusCode: 200,
-          body: renderUserHtml(storage, userId),
-          headers: { "content-type": "text/html" },
-        };
-      } else {
-        error.message = "The user's profile is not public";
-      }
+  const result = await new UserDao(di).getById(params.user);
+  if (result != null) {
+    const storage = result.storage;
+    if (storage.settings.isPublicProfile) {
+      return {
+        statusCode: 200,
+        body: renderUserHtml(storage, params.user),
+        headers: { "content-type": "text/html" },
+      };
     } else {
-      error.message = "Can't find user";
+      error.message = "The user's profile is not public";
     }
   } else {
-    error.message = "Missing required params - 'user'";
+    error.message = "Can't find user";
   }
   return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
-}
+};
 
-async function getProfileImage(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
+const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });
+const getProfileImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProfileImageEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
   const env = Utils.getEnv();
-  const userId = event.queryStringParameters?.user;
   const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
-  const key = `profileimage${event.path}-${userId}.png`;
+  const key = `profileimage${event.path}-${params.user}.png`;
   const body = await di.s3.getObject({ bucket, key });
   const headers = {
     "content-type": "image/png",
@@ -380,34 +424,34 @@ async function getProfileImage(event: APIGatewayProxyEvent, di: IDI): Promise<AP
   }
 
   const error: { message?: string } = {};
-  if (userId != null) {
-    const result = await new UserDao(di).getById(userId);
-    if (result != null) {
-      if (result?.storage?.settings?.isPublicProfile) {
-        const imageResult = await userImage(result.storage);
-        const buffer = Buffer.from(imageResult);
-        await di.s3.putObject({ bucket, key, body: buffer });
-        return {
-          statusCode: 200,
-          body: buffer.toString("base64"),
-          headers,
-          isBase64Encoded: true,
-        };
-      } else {
-        error.message = "The user's profile is not public";
-      }
+  const result = await new UserDao(di).getById(params.user);
+  if (result != null) {
+    if (result?.storage?.settings?.isPublicProfile) {
+      const imageResult = await userImage(result.storage);
+      const buffer = Buffer.from(imageResult);
+      await di.s3.putObject({ bucket, key, body: buffer });
+      return {
+        statusCode: 200,
+        body: buffer.toString("base64"),
+        headers,
+        isBase64Encoded: true,
+      };
     } else {
-      error.message = "Can't find user";
+      error.message = "The user's profile is not public";
     }
   } else {
-    error.message = "Missing required params - 'user'";
+    error.message = "Can't find user";
   }
   return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
-}
+};
 
-async function getUsersHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
-  const key = event.queryStringParameters?.key;
-  if (key != null && key === (await di.secrets.getApiKey())) {
+const getAdminUsersEndpoint = Endpoint.build("/admin/users", { key: "string" });
+const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAdminUsersEndpoint> = async ({
+  payload,
+  match,
+}) => {
+  const { event, di } = payload;
+  if (match.params.key === (await di.secrets.getApiKey())) {
     const users = await new UserDao(di).getAll();
     const processedUsers = users.map((u) => {
       return {
@@ -427,7 +471,7 @@ async function getUsersHandler(event: APIGatewayProxyEvent, di: IDI): Promise<AP
     });
     return {
       statusCode: 200,
-      body: renderUsersHtml({ users: processedUsers, apiKey: key }),
+      body: renderUsersHtml({ users: processedUsers, apiKey: match.params.key }),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -437,11 +481,15 @@ async function getUsersHandler(event: APIGatewayProxyEvent, di: IDI): Promise<AP
       headers: getHeaders(event),
     };
   }
-}
+};
 
-async function getAdminLogsHandler(event: APIGatewayProxyEvent, di: IDI): Promise<APIGatewayProxyResult> {
-  const key = event.queryStringParameters?.key;
-  if (key != null && key === (await di.secrets.getApiKey())) {
+const getAdminLogsEndpoint = Endpoint.build("/admin/logs", { key: "string" });
+const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAdminLogsEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key === (await di.secrets.getApiKey())) {
     const userLogs = await new LogDao(di).getAll();
     const users = await new UserDao(di).getAllLimited();
     const usersByKey = CollectionUtils.groupByKey(users, "id");
@@ -456,7 +504,7 @@ async function getAdminLogsHandler(event: APIGatewayProxyEvent, di: IDI): Promis
     }, {});
     return {
       statusCode: 200,
-      body: renderLogsHtml({ logs: logPayloads, apiKey: key }),
+      body: renderLogsHtml({ logs: logPayloads, apiKey: params.key }),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -466,7 +514,7 @@ async function getAdminLogsHandler(event: APIGatewayProxyEvent, di: IDI): Promis
       headers: getHeaders(event),
     };
   }
-}
+};
 
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
@@ -531,31 +579,42 @@ export const handler = rollbar.lambdaHandler(
     const log = new LogUtil();
     const time = Date.now();
     log.log("--------> Starting request", event.httpMethod, event.path);
-    const utils = {
+    const di: IDI = {
       dynamo: new DynamoUtil(log),
       secrets: new SecretsUtil(log),
       s3: new S3Util(log),
       log: log,
     };
-    const r = new Router(utils);
-    r.post(".*timernotification", timerHandler);
-    r.post(".*/api/signin/google", googleLoginHandler);
-    r.post(".*/api/signout", signoutHandler);
-    r.post(".*/api/storage", saveStorageHandler);
-    r.get(".*/api/storage", getStorageHandler);
-    r.get(".*/api/record", getHistoryRecord);
-    r.get(".*/api/recordimage", getHistoryRecordImage);
-    r.post(".*/api/publishprogram", publishProgramHandler);
-    r.get(".*/api/programs", getProgramsHandler);
-    r.post(".*/api/log", logHandler);
-    r.get(".*/profile", getProfileHandler);
-    r.get(".*/profileimage", getProfileImage);
+    const request: IPayload = { event, di };
+    const r = new Router<IPayload, APIGatewayProxyResult>(request)
+      .post(timerEndpoint, timerHandler)
+      .get(getStorageEndpoint, getStorageHandler)
+      .post(googleLoginEndpoint, googleLoginHandler)
+      .post(signoutEndpoint, signoutHandler)
+      .get(getProgramsEndpoint, getProgramsHandler)
+      .post(saveStorageEndpoint, saveStorageHandler)
+      .get(getHistoryRecordEndpoint, getHistoryRecordHandler)
+      .get(getHistoryRecordImageEndpoint, getHistoryRecordImageHandler)
+      .post(logEndpoint, logHandler)
+      .post(publishProgramEndpoint, publishProgramHandler)
+      .get(getProfileEndpoint, getProfileHandler)
+      .get(getProfileImageEndpoint, getProfileImageHandler)
+      .get(getAdminUsersEndpoint, getAdminUsersHandler)
+      .get(getAdminLogsEndpoint, getAdminLogsHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
-
-    r.get(".*/admin/users", getUsersHandler);
-    r.get(".*/admin/logs", getAdminLogsHandler);
-    const resp = await r.route(event);
-    log.log("<-------- Responding for", event.httpMethod, event.path, resp.statusCode, `${Date.now() - time}ms`);
-    return resp;
+    const url = new URL(event.path, "http://example.com");
+    for (const key of Object.keys(event.queryStringParameters || {})) {
+      const value = (event.queryStringParameters || {})[key];
+      url.searchParams.set(key, value || "");
+    }
+    const resp = await r.route(event.httpMethod as Method, url.pathname + url.search);
+    log.log(
+      "<-------- Responding for",
+      event.httpMethod,
+      event.path,
+      resp.success ? resp.data.statusCode : 404,
+      `${Date.now() - time}ms`
+    );
+    return resp.success ? resp.data : { statusCode: 404, headers: getHeaders(event), body: "Not Found" };
   }
 ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;

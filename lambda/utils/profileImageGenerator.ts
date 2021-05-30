@@ -8,17 +8,18 @@ export interface IProfileImageGeneratorArgs {
 
 export class ProfileImageGenerator {
   public async generate(json: IProfileImageGeneratorArgs): Promise<Buffer> {
+    const prefix = process.env.IMGPREFIX || "";
     const [img, poppinsRegular, poppinsBold, arialBold] = await Promise.all([
-      jimp.read("images/og_image_bg.png"),
-      jimp.loadFont("images/poppins-regular.fnt"),
-      jimp.loadFont("images/Poppins-Bold.ttf.fnt"),
-      jimp.loadFont("images/arial-bold.ttf.fnt"),
+      jimp.read(`${prefix}images/og_image_bg.png`),
+      jimp.loadFont(`${prefix}images/poppins-regular.fnt`),
+      jimp.loadFont(`${prefix}images/Poppins-Bold.ttf.fnt`),
+      jimp.loadFont(`${prefix}images/arial-bold.ttf.fnt`),
     ]);
 
     if (json.userName) {
-      img.print(arialBold, 46, 60, { text: json.userName, alignmentX: jimp.HORIZONTAL_ALIGN_LEFT }, 525);
+      img.print(arialBold, 46, 85, { text: json.userName, alignmentX: jimp.HORIZONTAL_ALIGN_LEFT }, 525);
     }
-    img.print(arialBold, 360, 135, { text: json.programName, alignmentX: jimp.HORIZONTAL_ALIGN_LEFT }, 525);
+    img.print(arialBold, 625, 135, { text: json.programName, alignmentX: jimp.HORIZONTAL_ALIGN_RIGHT }, 525);
 
     const offset = 320;
     for (let i = 0; i < Math.min(json.exercises.length, 7); i += 1) {

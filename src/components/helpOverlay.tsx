@@ -28,7 +28,7 @@ interface IProps {
 
 export function HelpOverlay(props: IProps): JSX.Element | null {
   const seenIds: string[] = props.seenIds;
-  const svgEl = useRef<SVGSVGElement | undefined>();
+  const svgEl = useRef<SVGSVGElement>();
   const width = useRef<number | undefined>();
   const height = useRef<number | undefined>();
 

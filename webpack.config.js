@@ -176,7 +176,7 @@ module.exports = {
     disableHostCheck: true,
     proxy: {
       "/record": "http://local-api.liftosaur.com:3000/api",
-      "/admin": "http://local-api.liftosaur.com:3000/admin",
+      "/admin": "http://local-api.liftosaur.com:3000/",
       "/profileimage/*": {
         target: "http://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {

@@ -116,7 +116,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
       bucketName: `liftosaurcaches${suffix.toLowerCase()}`,
-      lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
+      lifecycleRules: [{ expiration: cdk.Duration.days(1) }],
     });
 
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {

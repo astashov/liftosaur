@@ -70,7 +70,7 @@
     "ts-loader": "^6.2.1",
     "ts-node": "^8.6.2",
     "ts-node-dev": "^1.1.6",
-    "typescript": "^3.8.2",
+    "typescript": "^4.3.2",
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.7.0",
     "webpack-cli": "^3.3.11",
@@ -95,6 +95,7 @@
     "lens-shmens": "^1.0.3",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
-    "uplot": "^1.0.9"
+    "uplot": "^1.0.9",
+    "yatro": "^0.2.3"
   }
 }
