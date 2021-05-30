@@ -17,6 +17,7 @@
     "preact-render-to-string": "^5.1.19",
     "rollbar": "^2.21.1",
     "source-map-support": "^0.5.19",
-    "uplot": "^1.6.8"
+    "uplot": "^1.6.8",
+    "yatro": "^0.2.3"
   }
 }
