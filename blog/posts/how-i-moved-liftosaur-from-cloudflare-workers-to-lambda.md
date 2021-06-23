@@ -5,6 +5,8 @@ og_title: How I moved Liftosaur from Cloudflare Workers to AWS Lambda
 og_description: Why did I move Liftosaur to Cloudflare, the process, obstacles, the result, and also the starter skeleton.
 og_image: /images/how-i-moved-liftosaur-from-cloudflare-workers-to-lambda-intro.png
 tags: ["tech"]
+twitter: https://twitter.com/anton_astashov/status/1407492861566783489
+reddit: https://www.reddit.com/r/liftosaur/comments/o614tg/how_i_moved_liftosaur_from_cloudflare_workers_to/
 ---
 
 <div><img src="../../images/how-i-moved-liftosaur-from-cloudflare-workers-to-lambda-intro.png" width="100%" alt="From Cloudflare Workers to AWS Lambda" /></div>
