@@ -12,7 +12,9 @@ import * as IDB from "idb-keyval";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
 
-window.indexedDB.open("keyval-store", 4);
+// Trying to fix a weird bug when iOS Safari doesn't resolve IDB.get promise
+// on first load by some reason
+window.indexedDB.open("keyval-store");
 
 if ("serviceWorker" in navigator) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
