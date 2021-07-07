@@ -12,6 +12,8 @@ import * as IDB from "idb-keyval";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
 
+window.indexedDB.open("keyval-store", 4);
+
 if ("serviceWorker" in navigator) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   navigator.serviceWorker.register("/webpushr-sw.js");
