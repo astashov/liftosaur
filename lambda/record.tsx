@@ -24,7 +24,7 @@ export async function recordImage(storage: IStorage, recordId: number): Promise<
       dayName: historyRecord.dayName,
       date: DateUtils.format(historyRecord.date),
       exercises: historyRecord.entries.map((entry) => {
-        const exercise = Exercise.get(entry.exercise);
+        const exercise = Exercise.get(entry.exercise, storage.settings.exercises);
         const prSet = History.findPersonalRecord(recordId, entry, history);
         const set = History.getMaxSet(entry);
         const value = `${set?.completedReps || 0} ${StringUtils.pluralize(

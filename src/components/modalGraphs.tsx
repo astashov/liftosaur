@@ -8,7 +8,7 @@ import { DraggableList } from "./draggableList";
 import { IconHandle } from "./iconHandle";
 import { IconDelete } from "./iconDelete";
 import { EditGraphs } from "../models/editGraphs";
-import { IExerciseId, IGraph, IStats, IStatsKey } from "../types";
+import { IExerciseId, IGraph, ISettings, IStats, IStatsKey } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
 import { ObjectUtils } from "../utils/object";
@@ -18,13 +18,17 @@ interface IModalGraphsProps {
   exerciseIds: IExerciseId[];
   graphs: IGraph[];
   stats: IStats;
+  settings: ISettings;
   dispatch: IDispatch;
   onClose: (value?: IExerciseId) => void;
 }
 
 export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const graphs = props.graphs;
-  const exercises = Exercise.getByIds(props.exerciseIds.filter((e) => props.graphs.every((g) => g.id !== e)));
+  const exercises = Exercise.getByIds(
+    props.exerciseIds.filter((e) => props.graphs.every((g) => g.id !== e)),
+    props.settings.exercises
+  );
   const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
     if (g.type === "statsWeight" || g.type === "statsLength") {
       memo.add(g.id);
@@ -52,7 +56,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                     </span>
                   </div>
                   {graph.type === "exercise" ? (
-                    <ExercisePreview exercise={graph.id} />
+                    <ExercisePreview exercise={graph.id} settings={props.settings} />
                   ) : (
                     <StatsPreview stats={graph.id} />
                   )}
@@ -79,7 +83,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
               className="flex w-full px-2 py-1 text-left border-b border-gray-200"
               onClick={() => EditGraphs.addExerciseGraph(props.dispatch, e)}
             >
-              <ExercisePreview exercise={e.id} />
+              <ExercisePreview exercise={e.id} settings={props.settings} />
             </section>
           );
         })}
@@ -105,9 +109,9 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   );
 }
 
-function ExercisePreview(props: { exercise: IExerciseId }): JSX.Element {
-  const e = Exercise.getById(props.exercise);
-  const equipment = Exercise.defaultEquipment(e.id);
+function ExercisePreview(props: { exercise: IExerciseId; settings: ISettings }): JSX.Element {
+  const e = Exercise.getById(props.exercise, props.settings.exercises);
+  const equipment = Exercise.defaultEquipment(e.id, props.settings.exercises);
   return (
     <Fragment>
       <div className="w-12 pr-4">

@@ -1,7 +1,7 @@
 import { Program } from "./program";
-import { Exercise, IMuscle } from "./exercise";
+import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { IProgram, ISettings, IProgramDay, IProgramExercise } from "../types";
+import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle } from "../types";
 
 export type IScreenMuscle =
   | "shoulders"
@@ -166,8 +166,8 @@ export namespace Muscle {
 
     const id = Exercise.toKey(programExercise.exerciseType);
     const historyEntry = Program.programExerciseToHistoryEntry(programExercise, day, settings);
-    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType);
-    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType);
+    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
+    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
     for (const set of historyEntry.sets) {
       if (set.reps >= 8) {
         for (const targetMuscle of targetMuscles) {

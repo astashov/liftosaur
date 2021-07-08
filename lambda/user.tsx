@@ -24,7 +24,7 @@ export function userImage(storage: IStorage): Promise<Buffer> {
     programName: program?.name || "",
     userName: storage.settings.nickname || "",
     exercises: ObjectUtils.sortedByKeys(maxSets, order).map(([id, set]) => {
-      const exercise = Exercise.getById(id);
+      const exercise = Exercise.getById(id, storage.settings.exercises);
       const value = `${set?.completedReps || 0} ${StringUtils.pluralize(
         "rep",
         set?.completedReps || 0

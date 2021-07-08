@@ -101,6 +101,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         buttons={
           <button
             className="ls-footer-muscles p-4"
+            data-cy="footer-muscles"
             aria-label="Muscles"
             onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
           >

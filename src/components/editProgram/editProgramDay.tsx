@@ -123,6 +123,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
       <FooterView
         buttons={
           <button
+            data-cy="footer-muscles"
             className="ls-footer-muscles p-4"
             aria-label="Muscles"
             onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}

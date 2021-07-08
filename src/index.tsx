@@ -14,7 +14,7 @@ import { DateUtils } from "./utils/date";
 
 // Trying to fix a weird bug when iOS Safari doesn't resolve IDB.get promise
 // on first load by some reason
-window.indexedDB.open("keyval-store");
+// window.indexedDB.open("keyval-store");
 
 if ("serviceWorker" in navigator) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -27,7 +27,8 @@ const audio = new AudioInterface();
 const url = new URL(document.location.href);
 const userId = url.searchParams.get("userid") || undefined;
 const adminKey = url.searchParams.get("admin");
-IDB.get(getIdbKey(userId, !!adminKey)).then(async (loadedData) => {
+
+async function initialize(loadedData: unknown): Promise<void> {
   (window as any).loadedData = loadedData;
   const initialState = await getInitialState(client, userId, loadedData as string | undefined);
   if (adminKey) {
@@ -35,7 +36,14 @@ IDB.get(getIdbKey(userId, !!adminKey)).then(async (loadedData) => {
   }
   (window as any).state = initialState;
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
-});
+}
+
+IDB.get(getIdbKey(userId, !!adminKey))
+  .then(initialize)
+  .catch((e) => {
+    console.error(e);
+    initialize(undefined);
+  });
 
 (window as any).storeData = (data: any) => {
   IDB.set(getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch((e) => {

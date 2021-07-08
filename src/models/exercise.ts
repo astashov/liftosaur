@@ -1,7 +1,19 @@
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { Settings } from "./settings";
-import { IExerciseId, IEquipment, IBarKey, IWeight, ISet, IExerciseType, equipments, ISettings } from "../types";
+import {
+  IExerciseId,
+  IEquipment,
+  IBarKey,
+  IWeight,
+  ISet,
+  IExerciseType,
+  equipments,
+  ISettings,
+  IAllCustomExercises,
+  IMuscle,
+  IMetaExercises,
+} from "../types";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -947,55 +959,6 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultEquipment: "barbell",
   },
 };
-
-type IBodyPart = "Back" | "Calves" | "Chest" | "Forearms" | "Hips" | "Shoulders" | "Thighs" | "Upper Arms" | "Waist";
-
-interface IMetaExercises {
-  bodyParts: IBodyPart[];
-  targetMuscles: IMuscle[];
-  synergistMuscles: IMuscle[];
-}
-
-export type IMuscle =
-  | "Adductor Brevis"
-  | "Adductor Longus"
-  | "Adductor Magnus"
-  | "Biceps Brachii"
-  | "Brachialis"
-  | "Brachioradialis"
-  | "Deltoid Anterior"
-  | "Deltoid Lateral"
-  | "Deltoid Posterior"
-  | "Erector Spinae"
-  | "Gastrocnemius"
-  | "Gluteus Maximus"
-  | "Gluteus Medius"
-  | "Hamstrings"
-  | "Iliopsoas"
-  | "Infraspinatus"
-  | "Latissimus Dorsi"
-  | "Levator Scapulae"
-  | "Obliques"
-  | "Pectineous"
-  | "Pectoralis Major Clavicular Head"
-  | "Pectoralis Major Sternal Head"
-  | "Quadriceps"
-  | "Rectus Abdominis"
-  | "Sartorius"
-  | "Serratus Anterior"
-  | "Soleus"
-  | "Splenius"
-  | "Sternocleidomastoid"
-  | "Tensor Fasciae Latae"
-  | "Teres Major"
-  | "Teres Minor"
-  | "Tibialis Anterior"
-  | "Trapezius Lower Fibers"
-  | "Trapezius Middle Fibers"
-  | "Trapezius Upper Fibers"
-  | "Triceps Brachii"
-  | "Wrist Extensors"
-  | "Wrist Flexors";
 
 const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>> = {
   abWheel: {
@@ -3241,6 +3204,10 @@ export function equipmentName(equipment?: IEquipment): string {
   }
 }
 
+function getMetadata(id: IExerciseId): Partial<Record<IEquipment, IMetaExercises>> {
+  return metadata[id] || {};
+}
+
 export type IExercise = {
   id: IExerciseId;
   name: string;
@@ -3289,21 +3256,52 @@ function warmupEmpty(weight: IWeight): ISet[] {
   return [];
 }
 
+function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
+  const custom = customExercises[id];
+  return custom != null ? { ...custom, warmupSets: warmup45 } : exercises[id];
+}
+
+function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
+  const exercise = maybeGetExercise(id, customExercises);
+  return exercise != null ? exercise : exercises.squat;
+}
+
 export namespace Exercise {
-  export function get(type: IExerciseType): IExercise {
-    return { ...exercises[type.id], equipment: type.equipment };
+  export function exists(name: string, customExercises: IAllCustomExercises): boolean {
+    let exercise = ObjectUtils.keys(exercises).filter((k) => exercises[k].name === name)[0];
+    if (exercise == null) {
+      exercise = ObjectUtils.keys(customExercises).filter(
+        (k) => !customExercises[k]!.isDeleted && customExercises[k]!.name === name
+      )[0];
+    }
+    return !!exercise;
   }
 
-  export function getById(id: IExerciseId): IExercise {
-    return { ...exercises[id], equipment: exercises[id].defaultEquipment };
+  export function findByName(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
+    return maybeGetExercise(id, customExercises);
   }
 
-  export function getByIds(ids: IExerciseId[]): IExercise[] {
-    return ids.map((id) => ({ ...exercises[id], equipment: exercises[id].defaultEquipment }));
+  export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
+    const exercise = getExercise(type.id, customExercises);
+    return { ...exercise, equipment: type.equipment };
   }
 
-  export function all(): IExercise[] {
-    return ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], equipment: exercises[k].defaultEquipment }));
+  export function getById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
+    const exercise = getExercise(id, customExercises);
+    return { ...exercise, equipment: exercise.defaultEquipment };
+  }
+
+  export function getByIds(ids: IExerciseId[], customExercises: IAllCustomExercises): IExercise[] {
+    return ids.map((id) => {
+      const exercise = getExercise(id, customExercises);
+      return { ...exercise, equipment: exercise.defaultEquipment };
+    });
+  }
+
+  export function all(customExercises: IAllCustomExercises): IExercise[] {
+    return ObjectUtils.keys(customExercises)
+      .map((id) => getExercise(id, customExercises))
+      .concat(ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], equipment: exercises[k].defaultEquipment })));
   }
 
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
@@ -3311,13 +3309,13 @@ export namespace Exercise {
   }
 
   export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {
-    return get(exercise).warmupSets(weight, settings, exercise.equipment);
+    return get(exercise, settings.exercises).warmupSets(weight, settings, exercise.equipment);
   }
 
   export function sortedEquipments(id: IExerciseId): IEquipment[] {
     const sorted = [...equipments];
     sorted.sort((a, b) => {
-      const eqs = ObjectUtils.keys(metadata[id]);
+      const eqs = ObjectUtils.keys(getMetadata(id));
       if (eqs.indexOf(a) !== -1 && eqs.indexOf(b) === -1) {
         return -1;
       } else if (eqs.indexOf(a) === -1 && eqs.indexOf(b) !== -1) {
@@ -3329,14 +3327,24 @@ export namespace Exercise {
     return sorted;
   }
 
-  export function targetMuscles(type: IExerciseType): IMuscle[] {
-    const meta = metadata[type.id][type.equipment || "bodyweight"];
-    return meta != null ? meta.targetMuscles : [];
+  export function targetMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
+    const customExercise = customExercises[type.id];
+    if (customExercise) {
+      return customExercise.meta.targetMuscles;
+    } else {
+      const meta = getMetadata(type.id)[type.equipment || "bodyweight"];
+      return meta != null ? meta.targetMuscles : [];
+    }
   }
 
-  export function synergistMuscles(type: IExerciseType): IMuscle[] {
-    const meta = metadata[type.id][type.equipment || "bodyweight"];
-    return meta != null ? meta.synergistMuscles : [];
+  export function synergistMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
+    const customExercise = customExercises[type.id];
+    if (customExercise) {
+      return customExercise.meta.synergistMuscles;
+    } else {
+      const meta = getMetadata(type.id)[type.equipment || "bodyweight"];
+      return meta != null ? meta.synergistMuscles : [];
+    }
   }
 
   export function toKey(type: IExerciseType): string {
@@ -3348,7 +3356,7 @@ export namespace Exercise {
     return { id: id as IExerciseId, equipment: (equipment || "bodyweight") as IEquipment };
   }
 
-  export function defaultEquipment(type: IExerciseId): IEquipment | undefined {
+  export function defaultEquipment(type: IExerciseId, customExercises: IAllCustomExercises): IEquipment | undefined {
     const priorities: Record<IEquipment, IEquipment[]> = {
       barbell: ["ezbar", "trapbar", "dumbbell", "kettlebell"],
       cable: ["band", "leverageMachine"],
@@ -3363,22 +3371,23 @@ export namespace Exercise {
       trapbar: ["barbell", "dumbbell", "cable"],
     };
 
-    const bar = exercises[type].defaultEquipment || "bodyweight";
-    let equipment: IEquipment | undefined = ObjectUtils.keys(metadata[type]).find((b) => b === bar);
-    equipment = equipment || priorities[bar].find((eqp) => ObjectUtils.keys(metadata[type]).indexOf(eqp) !== -1);
-    equipment = equipment || ObjectUtils.keys(metadata[type])[0];
+    const exercise = getById(type, customExercises);
+    const bar = exercise.defaultEquipment || "bodyweight";
+    let equipment: IEquipment | undefined = ObjectUtils.keys(getMetadata(type)).find((b) => b === bar);
+    equipment = equipment || priorities[bar].find((eqp) => ObjectUtils.keys(getMetadata(type)).indexOf(eqp) !== -1);
+    equipment = equipment || ObjectUtils.keys(getMetadata(type))[0];
     return equipment;
   }
 
-  export function similar(type: IExerciseType): [IExercise, number][] {
-    const tm = Exercise.targetMuscles(type);
-    const sm = Exercise.synergistMuscles(type);
+  export function similar(type: IExerciseType, customExercises: IAllCustomExercises): [IExercise, number][] {
+    const tm = Exercise.targetMuscles(type, customExercises);
+    const sm = Exercise.synergistMuscles(type, customExercises);
     if (tm.length === 0 && sm.length === 0) {
       return [];
     }
-    const rated = Exercise.all().map<[IExercise, number]>((e) => {
-      const etm = Exercise.targetMuscles(e);
-      const esm = Exercise.synergistMuscles(e);
+    const rated = Exercise.all(customExercises).map<[IExercise, number]>((e) => {
+      const etm = Exercise.targetMuscles(e, customExercises);
+      const esm = Exercise.synergistMuscles(e, customExercises);
       let rating = 0;
       if (e.id === type.id || (etm.length === 0 && esm.length === 0)) {
         rating = -Infinity;

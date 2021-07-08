@@ -87,4 +87,9 @@ export const migrations = {
     (storage as any).stats = storage.stats || { weight: {}, length: {} };
     return storage;
   },
+  "20210626192422_add_settings_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.exercises = storage.settings.exercises || {};
+    return storage;
+  },
 };

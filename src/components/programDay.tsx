@@ -106,6 +106,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             <Fragment>
               <button
                 className="ls-footer-muscles p-4"
+                data-cy="footer-muscles"
                 aria-label="Muscles"
                 onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
               >

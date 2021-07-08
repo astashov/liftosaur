@@ -55,7 +55,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               className = "flex flex-row flex-1";
             }
             if (entry != null) {
-              const exercise = Exercise.get(entry.exercise);
+              const exercise = Exercise.get(entry.exercise, props.settings.exercises);
               return (
                 <div data-cy="history-entry-exercise" className={className}>
                   <div data-cy="history-entry-exercise-name" style={{ flex: 2 }}>

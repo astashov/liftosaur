@@ -22,6 +22,7 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
   after?: JSX.Element;
   nextLine?: JSX.Element;
   isNameHtml?: boolean;
+  errorMessage?: string;
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
@@ -61,9 +62,9 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           )}
           {props.after != null ? props.after : undefined}
         </div>
-        {patternError && props.patternMessage && (
+        {(props.errorMessage || (patternError && props.patternMessage)) && (
           <div style={{ marginTop: "-0.5rem" }} className="text-xs text-right text-red-500">
-            {props.patternMessage}
+            {props.errorMessage || props.patternMessage}
           </div>
         )}
         {props.nextLine}

@@ -133,7 +133,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             <button data-cy="select-exercise" className="px-4 align-middle" onClick={() => setShowModalExercise(true)}>
               <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
             </button>
-            <span>{Exercise.get(programExercise.exerciseType).name}</span>
+            <span>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</span>
             <div className="text-xs text-blue-700 underline" onClick={() => setShowModalSubstitute(true)}>
               Substitute
             </div>
@@ -153,6 +153,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         <ExerciseImage
           key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
           exerciseType={programExercise.exerciseType}
+          customExercises={props.settings.exercises}
         />
       </MenuItemWrapper>
       <MenuItemEditable
@@ -228,20 +229,23 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       {showModalSubstitute && (
         <ModalSubstitute
           exerciseType={programExercise.exerciseType}
+          settings={props.settings}
           onChange={(exerciseId) => {
             setShowModalSubstitute(false);
             if (exerciseId != null) {
-              EditProgram.changeExerciseId(props.dispatch, exerciseId);
+              EditProgram.changeExerciseId(props.dispatch, props.settings, exerciseId);
             }
           }}
         />
       )}
       <ModalExercise
         isHidden={!showModalExercise}
+        settings={props.settings}
+        dispatch={props.dispatch}
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {
-            EditProgram.changeExerciseId(props.dispatch, exerciseId);
+            EditProgram.changeExerciseId(props.dispatch, props.settings, exerciseId);
           }
         }}
       />

@@ -76,11 +76,11 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
 
 function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
   const e = props.entry.exercise;
-  const exercise = Exercise.get(e);
+  const exercise = Exercise.get(e, props.settings.exercises);
   return (
     <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
       <div className="text-left">{exercise.name}</div>
-      <ExerciseImage exerciseType={e} />
+      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} />
       <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
         <IconClose />
       </button>
@@ -90,7 +90,7 @@ function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.El
 
 const ExerciseContentView = memo(
   (props: IProps & { onInfoClick: () => void }): JSX.Element => {
-    const exercise = Exercise.get(props.entry.exercise);
+    const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
@@ -107,7 +107,7 @@ const ExerciseContentView = memo(
       (w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.equipment).plates).length > 0
     );
     warmupWeights.sort(Weight.compare);
-    const targetMuscles = Exercise.targetMuscles(props.entry.exercise);
+    const targetMuscles = Exercise.targetMuscles(props.entry.exercise, props.settings.exercises);
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     return (
       <Fragment>

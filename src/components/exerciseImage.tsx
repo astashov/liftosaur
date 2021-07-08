@@ -2,14 +2,15 @@ import { JSX, h, ComponentChildren, Fragment } from "preact";
 import { Exercise } from "../models/exercise";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "./iconSpinner";
-import { IExerciseType } from "../types";
+import { IAllCustomExercises, IExerciseType } from "../types";
 
 interface IProps {
   exerciseType: IExerciseType;
+  customExercises: IAllCustomExercises;
 }
 
-export function ExerciseImage({ exerciseType }: IProps): JSX.Element | null {
-  const targetMuscles = Exercise.targetMuscles(exerciseType);
+export function ExerciseImage({ exerciseType, customExercises }: IProps): JSX.Element | null {
+  const targetMuscles = Exercise.targetMuscles(exerciseType, customExercises);
   const imgRef = useRef<HTMLImageElement>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);

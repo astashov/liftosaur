@@ -69,7 +69,7 @@ interface IEntryProps {
 
 function Entry(props: IEntryProps): JSX.Element {
   const { history, maxSet, settings } = props;
-  const exercise = Exercise.getById(props.exerciseId);
+  const exercise = Exercise.getById(props.exerciseId, props.settings.exercises);
 
   return (
     <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">

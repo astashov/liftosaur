@@ -18,7 +18,7 @@ interface IProps {
 
 export function TrainingMax(props: IProps): JSX.Element {
   const exerciseIds = ["squat", "benchPress", "deadlift", "overheadPress"] as const;
-  const exercises = exerciseIds.map((id) => Exercise.getById(id));
+  const exercises = exerciseIds.map((id) => Exercise.getById(id, props.settings.exercises));
   const programExercises = props.program.exercises;
   const [tms, setTms] = useState({
     squat: programExercises.find((e) => e.exerciseType.id === "squat")!.state.tm as IWeight,

@@ -73,7 +73,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
   const units = props.settings.units;
   useEffect(() => {
     const rect = graphRef.current.getBoundingClientRect();
-    const exercise = Exercise.get(props.exercise);
+    const exercise = Exercise.get(props.exercise, props.settings.exercises);
     const data = getData(props.history, props.exercise, props.settings, props.bodyweightData);
     const opts: UPlot.Options = {
       title: props.title || `${exercise.name} Max Weight`,

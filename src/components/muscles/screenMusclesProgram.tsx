@@ -15,6 +15,7 @@ export function ScreenMusclesProgram(props: IProps): JSX.Element {
   return (
     <ScreenMuscles
       dispatch={props.dispatch}
+      settings={props.settings}
       points={points}
       title={props.program.name}
       headerTitle="Muscles used in the program"

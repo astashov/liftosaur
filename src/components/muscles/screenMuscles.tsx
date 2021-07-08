@@ -11,6 +11,7 @@ import { CollectionUtils } from "../../utils/collection";
 import { useState } from "preact/hooks";
 import { GroupHeader } from "../groupHeader";
 import { Muscle, IScreenMuscle, IPoints } from "../../models/muscle";
+import { ISettings } from "../../types";
 
 interface IProps {
   dispatch: IDispatch;
@@ -18,6 +19,7 @@ interface IProps {
   headerTitle: string;
   headerHelp: JSX.Element;
   points: IPoints;
+  settings: ISettings;
 }
 
 export function ScreenMuscles(props: IProps): JSX.Element {
@@ -98,13 +100,19 @@ export function ScreenMuscles(props: IProps): JSX.Element {
                 .map((e) => {
                   const targetScreenMuscles = Array.from(
                     new Set(
-                      CollectionUtils.flat(Exercise.targetMuscles(e).map((t) => Muscle.getScreenMusclesFromMuscle(t)))
+                      CollectionUtils.flat(
+                        Exercise.targetMuscles(e, props.settings.exercises).map((t) =>
+                          Muscle.getScreenMusclesFromMuscle(t)
+                        )
+                      )
                     )
                   );
                   const synergistScreenMuscles = Array.from(
                     new Set(
                       CollectionUtils.flat(
-                        Exercise.synergistMuscles(e).map((t) => Muscle.getScreenMusclesFromMuscle(t))
+                        Exercise.synergistMuscles(e, props.settings.exercises).map((t) =>
+                          Muscle.getScreenMusclesFromMuscle(t)
+                        )
                       )
                     )
                   );
@@ -120,8 +128,8 @@ export function ScreenMuscles(props: IProps): JSX.Element {
                   synergistScreenMusclesWithPercentage.sort((a, b) => b[1] - a[1]);
                   return (
                     <div>
-                      <div className="text-green-700">{Exercise.get(e).name}</div>
-                      <div className="pl-2">
+                      <div className="text-green-700">{Exercise.get(e, props.settings.exercises).name}</div>
+                      <div data-cy="target-muscles-list" className="pl-2">
                         <div className="text-gray-600">Target: </div>
                         {targetScreenMusclesWithPercentage.map(([m, val]) => (
                           <div className="pl-2">
@@ -129,7 +137,7 @@ export function ScreenMuscles(props: IProps): JSX.Element {
                           </div>
                         ))}
                       </div>
-                      <div className="pl-2">
+                      <div data-cy="synergist-muscles-list" className="pl-2">
                         <span className="text-gray-600">Synergist: </span>
                         {synergistScreenMusclesWithPercentage.map(([m, val]) => (
                           <div className="pl-2">

@@ -1,24 +1,25 @@
 import { h, JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
-import { Exercise, IExercise, IMuscle } from "../models/exercise";
+import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
-import { IExerciseType, IExerciseId } from "../types";
+import { IExerciseType, IExerciseId, ISettings, IAllCustomExercises, IMuscle } from "../types";
 
 interface IModalDateProps {
   exerciseType: IExerciseType;
+  settings: ISettings;
   onChange: (value?: IExerciseId) => void;
 }
 
 export function ModalSubstitute(props: IModalDateProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
-  const tms = Exercise.targetMuscles(props.exerciseType);
-  const sms = Exercise.synergistMuscles(props.exerciseType);
+  const tms = Exercise.targetMuscles(props.exerciseType, props.settings.exercises);
+  const sms = Exercise.synergistMuscles(props.exerciseType, props.settings.exercises);
 
-  const exercise = Exercise.get(props.exerciseType);
-  let exercises = Exercise.similar(props.exerciseType);
+  const exercise = Exercise.get(props.exerciseType, props.settings.exercises);
+  let exercises = Exercise.similar(props.exerciseType, props.settings.exercises);
   if (filter) {
     exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter, e[0].name.toLowerCase()));
   }
@@ -30,7 +31,12 @@ export function ModalSubstitute(props: IModalDateProps): JSX.Element {
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
         <div className="p-4 my-2 bg-gray-200">
           <h2 className="text-lg font-bold">Current Exercise</h2>
-          <ExerciseView currentTargetMuscles={tms} currentSynergistMuscles={sms} exercise={exercise} />
+          <ExerciseView
+            currentTargetMuscles={tms}
+            currentSynergistMuscles={sms}
+            exercise={exercise}
+            customExercises={props.settings.exercises}
+          />
         </div>
         <div className="py-2">
           <h3 className="text-lg font-bold">Filter similar exercises</h3>
@@ -53,7 +59,12 @@ export function ModalSubstitute(props: IModalDateProps): JSX.Element {
                 props.onChange(e.id);
               }}
             >
-              <ExerciseView currentSynergistMuscles={sms} currentTargetMuscles={tms} exercise={e} />
+              <ExerciseView
+                currentSynergistMuscles={sms}
+                currentTargetMuscles={tms}
+                exercise={e}
+                customExercises={props.settings.exercises}
+              />
             </section>
           );
         })}
@@ -64,6 +75,7 @@ export function ModalSubstitute(props: IModalDateProps): JSX.Element {
 
 interface IExerciseViewProps {
   exercise: IExercise;
+  customExercises: IAllCustomExercises;
   currentTargetMuscles: IMuscle[];
   currentSynergistMuscles: IMuscle[];
 }
@@ -72,9 +84,9 @@ function ExerciseView(props: IExerciseViewProps): JSX.Element {
   const e = props.exercise;
   const tms = props.currentTargetMuscles;
   const sms = props.currentSynergistMuscles;
-  const equipment = Exercise.defaultEquipment(e.id);
-  const targetMuscles = Exercise.targetMuscles(e);
-  const synergistMuscles = Exercise.synergistMuscles(e);
+  const equipment = Exercise.defaultEquipment(e.id, props.customExercises);
+  const targetMuscles = Exercise.targetMuscles(e, props.customExercises);
+  const synergistMuscles = Exercise.synergistMuscles(e, props.customExercises);
   return (
     <div>
       <section className="flex items-center">

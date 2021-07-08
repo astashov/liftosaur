@@ -49,6 +49,7 @@ const fns = Progress.createScriptFunctions({
   lengthUnits: "in",
   statsEnabled: { weight: { weight: true }, length: {} },
   graphs: [],
+  exercises: {},
   bars: {
     lb: {
       barbell: Weight.build(45, "lb"),

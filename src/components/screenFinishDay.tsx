@@ -48,7 +48,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <h3 className="pb-2 font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
             <ul>
               {Array.from(prs.keys()).map((exerciseType) => {
-                const exercise = Exercise.get(exerciseType);
+                const exercise = Exercise.get(exerciseType, props.settings.exercises);
                 const set = prs.get(exerciseType)!;
                 const previousMaxSet = History.findMaxSet(exerciseType, props.history.slice(1));
                 return (

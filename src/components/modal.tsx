@@ -43,7 +43,7 @@ export function Modal(props: IProps): JSX.Element {
         className="relative flex flex-col px-4 py-6 bg-white rounded-lg shadow-lg"
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
-        <div className="h-full overflow-auto">{props.children}</div>
+        <div className="relative h-full overflow-auto">{props.children}</div>
         {props.shouldShowClose && (
           <button data-cy="modal-close" onClick={props.onClose} className="absolute top-0 right-0 p-2">
             <IconClose />

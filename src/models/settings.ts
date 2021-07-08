@@ -20,6 +20,7 @@ export namespace Settings {
         { weight: Weight.build(1.25, "kg"), num: 4 },
         { weight: Weight.build(0.5, "kg"), num: 2 },
       ],
+      exercises: {},
       graphs: [],
       bars: {
         lb: {

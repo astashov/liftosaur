@@ -16,6 +16,7 @@ export function ScreenMusclesDay(props: IProps): JSX.Element {
   return (
     <ScreenMuscles
       dispatch={props.dispatch}
+      settings={props.settings}
       points={points}
       title={props.programDay.name}
       headerTitle="Muscles used in the day"

@@ -540,6 +540,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           ),
           lengthUnits: newStorage.settings.lengthUnits,
           statsEnabled: newStorage.settings.statsEnabled,
+          exercises: newStorage.settings.exercises,
           graphs: newStorage.settings.graphs || [],
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
           bars: newStorage.settings.bars,

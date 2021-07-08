@@ -52,7 +52,7 @@ function PersonalRecords(props: IPersonalRecordsProps): JSX.Element | null {
         <ul>
           {Array.from(prs.keys()).map((exerciseType) => {
             const set = prs.get(exerciseType)!;
-            const exercise = Exercise.get(exerciseType);
+            const exercise = Exercise.get(exerciseType, props.data.settings.exercises);
             return (
               <li>
                 <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />
@@ -82,7 +82,7 @@ function MaxWeights(props: IMaxWeightsProps): JSX.Element {
         {props.data.record.entries
           .filter((e) => (History.getMaxSet(e)?.completedReps || 0) > 0)
           .map((entry) => {
-            const exercise = Exercise.get(entry.exercise);
+            const exercise = Exercise.get(entry.exercise, props.data.settings.exercises);
             const set = History.getMaxSet(entry)!;
             return (
               <li>
@@ -104,7 +104,7 @@ interface IEntryProps {
 
 function Entry(props: IEntryProps): JSX.Element {
   const units = props.settings.units;
-  const exercise = Exercise.get(props.entry.exercise);
+  const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
   const prSet = History.findPersonalRecord(props.recordId, props.entry, props.history);
   const setGroups = Reps.group(props.entry.sets);
 

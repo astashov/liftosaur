@@ -8,7 +8,7 @@ import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { StringUtils } from "../utils/string";
-import { IWeight, IUnit, IExerciseId, IEquipment, IProgram, IProgramExercise } from "../types";
+import { IWeight, IUnit, IExerciseId, IEquipment, IProgram, IProgramExercise, ISettings } from "../types";
 
 interface I531Tms {
   squat: IWeight;
@@ -67,9 +67,9 @@ export namespace EditProgram {
     ]);
   }
 
-  export function changeExerciseId(dispatch: IDispatch, newId?: IExerciseId): void {
+  export function changeExerciseId(dispatch: IDispatch, settings: ISettings, newId?: IExerciseId): void {
     if (newId != null) {
-      const exercise = Exercise.get({ id: newId, equipment: "barbell" });
+      const exercise = Exercise.get({ id: newId, equipment: "barbell" }, settings.exercises);
       updateState(dispatch, [
         lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
         lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(exercise.defaultEquipment),

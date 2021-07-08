@@ -217,6 +217,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           <button
             className="ls-footer-muscles p-4"
             aria-label="Muscles"
+            data-cy="footer-muscles"
             onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
           >
             <IconMuscles />

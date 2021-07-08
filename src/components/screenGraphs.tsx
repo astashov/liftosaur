@@ -162,6 +162,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
 
       <FooterView dispatch={props.dispatch} />
       <ModalGraphs
+        settings={props.settings}
         isHidden={!isModalOpen}
         exerciseIds={exerciseIds}
         stats={props.stats}

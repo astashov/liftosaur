@@ -1,6 +1,27 @@
+import { unsafeCoerce } from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { ObjectUtils } from "./utils/object";
 import { IArrayElement } from "./utils/types";
+
+export type IDictionaryC<D extends t.Mixed, C extends t.Mixed> = t.DictionaryType<
+  D,
+  C,
+  {
+    [K in t.TypeOf<D>]?: t.TypeOf<C>;
+  },
+  {
+    [K in t.OutputOf<D>]?: t.OutputOf<C>;
+  },
+  unknown
+>;
+
+export const dictionary = <D extends t.Mixed, C extends t.Mixed>(
+  domain: D,
+  codomain: C,
+  name?: string
+): IDictionaryC<D, C> => {
+  return unsafeCoerce(t.record(t.union([domain, t.undefined]), codomain, name));
+};
 
 export const equipments = [
   "barbell",
@@ -176,6 +197,78 @@ export const exerciseTypes = [
   "zercherSquat",
 ] as const;
 
+export const availableMuscles = [
+  "Adductor Brevis",
+  "Adductor Longus",
+  "Adductor Magnus",
+  "Biceps Brachii",
+  "Brachialis",
+  "Brachioradialis",
+  "Deltoid Anterior",
+  "Deltoid Lateral",
+  "Deltoid Posterior",
+  "Erector Spinae",
+  "Gastrocnemius",
+  "Gluteus Maximus",
+  "Gluteus Medius",
+  "Hamstrings",
+  "Iliopsoas",
+  "Infraspinatus",
+  "Latissimus Dorsi",
+  "Levator Scapulae",
+  "Obliques",
+  "Pectineous",
+  "Pectoralis Major Clavicular Head",
+  "Pectoralis Major Sternal Head",
+  "Quadriceps",
+  "Rectus Abdominis",
+  "Sartorius",
+  "Serratus Anterior",
+  "Soleus",
+  "Splenius",
+  "Sternocleidomastoid",
+  "Tensor Fasciae Latae",
+  "Teres Major",
+  "Teres Minor",
+  "Tibialis Anterior",
+  "Trapezius Lower Fibers",
+  "Trapezius Middle Fibers",
+  "Trapezius Upper Fibers",
+  "Triceps Brachii",
+  "Wrist Extensors",
+  "Wrist Flexors",
+] as const;
+
+export const TMuscle = t.keyof(
+  availableMuscles.reduce<Record<IArrayElement<typeof availableMuscles>, null>>((memo, muscle) => {
+    memo[muscle] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof availableMuscles>, null>),
+  "TMuscle"
+);
+export type IMuscle = t.TypeOf<typeof TMuscle>;
+
+export const availableBodyParts = [
+  "Back",
+  "Calves",
+  "Chest",
+  "Forearms",
+  "Hips",
+  "Shoulders",
+  "Thighs",
+  "Upper Arms",
+  "Waist",
+];
+
+export const TBodyPart = t.keyof(
+  availableBodyParts.reduce<Record<IArrayElement<typeof availableBodyParts>, null>>((memo, muscle) => {
+    memo[muscle] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof availableBodyParts>, null>),
+  "TBodyPart"
+);
+export type IBodyPart = t.TypeOf<typeof TBodyPart>;
+
 export const TEquipment = t.keyof(
   equipments.reduce<Record<IArrayElement<typeof equipments>, null>>((memo, barKey) => {
     memo[barKey] = null;
@@ -185,14 +278,18 @@ export const TEquipment = t.keyof(
 );
 export type IEquipment = t.TypeOf<typeof TEquipment>;
 
-export const TExerciseId = t.keyof(
-  exerciseTypes.reduce<Record<IArrayElement<typeof exerciseTypes>, null>>((memo, exerciseType) => {
-    memo[exerciseType] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof exerciseTypes>, null>),
-  "TExerciseId"
-);
+export const TExerciseId = t.string;
 export type IExerciseId = t.TypeOf<typeof TExerciseId>;
+
+export const TMetaExercises = t.type(
+  {
+    bodyParts: t.array(TBodyPart),
+    targetMuscles: t.array(TMuscle),
+    synergistMuscles: t.array(TMuscle),
+  },
+  "TMetaExercises"
+);
+export type IMetaExercises = t.TypeOf<typeof TMetaExercises>;
 
 export const TExerciseType = t.intersection(
   [
@@ -206,6 +303,19 @@ export const TExerciseType = t.intersection(
   "TExerciseType"
 );
 export type IExerciseType = t.TypeOf<typeof TExerciseType>;
+
+export const TCustomExercise = t.type(
+  {
+    id: TExerciseId,
+    name: t.string,
+    defaultEquipment: TEquipment,
+    isDeleted: t.boolean,
+    meta: TMetaExercises,
+  },
+  "TCustomExercise"
+);
+export type ICustomExercise = t.TypeOf<typeof TCustomExercise>;
+export type IAllCustomExercises = Partial<Record<string, ICustomExercise>>;
 
 export const units = ["kg", "lb"] as const;
 
@@ -525,6 +635,7 @@ export const TSettings = t.intersection(
       plates: t.array(TPlate),
       bars: t.record(TUnit, TBars),
       graphs: t.array(TGraph),
+      exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,
       units: TUnit,
       lengthUnits: TLengthUnit,
