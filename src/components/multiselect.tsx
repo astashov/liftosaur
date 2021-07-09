@@ -47,7 +47,8 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
             <span className="py-1 pl-1">{sm} </span>
             <button
               className="p-1"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 const set = new Set(selectedValues);
                 set.delete(sm);
                 setSelectedValues(set);
