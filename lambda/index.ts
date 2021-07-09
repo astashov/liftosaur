@@ -22,6 +22,7 @@ import { IDI } from "./utils/di";
 import { LogUtil } from "./utils/log";
 import { SecretsUtil } from "./utils/secrets";
 import { S3Util } from "./utils/s3";
+import { runMigrations } from "../src/migrations/runner";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -453,17 +454,21 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   const { event, di } = payload;
   if (match.params.key === (await di.secrets.getApiKey())) {
     const users = await new UserDao(di).getAll();
-    const processedUsers = users.map((u) => {
-      return {
-        id: u.id,
-        email: u.email,
-        history: u.storage.history.slice(0, 4),
-        totalHistory: u.storage.history.length,
-        programs: u.storage.programs.map((p) => p.name),
-        settings: u.storage.settings,
-        timestamp: u.createdAt,
-      };
-    });
+    const processedUsers = await Promise.all(
+      users.map(async (u) => {
+        const storage = await runMigrations(fetch, u.storage);
+
+        return {
+          id: u.id,
+          email: u.email,
+          history: storage.history.slice(0, 4),
+          totalHistory: storage.history.length,
+          programs: storage.programs.map((p) => p.name),
+          settings: storage.settings,
+          timestamp: u.createdAt,
+        };
+      })
+    );
     processedUsers.sort((a, b) => {
       const h1 = a.history[0];
       const h2 = b.history[0];
