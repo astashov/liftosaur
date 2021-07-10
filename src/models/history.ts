@@ -5,6 +5,11 @@ import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
 import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight } from "../types";
 
+export interface IHistoricalEntries {
+  last: { entry: IHistoryEntry; time: number };
+  max: { entry: IHistoryEntry; time: number };
+}
+
 export namespace History {
   export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {
     return {
@@ -128,6 +133,32 @@ export namespace History {
     return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
   }
 
+  export function getHistoricalSameEntry(
+    history: IHistoryRecord[],
+    currentEntry: IHistoryEntry
+  ): IHistoricalEntries | undefined {
+    let last: { entry: IHistoryEntry; time: number } | undefined;
+    let max: { entry: IHistoryEntry; time: number } | undefined;
+    for (const record of history) {
+      for (const entry of record.entries) {
+        if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
+          const allSetsSame = entry.sets.every(
+            (set, i) => set.reps === currentEntry.sets[i].reps && Weight.eq(set.weight, currentEntry.sets[i].weight)
+          );
+          if (allSetsSame) {
+            if (last == null) {
+              last = { entry, time: record.startTime };
+            }
+            if (max == null || totalEntryReps(entry) > totalEntryReps(max.entry)) {
+              max = { entry, time: record.startTime };
+            }
+          }
+        }
+      }
+    }
+    return last != null && max != null ? { last, max } : undefined;
+  }
+
   export function getHistoricalAmrapSets(
     history: IHistoryRecord[],
     currentEntry: IHistoryEntry,
@@ -146,7 +177,7 @@ export namespace History {
               if (last == null) {
                 last = [set, record.startTime];
               }
-              if (max == null || (last[0].completedReps || 0) > (max[0].completedReps || 0)) {
+              if (max == null || (set.completedReps || 0) > (max[0].completedReps || 0)) {
                 max = [set, record.startTime];
               }
             }

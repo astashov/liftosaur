@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { ExerciseSetView } from "./exerciseSet";
 import { Exercise } from "../models/exercise";
-import { History } from "../models/history";
+import { History, IHistoricalEntries } from "../models/history";
 import { IDispatch } from "../ducks/types";
 import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
@@ -104,7 +104,12 @@ const ExerciseContentView = memo(
   (props: IProps & { onInfoClick: () => void }): JSX.Element => {
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
-    const historicalAmrapSets = History.getHistoricalAmrapSets(props.history, props.entry, nextSet);
+    const historicalAmrapSets = props.isCurrent
+      ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
+      : undefined;
+    const historicalSameEntry = props.isCurrent
+      ? History.getHistoricalSameEntry(props.history, props.entry)
+      : undefined;
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
       (w) => w.value.toString()
@@ -315,19 +320,65 @@ const ExerciseContentView = memo(
             </button>
           )}
         </section>
+        {historicalSameEntry && <HistoricalSameEntry historicalEntries={historicalSameEntry} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
       </Fragment>
     );
   }
 );
 
+function HistoricalSameEntry(props: { historicalEntries: IHistoricalEntries }): JSX.Element {
+  const { max, last } = props.historicalEntries;
+  const isDiffMax = History.totalEntryReps(max.entry) > History.totalEntryReps(last.entry);
+  return (
+    <div className="text-xs italic">
+      <div>
+        <div>Last similar entry you did:</div>
+        <HistoricalReps sets={last.entry.sets} />{" "}
+        <span>
+          on <strong>{DateUtils.format(last.time)}</strong>.
+        </span>
+      </div>
+      {isDiffMax ? (
+        <div>
+          <div>Max similar entry you did:</div>
+          <HistoricalReps sets={max.entry.sets} />{" "}
+          <span>
+            on <strong>{DateUtils.format(max.time)}</strong>.
+          </span>
+        </div>
+      ) : (
+        "It was your max too."
+      )}
+    </div>
+  );
+}
+
+function HistoricalReps(props: { sets: ISet[] }): JSX.Element {
+  return (
+    <Fragment>
+      {props.sets.map((set, i) => (
+        <Fragment>
+          {i !== 0 && <span className="text-gray-600">/</span>}
+          <span className={(set.completedReps || 0) >= set.reps ? `text-green-600` : `text-red-600`}>
+            {set.completedReps || 0}
+          </span>
+        </Fragment>
+      ))}
+    </Fragment>
+  );
+}
+
 function HistoricalAmrapSets(props: {
   historicalAmrapSets: { max: [ISet, number]; last: [ISet, number] };
 }): JSX.Element {
   const { max, last } = props.historicalAmrapSets;
   return (
-    <div className="text-xs italic">
+    <div className="mt-2 text-xs italic">
       <div>
+        <div>
+          <strong>AMRAP Set</strong>:
+        </div>
         Last time you did <strong>{Weight.display(last[0].weight)}</strong>/
         <strong>{last[0].completedReps} reps</strong> on <strong>{DateUtils.format(last[1])}</strong>.
       </div>
