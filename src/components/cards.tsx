@@ -8,6 +8,7 @@ import { memo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
 
 interface ICardsViewProps {
+  history: IHistoryRecord[];
   progress: IHistoryRecord;
   program?: IProgram;
   isTimerShown: boolean;
@@ -31,6 +32,7 @@ export const CardsView = memo(
 
           return (
             <ExerciseView
+              history={props.history}
               showHelp={true}
               isCurrent={Progress.isCurrent(props.progress)}
               settings={props.settings}

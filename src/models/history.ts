@@ -127,4 +127,33 @@ export namespace History {
   export function totalEntryReps(entry: IHistoryEntry): number {
     return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
   }
+
+  export function getHistoricalAmrapSets(
+    history: IHistoryRecord[],
+    currentEntry: IHistoryEntry,
+    nextSet?: ISet
+  ): { last: [ISet, number]; max: [ISet, number] } | undefined {
+    if (!nextSet?.isAmrap) {
+      return undefined;
+    }
+    let last: [ISet, number] | undefined;
+    let max: [ISet, number] | undefined;
+    for (const record of history) {
+      for (const entry of record.entries) {
+        if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
+          for (const set of entry.sets) {
+            if (set.isAmrap && set.reps === nextSet.reps && Weight.eq(set.weight, nextSet.weight)) {
+              if (last == null) {
+                last = [set, record.startTime];
+              }
+              if (max == null || (last[0].completedReps || 0) > (max[0].completedReps || 0)) {
+                max = [set, record.startTime];
+              }
+            }
+          }
+        }
+      }
+    }
+    return last != null && max != null ? { last, max } : undefined;
+  }
 }

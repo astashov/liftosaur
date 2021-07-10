@@ -618,6 +618,7 @@ function Playground(props: IPlaygroundProps): JSX.Element {
         }}
       />
       <ExerciseView
+        history={[]}
         showHelp={false}
         entry={entry}
         day={props.day}

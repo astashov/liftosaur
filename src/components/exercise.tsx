@@ -1,6 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { ExerciseSetView } from "./exerciseSet";
 import { Exercise } from "../models/exercise";
+import { History } from "../models/history";
 import { IDispatch } from "../ducks/types";
 import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
@@ -16,12 +17,23 @@ import { IconDelete } from "./iconDelete";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
-import { IHistoryEntry, ISettings, IProgramExercise, IProgressMode, IExerciseType, IWeight } from "../types";
+import {
+  IHistoryEntry,
+  ISettings,
+  IProgramExercise,
+  IProgressMode,
+  IExerciseType,
+  IWeight,
+  IHistoryRecord,
+  ISet,
+} from "../types";
+import { DateUtils } from "../utils/date";
 
 interface IProps {
   showHelp: boolean;
   entry: IHistoryEntry;
   settings: ISettings;
+  history: IHistoryRecord[];
   day: number;
   programExercise?: IProgramExercise;
   index: number;
@@ -92,6 +104,7 @@ const ExerciseContentView = memo(
   (props: IProps & { onInfoClick: () => void }): JSX.Element => {
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+    const historicalAmrapSets = History.getHistoricalAmrapSets(props.history, props.entry, nextSet);
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
       (w) => w.value.toString()
@@ -302,10 +315,32 @@ const ExerciseContentView = memo(
             </button>
           )}
         </section>
+        {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
       </Fragment>
     );
   }
 );
+
+function HistoricalAmrapSets(props: {
+  historicalAmrapSets: { max: [ISet, number]; last: [ISet, number] };
+}): JSX.Element {
+  const { max, last } = props.historicalAmrapSets;
+  return (
+    <div className="text-xs italic">
+      <div>
+        Last time you did <strong>{Weight.display(last[0].weight)}</strong>/
+        <strong>{last[0].completedReps} reps</strong> on <strong>{DateUtils.format(last[1])}</strong>.
+      </div>
+      {max[0].completedReps === last[0].completedReps ? (
+        <div>It was historical max too.</div>
+      ) : (
+        <div>
+          Historical max was <strong>{max[0].completedReps} reps</strong> on {DateUtils.format(max[1])}.
+        </div>
+      )}
+    </div>
+  );
+}
 
 function handleClick(
   dispatch: IDispatch,

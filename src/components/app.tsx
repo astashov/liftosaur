@@ -137,6 +137,7 @@ export function AppView(props: IProps): JSX.Element | null {
     const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
     content = (
       <ProgramDayView
+        history={state.storage.history}
         userId={state.user?.id}
         progress={progress}
         isChanged={isChanged}

@@ -22,6 +22,7 @@ import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet } from "../typ
 
 interface IProps {
   progress: IHistoryRecord;
+  history: IHistoryRecord[];
   program?: IProgram;
   settings: ISettings;
   isChanged: boolean;
@@ -79,6 +80,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }
         />
         <CardsView
+          history={props.history}
           settings={props.settings}
           program={props.program}
           progress={progress}
