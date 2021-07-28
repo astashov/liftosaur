@@ -14,7 +14,7 @@ import { DateUtils } from "./utils/date";
 
 // Trying to fix a weird bug when iOS Safari doesn't resolve IDB.get promise
 // on first load by some reason
-// window.indexedDB.open("keyval-store");
+window.indexedDB.open("keyval-store");
 
 if ("serviceWorker" in navigator) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
