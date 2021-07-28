@@ -2,22 +2,16 @@ export namespace IndexedDBUtils {
   export function initializeForSafari(): Promise<void> {
     return new Promise((resolve) => {
       const connection = window.indexedDB.open("keyval-store");
-      connection.addEventListener("success", (event) => {
-        connection.result.close();
+      const handler = (): void => {
+        if (connection.result != null) {
+          connection.result.close();
+        }
         resolve();
-      });
-      connection.addEventListener("error", (event) => {
-        connection.result.close();
-        resolve();
-      });
-      connection.addEventListener("blocked", (event) => {
-        connection.result.close();
-        resolve();
-      });
-      connection.addEventListener("upgradeneeded", (event) => {
-        connection.result.close();
-        resolve();
-      });
+      };
+      connection.addEventListener("success", handler);
+      connection.addEventListener("error", handler);
+      connection.addEventListener("blocked", handler);
+      connection.addEventListener("upgradeneeded", handler);
     });
   }
 
