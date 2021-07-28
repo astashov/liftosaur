@@ -7,6 +7,7 @@ function buildSettings(plates: IPlate[]): ISettings {
     graphs: [],
     lengthUnits: "in",
     statsEnabled: { weight: { weight: true }, length: {} },
+    shouldShowFriendsHistory: true,
     exercises: {},
     bars: {
       lb: {

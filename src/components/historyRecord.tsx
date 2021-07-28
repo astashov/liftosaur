@@ -15,75 +15,81 @@ interface IProps {
   historyRecord: IHistoryRecord;
   settings: ISettings;
   dispatch: IDispatch;
+  userId?: string;
+  nickname?: string;
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
-  const { historyRecord, dispatch } = props;
+  const { historyRecord, dispatch, nickname } = props;
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
     <div
       data-cy="history-record"
-      className="py-3 mx-3 text-xs border-b border-gray-200"
+      className={`history-record-${nickname} px-3 text-xs ${props.nickname ? "bg-orange-100" : ""}`}
       onClick={() =>
         editHistoryRecord(
           historyRecord,
           dispatch,
-          Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)
+          Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
+          props.userId
         )
       }
     >
-      <div className="flex">
-        <div className="flex-1 font-bold" data-cy="history-record-date">
-          {Progress.isCurrent(historyRecord)
-            ? Progress.isFullyEmptySet(historyRecord)
-              ? "Next"
-              : "Ongoing"
-            : DateUtils.format(historyRecord.date)}
+      <div className="py-3 border-b border-gray-300">
+        {props.nickname && <div className="text-xs italic text-right">{props.nickname}</div>}
+        <div className="flex">
+          <div className="flex-1 font-bold" data-cy="history-record-date">
+            {Progress.isCurrent(historyRecord)
+              ? Progress.isFullyEmptySet(historyRecord)
+                ? "Next"
+                : "Ongoing"
+              : DateUtils.format(historyRecord.date)}
+          </div>
+          <div className="text-gray-600" data-cy="history-record-program">
+            {historyRecord.programName}, {historyRecord.dayName}
+          </div>
         </div>
-        <div className="text-gray-600" data-cy="history-record-program">
-          {historyRecord.programName}, {historyRecord.dayName}
-        </div>
+        {entries.map((group) => (
+          <div className="flex flex-row" data-cy="history-entry">
+            {group.map((entry, i) => {
+              let className: string;
+              if (group.length === 1 || i !== group.length - 1) {
+                className = "flex flex-row flex-1 mr-2";
+              } else {
+                className = "flex flex-row flex-1";
+              }
+              if (entry != null) {
+                const exercise = Exercise.get(entry.exercise, props.settings.exercises);
+                return (
+                  <div data-cy="history-entry-exercise" className={className}>
+                    <div data-cy="history-entry-exercise-name" style={{ flex: 2 }}>
+                      {exercise.name}
+                    </div>
+                    <div className="flex-1 text-right">
+                      <HistoryRecordSetsView
+                        sets={entry.sets}
+                        isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
+                      />
+                    </div>
+                    <div data-cy="history-entry-weight" className="w-8 ml-1 font-bold text-right">
+                      {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
+                    </div>
+                  </div>
+                );
+              } else {
+                return <div className={className}></div>;
+              }
+            })}
+          </div>
+        ))}
+        {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
+          <div class="text-gray-600 text-right mt-1">
+            <span>Time:</span>{" "}
+            <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>
+          </div>
+        )}
       </div>
-      {entries.map((group) => (
-        <div className="flex flex-row" data-cy="history-entry">
-          {group.map((entry, i) => {
-            let className: string;
-            if (group.length === 1 || i !== group.length - 1) {
-              className = "flex flex-row flex-1 mr-2";
-            } else {
-              className = "flex flex-row flex-1";
-            }
-            if (entry != null) {
-              const exercise = Exercise.get(entry.exercise, props.settings.exercises);
-              return (
-                <div data-cy="history-entry-exercise" className={className}>
-                  <div data-cy="history-entry-exercise-name" style={{ flex: 2 }}>
-                    {exercise.name}
-                  </div>
-                  <div className="flex-1 text-right">
-                    <HistoryRecordSetsView
-                      sets={entry.sets}
-                      isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
-                    />
-                  </div>
-                  <div data-cy="history-entry-weight" className="w-8 ml-1 font-bold text-right">
-                    {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
-                  </div>
-                </div>
-              );
-            } else {
-              return <div className={className}></div>;
-            }
-          })}
-        </div>
-      ))}
-      {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
-        <div class="text-gray-600 text-right mt-1">
-          <span>Time:</span>{" "}
-          <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>
-        </div>
-      )}
     </div>
   );
 }, ComparerUtils.noFns);
@@ -113,8 +119,8 @@ function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.El
   }
 }
 
-function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean): void {
+function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean, userId?: string): void {
   if (!isNext) {
-    dispatch({ type: "EditHistoryRecord", historyRecord });
+    dispatch({ type: "EditHistoryRecord", historyRecord, userId });
   }
 }

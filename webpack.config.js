@@ -177,6 +177,7 @@ module.exports = {
     proxy: {
       "/record": "http://local-api.liftosaur.com:3000/api",
       "/admin": "http://local-api.liftosaur.com:3000/",
+      "/acceptfriendinvitation": "http://local-api.liftosaur.com:3000/api",
       "/profileimage/*": {
         target: "http://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {

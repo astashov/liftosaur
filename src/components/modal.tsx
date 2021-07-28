@@ -4,7 +4,7 @@ import { useRef, useEffect } from "preact/hooks";
 
 interface IProps {
   children: ComponentChildren;
-  autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement>;
+  autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   isHidden?: boolean;
   isFullWidth?: boolean;
   shouldShowClose?: boolean;

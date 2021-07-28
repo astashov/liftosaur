@@ -8,13 +8,9 @@ Rollbar.configure({ payload: { environment: __ENV__ } });
 
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
-import * as IDB from "idb-keyval";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
-
-// Trying to fix a weird bug when iOS Safari doesn't resolve IDB.get promise
-// on first load by some reason
-// window.indexedDB.open("keyval-store");
+import { IndexedDBUtils } from "./utils/indexeddb";
 
 if ("serviceWorker" in navigator) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -30,7 +26,7 @@ const adminKey = url.searchParams.get("admin");
 
 async function initialize(loadedData: unknown): Promise<void> {
   (window as any).loadedData = loadedData;
-  const initialState = await getInitialState(client, userId, loadedData as string | undefined);
+  const initialState = await getInitialState(client, url, loadedData as string | undefined);
   if (adminKey) {
     initialState.adminKey = adminKey;
   }
@@ -38,7 +34,7 @@ async function initialize(loadedData: unknown): Promise<void> {
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
 }
 
-IDB.get(getIdbKey(userId, !!adminKey))
+IndexedDBUtils.get(getIdbKey(userId, !!adminKey))
   .then(initialize)
   .catch((e) => {
     console.error(e);
@@ -46,7 +42,9 @@ IDB.get(getIdbKey(userId, !!adminKey))
   });
 
 (window as any).storeData = (data: any) => {
-  IDB.set(getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch((e) => {
-    console.error(e);
-  });
+  IndexedDBUtils.set(getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch(
+    (e) => {
+      console.error(e);
+    }
+  );
 };

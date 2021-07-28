@@ -10,7 +10,7 @@ import { RestTimer } from "./restTimer";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { IconEdit } from "./iconEdit";
-import { IWebpushr } from "../models/state";
+import { IFriendUser, ILoading, IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { IconShare } from "./iconShare";
@@ -28,6 +28,8 @@ interface IProps {
   isChanged: boolean;
   userId?: string;
   dispatch: IDispatch;
+  loading: ILoading;
+  friend?: IFriendUser;
   timerSince?: number;
   timerMode?: IProgressMode;
   webpushr?: IWebpushr;
@@ -35,6 +37,7 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
+  const friend = props.friend;
   const timers = props.settings.timers;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
 
@@ -45,7 +48,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           title={
             <button
               onClick={() => {
-                if (!Progress.isCurrent(progress)) {
+                if (!friend && !Progress.isCurrent(progress)) {
                   props.dispatch({ type: "ChangeDate", date: progress.date });
                 }
               }}
@@ -62,27 +65,30 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 }
               }}
             >
-              {Progress.isCurrent(progress) ? "Back" : "Cancel"}
+              {friend || Progress.isCurrent(progress) ? "Back" : "Cancel"}
             </button>
           }
           right={
-            <div className="px-3">
-              <button
-                onClick={() => {
-                  if (confirm("Are you sure?")) {
-                    props.dispatch({ type: "DeleteProgress" });
-                  }
-                }}
-              >
-                {Progress.isCurrent(progress) ? "Cancel" : "Delete"}
-              </button>
-            </div>
+            !friend ? (
+              <div className="px-3">
+                <button
+                  onClick={() => {
+                    if (confirm("Are you sure?")) {
+                      props.dispatch({ type: "DeleteProgress" });
+                    }
+                  }}
+                >
+                  {Progress.isCurrent(progress) ? "Cancel" : "Delete"}
+                </button>
+              </div>
+            ) : undefined
           }
         />
         <CardsView
           history={props.history}
           settings={props.settings}
           program={props.program}
+          friend={props.friend}
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
@@ -104,39 +110,42 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         <FooterView
           dispatch={props.dispatch}
+          loading={props.loading}
           buttons={
-            <Fragment>
-              <button
-                className="ls-footer-muscles p-4"
-                data-cy="footer-muscles"
-                aria-label="Muscles"
-                onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
-              >
-                <IconMuscles />
-              </button>
-              {!Progress.isCurrent(props.progress) ? (
+            !friend ? (
+              <Fragment>
                 <button
-                  className="ls-footer-share p-4"
-                  onClick={() => {
-                    if (props.userId == null) {
-                      alert("You should be logged in to share workouts.");
-                    } else {
-                      setIsShareShown(true);
-                    }
-                  }}
+                  className="ls-footer-muscles p-4"
+                  data-cy="footer-muscles"
+                  aria-label="Muscles"
+                  onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
                 >
-                  <IconShare />
+                  <IconMuscles />
                 </button>
-              ) : undefined}
-              {Progress.isCurrent(props.progress) ? (
-                <button
-                  className="ls-footer-edit-day p-4"
-                  onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
-                >
-                  <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
-                </button>
-              ) : undefined}
-            </Fragment>
+                {!Progress.isCurrent(props.progress) ? (
+                  <button
+                    className="ls-footer-share p-4"
+                    onClick={() => {
+                      if (props.userId == null) {
+                        alert("You should be logged in to share workouts.");
+                      } else {
+                        setIsShareShown(true);
+                      }
+                    }}
+                  >
+                    <IconShare />
+                  </button>
+                ) : undefined}
+                {Progress.isCurrent(props.progress) ? (
+                  <button
+                    className="ls-footer-edit-day p-4"
+                    onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
+                  >
+                    <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
+                  </button>
+                ) : undefined}
+              </Fragment>
+            ) : undefined
           }
         />
         <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
@@ -160,7 +169,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
           setIndex={progress.ui?.editSetModal?.setIndex}
         />
-        {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (
+        {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
           <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
         )}
       </section>

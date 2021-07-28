@@ -12,12 +12,14 @@ import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
 import { useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IUnit } from "../types";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   user?: IUser;
   currentProgramName?: string;
   settings: ISettings;
+  loading: ILoading;
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -40,6 +42,34 @@ export function ScreenSettings(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
+        {props.user && (
+          <MenuItem
+            shouldShowRightArrow={true}
+            name="Friends"
+            onClick={() => {
+              props.dispatch({ type: "PushScreen", screen: "friends" });
+            }}
+          />
+        )}
+        {props.user && (
+          <MenuItemEditable
+            type="select"
+            name="Show friends history?"
+            value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
+            values={[
+              ["true", "Yes"],
+              ["false", "No"],
+            ]}
+            onChange={(newValue) => {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>()
+                  .p("shouldShowFriendsHistory")
+                  .record(newValue === "true"),
+              });
+            }}
+          />
+        )}
         <MenuItem
           shouldShowRightArrow={true}
           name="Choose Program"
@@ -167,7 +197,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           Documentation
         </InternalLink>
       </section>
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
   );
 }

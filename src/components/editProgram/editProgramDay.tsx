@@ -14,6 +14,7 @@ import { SemiButton } from "../semiButton";
 import { IconMuscles } from "../iconMuscles";
 import { Thunk } from "../../ducks/thunks";
 import { ISettings, IProgram, IProgramDay } from "../../types";
+import { ILoading } from "../../models/state";
 
 interface IProps {
   isProgress: boolean;
@@ -21,6 +22,7 @@ interface IProps {
   settings: ISettings;
   editProgram: IProgram;
   editDay: IProgramDay;
+  loading: ILoading;
   dispatch: IDispatch;
 }
 
@@ -121,6 +123,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
       </section>
 
       <FooterView
+        loading={props.loading}
         buttons={
           <button
             data-cy="footer-muscles"

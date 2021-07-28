@@ -92,4 +92,13 @@ export const migrations = {
     storage.settings.exercises = storage.settings.exercises || {};
     return storage;
   },
+  "20210724165526_add_settings_show_friends_history": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.shouldShowFriendsHistory =
+      storage.settings.shouldShowFriendsHistory == null ? true : storage.settings.shouldShowFriendsHistory;
+    return storage;
+  },
 };

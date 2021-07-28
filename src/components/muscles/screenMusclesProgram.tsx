@@ -3,11 +3,13 @@ import { IDispatch } from "../../ducks/types";
 import { Muscle } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
+import { ILoading } from "../../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   program: IProgram;
+  loading: ILoading;
 }
 
 export function ScreenMusclesProgram(props: IProps): JSX.Element {
@@ -15,6 +17,7 @@ export function ScreenMusclesProgram(props: IProps): JSX.Element {
   return (
     <ScreenMuscles
       dispatch={props.dispatch}
+      loading={props.loading}
       settings={props.settings}
       points={points}
       title={props.program.name}

@@ -29,10 +29,17 @@ Cypress.Commands.add(
   () =>
     new Cypress.Promise(async (resolve) => {
       const req = indexedDB.deleteDatabase("keyval-store");
-      console.log("Clearing liftosaur");
-      req.onsuccess = function () {
-        console.log("DONE");
+      req.addEventListener("success", () => {
+        console.log("Cleared indexedDb");
         resolve();
-      };
+      });
+      req.addEventListener("error", (event) => {
+        console.log("Error deleting database.");
+        console.log(event);
+      });
+      req.addEventListener("blocked", (event) => {
+        console.log("Blocked deleting database.");
+        console.log(event);
+      });
     })
 );

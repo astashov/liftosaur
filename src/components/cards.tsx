@@ -6,11 +6,13 @@ import { Button } from "./button";
 import { Timer } from "./timer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
+import { IFriendUser } from "../models/state";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
   program?: IProgram;
+  friend?: IFriendUser;
   isTimerShown: boolean;
   settings: ISettings;
   dispatch: IDispatch;
@@ -20,9 +22,15 @@ interface ICardsViewProps {
 
 export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
+    const friend = props.friend;
     return (
       <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
-        <Timer startTime={props.progress.startTime} />
+        <div className="flex">
+          <div className="px-3 py-1 italic">{friend?.nickname}</div>
+          <div className="flex-1">
+            {!friend && Progress.isCurrent(props.progress) && <Timer startTime={props.progress.startTime} />}
+          </div>
+        </div>
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;
           if (props.program) {
@@ -35,6 +43,7 @@ export const CardsView = memo(
               history={props.history}
               showHelp={true}
               isCurrent={Progress.isCurrent(props.progress)}
+              friend={friend}
               settings={props.settings}
               index={index}
               entry={entry}
@@ -46,22 +55,24 @@ export const CardsView = memo(
             />
           );
         })}
-        <div className="py-3 text-center">
-          <Button
-            kind="green"
-            className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
-            onClick={() => {
-              if (
-                (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
-                confirm("Are you sure?")
-              ) {
-                props.dispatch({ type: "FinishProgramDayAction" });
-              }
-            }}
-          >
-            {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
-          </Button>
-        </div>
+        {!friend && (
+          <div className="py-3 text-center">
+            <Button
+              kind="green"
+              className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+              onClick={() => {
+                if (
+                  (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
+                  confirm("Are you sure?")
+                ) {
+                  props.dispatch({ type: "FinishProgramDayAction" });
+                }
+              }}
+            >
+              {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
+            </Button>
+          </div>
+        )}
       </section>
     );
   }

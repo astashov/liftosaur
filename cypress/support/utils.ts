@@ -11,3 +11,10 @@ export function clearCodeMirror(dataCy: string): void {
 export function typeCodeMirror(dataCy: string, text: string): void {
   g(dataCy).find("textarea").type(text, { force: true });
 }
+
+export function clearAll(): void {
+  cy.clearCookies();
+  cy.clearLocalStorage();
+  cy.clearIndexedDb();
+  cy.viewport("iphone-6");
+}

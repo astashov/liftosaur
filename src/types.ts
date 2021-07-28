@@ -639,6 +639,7 @@ export const TSettings = t.intersection(
       statsEnabled: TStatsEnabled,
       units: TUnit,
       lengthUnits: TLengthUnit,
+      shouldShowFriendsHistory: t.boolean,
     }),
     t.partial({
       isPublicProfile: t.boolean,

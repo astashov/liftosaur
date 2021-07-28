@@ -8,12 +8,11 @@ import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "lens-shmens";
-import * as IDB from "idb-keyval";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { ILocalStorage, IState } from "../models/state";
+import { ILocalStorage, INotification, IState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   TStorage,
@@ -27,6 +26,7 @@ import {
   IProgram,
 } from "../types";
 import { Settings } from "../models/settings";
+import { IndexedDBUtils } from "../utils/indexeddb";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
@@ -35,7 +35,10 @@ export function getIdbKey(userId?: string, isAdmin?: boolean): string {
   return userId != null && isAdmin ? `liftosaur_${userId}` : "liftosaur";
 }
 
-export async function getInitialState(client: Window["fetch"], userId?: string, rawStorage?: string): Promise<IState> {
+export async function getInitialState(client: Window["fetch"], url: URL, rawStorage?: string): Promise<IState> {
+  const userId = url.searchParams.get("userid") || undefined;
+  const messageerror = url.searchParams.get("messageerror") || undefined;
+  const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   let storage: ILocalStorage | undefined;
   if (rawStorage != null) {
     try {
@@ -44,6 +47,14 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
       storage = undefined;
     }
   }
+  const notification: INotification | undefined =
+    messageerror || messagesuccess
+      ? {
+          type: messageerror ? ("error" as const) : ("success" as const),
+          content: messageerror || messagesuccess || "",
+        }
+      : undefined;
+
   if (storage != null && storage.storage != null) {
     const finalStorage = await runMigrations(client, storage.storage);
     validateStorage(finalStorage, TStorage, "storage");
@@ -51,10 +62,13 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
       storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
 
     const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["programs"];
-
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
+      allFriends: { friends: {}, sortedIds: [], isLoading: false },
+      friendsHistory: {},
+      notification,
+      loading: { items: {} },
       programs: [],
       currentHistoryRecord: 0,
       screenStack,
@@ -65,6 +79,10 @@ export async function getInitialState(client: Window["fetch"], userId?: string, 
     screenStack: ["programs"],
     progress: {},
     programs: [],
+    loading: { items: {} },
+    allFriends: { friends: {}, sortedIds: [], isLoading: false },
+    friendsHistory: {},
+    notification,
     storage: {
       id: 0,
       currentProgramId: undefined,
@@ -191,6 +209,7 @@ export type IStoreWebpushrSidAction = {
 
 export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
+  userId?: string;
   historyRecord: IHistoryRecord;
 };
 
@@ -271,7 +290,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   timerId = window.setTimeout(() => {
     clearTimeout(timerId);
     timerId = undefined;
-    IDB.set(getIdbKey(newState.user?.id, !!newState.adminKey), JSON.stringify(localStorage)).catch((e) => {
+    IndexedDBUtils.set(getIdbKey(newState.user?.id, !!newState.adminKey), JSON.stringify(localStorage)).catch((e) => {
       console.error(e);
     });
   }, 100);
@@ -341,6 +360,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       currentHistoryRecord: action.historyRecord.id,
+      currentHistoryRecordUserId: action.userId,
       screenStack: Screen.push(state.screenStack, "progress"),
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };
@@ -546,6 +566,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           bars: newStorage.settings.bars,
           units: newStorage.settings.units,
           isPublicProfile: newStorage.settings.isPublicProfile,
+          shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
           nickname: newStorage.settings.nickname,
         },
         tempUserId: newStorage.tempUserId || UidFactory.generateUid(10),

@@ -12,6 +12,7 @@ import { useState } from "preact/hooks";
 import { GroupHeader } from "../groupHeader";
 import { Muscle, IScreenMuscle, IPoints } from "../../models/muscle";
 import { ISettings } from "../../types";
+import { ILoading } from "../../models/state";
 
 interface IProps {
   dispatch: IDispatch;
@@ -20,6 +21,7 @@ interface IProps {
   headerHelp: JSX.Element;
   points: IPoints;
   settings: ISettings;
+  loading: ILoading;
 }
 
 export function ScreenMuscles(props: IProps): JSX.Element {
@@ -153,7 +155,7 @@ export function ScreenMuscles(props: IProps): JSX.Element {
         </section>
       </section>
 
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
   );
 }

@@ -16,6 +16,7 @@ export class DynamoUtil {
   public async query<T>(args: {
     tableName: string;
     expression: string;
+    filterExpression?: string;
     indexName?: string;
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
@@ -30,6 +31,7 @@ export class DynamoUtil {
           ExclusiveStartKey: key,
           ScanIndexForward: args.scanIndexForward,
           KeyConditionExpression: args.expression,
+          FilterExpression: args.filterExpression,
           ExpressionAttributeNames: args.attrs,
           ExpressionAttributeValues: args.values,
         });
@@ -54,11 +56,20 @@ export class DynamoUtil {
     }
   }
 
-  public async scan<T>(args: { tableName: string }): Promise<T[]> {
+  public async scan<T>(args: {
+    tableName: string;
+    filterExpression?: string;
+    values?: Partial<Record<string, string>>;
+  }): Promise<T[]> {
     const startTime = Date.now();
     try {
       const result = await query<T>((key) => {
-        return this.dynamo.scan({ TableName: args.tableName, ExclusiveStartKey: key });
+        return this.dynamo.scan({
+          TableName: args.tableName,
+          ExclusiveStartKey: key,
+          FilterExpression: args.filterExpression,
+          ExpressionAttributeValues: args.values,
+        });
       });
       this.log.log(`Dynamo scan: ${args.tableName} - `, args.tableName, ` - ${Date.now() - startTime}ms`);
       return result;
@@ -79,7 +90,11 @@ export class DynamoUtil {
       return result;
     } catch (e) {
       this.log.log(`FAILED Dynamo get: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
-      throw e;
+      if ("code" in e && e.code === "ResourceNotFoundException") {
+        return undefined;
+      } else {
+        throw e;
+      }
     }
   }
 
@@ -127,6 +142,22 @@ export class DynamoUtil {
       args.values,
       ` - ${Date.now() - startTime}ms`
     );
+  }
+
+  public async remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void> {
+    const startTime = Date.now();
+    try {
+      await this.dynamo
+        .delete({
+          TableName: args.tableName,
+          Key: args.key,
+        })
+        .promise();
+    } catch (e) {
+      this.log.log(`FAILED Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
+      throw e;
+    }
+    this.log.log(`Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
   }
 
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
