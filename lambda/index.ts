@@ -17,12 +17,11 @@ import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
-import { DynamoUtil } from "./utils/dynamo";
-import { IDI } from "./utils/di";
+import { buildDi, IDI } from "./utils/di";
 import { LogUtil } from "./utils/log";
-import { SecretsUtil } from "./utils/secrets";
-import { S3Util } from "./utils/s3";
 import { runMigrations } from "../src/migrations/runner";
+import { FriendDao } from "./dao/friendDao";
+import { IEither } from "../src/utils/types";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -65,10 +64,35 @@ function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
       ...headers,
       "access-control-allow-origin": `${url.protocol}//${url.host}`,
       "access-control-allow-credentials": "true",
+      "access-control-allow-headers": "content-type",
+      "access-control-allow-methods": "OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH",
       "access-control-expose-headers": "cookie, set-cookie",
     };
   }
   return headers;
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+function json(status: number, event: APIGatewayProxyEvent, body: string | object): APIGatewayProxyResult {
+  return {
+    statusCode: status,
+    body: typeof body === "string" ? body : JSON.stringify(body),
+    headers: getHeaders(event),
+  };
+}
+
+function getHost(event: APIGatewayProxyEvent): string {
+  return event.headers.Host || event.headers.host || "liftosaur.com";
+}
+
+function getReferer(event: APIGatewayProxyEvent): string {
+  return (
+    event.headers.origin ||
+    event.headers.Origin ||
+    event.headers.referer ||
+    event.headers.Referer ||
+    "https://liftosaur.com"
+  );
 }
 
 async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<string | undefined> {
@@ -120,7 +144,7 @@ const timerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof timerEn
   });
 
   const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
-  return { statusCode: response.status, body, headers: getHeaders(event) };
+  return json(response.status, event, body);
 };
 
 const getStorageEndpoint = Endpoint.build("/api/storage", { key: "string?", userid: "string?" });
@@ -139,14 +163,10 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (userId != null) {
     const user = await new UserDao(di).getById(userId);
     if (user != null) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ storage: user.storage, email: user.email, user_id: user.id }),
-        headers: getHeaders(event),
-      };
+      return json(200, event, { storage: user.storage, email: user.email, user_id: user.id });
     }
   }
-  return { statusCode: 200, body: "{}", headers: getHeaders(event) };
+  return json(200, event, {});
 };
 
 const saveStorageEndpoint = Endpoint.build("/api/storage");
@@ -159,11 +179,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
     const storage: IStorage = getBodyJson(event).storage;
     await new UserDao(di).saveStorage(user, storage);
   }
-  return {
-    statusCode: 200,
-    body: "{}",
-    headers: getHeaders(event),
-  };
+  return json(200, event, {});
 };
 
 const googleLoginEndpoint = Endpoint.build("/api/signin/google");
@@ -171,19 +187,23 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   payload,
 }) => {
   const { event, di } = payload;
-  const token = getBodyJson(event).token;
-  const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
-  const googleApiResponse = await fetch(url);
-  const openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError = await googleApiResponse.json();
-  const env = process.env.IS_DEV === "true" ? "dev" : "prod";
+  const env = Utils.getEnv();
+  const { token, forceuseremail } = getBodyJson(event);
+  let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
+  if (env === "dev" && forceuseremail != null) {
+    openIdJson = {
+      email: forceuseremail,
+      sub: `${forceuseremail}googleId`,
+    };
+  } else {
+    const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
+    const googleApiResponse = await fetch(url);
+    openIdJson = await googleApiResponse.json();
+  }
   const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify(openIdJson),
-      headers: getHeaders(event),
-    };
+    return json(403, event, openIdJson);
   }
 
   await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);
@@ -239,7 +259,7 @@ const getProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 }) => {
   const { event, di } = payload;
   const programs = await new ProgramDao(di).getAll();
-  return { statusCode: 200, body: JSON.stringify({ programs }), headers: getHeaders(event) };
+  return json(200, event, { programs });
 };
 
 const getHistoryRecordEndpoint = Endpoint.build("/api/record", { user: "string?", id: "number?" });
@@ -274,11 +294,7 @@ const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   } else {
     error.message = "Missing required params - 'user' or 'id'";
   }
-  return {
-    statusCode: 400,
-    body: JSON.stringify({ error }),
-    headers: getHeaders(event),
-  };
+  return json(400, event, { error });
 };
 
 const getHistoryRecordImageEndpoint = Endpoint.build("/api/recordimage", {
@@ -328,11 +344,7 @@ const getHistoryRecordImageHandler: RouteHandler<
   } else {
     error.message = "Can't find user";
   }
-  return {
-    statusCode: 400,
-    body: JSON.stringify({ error }),
-    headers: getHeaders(event),
-  };
+  return json(400, event, { error });
 };
 
 const publishProgramEndpoint = Endpoint.build("/api/publishprogram", { key: "string" });
@@ -345,20 +357,12 @@ const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     const program = getBodyJson(event).program;
     if (program != null) {
       await new ProgramDao(di).save(program);
-      return { statusCode: 200, body: JSON.stringify({ data: "ok" }), headers: getHeaders(event) };
+      return json(200, event, { data: "ok" });
     } else {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "missing program in payload" }),
-        headers: getHeaders(event),
-      };
+      return json(400, event, { error: "missing program in payload" });
     }
   } else {
-    return {
-      statusCode: 401,
-      body: "{}",
-      headers: getHeaders(event),
-    };
+    return json(401, event, {});
   }
 };
 
@@ -373,7 +377,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
   } else {
     data = "error";
   }
-  return { statusCode: 200, body: JSON.stringify({ data }), headers: getHeaders(event) };
+  return json(200, event, { data });
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -398,7 +402,7 @@ const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   } else {
     error.message = "Can't find user";
   }
-  return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
+  return json(400, event, { error });
 };
 
 const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });
@@ -443,7 +447,7 @@ const getProfileImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   } else {
     error.message = "Can't find user";
   }
-  return { statusCode: 400, body: JSON.stringify({ error }), headers: getHeaders(event) };
+  return json(400, event, { error });
 };
 
 const getAdminUsersEndpoint = Endpoint.build("/admin/users", { key: "string" });
@@ -480,11 +484,7 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
       headers: { "content-type": "text/html" },
     };
   } else {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ data: "Unauthorized" }),
-      headers: getHeaders(event),
-    };
+    return json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -513,11 +513,131 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
       headers: { "content-type": "text/html" },
     };
   } else {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ data: "Unauthorized" }),
-      headers: getHeaders(event),
-    };
+    return json(401, event, { data: "Unauthorized" });
+  }
+};
+
+const getFriendsEndpoint = Endpoint.build("/api/friends", { username: "string" });
+const getFriendsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFriendsEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const friends = await new FriendDao(di).getAllByUsernameOrId(currentUserId, params.username);
+    return json(200, event, { friends });
+  } else {
+    return json(401, event, {});
+  }
+};
+
+const inviteFriendEndpoint = Endpoint.build("/api/invite/:friendId");
+const inviteFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof inviteFriendEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  console.log(event.body);
+  const message = JSON.parse(event.body || "{}").message;
+  const host = getReferer(event);
+  const userDao = new UserDao(payload.di);
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const [currentUser, friend] = await Promise.all([
+      userDao.getLimitedById(currentUserId),
+      userDao.getLimitedById(params.friendId),
+    ]);
+    if (currentUser != null && friend != null) {
+      const friendDao = new FriendDao(payload.di);
+      const result = await friendDao.invite(currentUser, friend, host, message);
+      if (result.success) {
+        return json(200, event, {});
+      } else {
+        return json(400, event, { error: result.error });
+      }
+    }
+  }
+  return json(401, event, {});
+};
+
+export const acceptFriendInvitationEndpoint = Endpoint.build("/api/acceptfriendinvitation/:friendId");
+const acceptFriendInvitationHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof acceptFriendInvitationEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event } = payload;
+  const friendDao = new FriendDao(payload.di);
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const result = await friendDao.acceptInvitation(currentUserId, params.friendId);
+    if (result.success) {
+      return json(200, event, {});
+    } else {
+      return json(400, event, { error: result.error });
+    }
+  } else {
+    return json(401, event, {});
+  }
+};
+
+export const removeFriendEndpoint = Endpoint.build("/api/removefriend/:friendId");
+const removeFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof removeFriendEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  const friendDao = new FriendDao(payload.di);
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const result = await friendDao.removeFriend(currentUserId, params.friendId);
+    if (result.success) {
+      return json(200, event, {});
+    } else {
+      return json(400, event, { error: result.error });
+    }
+  } else {
+    return json(401, event, {});
+  }
+};
+
+export const acceptFriendInvitationByHashEndpoint = Endpoint.build("/api/acceptfriendinvitation", { hash: "string" });
+const acceptFriendInvitationByHashHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof acceptFriendInvitationByHashEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event } = payload;
+  const host = getHost(event);
+  const friendDao = new FriendDao(payload.di);
+  const result = await friendDao.acceptInvitationByHash(params.hash);
+  const redirectUrl = new URL(`https://${host}`);
+  if (result.success) {
+    redirectUrl.searchParams.set("messagesuccess", result.data);
+  } else {
+    redirectUrl.searchParams.set("messageerror", result.error);
+  }
+  return { statusCode: 303, body: "Redirecting...", headers: { Location: redirectUrl.toString() } };
+};
+
+export const getFriendsHistoryEndpoint = Endpoint.build("/api/friendshistory", {
+  startdate: "string",
+  enddate: "string?",
+});
+const getFriendsHistoryHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getFriendsHistoryEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const friendDao = new FriendDao(payload.di);
+    const friends = await friendDao.getFriendsWithHistories(currentUserId, params.startdate, params.enddate);
+    return json(200, event, { friends: CollectionUtils.groupByKeyUniq(friends, "id") });
+  } else {
+    return json(401, event, {});
   }
 };
 
@@ -581,15 +701,13 @@ const rollbar = new Rollbar({
 
 export const handler = rollbar.lambdaHandler(
   async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
+    if (event.httpMethod === "OPTIONS") {
+      return { statusCode: 200, body: "", headers: getHeaders(event) };
+    }
     const log = new LogUtil();
     const time = Date.now();
     log.log("--------> Starting request", event.httpMethod, event.path);
-    const di: IDI = {
-      dynamo: new DynamoUtil(log),
-      secrets: new SecretsUtil(log),
-      s3: new S3Util(log),
-      log: log,
-    };
+    const di = buildDi(log);
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .post(timerEndpoint, timerHandler)
@@ -605,21 +723,35 @@ export const handler = rollbar.lambdaHandler(
       .get(getProfileEndpoint, getProfileHandler)
       .get(getProfileImageEndpoint, getProfileImageHandler)
       .get(getAdminUsersEndpoint, getAdminUsersHandler)
-      .get(getAdminLogsEndpoint, getAdminLogsHandler);
+      .get(getAdminLogsEndpoint, getAdminLogsHandler)
+      .get(getFriendsEndpoint, getFriendsHandler)
+      .post(inviteFriendEndpoint, inviteFriendHandler)
+      .get(acceptFriendInvitationByHashEndpoint, acceptFriendInvitationByHashHandler)
+      .post(acceptFriendInvitationEndpoint, acceptFriendInvitationHandler)
+      .delete(removeFriendEndpoint, removeFriendHandler)
+      .get(getFriendsHistoryEndpoint, getFriendsHistoryHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
       url.searchParams.set(key, value || "");
     }
-    const resp = await r.route(event.httpMethod as Method, url.pathname + url.search);
+    let resp: IEither<APIGatewayProxyResult, string>;
+    let errorStatus = 404;
+    try {
+      resp = await r.route(event.httpMethod as Method, url.pathname + url.search);
+    } catch (e) {
+      console.error(e);
+      errorStatus = 500;
+      resp = { success: false, error: "Internal Server Error" };
+    }
     log.log(
       "<-------- Responding for",
       event.httpMethod,
       event.path,
-      resp.success ? resp.data.statusCode : 404,
+      resp.success ? resp.data.statusCode : errorStatus,
       `${Date.now() - time}ms`
     );
-    return resp.success ? resp.data : { statusCode: 404, headers: getHeaders(event), body: "Not Found" };
+    return resp.success ? resp.data : { statusCode: errorStatus, headers: getHeaders(event), body: resp.error };
   }
 ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;

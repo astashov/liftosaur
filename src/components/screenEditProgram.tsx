@@ -6,6 +6,7 @@ import { IScreen } from "../models/screen";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { dequal } from "dequal/lite";
 import { IProgram, IProgramExercise, ISettings } from "../types";
+import { ILoading } from "../models/state";
 
 interface IProps {
   editProgram: IProgram;
@@ -16,12 +17,14 @@ interface IProps {
   dayIndex: number;
   settings: ISettings;
   adminKey?: string;
+  loading: ILoading;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
   if (props.screen === "editProgram") {
     return (
       <EditProgramDaysList
+        loading={props.loading}
         dispatch={props.dispatch}
         programIndex={props.programIndex}
         editProgram={props.editProgram}
@@ -32,6 +35,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     if (props.dayIndex !== -1) {
       return (
         <EditProgramDay
+          loading={props.loading}
           settings={props.settings}
           dayIndex={props.dayIndex}
           isProgress={false}
@@ -52,6 +56,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     const isChanged = exercise == null || !dequal(editExercise, exercise);
     return (
       <EditProgramExercise
+        loading={props.loading}
         programIndex={props.programIndex}
         days={props.editProgram.days}
         programName={props.editProgram.name}

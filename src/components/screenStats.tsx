@@ -13,11 +13,13 @@ import { ModalStats } from "./modalStats";
 import { DateUtils } from "../utils/date";
 import { EditStats } from "../models/editStats";
 import { StringUtils } from "../utils/string";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   stats: IStats;
+  loading: ILoading;
 }
 
 export function ScreenStats(props: IProps): JSX.Element {
@@ -255,7 +257,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           </Button>
         </div>
       </section>
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
       {isModalVisible && (
         <ModalStats settings={props.settings} dispatch={props.dispatch} onClose={() => setIsModalVisible(false)} />
       )}

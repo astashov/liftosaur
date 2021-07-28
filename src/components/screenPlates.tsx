@@ -13,10 +13,12 @@ import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
 import { IPlate, IBars, IUnit, ISettings } from "../types";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   plates: IPlate[];
+  loading: ILoading;
   bars: IBars;
   units: IUnit;
 }
@@ -89,7 +91,7 @@ export function ScreenPlates(props: IProps): JSX.Element {
         </div>
       </section>
 
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
       <ModalPlates
         isHidden={!shouldShowModal}
         units={props.units}

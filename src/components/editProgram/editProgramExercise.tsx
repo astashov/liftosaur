@@ -9,6 +9,7 @@ import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { FooterView } from "../footer";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
 import { ISettings, IProgramDay, IProgramExercise } from "../../types";
+import { ILoading } from "../../models/state";
 
 interface IProps {
   settings: ISettings;
@@ -17,6 +18,7 @@ interface IProps {
   programExercise: IProgramExercise;
   isChanged: boolean;
   programName: string;
+  loading: ILoading;
   dispatch: IDispatch;
 }
 
@@ -54,7 +56,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
         </div>
         {type === "Simple" ? <EditProgramExerciseSimple {...props} /> : <EditProgramExerciseAdvanced {...props} />}
       </section>
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
   );
 }

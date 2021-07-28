@@ -12,7 +12,7 @@ import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
 import { IconEdit } from "../iconEdit";
-import { IState } from "../../models/state";
+import { ILoading, IState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
@@ -25,6 +25,7 @@ interface IProps {
   programIndex: number;
   dispatch: IDispatch;
   adminKey?: string;
+  loading: ILoading;
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
@@ -213,6 +214,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       </section>
 
       <FooterView
+        loading={props.loading}
         buttons={
           <button
             className="ls-footer-muscles p-4"

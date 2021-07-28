@@ -3,11 +3,24 @@ import { IconCog } from "./iconCog";
 import { IDispatch } from "../ducks/types";
 import { IconGraphs } from "./iconGraphs";
 import { Thunk } from "../ducks/thunks";
+import { ILoading } from "../models/state";
+import { IconSpinner } from "./iconSpinner";
 
-export function FooterView(props: { dispatch: IDispatch; buttons?: JSX.Element }): JSX.Element {
+interface IFooterProps {
+  dispatch: IDispatch;
+  loading: ILoading;
+  buttons?: JSX.Element;
+}
+
+export function FooterView(props: IFooterProps): JSX.Element {
+  const loadingItems = props.loading.items;
+  const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]);
   return (
     <div className="fixed bottom-0 left-0 z-10 flex items-center w-full pb-2 text-center text-white bg-blue-700">
-      <div className="px-3 text-sm text-left text-blue-500">{__COMMIT_HASH__}</div>
+      <div className="px-4">
+        {Object.keys(loadingKeys).length > 0 ? <IconSpinner width={20} height={20} /> : null}
+        {props.loading.error && <span className="px-1 text-sm text-left text-red-300">{props.loading.error}</span>}
+      </div>
       <div className="flex-1 text-right">
         {props.buttons}
         <button

@@ -27,6 +27,9 @@ import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
 import { LogUtils } from "../utils/log";
 import { ScreenStats } from "./screenStats";
+import { ScreenFriends } from "./screenFriends";
+import { ScreenFriendsAdd } from "./screenFriendsAdd";
+import { Notification } from "./notification";
 
 interface IProps {
   client: Window["fetch"];
@@ -70,6 +73,9 @@ export function AppView(props: IProps): JSX.Element | null {
       });
     };
     dispatch(Thunk.fetchStorage());
+    const lastVisibleHistoryRecordIndex = Math.min(20, state.storage.history.length - 1);
+    const date = state.storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
+    dispatch(Thunk.fetchFriendsHistory(date));
     dispatch(Thunk.fetchPrograms());
     if (state.storage.currentProgramId == null) {
       setShouldShowOnboarding(true);
@@ -106,6 +112,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <Fragment>
         <ChooseProgramView
+          loading={state.loading}
           settings={state.storage.settings}
           screenStack={state.screenStack}
           dispatch={dispatch}
@@ -120,8 +127,10 @@ export function AppView(props: IProps): JSX.Element | null {
     if (program != null) {
       content = (
         <ProgramHistoryView
+          loading={state.loading}
           program={program}
           progress={state.progress?.[0]}
+          friendsHistory={state.friendsHistory}
           stats={state.storage.stats}
           settings={state.storage.settings}
           history={state.storage.history}
@@ -133,40 +142,70 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   } else if (Screen.current(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
-    const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
-    const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
-    content = (
-      <ProgramDayView
-        history={state.storage.history}
-        userId={state.user?.id}
-        progress={progress}
-        isChanged={isChanged}
-        program={Progress.isCurrent(progress) ? program : undefined}
-        dispatch={dispatch}
-        webpushr={state.webpushr}
-        timerSince={progress.timerSince}
-        timerMode={progress.timerMode}
-        settings={state.storage.settings}
-      />
-    );
+    if (state.currentHistoryRecordUserId && state.friendsHistory[state.currentHistoryRecordUserId]) {
+      const friend = state.friendsHistory[state.currentHistoryRecordUserId]!;
+      content = (
+        <ProgramDayView
+          loading={state.loading}
+          history={[]}
+          friend={friend}
+          progress={progress}
+          isChanged={false}
+          program={undefined}
+          dispatch={dispatch}
+          settings={friend.storage.settings}
+        />
+      );
+    } else {
+      const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
+      const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
+      content = (
+        <ProgramDayView
+          loading={state.loading}
+          history={state.storage.history}
+          userId={state.user?.id}
+          progress={progress}
+          isChanged={isChanged}
+          program={Progress.isCurrent(progress) ? program : undefined}
+          dispatch={dispatch}
+          webpushr={state.webpushr}
+          timerSince={progress.timerSince}
+          timerMode={progress.timerMode}
+          settings={state.storage.settings}
+        />
+      );
+    }
   } else if (Screen.current(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
+        loading={state.loading}
         dispatch={dispatch}
         user={state.user}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
         settings={state.storage.settings}
       />
     );
+  } else if (Screen.current(state.screenStack) === "friends") {
+    content = <ScreenFriends loading={state.loading} allFriends={state.allFriends} dispatch={dispatch} />;
+  } else if (Screen.current(state.screenStack) === "friendsAdd") {
+    content = <ScreenFriendsAdd loading={state.loading} allFriends={state.allFriends} dispatch={dispatch} />;
   } else if (Screen.current(state.screenStack) === "stats") {
-    content = <ScreenStats dispatch={dispatch} settings={state.storage.settings} stats={state.storage.stats} />;
+    content = (
+      <ScreenStats
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        stats={state.storage.stats}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "account") {
-    content = <ScreenAccount dispatch={dispatch} email={state.user?.email} />;
+    content = <ScreenAccount loading={state.loading} dispatch={dispatch} email={state.user?.email} />;
   } else if (Screen.current(state.screenStack) === "timers") {
-    content = <ScreenTimers dispatch={dispatch} timers={state.storage.settings.timers} />;
+    content = <ScreenTimers loading={state.loading} dispatch={dispatch} timers={state.storage.settings.timers} />;
   } else if (Screen.current(state.screenStack) === "plates") {
     content = (
       <ScreenPlates
+        loading={state.loading}
         dispatch={dispatch}
         bars={Settings.bars(state.storage.settings)}
         plates={Settings.plates(state.storage.settings)}
@@ -176,6 +215,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs
+        loading={state.loading}
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}
@@ -188,6 +228,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (editProgram != null) {
       content = (
         <ScreenEditProgram
+          loading={state.loading}
           adminKey={state.adminKey}
           settings={state.storage.settings}
           editExercise={state.editExercise}
@@ -211,11 +252,24 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "musclesProgram") {
-    return <ScreenMusclesProgram dispatch={dispatch} program={program!} settings={state.storage.settings} />;
+    return (
+      <ScreenMusclesProgram
+        loading={state.loading}
+        dispatch={dispatch}
+        program={program!}
+        settings={state.storage.settings}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "musclesDay") {
     const day = program!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
     return (
-      <ScreenMusclesDay dispatch={dispatch} program={program!} programDay={day} settings={state.storage.settings} />
+      <ScreenMusclesDay
+        loading={state.loading}
+        dispatch={dispatch}
+        program={program!}
+        programDay={day}
+        settings={state.storage.settings}
+      />
     );
   } else {
     return null;
@@ -224,6 +278,7 @@ export function AppView(props: IProps): JSX.Element | null {
   return (
     <Fragment>
       {content}
+      <Notification dispatch={dispatch} notification={state.notification} />
       <HelpOverlay dispatch={dispatch} seenIds={state.storage.helps} />
     </Fragment>
   );

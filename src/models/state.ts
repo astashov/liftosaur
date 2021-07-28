@@ -11,14 +11,51 @@ export type IEnv = {
   audio: AudioInterface;
 };
 
+export type IFriendStatus = "invited" | "active" | "pending" | "loading";
+
+export interface IFriend {
+  user: {
+    id: string;
+    nickname?: string;
+  };
+  status?: IFriendStatus;
+}
+
+export interface IFriendUser {
+  id: string;
+  nickname: string;
+  storage: Omit<IStorage, "programs" | "stats">;
+}
+
+export interface INotification {
+  type: "error" | "success";
+  content: string;
+}
+
+export interface IAllFriends {
+  friends: Partial<Record<string, IFriend>>;
+  sortedIds: string[];
+  isLoading: boolean;
+}
+
+export type ILoading = {
+  items: Partial<Record<string, boolean>>;
+  error?: string;
+};
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
   programs: IProgram[];
+  allFriends: IAllFriends;
+  friendsHistory: Partial<Record<string, IFriendUser>>;
+  notification?: INotification;
   webpushr?: IWebpushr;
   screenStack: IScreen[];
   currentHistoryRecord?: number;
-  progress: Record<number, IHistoryRecord | undefined>;
+  loading: ILoading;
+  currentHistoryRecordUserId?: string;
+  progress: Partial<Record<number, IHistoryRecord>>;
   editProgram?: {
     id: string;
     dayIndex?: number;

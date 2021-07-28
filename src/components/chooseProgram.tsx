@@ -11,10 +11,12 @@ import { Thunk } from "../ducks/thunks";
 import { IScreen } from "../models/screen";
 import { ModalPostClone } from "./modalPostClone";
 import { IProgram, ISettings } from "../types";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
+  loading: ILoading;
   settings: ISettings;
   customPrograms: IProgram[];
   screenStack: IScreen[];
@@ -80,7 +82,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           dispatch={props.dispatch}
         />
       )}
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
   );
 }

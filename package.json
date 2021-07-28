@@ -89,7 +89,6 @@
     "deepmerge": "^4.2.2",
     "dequal": "^2.0.2",
     "fp-ts": "^2.6.2",
-    "idb-keyval": "^3.2.0",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",

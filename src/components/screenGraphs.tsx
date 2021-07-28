@@ -12,9 +12,11 @@ import { ISettings, IHistoryRecord, IExerciseId, IEquipment, IStats } from "../t
 import { getLengthDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
+  loading: ILoading;
   settings: ISettings;
   stats: IStats;
   history: IHistoryRecord[];
@@ -160,7 +162,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         )}
       </section>
 
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
       <ModalGraphs
         settings={props.settings}
         isHidden={!isModalOpen}

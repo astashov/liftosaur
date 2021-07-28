@@ -1,4 +1,6 @@
+import { IFriend, IFriendUser } from "../models/state";
 import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
+import { IEither } from "../utils/types";
 
 export interface IGetStorageResponse {
   email: string;
@@ -21,10 +23,10 @@ export class Service {
     this.client = client;
   }
 
-  public async googleSignIn(token: string): Promise<IGetStorageResponse> {
+  public async googleSignIn(token: string, forcedUserEmail?: string): Promise<IGetStorageResponse> {
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ token, forceuseremail: forcedUserEmail }),
       credentials: "include",
     });
     const json = await response.json();
@@ -56,6 +58,59 @@ export class Service {
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
     return { email: json.email, storage: json.storage, user_id: json.user_id };
+  }
+
+  public async getFriends(username: string): Promise<IFriend[]> {
+    const url = new URL(`${__API_HOST__}/api/friends`);
+    url.searchParams.set("username", username);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json: { friends: IFriend[] } = await result.json();
+    return json.friends;
+  }
+
+  public async getFriendsHistory(startDate: string, endDate?: string): Promise<Partial<Record<string, IFriendUser>>> {
+    const url = new URL(`${__API_HOST__}/api/friendshistory`);
+    url.searchParams.set("startdate", startDate);
+    if (endDate) {
+      url.searchParams.set("enddate", endDate);
+    }
+    const result = await this.client(url.toString(), { credentials: "include" });
+    if (!result.ok) {
+      return {};
+    } else {
+      const json: { friends: Partial<Record<string, IFriendUser>> } = await result.json();
+      return json.friends;
+    }
+  }
+
+  public async inviteFriend(friendId: string, message: string): Promise<IEither<boolean, string>> {
+    const url = new URL(`${__API_HOST__}/api/invite/${friendId}`);
+    return this.makeFriendCall("POST", url.toString(), JSON.stringify({ message }));
+  }
+
+  public async removeFriend(friendId: string): Promise<IEither<boolean, string>> {
+    const url = new URL(`${__API_HOST__}/api/removefriend/${friendId}`);
+    return this.makeFriendCall("DELETE", url.toString());
+  }
+
+  public async acceptFrienshipInvitation(friendId: string): Promise<IEither<boolean, string>> {
+    const url = new URL(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
+    return this.makeFriendCall("POST", url.toString());
+  }
+
+  private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {
+    const result = await this.client(url, {
+      method: method,
+      credentials: "include",
+      ...(body ? { headers: { "Content-Type": "application/json" } } : {}),
+      body,
+    });
+    const json = await result.json();
+    if (result.ok) {
+      return "error" in json ? { success: false, error: json.error } : { success: true, data: true };
+    } else {
+      return { success: false, error: "error" in json ? json.error : "Error" };
+    }
   }
 
   public sendTimerPushNotification(sid: number): void {

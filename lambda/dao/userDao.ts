@@ -5,10 +5,11 @@ import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
 import { IDI } from "../utils/di";
 
-const tableNames = {
+export const userTableNames = {
   dev: {
     users: "lftUsersDev",
     usersGoogleId: "lftUsersGoogleIdDev",
+    usersNickname: "lftUsersNicknameDev",
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
@@ -17,6 +18,7 @@ const tableNames = {
   prod: {
     users: "lftUsers",
     usersGoogleId: "lftUsersGoogleId",
+    usersNickname: "lftUsersNickname",
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
@@ -30,10 +32,15 @@ export interface IUserDao {
   createdAt: number;
   googleId: string;
   storage: IStorage;
+  nickname?: string;
 }
 
 export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
   storage: Omit<IUserDao["storage"], "programs" | "history" | "stats">;
+};
+
+export type IFriendUserDao = Pick<IUserDao, "id" | "nickname"> & {
+  storage: Omit<IUserDao["storage"], "programs" | "stats">;
 };
 
 interface IStatDb {
@@ -50,8 +57,8 @@ export class UserDao {
     const env = Utils.getEnv();
 
     const items = await this.di.dynamo.query<IUserDao>({
-      tableName: tableNames[env].users,
-      indexName: tableNames[env].usersGoogleId,
+      tableName: userTableNames[env].users,
+      indexName: userTableNames[env].usersGoogleId,
       expression: "#googleId = :googleId",
       attrs: { "#googleId": "googleId" },
       values: { ":googleId": googleId },
@@ -87,21 +94,26 @@ export class UserDao {
 
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils.getEnv();
-    await this.di.dynamo.put({ tableName: tableNames[env].users, item: user });
+    const item = { ...user, nickname: user.storage.settings.nickname?.toLowerCase() };
+    await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
+  }
+
+  public async getLimitedById(userId: string): Promise<ILimitedUserDao | undefined> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.get<ILimitedUserDao>({
+      tableName: userTableNames[env].users,
+      key: { id: userId },
+    });
   }
 
   public async getById(userId: string): Promise<IUserDao | undefined> {
     const env = Utils.getEnv();
 
-    const userDao = await this.di.dynamo.get<ILimitedUserDao>({
-      tableName: tableNames[env].users,
-      key: { id: userId },
-    });
-
+    const userDao = await this.getLimitedById(userId);
     if (userDao != null) {
       const history = await this.di.dynamo.query<IHistoryRecord>({
-        tableName: tableNames[env].historyRecords,
-        indexName: tableNames[env].historyRecordsDate,
+        tableName: userTableNames[env].historyRecords,
+        indexName: userTableNames[env].historyRecordsDate,
         expression: "#userId = :userId",
         scanIndexForward: false,
         attrs: { "#userId": "userId" },
@@ -109,14 +121,14 @@ export class UserDao {
       });
 
       const programs = await this.di.dynamo.query<IProgram>({
-        tableName: tableNames[env].programs,
+        tableName: userTableNames[env].programs,
         expression: "#userId = :userId",
         attrs: { "#userId": "userId" },
         values: { ":userId": userId },
       });
 
       const statsDb = await this.di.dynamo.query<IStatDb>({
-        tableName: tableNames[env].stats,
+        tableName: userTableNames[env].stats,
         expression: "#userId = :userId",
         scanIndexForward: false,
         attrs: { "#userId": "userId" },
@@ -143,28 +155,28 @@ export class UserDao {
 
     const historyDeletes = CollectionUtils.inGroupsOf(23, historyToDelete).map(async (group) => {
       await this.di.dynamo.batchDelete({
-        tableName: tableNames[env].historyRecords,
+        tableName: userTableNames[env].historyRecords,
         keys: group.map((record) => ({ id: record.id, userId: user.id })),
       });
     });
 
     const historyUpdates = CollectionUtils.inGroupsOf(23, history).map(async (group) => {
       await this.di.dynamo.batchPut({
-        tableName: tableNames[env].historyRecords,
+        tableName: userTableNames[env].historyRecords,
         items: group.map((record) => ({ ...record, userId: user.id })),
       });
     });
 
     const programDeletes = CollectionUtils.inGroupsOf(23, programsToDelete).map(async (group) => {
       await this.di.dynamo.batchDelete({
-        tableName: tableNames[env].programs,
+        tableName: userTableNames[env].programs,
         keys: group.map((record) => ({ id: record.id, userId: user.id })),
       });
     });
 
     const programUpdates = CollectionUtils.inGroupsOf(23, programs).map(async (group) => {
       await this.di.dynamo.batchPut({
-        tableName: tableNames[env].programs,
+        tableName: userTableNames[env].programs,
         items: group.map((record) => ({ ...record, userId: user.id })),
       });
     });
@@ -203,7 +215,7 @@ export class UserDao {
     }
     const statsDeletes = CollectionUtils.inGroupsOf(23, statsToDelete).map(async (group) => {
       await this.di.dynamo.batchDelete({
-        tableName: tableNames[env].stats,
+        tableName: userTableNames[env].stats,
         keys: group.map((record) => ({ userId: user.id, name: record })),
       });
     });
@@ -219,7 +231,7 @@ export class UserDao {
     const statsArray = statsLengthArray.concat(statsWeightArray);
     const statsUpdates = CollectionUtils.inGroupsOf(23, statsArray).map(async (group) => {
       await this.di.dynamo.batchPut({
-        tableName: tableNames[env].stats,
+        tableName: userTableNames[env].stats,
         items: group.map((record) => ({ ...record, userId: user.id })),
       });
     });
@@ -237,7 +249,7 @@ export class UserDao {
 
   public async getAllLimited(): Promise<ILimitedUserDao[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.scan({ tableName: tableNames[env].users });
+    return this.di.dynamo.scan({ tableName: userTableNames[env].users });
   }
 
   public async getAll(): Promise<IUserDao[]> {
@@ -245,12 +257,14 @@ export class UserDao {
     const allUsers = await this.getAllLimited();
 
     const allHistory = await this.di.dynamo
-      .scan<IHistoryRecord & { userId: string }>({ tableName: tableNames[env].historyRecords })
+      .scan<IHistoryRecord & { userId: string }>({ tableName: userTableNames[env].historyRecords })
       .then((r) => r.sort((a, b) => new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime()));
     const allPrograms = await this.di.dynamo.scan<IProgram & { userId: string }>({
-      tableName: tableNames[env].programs,
+      tableName: userTableNames[env].programs,
     });
-    const allStatsDbs = await this.di.dynamo.scan<IStatDb & { userId: string }>({ tableName: tableNames[env].stats });
+    const allStatsDbs = await this.di.dynamo.scan<IStatDb & { userId: string }>({
+      tableName: userTableNames[env].stats,
+    });
 
     const allStatsDbsByUser = CollectionUtils.groupByKey(allStatsDbs, "userId");
 

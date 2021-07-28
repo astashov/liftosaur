@@ -38,6 +38,19 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "googleId", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
+    usersTable.addGlobalSecondaryIndex({
+      indexName: `lftUsersNickname${suffix}`,
+      partitionKey: { name: "nickname", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    const friendsTable = new dynamodb.Table(this, `LftFriendsStatuses${suffix}`, {
+      tableName: `lftFriendsStatuses${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
 
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,
@@ -102,12 +115,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
         webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
+        cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKeyDev-qFcITJ",
       },
       prod: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
         webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
+        cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKey-4Uxrea",
       },
     };
 
@@ -122,6 +137,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     const webpushrAuthToken = sm.Secret.fromSecretAttributes(this, `LftWebpushrAuthToken${suffix}`, {
       secretArn: secretArns[env].webpushrAuthToken,
+    });
+    const cryptoKeySecret = sm.Secret.fromSecretAttributes(this, `lftCryptoKey${suffix}`, {
+      secretArn: secretArns[env].cryptoKey,
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
@@ -162,6 +180,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     keyApiKey.grantRead(lambdaFunction);
     webpushrKey.grantRead(lambdaFunction);
     webpushrAuthToken.grantRead(lambdaFunction);
+    cryptoKeySecret.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);
@@ -169,6 +188,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     programsTable.grantReadWriteData(lambdaFunction);
     userProgramsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
+    friendsTable.grantReadWriteData(lambdaFunction);
   }
 }
 

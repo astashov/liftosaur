@@ -8,10 +8,12 @@ import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Thunk } from "../ducks/thunks";
 import { ISettingsTimers, ISettings } from "../types";
+import { ILoading } from "../models/state";
 
 interface IProps {
   dispatch: IDispatch;
   timers: ISettingsTimers;
+  loading: ILoading;
 }
 
 export function ScreenTimers(props: IProps): JSX.Element {
@@ -37,7 +39,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
           );
         })}
       </section>
-      <FooterView dispatch={props.dispatch} />
+      <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
   );
 }

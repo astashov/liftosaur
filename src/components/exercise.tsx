@@ -28,6 +28,7 @@ import {
   ISet,
 } from "../types";
 import { DateUtils } from "../utils/date";
+import { IFriendUser } from "../models/state";
 
 interface IProps {
   showHelp: boolean;
@@ -37,6 +38,7 @@ interface IProps {
   day: number;
   programExercise?: IProgramExercise;
   index: number;
+  friend?: IFriendUser;
   isCurrent?: boolean;
   forceShowStateChanges?: boolean;
   dispatch: IDispatch;
@@ -102,6 +104,7 @@ function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.El
 
 const ExerciseContentView = memo(
   (props: IProps & { onInfoClick: () => void }): JSX.Element => {
+    const friend = props.friend;
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
     const historicalAmrapSets = props.isCurrent
@@ -141,7 +144,8 @@ const ExerciseContentView = memo(
                 <IconQuestion width={15} height={15} />
               </button>
             )}
-            {props.onStartSetChanging &&
+            {!friend &&
+              props.onStartSetChanging &&
               (isEditMode ? (
                 <Button
                   className="ls-edit-set-done"
@@ -196,9 +200,11 @@ const ExerciseContentView = memo(
                     data-cy="change-weight"
                     className="ls-progress-open-change-weight-modal text-blue-500 underline cursor-pointer"
                     style={{ fontWeight: "inherit" }}
-                    onClick={() =>
-                      props.dispatch({ type: "ChangeWeightAction", weight: w, exercise: props.entry.exercise })
-                    }
+                    onClick={() => {
+                      if (!friend) {
+                        props.dispatch({ type: "ChangeWeightAction", weight: w, exercise: props.entry.exercise });
+                      }
+                    }}
                   >
                     {w.value} {w.unit}
                   </button>
@@ -229,12 +235,14 @@ const ExerciseContentView = memo(
                         set={set}
                         isEditMode={false}
                         onClick={(event) => {
-                          event.preventDefault();
-                          if (isEditMode && props.onStartSetChanging) {
-                            props.onStartSetChanging(true, props.index, i);
-                          } else {
-                            props.onChangeReps("warmup");
-                            handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
+                          if (!friend) {
+                            event.preventDefault();
+                            if (isEditMode && props.onStartSetChanging) {
+                              props.onStartSetChanging(true, props.index, i);
+                            } else {
+                              props.onChangeReps("warmup");
+                              handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
+                            }
                           }
                         }}
                       />
@@ -286,12 +294,14 @@ const ExerciseContentView = memo(
                   isCurrent={!!props.isCurrent}
                   isEditMode={isEditMode}
                   onClick={(event) => {
-                    event.preventDefault();
-                    if (isEditMode && props.onStartSetChanging) {
-                      props.onStartSetChanging(false, props.index, i);
-                    } else {
-                      props.onChangeReps("workout");
-                      handleClick(props.dispatch, props.entry.exercise, set.weight, i, "workout");
+                    if (!friend) {
+                      event.preventDefault();
+                      if (isEditMode && props.onStartSetChanging) {
+                        props.onStartSetChanging(false, props.index, i);
+                      } else {
+                        props.onChangeReps("workout");
+                        handleClick(props.dispatch, props.entry.exercise, set.weight, i, "workout");
+                      }
                     }
                   }}
                 />
