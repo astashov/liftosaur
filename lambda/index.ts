@@ -538,8 +538,7 @@ const inviteFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   match: { params },
 }) => {
   const { event } = payload;
-  console.log(event.body);
-  const message = JSON.parse(event.body || "{}").message;
+  const message = getBodyJson(event).message;
   const host = getReferer(event);
   const userDao = new UserDao(payload.di);
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
