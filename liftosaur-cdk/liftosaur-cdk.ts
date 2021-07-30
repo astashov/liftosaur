@@ -5,6 +5,7 @@ import * as apigw from "@aws-cdk/aws-apigateway";
 import * as sm from "@aws-cdk/aws-secretsmanager";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as acm from "@aws-cdk/aws-certificatemanager";
+import * as iam from "@aws-cdk/aws-iam";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -189,6 +190,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
     userProgramsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
+    lambdaFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ses:SendEmail", "SES:SendRawEmail"],
+        resources: ["*"],
+        effect: iam.Effect.ALLOW,
+      })
+    );
   }
 }
 
