@@ -11,7 +11,12 @@ export namespace IndexedDBUtils {
       connection.addEventListener("success", handler);
       connection.addEventListener("error", handler);
       connection.addEventListener("blocked", handler);
-      connection.addEventListener("upgradeneeded", handler);
+      connection.addEventListener("upgradeneeded", (event) => {
+        const request = event.target as IDBOpenDBRequest;
+        if (request?.result) {
+          request.result.createObjectStore("keyval");
+        }
+      });
     });
   }
 
