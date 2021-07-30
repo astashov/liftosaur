@@ -85,7 +85,7 @@
     "@aws-cdk/aws-s3": "^1.116.0",
     "@aws-cdk/aws-secretsmanager": "^1.116.0",
     "@aws-cdk/core": "^1.116.0",
-    "codemirror": "^5.54.0",
+    "codemirror": "^5.58.2",
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
     "dequal": "^2.0.2",
