@@ -43,6 +43,22 @@ export type ILoading = {
   error?: string;
 };
 
+export interface IAllComments {
+  comments: Partial<Record<string, IComment[]>>;
+  isLoading: boolean;
+  isPosting: boolean;
+  isRemoving: Partial<Record<string, boolean>>;
+}
+
+export interface IComment {
+  id: string;
+  userId: string;
+  friendId: string;
+  historyRecordId: string;
+  timestamp: number;
+  text: string;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -56,6 +72,7 @@ export interface IState {
   loading: ILoading;
   currentHistoryRecordUserId?: string;
   progress: Partial<Record<number, IHistoryRecord>>;
+  comments: IAllComments;
   editProgram?: {
     id: string;
     dayIndex?: number;

@@ -71,6 +71,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
       loading: { items: {} },
       programs: [],
       currentHistoryRecord: 0,
+      comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
       user: userId ? { email: userId, id: userId } : undefined,
     };
@@ -83,6 +84,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
     allFriends: { friends: {}, sortedIds: [], isLoading: false },
     friendsHistory: {},
     notification,
+    comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
     storage: {
       id: 0,
       currentProgramId: undefined,

@@ -10,10 +10,13 @@ import { Weight } from "../models/weight";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings, ISet } from "../types";
+import { IconComments } from "./iconComments";
+import { IAllComments } from "../models/state";
 
 interface IProps {
   historyRecord: IHistoryRecord;
   settings: ISettings;
+  comments: IAllComments;
   dispatch: IDispatch;
   userId?: string;
   nickname?: string;
@@ -84,9 +87,19 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           </div>
         ))}
         {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
-          <div class="text-gray-600 text-right mt-1">
-            <span>Time:</span>{" "}
-            <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>
+          <div className="flex items-center mt-1 text-gray-600" style={{ minHeight: "1.8em" }}>
+            <div className="flex-1">
+              {props.comments.comments[historyRecord.id] != null ? (
+                <div>
+                  <IconComments />
+                  <span className="pl-1">{props.comments.comments[historyRecord.id]?.length || 0}</span>
+                </div>
+              ) : undefined}
+            </div>
+            <div className="text-right">
+              <span>Time:</span>{" "}
+              <span className="font-bold">{TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}</span>
+            </div>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { IFriend, IFriendUser } from "../models/state";
+import { IComment, IFriend, IFriendUser } from "../models/state";
 import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
 import { IEither } from "../utils/types";
 
@@ -96,6 +96,31 @@ export class Service {
   public async acceptFrienshipInvitation(friendId: string): Promise<IEither<boolean, string>> {
     const url = new URL(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
     return this.makeFriendCall("POST", url.toString());
+  }
+
+  public async getComments(): Promise<Partial<Record<number, IComment[]>>> {
+    const url = new URL(`${__API_HOST__}/api/comments`);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json: { comments: Partial<Record<number, IComment[]>> } = await result.json();
+    return json.comments;
+  }
+
+  public async postComment(historyRecordId: string, friendId: string, text: string): Promise<IComment> {
+    const url = new URL(`${__API_HOST__}/api/comments`);
+    const body = JSON.stringify({ historyRecordId, friendId, text });
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      credentials: "include",
+      body,
+      headers: { "Content-Type": "application/json" },
+    });
+    const json: { comment: IComment } = await result.json();
+    return json.comment;
+  }
+
+  public async deleteComment(id: string): Promise<void> {
+    const url = new URL(`${__API_HOST__}/api/comments/${id}`);
+    await this.client(url.toString(), { method: "DELETE", credentials: "include" });
   }
 
   private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {

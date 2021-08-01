@@ -56,7 +56,12 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                 <td className="px-2 align-top">{user.totalHistory}</td>
                 <td className="px-2 align-top">
                   {user.history.map((record) => (
-                    <HistoryRecordView historyRecord={record} settings={user.settings} dispatch={() => undefined} />
+                    <HistoryRecordView
+                      comments={{ comments: {}, isLoading: false, isPosting: false, isRemoving: {} }}
+                      historyRecord={record}
+                      settings={user.settings}
+                      dispatch={() => undefined}
+                    />
                   ))}
                 </td>
               </tr>

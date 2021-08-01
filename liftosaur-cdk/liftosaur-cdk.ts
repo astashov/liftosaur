@@ -110,6 +110,26 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const commentsTable = new dynamodb.Table(this, `LftComments${suffix}`, {
+      tableName: `lftComments${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+    commentsTable.addGlobalSecondaryIndex({
+      indexName: `lftCommentsFriends${suffix}`,
+      partitionKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    // - id
+    // - userId
+    // - friendId
+    // - historyRecordId
+    // - timestamp
+    // - text
+
     const secretArns = {
       dev: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
@@ -190,6 +210,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     userProgramsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
+    commentsTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],
@@ -202,4 +223,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

@@ -10,7 +10,7 @@ import { RestTimer } from "./restTimer";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { IconEdit } from "./iconEdit";
-import { IFriendUser, ILoading, IWebpushr } from "../models/state";
+import { IAllComments, IAllFriends, IFriendUser, ILoading, IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { IconShare } from "./iconShare";
@@ -26,10 +26,13 @@ interface IProps {
   program?: IProgram;
   settings: ISettings;
   isChanged: boolean;
+  friends: IAllFriends;
   userId?: string;
   dispatch: IDispatch;
   loading: ILoading;
   friend?: IFriendUser;
+  comments: IAllComments;
+  nickname?: string;
   timerSince?: number;
   timerMode?: IProgressMode;
   webpushr?: IWebpushr;
@@ -85,10 +88,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }
         />
         <CardsView
+          friends={props.friends}
+          nickname={props.nickname}
           history={props.history}
           settings={props.settings}
           program={props.program}
           friend={props.friend}
+          userId={props.userId}
+          comments={props.comments}
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
