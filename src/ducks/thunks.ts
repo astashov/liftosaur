@@ -176,6 +176,62 @@ export namespace Thunk {
   export function acceptFriendshipInvitation(friendId: string): IThunk {
     return friendAction(friendId, "active", (service) => service.acceptFrienshipInvitation(friendId));
   }
+
+  export function getComments(): IThunk {
+    return async (dispatch, getState, env) => {
+      const comments = await load(dispatch, "getComments", () => env.service.getComments());
+      updateState(dispatch, [
+        lb<IState>()
+          .p("comments")
+          .p("comments")
+          .record(comments || {}),
+      ]);
+    };
+  }
+
+  export function postComment(historyRecordId: string, friendId: string, text: string): IThunk {
+    return async (dispatch, getState, env) => {
+      updateState(dispatch, [lb<IState>().p("comments").p("isPosting").record(true)]);
+      try {
+        const comment = await env.service.postComment(historyRecordId, friendId, text);
+        updateState(dispatch, [
+          lb<IState>()
+            .p("comments")
+            .p("comments")
+            .p(historyRecordId)
+            .recordModify((comments) => [...(comments || []), comment]),
+        ]);
+      } catch (e) {
+        updateState(dispatch, [
+          lb<IState>().p("notification").record({ content: "Failed to post comment", type: "error" }),
+        ]);
+      } finally {
+        updateState(dispatch, [lb<IState>().p("comments").p("isPosting").record(false)]);
+      }
+    };
+  }
+
+  export function removeComment(historyRecordId: string, id: string): IThunk {
+    return async (dispatch, getState, env) => {
+      updateState(dispatch, [lb<IState>().p("comments").p("isRemoving").p(id).record(true)]);
+      try {
+        await env.service.deleteComment(id);
+        updateState(dispatch, [
+          lb<IState>()
+            .p("comments")
+            .p("comments")
+            .p(historyRecordId)
+            .recordModify((comments) => CollectionUtils.removeBy(comments || [], "id", id)),
+        ]);
+      } catch (e) {
+        updateState(dispatch, [
+          lb<IState>().p("notification").record({ content: "Failed to delete comment", type: "error" }),
+        ]);
+      } finally {
+        updateState(dispatch, [lb<IState>().p("comments").p("isRemoving").p(id).record(undefined)]);
+      }
+    };
+  }
 }
 
 function friendAction<T>(
@@ -220,5 +276,10 @@ async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, cli
     const storage = await runMigrations(client, result.storage);
     dispatch({ type: "Login", email: result.email, userId: result.user_id });
     dispatch({ type: "SyncStorage", storage });
+    const lastVisibleHistoryRecordIndex = Math.min(20, storage.history.length - 1);
+    const date = storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
+    dispatch(Thunk.fetchFriends(""));
+    dispatch(Thunk.fetchFriendsHistory(date));
+    dispatch(Thunk.getComments());
   }
 }

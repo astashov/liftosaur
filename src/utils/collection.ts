@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 export namespace CollectionUtils {
   // inGroupsOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3).forEach((e) => print(e));
   //
@@ -64,10 +65,11 @@ export namespace CollectionUtils {
     return arr.filter((i) => i) as T[];
   }
 
-  export function groupByKey<T, K extends keyof T, U extends T[K] extends string ? string : never>(
-    arr: T[],
-    key: K
-  ): Partial<Record<U, T[]>> {
+  export function groupByKey<
+    T,
+    K extends keyof T,
+    U extends T[K] extends string ? string : T[K] extends number ? number : never
+  >(arr: T[], key: K): Partial<Record<U, T[]>> {
     return arr.reduce<Partial<Record<U, T[]>>>((memo, item) => {
       const value = (item[key] as unknown) as U;
       memo[value] = memo[value] || [];
@@ -109,7 +111,15 @@ export namespace CollectionUtils {
     return from.filter((x) => !to.includes(x)).concat(to.filter((x) => !from.includes(x)));
   }
 
-  export function uniqBy<T extends Record<string, unknown>>(from: T[], key: keyof T): T[] {
+  export function remove<T>(from: T[], item: T): T[] {
+    return from.filter((t) => t !== item);
+  }
+
+  export function removeBy<T extends {}, K extends keyof T, V extends T[K]>(from: T[], key: K, value: V): T[] {
+    return from.filter((t) => t[key] !== value);
+  }
+
+  export function uniqBy<T extends {}>(from: T[], key: keyof T): T[] {
     const set = new Set();
     const result = [];
     for (const el of from) {

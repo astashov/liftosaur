@@ -18,3 +18,15 @@ export function clearAll(): void {
   cy.clearIndexedDb();
   cy.viewport("iphone-6");
 }
+
+export function login(email: string): void {
+  clearAll();
+  cy.visit(`http://local.liftosaur.com:8080/?forceuseremail=${email}`);
+  cy.contains("Let's choose a program!").click();
+  g("footer-settings").click();
+  g("menu-item-account").click();
+  g("menu-item-login").click();
+  g("menu-item-current-account").should("have.text", `Current account: ${email}`);
+  cy.contains("Back").click();
+  cy.contains("Back").click();
+}

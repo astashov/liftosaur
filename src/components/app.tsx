@@ -73,9 +73,6 @@ export function AppView(props: IProps): JSX.Element | null {
       });
     };
     dispatch(Thunk.fetchStorage());
-    const lastVisibleHistoryRecordIndex = Math.min(20, state.storage.history.length - 1);
-    const date = state.storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
-    dispatch(Thunk.fetchFriendsHistory(date));
     dispatch(Thunk.fetchPrograms());
     if (state.storage.currentProgramId == null) {
       setShouldShowOnboarding(true);
@@ -127,6 +124,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (program != null) {
       content = (
         <ProgramHistoryView
+          comments={state.comments}
           loading={state.loading}
           program={program}
           progress={state.progress?.[0]}
@@ -146,13 +144,17 @@ export function AppView(props: IProps): JSX.Element | null {
       const friend = state.friendsHistory[state.currentHistoryRecordUserId]!;
       content = (
         <ProgramDayView
+          friends={state.allFriends}
           loading={state.loading}
+          comments={state.comments}
+          userId={state.user?.id}
           history={[]}
           friend={friend}
           progress={progress}
           isChanged={false}
           program={undefined}
           dispatch={dispatch}
+          nickname={state.storage.settings.nickname}
           settings={friend.storage.settings}
         />
       );
@@ -161,12 +163,15 @@ export function AppView(props: IProps): JSX.Element | null {
       const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
       content = (
         <ProgramDayView
+          friends={state.allFriends}
+          nickname={state.storage.settings.nickname}
           loading={state.loading}
           history={state.storage.history}
           userId={state.user?.id}
           progress={progress}
           isChanged={isChanged}
           program={Progress.isCurrent(progress) ? program : undefined}
+          comments={state.comments}
           dispatch={dispatch}
           webpushr={state.webpushr}
           timerSince={progress.timerSince}

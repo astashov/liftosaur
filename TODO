@@ -24,23 +24,8 @@ Assign lb to state var of type number
 
 ## Friends
 
-* Add Friends screen, where you can:
-  - search for friends
-  - invite friends
-  - see friends list
-  - see friends invitations
-  - unfriend folks
-* Add friends icon to footer
 * Add notification dot to friends icon if invitations pending
-* Add a link for accepting a friend
-* Send emails when friend is invited
-* Redesign the feed
-   - show user
-* Add ability to see friends workouts in the feed
 * Add friends feeds per user
 * Add ability to like on friends workouts
   - show number of likes per workout in the feed
-* Add ability to unlike comments
-* Add ability to comment on friends workouts
-  - show number of comments per workout in the feed
-* Add ability to delete comments
+* Add ability to unlike workouts

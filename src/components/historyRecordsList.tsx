@@ -1,6 +1,6 @@
 import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IFriendUser } from "../models/state";
+import { IAllComments, IFriendUser } from "../models/state";
 import { IHistoryRecord, ISettings } from "../types";
 import { HistoryRecordView } from "./historyRecord";
 
@@ -8,6 +8,7 @@ interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
   settings: ISettings;
   friendsHistory: Partial<Record<string, IFriendUser>>;
+  comments: IAllComments;
   dispatch: IDispatch;
   visibleRecords: number;
 }
@@ -39,9 +40,15 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
     <Fragment>
       {combinedHistory.map((historyRecord) =>
         historyRecord.user === "self" ? (
-          <HistoryRecordView settings={settings} historyRecord={historyRecord.record} dispatch={dispatch} />
+          <HistoryRecordView
+            settings={settings}
+            historyRecord={historyRecord.record}
+            dispatch={dispatch}
+            comments={props.comments}
+          />
         ) : (
           <HistoryRecordView
+            comments={props.comments}
             settings={historyRecord.user.storage.settings}
             nickname={historyRecord.user.nickname || historyRecord.user.id}
             userId={historyRecord.user.id}

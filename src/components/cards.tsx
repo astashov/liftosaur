@@ -6,13 +6,18 @@ import { Button } from "./button";
 import { Timer } from "./timer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
-import { IFriendUser } from "../models/state";
+import { IAllComments, IAllFriends, IFriendUser } from "../models/state";
+import { Comments } from "./comments";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
   program?: IProgram;
   friend?: IFriendUser;
+  userId?: string;
+  friends: IAllFriends;
+  nickname?: string;
+  comments: IAllComments;
   isTimerShown: boolean;
   settings: ISettings;
   dispatch: IDispatch;
@@ -22,7 +27,7 @@ interface ICardsViewProps {
 
 export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
-    const friend = props.friend;
+    const { friend, userId } = props;
     return (
       <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
         <div className="flex">
@@ -55,8 +60,19 @@ export const CardsView = memo(
             />
           );
         })}
+        {!Progress.isCurrent(props.progress) && userId && (
+          <Comments
+            nickname={props.nickname}
+            currentUserId={userId}
+            friends={props.friends}
+            historyRecordId={props.progress.id}
+            friendId={friend?.id || userId}
+            comments={props.comments}
+            dispatch={props.dispatch}
+          />
+        )}
         {!friend && (
-          <div className="py-3 text-center">
+          <div className="pt-1 pb-3 text-center">
             <Button
               kind="green"
               className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}

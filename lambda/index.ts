@@ -22,6 +22,7 @@ import { LogUtil } from "./utils/log";
 import { runMigrations } from "../src/migrations/runner";
 import { FriendDao } from "./dao/friendDao";
 import { IEither } from "../src/utils/types";
+import { CommentsDao } from "./dao/commentsDao";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -640,6 +641,53 @@ const getFriendsHistoryHandler: RouteHandler<
   }
 };
 
+export const getCommentsEndpoint = Endpoint.build("/api/comments");
+const getCommentsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getCommentsEndpoint> = async ({
+  payload,
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const commentsDao = new CommentsDao(payload.di);
+    const comments = await commentsDao.getForUser(currentUserId);
+    return json(200, event, { comments });
+  } else {
+    return json(401, event, {});
+  }
+};
+
+export const postCommentEndpoint = Endpoint.build("/api/comments");
+const postCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postCommentEndpoint> = async ({
+  payload,
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const body = getBodyJson(event);
+    const commentsDao = new CommentsDao(payload.di);
+    const comment = await commentsDao.post(currentUserId, body);
+    return json(200, event, { comment });
+  } else {
+    return json(401, event, {});
+  }
+};
+
+export const deleteCommentEndpoint = Endpoint.build("/api/comments/:id");
+const deleteCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteCommentEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const commentsDao = new CommentsDao(payload.di);
+    await commentsDao.remove(currentUserId, params.id);
+    return json(200, event, {});
+  } else {
+    return json(401, event, {});
+  }
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -728,7 +776,10 @@ export const handler = rollbar.lambdaHandler(
       .get(acceptFriendInvitationByHashEndpoint, acceptFriendInvitationByHashHandler)
       .post(acceptFriendInvitationEndpoint, acceptFriendInvitationHandler)
       .delete(removeFriendEndpoint, removeFriendHandler)
-      .get(getFriendsHistoryEndpoint, getFriendsHistoryHandler);
+      .get(getFriendsHistoryEndpoint, getFriendsHistoryHandler)
+      .get(getCommentsEndpoint, getCommentsHandler)
+      .post(postCommentEndpoint, postCommentHandler)
+      .delete(deleteCommentEndpoint, deleteCommentHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

@@ -12,7 +12,7 @@ import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
 import { Tabs } from "./tabs";
 import { StatsList } from "./statsList";
 import { HistoryRecordsList } from "./historyRecordsList";
-import { IFriendUser, ILoading } from "../models/state";
+import { IAllComments, IFriendUser, ILoading } from "../models/state";
 
 type ITab = "Workouts" | "Stats";
 
@@ -22,6 +22,7 @@ interface IProps {
   history: IHistoryRecord[];
   friendsHistory: Partial<Record<string, IFriendUser>>;
   stats: IStats;
+  comments: IAllComments;
   settings: ISettings;
   loading: ILoading;
   dispatch: IDispatch;
@@ -99,6 +100,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <Tabs left="Workouts" right="Stats" selected={tab} onChange={setTab} />
         {tab === "Workouts" && (
           <HistoryRecordsList
+            comments={props.comments}
             history={history}
             settings={props.settings}
             dispatch={dispatch}

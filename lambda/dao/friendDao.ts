@@ -8,6 +8,7 @@ import { IEither } from "../../src/utils/types";
 import { IFriend, IFriendStatus } from "../../src/models/state";
 import { IHistoryRecord } from "../../src/types";
 import { CollectionUtils } from "../../src/utils/collection";
+import { noReplyEmail } from "../utils/email";
 
 const tableNames = {
   dev: {
@@ -25,8 +26,6 @@ export interface IFriendDao {
   friendId: string;
   status: IFriendStatus;
 }
-
-const noReplyEmail = "no-reply@liftosaur.com";
 
 export class FriendDao {
   constructor(private readonly di: IDI) {}
