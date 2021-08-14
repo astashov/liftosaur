@@ -12,7 +12,7 @@ import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
 import { Tabs } from "./tabs";
 import { StatsList } from "./statsList";
 import { HistoryRecordsList } from "./historyRecordsList";
-import { IAllComments, IFriendUser, ILoading } from "../models/state";
+import { IAllComments, IAllLikes, IFriendUser, ILoading } from "../models/state";
 
 type ITab = "Workouts" | "Stats";
 
@@ -23,6 +23,8 @@ interface IProps {
   friendsHistory: Partial<Record<string, IFriendUser>>;
   stats: IStats;
   comments: IAllComments;
+  likes: IAllLikes;
+  userId?: string;
   settings: ISettings;
   loading: ILoading;
   dispatch: IDispatch;
@@ -46,6 +48,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           const enddate = sortedHistory[visibleRecordsRef.current - 1]?.date;
           const startdate = sortedHistory[vr - 1]?.date;
           dispatch(Thunk.fetchFriendsHistory(startdate || "2019-01-01T00:00:00.000Z", enddate));
+          dispatch(Thunk.fetchLikes(startdate || "2019-01-01T00:00:00.000Z", enddate));
           setVisibleRecords(vr);
           visibleRecordsRef.current = vr;
         }
@@ -104,7 +107,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             history={history}
             settings={props.settings}
             dispatch={dispatch}
+            likes={props.likes}
             visibleRecords={visibleRecordsRef.current}
+            currentUserId={props.userId}
             friendsHistory={props.friendsHistory}
           />
         )}

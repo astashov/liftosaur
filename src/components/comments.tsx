@@ -2,8 +2,9 @@ import { h, JSX } from "preact";
 import { useCallback, useRef } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { IAllComments, IAllFriends } from "../models/state";
+import { IAllComments, IAllFriends, IAllLikes } from "../models/state";
 import { Button } from "./button";
+import { ButtonLike } from "./buttonLike";
 import { IconDelete } from "./iconDelete";
 import { IconSpinner } from "./iconSpinner";
 import { inputClassName } from "./input";
@@ -13,7 +14,8 @@ interface ICommentsProps {
   currentUserId: string;
   nickname?: string;
   friends: IAllFriends;
-  friendId: string;
+  likes: IAllLikes;
+  friendId?: string;
   comments: IAllComments;
   dispatch: IDispatch;
 }
@@ -26,13 +28,22 @@ export function Comments(props: ICommentsProps): JSX.Element {
 
   const handleSend = useCallback(() => {
     const text = textAreaRef.current.value;
-    dispatch(Thunk.postComment(historyRecordId, friendId, text));
+    dispatch(Thunk.postComment(historyRecordId, friendId || currentUserId, text));
   }, [historyRecordId, friendId]);
 
   return (
     <div className="px-2 pb-2">
-      <h4 className="text-sm font-bold" data-cy="comments-header">
-        Comments - {comments.length}
+      <h4 className="flex text-sm font-bold" data-cy="comments-header">
+        <div className="flex-1">Comments - {comments.length}</div>
+        <div>
+          <ButtonLike
+            dispatch={dispatch}
+            historyRecordId={props.historyRecordId}
+            userId={currentUserId}
+            friendId={friendId}
+            likes={props.likes}
+          />
+        </div>
       </h4>
       <ul className="px-2 pb-1">
         {comments.map((comment) => {

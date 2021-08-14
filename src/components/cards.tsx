@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { Timer } from "./timer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
-import { IAllComments, IAllFriends, IFriendUser } from "../models/state";
+import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
 
 interface ICardsViewProps {
@@ -18,6 +18,7 @@ interface ICardsViewProps {
   friends: IAllFriends;
   nickname?: string;
   comments: IAllComments;
+  likes: IAllLikes;
   isTimerShown: boolean;
   settings: ISettings;
   dispatch: IDispatch;
@@ -65,8 +66,9 @@ export const CardsView = memo(
             nickname={props.nickname}
             currentUserId={userId}
             friends={props.friends}
+            likes={props.likes}
             historyRecordId={props.progress.id}
-            friendId={friend?.id || userId}
+            friendId={friend?.id}
             comments={props.comments}
             dispatch={props.dispatch}
           />

@@ -11,33 +11,39 @@ import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings, ISet } from "../types";
 import { IconComments } from "./iconComments";
-import { IAllComments } from "../models/state";
+import { IAllComments, IAllLikes } from "../models/state";
+import { HtmlUtils } from "../utils/html";
+import { ButtonLike } from "./buttonLike";
 
 interface IProps {
   historyRecord: IHistoryRecord;
   settings: ISettings;
   comments: IAllComments;
   dispatch: IDispatch;
+  likes?: IAllLikes;
   userId?: string;
+  friendId?: string;
   nickname?: string;
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
-  const { historyRecord, dispatch, nickname } = props;
+  const { historyRecord, dispatch, nickname, friendId } = props;
 
   const entries = CollectionUtils.inGroupsOfFilled(2, historyRecord.entries);
   return (
     <div
       data-cy="history-record"
       className={`history-record-${nickname} px-3 text-xs ${props.nickname ? "bg-orange-100" : ""}`}
-      onClick={() =>
-        editHistoryRecord(
-          historyRecord,
-          dispatch,
-          Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
-          props.userId
-        )
-      }
+      onClick={(event) => {
+        if (!HtmlUtils.classInParents(event.target as Element, "button")) {
+          editHistoryRecord(
+            historyRecord,
+            dispatch,
+            Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
+            props.friendId
+          );
+        }
+      }}
     >
       <div className="py-3 border-b border-gray-300">
         {props.nickname && <div className="text-xs italic text-right">{props.nickname}</div>}
@@ -89,11 +95,18 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
           <div className="flex items-center mt-1 text-gray-600" style={{ minHeight: "1.8em" }}>
             <div className="flex-1">
+              <ButtonLike
+                dispatch={dispatch}
+                historyRecordId={historyRecord.id}
+                userId={props.userId}
+                friendId={friendId}
+                likes={props.likes}
+              />
               {props.comments.comments[historyRecord.id] != null ? (
-                <div>
+                <span className="align-top">
                   <IconComments />
                   <span className="pl-1">{props.comments.comments[historyRecord.id]?.length || 0}</span>
-                </div>
+                </span>
               ) : undefined}
             </div>
             <div className="text-right">

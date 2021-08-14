@@ -1,4 +1,4 @@
-import { IComment, IFriend, IFriendUser } from "../models/state";
+import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
 import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
 import { IEither } from "../utils/types";
 
@@ -121,6 +121,24 @@ export class Service {
   public async deleteComment(id: string): Promise<void> {
     const url = new URL(`${__API_HOST__}/api/comments/${id}`);
     await this.client(url.toString(), { method: "DELETE", credentials: "include" });
+  }
+
+  public async getLikes(startDate: string, endDate?: string): Promise<Partial<Record<string, ILike[]>>> {
+    const url = new URL(`${__API_HOST__}/api/likes`);
+    url.searchParams.set("startdate", startDate);
+    if (endDate) {
+      url.searchParams.set("enddate", endDate);
+    }
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json: { likes: Partial<Record<string, ILike[]>> } = await result.json();
+    return json.likes;
+  }
+
+  public async like(friendId: string, historyRecordId: number): Promise<boolean | undefined> {
+    const url = new URL(`${__API_HOST__}/api/likes/${friendId}/${historyRecordId}`);
+    const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
+    const json: { result?: boolean } = await result.json();
+    return json.result;
   }
 
   private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {

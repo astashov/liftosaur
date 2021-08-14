@@ -23,6 +23,7 @@ import { runMigrations } from "../src/migrations/runner";
 import { FriendDao } from "./dao/friendDao";
 import { IEither } from "../src/utils/types";
 import { CommentsDao } from "./dao/commentsDao";
+import { LikesDao } from "./dao/likesDao";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -688,6 +689,44 @@ const deleteCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+export const getLikesEndpoint = Endpoint.build("/api/likes", {
+  startdate: "string",
+  enddate: "string?",
+});
+const getLikesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getLikesEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const likesDao = new LikesDao(payload.di);
+    const likes = await likesDao.getForUser(currentUserId, params.startdate, params.enddate);
+    return json(200, event, { likes });
+  } else {
+    return json(401, event, {});
+  }
+};
+
+export const toggleLikeEndpoint = Endpoint.build("/api/likes/:friendId/:historyRecordId|i");
+const toggleLikeHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof toggleLikeEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const likesDao = new LikesDao(payload.di);
+    const result = await likesDao.toggle(currentUserId, {
+      friendId: params.friendId,
+      historyRecordId: params.historyRecordId,
+    });
+    return json(200, event, { result });
+  } else {
+    return json(401, event, {});
+  }
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -779,7 +818,9 @@ export const handler = rollbar.lambdaHandler(
       .get(getFriendsHistoryEndpoint, getFriendsHistoryHandler)
       .get(getCommentsEndpoint, getCommentsHandler)
       .post(postCommentEndpoint, postCommentHandler)
-      .delete(deleteCommentEndpoint, deleteCommentHandler);
+      .delete(deleteCommentEndpoint, deleteCommentHandler)
+      .get(getLikesEndpoint, getLikesHandler)
+      .post(toggleLikeEndpoint, toggleLikeHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

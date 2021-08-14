@@ -5,7 +5,7 @@ import { IGetStorageResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
-import { IAllFriends, IFriendStatus, IState, updateState } from "../models/state";
+import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
 import { IProgram } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
@@ -165,6 +165,74 @@ export namespace Thunk {
     };
   }
 
+  export function fetchLikes(startDate: string, endDate?: string): IThunk {
+    return async (dispatch, getState, env) => {
+      updateState(dispatch, [lb<IState>().p("likes").p("isLoading").record(true)]);
+      const newLikes = await load(dispatch, "fetchLikes", () => env.service.getLikes(startDate, endDate));
+      updateState(dispatch, [lb<IState>().p("likes").p("isLoading").record(false)]);
+      updateState(dispatch, [
+        lb<IState>()
+          .p("likes")
+          .p("likes")
+          .recordModify((likes) => ({ ...likes, ...newLikes })),
+      ]);
+    };
+  }
+
+  export function like(friendId: string, historyRecordId: number): IThunk {
+    return async (dispatch, getState, env) => {
+      const key = `${friendId}_${historyRecordId}`;
+      const userId = getState().user!.id;
+      const userNickname = getState().storage.settings.nickname || userId;
+      const existingLike = (getState().likes.likes[key] || []).filter((lks) => lks.userId === userId)[0];
+
+      const addLike = (): void => {
+        const l: ILike = {
+          friendIdHistoryRecordId: key,
+          userId,
+          userNickname,
+          friendId,
+          historyRecordId: historyRecordId,
+          timestamp: Date.now(),
+        };
+        updateState(dispatch, [
+          lb<IState>()
+            .p("likes")
+            .p("likes")
+            .p(key)
+            .recordModify((lks) => [...(lks || []), l]),
+        ]);
+      };
+      const removeLike = (): void => {
+        updateState(dispatch, [
+          lb<IState>()
+            .p("likes")
+            .p("likes")
+            .p(key)
+            .recordModify((lks) => CollectionUtils.removeBy(lks || [], "userId", userId)),
+        ]);
+      };
+      if (existingLike) {
+        removeLike();
+      } else {
+        addLike();
+      }
+
+      const result = await load(dispatch, "like", () => env.service.like(friendId, historyRecordId));
+      if (result == null) {
+        if (existingLike) {
+          addLike();
+        } else {
+          removeLike();
+        }
+      } else if (result && existingLike) {
+        addLike();
+      } else if (!result && !existingLike) {
+        removeLike();
+      }
+    };
+  }
+
   export function inviteFriend(friendId: string, message: string): IThunk {
     return friendAction(friendId, "invited", (service) => service.inviteFriend(friendId, message));
   }
@@ -280,6 +348,7 @@ async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, cli
     const date = storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
     dispatch(Thunk.fetchFriends(""));
     dispatch(Thunk.fetchFriendsHistory(date));
+    dispatch(Thunk.fetchLikes(date));
     dispatch(Thunk.getComments());
   }
 }

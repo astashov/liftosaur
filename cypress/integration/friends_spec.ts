@@ -6,6 +6,7 @@ describe("Friends", () => {
   });
 
   it("works", () => {
+    // TEST 1
     login("test1@example.com");
 
     g("footer-settings").click();
@@ -21,6 +22,7 @@ describe("Friends", () => {
 
     g("menu-item-test2").should("contain.text", "Invited");
 
+    // TEST 2
     login("test2@example.com");
 
     g("footer-settings").click();
@@ -44,17 +46,27 @@ describe("Friends", () => {
     g("history-record").eq(3).should("contain.text", "test1");
     g("history-record").eq(4).should("not.contain.text", "test1");
 
+    g("like").eq(0).click();
     cy.get(".history-record-test1").eq(0).click();
+    g("like").eq(0).should("have.class", "liked");
     g("new-comment-input").clear().type("Hi there!");
     g("new-comment-submit").click();
 
+    // TEST 1
     login("test1@example.com");
     g("menu-item-gzclp").click();
+    cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").should("have.class", "liked");
+    cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").click();
+    cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").should("have.class", "liked");
     g("history-record").eq(1).click();
+    g("like").should("have.class", "liked");
+    g("like").click();
+    g("like").should("have.class", "liked");
     g("comment-user").should("contain.text", "test2");
     g("comment-text").should("contain.text", "Hi there!");
     g("comment-delete").should("not.exist");
 
+    // TEST 2
     login("test2@example.com");
     g("menu-item-strong-curves-week-1-4").click();
     cy.get(".history-record-test1", { timeout: 10000 }).eq(0).click();
@@ -62,6 +74,7 @@ describe("Friends", () => {
     g("comment-text").should("contain.text", "Hi there!");
     g("comment-delete").click();
     g("comment-text").should("not.exist");
+    g("like").click();
 
     g("footer-settings").click();
     g("menu-item-friends").click();

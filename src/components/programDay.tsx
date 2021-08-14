@@ -10,7 +10,7 @@ import { RestTimer } from "./restTimer";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { IconEdit } from "./iconEdit";
-import { IAllComments, IAllFriends, IFriendUser, ILoading, IWebpushr } from "../models/state";
+import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { IconShare } from "./iconShare";
@@ -32,6 +32,7 @@ interface IProps {
   loading: ILoading;
   friend?: IFriendUser;
   comments: IAllComments;
+  likes: IAllLikes;
   nickname?: string;
   timerSince?: number;
   timerMode?: IProgressMode;
@@ -96,6 +97,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           friend={props.friend}
           userId={props.userId}
           comments={props.comments}
+          likes={props.likes}
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}

@@ -106,6 +106,30 @@ export class UserDao {
     });
   }
 
+  public async getUserAndHistory(
+    currentUserId: string,
+    startDate: string,
+    endDate?: string
+  ): Promise<(Omit<IUserDao, "storage"> & { storage: Omit<IUserDao["storage"], "programs" | "stats"> }) | undefined> {
+    const env = Utils.getEnv();
+    const [user, history] = await Promise.all([
+      this.getLimitedById(currentUserId),
+      this.di.dynamo.query<IHistoryRecord>({
+        tableName: userTableNames[env].historyRecords,
+        indexName: userTableNames[env].historyRecordsDate,
+        expression: `userId = :userId AND ${endDate ? "#date BETWEEN :startDate AND :endDate" : "#date > :startDate"}`,
+        attrs: { "#date": "date" },
+        scanIndexForward: false,
+        values: { ":userId": currentUserId, ":startDate": startDate, ":endDate": endDate },
+      }),
+    ]);
+    if (user) {
+      return { ...user, storage: { ...user.storage, history } };
+    } else {
+      return undefined;
+    }
+  }
+
   public async getById(userId: string): Promise<IUserDao | undefined> {
     const env = Utils.getEnv();
 
