@@ -20,7 +20,7 @@ export class DynamoUtil {
     indexName?: string;
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, string>>;
+    values?: Partial<Record<string, string | string[] | number>>;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -59,7 +59,7 @@ export class DynamoUtil {
   public async scan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    values?: Partial<Record<string, string>>;
+    values?: Partial<Record<string, string | string[]>>;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -158,6 +158,18 @@ export class DynamoUtil {
       throw e;
     }
     this.log.log(`Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
+  }
+
+  public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
+    const startTime = Date.now();
+    try {
+      const result = await this.dynamo.batchGet({ RequestItems: { [args.tableName]: { Keys: args.keys } } }).promise();
+      return result.Responses?.[args.tableName] as T[];
+    } catch (e) {
+      this.log.log(`FAILED Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
+      throw e;
+    }
+    this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
   }
 
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {

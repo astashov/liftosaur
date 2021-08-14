@@ -125,9 +125,11 @@ export function AppView(props: IProps): JSX.Element | null {
       content = (
         <ProgramHistoryView
           comments={state.comments}
+          likes={state.likes}
           loading={state.loading}
           program={program}
           progress={state.progress?.[0]}
+          userId={state.user?.id}
           friendsHistory={state.friendsHistory}
           stats={state.storage.stats}
           settings={state.storage.settings}
@@ -146,6 +148,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramDayView
           friends={state.allFriends}
           loading={state.loading}
+          likes={state.likes}
           comments={state.comments}
           userId={state.user?.id}
           history={[]}
@@ -172,6 +175,7 @@ export function AppView(props: IProps): JSX.Element | null {
           isChanged={isChanged}
           program={Progress.isCurrent(progress) ? program : undefined}
           comments={state.comments}
+          likes={state.likes}
           dispatch={dispatch}
           webpushr={state.webpushr}
           timerSince={progress.timerSince}

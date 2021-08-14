@@ -21,6 +21,15 @@ export interface IFriend {
   status?: IFriendStatus;
 }
 
+export interface ILike {
+  friendIdHistoryRecordId: string;
+  userId: string;
+  userNickname: string;
+  friendId: string;
+  historyRecordId: number;
+  timestamp: number;
+}
+
 export interface IFriendUser {
   id: string;
   nickname: string;
@@ -50,6 +59,11 @@ export interface IAllComments {
   isRemoving: Partial<Record<string, boolean>>;
 }
 
+export interface IAllLikes {
+  likes: Partial<Record<string, ILike[]>>;
+  isLoading: boolean;
+}
+
 export interface IComment {
   id: string;
   userId: string;
@@ -64,6 +78,7 @@ export interface IState {
   storage: IStorage;
   programs: IProgram[];
   allFriends: IAllFriends;
+  likes: IAllLikes;
   friendsHistory: Partial<Record<string, IFriendUser>>;
   notification?: INotification;
   webpushr?: IWebpushr;

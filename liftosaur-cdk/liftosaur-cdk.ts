@@ -123,12 +123,26 @@ export class LiftosaurCdkStack extends cdk.Stack {
       sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
-    // - id
-    // - userId
-    // - friendId
-    // - historyRecordId
-    // - timestamp
-    // - text
+
+    const likesTable = new dynamodb.Table(this, `LftLikes${suffix}`, {
+      tableName: `lftLikes${suffix}`,
+      partitionKey: { name: "friendIdHistoryRecordId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+    likesTable.addGlobalSecondaryIndex({
+      indexName: `lftLikesFriends${suffix}`,
+      partitionKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    likesTable.addGlobalSecondaryIndex({
+      indexName: `lftLikesUsers${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const secretArns = {
       dev: {
