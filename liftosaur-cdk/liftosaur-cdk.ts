@@ -225,6 +225,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     logsTable.grantReadWriteData(lambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
     commentsTable.grantReadWriteData(lambdaFunction);
+    likesTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],

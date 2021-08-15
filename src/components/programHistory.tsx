@@ -49,6 +49,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           const startdate = sortedHistory[vr - 1]?.date;
           dispatch(Thunk.fetchFriendsHistory(startdate || "2019-01-01T00:00:00.000Z", enddate));
           dispatch(Thunk.fetchLikes(startdate || "2019-01-01T00:00:00.000Z", enddate));
+          dispatch(Thunk.getComments(startdate || "2019-01-01T00:00:00.000Z", enddate));
           setVisibleRecords(vr);
           visibleRecordsRef.current = vr;
         }

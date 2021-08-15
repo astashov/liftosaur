@@ -6,6 +6,7 @@ import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 import { noReplyEmail } from "../utils/email";
 import { UidFactory } from "../utils/generator";
+import { FriendDao } from "./friendDao";
 import { HistoryRecordsDao } from "./historyRecordDao";
 import { UserDao } from "./userDao";
 
@@ -23,32 +24,48 @@ const tableNames = {
 export class CommentsDao {
   constructor(private readonly di: IDI) {}
 
-  public async getForUser(currentUserId: string): Promise<Partial<Record<string, IComment[]>>> {
+  public async getForUser(
+    currentUserId: string,
+    startDate: string,
+    endDate?: string
+  ): Promise<Partial<Record<string, IComment[]>>> {
     const env = Utils.getEnv();
+    const friendsDao = new FriendDao(this.di);
+    const userDao = new UserDao(this.di);
+    const currentUser = await userDao.getUserAndHistory(currentUserId, startDate, endDate);
+    const friendsWithHistories = await friendsDao.getFriendsWithHistories(currentUserId, startDate, endDate);
+    const friendIds = [currentUserId, ...ObjectUtils.keys(CollectionUtils.groupByKeyUniq(friendsWithHistories, "id"))];
 
-    const [myComments, friendsComments] = await Promise.all([
-      this.di.dynamo.query<IComment>({
-        tableName: tableNames[env].comments,
-        expression: "userId = :userId",
-        scanIndexForward: false,
-        values: { ":userId": currentUserId },
-      }),
-      this.di.dynamo.query<IComment>({
-        tableName: tableNames[env].comments,
-        indexName: tableNames[env].commentsFriends,
-        expression: "friendId = :userId",
-        scanIndexForward: false,
-        values: { ":userId": currentUserId },
-      }),
-    ]);
+    if (currentUser != null) {
+      let histories = currentUser.storage.history.map((hr) => `${currentUserId}_${hr.id}`);
+      for (const friend of friendsWithHistories) {
+        histories = histories.concat(friend.storage.history.map((hr) => `${friend.id}_${hr.id}`));
+      }
+      const historiesSet = new Set(histories);
 
-    const comments = CollectionUtils.groupByKey(myComments.concat(friendsComments), "historyRecordId");
-    for (const key of ObjectUtils.keys(comments)) {
-      comments[key] = CollectionUtils.uniqBy(comments[key] || [], "id");
-      comments[key]!.sort((a, b) => b.timestamp - a.timestamp);
+      const commentsDao = (
+        await Promise.all(
+          friendIds.map((friendId) => {
+            return this.di.dynamo.query<IComment>({
+              tableName: tableNames[env].comments,
+              indexName: tableNames[env].commentsFriends,
+              expression: "friendId = :friendId",
+              values: { ":friendId": friendId },
+            });
+          })
+        )
+      )
+        .flat()
+        .filter((c) => historiesSet.has(`${c.friendId}_${c.historyRecordId}`));
+      const comments = CollectionUtils.groupByKey(commentsDao, "historyRecordId");
+      for (const key of ObjectUtils.keys(comments)) {
+        comments[key] = CollectionUtils.uniqBy(comments[key] || [], "id");
+        comments[key]!.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      return comments;
+    } else {
+      return {};
     }
-
-    return comments;
   }
 
   public async post(

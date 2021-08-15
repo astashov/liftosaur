@@ -245,9 +245,9 @@ export namespace Thunk {
     return friendAction(friendId, "active", (service) => service.acceptFrienshipInvitation(friendId));
   }
 
-  export function getComments(): IThunk {
+  export function getComments(startDate: string, endDate?: string): IThunk {
     return async (dispatch, getState, env) => {
-      const comments = await load(dispatch, "getComments", () => env.service.getComments());
+      const comments = await load(dispatch, "getComments", () => env.service.getComments(startDate, endDate));
       updateState(dispatch, [
         lb<IState>()
           .p("comments")
@@ -349,6 +349,6 @@ async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, cli
     dispatch(Thunk.fetchFriends(""));
     dispatch(Thunk.fetchFriendsHistory(date));
     dispatch(Thunk.fetchLikes(date));
-    dispatch(Thunk.getComments());
+    dispatch(Thunk.getComments(date));
   }
 }

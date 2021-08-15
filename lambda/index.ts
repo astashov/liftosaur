@@ -642,15 +642,19 @@ const getFriendsHistoryHandler: RouteHandler<
   }
 };
 
-export const getCommentsEndpoint = Endpoint.build("/api/comments");
+export const getCommentsEndpoint = Endpoint.build("/api/comments", {
+  startdate: "string",
+  enddate: "string?",
+});
 const getCommentsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getCommentsEndpoint> = async ({
   payload,
+  match: { params },
 }) => {
   const { event } = payload;
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
   if (currentUserId != null) {
     const commentsDao = new CommentsDao(payload.di);
-    const comments = await commentsDao.getForUser(currentUserId);
+    const comments = await commentsDao.getForUser(currentUserId, params.startdate, params.enddate);
     return json(200, event, { comments });
   } else {
     return json(401, event, {});
