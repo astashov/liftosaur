@@ -3,6 +3,7 @@ import { useCallback, useRef } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IAllComments, IAllFriends, IAllLikes } from "../models/state";
+import { DateUtils } from "../utils/date";
 import { Button } from "./button";
 import { ButtonLike } from "./buttonLike";
 import { IconDelete } from "./iconDelete";
@@ -52,8 +53,9 @@ export function Comments(props: ICommentsProps): JSX.Element {
 
           return (
             <li className="py-2 border-b border-gray-300" data-cy="comment">
-              <div className="text-xs italic text-gray-600" data-cy="comment-user">
-                {name || comment.userId}
+              <div className="flex text-xs italic text-gray-600" data-cy="comment-user">
+                <div className="flex-1">{name || comment.userId}</div>
+                <div>{DateUtils.formatWithTime(comment.timestamp)}</div>
               </div>
               <div className="flex">
                 <div className="flex-1" data-cy="comment-text">

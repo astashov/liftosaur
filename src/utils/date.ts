@@ -11,6 +11,25 @@ export namespace DateUtils {
     return date.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   }
 
+  export function formatWithTime(dateStr: string | Date | number): string {
+    let date;
+    if (typeof dateStr === "string") {
+      date = new Date(Date.parse(dateStr));
+    } else if (typeof dateStr === "number") {
+      date = new Date(dateStr);
+    } else {
+      date = dateStr;
+    }
+    return date.toLocaleDateString(undefined, {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    });
+  }
+
   export function formatYYYYMMDD(date: Date | string | number): string {
     const d = new Date(date);
     let month = `${d.getMonth() + 1}`;

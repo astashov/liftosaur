@@ -3,7 +3,6 @@
     - BBB
     - Building the monolith
   - Greyskull LP
-  - Strong Curves
   - nSuns LP
 * Add errors handling to HTTP calls
 * Add exporting all data to downloadable CSV
@@ -14,10 +13,7 @@
 * Refactor MenuItem, to better incorporate existing use cases
 * Split editProgramExercise into multiple files
 * Add muscles to the exercise selector
-* Add ability to add friends
 * Add ability to watch friends feeds
-* Add ability to comment friends workouts
-* Add ability to like friends workouts
 
 * Bug:
 Assign lb to state var of type number
@@ -26,6 +22,3 @@ Assign lb to state var of type number
 
 * Add notification dot to friends icon if invitations pending
 * Add friends feeds per user
-* Add ability to like on friends workouts
-  - show number of likes per workout in the feed
-* Add ability to unlike workouts
