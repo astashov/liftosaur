@@ -345,6 +345,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: progress.id,
+        currentHistoryRecordUserId: undefined,
         screenStack: Screen.push(state.screenStack, "progress"),
       };
     } else if (state.storage.currentProgramId != null) {
@@ -354,6 +355,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: 0,
+        currentHistoryRecordUserId: undefined,
         screenStack: Screen.push(state.screenStack, "progress"),
         progress: { ...state.progress, 0: newProgress },
       };
