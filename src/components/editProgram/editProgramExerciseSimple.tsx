@@ -8,12 +8,11 @@ import { IconEdit } from "../iconEdit";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { Weight } from "../../models/weight";
 import { Button } from "../button";
 import { ReactUtils } from "../../utils/react";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
-import { ISettings, IProgramDay, IProgramExercise, IEquipment, IWeight } from "../../types";
+import { ISettings, IProgramDay, IProgramExercise, IEquipment, IUnit } from "../../types";
 
 interface IProps {
   settings: ISettings;
@@ -271,12 +270,14 @@ interface IProgressionProps {
 }
 
 interface IProgression {
-  increment: IWeight;
+  increment: number;
+  unit: IUnit | "%";
   attempts: number;
 }
 
 interface IDeload {
-  decrement: IWeight;
+  decrement: number;
+  unit: IUnit | "%";
   attempts: number;
 }
 
@@ -285,24 +286,24 @@ function Progression(props: IProgressionProps): JSX.Element {
   const inputClassName = `inline-block w-10 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
   const initialProgression = (): IProgression | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '([\d\.]+)(kg|lb),(\d+)'/im);
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '([\d\.]+)(kg|lb|%),(\d+)'/im);
     if (match) {
       const increment = parseFloat(match[1]);
-      const unit = match[2];
+      const unit = match[2] as "kg" | "lb" | "%";
       const attempts = parseInt(match[3], 10);
-      return { increment: Weight.build(increment, unit as "kg" | "lb"), attempts };
+      return { increment: increment, unit, attempts };
     } else {
       return undefined;
     }
   };
 
   const initialDeload = (): IDeload | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '([\d\.]+)(kg|lb),(\d+)'/im);
+    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '([\d\.]+)(kg|lb|%),(\d+)'/im);
     if (match) {
       const decrement = parseFloat(match[1]);
-      const unit = match[2];
+      const unit = match[2] as "kg" | "lb" | "%";
       const attempts = parseInt(match[3], 10);
-      return { decrement: Weight.build(decrement, unit as "kg" | "lb"), attempts };
+      return { decrement: decrement, unit, attempts };
     } else {
       return undefined;
     }
@@ -320,8 +321,10 @@ function Progression(props: IProgressionProps): JSX.Element {
   });
 
   const progressionIncrementRef = useRef<HTMLInputElement>();
+  const progressionUnitRef = useRef<HTMLSelectElement>();
   const progressionAttemptsRef = useRef<HTMLInputElement>();
   const deloadDecrementsRef = useRef<HTMLInputElement>();
+  const deloadUnitRef = useRef<HTMLSelectElement>();
   const deloadFailuresRef = useRef<HTMLInputElement>();
 
   return (
@@ -332,8 +335,7 @@ function Progression(props: IProgressionProps): JSX.Element {
         name="&#x2B06&nbsp;&nbsp;Enable&nbsp;Progression"
         value={progression != null ? "true" : "false"}
         onChange={(v) => {
-          const newProgression =
-            progression == null ? { increment: Weight.build(5, settings.units), attempts: 1 } : undefined;
+          const newProgression = progression == null ? { increment: 5, unit: settings.units, attempts: 1 } : undefined;
           setProgression(newProgression);
         }}
       />
@@ -346,16 +348,33 @@ function Progression(props: IProgressionProps): JSX.Element {
             ref={progressionIncrementRef}
             className={inputClassName}
             type="text"
-            value={progression.increment.value}
+            value={progression.increment}
             onBlur={() => {
               let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
               if (value != null) {
-                setProgression({ ...progression, increment: Weight.build(value, settings.units) });
+                setProgression({ ...progression, increment: value });
               }
             }}
           />
-          <span> {settings.units} after </span>
+          <select
+            ref={progressionUnitRef}
+            name="units"
+            onChange={() => {
+              const unit = progressionUnitRef.current.value as IUnit | "%";
+              if (unit != null) {
+                setProgression({ ...progression, unit });
+              }
+            }}
+          >
+            <option selected={progression.unit === settings.units} value={settings.units}>
+              {settings.units}
+            </option>
+            <option selected={progression.unit === "%"} value="%">
+              %
+            </option>
+          </select>
+          <span> after </span>
           <input
             ref={progressionAttemptsRef}
             className={inputClassName}
@@ -378,7 +397,7 @@ function Progression(props: IProgressionProps): JSX.Element {
         name="&#x2B07&nbsp;&nbsp;Enable&nbsp;Deload"
         value={deload != null ? "true" : "false"}
         onChange={(v) => {
-          const newDeload = deload == null ? { decrement: Weight.build(5, settings.units), attempts: 1 } : undefined;
+          const newDeload = deload == null ? { decrement: 5, unit: settings.units, attempts: 1 } : undefined;
           setDeload(newDeload);
           EditProgram.setProgression(dispatch, progression, newDeload);
         }}
@@ -390,16 +409,33 @@ function Progression(props: IProgressionProps): JSX.Element {
             ref={deloadDecrementsRef}
             className={inputClassName}
             type="text"
-            value={deload.decrement.value}
+            value={deload.decrement}
             onBlur={() => {
               let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
               value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
               if (value != null) {
-                setDeload({ ...deload, decrement: Weight.build(value, settings.units) });
+                setDeload({ ...deload, decrement: value });
               }
             }}
           />
-          <span> {deload.decrement.unit} after </span>
+          <select
+            ref={deloadUnitRef}
+            name="units"
+            onChange={() => {
+              const unit = deloadUnitRef.current.value as IUnit | "%";
+              if (unit != null) {
+                setDeload({ ...deload, unit });
+              }
+            }}
+          >
+            <option selected={deload.unit === settings.units} value={settings.units}>
+              {settings.units}
+            </option>
+            <option selected={deload.unit === "%"} value="%">
+              %
+            </option>
+          </select>
+          <span> after </span>
           <input
             ref={deloadFailuresRef}
             className={inputClassName}

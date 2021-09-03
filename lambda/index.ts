@@ -613,7 +613,7 @@ const acceptFriendInvitationByHashHandler: RouteHandler<
   const host = getHost(event);
   const friendDao = new FriendDao(payload.di);
   const result = await friendDao.acceptInvitationByHash(params.hash);
-  const redirectUrl = new URL(`https://${host}`);
+  const redirectUrl = host ? new URL(`https://${host}`) : new URL("https://www.liftosaur.com");
   if (result.success) {
     redirectUrl.searchParams.set("messagesuccess", result.data);
   } else {

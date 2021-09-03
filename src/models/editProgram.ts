@@ -423,8 +423,8 @@ export namespace EditProgram {
 
   export function setProgression(
     dispatch: IDispatch,
-    progression?: { increment: IWeight; attempts: number },
-    deload?: { decrement: IWeight; attempts: number }
+    progression?: { increment: number; unit: IUnit | "%"; attempts: number },
+    deload?: { decrement: number; unit: IUnit | "%"; attempts: number }
   ): void {
     const lbs: ILensRecordingPayload<IState>[] = [];
     lbs.push(lb<IState>().pi("editExercise").p("state").p("successes").record(0));
@@ -433,11 +433,15 @@ export namespace EditProgram {
     if (progression != null) {
       finishDayExpr.push(
         StringUtils.unindent(`
-          // Simple Exercise Progression script '${Weight.print(progression.increment)},${progression.attempts}'
+          // Simple Exercise Progression script '${progression.increment}${progression.unit},${progression.attempts}'
           if (completedReps >= reps) {
             state.successes = state.successes + 1
             if (state.successes >= ${progression.attempts}) {
-              state.weight = state.weight + ${Weight.print(progression.increment)}
+              ${
+                progression.unit === "%"
+                  ? `state.weight = roundWeight(state.weight * ${1 + progression.increment / 100})`
+                  : `state.weight = state.weight + ${progression.increment}${progression.unit}`
+              }
               state.successes = 0
               state.failures = 0
             }
@@ -449,11 +453,15 @@ export namespace EditProgram {
     if (deload != null) {
       finishDayExpr.push(
         StringUtils.unindent(`
-          // Simple Exercise Deload script '${Weight.print(deload.decrement)},${deload.attempts}'
+          // Simple Exercise Deload script '${deload.decrement}${deload.unit},${deload.attempts}'
           if (!(completedReps >= reps)) {
             state.failures = state.failures + 1
             if (state.failures >= ${deload.attempts}) {
-              state.weight = state.weight - ${Weight.print(deload.decrement)}
+              ${
+                deload.unit === "%"
+                  ? `state.weight = roundWeight(state.weight * ${1 - deload.decrement / 100})`
+                  : `state.weight = state.weight - ${deload.decrement}${deload.unit}`
+              }
               state.successes = 0
               state.failures = 0
             }
