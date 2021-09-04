@@ -280,6 +280,37 @@ a.hero-title {
   text-align: center;
 }
 
+.programs {
+  max-width: 800px;
+  margin: 5em auto 0;
+  padding: 0 2em;
+  line-height: 1.7;
+}
+
+.programs h2 {
+  font-family: Poppins;
+  font-size: 2.5em;
+  text-align: center;
+  line-height: 1.5em;
+  padding-bottom: 0.5em;
+  color: #1a202c;
+}
+
+.programs ul {
+  font-size: 1.3em;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 3em;
+}
+
+.programs-more {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 2em;
+  font-style: italic;
+}
+
 .code {
   text-align: left;
 }
