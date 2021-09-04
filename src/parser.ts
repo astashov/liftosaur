@@ -1,4 +1,4 @@
-import { IScriptBindings, IScriptFunctions } from "./models/progress";
+import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
 import { IUnit, IWeight, IProgramState } from "./types";
 
@@ -374,11 +374,13 @@ class Evaluator {
   private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
+  private readonly context: IScriptContext;
 
-  constructor(state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions) {
+  constructor(state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions, context: IScriptContext) {
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
+    this.context = context;
   }
 
   public evaluate(expr: IExpr): number | boolean | IWeight {
@@ -474,10 +476,7 @@ class Evaluator {
       const name = expr.name as keyof typeof fns;
       if (this.fns[name] != null) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this.fns[name] as any).apply(
-          undefined,
-          expr.args.map((a) => this.evaluate(a))
-        );
+        return (this.fns[name] as any).apply(undefined, [...expr.args.map((a) => this.evaluate(a)), this.context]);
       } else {
         throw new SyntaxError(`Unknown function '${name}'`);
       }
@@ -542,13 +541,22 @@ export class ScriptRunner {
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
+  private readonly context: IScriptContext;
 
-  constructor(script: string, state: IProgramState, bindings: IScriptBindings, fns: IScriptFunctions, units: IUnit) {
+  constructor(
+    script: string,
+    state: IProgramState,
+    bindings: IScriptBindings,
+    fns: IScriptFunctions,
+    units: IUnit,
+    context: IScriptContext
+  ) {
     this.script = script;
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
     this.units = units;
+    this.context = context;
   }
 
   public parse(): IExpr {
@@ -561,7 +569,7 @@ export class ScriptRunner {
   public execute(type?: undefined): number | IWeight | boolean;
   public execute(type?: "reps" | "weight"): number | IWeight | boolean {
     const ast = this.parse();
-    const evaluator = new Evaluator(this.state, this.bindings, this.fns);
+    const evaluator = new Evaluator(this.state, this.bindings, this.fns, this.context);
     let result = evaluator.evaluate(ast);
     if (type === "reps") {
       if (typeof result !== "number") {

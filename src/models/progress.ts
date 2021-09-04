@@ -21,6 +21,7 @@ import {
   IProgram,
   IProgramDay,
   IProgramState,
+  IEquipment,
 } from "../types";
 
 export interface IScriptBindings {
@@ -33,9 +34,13 @@ export interface IScriptBindings {
   cr: number[];
 }
 
+export interface IScriptContext {
+  equipment?: IEquipment;
+}
+
 export interface IScriptFunctions {
-  roundWeight: (num: IWeight) => IWeight;
-  calculateTrainingMax: (weight: IWeight, reps: number) => IWeight;
+  roundWeight: (num: IWeight, context: IScriptContext) => IWeight;
+  calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
 }
 
 export namespace Progress {
@@ -66,13 +71,13 @@ export namespace Progress {
 
   export function createScriptFunctions(settings: ISettings): IScriptFunctions {
     return {
-      roundWeight: (num) => {
+      roundWeight: (num, context) => {
         if (!Weight.is(num)) {
           num = Weight.build(num, settings.units);
         }
-        return Weight.round(num, settings, "barbell");
+        return Weight.round(num, settings, context?.equipment || "barbell");
       },
-      calculateTrainingMax: (weight, reps) => {
+      calculateTrainingMax: (weight, reps, context) => {
         if (!Weight.is(weight)) {
           weight = Weight.build(weight, settings.units);
         }
@@ -365,11 +370,25 @@ export namespace Progress {
             ...progressEntry,
             exercise: programExercise.exerciseType,
             sets: progressEntry.sets.map((set, i) => {
-              const weight = executeEntryScript(sets[i].weightExpr, day, state, settings, "weight");
+              const weight = executeEntryScript(
+                sets[i].weightExpr,
+                day,
+                state,
+                { equipment: programExercise.exerciseType.equipment },
+                settings,
+                "weight"
+              );
               const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
               return {
                 ...set,
-                reps: executeEntryScript(sets[i].repsExpr, day, state, settings, "reps"),
+                reps: executeEntryScript(
+                  sets[i].repsExpr,
+                  day,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment },
+                  settings,
+                  "reps"
+                ),
                 weight: roundedWeight,
                 isAmrap: sets[i].isAmrap,
               };
@@ -378,14 +397,37 @@ export namespace Progress {
         } else {
           const firstWeightExpr = sets[0]?.weightExpr;
           const firstWeight =
-            firstWeightExpr != null ? executeEntryScript(firstWeightExpr, day, state, settings, "weight") : undefined;
+            firstWeightExpr != null
+              ? executeEntryScript(
+                  firstWeightExpr,
+                  day,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment },
+                  settings,
+                  "weight"
+                )
+              : undefined;
           return {
             exercise: programExercise.exerciseType,
             sets: sets.map((set) => {
-              const weight = executeEntryScript(set.weightExpr, day, state, settings, "weight");
+              const weight = executeEntryScript(
+                set.weightExpr,
+                day,
+                state,
+                { equipment: programExercise.exerciseType.equipment },
+                settings,
+                "weight"
+              );
               const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
               return {
-                reps: executeEntryScript(set.repsExpr, day, state, settings, "reps"),
+                reps: executeEntryScript(
+                  set.repsExpr,
+                  day,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment },
+                  settings,
+                  "reps"
+                ),
                 weight: roundedWeight,
                 isAmrap: set.isAmrap,
               };
@@ -402,6 +444,7 @@ export namespace Progress {
     expr: string,
     day: number,
     state: IProgramState,
+    context: IScriptContext,
     settings: ISettings,
     type: "weight"
   ): IWeight;
@@ -409,6 +452,7 @@ export namespace Progress {
     expr: string,
     day: number,
     state: IProgramState,
+    context: IScriptContext,
     settings: ISettings,
     type: "reps"
   ): number;
@@ -416,6 +460,7 @@ export namespace Progress {
     expr: string,
     day: number,
     state: IProgramState,
+    context: IScriptContext,
     settings: ISettings,
     type: "reps" | "weight"
   ): IWeight | number {
@@ -424,7 +469,8 @@ export namespace Progress {
       state,
       createEmptyScriptBindings(day),
       createScriptFunctions(settings),
-      settings.units
+      settings.units,
+      context
     );
     if (type === "reps") {
       return runner.execute(type);

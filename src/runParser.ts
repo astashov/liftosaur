@@ -72,6 +72,6 @@ const fns = Progress.createScriptFunctions({
 
 const state = {};
 
-const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb");
+const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {});
 console.log(scriptRunner.execute());
 console.log(state);

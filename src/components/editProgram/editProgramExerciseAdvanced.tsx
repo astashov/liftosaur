@@ -103,7 +103,8 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           day,
           props.settings,
           programExercise.state,
-          programExercise.finishDayExpr
+          programExercise.finishDayExpr,
+          entry?.exercise?.equipment
         )
       : Program.parseExerciseFinishDayScript(day, props.settings, programExercise.state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
@@ -397,7 +398,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           propsRef.current.state,
           Progress.createEmptyScriptBindings(propsRef.current.day),
           Progress.createScriptFunctions(settings),
-          settings.units
+          settings.units,
+          { equipment }
         );
         if (type === "reps") {
           return { success: true, data: scriptRunnerResult.execute(type) };

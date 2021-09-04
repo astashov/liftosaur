@@ -22,6 +22,7 @@ import {
   IHistoryRecord,
   IWeight,
   IProgramExerciseVariation,
+  IEquipment,
 } from "../types";
 
 export namespace Program {
@@ -79,14 +80,16 @@ export namespace Program {
         state,
         Progress.createEmptyScriptBindings(day),
         Progress.createScriptFunctions(settings),
-        settings.units
+        settings.units,
+        { equipment: exercise.equipment }
       ).execute("reps");
       const weightValue = new ScriptRunner(
         set.weightExpr,
         state,
         Progress.createEmptyScriptBindings(day),
         Progress.createScriptFunctions(settings),
-        settings.units
+        settings.units,
+        { equipment: exercise.equipment }
       ).execute("weight");
       return {
         isAmrap: set.isAmrap,
@@ -131,14 +134,16 @@ export namespace Program {
     day: number,
     settings: ISettings,
     state: IProgramState,
-    script: string
+    script: string,
+    equipment?: IEquipment
   ): IEither<unknown, string> {
     const scriptRunner = new ScriptRunner(
       script,
       state,
       Progress.createEmptyScriptBindings(day),
       Progress.createScriptFunctions(settings),
-      settings.units
+      settings.units,
+      { equipment }
     );
 
     try {
@@ -157,14 +162,15 @@ export namespace Program {
     day: number,
     settings: ISettings,
     state: IProgramState,
-    script: string
+    script: string,
+    equipment?: IEquipment
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
     const newState: IProgramState = { ...state };
 
     try {
-      new ScriptRunner(script, newState, bindings, fns, settings.units).execute();
+      new ScriptRunner(script, newState, bindings, fns, settings.units, { equipment }).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -189,7 +195,8 @@ export namespace Program {
           programExercise.state,
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
-          settings.units
+          settings.units,
+          { equipment: programExercise.exerciseType.equipment }
         );
         return { success: true, data: scriptRunnerResult.execute("reps") };
       } else {
@@ -232,7 +239,8 @@ export namespace Program {
           programExercise.state,
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
-          settings.units
+          settings.units,
+          { equipment: programExercise.exerciseType.equipment }
         );
         return { success: true, data: scriptRunnerResult.execute(type as "reps") };
       } else {
@@ -258,7 +266,9 @@ export namespace Program {
     const newState: IProgramState = { ...programExercise.state };
 
     try {
-      new ScriptRunner(programExercise.finishDayExpr, newState, bindings, fns, settings.units).execute();
+      new ScriptRunner(programExercise.finishDayExpr, newState, bindings, fns, settings.units, {
+        equipment: programExercise.exerciseType.equipment,
+      }).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
