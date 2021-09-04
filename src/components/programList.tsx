@@ -9,6 +9,7 @@ import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
 import { IState } from "../models/state";
 import { IProgram } from "../types";
+import { CollectionUtils } from "../utils/collection";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -19,8 +20,8 @@ interface IProps {
 }
 
 export function ProgramListView(props: IProps): JSX.Element {
-  const customPrograms = props.customPrograms || [];
-  const programs = props.programs || [];
+  const customPrograms = CollectionUtils.sort(props.customPrograms || [], (a, b) => a.name.localeCompare(b.name));
+  const programs = CollectionUtils.sort(props.programs || [], (a, b) => a.name.localeCompare(b.name));
 
   const tagToColor = {
     "first-starter": "bg-orange-700",
