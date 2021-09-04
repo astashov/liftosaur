@@ -18,7 +18,7 @@ interface IProps {
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const { entry, settings, state, script, day } = props;
   const { units } = settings;
-  const result = Program.runExerciseFinishDayScript(entry, day, settings, state, script);
+  const result = Program.runExerciseFinishDayScript(entry, day, settings, state, script, entry.exercise.equipment);
   const isFinished = Reps.isFinished(entry.sets);
 
   if ((props.forceShow || isFinished) && result.success) {
