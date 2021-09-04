@@ -143,7 +143,7 @@ export namespace History {
       for (const entry of record.entries) {
         if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
           const allSetsSame = entry.sets.every(
-            (set, i) => set.reps === currentEntry.sets[i].reps && Weight.eq(set.weight, currentEntry.sets[i].weight)
+            (set, i) => set.reps === currentEntry.sets[i]?.reps && Weight.eq(set.weight, currentEntry.sets[i]?.weight)
           );
           if (allSetsSame) {
             if (last == null) {
