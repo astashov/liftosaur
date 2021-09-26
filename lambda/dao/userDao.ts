@@ -185,10 +185,8 @@ export class UserDao {
     });
 
     const historyUpdates = CollectionUtils.inGroupsOf(23, history).map(async (group) => {
-      await this.di.dynamo.batchPut({
-        tableName: userTableNames[env].historyRecords,
-        items: group.map((record) => ({ ...record, userId: user.id })),
-      });
+      const items = CollectionUtils.uniqBy(group, "id").map((record) => ({ ...record, userId: user.id }));
+      await this.di.dynamo.batchPut({ tableName: userTableNames[env].historyRecords, items });
     });
 
     const programDeletes = CollectionUtils.inGroupsOf(23, programsToDelete).map(async (group) => {

@@ -31,6 +31,7 @@ export function ProgramListView(props: IProps): JSX.Element {
     intermediate: "bg-orange-700",
     woman: "bg-pink-700",
     ppl: "bg-orange-700",
+    hypertrophy: "bg-blue-700",
   };
 
   return (
