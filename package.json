@@ -42,6 +42,7 @@
     "@types/deepmerge": "^2.2.0",
     "@types/jest": "^25.2.1",
     "@types/jsonwebtoken": "^8.3.9",
+    "@types/prismjs": "^1.16.6",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "autoprefixer": "^9.7.4",
@@ -95,6 +96,7 @@
     "lens-shmens": "^1.0.3",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
+    "prismjs": "^1.25.0",
     "uplot": "^1.0.9",
     "yatro": "^0.2.3"
   }

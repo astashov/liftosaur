@@ -94,7 +94,7 @@ function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.El
   return (
     <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
       <div className="text-left">{exercise.name}</div>
-      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} />
+      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} size="large" />
       <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
         <IconClose />
       </button>

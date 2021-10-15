@@ -7,9 +7,10 @@ import { IAllCustomExercises, IExerciseType } from "../types";
 interface IProps {
   exerciseType: IExerciseType;
   customExercises: IAllCustomExercises;
+  size: "large" | "small";
 }
 
-export function ExerciseImage({ exerciseType, customExercises }: IProps): JSX.Element | null {
+export function ExerciseImage({ exerciseType, customExercises, size }: IProps): JSX.Element | null {
   const targetMuscles = Exercise.targetMuscles(exerciseType, customExercises);
   const imgRef = useRef<HTMLImageElement>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -32,15 +33,15 @@ export function ExerciseImage({ exerciseType, customExercises }: IProps): JSX.El
   if (isLoading || isError) {
     className = "invisible h-0";
   }
+  const id = exerciseType.id.toLowerCase();
+  const equipment = (exerciseType.equipment || "bodyweight").toLowerCase();
+  const src =
+    size === "large"
+      ? `https://www.liftosaur.com/externalimages/exercises/full/large/${id}_${equipment}_full_large.png`
+      : `https://www.liftosaur.com/externalimages/exercises/single/small/${id}_${equipment}_single_small.png`;
   return targetMuscles.length > 0 ? (
     <Fragment>
-      <img
-        ref={imgRef}
-        className={className}
-        src={`https://www.liftosaur.com/externalimages/exercises/full/large/${exerciseType.id.toLowerCase()}_${(
-          exerciseType.equipment || "bodyweight"
-        ).toLowerCase()}_full_large.png`}
-      />
+      <img ref={imgRef} className={className} src={src} />
       <ExerciseImageAuxiliary isError={isError} isLoading={isLoading} />
     </Fragment>
   ) : (

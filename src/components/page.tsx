@@ -12,6 +12,7 @@ interface IProps<T> {
   ogImage?: string;
   data: T;
   children?: ComponentChildren;
+  postHead?: JSX.Element;
 }
 
 export function Page<T>(props: IProps<T>): JSX.Element {
@@ -44,6 +45,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.ogImage && <meta property="og:image" content={props.ogImage} />}
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
+        {props.postHead}
       </head>
       <body>
         <div class="content">

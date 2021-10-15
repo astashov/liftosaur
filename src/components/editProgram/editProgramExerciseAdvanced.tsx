@@ -6,7 +6,6 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { ObjectUtils } from "../../utils/object";
 import { History } from "../../models/history";
 import { Weight } from "../../models/weight";
-import { ExerciseView } from "../exercise";
 import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { Button } from "../button";
 import { OneLineTextEditor } from "./oneLineTextEditor";
@@ -16,9 +15,6 @@ import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IEither } from "../../utils/types";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
-import { ModalAmrap } from "../modalAmrap";
-import { ModalWeight } from "../modalWeight";
-import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IconDelete } from "../iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../iconHandle";
@@ -43,6 +39,7 @@ import {
   IProgramState,
   IWeight,
 } from "../../types";
+import { Playground } from "../playground";
 
 interface IProps {
   settings: ISettings;
@@ -155,6 +152,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
           exerciseType={programExercise.exerciseType}
           customExercises={props.settings.exercises}
+          size="large"
         />
       </MenuItemWrapper>
       <MenuItemEditable
@@ -201,7 +199,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           programExercise={programExercise}
           progress={progress}
           settings={props.settings}
-          dispatch={props.dispatch}
           days={props.days}
           onProgressChange={(p) => setProgress(p)}
         />
@@ -566,80 +563,6 @@ function EditState(props: IStateProps): JSX.Element {
         <SemiButton onClick={props.onAddStateVariable}>Add Variable +</SemiButton>
       </div>
     </section>
-  );
-}
-
-interface IPlaygroundProps {
-  progress: IHistoryRecord;
-  programExercise: IProgramExercise;
-  dispatch: IDispatch;
-  settings: ISettings;
-  day: number;
-  days: IProgramDay[];
-  onProgressChange: (p: IHistoryRecord) => void;
-}
-
-function Playground(props: IPlaygroundProps): JSX.Element {
-  const { programExercise, days, settings, progress } = props;
-  const entry = progress.entries[0];
-  const progressRef = useRef(props.progress);
-  progressRef.current = props.progress;
-
-  const dispatch: IDispatch = async (action) => {
-    const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
-    props.onProgressChange(newProgress);
-  };
-
-  return (
-    <Fragment>
-      <GroupHeader
-        name="Playground"
-        help={
-          <span>
-            Allows to try out the logic added to this exercise. Choose a day, simulate workout, and verify that the{" "}
-            <strong>State Variables</strong> changes are what you expect.
-          </span>
-        }
-      />
-      <MenuItemEditable
-        name="Choose Day"
-        type="select"
-        value={`${props.progress.day}`}
-        values={[...days.map<[string, string]>((d, i) => [(i + 1).toString(), `${i + 1} - ${d.name}`])]}
-        onChange={(newValue) => {
-          const newDay = parseInt(newValue || "1", 10);
-          const nextVariationIndex = Program.nextVariationIndex(programExercise, newDay, settings);
-          const newEntry = Program.nextHistoryEntry(
-            programExercise.exerciseType,
-            newDay,
-            programExercise.variations[nextVariationIndex].sets,
-            programExercise.state,
-            settings
-          );
-          props.onProgressChange(History.buildFromEntry(newEntry, newDay));
-        }}
-      />
-      <ExerciseView
-        history={[]}
-        showHelp={false}
-        entry={entry}
-        day={props.day}
-        programExercise={programExercise}
-        index={0}
-        forceShowStateChanges={true}
-        settings={props.settings}
-        dispatch={dispatch}
-        onChangeReps={() => undefined}
-        isCurrent={true}
-      />
-      <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
-      <ModalWeight
-        isHidden={progress.ui?.weightModal == null}
-        units={props.settings.units}
-        dispatch={dispatch}
-        weight={progress.ui?.weightModal?.weight ?? 0}
-      />
-    </Fragment>
   );
 }
 

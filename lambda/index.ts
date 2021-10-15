@@ -13,6 +13,7 @@ import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
 import { renderUserHtml, userImage } from "./user";
+import { renderProgramDetailsHtml } from "./programDetails";
 import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
@@ -731,6 +732,28 @@ const toggleLikeHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof to
   }
 };
 
+const getProgramDetailsEndpoint = Endpoint.build("/programs/:id");
+const getProgramDetailsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramDetailsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
+  const result = await new ProgramDao(di).getAll();
+  if (result != null) {
+    return {
+      statusCode: 200,
+      body: renderProgramDetailsHtml(
+        result.map((p) => p.program),
+        params.id
+      ),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html" } };
+  }
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -824,7 +847,8 @@ export const handler = rollbar.lambdaHandler(
       .post(postCommentEndpoint, postCommentHandler)
       .delete(deleteCommentEndpoint, deleteCommentHandler)
       .get(getLikesEndpoint, getLikesHandler)
-      .post(toggleLikeEndpoint, toggleLikeHandler);
+      .post(toggleLikeEndpoint, toggleLikeHandler)
+      .get(getProgramDetailsEndpoint, getProgramDetailsHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

@@ -14,6 +14,7 @@ module.exports = {
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
+    programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
@@ -116,6 +117,10 @@ module.exports = {
         to: `user.css`,
       },
       {
+        from: `src/programDetails.css`,
+        to: `programDetails.css`,
+      },
+      {
         from: `src/admin.css`,
         to: `admin.css`,
       },
@@ -192,6 +197,7 @@ module.exports = {
           return `/profile?user=${user}`;
         },
       },
+      "/programs/*": "http://local-api.liftosaur.com:3000/",
     },
   },
 };

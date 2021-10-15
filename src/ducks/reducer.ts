@@ -29,7 +29,7 @@ import { Settings } from "../models/settings";
 import { IndexedDBUtils } from "../utils/indexeddb";
 
 declare let Rollbar: RB;
-const isLoggingEnabled = !!new URL(window.location.href).searchParams.get("log");
+const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
 
 export function getIdbKey(userId?: string, isAdmin?: boolean): string {
   return userId != null && isAdmin ? `liftosaur_${userId}` : "liftosaur";

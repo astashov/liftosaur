@@ -26,6 +26,11 @@ export class ProgramDao {
     return this.di.dynamo.scan({ tableName: tableNames[env].programs });
   }
 
+  public async get(id: string): Promise<IProgramPayload | undefined> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.get({ tableName: tableNames[env].programs, key: { id } });
+  }
+
   public async save(program: IProgram, timestamp?: number): Promise<void> {
     const env = Utils.getEnv();
 

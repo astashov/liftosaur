@@ -13,6 +13,7 @@ import { ReactUtils } from "../../utils/react";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
 import { ISettings, IProgramDay, IProgramExercise, IEquipment, IUnit } from "../../types";
+import { IDeload, IProgression, Progression } from "../../models/progression";
 
 interface IProps {
   settings: ISettings;
@@ -123,6 +124,7 @@ function Edit(props: IProps): JSX.Element {
           key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
           exerciseType={programExercise.exerciseType}
           customExercises={props.settings.exercises}
+          size="large"
         />
       </MenuItemWrapper>
       <MenuItemWrapper name="sets-reps-weight">
@@ -207,7 +209,11 @@ function Edit(props: IProps): JSX.Element {
           <span className="pt-3 pl-1">{settings.units}</span>
         </section>
       </MenuItemWrapper>
-      <Progression settings={props.settings} dispatch={props.dispatch} finishDayExpr={programExercise.finishDayExpr} />
+      <ProgressionView
+        settings={props.settings}
+        dispatch={props.dispatch}
+        finishDayExpr={programExercise.finishDayExpr}
+      />
       <div className="p-2 text-center">
         <Button kind="green" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
           Save
@@ -269,56 +275,23 @@ interface IProgressionProps {
   dispatch: IDispatch;
 }
 
-interface IProgression {
-  increment: number;
-  unit: IUnit | "%";
-  attempts: number;
-}
-
-interface IDeload {
-  decrement: number;
-  unit: IUnit | "%";
-  attempts: number;
-}
-
-function Progression(props: IProgressionProps): JSX.Element {
+function ProgressionView(props: IProgressionProps): JSX.Element {
   const { settings, dispatch, finishDayExpr } = props;
   const inputClassName = `inline-block w-10 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
-  const initialProgression = (): IProgression | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Progression script '([\d\.]+)(kg|lb|%),(\d+)'/im);
-    if (match) {
-      const increment = parseFloat(match[1]);
-      const unit = match[2] as "kg" | "lb" | "%";
-      const attempts = parseInt(match[3], 10);
-      return { increment: increment, unit, attempts };
-    } else {
-      return undefined;
-    }
-  };
-
-  const initialDeload = (): IDeload | undefined => {
-    const match = finishDayExpr.match(/\/\/ Simple Exercise Deload script '([\d\.]+)(kg|lb|%),(\d+)'/im);
-    if (match) {
-      const decrement = parseFloat(match[1]);
-      const unit = match[2] as "kg" | "lb" | "%";
-      const attempts = parseInt(match[3], 10);
-      return { decrement: decrement, unit, attempts };
-    } else {
-      return undefined;
-    }
-  };
-
   const [progression, setProgression] = ReactUtils.useStateWithCallback<IProgression | undefined>(
-    initialProgression,
+    () => Progression.getProgression(finishDayExpr),
     () => {
       EditProgram.setProgression(dispatch, progression, deload);
     }
   );
 
-  const [deload, setDeload] = ReactUtils.useStateWithCallback<IDeload | undefined>(initialDeload, () => {
-    EditProgram.setProgression(dispatch, progression, deload);
-  });
+  const [deload, setDeload] = ReactUtils.useStateWithCallback<IDeload | undefined>(
+    () => Progression.getDeload(finishDayExpr),
+    () => {
+      EditProgram.setProgression(dispatch, progression, deload);
+    }
+  );
 
   const progressionIncrementRef = useRef<HTMLInputElement>();
   const progressionUnitRef = useRef<HTMLSelectElement>();
