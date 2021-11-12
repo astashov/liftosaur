@@ -1,5 +1,12 @@
+import { IEnv, IState } from "../models/state";
 import { IAction } from "./reducer";
-import { IState, IEnv } from "../models/state";
 
-export type IThunk = (dispatch: IDispatch, getState: () => IState, env: IEnv) => Promise<void>;
-export type IDispatch = (action: IAction | IThunk) => Promise<void> | void;
+export type IGThunk<TState, TAction> = (
+  dispatch: IGDispatch<TState, TAction>,
+  getState: () => TState,
+  env: IEnv
+) => Promise<void>;
+export type IGDispatch<TState, TAction> = (action: TAction | IGThunk<TState, TAction>) => Promise<void> | void;
+
+export type IDispatch = IGDispatch<IState, IAction>;
+export type IThunk = IGThunk<IState, IAction>;

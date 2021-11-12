@@ -11,7 +11,7 @@ import { ScreenAccount } from "./screenAccount";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import { Thunk } from "../ducks/thunks";
 import { Service } from "../api/service";
-import { AudioInterface } from "../lib/audioInterface";
+import { IAudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
 import { ModalOnboarding } from "./modalOnboarding";
@@ -33,7 +33,7 @@ import { Notification } from "./notification";
 
 interface IProps {
   client: Window["fetch"];
-  audio: AudioInterface;
+  audio: IAudioInterface;
   initialState: IState;
 }
 

@@ -1,5 +1,5 @@
 import { Service } from "../api/service";
-import { AudioInterface } from "../lib/audioInterface";
+import { IAudioInterface } from "../lib/audioInterface";
 import { IScreen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "lens-shmens";
@@ -8,7 +8,7 @@ import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay } fro
 
 export type IEnv = {
   service: Service;
-  audio: AudioInterface;
+  audio: IAudioInterface;
 };
 
 export type IFriendStatus = "invited" | "active" | "pending" | "loading";

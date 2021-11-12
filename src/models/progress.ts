@@ -355,15 +355,35 @@ export namespace Progress {
     progressEntry: IHistoryEntry | undefined,
     programExercise: IProgramExercise,
     day: number,
-    settings: ISettings
+    settings: ISettings,
+    forceWarmupSets?: boolean
   ): IHistoryEntry {
     const variationIndex = Program.nextVariationIndex(programExercise, day, settings);
     const sets = programExercise.variations[variationIndex].sets;
     const state = programExercise.state;
+
+    const firstWeightExpr = sets[0]?.weightExpr;
+    const firstWeight =
+      firstWeightExpr != null
+        ? executeEntryScript(
+            firstWeightExpr,
+            day,
+            state,
+            { equipment: programExercise.exerciseType.equipment },
+            settings,
+            "weight"
+          )
+        : undefined;
+
     if (progressEntry != null && sets.length === progressEntry.sets.length) {
       return {
         ...progressEntry,
         exercise: programExercise.exerciseType,
+        warmupSets: forceWarmupSets
+          ? firstWeight != null
+            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings)
+            : []
+          : progressEntry.warmupSets,
         sets: progressEntry.sets.map((set, i) => {
           const weight = executeEntryScript(
             sets[i].weightExpr,
@@ -390,18 +410,6 @@ export namespace Progress {
         }),
       };
     } else {
-      const firstWeightExpr = sets[0]?.weightExpr;
-      const firstWeight =
-        firstWeightExpr != null
-          ? executeEntryScript(
-              firstWeightExpr,
-              day,
-              state,
-              { equipment: programExercise.exerciseType.equipment },
-              settings,
-              "weight"
-            )
-          : undefined;
       return {
         exercise: programExercise.exerciseType,
         sets: sets.map((set) => {

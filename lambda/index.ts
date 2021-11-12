@@ -745,7 +745,8 @@ const getProgramDetailsHandler: RouteHandler<
       statusCode: 200,
       body: renderProgramDetailsHtml(
         result.map((p) => p.program),
-        params.id
+        params.id,
+        fetch
       ),
       headers: { "content-type": "text/html" },
     };

@@ -1,4 +1,14 @@
-export class AudioInterface {
+export interface IAudioInterface {
+  play(): void;
+}
+
+export class MockAudioInterface implements IAudioInterface {
+  public play(): void {
+    // noop
+  }
+}
+
+export class AudioInterface implements IAudioInterface {
   private readonly audio: HTMLAudioElement;
 
   constructor() {

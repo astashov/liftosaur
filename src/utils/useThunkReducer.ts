@@ -1,21 +1,22 @@
 import { useRef, useCallback, Reducer, useState } from "preact/hooks";
-import { IDispatch, IThunk } from "../ducks/types";
-import { IAction } from "../ducks/reducer";
-import { IState, IEnv } from "../models/state";
+import { IGDispatch, IGThunk } from "../ducks/types";
+import { IEnv } from "../models/state";
 
-export function useThunkReducer(
-  reducer: Reducer<IState, IAction>,
-  initialState: IState,
+export function useThunkReducer<TState, TAction extends Record<string, unknown>>(
+  reducer: Reducer<TState, TAction>,
+  initialState: TState,
   env: IEnv,
-  onActions: Array<(action: IAction | IThunk, oldState: IState, newState: IState) => void | Promise<void>> = []
-): [IState, IDispatch] {
+  onActions: Array<
+    (action: TAction | IGThunk<TState, TAction>, oldState: TState, newState: TState) => void | Promise<void>
+  > = []
+): [TState, IGDispatch<TState, TAction>] {
   const [hookState, setHookState] = useState(initialState);
 
   // State management.
   const state = useRef(hookState);
   const getState = useCallback(() => state.current, [state]);
   const setState = useCallback(
-    (newState: IState): void => {
+    (newState: TState): void => {
       state.current = newState;
       setHookState(newState);
     },
@@ -23,11 +24,11 @@ export function useThunkReducer(
   );
 
   // Reducer.
-  const reduce = useCallback((action: IAction): IState => reducer(getState(), action), [reducer, getState]);
+  const reduce = useCallback((action: TAction): TState => reducer(getState(), action), [reducer, getState]);
 
   // Augmented dispatcher.
   const dispatch = useCallback(
-    (action: IThunk | IAction) => {
+    (action: IGThunk<TState, TAction> | TAction) => {
       const oldState = state.current;
       if (typeof action === "function") {
         (action(dispatch, getState, env) as Promise<void>).then(() => {
