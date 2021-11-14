@@ -8,9 +8,6 @@ export namespace ComparerUtils {
       return ObjectUtils.keys(prev).every((key) => {
         if (typeof prev[key] !== "function") {
           const result = prev[key] === next[key];
-          if (!result) {
-            console.log("Not equal: ", key, prev[key], next[key]);
-          }
           return result;
         } else {
           return true;

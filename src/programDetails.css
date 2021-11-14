@@ -23,9 +23,23 @@ body {
   display: none;
 }
 
+.program-details-header {
+  padding-left: 1em;
+}
+
 @media (max-width: 600px) {
   .program-details-exercise-switch {
     display: block;
+  }
+  .program-details-header {
+    padding-left: 0em;
+  }
+  .program-details-header,
+  .program-details-settings {
+    flex-direction: column;
+  }
+  .program-details-settings-button {
+    margin-left: 1em;
   }
   .program-details-exercise.is-details .program-details-exercise-playground,
   .program-details-exercise.is-playground .program-details-exercise-image,
