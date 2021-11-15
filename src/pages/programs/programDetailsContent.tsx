@@ -10,6 +10,7 @@ import { lb } from "lens-shmens";
 import { ProgramDetails } from "./programDetails/programDetails";
 import { IProgramDetailsState } from "./programDetails/types";
 import { ProgramDetailsSettings } from "./programDetails/programDetailsSettings";
+import { ProgramDetailsMusclesModal } from "./programDetails/programDetailsMusclesModal";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -90,6 +91,14 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
         shouldShowAllScripts={state.shouldShowAllScripts}
         dispatch={dispatch}
       />
+      {state.muscles && (
+        <ProgramDetailsMusclesModal
+          muscles={state.muscles}
+          program={program}
+          settings={state.settings}
+          dispatch={dispatch}
+        />
+      )}
     </div>
   );
 }

@@ -59,7 +59,9 @@ function ExerciseImageAuxiliary(props: { isError: boolean; isLoading: boolean })
   } else if (props.isLoading) {
     return (
       <ExerciseNoImage>
-        <IconSpinner width={20} height={20} />
+        <div className="w-full text-center">
+          <IconSpinner width={20} height={20} />
+        </div>
       </ExerciseNoImage>
     );
   } else {
@@ -73,7 +75,7 @@ interface INoImageProps {
 
 function ExerciseNoImage(props: INoImageProps): JSX.Element {
   return (
-    <div className="p-10 text-xs text-center bg-gray-200 border border-gray-400 border-dotted rounded-lg">
+    <div className="px-4 py-10 text-xs leading-normal text-center bg-gray-200 border border-gray-400 border-dotted rounded-lg">
       {props.children}
     </div>
   );

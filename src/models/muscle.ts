@@ -48,6 +48,7 @@ const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
   back: [
     "Erector Spinae",
     "Latissimus Dorsi",
+    "Levator Scapulae",
     "Trapezius Lower Fibers",
     "Trapezius Middle Fibers",
     "Trapezius Upper Fibers",
@@ -171,7 +172,7 @@ export namespace Muscle {
     for (const set of historyEntry.sets) {
       if (set.reps >= 8) {
         for (const targetMuscle of targetMuscles) {
-          const muscles = muscleToScreenMuscleMapping[targetMuscle];
+          const muscles = muscleToScreenMuscleMapping[targetMuscle] || [];
           for (const muscle of muscles) {
             screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
             screenMusclePoints.hypertrophy[muscle]! += 100;
@@ -181,7 +182,7 @@ export namespace Muscle {
           }
         }
         for (const synergistMuscle of synergistMuscles) {
-          const muscles = muscleToScreenMuscleMapping[synergistMuscle];
+          const muscles = muscleToScreenMuscleMapping[synergistMuscle] || [];
           for (const muscle of muscles) {
             screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
             screenMusclePoints.hypertrophy[muscle]! += 30;
@@ -192,7 +193,7 @@ export namespace Muscle {
         }
       } else {
         for (const targetMuscle of targetMuscles) {
-          const muscles = muscleToScreenMuscleMapping[targetMuscle];
+          const muscles = muscleToScreenMuscleMapping[targetMuscle] || [];
           for (const muscle of muscles) {
             screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
             screenMusclePoints.strength[muscle]! += 100;
@@ -202,7 +203,7 @@ export namespace Muscle {
           }
         }
         for (const synergistMuscle of synergistMuscles) {
-          const muscles = muscleToScreenMuscleMapping[synergistMuscle];
+          const muscles = muscleToScreenMuscleMapping[synergistMuscle] || [];
           for (const muscle of muscles) {
             screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
             screenMusclePoints.strength[muscle]! += 30;
