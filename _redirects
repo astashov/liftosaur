@@ -6,3 +6,5 @@
 /profile/:user https://api2.liftosaur.com/profile?user=:user  200
 /profileimage/:user https://api2.liftosaur.com/profileimage?user=:user  200
 /acceptfriendinvitation hash=:hash https://api2.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
+/acceptfriendinvitation hash=:hash https://api2.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
+/programs/:programId https://api2.liftosaur.com/programs/:programId  200
