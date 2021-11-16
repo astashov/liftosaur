@@ -94,7 +94,7 @@
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",
-    "preact": "^10.5.13",
+    "preact": "^10.5.15",
     "preact-render-to-string": "^5.1.19",
     "prismjs": "^1.25.0",
     "uplot": "^1.0.9",

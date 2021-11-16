@@ -25,6 +25,9 @@ import { FriendDao } from "./dao/friendDao";
 import { IEither } from "../src/utils/types";
 import { CommentsDao } from "./dao/commentsDao";
 import { LikesDao } from "./dao/likesDao";
+import { ResponseUtils } from "./utils/response";
+import { ImageCacher } from "./utils/imageCacher";
+import { ProgramImageGenerator } from "./utils/programImageGenerator";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -44,8 +47,6 @@ interface IPayload {
 
 export type IEnv = "dev" | "prod";
 
-const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com"];
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getBodyJson(event: APIGatewayProxyEvent): any {
   try {
@@ -53,49 +54,6 @@ function getBodyJson(event: APIGatewayProxyEvent): any {
   } catch (e) {
     return JSON.parse(event.body || "{}");
   }
-}
-
-function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
-  const origin = event.headers.Origin || event.headers.origin || "http://example.com";
-  const url = new URL(origin);
-  let headers: Record<string, string> = {
-    "content-type": "application/json",
-  };
-
-  if (allowedHosts.some((host) => host === url.host)) {
-    headers = {
-      ...headers,
-      "access-control-allow-origin": `${url.protocol}//${url.host}`,
-      "access-control-allow-credentials": "true",
-      "access-control-allow-headers": "content-type",
-      "access-control-allow-methods": "OPTIONS,HEAD,GET,POST,PUT,DELETE,PATCH",
-      "access-control-expose-headers": "cookie, set-cookie",
-    };
-  }
-  return headers;
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-function json(status: number, event: APIGatewayProxyEvent, body: string | object): APIGatewayProxyResult {
-  return {
-    statusCode: status,
-    body: typeof body === "string" ? body : JSON.stringify(body),
-    headers: getHeaders(event),
-  };
-}
-
-function getHost(event: APIGatewayProxyEvent): string {
-  return event.headers.Host || event.headers.host || "liftosaur.com";
-}
-
-function getReferer(event: APIGatewayProxyEvent): string {
-  return (
-    event.headers.origin ||
-    event.headers.Origin ||
-    event.headers.referer ||
-    event.headers.Referer ||
-    "https://liftosaur.com"
-  );
 }
 
 async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<string | undefined> {
@@ -147,7 +105,7 @@ const timerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof timerEn
   });
 
   const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
-  return json(response.status, event, body);
+  return ResponseUtils.json(response.status, event, body);
 };
 
 const getStorageEndpoint = Endpoint.build("/api/storage", { key: "string?", userid: "string?" });
@@ -166,10 +124,10 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (userId != null) {
     const user = await new UserDao(di).getById(userId);
     if (user != null) {
-      return json(200, event, { storage: user.storage, email: user.email, user_id: user.id });
+      return ResponseUtils.json(200, event, { storage: user.storage, email: user.email, user_id: user.id });
     }
   }
-  return json(200, event, {});
+  return ResponseUtils.json(200, event, {});
 };
 
 const saveStorageEndpoint = Endpoint.build("/api/storage");
@@ -182,7 +140,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
     const storage: IStorage = getBodyJson(event).storage;
     await new UserDao(di).saveStorage(user, storage);
   }
-  return json(200, event, {});
+  return ResponseUtils.json(200, event, {});
 };
 
 const googleLoginEndpoint = Endpoint.build("/api/signin/google");
@@ -206,7 +164,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
-    return json(403, event, openIdJson);
+    return ResponseUtils.json(403, event, openIdJson);
   }
 
   await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);
@@ -227,7 +185,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     statusCode: 200,
     body: JSON.stringify(resp),
     headers: {
-      ...getHeaders(event),
+      ...ResponseUtils.getHeaders(event),
       "set-cookie": Cookie.serialize("session", session, {
         httpOnly: true,
         domain: ".liftosaur.com",
@@ -244,7 +202,7 @@ const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signo
   return {
     statusCode: 200,
     headers: {
-      ...getHeaders(event),
+      ...ResponseUtils.getHeaders(event),
       "set-cookie": Cookie.serialize("session", "", {
         httpOnly: true,
         domain: ".liftosaur.com",
@@ -262,7 +220,7 @@ const getProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 }) => {
   const { event, di } = payload;
   const programs = await new ProgramDao(di).getAll();
-  return json(200, event, { programs });
+  return ResponseUtils.json(200, event, { programs });
 };
 
 const getHistoryRecordEndpoint = Endpoint.build("/api/record", { user: "string?", id: "number?" });
@@ -297,7 +255,7 @@ const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   } else {
     error.message = "Missing required params - 'user' or 'id'";
   }
-  return json(400, event, { error });
+  return ResponseUtils.json(400, event, { error });
 };
 
 const getHistoryRecordImageEndpoint = Endpoint.build("/api/recordimage", {
@@ -310,44 +268,40 @@ const getHistoryRecordImageHandler: RouteHandler<
   typeof getHistoryRecordImageEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  const env = Utils.getEnv();
-  const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
-  const key = `historyrecordimage${event.path}-${params.user}-${params.id}.png`;
-  const body = await di.s3.getObject({ bucket, key });
-  const headers = {
-    "content-type": "image/png",
-    "cache-control": "max-age=86400",
-  };
-  if (body != null) {
-    return {
-      statusCode: 200,
-      body: `${body.toString("base64")}`,
-      headers,
-      isBase64Encoded: true,
-    };
-  }
-
-  const error: { message?: string } = {};
-
-  const result = await new UserDao(di).getById(params.user);
-  if (result != null) {
-    const imageResult = await recordImage(result.storage, params.id);
-    if (imageResult.success) {
-      const buffer = imageResult.data;
-      await di.s3.putObject({ bucket, key, body: buffer });
-      return {
-        statusCode: 200,
-        body: buffer.toString("base64"),
-        headers,
-        isBase64Encoded: true,
-      };
+  return ImageCacher.cache(di, event, `historyrecordimage${event.path}-${params.user}-${params.id}.png`, async () => {
+    const result = await new UserDao(di).getById(params.user);
+    if (result != null) {
+      const imageResult = await recordImage(result.storage, params.id);
+      if (imageResult.success) {
+        return { success: true, data: imageResult.data };
+      } else {
+        return { success: false, error: imageResult.error };
+      }
     } else {
-      error.message = imageResult.error;
+      return { success: false, error: "Can't find user" };
     }
-  } else {
-    error.message = "Can't find user";
-  }
-  return json(400, event, { error });
+  });
+};
+
+const getProgramImageEndpoint = Endpoint.build("/api/programimage/:id");
+const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramImageEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  return ImageCacher.cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
+    const program = await new ProgramDao(di).get(params.id);
+    if (program != null) {
+      const imageResult = await new ProgramImageGenerator().generate({ program: program.program });
+      if (imageResult.success) {
+        return { success: true, data: imageResult.data };
+      } else {
+        return { success: false, error: imageResult.error };
+      }
+    } else {
+      return { success: false, error: "Can't find program" };
+    }
+  });
 };
 
 const publishProgramEndpoint = Endpoint.build("/api/publishprogram", { key: "string" });
@@ -360,12 +314,12 @@ const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     const program = getBodyJson(event).program;
     if (program != null) {
       await new ProgramDao(di).save(program);
-      return json(200, event, { data: "ok" });
+      return ResponseUtils.json(200, event, { data: "ok" });
     } else {
-      return json(400, event, { error: "missing program in payload" });
+      return ResponseUtils.json(400, event, { error: "missing program in payload" });
     }
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -380,7 +334,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
   } else {
     data = "error";
   }
-  return json(200, event, { data });
+  return ResponseUtils.json(200, event, { data });
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -405,7 +359,7 @@ const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   } else {
     error.message = "Can't find user";
   }
-  return json(400, event, { error });
+  return ResponseUtils.json(400, event, { error });
 };
 
 const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });
@@ -414,43 +368,19 @@ const getProfileImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   match: { params },
 }) => {
   const { event, di } = payload;
-  const env = Utils.getEnv();
-  const bucket = `liftosaurcaches${env === "dev" ? "dev" : ""}`;
-  const key = `profileimage${event.path}-${params.user}.png`;
-  const body = await di.s3.getObject({ bucket, key });
-  const headers = {
-    "content-type": "image/png",
-    "cache-control": "max-age=86400",
-  };
-  if (body != null) {
-    return {
-      statusCode: 200,
-      body: `${body.toString("base64")}`,
-      headers,
-      isBase64Encoded: true,
-    };
-  }
-
-  const error: { message?: string } = {};
-  const result = await new UserDao(di).getById(params.user);
-  if (result != null) {
-    if (result?.storage?.settings?.isPublicProfile) {
-      const imageResult = await userImage(result.storage);
-      const buffer = Buffer.from(imageResult);
-      await di.s3.putObject({ bucket, key, body: buffer });
-      return {
-        statusCode: 200,
-        body: buffer.toString("base64"),
-        headers,
-        isBase64Encoded: true,
-      };
+  return ImageCacher.cache(di, event, `profileimage${event.path}-${params.user}.png`, async () => {
+    const result = await new UserDao(di).getById(params.user);
+    if (result != null) {
+      if (result?.storage?.settings?.isPublicProfile) {
+        const imageResult = await userImage(result.storage);
+        return { success: true, data: imageResult };
+      } else {
+        return { success: false, error: "The user's profile is not public" };
+      }
     } else {
-      error.message = "The user's profile is not public";
+      return { success: false, error: "Can't find user" };
     }
-  } else {
-    error.message = "Can't find user";
-  }
-  return json(400, event, { error });
+  });
 };
 
 const getAdminUsersEndpoint = Endpoint.build("/admin/users", { key: "string" });
@@ -487,7 +417,7 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
       headers: { "content-type": "text/html" },
     };
   } else {
-    return json(401, event, { data: "Unauthorized" });
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -516,7 +446,7 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
       headers: { "content-type": "text/html" },
     };
   } else {
-    return json(401, event, { data: "Unauthorized" });
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -529,9 +459,9 @@ const getFriendsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
   if (currentUserId != null) {
     const friends = await new FriendDao(di).getAllByUsernameOrId(currentUserId, params.username);
-    return json(200, event, { friends });
+    return ResponseUtils.json(200, event, { friends });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -542,7 +472,7 @@ const inviteFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
 }) => {
   const { event } = payload;
   const message = getBodyJson(event).message;
-  const host = getReferer(event);
+  const host = ResponseUtils.getReferer(event);
   const userDao = new UserDao(payload.di);
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
   if (currentUserId != null) {
@@ -554,13 +484,13 @@ const inviteFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
       const friendDao = new FriendDao(payload.di);
       const result = await friendDao.invite(currentUser, friend, host, message);
       if (result.success) {
-        return json(200, event, {});
+        return ResponseUtils.json(200, event, {});
       } else {
-        return json(400, event, { error: result.error });
+        return ResponseUtils.json(400, event, { error: result.error });
       }
     }
   }
-  return json(401, event, {});
+  return ResponseUtils.json(401, event, {});
 };
 
 export const acceptFriendInvitationEndpoint = Endpoint.build("/api/acceptfriendinvitation/:friendId");
@@ -575,12 +505,12 @@ const acceptFriendInvitationHandler: RouteHandler<
   if (currentUserId != null) {
     const result = await friendDao.acceptInvitation(currentUserId, params.friendId);
     if (result.success) {
-      return json(200, event, {});
+      return ResponseUtils.json(200, event, {});
     } else {
-      return json(400, event, { error: result.error });
+      return ResponseUtils.json(400, event, { error: result.error });
     }
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -595,12 +525,12 @@ const removeFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   if (currentUserId != null) {
     const result = await friendDao.removeFriend(currentUserId, params.friendId);
     if (result.success) {
-      return json(200, event, {});
+      return ResponseUtils.json(200, event, {});
     } else {
-      return json(400, event, { error: result.error });
+      return ResponseUtils.json(400, event, { error: result.error });
     }
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -611,7 +541,7 @@ const acceptFriendInvitationByHashHandler: RouteHandler<
   typeof acceptFriendInvitationByHashEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event } = payload;
-  const host = getHost(event);
+  const host = ResponseUtils.getHost(event);
   const friendDao = new FriendDao(payload.di);
   const result = await friendDao.acceptInvitationByHash(params.hash);
   const redirectUrl = host ? new URL(`https://${host}`) : new URL("https://www.liftosaur.com");
@@ -637,9 +567,9 @@ const getFriendsHistoryHandler: RouteHandler<
   if (currentUserId != null) {
     const friendDao = new FriendDao(payload.di);
     const friends = await friendDao.getFriendsWithHistories(currentUserId, params.startdate, params.enddate);
-    return json(200, event, { friends: CollectionUtils.groupByKeyUniq(friends, "id") });
+    return ResponseUtils.json(200, event, { friends: CollectionUtils.groupByKeyUniq(friends, "id") });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -656,9 +586,9 @@ const getCommentsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   if (currentUserId != null) {
     const commentsDao = new CommentsDao(payload.di);
     const comments = await commentsDao.getForUser(currentUserId, params.startdate, params.enddate);
-    return json(200, event, { comments });
+    return ResponseUtils.json(200, event, { comments });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -672,9 +602,9 @@ const postCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof p
     const body = getBodyJson(event);
     const commentsDao = new CommentsDao(payload.di);
     const comment = await commentsDao.post(currentUserId, body);
-    return json(200, event, { comment });
+    return ResponseUtils.json(200, event, { comment });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -688,9 +618,9 @@ const deleteCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   if (currentUserId != null) {
     const commentsDao = new CommentsDao(payload.di);
     await commentsDao.remove(currentUserId, params.id);
-    return json(200, event, {});
+    return ResponseUtils.json(200, event, {});
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -707,9 +637,9 @@ const getLikesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getL
   if (currentUserId != null) {
     const likesDao = new LikesDao(payload.di);
     const likes = await likesDao.getForUser(currentUserId, params.startdate, params.enddate);
-    return json(200, event, { likes });
+    return ResponseUtils.json(200, event, { likes });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -726,9 +656,9 @@ const toggleLikeHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof to
       friendId: params.friendId,
       historyRecordId: params.historyRecordId,
     });
-    return json(200, event, { result });
+    return ResponseUtils.json(200, event, { result });
   } else {
-    return json(401, event, {});
+    return ResponseUtils.json(401, event, {});
   }
 };
 
@@ -816,7 +746,7 @@ const rollbar = new Rollbar({
 export const handler = rollbar.lambdaHandler(
   async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
     if (event.httpMethod === "OPTIONS") {
-      return { statusCode: 200, body: "", headers: getHeaders(event) };
+      return { statusCode: 200, body: "", headers: ResponseUtils.getHeaders(event) };
     }
     const log = new LogUtil();
     const time = Date.now();
@@ -849,7 +779,8 @@ export const handler = rollbar.lambdaHandler(
       .delete(deleteCommentEndpoint, deleteCommentHandler)
       .get(getLikesEndpoint, getLikesHandler)
       .post(toggleLikeEndpoint, toggleLikeHandler)
-      .get(getProgramDetailsEndpoint, getProgramDetailsHandler);
+      .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
+      .get(getProgramImageEndpoint, getProgramImageHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
@@ -872,6 +803,8 @@ export const handler = rollbar.lambdaHandler(
       resp.success ? resp.data.statusCode : errorStatus,
       `${Date.now() - time}ms`
     );
-    return resp.success ? resp.data : { statusCode: errorStatus, headers: getHeaders(event), body: resp.error };
+    return resp.success
+      ? resp.data
+      : { statusCode: errorStatus, headers: ResponseUtils.getHeaders(event), body: resp.error };
   }
 ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;

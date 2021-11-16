@@ -198,6 +198,7 @@ module.exports = {
         },
       },
       "/programs/*": "http://local-api.liftosaur.com:3000/",
+      "/programimage/*": "http://local-api.liftosaur.com:3000/api",
     },
   },
 };

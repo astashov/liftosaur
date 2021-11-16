@@ -22,9 +22,9 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       js={["programdetails"]}
       title={`Liftosaur: Program Details - ${program.name}`}
       ogTitle={`Liftosaur: Program Details - ${program.name}`}
-      ogDescription="Liftosaur Program Details - What days and exercises the program consists of"
+      ogDescription={`What days and exercises the program '${program.name}' consists of`}
       ogUrl={`https://www.liftosaur.com/programs/${program.id}`}
-      ogImage={`https://www.liftosaur.com/programs/${program.id}`}
+      ogImage={`https://www.liftosaur.com/programimage/${program.id}`}
       data={data}
       postHead={
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
