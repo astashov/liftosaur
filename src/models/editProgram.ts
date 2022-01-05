@@ -2,13 +2,23 @@ import { lb, lf, lbu, ILensRecordingPayload } from "lens-shmens";
 import { Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { Exercise } from "./exercise";
+import { Exercise, IExercise, warmupValues } from "./exercise";
 import { Weight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { StringUtils } from "../utils/string";
-import { IWeight, IUnit, IExerciseId, IEquipment, IProgram, IProgramExercise, ISettings } from "../types";
+import {
+  IWeight,
+  IUnit,
+  IExerciseId,
+  IEquipment,
+  IProgram,
+  IProgramExercise,
+  ISettings,
+  IProgramExerciseWarmupSet,
+} from "../types";
+import { CollectionUtils } from "../utils/collection";
 
 interface I531Tms {
   squat: IWeight;
@@ -74,6 +84,7 @@ export namespace EditProgram {
         lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
         lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(exercise.defaultEquipment),
         lb<IState>().pi("editExercise").p("name").record(exercise.name),
+        lb<IState>().pi("editExercise").p("warmupSets").record(undefined),
       ]);
     }
   }
@@ -473,5 +484,47 @@ export namespace EditProgram {
     lbs.push(lb<IState>().pi("editExercise").p("finishDayExpr").record(finishDayExpr.join("\n")));
 
     updateState(dispatch, lbs);
+  }
+
+  export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise): void {
+    const defaultWarmup = (exercise.defaultWarmup && warmupValues()[exercise.defaultWarmup]) || [];
+    updateWarmupSets(dispatch, defaultWarmup);
+  }
+
+  export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[]): void {
+    const warmupSets = [...ws];
+    const lastWarmupSet = warmupSets[warmupSets.length - 1];
+    if (lastWarmupSet != null) {
+      warmupSets.push({
+        reps: lastWarmupSet.reps,
+        threshold: Weight.clone(lastWarmupSet.threshold),
+        value: typeof lastWarmupSet.value === "number" ? lastWarmupSet.value : Weight.clone(lastWarmupSet.value),
+      });
+    } else {
+      warmupSets.push({
+        reps: 5,
+        threshold: Weight.build(45, "lb"),
+        value: 0.8,
+      });
+    }
+    updateWarmupSets(dispatch, warmupSets);
+  }
+
+  export function removeWarmupSet(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[], index: number): void {
+    updateWarmupSets(dispatch, CollectionUtils.removeAt(warmupSets, index));
+  }
+
+  export function updateWarmupSet(
+    dispatch: IDispatch,
+    warmupSets: IProgramExerciseWarmupSet[],
+    index: number,
+    newWarmupSet: IProgramExerciseWarmupSet
+  ): void {
+    const newWarmupSets = CollectionUtils.setAt(warmupSets, index, newWarmupSet);
+    updateWarmupSets(dispatch, newWarmupSets);
+  }
+
+  export function updateWarmupSets(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[]): void {
+    updateState(dispatch, [lb<IState>().pi("editExercise").p("warmupSets").record(warmupSets)]);
   }
 }

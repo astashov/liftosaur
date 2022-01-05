@@ -202,7 +202,12 @@ const ExerciseContentView = memo(
                     style={{ fontWeight: "inherit" }}
                     onClick={() => {
                       if (!friend) {
-                        props.dispatch({ type: "ChangeWeightAction", weight: w, exercise: props.entry.exercise });
+                        props.dispatch({
+                          type: "ChangeWeightAction",
+                          weight: w,
+                          exercise: props.entry.exercise,
+                          programExercise: props.programExercise,
+                        });
                       }
                     }}
                   >
@@ -218,7 +223,7 @@ const ExerciseContentView = memo(
             <Fragment>
               {warmupSets.map((set, i) => {
                 return (
-                  <div data-cy="container-set">
+                  <div data-cy="warmup-set">
                     <div
                       data-cy="warmup-set-title"
                       className="text-xs text-gray-400"
@@ -285,7 +290,7 @@ const ExerciseContentView = memo(
           )}
           {props.entry.sets.map((set, i) => {
             return (
-              <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
+              <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`} data-cy="workout-set">
                 <ExerciseSetView
                   showHelp={props.showHelp && (warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
                   exercise={props.entry.exercise}

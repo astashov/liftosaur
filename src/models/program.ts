@@ -23,6 +23,7 @@ import {
   IWeight,
   IProgramExerciseVariation,
   IEquipment,
+  IProgramExerciseWarmupSet,
 } from "../types";
 
 export namespace Program {
@@ -64,7 +65,14 @@ export namespace Program {
   ): IHistoryEntry {
     const variationIndex = nextVariationIndex(programExercise, day, settings);
     const sets = programExercise.variations[variationIndex].sets;
-    return nextHistoryEntry(programExercise.exerciseType, day, sets, programExercise.state, settings);
+    return nextHistoryEntry(
+      programExercise.exerciseType,
+      day,
+      sets,
+      programExercise.state,
+      settings,
+      programExercise.warmupSets
+    );
   }
 
   export function nextHistoryEntry(
@@ -72,7 +80,8 @@ export namespace Program {
     day: number,
     programSets: IProgramSet[],
     state: IProgramState,
-    settings: ISettings
+    settings: ISettings,
+    warmupSets?: IProgramExerciseWarmupSet[]
   ): IHistoryEntry {
     const sets: ISet[] = programSets.map((set) => {
       const repsValue = new ScriptRunner(
@@ -100,7 +109,7 @@ export namespace Program {
     return {
       exercise: exercise,
       sets,
-      warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings) : [],
+      warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };
   }
 

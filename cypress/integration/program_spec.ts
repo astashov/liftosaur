@@ -30,12 +30,6 @@ describe("Program", () => {
     g("menu-item-value-equipment").should("have.value", "barbell");
     g("menu-item-value-name").should("have.value", "Deadlift");
 
-    cy.contains("Add Variable +").click();
-
-    g("modal-add-state-variable-input-name").clear().type("weight");
-    g("modal-add-state-variable-input-type").select("lb");
-    g("modal-add-state-variable-submit").click();
-
     clearCodeMirror("oneline-editor-reps");
     typeCodeMirror("oneline-editor-reps", "8");
     clearCodeMirror("oneline-editor-weight");
@@ -47,7 +41,7 @@ describe("Program", () => {
 
     cy.contains("Add Variation +").click();
     clearCodeMirror("multiline-editor-variation");
-    typeCodeMirror("multiline-editor-variation", "(state.weight > 100) ? 2 : 1");
+    typeCodeMirror("multiline-editor-variation", "(state.weight > 100lb) ? 2 : 1");
 
     clearCodeMirror("oneline-editor-reps");
     typeCodeMirror("oneline-editor-reps", "10");
@@ -58,41 +52,83 @@ describe("Program", () => {
     typeCodeMirror("multiline-editor-finish-day", "if (cr[1] == r[1]) {\n  state.weight = w[1] + 10lb\n}");
 
     g("menu-item-value-choose-day").select("2 - Day 2");
+
+    // Edit warmups
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-delete]").click();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-delete]").click();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-reps]").clear().type("9").blur();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-value]").clear().type("150").blur();
+    g("edit-warmup-set-add").click();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-reps]").clear().type("7").blur();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-value-unit]").select("lb");
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-value]").clear().type("120").blur();
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-threshold]").clear().type("110").blur();
+
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").should("have.length", 3);
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(0)
+      .find("[data-cy=reps-value]")
+      .should("have.text", "9");
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(0)
+      .find("[data-cy=weight-value]")
+      .should("have.text", "150");
+
+    g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-threshold]").clear().type("95").blur();
+
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").should("have.length", 4);
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(0)
+      .find("[data-cy=reps-value]")
+      .should("have.text", "7");
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(0)
+      .find("[data-cy=weight-value]")
+      .should("have.text", "120");
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(1)
       .find("[data-cy=reps-value]")
-      .should("have.text", "8");
+      .should("have.text", "9");
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(1)
       .find("[data-cy=weight-value]")
-      .should("have.text", "100");
+      .should("have.text", "150");
+
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(2)
       .find("[data-cy=reps-value]")
       .should("have.text", "8");
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(2)
+      .find("[data-cy=weight-value]")
+      .should("have.text", "100");
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(3)
+      .find("[data-cy=reps-value]")
+      .should("have.text", "8");
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
+      .eq(3)
       .find("[data-cy=weight-value]")
       .should("have.text", "100");
 
-    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(1).click();
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(2).click();
     g("state-changes-value-weight").should("have.text", "100 lb -> 110 lb");
-    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(1).as("set");
-    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(1).click();
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(2).as("set");
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(2).click();
     g("state-changes-value-weight").should("not.exist");
 
     g("menu-item-value-weight").clear().type("110");
     g("menu-item-value-choose-day").select("1 - Day 1");
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
-      .eq(1)
+      .eq(2)
       .find("[data-cy=reps-value]")
       .should("have.text", "10");
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
-      .eq(1)
+      .eq(2)
       .find("[data-cy=weight-value]")
       .should("have.text", "110");
-    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(1).click();
+    cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").eq(2).click();
     g("state-changes-value-weight").should("have.text", "110 lb -> 120 lb");
 
     g("menu-item-value-weight").clear().type("100");

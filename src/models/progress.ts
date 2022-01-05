@@ -137,7 +137,8 @@ export namespace Progress {
   export function showUpdateWeightModal(
     progress: IHistoryRecord,
     exercise: IExerciseType,
-    weight: IWeight
+    weight: IWeight,
+    programExercise?: IProgramExercise
   ): IHistoryRecord {
     return {
       ...progress,
@@ -146,6 +147,7 @@ export namespace Progress {
         weightModal: {
           exercise,
           weight: weight,
+          programExercise,
         },
       },
     };
@@ -304,7 +306,12 @@ export namespace Progress {
     }
   }
 
-  export function updateWeight(progress: IHistoryRecord, settings: ISettings, weight?: IWeight): IHistoryRecord {
+  export function updateWeight(
+    progress: IHistoryRecord,
+    settings: ISettings,
+    weight?: IWeight,
+    programExercise?: IProgramExercise
+  ): IHistoryRecord {
     if (weight != null && progress.ui?.weightModal != null) {
       const { exercise, weight: previousWeight } = progress.ui.weightModal;
 
@@ -329,7 +336,7 @@ export namespace Progress {
               }),
               warmupSets:
                 eq(firstWeight, previousWeight) && weight != null
-                  ? Exercise.getWarmupSets(exercise, weight, settings)
+                  ? Exercise.getWarmupSets(exercise, weight, settings, programExercise?.warmupSets)
                   : progressEntry.warmupSets,
             };
           } else {
@@ -381,7 +388,7 @@ export namespace Progress {
         exercise: programExercise.exerciseType,
         warmupSets: forceWarmupSets
           ? firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings)
+            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExercise.warmupSets)
             : []
           : progressEntry.warmupSets,
         sets: progressEntry.sets.map((set, i) => {
@@ -436,7 +443,9 @@ export namespace Progress {
           };
         }),
         warmupSets:
-          firstWeight != null ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings) : [],
+          firstWeight != null
+            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExercise.warmupSets)
+            : [],
       };
     }
   }

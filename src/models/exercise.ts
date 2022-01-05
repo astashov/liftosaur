@@ -13,949 +13,947 @@ import {
   IAllCustomExercises,
   IMuscle,
   IMetaExercises,
+  IProgramExerciseWarmupSet,
 } from "../types";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
     id: "abWheel",
     name: "Ab Wheel",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   arnoldPress: {
     id: "arnoldPress",
     name: "Arnold Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   aroundTheWorld: {
     id: "aroundTheWorld",
     name: "Around The World",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   backExtension: {
     id: "backExtension",
     name: "Back Extension",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   ballSlams: {
     id: "ballSlams",
     name: "Ball Slams",
-    warmupSets: warmupEmpty,
     defaultEquipment: "medicineball",
   },
   battleRopes: {
     id: "battleRopes",
     name: "Battle Ropes",
-    warmupSets: warmupEmpty,
     defaultEquipment: "bodyweight",
   },
   benchDip: {
     id: "benchDip",
     name: "Bench Dip",
-    warmupSets: warmupEmpty,
     defaultEquipment: "bodyweight",
   },
   benchPress: {
     id: "benchPress",
     name: "Bench Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   benchPressCloseGrip: {
     id: "benchPressCloseGrip",
     name: "Bench Press Close Grip",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   benchPressWideGrip: {
     id: "benchPressWideGrip",
     name: "Bench Press Wide Grip",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   bentOverOneArmRow: {
     id: "bentOverOneArmRow",
     name: "Bent Over One Arm Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   bentOverRow: {
     id: "bentOverRow",
     name: "Bent Over Row",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   bicepCurl: {
     id: "bicepCurl",
     name: "Bicep Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   bicycleCrunch: {
     id: "bicycleCrunch",
     name: "Bicycle Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   boxJump: {
     id: "boxJump",
     name: "Box Jump",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   boxSquat: {
     id: "boxSquat",
     name: "Box Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   bulgarianSplitSquat: {
     id: "bulgarianSplitSquat",
     name: "Bulgarian Split Squat",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   burpee: {
     id: "burpee",
     name: "Burpee",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   cableCrossover: {
     id: "cableCrossover",
     name: "Cable Crossover",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   cableCrunch: {
     id: "cableCrunch",
     name: "Cable Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   cableKickback: {
     id: "cableKickback",
     name: "Cable Kickback",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   cablePullThrough: {
     id: "cablePullThrough",
     name: "Cable Pull Through",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   cableTwist: {
     id: "cableTwist",
     name: "Cable Twist",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   calfPressOnLegPress: {
     id: "calfPressOnLegPress",
     name: "Calf Press on Leg Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   calfPressOnSeatedLegPress: {
     id: "calfPressOnSeatedLegPress",
     name: "Calf Press on Seated Leg Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   chestDip: {
     id: "chestDip",
     name: "Chest Dip",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   chestFly: {
     id: "chestFly",
     name: "Chest Fly",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   chestPress: {
     id: "chestPress",
     name: "Chest Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   chinUp: {
     id: "chinUp",
     name: "Chin Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   clean: {
     id: "clean",
     name: "Clean",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   cleanandJerk: {
     id: "cleanandJerk",
     name: "Clean and Jerk",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   concentrationCurl: {
     id: "concentrationCurl",
     name: "Concentration Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   crossBodyCrunch: {
     id: "crossBodyCrunch",
     name: "Cross Body Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   crunch: {
     id: "crunch",
     name: "Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   cycling: {
     id: "cycling",
     name: "Cycling",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   deadlift: {
     id: "deadlift",
     name: "Deadlift",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   deadliftHighPull: {
     id: "deadliftHighPull",
     name: "Deadlift High Pull",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   declineBenchPress: {
     id: "declineBenchPress",
     name: "Decline Bench Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   declineCrunch: {
     id: "declineCrunch",
     name: "Decline Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   deficitDeadlift: {
     id: "deficitDeadlift",
     name: "Deficit Deadlift",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   ellipticalMachine: {
     id: "ellipticalMachine",
     name: "Elliptical Machine",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   facePull: {
     id: "facePull",
     name: "Face Pull",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "band",
   },
   flatKneeRaise: {
     id: "flatKneeRaise",
     name: "Flat Knee Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   flatLegRaise: {
     id: "flatLegRaise",
     name: "Flat Leg Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   frontRaise: {
     id: "frontRaise",
     name: "Front Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   frontSquat: {
     id: "frontSquat",
     name: "Front Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   gobletSquat: {
     id: "gobletSquat",
     name: "Goblet Squat",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   goodMorning: {
     id: "goodMorning",
     name: "Good Morning",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   gluteBridge: {
     id: "gluteBridge",
     name: "Glute Bridge",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "dumbbell",
   },
   gluteBridgeMarch: {
     id: "gluteBridgeMarch",
     name: "Glute Bridge March",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   hackSquat: {
     id: "hackSquat",
     name: "Hack Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   hammerCurl: {
     id: "hammerCurl",
     name: "Hammer Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   handstandPushUp: {
     id: "handstandPushUp",
     name: "Handstand Push Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   hangClean: {
     id: "hangClean",
     name: "Hang Clean",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   hangSnatch: {
     id: "hangSnatch",
     name: "Hang Snatch",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   hangingLegRaise: {
     id: "hangingLegRaise",
     name: "Hanging Leg Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   highKneeSkips: {
     id: "highKneeSkips",
     name: "High Knee Skips",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   hipAbductor: {
     id: "hipAbductor",
     name: "Hip Abductor",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   hipThrust: {
     id: "hipThrust",
     name: "Hip Thrust",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   inclineBenchPress: {
     id: "inclineBenchPress",
     name: "Incline Bench Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   inclineChestFly: {
     id: "inclineChestFly",
     name: "Incline Chest Fly",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   inclineChestPress: {
     id: "inclineChestPress",
     name: "Incline Chest Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   inclineCurl: {
     id: "inclineCurl",
     name: "Incline Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   inclineRow: {
     id: "inclineRow",
     name: "Incline Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   invertedRow: {
     id: "invertedRow",
     name: "Inverted Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   isoLateralChestPress: {
     id: "isoLateralChestPress",
     name: "Iso-Lateral Chest Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   isoLateralRow: {
     id: "isoLateralRow",
     name: "Iso-Lateral Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   jackknifeSitUp: {
     id: "jackknifeSitUp",
     name: "Jackknife Sit Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   jumpRope: {
     id: "jumpRope",
     name: "Jump Rope",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   jumpSquat: {
     id: "jumpSquat",
     name: "Jump Squat",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "barbell",
   },
   jumpingJack: {
     id: "jumpingJack",
     name: "Jumping Jack",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: undefined,
   },
   kettlebellSwing: {
     id: "kettlebellSwing",
     name: "Kettlebell Swing",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "kettlebell",
   },
   kettlebellTurkishGetUp: {
     id: "kettlebellTurkishGetUp",
     name: "Kettlebell Turkish Get Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "kettlebell",
   },
   kippingPullUp: {
     id: "kippingPullUp",
     name: "Kipping Pull Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   kneeRaise: {
     id: "kneeRaise",
     name: "Knee Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   kneelingPulldown: {
     id: "kneelingPulldown",
     name: "Kneeling Pulldown",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "band",
   },
   kneestoElbows: {
     id: "kneestoElbows",
     name: "Knees to Elbows",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   latPulldown: {
     id: "latPulldown",
     name: "Lat Pulldown",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   lateralBoxJump: {
     id: "lateralBoxJump",
     name: "Lateral Box Jump",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: undefined,
   },
   lateralRaise: {
     id: "lateralRaise",
     name: "Lateral Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   legExtension: {
     id: "legExtension",
     name: "Leg Extension",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   legPress: {
     id: "legPress",
     name: "Leg Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   lunge: {
     id: "lunge",
     name: "Lunge",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   lyingLegCurl: {
     id: "lyingLegCurl",
     name: "Lying Leg Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   mountainClimber: {
     id: "mountainClimber",
     name: "Mountain Climber",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   muscleUp: {
     id: "muscleUp",
     name: "Muscle Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   obliqueCrunch: {
     id: "obliqueCrunch",
     name: "Oblique Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   overheadPress: {
     id: "overheadPress",
     name: "Overhead Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   overheadSquat: {
     id: "overheadSquat",
     name: "Overhead Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   pecDeck: {
     id: "pecDeck",
     name: "Pec Deck",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   pendlayRow: {
     id: "pendlayRow",
     name: "Pendlay Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "barbell",
   },
   pistolSquat: {
     id: "pistolSquat",
     name: "Pistol Squat",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   plank: {
     id: "plank",
     name: "Plank",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   powerClean: {
     id: "powerClean",
     name: "Power Clean",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   powerSnatch: {
     id: "powerSnatch",
     name: "Power Snatch",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   preacherCurl: {
     id: "preacherCurl",
     name: "Preacher Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   pressUnder: {
     id: "pressUnder",
     name: "Press Under",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   pullUp: {
     id: "pullUp",
     name: "Pull Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   pullover: {
     id: "pullover",
     name: "Pullover",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   pushPress: {
     id: "pushPress",
     name: "Push Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "kettlebell",
   },
   pushUp: {
     id: "pushUp",
     name: "Push Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   reverseCrunch: {
     id: "reverseCrunch",
     name: "Reverse Crunch",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   reverseCurl: {
     id: "reverseCurl",
     name: "Reverse Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   reverseFly: {
     id: "reverseFly",
     name: "Reverse Fly",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   reverseGripConcentrationCurl: {
     id: "reverseGripConcentrationCurl",
     name: "Reverse Grip Concentration Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   reversePlank: {
     id: "reversePlank",
     name: "Reverse Plank",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   romanianDeadlift: {
     id: "romanianDeadlift",
     name: "Romanian Deadlift",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   reverseHyperextension: {
     id: "reverseHyperextension",
     name: "Reverse Hyperextension",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "band",
   },
   rowing: {
     id: "rowing",
     name: "Rowing",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   russianTwist: {
     id: "russianTwist",
     name: "Russian Twist",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   seatedCalfRaise: {
     id: "seatedCalfRaise",
     name: "Seated Calf Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "barbell",
   },
   seatedLegCurl: {
     id: "seatedLegCurl",
     name: "Seated Leg Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   seatedLegPress: {
     id: "seatedLegPress",
     name: "Seated Leg Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   seatedOverheadPress: {
     id: "seatedOverheadPress",
     name: "Seated Overhead Press",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   seatedPalmsUpWristCurl: {
     id: "seatedPalmsUpWristCurl",
     name: "Seated Palms Up Wrist Curl",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   seatedRow: {
     id: "seatedRow",
     name: "Seated Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   seatedWideGripRow: {
     id: "seatedWideGripRow",
     name: "Seated Wide Grip Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   shoulderPress: {
     id: "shoulderPress",
     name: "Shoulder Press",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   shrug: {
     id: "shrug",
     name: "Shrug",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   sideBend: {
     id: "sideBend",
     name: "Side Bend",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   sideCrunch: {
     id: "sideCrunch",
     name: "Side Crunch",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   sideHipAbductor: {
     id: "sideHipAbductor",
     name: "Side Hip Abductor",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   sideLyingClam: {
     id: "sideLyingClam",
     name: "Side Lying Clam",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   sidePlank: {
     id: "sidePlank",
     name: "Side Plank",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   singleLegBridge: {
     id: "singleLegBridge",
     name: "Single Leg Bridge",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   singleLegDeadlift: {
     id: "singleLegDeadlift",
     name: "Single Leg Deadlift",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   singleLegGluteBridgeBench: {
     id: "singleLegGluteBridgeBench",
     name: "Single Leg Glute Bridge On Bench",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   singleLegGluteBridgeStraight: {
     id: "singleLegGluteBridgeStraight",
     name: "Single Leg Glute Bridge Straight Leg",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   singleLegGluteBridgeBentKnee: {
     id: "singleLegGluteBridgeBentKnee",
     name: "Single Leg Glute Bridge Bent Knee",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   singleLegHipThrust: {
     id: "singleLegHipThrust",
     name: "Single Leg Hip Thrust",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
   sitUp: {
     id: "sitUp",
     name: "Sit Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   skullcrusher: {
     id: "skullcrusher",
     name: "Skullcrusher",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "ezbar",
   },
   snatch: {
     id: "snatch",
     name: "Snatch",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "dumbbell",
   },
   snatchPull: {
     id: "snatchPull",
     name: "Snatch Pull",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   splitJerk: {
     id: "splitJerk",
     name: "Split Jerk",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   squat: {
     id: "squat",
     name: "Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   squatRow: {
     id: "squatRow",
     name: "Squat Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "band",
   },
   standingCalfRaise: {
     id: "standingCalfRaise",
     name: "Standing Calf Raise",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   stepUp: {
     id: "stepUp",
     name: "Step up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   stiffLegDeadlift: {
     id: "stiffLegDeadlift",
     name: "Stiff Leg Deadlift",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   straightLegDeadlift: {
     id: "straightLegDeadlift",
     name: "Straight Leg Deadlift",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "barbell",
   },
   sumoDeadlift: {
     id: "sumoDeadlift",
     name: "Sumo Deadlift",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   sumoDeadliftHighPull: {
     id: "sumoDeadliftHighPull",
     name: "Sumo Deadlift High Pull",
-    warmupSets: warmup95,
+    defaultWarmup: 95,
     defaultEquipment: "barbell",
   },
   superman: {
     id: "superman",
     name: "Superman",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   tBarRow: {
     id: "tBarRow",
     name: "T Bar Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
   },
   thruster: {
     id: "thruster",
     name: "Thruster",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
   toesToBar: {
     id: "toesToBar",
     name: "Toes To Bar",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   torsoRotation: {
     id: "torsoRotation",
     name: "Torso Rotation",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   trapBarDeadlift: {
     id: "trapBarDeadlift",
     name: "Trap Bar Deadlift",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "trapbar",
   },
   tricepsDip: {
     id: "tricepsDip",
     name: "Triceps Dip",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   tricepsExtension: {
     id: "tricepsExtension",
     name: "Triceps Extension",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   tricepsPushdown: {
     id: "tricepsPushdown",
     name: "Triceps Pushdown",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "cable",
   },
   uprightRow: {
     id: "uprightRow",
     name: "Upright Row",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
   vUp: {
     id: "vUp",
     name: "V Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   widePullUp: {
     id: "widePullUp",
     name: "Wide Pull Up",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   wristRoller: {
     id: "wristRoller",
     name: "Wrist Roller",
-    warmupSets: warmup10,
+    defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
   zercherSquat: {
     id: "zercherSquat",
     name: "Zercher Squat",
-    warmupSets: warmup45,
+    defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
 };
@@ -3211,44 +3209,95 @@ function getMetadata(id: IExerciseId): Partial<Record<IEquipment, IMetaExercises
 export type IExercise = {
   id: IExerciseId;
   name: string;
-  warmupSets: (weight: IWeight, settings: ISettings, equipment?: IEquipment) => ISet[];
+  defaultWarmup?: number;
   equipment?: IEquipment;
   defaultEquipment?: IEquipment;
 };
 
+export function warmupValues(): Partial<Record<number, IProgramExerciseWarmupSet[]>> {
+  return {
+    10: [
+      {
+        reps: 5,
+        threshold: Weight.build(60, "lb"),
+        value: 0.3,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(30, "lb"),
+        value: 0.5,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(10, "lb"),
+        value: 0.8,
+      },
+    ],
+    45: [
+      {
+        reps: 5,
+        threshold: Weight.build(120, "lb"),
+        value: 0.3,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(90, "lb"),
+        value: 0.5,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(45, "lb"),
+        value: 0.8,
+      },
+    ],
+    95: [
+      {
+        reps: 5,
+        threshold: Weight.build(150, "lb"),
+        value: 0.3,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(125, "lb"),
+        value: 0.5,
+      },
+      {
+        reps: 5,
+        threshold: Weight.build(95, "lb"),
+        value: 0.8,
+      },
+    ],
+  };
+}
+
 function warmup45(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup({ 45: 0.8, 90: 0.5, 120: 0.3 })(weight, settings, equipment);
+  return warmup(warmupValues()[45] || [])(weight, settings, equipment);
 }
 
 function warmup95(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup({ 95: 0.8, 125: 0.5, 150: 0.3 })(weight, settings, equipment);
+  return warmup(warmupValues()[95] || [])(weight, settings, equipment);
 }
 
 function warmup10(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup({ 10: 0.8, 30: 0.5, 60: 0.3 })(weight, settings, equipment);
+  return warmup(warmupValues()[10] || [])(weight, settings, equipment);
 }
 
 function warmup(
-  mapping: Record<number, number>
+  programExerciseWarmupSets: IProgramExerciseWarmupSet[]
 ): (weight: IWeight, settings: ISettings, equipment?: IEquipment) => ISet[] {
   return (weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] => {
     const bar = equipmentToBarKey(equipment);
-    const percents: number[] = [];
-    ObjectUtils.keys(mapping).forEach((weightValue) => {
-      const percent = mapping[weightValue];
-      if (Weight.gt(weight, Weight.build(weightValue, "lb"))) {
-        percents.unshift(percent);
-      }
-    });
-    return percents.map((percent) => {
-      return {
-        reps: 5,
-        weight: Weight.max(
+    return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
+      if (Weight.gt(weight, programExerciseWarmupSet.threshold)) {
+        const value = programExerciseWarmupSet.value;
+        const warmupWeight = Weight.max(
           bar != null ? Settings.bars(settings)[bar] : Weight.build(0, settings.units),
-          Weight.roundConvertTo(Weight.multiply(weight, percent), settings, bar)
-        ),
-      };
-    });
+          Weight.roundConvertTo(typeof value === "number" ? Weight.multiply(weight, value) : value, settings, bar)
+        );
+        memo.push({ reps: programExerciseWarmupSet.reps, weight: warmupWeight });
+      }
+      return memo;
+    }, []);
   };
 }
 
@@ -3258,7 +3307,7 @@ function warmupEmpty(weight: IWeight): ISet[] {
 
 function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
   const custom = customExercises[id];
-  return custom != null ? { ...custom, warmupSets: warmup45 } : exercises[id];
+  return custom != null ? { ...custom, defaultWarmup: 45 } : exercises[id];
 }
 
 function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
@@ -3308,8 +3357,26 @@ export namespace Exercise {
     return a.id === b.id && (a.equipment || "bodyweight") === (b.equipment || "bodyweight");
   }
 
-  export function getWarmupSets(exercise: IExerciseType, weight: IWeight, settings: ISettings): ISet[] {
-    return get(exercise, settings.exercises).warmupSets(weight, settings, exercise.equipment);
+  export function getWarmupSets(
+    exercise: IExerciseType,
+    weight: IWeight,
+    settings: ISettings,
+    programExerciseWarmupSets?: IProgramExerciseWarmupSet[]
+  ): ISet[] {
+    const ex = get(exercise, settings.exercises);
+    if (programExerciseWarmupSets != null) {
+      return warmup(programExerciseWarmupSets)(weight, settings, exercise.equipment);
+    } else {
+      let warmupSets = warmupEmpty(weight);
+      if (ex.defaultWarmup === 10) {
+        warmupSets = warmup10(weight, settings, exercise.equipment);
+      } else if (ex.defaultWarmup === 45) {
+        warmupSets = warmup45(weight, settings, exercise.equipment);
+      } else if (ex.defaultWarmup === 95) {
+        warmupSets = warmup95(weight, settings, exercise.equipment);
+      }
+      return warmupSets;
+    }
   }
 
   export function sortedEquipments(id: IExerciseId): IEquipment[] {

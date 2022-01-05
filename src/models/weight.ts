@@ -31,6 +31,10 @@ export namespace Weight {
     }
   }
 
+  export function clone(value: IWeight): IWeight {
+    return build(value.value, value.unit);
+  }
+
   export function is(object: unknown): object is IWeight {
     const objWeight = object as IWeight;
     return (

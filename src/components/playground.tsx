@@ -55,7 +55,8 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
             newDay,
             programExercise.variations[nextVariationIndex].sets,
             programExercise.state,
-            settings
+            settings,
+            programExercise.warmupSets
           );
           props.onProgressChange(History.buildFromEntry(newEntry, newDay));
         }}
@@ -75,6 +76,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
       />
       <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
       <ModalWeight
+        programExercise={progress.ui?.weightModal?.programExercise}
         isHidden={progress.ui?.weightModal == null}
         units={props.settings.units}
         dispatch={dispatch}

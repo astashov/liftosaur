@@ -48,7 +48,8 @@ export const Playground = memo(
         day,
         programExercise.variations[variationIndex].sets,
         programExercise.state,
-        settings
+        settings,
+        programExercise.warmupSets
       );
       return History.buildFromEntry(entry, day);
     });
@@ -103,6 +104,7 @@ export const Playground = memo(
         <ModalAmrap isHidden={progressRef.current.ui?.amrapModal == null} dispatch={dispatch} />
         <ModalWeight
           isHidden={progressRef.current.ui?.weightModal == null}
+          programExercise={progressRef.current.ui?.weightModal?.programExercise}
           units={props.settings.units}
           dispatch={dispatch}
           weight={progressRef.current.ui?.weightModal?.weight ?? 0}

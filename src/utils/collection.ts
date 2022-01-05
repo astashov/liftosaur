@@ -115,6 +115,16 @@ export namespace CollectionUtils {
     return from.filter((t) => t !== item);
   }
 
+  export function removeAt<T>(from: T[], index: number): T[] {
+    const result = [...from];
+    result.splice(index, 1);
+    return result;
+  }
+
+  export function setAt<T>(from: T[], index: number, item: T): T[] {
+    return from.map((e, i) => (i === index ? item : e));
+  }
+
   export function removeBy<T extends {}, K extends keyof T, V extends T[K]>(from: T[], key: K, value: V): T[] {
     return from.filter((t) => t[key] !== value);
   }

@@ -4,12 +4,13 @@ import { useRef } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
-import { IUnit, IWeight } from "../types";
+import { IProgramExercise, IUnit, IWeight } from "../types";
 
 interface IModalWeightProps {
   dispatch: IDispatch;
   units: IUnit;
   weight: number | IWeight;
+  programExercise?: IProgramExercise;
   isHidden: boolean;
 }
 
@@ -49,6 +50,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
               props.dispatch({
                 type: "ConfirmWeightAction",
                 weight: numValue != null && !isNaN(numValue) ? Weight.build(numValue, props.units) : undefined,
+                programExercise: props.programExercise,
               });
             }}
           >

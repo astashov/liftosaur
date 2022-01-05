@@ -386,6 +386,60 @@ export const THistoryEntry = t.type(
 );
 export type IHistoryEntry = t.TypeOf<typeof THistoryEntry>;
 
+export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
+export type IProgramState = t.TypeOf<typeof TProgramState>;
+
+export const TProgramSet = t.intersection(
+  [
+    t.interface({
+      repsExpr: t.string,
+      weightExpr: t.string,
+    }),
+    t.partial({
+      isAmrap: t.boolean,
+    }),
+  ],
+  "TProgramSet"
+);
+export type IProgramSet = t.TypeOf<typeof TProgramSet>;
+
+export const TProgramExerciseVariation = t.type(
+  {
+    sets: t.array(TProgramSet),
+  },
+  "TProgramExerciseVariation"
+);
+export type IProgramExerciseVariation = Readonly<t.TypeOf<typeof TProgramExerciseVariation>>;
+
+export const TProgramExerciseWarmupSet = t.type(
+  {
+    reps: t.number,
+    value: t.union([TWeight, t.number]),
+    threshold: TWeight,
+  },
+  "TProgramExerciseWarmupSet"
+);
+export type IProgramExerciseWarmupSet = Readonly<t.TypeOf<typeof TProgramExerciseWarmupSet>>;
+
+export const TProgramExercise = t.intersection(
+  [
+    t.interface({
+      exerciseType: TExerciseType,
+      id: t.string,
+      name: t.string,
+      variations: t.array(TProgramExerciseVariation),
+      state: TProgramState,
+      variationExpr: t.string,
+      finishDayExpr: t.string,
+    }),
+    t.partial({
+      warmupSets: t.array(TProgramExerciseWarmupSet),
+    }),
+  ],
+  "TProgramExercise"
+);
+export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
+
 export const TProgressUi = t.partial(
   {
     amrapModal: t.type({
@@ -396,6 +450,7 @@ export const TProgressUi = t.partial(
     weightModal: t.type({
       exercise: TExerciseType,
       weight: TWeight,
+      programExercise: t.union([TProgramExercise, t.undefined]),
     }),
     dateModal: t.type({
       date: t.string,
@@ -445,20 +500,6 @@ export const THistoryRecord = t.intersection(
 );
 export type IHistoryRecord = t.TypeOf<typeof THistoryRecord>;
 
-export const TProgramSet = t.intersection(
-  [
-    t.interface({
-      repsExpr: t.string,
-      weightExpr: t.string,
-    }),
-    t.partial({
-      isAmrap: t.boolean,
-    }),
-  ],
-  "TProgramSet"
-);
-export type IProgramSet = t.TypeOf<typeof TProgramSet>;
-
 export const TProgramDayEntry = t.type(
   {
     exercise: TExerciseType,
@@ -481,9 +522,6 @@ export const TProgramDay = t.type(
 );
 export type IProgramDay = Readonly<t.TypeOf<typeof TProgramDay>>;
 
-export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
-export type IProgramState = t.TypeOf<typeof TProgramState>;
-
 const tags = [
   "first-starter",
   "beginner",
@@ -503,28 +541,6 @@ export const TProgramTag = t.keyof(
   "TProgramTag"
 );
 export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
-
-export const TProgramExerciseVariation = t.type(
-  {
-    sets: t.array(TProgramSet),
-  },
-  "TProgramExerciseVariation"
-);
-export type IProgramExerciseVariation = Readonly<t.TypeOf<typeof TProgramExerciseVariation>>;
-
-export const TProgramExercise = t.type(
-  {
-    exerciseType: TExerciseType,
-    id: t.string,
-    name: t.string,
-    variations: t.array(TProgramExerciseVariation),
-    state: TProgramState,
-    variationExpr: t.string,
-    finishDayExpr: t.string,
-  },
-  "TProgramExercise"
-);
-export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
 
 export const TProgram = t.type(
   {

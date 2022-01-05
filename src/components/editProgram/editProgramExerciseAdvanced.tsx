@@ -10,7 +10,7 @@ import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { Button } from "../button";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 import { EditProgram } from "../../models/editProgram";
-import { useState, useRef, useEffect } from "preact/hooks";
+import { useState, useRef, useEffect, useCallback } from "preact/hooks";
 import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IEither } from "../../utils/types";
 import { ScriptRunner } from "../../parser";
@@ -22,7 +22,7 @@ import { SemiButton } from "../semiButton";
 import { IconEdit } from "../iconEdit";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
-import { Exercise, equipmentName } from "../../models/exercise";
+import { Exercise, equipmentName, IExercise } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
 import { IconQuestion } from "../iconQuestion";
 import { ExerciseImage } from "../exerciseImage";
@@ -38,8 +38,10 @@ import {
   IProgramSet,
   IProgramState,
   IWeight,
+  IProgramExerciseWarmupSet,
 } from "../../types";
 import { Playground } from "../playground";
+import { inputClassName } from "../input";
 
 interface IProps {
   settings: ISettings;
@@ -53,17 +55,21 @@ interface IProps {
 function buildProgress(
   programExercise: IProgramExercise,
   day: number,
-  variationIndex: number,
   settings: ISettings
 ): IHistoryRecord | undefined {
   let entry: IHistoryEntry | undefined;
+  let variationIndex = 0;
+  try {
+    variationIndex = Program.nextVariationIndex(programExercise, day, settings);
+  } catch (_) {}
   try {
     entry = Program.nextHistoryEntry(
       programExercise.exerciseType,
       day,
       programExercise.variations[variationIndex].sets,
       programExercise.state,
-      settings
+      settings,
+      programExercise.warmupSets
     );
   } catch (e) {
     entry = undefined;
@@ -78,7 +84,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const prevProps = useRef<IProps>(props);
   const [variationIndex, setVariationIndex] = useState<number>(0);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(() =>
-    buildProgress(programExercise, 1, variationIndex, props.settings)
+    buildProgress(programExercise, 1, props.settings)
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
@@ -86,7 +92,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
-      setProgress(buildProgress(programExercise, progress?.day || 1, variationIndex, props.settings));
+      setProgress(buildProgress(programExercise, progress?.day || 1, props.settings));
     }
     prevProps.current = props;
   });
@@ -193,6 +199,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         }}
         dispatch={props.dispatch}
       />
+      <EditWarmupSets dispatch={props.dispatch} programExercise={programExercise} settings={props.settings} />
       {progress && entry && (
         <Playground
           day={day}
@@ -519,6 +526,145 @@ function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
         }}
       />
     </Fragment>
+  );
+}
+
+interface IEditWarmupSetsProps {
+  programExercise: IProgramExercise;
+  settings: ISettings;
+  dispatch: IDispatch;
+}
+
+function EditWarmupSets(props: IEditWarmupSetsProps): JSX.Element {
+  const exercise = Exercise.get(props.programExercise.exerciseType, props.settings.exercises);
+  const warmupSets = props.programExercise.warmupSets;
+  useEffect(() => {
+    if (warmupSets == null) {
+      EditProgram.setDefaultWarmupSets(props.dispatch, exercise);
+    }
+  });
+  return (
+    <section>
+      <GroupHeader name="Warmup Sets" help={<p></p>} />
+      {(warmupSets || []).map((_, index) => {
+        return (
+          <EditWarmupSet
+            exercise={exercise}
+            warmupSets={warmupSets || []}
+            index={index}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        );
+      })}
+      <div className="p-1">
+        <SemiButton
+          data-cy="edit-warmup-set-add"
+          onClick={() => {
+            EditProgram.addWarmupSet(props.dispatch, warmupSets || []);
+          }}
+        >
+          Add Warmup Set +
+        </SemiButton>
+      </div>
+    </section>
+  );
+}
+
+interface IEditWarmupSetProps {
+  exercise: IExercise;
+  warmupSets: IProgramExerciseWarmupSet[];
+  index: number;
+  settings: ISettings;
+  dispatch: IDispatch;
+}
+
+function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
+  const warmupSet = props.warmupSets[props.index];
+  const isPercent = typeof warmupSet.value === "number";
+  const weightValue = typeof warmupSet.value === "number" ? warmupSet.value : warmupSet.value.value;
+  const unit = typeof warmupSet.value !== "number" ? warmupSet.value.unit : props.settings.units;
+  const threshold = Weight.roundConvertTo(warmupSet.threshold, props.settings, props.exercise.equipment);
+
+  const repsRef = useRef<HTMLInputElement>();
+  const valueRef = useRef<HTMLInputElement>();
+  const valueUnitRef = useRef<HTMLSelectElement>();
+  const thresholdRef = useRef<HTMLInputElement>();
+
+  const onUpdate = useCallback(() => {
+    const newUnit = valueUnitRef.current.value as "%" | "kg" | "lb";
+    const newReps = parseInt(repsRef.current.value, 10);
+    const numValue = parseInt(valueRef.current.value, 10);
+    const thresholdValue = parseFloat(thresholdRef.current.value);
+    if (!isNaN(numValue) && !isNaN(thresholdValue) && !isNaN(newReps)) {
+      const value = newUnit === "%" ? numValue / 100 : Weight.build(numValue, newUnit);
+      const newWarmupSet: IProgramExerciseWarmupSet = {
+        reps: newReps,
+        value,
+        threshold: Weight.build(thresholdValue, props.settings.units),
+      };
+      EditProgram.updateWarmupSet(props.dispatch, props.warmupSets, props.index, newWarmupSet);
+    }
+  }, [props.dispatch, props.warmupSets, props.index]);
+
+  return (
+    <div className="flex items-center p-2" data-cy="edit-warmup-set">
+      <div>
+        <input
+          data-cy="edit-warmup-set-reps"
+          ref={repsRef}
+          className={inputClassName.replace(" px-4 ", " px-2 ")}
+          type="number"
+          min="0"
+          value={warmupSet.reps}
+          onBlur={onUpdate}
+        />
+      </div>
+      <div className="px-2">x</div>
+      <div>
+        <input
+          data-cy="edit-warmup-set-value"
+          ref={valueRef}
+          className={inputClassName.replace(" px-4 ", " px-2 ")}
+          type="number"
+          min="0"
+          value={isPercent ? weightValue * 100 : weightValue}
+          onBlur={onUpdate}
+        />
+      </div>
+      <div>
+        <select ref={valueUnitRef} onChange={onUpdate} data-cy="edit-warmup-set-value-unit">
+          {["%", unit].map((u) => (
+            <option value={u} selected={isPercent ? u === "%" : u === unit}>
+              {u}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="px-2 whitespace-no-wrap">if &gt;</div>
+      <div>
+        <input
+          data-cy="edit-warmup-set-threshold"
+          min="0"
+          step="0.01"
+          onBlur={onUpdate}
+          ref={thresholdRef}
+          className={inputClassName.replace(" px-4 ", " px-2 ")}
+          type="number"
+          value={threshold.value}
+        />
+      </div>
+      <div className="px-2">{threshold.unit}</div>
+      <button
+        className="p-4"
+        data-cy="edit-warmup-set-delete"
+        onClick={() => {
+          EditProgram.removeWarmupSet(props.dispatch, props.warmupSets || [], props.index);
+        }}
+      >
+        <IconDelete />
+      </button>
+    </div>
   );
 }
 

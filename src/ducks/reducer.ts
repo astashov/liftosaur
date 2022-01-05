@@ -24,6 +24,7 @@ import {
   ISettings,
   IHistoryRecord,
   IProgram,
+  IProgramExercise,
 } from "../types";
 import { Settings } from "../models/settings";
 import { IndexedDBUtils } from "../utils/indexeddb";
@@ -188,11 +189,13 @@ export type IChangeWeightAction = {
   type: "ChangeWeightAction";
   weight: IWeight;
   exercise: IExerciseType;
+  programExercise?: IProgramExercise;
 };
 
 export type IConfirmWeightAction = {
   type: "ConfirmWeightAction";
   weight?: IWeight;
+  programExercise?: IProgramExercise;
 };
 
 export type IUpdateSettingsAction = {
@@ -321,10 +324,10 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         return Progress.updateAmrapRepsInExercise(progress, action.value);
       }
       case "ChangeWeightAction": {
-        return Progress.showUpdateWeightModal(progress, action.exercise, action.weight);
+        return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);
       }
       case "ConfirmWeightAction": {
-        return Progress.updateWeight(progress, settings, action.weight);
+        return Progress.updateWeight(progress, settings, action.weight, action.programExercise);
       }
     }
   };

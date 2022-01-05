@@ -159,6 +159,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         />
         <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
         <ModalWeight
+          programExercise={progress.ui?.weightModal?.programExercise}
           isHidden={progress.ui?.weightModal == null}
           units={props.settings.units}
           dispatch={props.dispatch}

@@ -78,7 +78,7 @@ describe("Progress", () => {
     cy.get("@sets").eq(5).find("[data-cy=weight-value]").should("have.text", "200");
 
     // Testing warmup weights
-    cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy=container-set]").as("set-containers");
+    cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy=warmup-set]").as("set-containers");
     cy.get("@set-containers").eq(0).find("[data-cy=warmup-set-title]").should("have.text", "Warmup");
     cy.get("@set-containers").eq(0).find("[data-cy=weight-value]").should("have.text", "60");
     cy.get("@set-containers").eq(1).find("[data-cy=warmup-set-title]").should("have.text", "Warmup");
