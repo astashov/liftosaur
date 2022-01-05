@@ -545,7 +545,17 @@ function EditWarmupSets(props: IEditWarmupSetsProps): JSX.Element {
   });
   return (
     <section>
-      <GroupHeader name="Warmup Sets" help={<p></p>} />
+      <GroupHeader
+        name="Warmup Sets"
+        help={
+          <p>
+            You can configure warmup sets for exercise either as percentage of weight of first set, or just as a number
+            of lb/kg. For each warmup set, you can configure condition - after what first weight set it will appear.
+            E.g. <strong>3 x 50% if &gt; 95 lb</strong> means 3 reps with half of the weight of the first set, and it
+            will only appear if the weight of the first set is more than <strong>95 lb</strong>.
+          </p>
+        }
+      />
       {(warmupSets || []).map((_, index) => {
         return (
           <EditWarmupSet
