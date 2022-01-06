@@ -2,7 +2,7 @@
 
 Link: https://www.liftosaur.com/about
 
-<video playsinline muted autoplay loop src="images/hero-video.mp4"></video>
+![Screenshot](https://raw.github.com/astashov/liftosaur/master/screenshot.png)
 
 It's a mobile app, that's available as:
 
