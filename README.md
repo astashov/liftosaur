@@ -47,6 +47,8 @@ if (state.failures > 2) {
 - Previews of each program available, with playgrounds, e.g. [Basic Beginner Routine](https://www.liftosaur.com/programs/basicBeginner).
 - If you did similar sets x reps for some exercise previously, it shows your last results. Same for AMRAPs.
 - Optional public profile page, e.g. this is [mine](https://www.liftosaur.com/profile/tiolnbjbleke).
+- Track bodyweight and other body measurements (biceps, chest, waist, etc)
+- Correlate bodyweight changes with lifts graphs
 
 # Implementation details
 
