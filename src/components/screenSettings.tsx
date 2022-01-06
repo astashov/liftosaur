@@ -196,6 +196,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <InternalLink href="/docs/docs.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Documentation
         </InternalLink>
+        <a
+          href="https://github.com/astashov/liftosaur"
+          className="block w-full px-6 py-3 text-left border-b border-gray-200"
+        >
+          Source Code on Github
+        </a>
       </section>
       <FooterView loading={props.loading} dispatch={props.dispatch} />
     </section>
