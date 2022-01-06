@@ -78,7 +78,7 @@ $ yarn install
 $ yarn start
 ```
 
-Then, open http://localhost:8080/. That's it.
+Then, open http://localhost:8080/. That's it! But that will only give you offline-like experience, so there will be no local API server running.
 
 Running the server is a bit trickier, and frankly still tied to `liftosaur.com` domain, so probably would not be easy to run, you'd need to modify a bunch of things in `liftosaur-cdk/liftosaur-cdk.ts` file. If you still want to try, then you need to set up AWS account, add `AWS_ACCESS_KEY_ID`,`AWS_SECRET_ACCESS_KEY`,`AWS_REGION` env vars, and set the necessary permission policies for your user:
 
