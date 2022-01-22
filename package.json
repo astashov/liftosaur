@@ -61,7 +61,7 @@
     "lambda-local": "^1.7.4",
     "markdown-styles": "^3.1.10",
     "mini-css-extract-plugin": "^0.9.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "postcss-loader": "^3.0.0",
     "prettier": "^2.0.5",
     "rollbar": "^2.16.2",
