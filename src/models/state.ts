@@ -94,6 +94,7 @@ export interface IState {
   };
   editExercise?: IProgramExercise;
   adminKey?: string;
+  showWhatsNew?: boolean;
 }
 
 export interface IWebpushr {

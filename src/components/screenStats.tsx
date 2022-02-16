@@ -5,7 +5,7 @@ import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ISettings, IUnit, ILengthUnit, IStats, IWeight, ILength, IStatsWeight, IStatsLength } from "../types";
 import { Button } from "./button";
-import { forwardRef, Ref, useRef, useState } from "preact/compat";
+import { forwardRef, Ref, useRef, useState, memo } from "preact/compat";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { Length } from "../models/length";
@@ -25,22 +25,22 @@ interface IProps {
 export function ScreenStats(props: IProps): JSX.Element {
   const { statsEnabled, lengthUnits, units } = props.settings;
   const lastWeightStats = ObjectUtils.keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
-    (memo, key) => {
+    (acc, key) => {
       const value = (props.stats.weight[key] || [])[0]?.value;
       if (value != null) {
-        memo[key] = Weight.convertTo(value, props.settings.units);
+        acc[key] = Weight.convertTo(value, props.settings.units);
       }
-      return memo;
+      return acc;
     },
     {}
   );
   const lastLengthStats = ObjectUtils.keys(props.stats.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
-    (memo, key) => {
+    (acc, key) => {
       const value = (props.stats.length[key] || [])[0]?.value;
       if (value != null) {
-        memo[key] = Length.convertTo(value, props.settings.lengthUnits);
+        acc[key] = Length.convertTo(value, props.settings.lengthUnits);
       }
-      return memo;
+      return acc;
     },
     {}
   );
@@ -65,18 +65,18 @@ export function ScreenStats(props: IProps): JSX.Element {
 
   function saveWeight(): void {
     const payload = ObjectUtils.keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
-      (memo, key) => {
+      (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
         if (isEnabled) {
           const stringValue = refs[key]?.current.value;
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
-              memo[key] = Weight.build(value, units);
+              acc[key] = Weight.build(value, units);
             }
           }
         }
-        return memo;
+        return acc;
       },
       {}
     );
@@ -85,18 +85,18 @@ export function ScreenStats(props: IProps): JSX.Element {
 
   function saveLength(): void {
     const payload = ObjectUtils.keys(statsEnabled.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
-      (memo, key) => {
+      (acc, key) => {
         const isEnabled = statsEnabled.length[key];
         if (isEnabled) {
           const stringValue = refs[key]?.current.value;
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
-              memo[key] = Length.build(value, lengthUnits);
+              acc[key] = Length.build(value, lengthUnits);
             }
           }
         }
-        return memo;
+        return acc;
       },
       {}
     );
@@ -297,26 +297,29 @@ function DoubleLine(props: IDoubleLineProps): JSX.Element {
   );
 }
 
-const Input = forwardRef(
-  (props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-    const name = StringUtils.dashcase(props.label.toLowerCase());
-    return (
-      <div className="inline-block w-full text-left">
-        <label className="block text-sm italic">
-          {props.label} ({props.unit})
-        </label>
-        <input
-          data-cy={`input-stats-${name}`}
-          tabIndex={1}
-          className="focus:outline-none focus:shadow-outline w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
-          value={props.value}
-          ref={ref}
-          type="number"
-          placeholder="e.g. 10"
-          min="0"
-          step="0.01"
-        />
-      </div>
-    );
-  }
+const Input = memo(
+  forwardRef(
+    (props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
+      const name = StringUtils.dashcase(props.label.toLowerCase());
+      console.log("RENDER ", props.label, props.unit, props.value);
+      return (
+        <div className="inline-block w-full text-left">
+          <label className="block text-sm italic">
+            {props.label} ({props.unit})
+          </label>
+          <input
+            data-cy={`input-stats-${name}`}
+            tabIndex={1}
+            className="w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+            value={props.value}
+            ref={ref}
+            type="number"
+            placeholder="e.g. 10"
+            min="0"
+            step="0.01"
+          />
+        </div>
+      );
+    }
+  )
 );

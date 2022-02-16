@@ -693,6 +693,7 @@ export const TStorage = t.type(
     programs: t.array(TProgram),
     helps: t.array(t.string),
     tempUserId: t.string,
+    whatsNew: t.union([t.string, t.undefined]),
   },
   "TStorage"
 );

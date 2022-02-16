@@ -1,5 +1,5 @@
 export namespace DateUtils {
-  export function format(dateStr: string | Date | number): string {
+  export function format(dateStr: string | Date | number, showWeekday?: boolean): string {
     let date;
     if (typeof dateStr === "string") {
       date = new Date(Date.parse(dateStr));
@@ -8,7 +8,12 @@ export namespace DateUtils {
     } else {
       date = dateStr;
     }
-    return date.toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+    return date.toLocaleDateString(undefined, {
+      weekday: showWeekday ? "short" : undefined,
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   export function formatWithTime(dateStr: string | Date | number): string {
@@ -30,7 +35,7 @@ export namespace DateUtils {
     });
   }
 
-  export function formatYYYYMMDD(date: Date | string | number): string {
+  export function formatYYYYMMDD(date: Date | string | number, separator: string = "-"): string {
     const d = new Date(date);
     let month = `${d.getMonth() + 1}`;
     let day = `${d.getDate()}`;
@@ -43,7 +48,7 @@ export namespace DateUtils {
       day = `0${day}`;
     }
 
-    return [year, month, day].join("-");
+    return [year, month, day].join(separator);
   }
 
   export function formatUTCYYYYMMDD(date: Date | string | number): string {
@@ -90,9 +95,15 @@ export namespace DateUtils {
     return [year, month, day, hours, minutes, seconds].join("");
   }
 
-  export function fromYYYYMMDD(dateStr: string): string {
-    const [, year, month, day] = dateStr.match(/^(\d+)-0*(\d+)-0*(\d+)$/)!;
-    const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
-    return date.toISOString();
+  export function fromYYYYMMDD(dateStr: string, separator: string = "-"): string {
+    const regexp = new RegExp(`^(\\d{4})${separator}(\\d{2})${separator}(\\d{2})$`);
+    const regexpMatchArray = dateStr.match(regexp);
+    if (regexpMatchArray) {
+      const [, year, month, day] = regexpMatchArray;
+      const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+      return date.toISOString();
+    } else {
+      return new Date(Date.UTC(1970, 1, 1)).toISOString();
+    }
   }
 }

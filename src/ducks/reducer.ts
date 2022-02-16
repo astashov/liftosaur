@@ -101,6 +101,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
       version: getLatestMigrationVersion(),
       programs: [],
       helps: [],
+      whatsNew: undefined,
     },
     user: userId ? { email: userId, id: userId } : undefined,
   };
@@ -584,6 +585,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         version: newStorage.version,
         programs: newStorage.programs,
         helps: newStorage.helps,
+        whatsNew: newStorage.whatsNew,
       };
       return { ...state, storage };
     } else {

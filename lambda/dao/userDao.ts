@@ -88,6 +88,7 @@ export class UserDao {
         helps: [],
         tempUserId: "",
         settings: Settings.build(),
+        whatsNew: undefined,
       },
     };
   }

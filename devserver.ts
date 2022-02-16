@@ -59,6 +59,6 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
   }
 });
-server.listen(3000, "localhost", () => {
+server.listen(3000, "127.0.0.1", () => {
   console.log(`--------- Server is running ----------`);
 });

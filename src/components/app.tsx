@@ -30,6 +30,8 @@ import { ScreenStats } from "./screenStats";
 import { ScreenFriends } from "./screenFriends";
 import { ScreenFriendsAdd } from "./screenFriendsAdd";
 import { Notification } from "./notification";
+import { WhatsNew } from "../models/whatsnew";
+import { ModalWhatsnew } from "./modalWhatsnew";
 
 interface IProps {
   client: Window["fetch"];
@@ -65,6 +67,7 @@ export function AppView(props: IProps): JSX.Element | null {
     },
   ]);
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
+  const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
     window._webpushrScriptReady = () => {
@@ -72,6 +75,9 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch({ type: "StoreWebpushrSidAction", sid });
       });
     };
+    if (state.storage.whatsNew == null) {
+      WhatsNew.updateStorage(dispatch);
+    }
     dispatch(Thunk.fetchStorage());
     dispatch(Thunk.fetchPrograms());
     if (state.storage.currentProgramId == null) {
@@ -289,6 +295,9 @@ export function AppView(props: IProps): JSX.Element | null {
       {content}
       <Notification dispatch={dispatch} notification={state.notification} />
       <HelpOverlay dispatch={dispatch} seenIds={state.storage.helps} />
+      {shouldShowWhatsNew && state.storage.whatsNew != null && (
+        <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
+      )}
     </Fragment>
   );
 }
