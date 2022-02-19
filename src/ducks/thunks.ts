@@ -11,6 +11,8 @@ import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
+import { ImportExporter } from "../lib/importexporter";
+import { Storage } from "../models/storage";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -297,6 +299,31 @@ export namespace Thunk {
         ]);
       } finally {
         updateState(dispatch, [lb<IState>().p("comments").p("isRemoving").p(id).record(undefined)]);
+      }
+    };
+  }
+
+  export function exportStorage(): IThunk {
+    return async (dispatch, getState, env) => {
+      ImportExporter.exportStorage(getState().storage);
+    };
+  }
+
+  export function importStorage(maybeStorage: string): IThunk {
+    return async (dispatch, getState, env) => {
+      let parsedMaybeStorage: Record<string, unknown>;
+      try {
+        parsedMaybeStorage = JSON.parse(maybeStorage);
+      } catch (e) {
+        alert("Couldn't parse the provided file");
+        return;
+      }
+      const result = await Storage.get(env.service.client, parsedMaybeStorage, false);
+      if (result.success) {
+        updateState(dispatch, [lb<IState>().p("storage").record(result.data)], "Importing Storage");
+        alert("Successfully imported");
+      } else {
+        alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
       }
     };
   }

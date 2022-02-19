@@ -84,22 +84,21 @@ export function AppView(props: IProps): JSX.Element | null {
       setShouldShowOnboarding(true);
     }
     window.addEventListener("click", (e) => {
-      let button: HTMLButtonElement | undefined;
+      let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
       while (el != null) {
-        if ((el as HTMLElement).tagName?.toLowerCase() === "button") {
-          button = el as HTMLButtonElement;
+        const element = el as HTMLElement;
+        if (typeof element.className === "string" && element.className.startsWith("ls-")) {
+          button = el;
           break;
         }
         el = el.parentNode as HTMLElement | undefined;
       }
       if (button != null) {
-        const name = (button.getAttribute("class") || "").split(" ")[0];
-        if (name && name.startsWith("ls-")) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const st = (window as any).state as IState;
-          LogUtils.log(st.user?.id || st.storage.tempUserId, name);
-        }
+        const name = button.className?.split(" ")[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const st = (window as any).state as IState;
+        LogUtils.log(st.user?.id || st.storage.tempUserId, name);
       }
     });
   }, []);

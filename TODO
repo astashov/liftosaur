@@ -5,7 +5,6 @@
   - Greyskull LP
   - nSuns LP
 - Add errors handling to HTTP calls
-- Add exporting all data to downloadable CSV
 - Add deleting account
 - Add achievements
 - Add ability to publish user programs

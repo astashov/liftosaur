@@ -3,19 +3,16 @@ import { Program } from "../models/program";
 import { Progress } from "../models/progress";
 import { StateError } from "./stateError";
 import { History } from "../models/history";
+import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
-import { runMigrations } from "../migrations/runner";
 import { ILensRecordingPayload, lf } from "lens-shmens";
-import * as t from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
 import RB from "rollbar";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { ILocalStorage, INotification, IState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
-  TStorage,
   THistoryRecord,
   IStorage,
   IExerciseType,
@@ -26,7 +23,6 @@ import {
   IProgram,
   IProgramExercise,
 } from "../types";
-import { Settings } from "../models/settings";
 import { IndexedDBUtils } from "../utils/indexeddb";
 
 declare let Rollbar: RB;
@@ -57,10 +53,11 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
       : undefined;
 
   if (storage != null && storage.storage != null) {
-    const finalStorage = await runMigrations(client, storage.storage);
-    validateStorage(finalStorage, TStorage, "storage");
+    const finalStorage = await Storage.getWithDefault(client, storage.storage, true);
     const isProgressValid =
-      storage.progress != null ? validateStorage(storage.progress, THistoryRecord, "progress") : false;
+      storage.progress != null
+        ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
+        : false;
 
     const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["programs"];
     return {
@@ -88,39 +85,9 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
     friendsHistory: {},
     notification,
     comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
-    storage: {
-      id: 0,
-      currentProgramId: undefined,
-      tempUserId: UidFactory.generateUid(10),
-      stats: {
-        weight: {},
-        length: {},
-      },
-      settings: Settings.build(),
-      history: [],
-      version: getLatestMigrationVersion(),
-      programs: [],
-      helps: [],
-      whatsNew: undefined,
-    },
+    storage: Storage.getDefault(),
     user: userId ? { email: userId, id: userId } : undefined,
   };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateStorage(data: Record<string, unknown>, type: t.Type<any, any, any>, name: string): boolean {
-  const decoded = type.decode(data);
-  if ("left" in decoded) {
-    const error = PathReporter.report(decoded);
-    if (Rollbar != null) {
-      Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
-    }
-    console.error(`Error decoding ${name}`);
-    error.forEach((e) => console.error(e));
-    return false;
-  } else {
-    return true;
-  }
 }
 
 export type IChangeDate = {

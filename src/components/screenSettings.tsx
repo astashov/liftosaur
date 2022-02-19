@@ -14,6 +14,7 @@ import { useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IUnit } from "../types";
 import { ILoading } from "../models/state";
 import { WhatsNew } from "../models/whatsnew";
+import { ImporterStorage } from "./importerStorage";
 
 interface IProps {
   dispatch: IDispatch;
@@ -185,7 +186,15 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
-        <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
+        <div className="ls-changelog">
+          <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
+        </div>
+        <div className="ls-export-data">
+          <MenuItem name="Export Data" onClick={() => props.dispatch(Thunk.exportStorage())} />
+        </div>
+        <div className="ls-import-data">
+          <ImporterStorage dispatch={props.dispatch} />
+        </div>
         <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
           Contact Us
         </a>
