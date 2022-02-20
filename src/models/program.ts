@@ -25,6 +25,16 @@ import {
   IEquipment,
   IProgramExerciseWarmupSet,
 } from "../types";
+import { ObjectUtils } from "../utils/object";
+import { Exporter } from "../utils/exporter";
+import { DateUtils } from "../utils/date";
+import { ICustomExercise } from "../types";
+
+export interface IExportedProgram {
+  program: IProgram;
+  customExercises: Partial<Record<string, ICustomExercise>>;
+  version: string;
+}
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
@@ -417,5 +427,27 @@ export namespace Program {
     } else {
       return { success: true, data: true };
     }
+  }
+
+  export function exportProgram(program: IProgram, settings: ISettings, version: string): void {
+    const customExerciseIds = program.exercises.reduce<string[]>((memo, programExercise) => {
+      const id = programExercise.exerciseType.id;
+      const isBuiltIn = !!Exercise.findById(id, {});
+      if (!isBuiltIn) {
+        memo.push(id);
+      }
+      return memo;
+    }, []);
+
+    const customExercises = ObjectUtils.pick(settings.exercises, customExerciseIds);
+    const payload: IExportedProgram = {
+      customExercises,
+      program,
+      version,
+    };
+    Exporter.toFile(
+      `liftosaur_${program.name.replace(/\s+/g, "-")}_${DateUtils.formatYYYYMMDD(Date.now())}.json`,
+      JSON.stringify(payload, null, 2)
+    );
   }
 }

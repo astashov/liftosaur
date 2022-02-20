@@ -3326,7 +3326,7 @@ export namespace Exercise {
     return !!exercise;
   }
 
-  export function findByName(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
+  export function findById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
     return maybeGetExercise(id, customExercises);
   }
 

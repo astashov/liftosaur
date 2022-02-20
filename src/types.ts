@@ -697,4 +697,4 @@ export const TStorage = t.type(
   },
   "TStorage"
 );
-export type IStorage = Readonly<t.TypeOf<typeof TStorage>>;
+export type IStorage = t.TypeOf<typeof TStorage>;

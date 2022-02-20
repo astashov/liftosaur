@@ -1,48 +1,31 @@
 import { IDispatch } from "../ducks/types";
 import { h, JSX } from "preact";
-import { useRef } from "preact/compat";
 import { MenuItem } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
+import { Importer } from "./importer";
+import { useCallback } from "preact/hooks";
 
 interface IImporterStorageProps {
   dispatch: IDispatch;
 }
 
 export function ImporterStorage(props: IImporterStorageProps): JSX.Element {
-  const fileInput = useRef<HTMLInputElement>();
+  const onFileSelect = useCallback(
+    (contents: string) => {
+      const warningLabel =
+        "Importing new data will wipe out your current data. If you don't want to lose it, make sure to 'Export data to file' first. Press 'Okay' to proceed with import.";
+      if (confirm(warningLabel)) {
+        props.dispatch(Thunk.importStorage(contents));
+      }
+    },
+    [props.dispatch]
+  );
 
   return (
-    <div>
-      <input
-        className="hidden"
-        type="file"
-        ref={fileInput}
-        onChange={() => {
-          const file = fileInput.current.files?.[0];
-          if (file != null) {
-            const reader = new FileReader();
-            reader.addEventListener("load", async (event) => {
-              const result = event.target?.result;
-              if (typeof result === "string") {
-                if (
-                  confirm(
-                    "Importing new data will wipe out your current data. If you don't want to lose it, make sure to 'Export Data' first. Press 'Okay' to proceed with import."
-                  )
-                ) {
-                  props.dispatch(Thunk.importStorage(result));
-                }
-              }
-            });
-            reader.readAsText(file);
-          }
-        }}
-      />
-      <MenuItem
-        name="Import Data"
-        onClick={() => {
-          fileInput.current.click();
-        }}
-      />
-    </div>
+    <Importer onFileSelect={onFileSelect}>
+      {(onClick) => {
+        return <MenuItem name="Import data from file" onClick={onClick} />;
+      }}
+    </Importer>
   );
 }

@@ -19,6 +19,7 @@ import { ModalPublishProgram } from "../modalPublishProgram";
 import { IconMuscles } from "../iconMuscles";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram } from "../../types";
+import { SemiButton } from "../semiButton";
 
 interface IProps {
   editProgram: IProgram;
@@ -79,7 +80,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                   <Fragment>
                     <button
                       data-cy="edit-day"
-                      className="ls-days-list-edit-day button px-2 align-middle"
+                      className="px-2 align-middle ls-days-list-edit-day button"
                       onClick={() => {
                         props.dispatch({ type: "EditDayAction", index });
                       }}
@@ -87,7 +88,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                     </button>
                     <button
-                      className="ls-days-list-copy-day button px-2 align-middle"
+                      className="px-2 align-middle ls-days-list-copy-day button"
                       onClick={() => {
                         const newName = `${day.name} Copy`;
                         props.dispatch({
@@ -112,7 +113,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     {props.editProgram.days.length > 1 && (
                       <button
                         data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
-                        className="ls-days-list-delete-day button px-2 align-middle"
+                        className="px-2 align-middle ls-days-list-delete-day button"
                         onClick={() => {
                           props.dispatch({
                             type: "UpdateState",
@@ -161,7 +162,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                 <Fragment>
                   <button
                     data-cy="edit-exercise"
-                    className="ls-days-list-edit-exercise button px-2 align-middle"
+                    className="px-2 align-middle ls-days-list-edit-exercise button"
                     onClick={() => {
                       EditProgram.editProgramExercise(props.dispatch, exercise);
                     }}
@@ -169,7 +170,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
                   </button>
                   <button
-                    className="ls-days-list-copy-exercise button px-2 align-middle"
+                    className="px-2 align-middle ls-days-list-copy-exercise button"
                     onClick={() => {
                       EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
                     }}
@@ -177,7 +178,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconDuplicate />
                   </button>
                   <button
-                    className="ls-days-list-delete-exercise button px-2 align-middle"
+                    className="px-2 align-middle ls-days-list-delete-exercise button"
                     onClick={() => {
                       const isExerciseUsed = props.editProgram.days.some(
                         (d) => d.exercises.map((e) => e.id).indexOf(exercise.id) !== -1
@@ -199,6 +200,16 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
           <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
         </MenuItemWrapper>
+        <GroupHeader name="Actions" />
+        <div className="p-3 text-center">
+          <SemiButton
+            className="ls-export-program"
+            kind="blue"
+            onClick={() => props.dispatch(Thunk.exportProgram(props.editProgram))}
+          >
+            Export program to file
+          </SemiButton>
+        </div>
         {props.adminKey && (
           <div className="py-3 text-center">
             <Button
@@ -217,7 +228,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         loading={props.loading}
         buttons={
           <button
-            className="ls-footer-muscles p-4"
+            className="p-4 ls-footer-muscles"
             aria-label="Muscles"
             data-cy="footer-muscles"
             onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}

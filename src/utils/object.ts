@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace ObjectUtils {
   export function keys<T extends {}>(obj: T): Array<keyof T> {
@@ -23,6 +24,15 @@ export namespace ObjectUtils {
       arr.push([k, copyObj[k]]);
     }
     return arr;
+  }
+
+  export function pick<T extends {}, K extends keyof T, U extends Pick<T, K>>(obj: T, theKeys: K[]): U {
+    return keys(obj).reduce<U>((memo, key: any) => {
+      if (theKeys.indexOf(key) !== -1) {
+        (memo as any)[key] = (obj as any)[key];
+      }
+      return memo;
+    }, {} as any);
   }
 
   export function combinedKeys<T extends Record<string, unknown>, U extends Record<string, unknown>>(

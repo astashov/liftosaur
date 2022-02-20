@@ -3,7 +3,7 @@ import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
-import { Program } from "../models/program";
+import { Program, IExportedProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
 import { IProgram } from "../types";
@@ -309,6 +309,13 @@ export namespace Thunk {
     };
   }
 
+  export function exportProgram(program: IProgram): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      Program.exportProgram(program, state.storage.settings, state.storage.version);
+    };
+  }
+
   export function importStorage(maybeStorage: string): IThunk {
     return async (dispatch, getState, env) => {
       let parsedMaybeStorage: Record<string, unknown>;
@@ -321,6 +328,53 @@ export namespace Thunk {
       const result = await Storage.get(env.service.client, parsedMaybeStorage, false);
       if (result.success) {
         updateState(dispatch, [lb<IState>().p("storage").record(result.data)], "Importing Storage");
+        alert("Successfully imported");
+      } else {
+        alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
+      }
+    };
+  }
+
+  export function importProgram(maybeProgram: string): IThunk {
+    return async (dispatch, getState, env) => {
+      let parsedMaybeProgram: IExportedProgram;
+      try {
+        parsedMaybeProgram = JSON.parse(maybeProgram);
+      } catch (e) {
+        alert("Couldn't parse the provided file");
+        return;
+      }
+      const payload = Storage.getDefault();
+      payload.settings.exercises = { ...payload.settings.exercises, ...parsedMaybeProgram.customExercises };
+      payload.programs.push(parsedMaybeProgram.program);
+      payload.version = parsedMaybeProgram.version;
+      const result = await Storage.get(env.service.client, payload, false);
+      if (result.success) {
+        const storage = result.data;
+        const customExercises = storage.settings.exercises;
+        const program = storage.programs.filter((p) => p.id === parsedMaybeProgram.program.id)[0];
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("settings")
+              .p("exercises")
+              .recordModify((e) => ({ ...e, ...customExercises })),
+            lb<IState>()
+              .p("storage")
+              .p("programs")
+              .recordModify((programs) => {
+                const index = programs.findIndex((p) => p.id === program.id);
+                if (index !== -1) {
+                  return CollectionUtils.setAt(programs, index, program);
+                } else {
+                  return [...programs, program];
+                }
+              }),
+          ],
+          "Importing Program"
+        );
         alert("Successfully imported");
       } else {
         alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);

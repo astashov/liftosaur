@@ -86,16 +86,17 @@ export function AppView(props: IProps): JSX.Element | null {
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
-      while (el != null) {
+      while (el != null && el.getAttribute != null) {
         const element = el as HTMLElement;
-        if (typeof element.className === "string" && element.className.startsWith("ls-")) {
+        const classes = (element.getAttribute("class") || "").split(/\s+/);
+        if (classes.some((cl) => cl.startsWith("ls-"))) {
           button = el;
           break;
         }
         el = el.parentNode as HTMLElement | undefined;
       }
       if (button != null) {
-        const name = button.className?.split(" ")[0];
+        const name = (button.getAttribute("class") || "").split(/\s+/).filter((c) => c.startsWith("ls-"))[0];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const st = (window as any).state as IState;
         LogUtils.log(st.user?.id || st.storage.tempUserId, name);
