@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import { h, JSX } from "preact";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";
@@ -11,10 +11,18 @@ export interface IWhatsNew {
 }
 
 const whatsNew: Record<string, IWhatsNew> = {
-  // "20220206": {
-  //   title: <span>Added 'What's new?' modal</span>,
-  //   body: <span>It will show the modal with the updates in the app if something new was added.</span>,
-  // },
+  "20220219": {
+    title: <span>Import/Export of all data and also specific programs.</span>,
+    body: (
+      <ul>
+        <li>You can now export all your data into a file (history, settings, etc), and then import it later on.</li>
+        <li>
+          Also can export and import programs. Could use it to e.g. share a workout program with a friend, or as a
+          backup, or for some other reason.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
