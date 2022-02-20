@@ -13,6 +13,10 @@ import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
+import { History } from "../models/history";
+import { CSV } from "../utils/csv";
+import { Exporter } from "../utils/exporter";
+import { DateUtils } from "../utils/date";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -313,6 +317,14 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       Program.exportProgram(program, state.storage.settings, state.storage.version);
+    };
+  }
+
+  export function exportHistoryToCSV(): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      const csv = CSV.toString(History.exportAsCSV(state.storage.history, state.storage.settings));
+      Exporter.toFile(`liftosaur_${DateUtils.formatYYYYMMDD(Date.now())}.csv`, csv);
     };
   }
 

@@ -1,6 +1,6 @@
 import { IDispatch } from "../ducks/types";
 import { h, JSX } from "preact";
-import { MenuItem } from "./menuItem";
+import { MenuItemWrapper } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
 import { Importer } from "./importer";
 import { useCallback } from "preact/hooks";
@@ -24,7 +24,11 @@ export function ImporterStorage(props: IImporterStorageProps): JSX.Element {
   return (
     <Importer onFileSelect={onFileSelect}>
       {(onClick) => {
-        return <MenuItem name="Import data from file" onClick={onClick} />;
+        return (
+          <MenuItemWrapper name="Import data from JSON file" onClick={onClick}>
+            <button className="py-2">Import data from file</button>
+          </MenuItemWrapper>
+        );
       }}
     </Importer>
   );

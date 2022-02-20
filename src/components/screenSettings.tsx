@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { FooterView } from "./footer";
 import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { MenuItem } from "./menuItem";
+import { MenuItem, MenuItemWrapper } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { lb } from "lens-shmens";
@@ -191,7 +191,14 @@ export function ScreenSettings(props: IProps): JSX.Element {
           <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
         </div>
         <div className="ls-export-data">
-          <MenuItem name="Export data to file" onClick={() => props.dispatch(Thunk.exportStorage())} />
+          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
+            <button className="py-2">Export data to JSON file</button>
+          </MenuItemWrapper>
+        </div>
+        <div className="ls-export-history">
+          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
+            <button className="py-2">Export history to CSV file</button>
+          </MenuItemWrapper>
         </div>
         <div className="ls-import-data">
           <ImporterStorage dispatch={props.dispatch} />

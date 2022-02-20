@@ -3,7 +3,7 @@ import { Progress } from "./progress";
 import { CollectionUtils } from "../utils/collection";
 
 import { Weight } from "./weight";
-import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight } from "../types";
+import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight, ISettings } from "../types";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -186,5 +186,70 @@ export namespace History {
       }
     }
     return last != null && max != null ? { last, max } : undefined;
+  }
+
+  export function exportAsCSV(history: IHistoryRecord[], settings: ISettings): (string | number | null)[][] {
+    const lines: (string | number | null)[][] = [
+      [
+        "DateTime",
+        "Program",
+        "Day Name",
+        "Exercise",
+        "Equipment",
+        "Is Warmup Set?",
+        "Required Reps",
+        "Completed Reps",
+        "Is AMRAP?",
+        "Weight Value",
+        "Weight Unit",
+        "Completed Reps Time",
+        "Target Muscles",
+        "Synergist Muscles",
+      ],
+    ];
+
+    for (const historyRecord of history) {
+      for (const entry of historyRecord.entries) {
+        const exercise = Exercise.get(entry.exercise, settings.exercises);
+        for (const warmupSet of entry.warmupSets) {
+          lines.push([
+            historyRecord.date,
+            historyRecord.programName,
+            historyRecord.dayName,
+            exercise.name,
+            exercise.equipment || null,
+            1,
+            warmupSet.reps,
+            warmupSet.completedReps || null,
+            0,
+            warmupSet.weight.value,
+            warmupSet.weight.unit,
+            warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toUTCString() : null,
+            Exercise.targetMuscles(exercise, settings.exercises).join(","),
+            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+          ]);
+        }
+        for (const set of entry.sets) {
+          lines.push([
+            historyRecord.date,
+            historyRecord.programName,
+            historyRecord.dayName,
+            exercise.name,
+            exercise.equipment || null,
+            0,
+            set.reps,
+            set.completedReps || null,
+            set.isAmrap ? 1 : 0,
+            set.weight.value,
+            set.weight.unit,
+            set.timestamp != null ? new Date(set.timestamp || 0).toUTCString() : null,
+            Exercise.targetMuscles(exercise, settings.exercises).join(","),
+            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+          ]);
+        }
+      }
+    }
+
+    return lines;
   }
 }
