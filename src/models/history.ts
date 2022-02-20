@@ -38,7 +38,13 @@ export namespace History {
   export function getMaxSet(entry: IHistoryEntry): ISet | undefined {
     return CollectionUtils.sort(
       entry.sets.filter((s) => (s.completedReps || 0) > 0),
-      (a, b) => Weight.compare(b.weight, a.weight)
+      (a, b) => {
+        const weightDiff = Weight.compare(b.weight, a.weight);
+        if (weightDiff === 0 && a.completedReps && b.completedReps) {
+          return b.completedReps - a.completedReps;
+        }
+        return weightDiff;
+      }
     )[0];
   }
 
