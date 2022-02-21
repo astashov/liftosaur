@@ -1,5 +1,5 @@
 export namespace DateUtils {
-  export function format(dateStr: string | Date | number, showWeekday?: boolean): string {
+  export function format(dateStr: string | Date | number, hideWeekday?: boolean): string {
     let date;
     if (typeof dateStr === "string") {
       date = new Date(Date.parse(dateStr));
@@ -9,7 +9,7 @@ export namespace DateUtils {
       date = dateStr;
     }
     return date.toLocaleDateString(undefined, {
-      weekday: showWeekday ? "short" : undefined,
+      weekday: !hideWeekday ? "short" : undefined,
       year: "numeric",
       month: "short",
       day: "numeric",
