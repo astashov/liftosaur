@@ -126,6 +126,10 @@ export namespace History {
     return record.entries.reduce((memo, e) => Weight.add(memo, totalEntryWeight(e, unit)), Weight.build(0, unit));
   }
 
+  export function totalRecordReps(record: IHistoryRecord): number {
+    return record.entries.reduce((memo, e) => memo + totalEntryReps(e), 0);
+  }
+
   export function totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
     return entry.sets
       .filter((s) => (s.completedReps || 0) > 0)
