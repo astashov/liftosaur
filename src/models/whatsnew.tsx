@@ -23,6 +23,18 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20220604": {
+    title: <span>Add 1 Rep Max line to the exercises graphs.</span>,
+    body: (
+      <ul>
+        <li>
+          It better shows the progress trend, since it combines weight and reps into one value. We use{" "}
+          <a href="https://en.wikipedia.org/wiki/One-repetition_maximum">Epley formula</a> to calculate it. It's enabled
+          by default, but you can disable it in settings on Graphs screen.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

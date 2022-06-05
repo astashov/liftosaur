@@ -26,6 +26,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSameXAxis, setIsSameXAxis] = useState<boolean>(false);
   const [isWithBodyweight, setIsWithBodyweight] = useState<boolean>(false);
+  const [isWithOneRm, setIsWithOneRm] = useState<boolean>(true);
   const maxSets = History.findAllMaxSets(props.history);
   const exerciseIds = ObjectUtils.keys(maxSets);
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
@@ -112,6 +113,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                   onChange={(v) => setIsWithBodyweight(v === "true")}
                 />
               )}
+              <MenuItemEditable
+                type="boolean"
+                name="Add calculated 1RM to graphs"
+                value={isWithOneRm ? "true" : "false"}
+                onChange={(v) => setIsWithOneRm(v === "true")}
+              />
             </GroupHeader>
             <GroupHeader name="Graphs" />
             {props.settings.graphs.map((graph) => {
@@ -122,7 +129,8 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     minX={Math.round(minX / 1000)}
                     maxX={Math.round(maxX / 1000)}
                     bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
-                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}`}
+                    isWithOneRm={isWithOneRm}
+                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}`}
                     settings={props.settings}
                     history={props.history}
                     exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}

@@ -136,7 +136,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             <input
               data-cy="input-reps"
               ref={repsInput}
-              className="focus:outline-none focus:shadow-outline flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
               type="number"
               min="0"
               onInput={() => calculate()}
@@ -152,7 +152,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             <input
               data-cy="input-weight"
               ref={weightInput}
-              className="focus:outline-none focus:shadow-outline flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
               type="number"
               min="0"
               onInput={() => calculate()}
