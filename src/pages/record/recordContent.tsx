@@ -146,6 +146,7 @@ function Entry(props: IEntryProps): JSX.Element {
         </div>
         <div className="record-graph">
           <GraphExercise
+            isWithOneRm={true}
             isSameXAxis={false}
             minX={0}
             maxX={0}

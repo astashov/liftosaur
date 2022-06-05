@@ -86,6 +86,7 @@ function Entry(props: IEntryProps): JSX.Element {
         <GraphExercise
           isSameXAxis={false}
           minX={0}
+          isWithOneRm={true}
           maxX={0}
           title="Progress Graph"
           history={history}
