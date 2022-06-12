@@ -41,7 +41,31 @@ module.exports = {
               configFile: "tsconfig.json",
             },
           },
+          {
+            loader: "babel-loader",
+            options: {
+              include: [
+                path.resolve(__dirname, "src"),
+                path.resolve(__dirname, "node_modules/react-native-uncompiled"),
+              ],
+              cacheDirectory: true,
+              // The 'metro-react-native-babel-preset' preset is recommended to match React Native's packager
+              presets: ["module:metro-react-native-babel-preset"],
+              // Re-write paths to import only the modules needed by the app
+              plugins: ["react-native-web"],
+            },
+          },
         ],
+      },
+      {
+        test: /\.(gif|jpe?g|png|svg)$/,
+        use: {
+          loader: "url-loader",
+          options: {
+            name: "[name].[ext]",
+            esModule: false,
+          },
+        },
       },
     ],
   },
@@ -57,7 +81,10 @@ module.exports = {
     },
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".css"],
+    extensions: [".ts", ".tsx", ".js", ".css", "web.tsx", "web.ts"],
+    alias: {
+      "react-native$": "react-native-web",
+    },
   },
   plugins: [
     new MiniCssExtractPlugin(),
