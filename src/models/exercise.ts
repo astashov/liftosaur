@@ -2158,8 +2158,8 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
   },
   pecDeck: {
     leverageMachine: {
-      targetMuscles: ["Biceps Brachii"],
-      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Pectoralis Major Clavicular Head", "Serratus Anterior"],
       bodyParts: ["Chest"],
     },
   },
