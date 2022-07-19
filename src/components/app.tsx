@@ -104,13 +104,13 @@ export function AppView(props: IProps): JSX.Element | null {
     });
   }, []);
 
-  const program =
+  const currentProgram =
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
   let content: JSX.Element;
   if (
     Screen.current(state.screenStack) === "programs" ||
-    (Screen.current(state.screenStack) === "main" && program == null)
+    (Screen.current(state.screenStack) === "main" && currentProgram == null)
   ) {
     content = (
       <Fragment>
@@ -127,13 +127,13 @@ export function AppView(props: IProps): JSX.Element | null {
       </Fragment>
     );
   } else if (Screen.current(state.screenStack) === "main") {
-    if (program != null) {
+    if (currentProgram != null) {
       content = (
         <ProgramHistoryView
           comments={state.comments}
           likes={state.likes}
           loading={state.loading}
-          program={program}
+          program={currentProgram}
           progress={state.progress?.[0]}
           userId={state.user?.id}
           friendsHistory={state.friendsHistory}
@@ -170,6 +170,9 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
       const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
+      const program = Progress.isCurrent(progress)
+        ? Program.getProgram(state, progress.programId) || currentProgram
+        : undefined;
       content = (
         <ProgramDayView
           friends={state.allFriends}
@@ -179,7 +182,7 @@ export function AppView(props: IProps): JSX.Element | null {
           userId={state.user?.id}
           progress={progress}
           isChanged={isChanged}
-          program={Progress.isCurrent(progress) ? program : undefined}
+          program={program}
           comments={state.comments}
           likes={state.likes}
           dispatch={dispatch}
@@ -271,17 +274,17 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenMusclesProgram
         loading={state.loading}
         dispatch={dispatch}
-        program={program!}
+        program={currentProgram!}
         settings={state.storage.settings}
       />
     );
   } else if (Screen.current(state.screenStack) === "musclesDay") {
-    const day = program!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
+    const day = currentProgram!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
     return (
       <ScreenMusclesDay
         loading={state.loading}
         dispatch={dispatch}
-        program={program!}
+        program={currentProgram!}
         programDay={day}
         settings={state.storage.settings}
       />
