@@ -1,3 +1,5 @@
+import { BLEND_OVERLAY } from "jimp/*";
+
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace CollectionUtils {
   // inGroupsOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3).forEach((e) => print(e));
@@ -105,6 +107,20 @@ export namespace CollectionUtils {
     const arrCopy = [...arr];
     arrCopy.sort(compareFn);
     return arrCopy;
+  }
+
+  export function sortBy<T extends {}, K extends keyof T>(arr: T[], key: K): T[K] extends number ? T[] : never {
+    const arrCopy = [...arr];
+    arrCopy.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const aVal = a[key] as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bVal = b[key] as any;
+      return aVal - bVal;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return arrCopy as any;
   }
 
   export function diff<T>(from: T[], to: T[]): T[] {

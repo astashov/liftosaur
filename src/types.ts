@@ -653,12 +653,26 @@ export const TGraph = t.union([
 ]);
 export type IGraph = t.TypeOf<typeof TGraph>;
 
+export const TEquipmentType = t.type(
+  {
+    bar: t.type({
+      lb: TWeight,
+      kg: TWeight,
+    }),
+    multiplier: t.number,
+    plates: t.array(t.type({ weight: TWeight, num: t.number })),
+    fixed: t.array(TWeight),
+    isFixed: t.boolean,
+  },
+  "TEquipmentType"
+);
+export type IEquipmentType = t.TypeOf<typeof TEquipmentType>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
-      plates: t.array(TPlate),
-      bars: t.record(TUnit, TBars),
+      equipment: dictionary(TEquipment, TEquipmentType),
       graphs: t.array(TGraph),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,

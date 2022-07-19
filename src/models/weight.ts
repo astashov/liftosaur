@@ -94,17 +94,22 @@ export namespace Weight {
     settings: ISettings,
     equipment?: IEquipment
   ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
-    const availablePlatesArr = Settings.plates(settings);
-    let barWeight: IWeight;
-    let multiplier: number;
-    const bar = equipmentToBarKey(equipment);
-    if (bar != null) {
-      barWeight = Settings.bars(settings)[bar];
-      multiplier = 2;
-    } else {
-      barWeight = Weight.build(0, settings.units);
-      multiplier = 1;
+    const units = settings.units;
+    const equipmentType = equipment ? settings.equipment[equipment] : undefined;
+    if (!equipmentType) {
+      return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
+    if (equipmentType.isFixed) {
+      const fixed = CollectionUtils.sort(
+        equipmentType.fixed.filter((w) => w.unit === units),
+        (a, b) => b.value - a.value
+      );
+      const weight = fixed.find((w) => Weight.lte(w, allWeight)) || fixed[fixed.length - 1] || allWeight;
+      return { plates: [], platesWeight: weight, totalWeight: weight };
+    }
+    const availablePlatesArr = equipmentType.plates.filter((w) => weight.unit === units);
+    const barWeight = equipmentType.bar[units];
+    const multiplier = equipmentType.multiplier || 1;
     const weight = Weight.subtract(allWeight, barWeight);
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
