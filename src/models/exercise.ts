@@ -1,6 +1,5 @@
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
-import { Settings } from "./settings";
 import {
   IExerciseId,
   IEquipment,
