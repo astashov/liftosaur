@@ -106,7 +106,7 @@ export namespace Weight {
       const weight = fixed.find((w) => Weight.lte(w, allWeight)) || fixed[fixed.length - 1] || allWeight;
       return { plates: [], platesWeight: weight, totalWeight: weight };
     }
-    const availablePlatesArr = equipmentType.plates.filter((w) => weight.unit === units);
+    const availablePlatesArr = equipmentType.plates.filter((p) => p.weight.unit === units);
     const barWeight = equipmentType.bar[units];
     const multiplier = equipmentType.multiplier || 1;
     const weight = Weight.subtract(allWeight, barWeight);

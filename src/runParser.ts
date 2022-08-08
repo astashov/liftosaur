@@ -1,7 +1,7 @@
 import "./models/state";
 import { ScriptRunner } from "./parser";
-import { Weight } from "./models/weight";
 import { Progress, IScriptBindings } from "./models/progress";
+import { Settings } from "./models/settings";
 
 const program = `
   // a program
@@ -31,44 +31,7 @@ const bindings: IScriptBindings = {
   cr: [12, 12, 12],
 };
 
-const fns = Progress.createScriptFunctions({
-  plates: [
-    { weight: Weight.build(45, "lb"), num: 4 },
-    { weight: Weight.build(25, "lb"), num: 4 },
-    { weight: Weight.build(10, "lb"), num: 4 },
-    { weight: Weight.build(5, "lb"), num: 4 },
-    { weight: Weight.build(2.5, "lb"), num: 4 },
-    { weight: Weight.build(1.25, "lb"), num: 2 },
-    { weight: Weight.build(20, "kg"), num: 4 },
-    { weight: Weight.build(10, "kg"), num: 4 },
-    { weight: Weight.build(5, "kg"), num: 4 },
-    { weight: Weight.build(2.5, "kg"), num: 4 },
-    { weight: Weight.build(1.25, "kg"), num: 4 },
-    { weight: Weight.build(0.5, "kg"), num: 2 },
-  ],
-  lengthUnits: "in",
-  statsEnabled: { weight: { weight: true }, length: {} },
-  graphs: [],
-  exercises: {},
-  shouldShowFriendsHistory: true,
-  bars: {
-    lb: {
-      barbell: Weight.build(45, "lb"),
-      ezbar: Weight.build(20, "lb"),
-      dumbbell: Weight.build(10, "lb"),
-    },
-    kg: {
-      barbell: Weight.build(20, "kg"),
-      ezbar: Weight.build(10, "kg"),
-      dumbbell: Weight.build(5, "kg"),
-    },
-  },
-  timers: {
-    warmup: 90,
-    workout: 180,
-  },
-  units: "lb",
-});
+const fns = Progress.createScriptFunctions(Settings.build());
 
 const state = {};
 

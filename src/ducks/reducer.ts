@@ -24,6 +24,7 @@ import {
   IProgramExercise,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
+import { Equipment } from "../models/equipment";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -530,17 +531,12 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           },
         },
         settings: {
-          plates: CollectionUtils.concatBy(
-            oldStorage.settings.plates,
-            newStorage.settings.plates,
-            (el) => `${el.weight.value}${el.weight.unit}`
-          ),
+          equipment: Equipment.mergeEquipment(oldStorage.settings.equipment, newStorage.settings.equipment),
           lengthUnits: newStorage.settings.lengthUnits,
           statsEnabled: newStorage.settings.statsEnabled,
           exercises: newStorage.settings.exercises,
           graphs: newStorage.settings.graphs || [],
           timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
-          bars: newStorage.settings.bars,
           units: newStorage.settings.units,
           isPublicProfile: newStorage.settings.isPublicProfile,
           shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
