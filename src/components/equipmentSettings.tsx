@@ -152,10 +152,14 @@ interface IEquipmentSettingsFixedProps<T> {
 
 function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.Element {
   const { equipmentData } = props;
+  const fixed = CollectionUtils.sort(
+    equipmentData.fixed.filter((p) => p.unit === props.settings.units),
+    (a, b) => Weight.compare(b, a)
+  );
   return (
     <>
       <GroupHeader name={`Available fixed weight ${props.name}s`} />
-      {equipmentData.fixed.map((weight, i) => {
+      {fixed.map((weight, i) => {
         return (
           <MenuItem
             key={i}

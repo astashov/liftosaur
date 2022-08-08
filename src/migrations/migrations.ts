@@ -5,6 +5,7 @@ import { History } from "../models/history";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { IStorage, IExerciseId } from "../types";
+import { Weight } from "../models/weight";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -99,6 +100,117 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.shouldShowFriendsHistory =
       storage.settings.shouldShowFriendsHistory == null ? true : storage.settings.shouldShowFriendsHistory;
+    return storage;
+  },
+  "20220807182403_migrate_plates_to_new_format": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const anyStorage: any = JSON.parse(JSON.stringify(aStorage));
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.equipment = {
+      barbell: {
+        multiplier: 2,
+        bar: {
+          lb: anyStorage.settings.bars.lb.barbell,
+          kg: anyStorage.settings.bars.kg.barbell,
+        },
+        plates: anyStorage.settings.plates,
+        fixed: [],
+        isFixed: false,
+      },
+      trapbar: {
+        multiplier: 2,
+        bar: {
+          lb: anyStorage.settings.bars.lb.barbell,
+          kg: anyStorage.settings.bars.kg.barbell,
+        },
+        plates: anyStorage.settings.plates,
+        fixed: [],
+        isFixed: false,
+      },
+      smith: {
+        multiplier: 2,
+        bar: {
+          lb: anyStorage.settings.bars.lb.barbell,
+          kg: anyStorage.settings.bars.kg.barbell,
+        },
+        plates: anyStorage.settings.plates,
+        fixed: [],
+        isFixed: false,
+      },
+      dumbbell: {
+        multiplier: 2,
+        bar: {
+          lb: anyStorage.settings.bars.lb.dumbbell,
+          kg: anyStorage.settings.bars.kg.dumbbell,
+        },
+        plates: anyStorage.settings.plates,
+        fixed: [
+          Weight.build(10, "lb"),
+          Weight.build(15, "lb"),
+          Weight.build(20, "lb"),
+          Weight.build(25, "lb"),
+          Weight.build(30, "lb"),
+          Weight.build(35, "lb"),
+          Weight.build(40, "lb"),
+          Weight.build(4, "kg"),
+          Weight.build(6, "kg"),
+          Weight.build(8, "kg"),
+          Weight.build(10, "kg"),
+          Weight.build(12, "kg"),
+          Weight.build(14, "kg"),
+          Weight.build(20, "kg"),
+        ],
+        isFixed: false,
+      },
+      ezbar: {
+        multiplier: 2,
+        bar: {
+          lb: anyStorage.settings.bars.lb.ezbar,
+          kg: anyStorage.settings.bars.kg.ezbar,
+        },
+        plates: anyStorage.settings.plates,
+        fixed: [],
+        isFixed: false,
+      },
+      cable: {
+        multiplier: 1,
+        bar: {
+          lb: Weight.build(0, "lb"),
+          kg: Weight.build(0, "kg"),
+        },
+        plates: [{ weight: Weight.build(10, "lb"), num: 20 }],
+        fixed: [],
+        isFixed: false,
+      },
+      kettlebell: {
+        multiplier: 1,
+        bar: {
+          lb: Weight.build(0, "lb"),
+          kg: Weight.build(0, "kg"),
+        },
+        plates: [],
+        fixed: [
+          Weight.build(10, "lb"),
+          Weight.build(15, "lb"),
+          Weight.build(20, "lb"),
+          Weight.build(25, "lb"),
+          Weight.build(30, "lb"),
+          Weight.build(35, "lb"),
+          Weight.build(40, "lb"),
+          Weight.build(4, "kg"),
+          Weight.build(8, "kg"),
+          Weight.build(12, "kg"),
+          Weight.build(16, "kg"),
+          Weight.build(24, "kg"),
+        ],
+        isFixed: true,
+      },
+    };
+    delete (storage.settings as any).bars;
+    delete (storage.settings as any).plates;
+
     return storage;
   },
 };
