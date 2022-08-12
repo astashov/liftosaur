@@ -36,7 +36,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   }
   return (
     <div>
-      <div className="program-details-header flex">
+      <div className="flex program-details-header">
         <div className="flex-1">
           <ProgramDetailsSettings settings={state.settings} dispatch={dispatch} />
         </div>

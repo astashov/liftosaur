@@ -10,6 +10,8 @@ type IAction<TState> = {
   desc?: string;
 };
 
+export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<TState>, desc?: string) => void;
+
 export type ILensDispatch<TState> = (
   lensRecording: ILensRecordingPayload<TState> | ILensRecordingPayload<TState>[],
   desc?: string

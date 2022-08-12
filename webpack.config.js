@@ -197,7 +197,7 @@ module.exports = {
           return `/profile?user=${user}`;
         },
       },
-      "/programs/*": "http://local-api.liftosaur.com:3000/",
+      "/programs/*": "http://0.0.0.0:3000",
       "/programimage/*": "http://local-api.liftosaur.com:3000/api",
     },
   },

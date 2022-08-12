@@ -35,6 +35,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20220808": {
+    title: <span>Big changes in the equipment settings.</span>,
+    body: (
+      <ul>
+        <li>You can now specify plates separately for each equipment type - barbell, dumbbell, cable, etc.</li>
+        <li>
+          Each equipment type now supports "fixed" weights, without plates, e.g. if you use fixed weight dumbbells.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

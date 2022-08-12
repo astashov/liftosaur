@@ -6408,8 +6408,9 @@ lcid@^1.0.0:
     invert-kv "^1.0.0"
 
 lens-shmens@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/lens-shmens/-/lens-shmens-1.0.3.tgz#c9218620666d378cc00815755b14eb52048581bd"
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/lens-shmens/-/lens-shmens-1.1.0.tgz#e25ec471e01e3bc4a4b7e80e219a6503a8fc5494"
+  integrity sha512-5lXBeIuRkcAUjZLZ8bOmPx9lKAyEW0VtjJb0mqHdw9FXQTYJkDP1FVKeA2eyanmyrLrtHGPHmCkO91maaPMZWA==
 
 leven@^3.1.0:
   version "3.1.0"

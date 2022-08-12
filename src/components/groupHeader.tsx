@@ -17,10 +17,13 @@ export function GroupHeader(props: IProps): JSX.Element {
 
   return (
     <Fragment>
-      <div className="flex px-6 py-1 text-sm font-bold bg-gray-200 border-b border-gray-300">
+      <div
+        onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
+        className="flex px-6 py-1 text-sm font-bold bg-gray-200 border-b border-gray-300"
+      >
         <div>
           {props.children ? (
-            <button onClick={() => setIsExpanded(!isExpanded)}>
+            <span>
               <span className="text-sm font-bold align-middle">{name}</span>
               <IconArrowDown
                 fill="#4a5568"
@@ -32,7 +35,7 @@ export function GroupHeader(props: IProps): JSX.Element {
                   transform: `rotate(${isExpanded ? 0 : 270}deg)`,
                 }}
               />
-            </button>
+            </span>
           ) : (
             name
           )}

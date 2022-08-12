@@ -1,6 +1,5 @@
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
-import { Settings } from "./settings";
 import {
   IExerciseId,
   IEquipment,
@@ -3290,9 +3289,10 @@ function warmup(
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
       if (Weight.gt(weight, programExerciseWarmupSet.threshold)) {
         const value = programExerciseWarmupSet.value;
-        const warmupWeight = Weight.max(
-          bar != null ? Settings.bars(settings)[bar] : Weight.build(0, settings.units),
-          Weight.roundConvertTo(typeof value === "number" ? Weight.multiply(weight, value) : value, settings, bar)
+        const warmupWeight = Weight.roundConvertTo(
+          typeof value === "number" ? Weight.multiply(weight, value) : value,
+          settings,
+          bar
         );
         memo.push({ reps: programExerciseWarmupSet.reps, weight: warmupWeight });
       }

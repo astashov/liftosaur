@@ -1,32 +1,11 @@
+import { Settings } from "../src/models/settings";
 import { Weight } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
 
 function buildSettings(plates: IPlate[]): ISettings {
-  return {
-    plates,
-    graphs: [],
-    lengthUnits: "in",
-    statsEnabled: { weight: { weight: true }, length: {} },
-    shouldShowFriendsHistory: true,
-    exercises: {},
-    bars: {
-      lb: {
-        barbell: Weight.build(45, "lb"),
-        ezbar: Weight.build(20, "lb"),
-        dumbbell: Weight.build(10, "lb"),
-      },
-      kg: {
-        barbell: Weight.build(20, "kg"),
-        ezbar: Weight.build(10, "kg"),
-        dumbbell: Weight.build(5, "kg"),
-      },
-    },
-    timers: {
-      warmup: 90,
-      workout: 180,
-    },
-    units: "lb",
-  };
+  const settings = Settings.build();
+  settings.equipment.barbell!.plates = plates;
+  return settings;
 }
 
 describe("Weight", () => {

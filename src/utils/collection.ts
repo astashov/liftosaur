@@ -107,6 +107,20 @@ export namespace CollectionUtils {
     return arrCopy;
   }
 
+  export function sortBy<T extends {}, K extends keyof T>(arr: T[], key: K): T[K] extends number ? T[] : never {
+    const arrCopy = [...arr];
+    arrCopy.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const aVal = a[key] as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bVal = b[key] as any;
+      return aVal - bVal;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return arrCopy as any;
+  }
+
   export function diff<T>(from: T[], to: T[]): T[] {
     return from.filter((x) => !to.includes(x)).concat(to.filter((x) => !from.includes(x)));
   }
