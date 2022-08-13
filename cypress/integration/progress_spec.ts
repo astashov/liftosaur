@@ -8,7 +8,7 @@ describe("Progress", () => {
 
   it("Clones a program and goes through first day", () => {
     cy.visit("http://local.liftosaur.com:8080");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
     cy.contains("Start New Workout").click();

@@ -111,15 +111,17 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
         );
       })}
       <div className="absolute bottom-0 left-0 w-full mb-6 text-center">
-        <Button
-          kind="green"
-          className="ls-close-help-overlay"
-          onClick={() => {
-            Help.markSeen(props.dispatch, ObjectUtils.keys(windows));
-          }}
-        >
-          Got it!
-        </Button>
+        <span className="inline-block p-2 bg-white rounded">
+          <Button
+            kind="green"
+            className="ls-close-help-overlay"
+            onClick={() => {
+              Help.markSeen(props.dispatch, ObjectUtils.keys(windows));
+            }}
+          >
+            Got it!
+          </Button>
+        </span>
       </div>
     </div>
   );

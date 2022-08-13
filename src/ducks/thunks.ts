@@ -56,6 +56,20 @@ export namespace Thunk {
     };
   }
 
+  export function cloneAndSelectProgram(id: string): IThunk {
+    return async (dispatch, getState, env) => {
+      const program = CollectionUtils.findBy(getState().programs, "id", "basicBeginner");
+      if (program != null) {
+        Program.cloneProgram(dispatch, program);
+        const clonedProgram = CollectionUtils.findBy(getState().storage.programs, "id", "basicBeginner");
+        if (clonedProgram) {
+          Program.selectProgram(dispatch, clonedProgram.id);
+          dispatch({ type: "StartProgramDayAction" });
+        }
+      }
+    };
+  }
+
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
       const result = await load(dispatch, "fetchStorage", () =>

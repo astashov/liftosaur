@@ -7,7 +7,7 @@ describe("Comments", () => {
 
   it("leaves comments", () => {
     cy.visit("http://local.liftosaur.com:8080/?forceuseremail=test1@example.com");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     g("footer-settings").click();
 
     g("menu-item-account").click();

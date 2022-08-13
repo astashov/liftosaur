@@ -13,7 +13,7 @@ describe("Custom Exercises", () => {
 
     // Creating the program
 
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.contains("Create").click();
 
     g("modal-create-program-input").clear().type("My Program");

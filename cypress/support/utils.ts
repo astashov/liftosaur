@@ -22,7 +22,7 @@ export function clearAll(): void {
 export function login(email: string): void {
   clearAll();
   cy.visit(`http://local.liftosaur.com:8080/?forceuseremail=${email}`);
-  cy.contains("Let's choose a program!").click();
+  cy.contains("Pick or Create a Program").click();
   g("footer-settings").click();
   g("menu-item-account").click();
   g("menu-item-login").click();

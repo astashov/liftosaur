@@ -10,7 +10,7 @@ describe("Edit Sets", () => {
 
   it("edits sets properly", () => {
     cy.visit("http://local.liftosaur.com:8080");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
     cy.contains("Start New Workout").click();
@@ -56,4 +56,3 @@ describe("Edit Sets", () => {
     cy.get(setsSelector).eq(3).should("have.data", "cy", "set-amrap-nonstarted");
   });
 });
-

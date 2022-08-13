@@ -155,4 +155,15 @@ export namespace CollectionUtils {
     }
     return result;
   }
+
+  export function findBy<T extends {}, K extends keyof T>(from: T[], key: K, value: T[K]): T | undefined {
+    let result: T | undefined = undefined;
+    for (const el of from) {
+      if (el[key] === value) {
+        result = el;
+        break;
+      }
+    }
+    return result;
+  }
 }

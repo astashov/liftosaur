@@ -122,7 +122,7 @@ export function AppView(props: IProps): JSX.Element | null {
           customPrograms={state.storage.programs || []}
           editProgramId={state.progress[0]?.programId}
         />
-        {shouldShowOnboarding && <ModalOnboarding onClose={() => setShouldShowOnboarding(false)} />}
+        {shouldShowOnboarding && <ModalOnboarding dispatch={dispatch} onClose={() => setShouldShowOnboarding(false)} />}
       </Fragment>
     );
   } else if (Screen.current(state.screenStack) === "main") {

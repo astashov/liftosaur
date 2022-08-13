@@ -10,7 +10,7 @@ describe("Stats", () => {
 
   it("converts length units properly", () => {
     cy.visit("http://local.liftosaur.com:8080");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
 
@@ -26,14 +26,14 @@ describe("Stats", () => {
     g("add-stats").click();
 
     g("footer-settings").click();
-    g("menu-item-value-length-units").should("have.value", "in")
+    g("menu-item-value-length-units").should("have.value", "in");
     g("menu-item-value-length-units").select("cm");
     g("back").click();
 
     g("enter-stats").click();
     cy.contains("Shoulders (cm)").should("have.length", 1);
     g("input-stats-shoulders").should("have.value", 51.66);
-    g("input-stats-shoulders").clear().type("40")
+    g("input-stats-shoulders").clear().type("40");
     g("add-stats").click();
 
     g("tab-stats").click();
@@ -45,7 +45,7 @@ describe("Stats", () => {
     g("input-stats-unit").eq(1).should("have.text", "cm");
 
     g("footer-settings").click();
-    g("menu-item-value-length-units").should("have.value", "cm")
+    g("menu-item-value-length-units").should("have.value", "cm");
     g("menu-item-value-length-units").select("in");
     g("back").click();
 
@@ -58,4 +58,3 @@ describe("Stats", () => {
     g("input-stats-unit").eq(1).should("have.text", "in");
   });
 });
-

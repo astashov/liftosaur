@@ -10,7 +10,7 @@ describe("5/3/1 for beginners calculator", () => {
 
   it("works", () => {
     cy.visit("http://local.liftosaur.com:8080");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.contains("5/3/1 For Beginners").click();
     cy.contains("Clone").click();
     g("menu-item-squat").find("input").clear().type("300");

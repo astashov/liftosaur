@@ -10,7 +10,7 @@ describe("Stats", () => {
 
   it("enters stats and shows graphs", () => {
     cy.visit("http://local.liftosaur.com:8080");
-    cy.contains("Let's choose a program!").click();
+    cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
 
@@ -32,7 +32,7 @@ describe("Stats", () => {
     g("add-stats").click();
 
     g("enter-stats").click();
-    g("input-stats-bodyweight").should("have.value", "10")
+    g("input-stats-bodyweight").should("have.value", "10");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "30");
 
@@ -42,7 +42,7 @@ describe("Stats", () => {
     g("add-stats").click();
 
     g("enter-stats").click();
-    g("input-stats-bodyweight").should("have.value", "15")
+    g("input-stats-bodyweight").should("have.value", "15");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "35");
 
@@ -104,4 +104,3 @@ describe("Stats", () => {
     g("graph").eq(0).find(".title").should("have.text", "Shoulders");
   });
 });
-
