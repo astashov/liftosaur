@@ -17,6 +17,11 @@ export function Timer(props: IProps): JSX.Element {
     intervalId.current = window.setInterval(() => {
       setTick(tick + 1);
     }, 1000);
+    return () => {
+      if (intervalId != null) {
+        window.clearInterval(intervalId.current);
+      }
+    };
   });
 
   const timeDifference = Date.now() - props.startTime;

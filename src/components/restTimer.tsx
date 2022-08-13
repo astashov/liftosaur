@@ -39,6 +39,11 @@ export function RestTimer(props: IProps): JSX.Element | null {
       }
     }
     prevProps.current = props;
+    return () => {
+      if (intervalId != null) {
+        window.clearInterval(intervalId.current);
+      }
+    };
   });
 
   const timer = props.timers[props.mode];
@@ -47,7 +52,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const isTimeOut = timeDifference > timer * 1000;
     const className = isTimeOut ? "text-red-500" : "text-gray-200";
     return (
-      <section className="col fixed w-full p-3 text-center bg-gray-800" style={{ bottom: "4rem" }}>
+      <section className="fixed w-full p-3 text-center bg-gray-800 col" style={{ bottom: "4rem" }}>
         <span className={className}>
           {TimeUtils.formatMMSS(timeDifference)}
           {isTimeOut ? " - Time to start next set!" : ""}
