@@ -1,3 +1,5 @@
+import { SendMessage } from "../utils/sendMessage";
+
 export interface IAudioInterface {
   play(): void;
 }
@@ -16,6 +18,9 @@ export class AudioInterface implements IAudioInterface {
   }
 
   public play(): void {
-    this.audio.play();
+    const isPlayed = SendMessage.toIos({ type: "playSound" });
+    if (!isPlayed) {
+      this.audio.play();
+    }
   }
 }

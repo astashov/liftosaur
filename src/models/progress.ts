@@ -24,6 +24,7 @@ import {
   IEquipment,
   IProgramExercise,
 } from "../types";
+import { SendMessage } from "../utils/sendMessage";
 
 export interface IScriptBindings {
   day: number;
@@ -91,7 +92,16 @@ export namespace Progress {
     return progress.id === 0;
   }
 
-  export function startTimer(progress: IHistoryRecord, timestamp: number, mode: IProgressMode): IHistoryRecord {
+  export function startTimer(
+    progress: IHistoryRecord,
+    timestamp: number,
+    mode: IProgressMode,
+    settings: ISettings
+  ): IHistoryRecord {
+    const duration = settings.timers[mode];
+    if (duration != null) {
+      SendMessage.toIos({ type: "startTimer", duration: duration.toString(), mode });
+    }
     return {
       ...progress,
       timerSince: timestamp,
@@ -100,6 +110,7 @@ export namespace Progress {
   }
 
   export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
+    SendMessage.toIos({ type: "stopTimer" });
     return {
       ...progress,
       timerSince: undefined,

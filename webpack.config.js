@@ -168,6 +168,10 @@ module.exports = {
         from: "assetlinks.json",
         to: ".well-known/assetlinks.json",
       },
+      {
+        from: "apple-app-site-association",
+        to: ".well-known/apple-app-site-association",
+      },
     ]),
     new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],

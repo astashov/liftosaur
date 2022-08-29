@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "LTYGDF4LZG.com.liftosaur.www"
+        ],
+        "components": [
+          {
+            "/": "googleauthcallback.html"
+          }
+        ]
+      }
+    ]
+  }
+}

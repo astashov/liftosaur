@@ -290,7 +290,11 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         return progress;
       }
       case "ChangeAMRAPAction": {
-        return Progress.updateAmrapRepsInExercise(progress, action.value);
+        progress = Progress.updateAmrapRepsInExercise(progress, action.value);
+        if (Progress.isFullyFinishedSet(progress)) {
+          progress = Progress.stopTimer(progress);
+        }
+        return progress;
       }
       case "ChangeWeightAction": {
         return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);
@@ -422,7 +426,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "StartTimer") {
     return Progress.setProgress(
       state,
-      Progress.startTimer(Progress.getProgress(state)!, action.timestamp, action.mode)
+      Progress.startTimer(Progress.getProgress(state)!, action.timestamp, action.mode, state.storage.settings)
     );
   } else if (action.type === "StopTimer") {
     return Progress.setProgress(state, Progress.stopTimer(Progress.getProgress(state)!));

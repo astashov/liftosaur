@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program, IExportedProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
-import { IProgram } from "../types";
+import { IProgram, IProgressMode } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
@@ -17,6 +17,7 @@ import { History } from "../models/history";
 import { CSV } from "../utils/csv";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
+import { SendMessage } from "../utils/sendMessage";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
