@@ -60,7 +60,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
         ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
         : false;
 
-    const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["programs"];
+    const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["onboarding"];
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
@@ -77,7 +77,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
     };
   }
   return {
-    screenStack: ["programs"],
+    screenStack: ["onboarding"],
     progress: {},
     programs: [],
     loading: { items: {} },

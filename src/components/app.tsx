@@ -31,6 +31,7 @@ import { ScreenFriendsAdd } from "./screenFriendsAdd";
 import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
+import { ScreenOnboarding } from "./screenOnboarding";
 
 interface IProps {
   client: Window["fetch"];
@@ -107,23 +108,22 @@ export function AppView(props: IProps): JSX.Element | null {
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
   let content: JSX.Element;
-  if (
+  if (Screen.current(state.screenStack) === "onboarding") {
+    content = <ScreenOnboarding dispatch={dispatch} />;
+  } else if (
     Screen.current(state.screenStack) === "programs" ||
     (Screen.current(state.screenStack) === "main" && currentProgram == null)
   ) {
     content = (
-      <Fragment>
-        <ChooseProgramView
-          loading={state.loading}
-          settings={state.storage.settings}
-          screenStack={state.screenStack}
-          dispatch={dispatch}
-          programs={state.programs || []}
-          customPrograms={state.storage.programs || []}
-          editProgramId={state.progress[0]?.programId}
-        />
-        {shouldShowOnboarding && <ModalOnboarding dispatch={dispatch} onClose={() => setShouldShowOnboarding(false)} />}
-      </Fragment>
+      <ChooseProgramView
+        loading={state.loading}
+        settings={state.storage.settings}
+        screenStack={state.screenStack}
+        dispatch={dispatch}
+        programs={state.programs || []}
+        customPrograms={state.storage.programs || []}
+        editProgramId={state.progress[0]?.programId}
+      />
     );
   } else if (Screen.current(state.screenStack) === "main") {
     if (currentProgram != null) {

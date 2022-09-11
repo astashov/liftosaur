@@ -1,7 +1,5 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
 import { ProgramListView } from "./programList";
 import { useState } from "preact/hooks";
 import { Program } from "../models/program";
@@ -12,6 +10,8 @@ import { IScreen } from "../models/screen";
 import { ModalPostClone } from "./modalPostClone";
 import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
+import { NavbarView } from "./navbar";
+import { Footer2View } from "./footer2";
 
 interface IProps {
   dispatch: IDispatch;
@@ -32,19 +32,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
 
   return (
     <section className="h-full">
-      <HeaderView
-        left={
-          props.screenStack.length > 1 ? (
-            <button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>
-          ) : undefined
-        }
-        right={
-          <button className="ls-open-create-new-program-modal p-4" onClick={() => setShouldCreateProgram(true)}>
-            Create
-          </button>
-        }
-        title="Choose a program"
-      />
+      <NavbarView title="Choose a program" dispatch={props.dispatch} screenStack={props.screenStack} />
       <ProgramListView
         onSelectProgram={(id) => setSelectedProgramId(id)}
         programs={props.programs}
@@ -82,7 +70,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           dispatch={props.dispatch}
         />
       )}
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
+      <Footer2View dispatch={props.dispatch} onCtaClick={() => undefined} ctaTitle="Create Program" />
     </section>
   );
 }

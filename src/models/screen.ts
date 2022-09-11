@@ -1,4 +1,5 @@
 export type IScreen =
+  | "onboarding"
   | "main"
   | "settings"
   | "account"
