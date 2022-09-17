@@ -8,6 +8,9 @@ import { IDispatch } from "../../../ducks/types";
 import { EditProgram } from "../../../models/editProgram";
 import { Thunk } from "../../../ducks/thunks";
 import { IProgram, ISettings, IWeight } from "../../../types";
+import { Input, IValidationError } from "../../input";
+import { LinkButton } from "../../linkButton";
+import { IEither } from "../../../utils/types";
 
 interface IProps {
   program: IProgram;
@@ -29,7 +32,7 @@ export function TrainingMax(props: IProps): JSX.Element {
 
   return (
     <div>
-      <p>
+      <p className="mb-4">
         5/3/1 programs are based on Training Max - 90% of your 1 rep max. Enter your Training Maxes for main lifts, or
         use the calculator to calculate it's value.
       </p>
@@ -46,7 +49,7 @@ export function TrainingMax(props: IProps): JSX.Element {
       ))}
       <div className="p-2 text-center">
         <Button
-          kind="green"
+          kind="orange"
           className="ls-save-training-max"
           onClick={() => {
             EditProgram.set531Tms(props.dispatch, props.programIndex, tms);
@@ -73,38 +76,38 @@ function TrainingMaxExercise(props: IPropsExercise): JSX.Element {
   const [shouldShowCalculator, setShouldShowCalculator] = useState<boolean>(false);
 
   return (
-    <Fragment>
-      <MenuItemEditable
-        type="number"
-        name={props.name}
-        value={tm.value.toString()}
-        valueUnits={tm.unit}
-        after={
-          <span className="flex items-center ml-2 text-sm">
-            <button onClick={() => setShouldShowCalculator(!shouldShowCalculator)} className="text-blue-700 underline">
-              Calculate
-            </button>
-          </span>
-        }
-        onChange={(w) => {
-          const value = w != null ? parseInt(w, 10) : NaN;
-          const weight = !isNaN(value) ? Weight.build(value, props.settings.units) : undefined;
-          if (weight != null) {
-            props.onTmChange(weight);
-          }
-        }}
-        nextLine={
-          shouldShowCalculator ? (
-            <TrainingMaxCalculator
-              settings={props.settings}
-              onCalculate={(w) => {
-                props.onTmChange(w);
-              }}
-            />
-          ) : undefined
-        }
-      />
-    </Fragment>
+    <div className="mb-4">
+      <div>
+        <Input
+          label={`${props.name} Training Max, ${tm.unit}`}
+          className="w-full"
+          type="text"
+          value={tm.value}
+          changeHandler={(either) => {
+            if (either.success) {
+              const value = parseInt(either.data, 10);
+              const weight = !isNaN(value) ? Weight.build(value, props.settings.units) : undefined;
+              if (weight != null) {
+                props.onTmChange(weight);
+              }
+            }
+          }}
+        />
+      </div>
+      <div>
+        <LinkButton onClick={() => setShouldShowCalculator(!shouldShowCalculator)} className="text-blue-700 underline">
+          Calculate
+        </LinkButton>
+      </div>
+      {shouldShowCalculator ? (
+        <TrainingMaxCalculator
+          settings={props.settings}
+          onCalculate={(w) => {
+            props.onTmChange(w);
+          }}
+        />
+      ) : undefined}
+    </div>
   );
 }
 
@@ -129,36 +132,28 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
       <h3 className="pb-2 text-sm font-bold">Enter weight and number of reps</h3>
       <form onSubmit={(e) => e.preventDefault()} className="pb-2">
         <div className="mb-2">
-          <label className="flex items-center">
-            <span className="pr-4 text-sm" style={{ width: "100px" }}>
-              Reps lifted
-            </span>
-            <input
-              data-cy="input-reps"
-              ref={repsInput}
-              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-              type="number"
-              min="0"
-              onInput={() => calculate()}
-              placeholder="0"
-            />
-          </label>
+          <Input
+            label="Reps lifted"
+            data-cy="input-reps"
+            ref={repsInput}
+            type="number"
+            className="w-full"
+            min="0"
+            onInput={() => calculate()}
+            placeholder="0"
+          />
         </div>
         <div className="mb-2">
-          <label className="flex items-center">
-            <span className="pr-4 text-sm" style={{ width: "100px" }}>
-              Weight lifted
-            </span>
-            <input
-              data-cy="input-weight"
-              ref={weightInput}
-              className="flex-1 block w-full px-4 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-              type="number"
-              min="0"
-              onInput={() => calculate()}
-              placeholder="0 lbs"
-            />
-          </label>
+          <Input
+            label="Weight lifted"
+            data-cy="input-weight"
+            ref={weightInput}
+            className="w-full"
+            type="number"
+            min="0"
+            onInput={() => calculate()}
+            placeholder="0 lbs"
+          />
         </div>
         <div className="flex items-center">
           <div className="flex-1 text-sm">
@@ -169,7 +164,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
               buttonSize="sm"
               disabled={result == null}
               type="button"
-              kind="blue"
+              kind="purple"
               onClick={() => {
                 if (result != null) {
                   props.onCalculate(result);

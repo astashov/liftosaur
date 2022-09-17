@@ -19,10 +19,10 @@ export function MenuItemWrapper(props: {
   return (
     <section
       data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
-      className="w-full px-6 py-1 text-left border-b border-gray-200"
+      className="w-full px-4 text-left"
       onClick={props.onClick}
     >
-      {props.children}
+      <div className="border-b border-gray-200">{props.children}</div>
     </section>
   );
 }
@@ -38,8 +38,8 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
             </span>
           </div>
         )}
-        <div className="flex items-center flex-1 py-2 text-left">{props.name}</div>
-        <div className="flex-1 py-2 text-right">{props.value}</div>
+        <div className="flex items-center flex-1 py-3 text-left">{props.name}</div>
+        <div className="flex-1 text-right">{props.value}</div>
         {props.shouldShowRightArrow && (
           <div className="flex items-center py-2 pl-2">
             <IconArrowRight style={{ width: "1rem", height: "1rem", fill: "#a0aec0" }} />

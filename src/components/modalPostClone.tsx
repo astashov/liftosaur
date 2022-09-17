@@ -24,7 +24,7 @@ export function ModalPostClone(props: IProps): JSX.Element | null {
 
   return content ? (
     <Modal>
-      <h3 className="pb-2 font-bold text-center">Program Settings</h3>
+      <h3 className="pb-2 text-xl font-bold text-center">Program Settings</h3>
       {content()}
     </Modal>
   ) : null;

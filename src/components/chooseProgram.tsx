@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { ProgramListView } from "./programList";
 import { useState } from "preact/hooks";
@@ -12,6 +12,7 @@ import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
+import { Surface } from "./surface";
 
 interface IProps {
   dispatch: IDispatch;
@@ -31,8 +32,51 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   const program = props.programs.find((p) => p.id === selectedProgramId);
 
   return (
-    <section className="h-full">
-      <NavbarView title="Choose a program" dispatch={props.dispatch} screenStack={props.screenStack} />
+    <Surface
+      navbar={<NavbarView title="Choose a program" dispatch={props.dispatch} screenStack={props.screenStack} />}
+      footer={
+        <Footer2View
+          dispatch={props.dispatch}
+          onCtaClick={() => setShouldCreateProgram(true)}
+          ctaTitle="Create Program"
+        />
+      }
+      addons={
+        <Fragment>
+          {program != null && (
+            <ModalProgramInfo
+              program={program}
+              hasCustomPrograms={props.customPrograms.length > 0}
+              onClose={() => setSelectedProgramId(undefined)}
+              onSelect={() => {
+                Program.cloneProgram(props.dispatch, program);
+                if (program.id === "the5314b") {
+                  setShouldShowPostCloneModal(true);
+                } else {
+                  props.dispatch(Thunk.pushScreen("main"));
+                }
+              }}
+            />
+          )}
+          <ModalCreateProgram
+            isHidden={!shouldCreateProgram}
+            onClose={() => setShouldCreateProgram(false)}
+            onSelect={(name) => {
+              props.dispatch({ type: "CreateProgramAction", name });
+            }}
+          />
+          {shouldShowPostCloneModal && program && (
+            <ModalPostClone
+              settings={props.settings}
+              programIndex={props.customPrograms.indexOf(program)}
+              program={program}
+              onClose={() => props.dispatch(Thunk.pushScreen("main"))}
+              dispatch={props.dispatch}
+            />
+          )}
+        </Fragment>
+      }
+    >
       <ProgramListView
         onSelectProgram={(id) => setSelectedProgramId(id)}
         programs={props.programs}
@@ -40,37 +84,6 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         dispatch={props.dispatch}
         editProgramId={props.editProgramId}
       />
-      {program != null && (
-        <ModalProgramInfo
-          program={program}
-          onClose={() => setSelectedProgramId(undefined)}
-          onSelect={() => {
-            Program.cloneProgram(props.dispatch, program);
-            if (program.id === "the5314b") {
-              setShouldShowPostCloneModal(true);
-            } else {
-              props.dispatch(Thunk.pushScreen("main"));
-            }
-          }}
-        />
-      )}
-      <ModalCreateProgram
-        isHidden={!shouldCreateProgram}
-        onClose={() => setShouldCreateProgram(false)}
-        onSelect={(name) => {
-          props.dispatch({ type: "CreateProgramAction", name });
-        }}
-      />
-      {shouldShowPostCloneModal && program && (
-        <ModalPostClone
-          settings={props.settings}
-          programIndex={props.customPrograms.indexOf(program)}
-          program={program}
-          onClose={() => props.dispatch(Thunk.pushScreen("main"))}
-          dispatch={props.dispatch}
-        />
-      )}
-      <Footer2View dispatch={props.dispatch} onCtaClick={() => undefined} ctaTitle="Create Program" />
-    </section>
+    </Surface>
   );
 }

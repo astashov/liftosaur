@@ -31,7 +31,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               <CreateButton />
             </button>
             {props.ctaTitle ? (
-              <div className="text-grayv2" style={{ fontSize: "10px", paddingTop: "30px" }}>
+              <div className="text-grayv2-700" style={{ fontSize: "10px", paddingTop: "30px" }}>
                 {props.ctaTitle}
               </div>
             ) : null}

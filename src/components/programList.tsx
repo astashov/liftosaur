@@ -2,8 +2,6 @@ import { h, JSX, Fragment } from "preact";
 import { Program } from "../models/program";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
-import { IconDelete } from "./iconDelete";
-import { IconEdit } from "./iconEdit";
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
@@ -11,6 +9,10 @@ import { IState } from "../models/state";
 import { IProgram } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IconArrowRight } from "./iconArrowRight";
+import { LinkButton } from "./linkButton";
+import { useState } from "preact/compat";
+import { IconTrash } from "./iconTrash";
+import { IconEditSquare } from "./iconEditSquare";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -24,6 +26,8 @@ export function ProgramListView(props: IProps): JSX.Element {
   const customPrograms = CollectionUtils.sort(props.customPrograms || [], (a, b) => a.name.localeCompare(b.name));
   const programs = CollectionUtils.sort(props.programs || [], (a, b) => a.name.localeCompare(b.name));
 
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const tagToColor = {
     "first-starter": "text-orange-700",
     beginner: "text-orange-700",
@@ -36,67 +40,88 @@ export function ProgramListView(props: IProps): JSX.Element {
   };
 
   return (
-    <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-      <p className="px-8 py-2 text-sm text-center text-grayv2">
-        If you're new to weight lifting, consider starting with <strong>Basic Beginner Routine</strong>.
-      </p>
+    <Fragment>
+      {customPrograms.length === 0 && (
+        <p className="px-8 py-2 text-sm text-center text-grayv2-700">
+          If you're new to weight lifting, consider starting with <strong>Basic Beginner Routine</strong>.
+        </p>
+      )}
       {customPrograms.length > 0 && (
-        <Fragment>
-          <GroupHeader name="Your Programs" />
+        <div className="mb-4">
+          <GroupHeader
+            name="Your Programs"
+            rightAddOn={
+              <LinkButton
+                onClick={() => {
+                  setIsEditMode(!isEditMode);
+                }}
+              >
+                {isEditMode ? "Finish Editing" : "Edit"}
+              </LinkButton>
+            }
+          />
           {customPrograms.map((program) => (
             <MenuItem
               name={program.name}
               onClick={(e) => {
-                if (!HtmlUtils.classInParents(e.target as Element, "button")) {
+                if (!isEditMode && !HtmlUtils.classInParents(e.target as Element, "button")) {
                   Program.selectProgram(props.dispatch, program.id);
                 }
               }}
               value={
-                <Fragment>
-                  <button
-                    className="p-2 align-middle button"
-                    onClick={() => {
-                      if (props.editProgramId == null || props.editProgramId !== program.id) {
-                        Program.editAction(props.dispatch, program.id);
-                      } else {
-                        alert("You cannot edit the program while that program's workout is in progress");
-                      }
-                    }}
-                  >
-                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
-                  </button>
-                  <button
-                    className="p-2 align-middle button"
-                    onClick={() => {
-                      if (props.editProgramId == null || props.editProgramId !== program.id) {
-                        if (confirm("Are you sure?")) {
-                          props.dispatch({
-                            type: "UpdateState",
-                            lensRecording: [
-                              lb<IState>()
-                                .p("storage")
-                                .p("programs")
-                                .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
-                            ],
-                          });
+                isEditMode ? (
+                  <Fragment>
+                    <button
+                      className="p-2 align-middle button"
+                      onClick={() => {
+                        if (props.editProgramId == null || props.editProgramId !== program.id) {
+                          Program.editAction(props.dispatch, program.id);
+                        } else {
+                          alert("You cannot edit the program while that program's workout is in progress");
                         }
-                      } else {
-                        alert("You cannot delete the program while that program's workout is in progress");
-                      }
-                    }}
-                  >
-                    <IconDelete />
-                  </button>
-                </Fragment>
+                      }}
+                    >
+                      <IconEditSquare />
+                    </button>
+                    <button
+                      className="p-2 align-middle button"
+                      onClick={() => {
+                        if (props.editProgramId == null || props.editProgramId !== program.id) {
+                          if (confirm("Are you sure?")) {
+                            props.dispatch({
+                              type: "UpdateState",
+                              lensRecording: [
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("programs")
+                                  .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
+                              ],
+                            });
+                          }
+                        } else {
+                          alert("You cannot delete the program while that program's workout is in progress");
+                        }
+                      }}
+                    >
+                      <IconTrash />
+                    </button>
+                  </Fragment>
+                ) : (
+                  <span className="inline-block">
+                    <IconArrowRight />
+                  </span>
+                )
               }
             />
           ))}
-        </Fragment>
+        </div>
       )}
 
       {programs.length > 0 && (
         <Fragment>
-          <GroupHeader name="Or clone from built-in programs" />
+          {props.customPrograms && props.customPrograms.length > 0 ? (
+            <GroupHeader name="Or clone from built-in programs" />
+          ) : null}
           {programs.map((program) => (
             <div className="px-4">
               <button
@@ -125,6 +150,6 @@ export function ProgramListView(props: IProps): JSX.Element {
           ))}
         </Fragment>
       )}
-    </section>
+    </Fragment>
   );
 }

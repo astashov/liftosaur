@@ -15,7 +15,6 @@ body {
 
 .has-shadow {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease-in-out;
 }
 
 .CodeMirror {

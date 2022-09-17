@@ -2,17 +2,26 @@ import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   buttonSize?: "xs" | "sm" | "lg";
-  kind: "green" | "red" | "blue" | "gray" | "orange" | "purple";
+  kind: "green" | "red" | "blue" | "gray" | "orange" | "purple" | "grayv2";
 }
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, ...otherProps } = props;
-  if (kind === "purple" || kind === "orange") {
-    let className = `text-white font-semibold rounded-2xl px-8 text-xs py-3 `;
+  if (kind === "purple" || kind === "orange" || kind === "grayv2") {
+    let className = "text-xs text-white rounded-2xl";
     if (kind === "purple") {
       className += " bg-purplev2";
+    } else if (kind === "grayv2") {
+      className += " bg-grayv2-700";
     } else {
       className += " bg-orangev2";
+    }
+    if (props.buttonSize === "sm") {
+      className += " px-2 py-1 font-semibold";
+    } else if (props.buttonSize === "xs") {
+      className += " px-1 py-0 font-normal";
+    } else {
+      className += " px-8 py-3 font-semibold";
     }
     if (props.className) {
       className += ` ${props.className}`;

@@ -32,6 +32,7 @@ import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
+import { ModalPostClone } from "./modalPostClone";
 
 interface IProps {
   client: Window["fetch"];

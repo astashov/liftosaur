@@ -39,7 +39,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   }
 
   return (
-    <div className={className}>
+    <div className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
       <div className="flex items-center justify-center">
         {props.screenStack.length > 1 ? (
           <button className="p-2" onClick={() => props.dispatch(Thunk.pullScreen())}>
