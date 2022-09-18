@@ -169,7 +169,9 @@ const ExerciseContentView = memo(
                   </button>
                 ))}
             </div>
-            <div className="text-xs text-gray-600">{StringUtils.capitalize(exercise.equipment || "")}</div>
+            {exercise.equipment && (
+              <div className="text-xs text-gray-600">{StringUtils.capitalize(exercise.equipment)}</div>
+            )}
           </div>
           <div className="text-right">
             {warmupWeights.map((w) => {
