@@ -29,6 +29,7 @@ import {
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IFriendUser } from "../models/state";
+import { StringUtils } from "../utils/string";
 
 interface IProps {
   showHelp: boolean;
@@ -134,38 +135,41 @@ const ExerciseContentView = memo(
       <Fragment>
         <header className="flex">
           <div className="flex-1 mr-auto">
-            {exercise.name}
-            {targetMuscles.length > 0 && (
-              <button
-                style={{ marginBottom: "2px" }}
-                className="ls-show-exercise-image px-2 py-0 ml-2 align-middle"
-                onClick={props.onInfoClick}
-              >
-                <IconQuestion width={15} height={15} />
-              </button>
-            )}
-            {!friend &&
-              props.onStartSetChanging &&
-              (isEditMode ? (
-                <Button
-                  className="ls-edit-set-done"
-                  data-cy="done-edit-exercise"
-                  buttonSize="xs"
-                  kind="green"
-                  onClick={() => setIsEditMode(false)}
-                >
-                  Done
-                </Button>
-              ) : (
+            <div>
+              {exercise.name}
+              {targetMuscles.length > 0 && (
                 <button
                   style={{ marginBottom: "2px" }}
-                  data-cy="edit-exercise"
-                  className="ls-edit-set px-2 py-0 align-middle"
-                  onClick={() => setIsEditMode(true)}
+                  className="px-2 py-0 ml-2 align-middle ls-show-exercise-image"
+                  onClick={props.onInfoClick}
                 >
-                  <IconEdit size={15} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                  <IconQuestion width={15} height={15} />
                 </button>
-              ))}
+              )}
+              {!friend &&
+                props.onStartSetChanging &&
+                (isEditMode ? (
+                  <Button
+                    className="ls-edit-set-done"
+                    data-cy="done-edit-exercise"
+                    buttonSize="xs"
+                    kind="green"
+                    onClick={() => setIsEditMode(false)}
+                  >
+                    Done
+                  </Button>
+                ) : (
+                  <button
+                    style={{ marginBottom: "2px" }}
+                    data-cy="edit-exercise"
+                    className="px-2 py-0 align-middle ls-edit-set"
+                    onClick={() => setIsEditMode(true)}
+                  >
+                    <IconEdit size={15} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                  </button>
+                ))}
+            </div>
+            <div className="text-xs text-gray-600">{StringUtils.capitalize(exercise.equipment || "")}</div>
           </div>
           <div className="text-right">
             {warmupWeights.map((w) => {
@@ -198,7 +202,7 @@ const ExerciseContentView = memo(
                     data-help-offset-x={-80}
                     data-help-width={140}
                     data-cy="change-weight"
-                    className="ls-progress-open-change-weight-modal text-blue-500 underline cursor-pointer"
+                    className="text-blue-500 underline cursor-pointer ls-progress-open-change-weight-modal"
                     style={{ fontWeight: "inherit" }}
                     onClick={() => {
                       if (!friend) {
@@ -255,7 +259,7 @@ const ExerciseContentView = memo(
                         <button
                           data-cy="set-edit-mode-remove"
                           style={{ top: "-0.5rem", left: "-0.5rem" }}
-                          className="ls-edit-set-remove absolute p-1"
+                          className="absolute p-1 ls-edit-set-remove"
                           onClick={() => {
                             EditProgressEntry.removeSet(props.dispatch, true, props.index, i);
                           }}
@@ -279,7 +283,7 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="add-warmup-set"
                     onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
-                    className="ls-edit-set-open-modal-add-warmup is-edit-mode w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg"
+                    className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg ls-edit-set-open-modal-add-warmup is-edit-mode"
                   >
                     +
                   </button>
@@ -314,7 +318,7 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="set-edit-mode-remove"
                     style={{ top: "-0.5rem", left: "-0.5rem" }}
-                    className="ls-edit-set-remove absolute p-1"
+                    className="absolute p-1 ls-edit-set-remove"
                     onClick={() => {
                       EditProgressEntry.removeSet(props.dispatch, false, props.index, i);
                     }}
@@ -329,7 +333,7 @@ const ExerciseContentView = memo(
             <button
               data-cy="add-set"
               onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-              className="ls-edit-set-open-modal-add is-edit-mode w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg"
+              className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg ls-edit-set-open-modal-add is-edit-mode"
             >
               +
             </button>
