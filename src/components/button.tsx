@@ -10,9 +10,9 @@ export function Button(props: IProps): JSX.Element {
   if (kind === "purple" || kind === "orange" || kind === "grayv2") {
     let className = "text-xs text-white rounded-2xl";
     if (kind === "purple") {
-      className += " bg-purplev2";
+      className += " bg-purplev2-main";
     } else if (kind === "grayv2") {
-      className += " bg-grayv2-700";
+      className += " bg-grayv2-main";
     } else {
       className += " bg-orangev2";
     }

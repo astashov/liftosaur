@@ -13,6 +13,7 @@ interface INavbarCenterProps {
 
 interface INavbarProps extends INavbarCenterProps {
   dispatch: IDispatch;
+  numberOfButtons: number;
   screenStack: IScreen[];
 }
 
@@ -40,7 +41,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   return (
     <div className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center" style={{ minWidth: props.numberOfButtons * 40 }}>
         {props.screenStack.length > 1 ? (
           <button className="p-2" onClick={() => props.dispatch(Thunk.pullScreen())}>
             <IconBack />
@@ -48,7 +49,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         ) : undefined}
       </div>
       <NavbarCenterView {...props} />
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center" style={{ minWidth: props.numberOfButtons * 40 }}>
         <button className="p-2">
           <IconHelp />
         </button>

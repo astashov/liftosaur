@@ -1,25 +1,21 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { HeaderView } from "./header";
-import { FooterView } from "./footer";
 import { Program } from "../models/program";
-import { Button } from "./button";
-import { StringUtils } from "../utils/string";
-import { IconMuscles } from "./iconMuscles";
 import { Thunk } from "../ducks/thunks";
 import { useState, useEffect, useRef } from "preact/hooks";
 import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
-import { Tabs } from "./tabs";
-import { StatsList } from "./statsList";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { IAllComments, IAllLikes, IFriendUser, ILoading } from "../models/state";
-
-type ITab = "Workouts" | "Stats";
+import { Surface } from "./surface";
+import { NavbarView } from "./navbar";
+import { IScreen } from "../models/screen";
+import { Footer2View } from "./footer2";
 
 interface IProps {
   program: IProgram;
   progress?: IHistoryRecord;
   history: IHistoryRecord[];
+  screenStack: IScreen[];
   friendsHistory: Partial<Record<string, IFriendUser>>;
   stats: IStats;
   comments: IAllComments;
@@ -59,77 +55,31 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     return () => window.removeEventListener("scroll", scrollHandler);
   }, []);
 
-  const [tab, setTab] = useState<ITab>("Workouts");
-
   const history = [nextHistoryRecord, ...sortedHistory];
 
   return (
-    <section className="h-full">
-      <HeaderView
-        title={StringUtils.truncate(props.program.name, 25)}
-        subtitle="Current program"
-        right={
-          props.progress == null ? (
-            <button
-              className="ls-history-edit-program p-3"
-              onClick={() => Program.editAction(props.dispatch, props.program.id)}
-            >
-              Edit Program
-            </button>
-          ) : undefined
-        }
+    <Surface
+      navbar={
+        <NavbarView numberOfButtons={1} dispatch={dispatch} screenStack={props.screenStack} title="Workout History" />
+      }
+      footer={
+        <Footer2View
+          dispatch={props.dispatch}
+          onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
+          ctaTitle="Start Workout"
+        />
+      }
+    >
+      <HistoryRecordsList
+        comments={props.comments}
+        history={history}
+        settings={props.settings}
+        dispatch={dispatch}
+        likes={props.likes}
+        visibleRecords={visibleRecordsRef.current}
+        currentUserId={props.userId}
+        friendsHistory={props.friendsHistory}
       />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }} ref={containerRef}>
-        <div className="flex py-3 mb-3 text-center border-b border-gray-200">
-          <div className="text-center" style={{ flex: 5 }}>
-            <Button
-              data-cy="enter-stats"
-              kind="blue"
-              className="ls-enter-stats"
-              onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
-            >
-              Enter Stats
-            </Button>
-          </div>
-          <div className="text-center" style={{ flex: 7 }}>
-            <Button
-              kind="green"
-              className="ls-start-workout"
-              onClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-            >
-              {props.progress ? "Continue Workout" : "Start New Workout"}
-            </Button>
-          </div>
-        </div>
-        <Tabs left="Workouts" right="Stats" selected={tab} onChange={setTab} />
-        {tab === "Workouts" && (
-          <HistoryRecordsList
-            comments={props.comments}
-            history={history}
-            settings={props.settings}
-            dispatch={dispatch}
-            likes={props.likes}
-            visibleRecords={visibleRecordsRef.current}
-            currentUserId={props.userId}
-            friendsHistory={props.friendsHistory}
-          />
-        )}
-        {tab === "Stats" && <StatsList dispatch={props.dispatch} settings={props.settings} stats={props.stats} />}
-      </section>
-      <FooterView
-        loading={props.loading}
-        buttons={
-          <button
-            className="ls-footer-muscles p-4"
-            data-cy="footer-muscles"
-            aria-label="Muscles"
-            onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
-          >
-            <IconMuscles />
-          </button>
-        }
-        dispatch={props.dispatch}
-      />
-    </section>
+    </Surface>
   );
 }

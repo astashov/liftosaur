@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { reducerWrapper } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -14,7 +14,6 @@ import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
-import { ModalOnboarding } from "./modalOnboarding";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { HelpOverlay } from "./helpOverlay";
@@ -32,7 +31,6 @@ import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
-import { ModalPostClone } from "./modalPostClone";
 
 interface IProps {
   client: Window["fetch"];
@@ -67,7 +65,6 @@ export function AppView(props: IProps): JSX.Element | null {
       }
     },
   ]);
-  const [shouldShowOnboarding, setShouldShowOnboarding] = useState(false);
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
@@ -81,9 +78,6 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     dispatch(Thunk.fetchStorage());
     dispatch(Thunk.fetchPrograms());
-    if (state.storage.currentProgramId == null) {
-      setShouldShowOnboarding(true);
-    }
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
@@ -130,6 +124,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
+          screenStack={state.screenStack}
           comments={state.comments}
           likes={state.likes}
           loading={state.loading}
