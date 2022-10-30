@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
@@ -10,6 +10,12 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen } from "../models/screen";
 import { Footer2View } from "./footer2";
+import { IconDoc } from "./icons/iconDoc";
+import { IconRuler } from "./icons/iconRuler";
+import { FooterButton } from "./footerButton";
+import { IconGraphs2 } from "./icons/iconGraphs2";
+import { IconCog2 } from "./icons/iconCog2";
+import { Progress } from "../models/progress";
 
 interface IProps {
   program: IProgram;
@@ -67,7 +73,31 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <Footer2View
           dispatch={props.dispatch}
           onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-          ctaTitle="Start Workout"
+          ctaTitle={Progress.isCurrent(nextHistoryRecord) ? "Continue Workout" : "Start Workout"}
+          leftButtons={
+            <>
+              <FooterButton
+                icon={<IconDoc />}
+                text="Program"
+                onClick={() => Program.editAction(dispatch, props.program.id)}
+              />
+              <FooterButton icon={<IconRuler />} text="Measures" />
+            </>
+          }
+          rightButtons={
+            <>
+              <FooterButton
+                icon={<IconGraphs2 />}
+                text="Graphs"
+                onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
+              />
+              <FooterButton
+                icon={<IconCog2 />}
+                text="Settings"
+                onClick={() => dispatch(Thunk.pushScreen("settings"))}
+              />
+            </>
+          }
         />
       }
     >

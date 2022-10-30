@@ -1,9 +1,11 @@
-import { h, JSX } from "preact";
+import { h, JSX, ComponentChildren } from "preact";
 import { IDispatch } from "../ducks/types";
 
 interface IFooterProps {
   dispatch: IDispatch;
   onCtaClick?: () => void;
+  leftButtons?: ComponentChildren;
+  rightButtons?: ComponentChildren;
   ctaTitle?: string;
 }
 
@@ -19,8 +21,10 @@ export function Footer2View(props: IFooterProps): JSX.Element {
       >
         <Shadow />
       </div>
-      <div className="relative z-10 flex px-4 pt-4 pb-2 bg-white pointer-events-auto" style={{ minHeight: "60px" }}>
-        <div className="flex-1"></div>
+      <div className="relative z-10 flex px-2 pt-4 pb-2 bg-white pointer-events-auto" style={{ minHeight: "60px" }}>
+        <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+          {props.leftButtons}
+        </div>
         {props.onCtaClick != null ? (
           <div className="relative" style={{ width: "100px" }}>
             <button
@@ -37,7 +41,9 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             ) : null}
           </div>
         ) : null}
-        <div className="flex-1"></div>
+        <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+          {props.rightButtons}
+        </div>
       </div>
     </div>
   );
