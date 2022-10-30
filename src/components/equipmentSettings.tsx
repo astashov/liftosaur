@@ -6,7 +6,7 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
 import { SemiButton } from "./semiButton";
-import { IconDelete } from "./iconDelete";
+import { IconDelete } from "./icons/iconDelete";
 import { StringUtils } from "../utils/string";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";

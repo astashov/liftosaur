@@ -2,8 +2,8 @@ import { h, JSX, ComponentChildren } from "preact";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IScreen } from "../models/screen";
-import { IconBack } from "./iconBack";
-import { IconHelp } from "./iconHelp";
+import { IconBack } from "./icons/iconBack";
+import { IconHelp } from "./icons/iconHelp";
 import { useEffect, useState } from "preact/hooks";
 
 interface INavbarCenterProps {

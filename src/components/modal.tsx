@@ -1,5 +1,5 @@
 import { h, ComponentChildren, JSX, RefObject } from "preact";
-import { IconClose } from "./iconClose";
+import { IconClose } from "./icons/iconClose";
 import { useRef, useEffect } from "preact/hooks";
 
 interface IProps {

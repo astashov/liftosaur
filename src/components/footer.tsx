@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
-import { IconCog } from "./iconCog";
+import { IconCog } from "./icons/iconCog";
 import { IDispatch } from "../ducks/types";
-import { IconGraphs } from "./iconGraphs";
+import { IconGraphs } from "./icons/iconGraphs";
 import { Thunk } from "../ducks/thunks";
 import { ILoading } from "../models/state";
-import { IconSpinner } from "./iconSpinner";
+import { IconSpinner } from "./icons/iconSpinner";
 
 interface IFooterProps {
   dispatch: IDispatch;

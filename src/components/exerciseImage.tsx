@@ -1,7 +1,7 @@
 import { JSX, h, ComponentChildren, Fragment } from "preact";
 import { Exercise } from "../models/exercise";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { IconSpinner } from "./iconSpinner";
+import { IconSpinner } from "./icons/iconSpinner";
 import { IAllCustomExercises, IExerciseType } from "../types";
 
 interface IProps {

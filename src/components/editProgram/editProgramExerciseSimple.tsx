@@ -4,7 +4,7 @@ import { h, JSX, Fragment } from "preact";
 import { ModalExercise } from "../modalExercise";
 import { useState, useRef } from "preact/hooks";
 import { EditProgram } from "../../models/editProgram";
-import { IconEdit } from "../iconEdit";
+import { IconEdit } from "../icons/iconEdit";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";

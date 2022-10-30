@@ -1,6 +1,6 @@
 import { h, JSX, ComponentChildren } from "preact";
-import { IconArrowRight } from "./iconArrowRight";
-import { IconHandle } from "./iconHandle";
+import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconHandle } from "./icons/iconHandle";
 import { StringUtils } from "../utils/string";
 
 interface IMenuItemProps {

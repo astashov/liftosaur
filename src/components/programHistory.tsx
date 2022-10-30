@@ -59,6 +59,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   return (
     <Surface
+      ref={containerRef}
       navbar={
         <NavbarView numberOfButtons={1} dispatch={dispatch} screenStack={props.screenStack} title="Workout History" />
       }

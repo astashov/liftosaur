@@ -6,8 +6,8 @@ import { IAllComments, IAllFriends, IAllLikes } from "../models/state";
 import { DateUtils } from "../utils/date";
 import { Button } from "./button";
 import { ButtonLike } from "./buttonLike";
-import { IconDelete } from "./iconDelete";
-import { IconSpinner } from "./iconSpinner";
+import { IconDelete } from "./icons/iconDelete";
+import { IconSpinner } from "./icons/iconSpinner";
 import { inputClassName } from "./input";
 
 interface ICommentsProps {

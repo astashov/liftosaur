@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IAllLikes } from "../models/state";
-import { IconHeart } from "./iconHeart";
+import { IconHeart } from "./icons/iconHeart";
 
 interface IProps {
   dispatch: IDispatch;

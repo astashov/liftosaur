@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IconDelete } from "./iconDelete";
+import { IconDelete } from "./icons/iconDelete";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";

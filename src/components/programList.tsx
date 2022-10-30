@@ -8,11 +8,11 @@ import { HtmlUtils } from "../utils/html";
 import { IState } from "../models/state";
 import { IProgram } from "../types";
 import { CollectionUtils } from "../utils/collection";
-import { IconArrowRight } from "./iconArrowRight";
+import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/compat";
-import { IconTrash } from "./iconTrash";
-import { IconEditSquare } from "./iconEditSquare";
+import { IconTrash } from "./icons/iconTrash";
+import { IconEditSquare } from "./icons/iconEditSquare";
 
 interface IProps {
   onSelectProgram: (id: string) => void;

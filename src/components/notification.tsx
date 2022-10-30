@@ -2,7 +2,7 @@ import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { INotification, IState, updateState } from "../models/state";
-import { IconClose } from "./iconClose";
+import { IconClose } from "./icons/iconClose";
 
 interface IProps {
   notification?: INotification;

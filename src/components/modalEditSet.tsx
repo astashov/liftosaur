@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { inputClassName } from "./input";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import { IconQuestion } from "./iconQuestion";
+import { IconQuestion } from "./icons/iconQuestion";
 import { IUnit, ISet } from "../types";
 
 interface IModalWeightProps {

@@ -9,12 +9,12 @@ import { Weight } from "../models/weight";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings, ISet } from "../types";
-import { IconComments } from "./iconComments";
+import { IconComments } from "./icons/iconComments";
 import { IAllComments, IAllLikes } from "../models/state";
 import { HtmlUtils } from "../utils/html";
 import { ButtonLike } from "./buttonLike";
-import { IconWatch } from "./iconWatch";
-import { IconProfile } from "./iconProfile";
+import { IconWatch } from "./icons/iconWatch";
+import { IconProfile } from "./icons/iconProfile";
 
 interface IProps {
   historyRecord: IHistoryRecord;

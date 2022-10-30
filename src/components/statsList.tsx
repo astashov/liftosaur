@@ -8,7 +8,7 @@ import { Weight } from "../models/weight";
 import { ILength, ISettings, IStats, IStatsKey, IWeight } from "../types";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
-import { IconDelete } from "./iconDelete";
+import { IconDelete } from "./icons/iconDelete";
 import { MenuItemWrapper } from "./menuItem";
 
 interface IProps {

@@ -3,7 +3,7 @@ import { Fragment, h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { IconSpinner } from "./iconSpinner";
+import { IconSpinner } from "./icons/iconSpinner";
 
 export interface IFriendsListProps {
   ids: string[];

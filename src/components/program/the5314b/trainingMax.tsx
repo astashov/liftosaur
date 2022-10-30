@@ -1,16 +1,14 @@
 import { h, JSX, Fragment } from "preact";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
-import { MenuItemEditable } from "../../menuItemEditable";
 import { useState, useRef } from "preact/hooks";
 import { Button } from "../../button";
 import { IDispatch } from "../../../ducks/types";
 import { EditProgram } from "../../../models/editProgram";
 import { Thunk } from "../../../ducks/thunks";
 import { IProgram, ISettings, IWeight } from "../../../types";
-import { Input, IValidationError } from "../../input";
+import { Input } from "../../input";
 import { LinkButton } from "../../linkButton";
-import { IEither } from "../../../utils/types";
 
 interface IProps {
   program: IProgram;
