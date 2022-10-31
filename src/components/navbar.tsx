@@ -81,7 +81,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           style={{ bottom: "-1rem" }}
         >
           <div
-            className="flex pl-4 rounded-full pointer-events-auto border-redv2 text-redv2"
+            className="flex pl-4 rounded-full pointer-events-auto border-redv2-main text-redv2-main"
             style={{ background: "#FFECEC", boxShadow: "0 0 4px rgba(255, 27, 27, 0.38)" }}
           >
             <div className="font-bold" style={{ paddingTop: "1px" }}>

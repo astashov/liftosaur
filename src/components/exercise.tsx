@@ -8,11 +8,6 @@ import { Reps } from "../models/set";
 import { CollectionUtils } from "../utils/collection";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { useState } from "preact/hooks";
-import { IconQuestion } from "./icons/iconQuestion";
-import { IconClose } from "./icons/iconClose";
-import { ExerciseImage } from "./exerciseImage";
-import { IconEdit } from "./icons/iconEdit";
-import { Button } from "./button";
 import { IconDelete } from "./icons/iconDelete";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { memo } from "preact/compat";
@@ -30,6 +25,8 @@ import {
 import { DateUtils } from "../utils/date";
 import { IFriendUser } from "../models/state";
 import { StringUtils } from "../utils/string";
+import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconKebab } from "./icons/iconKebab";
 
 interface IProps {
   showHelp: boolean;
@@ -47,33 +44,35 @@ interface IProps {
   onChangeReps: (mode: IProgressMode) => void;
 }
 
-export const ExerciseView = memo((props: IProps): JSX.Element => {
-  const { entry } = props;
-  const [isImageView, setIsImageView] = useState<boolean>(false);
-  let className = "px-4 pt-4 pb-2 mb-2 border rounded-lg";
-  if (isImageView) {
-    className += " hidden";
-  }
-  let dataCy;
+function getColor(entry: IHistoryEntry): string {
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
-      dataCy = "exercise-completed";
-      className += " bg-green-100 border-green-300";
+      return "green";
     } else {
-      dataCy = "exercise-finished";
-      className += " bg-red-100 border-red-300";
+      return "red";
     }
   } else {
-    dataCy = "exercise-progress";
-    className += " bg-gray-100 border-gray-300";
+    return "purple";
   }
+}
+
+export const ExerciseView = memo((props: IProps): JSX.Element => {
+  const { entry } = props;
+  const color = getColor(entry);
+  const className = `px-4 pt-4 pb-2 mb-2 rounded-lg bg-${color}v2-100`;
+  let dataCy;
+  if (color === "green") {
+    dataCy = "exercise-completed";
+  } else if (color === "red") {
+    dataCy = "exercise-finished";
+  } else {
+    dataCy = "exercise-progress";
+  }
+
   return (
     <Fragment>
-      <div className={!isImageView ? "h-0 overflow-hidden p-0 m-0" : ""}>
-        <ExerciseImageView {...props} onCloseClick={() => setIsImageView(false)} />
-      </div>
       <section data-cy={dataCy} className={className}>
-        <ExerciseContentView {...props} onInfoClick={() => setIsImageView(true)} />
+        <ExerciseContentView {...props} />
         {props.programExercise && (
           <ProgressStateChanges
             entry={props.entry}
@@ -89,25 +88,12 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
   );
 }, ComparerUtils.noFns);
 
-function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
-  const e = props.entry.exercise;
-  const exercise = Exercise.get(e, props.settings.exercises);
-  return (
-    <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
-      <div className="text-left">{exercise.name}</div>
-      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} size="large" />
-      <button className="box-content absolute top-0 right-0 w-6 h-6 p-4" onClick={props.onCloseClick}>
-        <IconClose />
-      </button>
-    </section>
-  );
-}
-
 const ExerciseContentView = memo(
-  (props: IProps & { onInfoClick: () => void }): JSX.Element => {
+  (props: IProps): JSX.Element => {
     const friend = props.friend;
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+    const equipment = exercise.equipment;
     const historicalAmrapSets = props.isCurrent
       ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
       : undefined;
@@ -115,113 +101,101 @@ const ExerciseContentView = memo(
       ? History.getHistoricalSameEntry(props.history, props.entry)
       : undefined;
     const workoutWeights = CollectionUtils.compatBy(
-      props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)),
+      props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, equipment)),
       (w) => w.value.toString()
     );
     workoutWeights.sort(Weight.compare);
     const warmupSets = props.entry.warmupSets;
     const warmupWeights = CollectionUtils.compatBy(
-      props.entry.warmupSets.map((s) =>
-        Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise.equipment)
-      ),
+      props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, equipment)),
       (w) => w.value.toString()
-    ).filter(
-      (w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise.equipment).plates).length > 0
-    );
+    ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, equipment).plates).length > 0);
     warmupWeights.sort(Weight.compare);
-    const targetMuscles = Exercise.targetMuscles(props.entry.exercise, props.settings.exercises);
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     return (
       <Fragment>
         <header className="flex">
-          <div className="flex-1 mr-auto">
-            <div>
-              {exercise.name}
-              {targetMuscles.length > 0 && (
-                <button
-                  style={{ marginBottom: "2px" }}
-                  className="px-2 py-0 ml-2 align-middle ls-show-exercise-image"
-                  onClick={props.onInfoClick}
-                >
-                  <IconQuestion width={15} height={15} />
-                </button>
-              )}
-              {!friend &&
-                props.onStartSetChanging &&
-                (isEditMode ? (
-                  <Button
-                    className="ls-edit-set-done"
-                    data-cy="done-edit-exercise"
-                    buttonSize="xs"
-                    kind="green"
-                    onClick={() => setIsEditMode(false)}
-                  >
-                    Done
-                  </Button>
-                ) : (
-                  <button
-                    style={{ marginBottom: "2px" }}
-                    data-cy="edit-exercise"
-                    className="px-2 py-0 align-middle ls-edit-set"
-                    onClick={() => setIsEditMode(true)}
-                  >
-                    <IconEdit size={15} lineColor="#0D2B3E" penColor="#A5B3BB" />
-                  </button>
-                ))}
-            </div>
-            {exercise.equipment && (
-              <div className="text-xs text-gray-600">{StringUtils.capitalize(exercise.equipment)}</div>
+          <div className="pr-4" style={{ width: "62px" }}>
+            {equipment && (
+              <img
+                src={`https://www.liftosaur.com/externalimages/exercises/single/small/${exercise.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
+                alt={`${exercise.name} image`}
+              />
             )}
           </div>
-          <div className="text-right">
-            {warmupWeights.map((w) => {
-              const className =
-                nextSet != null &&
-                Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
-                  ? "font-bold"
-                  : "";
-              return (
-                <div className={className}>
-                  <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                  <span className="text-gray-500">
-                    {w.value} {w.unit}
-                  </span>
-                </div>
-              );
-            })}
-            {workoutWeights.map((w, i) => {
-              const className =
-                nextSet != null &&
-                Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w)
-                  ? "font-bold"
-                  : "";
-              return (
-                <div className={className}>
-                  <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                  <button
-                    data-help-id={props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined}
-                    data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
-                    data-help-offset-x={-80}
-                    data-help-width={140}
-                    data-cy="change-weight"
-                    className="text-blue-500 underline cursor-pointer ls-progress-open-change-weight-modal"
-                    style={{ fontWeight: "inherit" }}
-                    onClick={() => {
-                      if (!friend) {
-                        props.dispatch({
-                          type: "ChangeWeightAction",
-                          weight: w,
-                          exercise: props.entry.exercise,
-                          programExercise: props.programExercise,
-                        });
+          <div className="flex-1 ml-auto">
+            <div className="flex">
+              <div className="flex-1 text-lg font-bold">{exercise.name}</div>
+              <div>
+                <button className="py-2 pl-2">
+                  <IconKebab />
+                </button>
+              </div>
+            </div>
+            {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
+            <div
+              className={`p-2 pr-8 mt-2 bg-${getColor(props.entry)}v2-200 rounded-2xl`}
+              style={{
+                backgroundImage: "url(/images/icon-barbell.svg)",
+                backgroundPosition: "94% 8%",
+                backgroundRepeat: "no-repeat",
+              }}
+            >
+              {warmupWeights.map((w) => {
+                const isCurrent =
+                  nextSet != null &&
+                  Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
+                const className = isCurrent ? "font-bold" : "";
+                return (
+                  <div className={className}>
+                    <span style={{ minWidth: "14px" }} className="inline-block align-text-bottom">
+                      {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                    </span>
+                    <span className="text-grayv2-500">
+                      {w.value} {w.unit}
+                    </span>{" "}
+                    - <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                  </div>
+                );
+              })}
+              {workoutWeights.map((w, i) => {
+                const isCurrent =
+                  nextSet != null &&
+                  Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
+                const className = isCurrent ? "font-bold" : "";
+                return (
+                  <div className={className}>
+                    <span style={{ minWidth: "14px" }} className="inline-block align-text-bottom">
+                      {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                    </span>
+                    <button
+                      data-help-id={
+                        props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined
                       }
-                    }}
-                  >
-                    {w.value} {w.unit}
-                  </button>
-                </div>
-              );
-            })}
+                      data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
+                      data-help-offset-x={-80}
+                      data-help-width={140}
+                      data-cy="change-weight"
+                      className="underline cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
+                      style={{ fontWeight: "inherit" }}
+                      onClick={() => {
+                        if (!friend) {
+                          props.dispatch({
+                            type: "ChangeWeightAction",
+                            weight: w,
+                            exercise: props.entry.exercise,
+                            programExercise: props.programExercise,
+                          });
+                        }
+                      }}
+                    >
+                      {w.value} {w.unit}
+                    </button>{" "}
+                    - <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </header>
         <section className="flex flex-wrap pt-2">
@@ -232,8 +206,8 @@ const ExerciseContentView = memo(
                   <div data-cy="warmup-set">
                     <div
                       data-cy="warmup-set-title"
-                      className="text-xs text-gray-400"
-                      style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}
+                      className="text-grayv2-main"
+                      style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
                     >
                       Warmup
                     </div>
@@ -277,7 +251,7 @@ const ExerciseContentView = memo(
                 <div>
                   <div
                     data-cy="warmup-set-title"
-                    className="text-xs text-gray-400"
+                    className="text-xs text-grayv2-main"
                     style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}
                   >
                     Warmup
@@ -285,13 +259,13 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="add-warmup-set"
                     onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
-                    className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg ls-edit-set-open-modal-add-warmup is-edit-mode"
+                    className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-200 ls-edit-set-open-modal-add-warmup is-edit-mode"
                   >
                     +
                   </button>
                 </div>
               )}
-              <div style={{ width: "1px" }} className="h-12 my-2 mr-3 bg-gray-400"></div>
+              <div style={{ width: "1px" }} className="h-12 my-2 mr-3 bg-grayv2-400"></div>
             </Fragment>
           )}
           {props.entry.sets.map((set, i) => {
@@ -335,7 +309,7 @@ const ExerciseContentView = memo(
             <button
               data-cy="add-set"
               onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-              className="w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-200 border border-gray-400 border-dashed rounded-lg ls-edit-set-open-modal-add is-edit-mode"
+              className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-200 border-grayv2-400 ls-edit-set-open-modal-add is-edit-mode"
             >
               +
             </button>
@@ -380,8 +354,8 @@ function HistoricalReps(props: { sets: ISet[] }): JSX.Element {
     <Fragment>
       {props.sets.map((set, i) => (
         <Fragment>
-          {i !== 0 && <span className="text-gray-600">/</span>}
-          <span className={(set.completedReps || 0) >= set.reps ? `text-green-600` : `text-red-600`}>
+          {i !== 0 && <span className="text-grayv2-600">/</span>}
+          <span className={(set.completedReps || 0) >= set.reps ? `text-greenv2-600` : `text-redv2-600`}>
             {set.completedReps || 0}
           </span>
         </Fragment>
@@ -431,9 +405,9 @@ const WeightView = memo(
       props.settings,
       props.exercise.equipment
     );
-    const className = Weight.eq(weight, props.weight) ? "text-gray-600" : "text-red-600";
+    const className = Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600";
     return (
-      <span className="mx-2 text-xs break-all">
+      <span className="break-all">
         <span className={className}>{Weight.formatOneSide(plates, props.exercise.equipment)}</span>
       </span>
     );

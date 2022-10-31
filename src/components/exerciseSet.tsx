@@ -116,11 +116,11 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy="set-nonstarted"
-      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      <div data-cy="reps-value" className="leading-none">
+      <div data-cy="reps-value" className="font-bold leading-none">
         {Reps.displayReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
@@ -138,11 +138,11 @@ function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-greenv2-300 border border-greenv2-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none" }}
     >
-      <div data-cy="reps-value" className="leading-none">
+      <div data-cy="reps-value" className="font-bold leading-none">
         {Reps.displayCompletedReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
@@ -160,11 +160,11 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg`}
+      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-redv2-300 border border-redv2-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      <div data-cy="reps-value" className="leading-none">
+      <div data-cy="reps-value" className="font-bold leading-none">
         {Reps.displayCompletedReps(set)}
       </div>
       <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
@@ -179,13 +179,14 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
   let cy: string;
   const set = props.set;
   if (set.completedReps == null) {
-    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center bg-gray-300 border border-gray-400 rounded-lg";
+    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-grayv2-300 border-grayv2-400";
     cy = "set-amrap-nonstarted";
   } else if (set.completedReps < set.reps) {
-    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center bg-red-300 border border-red-400 rounded-lg";
+    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-redv2-300 border-redv2-400";
     cy = "set-amrap-incompleted";
   } else {
-    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center bg-green-300 border border-green-400 rounded-lg";
+    className =
+      "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-greenv2-300 border-greenv2-400";
     cy = "set-amrap-completed";
   }
   return (
@@ -203,15 +204,15 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
         <div
           data-cy="reps-completed-amrap"
           style={{ top: "-0.5rem", right: "-0.5rem" }}
-          className="absolute p-1 text-xs leading-none text-right text-white bg-gray-600 border-gray-800 rounded-full"
+          className="absolute p-1 text-xs leading-none text-right text-white rounded-full bg-purplev2-600 border-purplev2-800"
         >
           {set.reps}+
         </div>
       )}
-      <div className="leading-none" data-cy="reps-value">
+      <div className="font-bold leading-none" data-cy="reps-value">
         {set.completedReps == null ? `${set.reps}+` : set.completedReps}
       </div>
-      <div style={{ paddingTop: "2px" }} data-cy="weight-value" className="text-xs leading-none text-gray-600">
+      <div style={{ paddingTop: "2px" }} data-cy="weight-value" className="text-xs leading-none text-grayv2-600">
         {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
       </div>
     </button>

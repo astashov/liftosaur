@@ -30,10 +30,12 @@ export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
     const { friend, userId } = props;
     return (
-      <section>
-        <div className="flex">
-          <div className="px-3 py-1 italic">{friend?.nickname}</div>
+      <section className="px-4">
+        <div className="pb-2">
+          <div className="text-lg font-semibold">{props.program?.name}</div>
+          <div className="text-sm text-grayv2-main">{props.progress?.dayName}</div>
         </div>
+        {friend?.nickname && <div className="px-3 py-1 italic">{friend?.nickname}</div>}
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;
           if (props.program) {

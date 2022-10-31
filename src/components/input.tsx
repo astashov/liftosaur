@@ -60,7 +60,7 @@ export const Input = forwardRef(
 
     let className = "relative block w-full text-left border rounded-lg appearance-none ";
     if (props.errorMessage || validationErrors.size > 0) {
-      className += " border-redv2";
+      className += " border-redv2-main";
     } else {
       className += " border-grayv2-200";
     }
@@ -101,7 +101,7 @@ export const Input = forwardRef(
           </div>
         </label>
         {errorMessages.map((message) => (
-          <div className="text-xs text-left text-redv2" key={message}>
+          <div className="text-xs text-left text-redv2-main" key={message}>
             {message}
           </div>
         ))}
