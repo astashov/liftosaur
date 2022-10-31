@@ -30,12 +30,9 @@ export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
     const { friend, userId } = props;
     return (
-      <section style={{ paddingTop: "3.5rem", paddingBottom: props.isTimerShown ? "7.5rem" : "4rem" }}>
+      <section>
         <div className="flex">
           <div className="px-3 py-1 italic">{friend?.nickname}</div>
-          <div className="flex-1">
-            {!friend && Progress.isCurrent(props.progress) && <Timer startTime={props.progress.startTime} />}
-          </div>
         </div>
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;

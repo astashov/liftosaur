@@ -160,6 +160,7 @@ export function AppView(props: IProps): JSX.Element | null {
           dispatch={dispatch}
           nickname={state.storage.settings.nickname}
           settings={friend.storage.settings}
+          screenStack={state.screenStack}
         />
       );
     } else {
@@ -185,6 +186,7 @@ export function AppView(props: IProps): JSX.Element | null {
           timerSince={progress.timerSince}
           timerMode={progress.timerMode}
           settings={state.storage.settings}
+          screenStack={state.screenStack}
         />
       );
     }

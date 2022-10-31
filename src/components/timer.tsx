@@ -25,9 +25,5 @@ export function Timer(props: IProps): JSX.Element {
   });
 
   const timeDifference = Date.now() - props.startTime;
-  return (
-    <div className="px-3 py-1 italic text-right">
-      <span>Time since start:</span> <strong>{TimeUtils.formatHHMM(timeDifference)}</strong>
-    </div>
-  );
+  return <div>{TimeUtils.formatHHMM(timeDifference)}</div>;
 }

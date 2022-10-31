@@ -15,32 +15,39 @@ export function Footer2View(props: IFooterProps): JSX.Element {
       className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
       style={{ marginBottom: "-2px" }}
     >
+      {props.onCtaClick != null ? (
+        <div
+          className="relative flex items-end"
+          style={{ width: "1200px", marginLeft: "-600px", left: "50%", height: "60px", marginBottom: "-10px" }}
+        >
+          <Shadow />
+        </div>
+      ) : null}
       <div
-        className="relative flex items-end"
-        style={{ width: "1200px", marginLeft: "-600px", left: "50%", height: "60px", marginBottom: "-10px" }}
+        className="relative z-10 flex px-2 pt-4 pb-2 bg-white pointer-events-auto"
+        style={{ minHeight: "70px", boxShadow: props.onCtaClick ? "" : "0px -10px 25px rgba(0, 0, 0, 0.05)" }}
       >
-        <Shadow />
-      </div>
-      <div className="relative z-10 flex px-2 pt-4 pb-2 bg-white pointer-events-auto" style={{ minHeight: "60px" }}>
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
           {props.leftButtons}
         </div>
-        {props.onCtaClick != null ? (
-          <div className="relative" style={{ width: "100px" }}>
-            <button
-              className="absolute"
-              style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
-              onClick={props.onCtaClick}
-            >
-              <CreateButton />
-            </button>
-            {props.ctaTitle ? (
-              <div className="text-grayv2-700" style={{ fontSize: "10px", paddingTop: "30px" }}>
-                {props.ctaTitle}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="relative" style={{ width: "100px" }}>
+          {props.onCtaClick != null ? (
+            <div>
+              <button
+                className="absolute"
+                style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
+                onClick={props.onCtaClick}
+              >
+                <CreateButton />
+              </button>
+              {props.ctaTitle ? (
+                <div className="text-grayv2-700" style={{ fontSize: "10px", paddingTop: "30px" }}>
+                  {props.ctaTitle}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
           {props.rightButtons}
         </div>

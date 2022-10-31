@@ -19,6 +19,17 @@ import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet } from "../types";
+import { Surface } from "./surface";
+import { NavbarView } from "./navbar";
+import { Footer2View } from "./footer2";
+import { IScreen } from "../models/screen";
+import { FooterButton } from "./footerButton";
+import { IconDoc } from "./icons/iconDoc";
+import { IconMuscles2 } from "./icons/iconMuscles2";
+import { IconGraphs2 } from "./icons/iconGraphs2";
+import { IconCog2 } from "./icons/iconCog2";
+import { IconTrash } from "./icons/iconTrash";
+import { Timer } from "./timer";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -37,57 +48,74 @@ interface IProps {
   timerSince?: number;
   timerMode?: IProgressMode;
   webpushr?: IWebpushr;
+  screenStack: IScreen[];
 }
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
   const friend = props.friend;
   const timers = props.settings.timers;
+  const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
 
   if (progress != null) {
     return (
-      <section className="relative h-full">
-        <HeaderView
-          title={
-            <button
-              onClick={() => {
-                if (!friend && !Progress.isCurrent(progress)) {
-                  props.dispatch({ type: "ChangeDate", date: progress.date });
-                }
-              }}
-            >
-              {DateUtils.format(progress.date)}
-            </button>
-          }
-          subtitle={progress.programName}
-          left={
-            <button
-              onClick={() => {
-                if (!props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure?")) {
-                  props.dispatch({ type: "CancelProgress" });
-                }
-              }}
-            >
-              {friend || Progress.isCurrent(progress) ? "Back" : "Cancel"}
-            </button>
-          }
-          right={
-            !friend ? (
-              <div className="px-3">
-                <button
-                  onClick={() => {
-                    if (confirm("Are you sure?")) {
-                      props.dispatch({ type: "DeleteProgress" });
-                    }
-                  }}
-                >
-                  {Progress.isCurrent(progress) ? "Cancel" : "Delete"}
-                </button>
-              </div>
-            ) : undefined
-          }
-        />
+      <Surface
+        navbar={
+          <NavbarView
+            loading={props.loading}
+            dispatch={dispatch}
+            screenStack={props.screenStack}
+            title="Ongoing workout"
+            subtitle={<Timer startTime={props.progress.startTime} />}
+            rightButtons={[
+              ...(friend
+                ? []
+                : [
+                    <button
+                      className="p-2"
+                      onClick={() => {
+                        if (!props.isChanged || confirm("Are you sure?")) {
+                          props.dispatch({ type: "DeleteProgress" });
+                        }
+                      }}
+                    >
+                      <IconTrash />
+                    </button>,
+                  ]),
+            ]}
+          />
+        }
+        footer={
+          <Footer2View
+            dispatch={props.dispatch}
+            leftButtons={
+              <>
+                <FooterButton icon={<IconDoc />} text="Edit Day" />
+                <FooterButton
+                  icon={<IconMuscles2 />}
+                  onClick={() => dispatch(Thunk.pushScreen("musclesDay"))}
+                  text="Muscles"
+                />
+              </>
+            }
+            rightButtons={
+              <>
+                <FooterButton
+                  icon={<IconGraphs2 />}
+                  text="Graphs"
+                  onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
+                />
+                <FooterButton
+                  icon={<IconCog2 />}
+                  text="Settings"
+                  onClick={() => dispatch(Thunk.pushScreen("settings"))}
+                />
+              </>
+            }
+          />
+        }
+      >
         <CardsView
           friends={props.friends}
           nickname={props.nickname}
@@ -117,46 +145,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           timers={timers}
           dispatch={props.dispatch}
         />
-        <FooterView
-          dispatch={props.dispatch}
-          loading={props.loading}
-          buttons={
-            !friend ? (
-              <Fragment>
-                <button
-                  className="ls-footer-muscles p-4"
-                  data-cy="footer-muscles"
-                  aria-label="Muscles"
-                  onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
-                >
-                  <IconMuscles />
-                </button>
-                {!Progress.isCurrent(props.progress) ? (
-                  <button
-                    className="ls-footer-share p-4"
-                    onClick={() => {
-                      if (props.userId == null) {
-                        alert("You should be logged in to share workouts.");
-                      } else {
-                        setIsShareShown(true);
-                      }
-                    }}
-                  >
-                    <IconShare />
-                  </button>
-                ) : undefined}
-                {Progress.isCurrent(props.progress) ? (
-                  <button
-                    className="ls-footer-edit-day p-4"
-                    onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
-                  >
-                    <IconEdit size={24} lineColor="#A5B3BB" penColor="white" />
-                  </button>
-                ) : undefined}
-              </Fragment>
-            ) : undefined
-          }
-        />
         <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
         <ModalWeight
           programExercise={progress.ui?.weightModal?.programExercise}
@@ -182,7 +170,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
           <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
         )}
-      </section>
+      </Surface>
     );
   } else {
     return null;

@@ -35,7 +35,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          numberOfButtons={0}
+          loading={props.loading}
           title="Choose a program"
           dispatch={props.dispatch}
           screenStack={props.screenStack}

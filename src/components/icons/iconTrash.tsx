@@ -1,8 +1,12 @@
 import { h, JSX } from "preact";
 
-export function IconTrash(): JSX.Element {
+interface IProps {
+  style?: { [key: string]: string | number };
+}
+
+export function IconTrash(props: IProps): JSX.Element {
   return (
-    <svg width="17" height="21" viewBox="0 0 17 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg style={props.style} width="17" height="21" viewBox="0 0 17 21" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"
