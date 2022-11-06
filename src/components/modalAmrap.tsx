@@ -20,7 +20,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           ref={textInput}
           data-cy="modal-amrap-input"
           data-name="modal-input-autofocus"
-          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="number"
           min="0"
           placeholder="Number of completed reps"
@@ -29,14 +29,14 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           <Button
             data-cy="modal-amrap-clear"
             type="button"
-            kind="gray"
+            kind="grayv2"
             className="mr-3"
             onClick={() => props.dispatch({ type: "ChangeAMRAPAction", value: undefined })}
           >
             Clear
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             type="submit"
             data-cy="modal-amrap-submit"
             className="ls-modal-set-amrap"

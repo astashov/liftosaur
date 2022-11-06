@@ -6,6 +6,7 @@ interface IFooterProps {
   onCtaClick?: () => void;
   leftButtons?: ComponentChildren;
   rightButtons?: ComponentChildren;
+  centerButtons?: ComponentChildren;
   ctaTitle?: string;
 }
 
@@ -47,6 +48,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               ) : null}
             </div>
           ) : null}
+          {props.centerButtons}
         </div>
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
           {props.rightButtons}

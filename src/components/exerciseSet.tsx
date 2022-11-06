@@ -179,7 +179,7 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
   let cy: string;
   const set = props.set;
   if (set.completedReps == null) {
-    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-grayv2-300 border-grayv2-400";
+    className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-grayv2-50 border-grayv2-200";
     cy = "set-amrap-nonstarted";
   } else if (set.completedReps < set.reps) {
     className = "relative w-12 h-12 my-2 mr-3 leading-7 text-center border rounded-lg bg-redv2-300 border-redv2-400";

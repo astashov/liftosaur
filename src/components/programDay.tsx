@@ -1,20 +1,23 @@
 import { h, JSX, Fragment } from "preact";
 import { CardsView } from "./cards";
-import { HeaderView } from "./header";
-import { FooterView } from "./footer";
 import { IDispatch } from "../ducks/types";
 import { ModalAmrap } from "./modalAmrap";
-import { DateUtils } from "../utils/date";
 import { ModalWeight } from "./modalWeight";
 import { RestTimer } from "./restTimer";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { IconEdit } from "./icons/iconEdit";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
+import {
+  IAllComments,
+  IState,
+  IAllFriends,
+  IAllLikes,
+  IFriendUser,
+  ILoading,
+  IWebpushr,
+  updateState,
+} from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
-import { IconShare } from "./icons/iconShare";
-import { IconMuscles } from "./icons/iconMuscles";
 import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -30,6 +33,9 @@ import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconCog2 } from "./icons/iconCog2";
 import { IconTrash } from "./icons/iconTrash";
 import { Timer } from "./timer";
+import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
+import { ModalHelpWorkout } from "./modalHelpWorkout";
+import { lb } from "lens-shmens";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -68,6 +74,12 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             screenStack={props.screenStack}
             title="Ongoing workout"
             subtitle={<Timer startTime={props.progress.startTime} />}
+            onBack={() => !props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure?")}
+            onHelpClick={() => {
+              updateState(props.dispatch, [
+                lb<IState>().p("progress").pi(progress.id).pi("ui").p("showHelpModal").record(true),
+              ]);
+            }}
             rightButtons={[
               ...(friend
                 ? []
@@ -75,7 +87,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                     <button
                       className="p-2"
                       onClick={() => {
-                        if (!props.isChanged || confirm("Are you sure?")) {
+                        if (confirm("Are you sure?")) {
                           props.dispatch({ type: "DeleteProgress" });
                         }
                       }}
@@ -91,7 +103,13 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             dispatch={props.dispatch}
             leftButtons={
               <>
-                <FooterButton icon={<IconDoc />} text="Edit Day" />
+                {Progress.isCurrent(props.progress) ? (
+                  <FooterButton
+                    icon={<IconDoc />}
+                    text="Edit Day"
+                    onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
+                  />
+                ) : null}
                 <FooterButton
                   icon={<IconMuscles2 />}
                   onClick={() => dispatch(Thunk.pushScreen("musclesDay"))}
@@ -104,7 +122,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 <FooterButton
                   icon={<IconGraphs2 />}
                   text="Graphs"
-                  onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
+                  onClick={() => dispatch(Thunk.pushScreen("graphs"))}
                 />
                 <FooterButton
                   icon={<IconCog2 />}
@@ -113,7 +131,58 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 />
               </>
             }
+            centerButtons={
+              <RestTimer
+                mode={props.timerMode ?? "workout"}
+                timerStart={props.timerSince}
+                webpushr={props.webpushr}
+                timers={timers}
+                dispatch={props.dispatch}
+              />
+            }
           />
+        }
+        addons={
+          <>
+            <BottomSheetEditExercise
+              progress={props.progress}
+              isHidden={progress.ui?.exerciseBottomSheet == null}
+              dispatch={props.dispatch}
+            />
+            <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
+            <ModalWeight
+              programExercise={progress.ui?.weightModal?.programExercise}
+              isHidden={progress.ui?.weightModal == null}
+              units={props.settings.units}
+              dispatch={props.dispatch}
+              weight={progress.ui?.weightModal?.weight ?? 0}
+            />
+            <ModalDate
+              isHidden={progress.ui?.dateModal == null}
+              dispatch={props.dispatch}
+              date={progress.ui?.dateModal?.date ?? ""}
+            />
+            <ModalEditSet
+              isHidden={progress.ui?.editSetModal == null}
+              dispatch={props.dispatch}
+              units={props.settings.units}
+              set={getEditSetData(props.progress)}
+              isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+              entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+              setIndex={progress.ui?.editSetModal?.setIndex}
+            />
+            <ModalHelpWorkout
+              isHidden={!progress.ui?.showHelpModal}
+              onClose={() => {
+                updateState(props.dispatch, [
+                  lb<IState>().p("progress").pi(progress.id).pi("ui").p("showHelpModal").record(undefined),
+                ]);
+              }}
+            />
+            {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
+              <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
+            )}
+          </>
         }
       >
         <CardsView
@@ -138,38 +207,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex);
           }}
         />
-        <RestTimer
-          mode={props.timerMode ?? "workout"}
-          timerStart={props.timerSince}
-          webpushr={props.webpushr}
-          timers={timers}
-          dispatch={props.dispatch}
-        />
-        <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
-        <ModalWeight
-          programExercise={progress.ui?.weightModal?.programExercise}
-          isHidden={progress.ui?.weightModal == null}
-          units={props.settings.units}
-          dispatch={props.dispatch}
-          weight={progress.ui?.weightModal?.weight ?? 0}
-        />
-        <ModalDate
-          isHidden={progress.ui?.dateModal == null}
-          dispatch={props.dispatch}
-          date={progress.ui?.dateModal?.date ?? ""}
-        />
-        <ModalEditSet
-          isHidden={progress.ui?.editSetModal == null}
-          dispatch={props.dispatch}
-          units={props.settings.units}
-          set={getEditSetData(props.progress)}
-          isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-          entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-          setIndex={progress.ui?.editSetModal?.setIndex}
-        />
-        {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
-          <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
-        )}
       </Surface>
     );
   } else {

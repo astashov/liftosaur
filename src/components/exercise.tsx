@@ -7,8 +7,6 @@ import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
 import { CollectionUtils } from "../utils/collection";
 import { ProgressStateChanges } from "./progressStateChanges";
-import { useState } from "preact/hooks";
-import { IconDelete } from "./icons/iconDelete";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
@@ -23,21 +21,27 @@ import {
   ISet,
 } from "../types";
 import { DateUtils } from "../utils/date";
-import { IFriendUser } from "../models/state";
+import { IFriendUser, IState, updateState } from "../models/state";
 import { StringUtils } from "../utils/string";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconKebab } from "./icons/iconKebab";
+import { lb } from "lens-shmens";
+import { Progress } from "../models/progress";
+import { Button } from "./button";
+import { IconCloseCircle } from "./icons/iconCloseCircle";
+import { ExerciseImage } from "./exerciseImage";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   showHelp: boolean;
   entry: IHistoryEntry;
   settings: ISettings;
   history: IHistoryRecord[];
+  progress: IHistoryRecord;
   day: number;
   programExercise?: IProgramExercise;
   index: number;
   friend?: IFriendUser;
-  isCurrent?: boolean;
   forceShowStateChanges?: boolean;
   dispatch: IDispatch;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
@@ -59,6 +63,7 @@ function getColor(entry: IHistoryEntry): string {
 export const ExerciseView = memo((props: IProps): JSX.Element => {
   const { entry } = props;
   const color = getColor(entry);
+  const isImageView = props.progress.ui?.entryIndexInfoMode === props.index;
   const className = `px-4 pt-4 pb-2 mb-2 rounded-lg bg-${color}v2-100`;
   let dataCy;
   if (color === "green") {
@@ -72,7 +77,17 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
   return (
     <Fragment>
       <section data-cy={dataCy} className={className}>
-        <ExerciseContentView {...props} />
+        <div className={!isImageView ? "h-0 overflow-hidden p-0 m-0" : ""}>
+          <ExerciseImageView
+            {...props}
+            onCloseClick={() => {
+              updateState(props.dispatch, [
+                lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexInfoMode").record(undefined),
+              ]);
+            }}
+          />
+        </div>
+        {!isImageView && <ExerciseContentView {...props} />}
         {props.programExercise && (
           <ProgressStateChanges
             entry={props.entry}
@@ -88,16 +103,31 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
   );
 }, ComparerUtils.noFns);
 
+function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
+  const e = props.entry.exercise;
+  const exercise = Exercise.get(e, props.settings.exercises);
+  return (
+    <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
+      <div className="text-lg font-bold text-left">{exercise.name}</div>
+      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} size="large" />
+      <LinkButton className="box-content absolute top-0 right-0 p-4" onClick={props.onCloseClick}>
+        Back to sets
+      </LinkButton>
+    </section>
+  );
+}
+
 const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {
+    const isCurrentProgress = Progress.isCurrent(props.progress);
     const friend = props.friend;
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
     const equipment = exercise.equipment;
-    const historicalAmrapSets = props.isCurrent
+    const historicalAmrapSets = isCurrentProgress
       ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
       : undefined;
-    const historicalSameEntry = props.isCurrent
+    const historicalSameEntry = isCurrentProgress
       ? History.getHistoricalSameEntry(props.history, props.entry)
       : undefined;
     const workoutWeights = CollectionUtils.compatBy(
@@ -111,7 +141,7 @@ const ExerciseContentView = memo(
       (w) => w.value.toString()
     ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, equipment).plates).length > 0);
     warmupWeights.sort(Weight.compare);
-    const [isEditMode, setIsEditMode] = useState<boolean>(false);
+    const isEditMode = props.progress.ui?.entryIndexEditMode === props.index;
     return (
       <Fragment>
         <header className="flex">
@@ -127,7 +157,19 @@ const ExerciseContentView = memo(
             <div className="flex">
               <div className="flex-1 text-lg font-bold">{exercise.name}</div>
               <div>
-                <button className="py-2 pl-2">
+                <button
+                  className="py-2 pl-2"
+                  onClick={() => {
+                    updateState(props.dispatch, [
+                      lb<IState>()
+                        .p("progress")
+                        .pi(props.progress.id)
+                        .pi("ui")
+                        .p("exerciseBottomSheet")
+                        .record({ entryIndex: props.index }),
+                    ]);
+                  }}
+                >
                   <IconKebab />
                 </button>
               </div>
@@ -137,24 +179,25 @@ const ExerciseContentView = memo(
               className={`p-2 pr-8 mt-2 bg-${getColor(props.entry)}v2-200 rounded-2xl`}
               style={{
                 backgroundImage: "url(/images/icon-barbell.svg)",
-                backgroundPosition: "94% 8%",
+                backgroundPosition: "15px 13px",
                 backgroundRepeat: "no-repeat",
               }}
             >
+              <div className="py-1 pl-8 text-xs text-grayv2-main">Plates for each bar side</div>
               {warmupWeights.map((w) => {
                 const isCurrent =
                   nextSet != null &&
                   Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
                 const className = isCurrent ? "font-bold" : "";
                 return (
-                  <div className={className}>
-                    <span style={{ minWidth: "14px" }} className="inline-block align-text-bottom">
+                  <div className={`${className} flex items-start`}>
+                    <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
                       {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
                     </span>
-                    <span className="text-grayv2-500">
+                    <span className="text-left whitespace-no-wrap text-grayv2-500">
                       {w.value} {w.unit}
-                    </span>{" "}
-                    - <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                    </span>
+                    <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                   </div>
                 );
               })}
@@ -164,8 +207,8 @@ const ExerciseContentView = memo(
                   Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
                 const className = isCurrent ? "font-bold" : "";
                 return (
-                  <div className={className}>
-                    <span style={{ minWidth: "14px" }} className="inline-block align-text-bottom">
+                  <div className={`${className} flex items-start`}>
+                    <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
                       {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
                     </span>
                     <button
@@ -176,7 +219,7 @@ const ExerciseContentView = memo(
                       data-help-offset-x={-80}
                       data-help-width={140}
                       data-cy="change-weight"
-                      className="underline cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
+                      className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
                       style={{ fontWeight: "inherit" }}
                       onClick={() => {
                         if (!friend) {
@@ -190,14 +233,15 @@ const ExerciseContentView = memo(
                       }}
                     >
                       {w.value} {w.unit}
-                    </button>{" "}
-                    - <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                    </button>
+                    <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                   </div>
                 );
               })}
             </div>
           </div>
         </header>
+        <div className="pt-4 text-sm font-bold leading-tight text-grayv2-main">Tap squares to complete sets.</div>
         <section className="flex flex-wrap pt-2">
           {(isEditMode || warmupSets?.length > 0) && (
             <Fragment>
@@ -205,7 +249,7 @@ const ExerciseContentView = memo(
                 return (
                   <div data-cy="warmup-set">
                     <div
-                      data-cy="warmup-set-title"
+                      data-cy="warmup-set-title text-xs"
                       className="text-grayv2-main"
                       style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
                     >
@@ -216,7 +260,7 @@ const ExerciseContentView = memo(
                         showHelp={props.showHelp && props.index === 0 && i === 0}
                         settings={props.settings}
                         exercise={props.entry.exercise}
-                        isCurrent={!!props.isCurrent}
+                        isCurrent={!!isCurrentProgress}
                         set={set}
                         isEditMode={false}
                         onClick={(event) => {
@@ -234,13 +278,13 @@ const ExerciseContentView = memo(
                       {isEditMode && (
                         <button
                           data-cy="set-edit-mode-remove"
-                          style={{ top: "-0.5rem", left: "-0.5rem" }}
+                          style={{ top: "-4px", left: "-13px" }}
                           className="absolute p-1 ls-edit-set-remove"
                           onClick={() => {
                             EditProgressEntry.removeSet(props.dispatch, true, props.index, i);
                           }}
                         >
-                          <IconDelete />
+                          <IconCloseCircle />
                         </button>
                       )}
                     </div>
@@ -252,14 +296,14 @@ const ExerciseContentView = memo(
                   <div
                     data-cy="warmup-set-title"
                     className="text-xs text-grayv2-main"
-                    style={{ marginTop: "-0.75em", marginBottom: "-0.75em" }}
+                    style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
                   >
                     Warmup
                   </div>
                   <button
                     data-cy="add-warmup-set"
                     onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
-                    className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-200 ls-edit-set-open-modal-add-warmup is-edit-mode"
+                    className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup is-edit-mode"
                   >
                     +
                   </button>
@@ -276,7 +320,7 @@ const ExerciseContentView = memo(
                   exercise={props.entry.exercise}
                   settings={props.settings}
                   set={set}
-                  isCurrent={!!props.isCurrent}
+                  isCurrent={!!isCurrentProgress}
                   isEditMode={isEditMode}
                   onClick={(event) => {
                     if (!friend) {
@@ -293,13 +337,13 @@ const ExerciseContentView = memo(
                 {isEditMode && (
                   <button
                     data-cy="set-edit-mode-remove"
-                    style={{ top: "-0.5rem", left: "-0.5rem" }}
+                    style={{ top: "-4px", left: "-13px" }}
                     className="absolute p-1 ls-edit-set-remove"
                     onClick={() => {
                       EditProgressEntry.removeSet(props.dispatch, false, props.index, i);
                     }}
                   >
-                    <IconDelete />
+                    <IconCloseCircle />
                   </button>
                 )}
               </div>
@@ -309,12 +353,26 @@ const ExerciseContentView = memo(
             <button
               data-cy="add-set"
               onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-              className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-200 border-grayv2-400 ls-edit-set-open-modal-add is-edit-mode"
+              className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add is-edit-mode"
             >
               +
             </button>
           )}
         </section>
+        {isEditMode && (
+          <div className="text-center">
+            <Button
+              kind="orange"
+              onClick={() =>
+                updateState(props.dispatch, [
+                  lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexEditMode").record(undefined),
+                ])
+              }
+            >
+              Save
+            </Button>
+          </div>
+        )}
         {historicalSameEntry && <HistoricalSameEntry historicalEntries={historicalSameEntry} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
       </Fragment>
@@ -399,7 +457,7 @@ function handleClick(
 }
 
 const WeightView = memo(
-  (props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element => {
+  (props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element | null => {
     const { plates, totalWeight: weight } = Weight.calculatePlates(
       props.weight,
       props.settings,
@@ -407,9 +465,14 @@ const WeightView = memo(
     );
     const className = Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600";
     return (
-      <span className="break-all">
-        <span className={className}>{Weight.formatOneSide(plates, props.exercise.equipment)}</span>
-      </span>
+      <>
+        <span className="px-1">-</span>
+        <span className="break-all">
+          <span className={className}>
+            {plates.length > 0 ? Weight.formatOneSide(plates, props.exercise.equipment) : "None"}
+          </span>
+        </span>
+      </>
     );
   }
 );

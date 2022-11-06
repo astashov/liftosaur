@@ -38,6 +38,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           loading={props.loading}
           title="Choose a program"
           dispatch={props.dispatch}
+          onHelpClick={() => {}}
           screenStack={props.screenStack}
         />
       }

@@ -70,6 +70,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={dispatch}
+          onHelpClick={() => {}}
           screenStack={props.screenStack}
           title="Workout History"
         />

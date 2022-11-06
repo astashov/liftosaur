@@ -73,7 +73,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
         <div className="mt-4 text-right">
           <Button
             type="button"
-            kind="gray"
+            kind="grayv2"
             data-cy="modal-edit-set-cancel"
             className="mr-3"
             onClick={() => {
@@ -83,7 +83,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             data-cy="modal-edit-set-submit"
             className="ls-modal-edit-set"
             type="submit"

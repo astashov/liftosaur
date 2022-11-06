@@ -37,7 +37,7 @@ export function Modal(props: IProps): JSX.Element {
 
   return (
     <section ref={modalRef} className={className} style={{ zIndex: 100 }}>
-      <div data-name="overlay" className="absolute inset-0 opacity-50 bg-grayv2-700 z-"></div>
+      <div data-name="overlay" className="absolute inset-0 opacity-50 bg-grayv2-700"></div>
       <div
         data-name="modal"
         className="relative flex flex-col px-6 py-6 bg-white rounded-lg shadow-lg"

@@ -18,6 +18,8 @@ interface INavbarCenterProps {
 interface INavbarProps extends INavbarCenterProps {
   dispatch: IDispatch;
   rightButtons?: JSX.Element[];
+  onBack?: () => boolean;
+  onHelpClick: () => void;
   loading: ILoading;
   screenStack: IScreen[];
 }
@@ -58,7 +60,14 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
     <div className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
       <div className="flex items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
         {showBackButton ? (
-          <button className="p-2" onClick={() => props.dispatch(Thunk.pullScreen())}>
+          <button
+            className="p-2"
+            onClick={() => {
+              if (!props.onBack || props.onBack()) {
+                props.dispatch(Thunk.pullScreen());
+              }
+            }}
+          >
             <IconBack />
           </button>
         ) : undefined}
@@ -71,7 +80,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
       <NavbarCenterView {...props} />
       <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
         {props.rightButtons}
-        <button className="p-2">
+        <button className="p-2" onClick={props.onHelpClick}>
           <IconHelp />
         </button>
       </div>

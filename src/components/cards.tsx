@@ -47,7 +47,7 @@ export const CardsView = memo(
             <ExerciseView
               history={props.history}
               showHelp={true}
-              isCurrent={Progress.isCurrent(props.progress)}
+              progress={props.progress}
               friend={friend}
               settings={props.settings}
               index={index}
@@ -75,7 +75,7 @@ export const CardsView = memo(
         {!friend && (
           <div className="pt-1 pb-3 text-center">
             <Button
-              kind="green"
+              kind="orange"
               className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
               onClick={() => {
                 if (

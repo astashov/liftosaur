@@ -460,6 +460,12 @@ export const TProgressUi = t.partial(
       entryIndex: t.number,
       setIndex: t.union([t.number, t.undefined]),
     }),
+    exerciseBottomSheet: t.type({
+      entryIndex: t.number,
+    }),
+    entryIndexEditMode: t.number,
+    entryIndexInfoMode: t.number,
+    showHelpModal: t.boolean,
   },
   "TProgressUi"
 );
