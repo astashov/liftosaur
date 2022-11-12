@@ -16,6 +16,7 @@ import { FooterButton } from "./footerButton";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconCog2 } from "./icons/iconCog2";
 import { Progress } from "../models/progress";
+import { ScrollBarrell } from "./scrollBarrell";
 
 interface IProps {
   program: IProgram;

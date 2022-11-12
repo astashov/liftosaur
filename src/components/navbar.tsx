@@ -13,6 +13,7 @@ import { lb } from "lens-shmens";
 interface INavbarCenterProps {
   title: ComponentChildren;
   subtitle?: ComponentChildren;
+  onTitleClick?: () => void;
 }
 
 interface INavbarProps extends INavbarCenterProps {
@@ -112,14 +113,14 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
   if (props.subtitle != null) {
     return (
-      <div className="flex-1">
+      <div className="flex-1" onClick={props.onTitleClick}>
         <div className="pt-2 text-sm font-semibold">{props.title}</div>
         <div className="pb-2 text-sm font-semibold text-orangev2">{props.subtitle}</div>
       </div>
     );
   } else {
     return (
-      <div className="flex-1 py-2">
+      <div className="flex-1 py-2" onClick={props.onTitleClick}>
         <div className="py-2 text-lg font-semibold whitespace-no-wrap">{props.title}</div>
       </div>
     );

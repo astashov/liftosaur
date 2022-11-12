@@ -65,6 +65,64 @@ body {
   animation: wiggle 0.25s infinite;
 }
 
+input[type="checkbox"].checkbox {
+  /* Add if not using autoprefixer */
+  -webkit-appearance: none;
+  /* Remove most all native input styles */
+  appearance: none;
+  /* For iOS < 15 */
+  /* Not removed via appearance */
+  margin: 0;
+
+  width: 1.25em;
+  height: 1.25em;
+  border: 2px solid;
+  border-radius: 100px;
+  transition: 120ms background-color linear;
+  background-color: white;
+  display: inline-block;
+  place-content: center;
+  position: relative;
+  font: inherit;
+}
+
+input[type="checkbox"].checkbox:checked {
+  background-color: #28839f;
+}
+
+input[type="checkbox"].checkbox::before {
+  content: " ";
+  width: 0.65em;
+  height: 0.65em;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transform-origin: center center;
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em white;
+  /* Windows High Contrast Mode */
+  background-color: CanvasText;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.32em;
+  margin-top: -0.32em;
+}
+
+input[type="checkbox"].checkbox:checked::before {
+  transform: scale(1);
+  background-color: white;
+}
+
+input[type="checkbox"].checkbox:focus {
+  outline: max(2px, 0.15em) solid currentColor;
+  outline-offset: max(2px, 0.15em);
+}
+
+input[type="checkbox"].checkbox:disabled {
+  color: #8b9bab;
+  cursor: not-allowed;
+}
+
 @keyframes wiggle {
   0% {
     transform: rotate(0deg);

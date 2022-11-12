@@ -369,7 +369,7 @@ const ExerciseContentView = memo(
                 ])
               }
             >
-              Save
+              Finish Editing
             </Button>
           </div>
         )}

@@ -36,6 +36,8 @@ import { Timer } from "./timer";
 import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
 import { ModalHelpWorkout } from "./modalHelpWorkout";
 import { lb } from "lens-shmens";
+import { DateUtils } from "../utils/date";
+import { TimeUtils } from "../utils/time";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -72,9 +74,22 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             loading={props.loading}
             dispatch={dispatch}
             screenStack={props.screenStack}
-            title="Ongoing workout"
-            subtitle={<Timer startTime={props.progress.startTime} />}
-            onBack={() => !props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure?")}
+            onTitleClick={() => {
+              if (!friend && !Progress.isCurrent(progress)) {
+                props.dispatch({ type: "ChangeDate", date: progress.date });
+              }
+            }}
+            title={Progress.isCurrent(progress) ? "Ongoing workout" : DateUtils.format(progress.date)}
+            subtitle={
+              !Progress.isCurrent(progress) && progress.endTime ? (
+                TimeUtils.formatHHMM(progress.endTime - props.progress.startTime)
+              ) : (
+                <Timer startTime={props.progress.startTime} />
+              )
+            }
+            onBack={() =>
+              !props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure? Changes won't be saved.")
+            }
             onHelpClick={() => {
               updateState(props.dispatch, [
                 lb<IState>().p("progress").pi(progress.id).pi("ui").p("showHelpModal").record(true),

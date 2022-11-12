@@ -3,6 +3,7 @@ import { IconDelete } from "./icons/iconDelete";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";
+import { ScrollBarrell } from "./scrollBarrell";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean";
 
@@ -27,13 +28,26 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   const [patternError, setPatternError] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  let numberOfVisibleItems = Math.min(props.values?.length || 0, 4);
+  if (numberOfVisibleItems % 2 === 0) {
+    numberOfVisibleItems += 1;
+  }
   return (
     <MenuItemWrapper name={props.name}>
-      <label className="flex flex-col flex-1">
+      <label
+        className="flex flex-col flex-1 py-3 text-base"
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (props.type === "select" && !target.classList.contains("scroll-barrel-item")) {
+            setIsExpanded(!isExpanded);
+          }
+        }}
+      >
         <div className="flex flex-1">
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className="flex items-center flex-1 py-2"
+            className="flex items-center flex-1"
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
             {props.isNameHtml ? "" : props.name}
@@ -49,7 +63,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               setPatternError={setPatternError}
               onChange={props.onChange}
             />
-            {props.value != null && <span className="flex items-center text-gray-700">{props.valueUnits}</span>}
+            {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
           </Fragment>
           {props.value != null && props.hasClear && (
             <button
@@ -69,6 +83,18 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
         )}
         {props.nextLine}
       </label>
+      {props.type === "select" && (
+        <div className="text-base">
+          <ScrollBarrell
+            itemHeight={28}
+            numberOfVisibleItems={numberOfVisibleItems}
+            isExpanded={isExpanded}
+            values={props.values || []}
+            defaultSelectedValue={props.value}
+            onSelect={(v) => props.onChange && props.onChange(v)}
+          />
+        </div>
+      )}
     </MenuItemWrapper>
   );
 }
@@ -77,28 +103,14 @@ function MenuItemValue(
   props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "select") {
-    return (
-      <select
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-        className="flex-1 pr-2 text-gray-700"
-        style={{ textAlignLast: "right" }}
-        value={props.value || undefined}
-        onChange={handleChange(props.onChange, props.setPatternError)}
-      >
-        {(props.values || []).map(([key, value]) => (
-          <option value={key} selected={key === props.value} style={{ direction: "rtl" }}>
-            {value}
-          </option>
-        ))}
-      </select>
-    );
+    return <div className="flex-1 pr-2 text-right text-bluev2">{props.value}</div>;
   } else if (props.type === "text") {
     return (
       <input
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 text-right text-gray-700"
+        className="flex-1 text-right text-bluev2"
         value={props.value || undefined}
         title={props.patternMessage}
         onBlur={handleChange(props.onChange, props.setPatternError)}
@@ -108,12 +120,12 @@ function MenuItemValue(
   } else if (props.type === "boolean") {
     return (
       <div className="flex items-center flex-1 text-right">
-        <label className="flex-1 text-right">
+        <label className="flex items-center justify-end flex-1 ">
           <input
             data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
             key={props.value}
             type="checkbox"
-            className="text-right text-gray-700"
+            className="text-right text-bluev2 checkbox"
             checked={props.value === "true"}
             onChange={(e: Event): void => {
               if (props.onChange != null) {
@@ -135,7 +147,7 @@ function MenuItemValue(
           type="number"
           step="0.01"
           title={props.patternMessage}
-          className="items-center flex-1 w-0 min-w-0 p-2 text-right text-gray-700 outline-none"
+          className="items-center flex-1 w-0 min-w-0 p-2 text-right outline-none text-grayv2-700"
           value={props.value || undefined}
           pattern={props.pattern}
         />

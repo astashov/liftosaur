@@ -1,6 +1,4 @@
-import { h, JSX } from "preact";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { MenuItem, MenuItemWrapper } from "./menuItem";
 import { Thunk } from "../ducks/thunks";
@@ -16,9 +14,18 @@ import { ILoading } from "../models/state";
 import { WhatsNew } from "../models/whatsnew";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
+import { NavbarView } from "./navbar";
+import { Surface } from "./surface";
+import { Footer2View } from "./footer2";
+import { IScreen } from "../models/screen";
+import { FooterButton } from "./footerButton";
+import { IconGraphs2 } from "./icons/iconGraphs2";
+import { IconCog2 } from "./icons/iconCog2";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   dispatch: IDispatch;
+  screenStack: IScreen[];
   user?: IUser;
   currentProgramName?: string;
   settings: ISettings;
@@ -29,110 +36,74 @@ export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   return (
-    <section className="h-full">
-      <HeaderView
-        title="Settings"
-        left={
-          <button data-cy="back" onClick={() => props.dispatch(Thunk.pullScreen())}>
-            Back
-          </button>
-        }
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          screenStack={props.screenStack}
+          title="Settings"
+          onHelpClick={() => {}}
+        />
+      }
+      footer={
+        <Footer2View
+          dispatch={props.dispatch}
+          rightButtons={
+            <>
+              <FooterButton
+                icon={<IconGraphs2 />}
+                text="Graphs"
+                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
+              />
+              <FooterButton
+                isActive={true}
+                icon={<IconCog2 color="#ff8066" />}
+                text="Settings"
+                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+              />
+            </>
+          }
+        />
+      }
+    >
+      <GroupHeader name="Program" />
+      <MenuItem
+        shouldShowRightArrow={true}
+        name="Choose Program"
+        value={props.currentProgramName}
+        onClick={() => {
+          props.dispatch({ type: "PushScreen", screen: "programs" });
+        }}
       />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        <MenuItem
-          name="Account"
-          value={props.user?.email}
-          shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk.pushScreen("account"))}
-        />
-        {props.user && (
-          <MenuItem
-            shouldShowRightArrow={true}
-            name="Friends"
-            onClick={() => {
-              props.dispatch({ type: "PushScreen", screen: "friends" });
-            }}
-          />
-        )}
-        {props.user && (
-          <MenuItemEditable
-            type="select"
-            name="Show friends history?"
-            value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
-            values={[
-              ["true", "Yes"],
-              ["false", "No"],
-            ]}
-            onChange={(newValue) => {
-              props.dispatch({
-                type: "UpdateSettings",
-                lensRecording: lb<ISettings>()
-                  .p("shouldShowFriendsHistory")
-                  .record(newValue === "true"),
-              });
-            }}
-          />
-        )}
-        <MenuItem
-          shouldShowRightArrow={true}
-          name="Choose Program"
-          value={props.currentProgramName}
-          onClick={() => {
-            props.dispatch({ type: "PushScreen", screen: "programs" });
-          }}
-        />
-        <MenuItem
-          name="Timers"
-          onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
-          shouldShowRightArrow={true}
-        />
-        <MenuItem
-          shouldShowRightArrow={true}
-          name="Available Plates"
-          onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
-        />
+      <GroupHeader name="Account" topPadding={true} />
+      <MenuItem
+        name="Account"
+        value={props.user?.email}
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk.pushScreen("account"))}
+      />
+      {props.user && (
         <MenuItemEditable
-          type="select"
-          name="Weight Units"
-          value={props.settings.units}
-          values={[
-            ["kg", "kg"],
-            ["lb", "lb"],
-          ]}
+          type="text"
+          name="Nickname"
+          value={props.settings.nickname || ""}
+          nextLine={<div className="text-xs text-grayv2-main">Used for profile page</div>}
           onChange={(newValue) => {
             props.dispatch({
               type: "UpdateSettings",
               lensRecording: lb<ISettings>()
-                .p("units")
-                .record(newValue as IUnit),
+                .p("nickname")
+                .record(newValue ? newValue : undefined),
             });
           }}
         />
+      )}
+      {props.user && (
         <MenuItemEditable
-          type="select"
-          name="Length Units"
-          value={props.settings.lengthUnits}
-          values={[
-            ["cm", "cm"],
-            ["in", "in"],
-          ]}
-          onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("lengthUnits")
-                .record(newValue as ILengthUnit),
-            });
-          }}
-        />
-        <MenuItemEditable
-          type="select"
+          type="boolean"
           name="Is Profile Page Public?"
           value={props.settings.isPublicProfile ? "true" : "false"}
-          values={[
-            ["true", "Yes"],
-            ["false", "No"],
-          ]}
           nextLine={
             props.user?.id && props.settings.isPublicProfile ? (
               <div>
@@ -173,59 +144,127 @@ export function ScreenSettings(props: IProps): JSX.Element {
             }
           }}
         />
-        <MenuItemEditable
-          type="text"
-          name="Nickname"
-          value={props.settings.nickname || ""}
-          nextLine={<div className="text-xs italic text-right">Used for profile page</div>}
-          onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("nickname")
-                .record(newValue ? newValue : undefined),
-            });
-          }}
-        />
-        <div className="ls-changelog">
-          <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
-        </div>
-        <div className="ls-export-data">
-          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
-            <button className="py-2">Export data to JSON file</button>
-          </MenuItemWrapper>
-        </div>
-        <div className="ls-export-history">
-          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
-            <button className="py-2">Export history to CSV file</button>
-          </MenuItemWrapper>
-        </div>
-        <div className="ls-import-data">
-          <ImporterStorage dispatch={props.dispatch} />
-        </div>
-        <div className="ls-import-program">
-          <ImporterProgram dispatch={props.dispatch} />
-        </div>
-        <a href="mailto:info@liftosaur.com" className="block w-full px-6 py-3 text-left border-b border-gray-200">
-          Contact Us
-        </a>
-        <InternalLink href="/privacy.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
-          Privacy Policy
-        </InternalLink>
-        <InternalLink href="/terms.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
-          Terms &amp; Conditions
-        </InternalLink>
-        <InternalLink href="/docs/docs.html" className="block w-full px-6 py-3 text-left border-b border-gray-200">
-          Documentation
-        </InternalLink>
-        <a
-          href="https://github.com/astashov/liftosaur"
-          className="block w-full px-6 py-3 text-left border-b border-gray-200"
-        >
-          Source Code on Github
-        </a>
-      </section>
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
-    </section>
+      )}
+
+      <GroupHeader name="Workout" topPadding={true} />
+      <MenuItem name="Timers" onClick={() => props.dispatch(Thunk.pushScreen("timers"))} shouldShowRightArrow={true} />
+      <MenuItem
+        shouldShowRightArrow={true}
+        name="Available Plates"
+        onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
+      />
+      <MenuItemEditable
+        type="select"
+        name="Weight Units"
+        value={props.settings.units}
+        values={[
+          ["kg", "kg"],
+          ["lb", "lb"],
+        ]}
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("units")
+              .record(newValue as IUnit),
+          });
+        }}
+      />
+      <MenuItemEditable
+        type="select"
+        name="Length Units"
+        value={props.settings.lengthUnits}
+        values={[
+          ["cm", "cm"],
+          ["in", "in"],
+        ]}
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("lengthUnits")
+              .record(newValue as ILengthUnit),
+          });
+        }}
+      />
+      {props.user && (
+        <>
+          <GroupHeader name="Friends" />
+          <MenuItem
+            shouldShowRightArrow={true}
+            name="Friends"
+            onClick={() => {
+              props.dispatch({ type: "PushScreen", screen: "friends" });
+            }}
+          />
+          <MenuItemEditable
+            type="select"
+            name="Show friends history?"
+            value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
+            values={[
+              ["true", "Yes"],
+              ["false", "No"],
+            ]}
+            onChange={(newValue) => {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>()
+                  .p("shouldShowFriendsHistory")
+                  .record(newValue === "true"),
+              });
+            }}
+          />
+        </>
+      )}
+      <GroupHeader name="Import / Export" topPadding={true} />
+      <div className="ls-export-data">
+        <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
+          <button className="py-3">Export data to JSON file</button>
+        </MenuItemWrapper>
+      </div>
+      <div className="ls-export-history">
+        <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
+          <button className="py-3">Export history to CSV file</button>
+        </MenuItemWrapper>
+      </div>
+      <div className="ls-import-data">
+        <ImporterStorage dispatch={props.dispatch} />
+      </div>
+      <div className="ls-import-program">
+        <ImporterProgram dispatch={props.dispatch} />
+      </div>
+
+      <GroupHeader name="Miscellaneous" topPadding={true} />
+      <div className="ls-changelog">
+        <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
+      </div>
+      <a
+        href="mailto:info@liftosaur.com"
+        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
+      >
+        Contact Us
+      </a>
+      <InternalLink
+        href="/privacy.html"
+        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
+      >
+        Privacy Policy
+      </InternalLink>
+      <InternalLink href="/terms.html" className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200">
+        Terms &amp; Conditions
+      </InternalLink>
+      <InternalLink
+        href="/docs/docs.html"
+        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
+      >
+        Documentation
+      </InternalLink>
+      <a
+        href="https://github.com/astashov/liftosaur"
+        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
+      >
+        Source Code on Github
+      </a>
+    </Surface>
   );
 }

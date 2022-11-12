@@ -81,7 +81,6 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
   const legendRef = useRef<HTMLDivElement>(null);
   const units = props.settings.units;
   useEffect(() => {
-    console.log("RERENDER");
     const rect = graphRef.current.getBoundingClientRect();
     const exercise = Exercise.get(props.exercise, props.settings.exercises);
     const data = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);

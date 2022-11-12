@@ -21,7 +21,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="date"
           placeholder="Date"
           value={formattedDate}
@@ -29,7 +29,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
         <div className="mt-4 text-right">
           <Button
             type="button"
-            kind="gray"
+            kind="grayv2"
             className="mr-3"
             onClick={() => {
               props.dispatch({ type: "ConfirmDate", date: undefined });
@@ -38,7 +38,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             type="submit"
             className="ls-modal-set-date"
             onClick={() => {
