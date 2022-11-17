@@ -17,7 +17,7 @@ export function GroupHeader(props: IProps): JSX.Element {
     <Fragment>
       <div
         onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
-        className={`flex px-4 pt-4 pb-1 text-sm text-grayv2-700 ${props.topPadding ? "pt-8" : ""}`}
+        className={`flex px-4 pt-4 pb-1 text-sm text-grayv2-700 ${props.topPadding ? "mt-6" : ""}`}
       >
         <div className="flex-1">
           <span className="text-xs align-middle text-grayv2-700">{name}</span>

@@ -4,11 +4,13 @@ import { Muscle } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { ILoading } from "../../models/state";
+import { IScreen } from "../../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   program: IProgram;
+  screenStack: IScreen[];
   loading: ILoading;
 }
 
@@ -19,9 +21,9 @@ export function ScreenMusclesProgram(props: IProps): JSX.Element {
       dispatch={props.dispatch}
       loading={props.loading}
       settings={props.settings}
+      screenStack={props.screenStack}
       points={points}
       title={props.program.name}
-      headerTitle="Muscles used in the program"
       headerHelp={
         <span>
           Shows how much specific muscles used in the current program. You may use it to find inbalances in your

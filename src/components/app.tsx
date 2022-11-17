@@ -264,6 +264,7 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenMusclesProgram
         loading={state.loading}
         dispatch={dispatch}
+        screenStack={state.screenStack}
         program={currentProgram!}
         settings={state.storage.settings}
       />
@@ -272,6 +273,7 @@ export function AppView(props: IProps): JSX.Element | null {
     const day = currentProgram!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
     return (
       <ScreenMusclesDay
+        screenStack={state.screenStack}
         loading={state.loading}
         dispatch={dispatch}
         program={currentProgram!}

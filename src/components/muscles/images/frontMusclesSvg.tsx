@@ -17,7 +17,7 @@ export function FrontMusclesSvg(props: IProps): JSX.Element {
   }
 
   function getFill(muscle: IScreenMuscle): string {
-    return props.muscles?.[muscle]?.fill ?? "#e2e8f0";
+    return props.muscles?.[muscle]?.fill ?? "#28839F";
   }
 
   return (
@@ -85,7 +85,7 @@ export function FrontMusclesSvg(props: IProps): JSX.Element {
         <g
           data-id="contour"
           opacity={props.contour?.opacity ?? 1}
-          fill={props.contour?.fill ?? "#e2e8f0"}
+          fill={props.contour?.fill ?? "#28839F"}
           transform="translate(0.000000, 0.243264)"
         >
           <use href="/images/front-muscles.svg#contour" />

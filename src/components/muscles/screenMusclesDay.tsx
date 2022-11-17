@@ -4,12 +4,14 @@ import { Muscle } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram, IProgramDay } from "../../types";
 import { ILoading } from "../../models/state";
+import { IScreen } from "../../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   program: IProgram;
   programDay: IProgramDay;
+  screenStack: IScreen[];
   loading: ILoading;
 }
 
@@ -17,12 +19,12 @@ export function ScreenMusclesDay(props: IProps): JSX.Element {
   const points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, props.programDay, props.settings));
   return (
     <ScreenMuscles
+      screenStack={props.screenStack}
       loading={props.loading}
       dispatch={props.dispatch}
       settings={props.settings}
       points={points}
       title={props.programDay.name}
-      headerTitle="Muscles used in the day"
       headerHelp={
         <span>
           Shows how much specific muscles used in the current day. You may use it to find inbalances in your program. We

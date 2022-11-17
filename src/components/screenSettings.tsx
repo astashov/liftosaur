@@ -238,30 +238,21 @@ export function ScreenSettings(props: IProps): JSX.Element {
       <div className="ls-changelog">
         <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
       </div>
-      <a
-        href="mailto:info@liftosaur.com"
-        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
-      >
+      <a href="mailto:info@liftosaur.com" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
         Contact Us
       </a>
-      <InternalLink
-        href="/privacy.html"
-        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
-      >
+      <InternalLink href="/privacy.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
         Privacy Policy
       </InternalLink>
-      <InternalLink href="/terms.html" className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200">
+      <InternalLink href="/terms.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
         Terms &amp; Conditions
       </InternalLink>
-      <InternalLink
-        href="/docs/docs.html"
-        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
-      >
+      <InternalLink href="/docs/docs.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
         Documentation
       </InternalLink>
       <a
         href="https://github.com/astashov/liftosaur"
-        className="block w-full py-3 mx-4 text-base text-left border-b border-gray-200"
+        className="block py-3 mx-4 text-base text-left border-b border-gray-200"
       >
         Source Code on Github
       </a>

@@ -21,7 +21,7 @@ export function BackMusclesSvg(props: IProps): JSX.Element {
   }
 
   function getFill(muscle: IScreenMuscle): string {
-    return props.muscles?.[muscle]?.fill ?? "#e2e8f0";
+    return props.muscles?.[muscle]?.fill ?? "#28839F";
   }
 
   return (
@@ -78,7 +78,7 @@ export function BackMusclesSvg(props: IProps): JSX.Element {
         >
           <use href="/images/back-muscles.svg#hamstrings" />
         </g>
-        <g data-id="contour" opacity={props.contour?.opacity ?? 1} fill={props.contour?.fill ?? "#e2e8f0"}>
+        <g data-id="contour" opacity={props.contour?.opacity ?? 1} fill={props.contour?.fill ?? "#28839F"}>
           <use href="/images/back-muscles.svg#contour" />
         </g>
       </g>
