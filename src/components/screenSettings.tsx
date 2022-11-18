@@ -67,195 +67,201 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
       }
     >
-      <GroupHeader name="Program" />
-      <MenuItem
-        shouldShowRightArrow={true}
-        name="Choose Program"
-        value={props.currentProgramName}
-        onClick={() => {
-          props.dispatch({ type: "PushScreen", screen: "programs" });
-        }}
-      />
-      <GroupHeader name="Account" topPadding={true} />
-      <MenuItem
-        name="Account"
-        value={props.user?.email}
-        shouldShowRightArrow={true}
-        onClick={() => props.dispatch(Thunk.pushScreen("account"))}
-      />
-      {props.user && (
-        <MenuItemEditable
-          type="text"
-          name="Nickname"
-          value={props.settings.nickname || ""}
-          nextLine={<div className="text-xs text-grayv2-main">Used for profile page</div>}
-          onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("nickname")
-                .record(newValue ? newValue : undefined),
-            });
+      <section className="px-4">
+        <GroupHeader name="Program" />
+        <MenuItem
+          shouldShowRightArrow={true}
+          name="Choose Program"
+          value={props.currentProgramName}
+          onClick={() => {
+            props.dispatch({ type: "PushScreen", screen: "programs" });
           }}
         />
-      )}
-      {props.user && (
-        <MenuItemEditable
-          type="boolean"
-          name="Is Profile Page Public?"
-          value={props.settings.isPublicProfile ? "true" : "false"}
-          nextLine={
-            props.user?.id && props.settings.isPublicProfile ? (
-              <div>
-                <div className="flex">
-                  <button
-                    className="mr-auto text-xs text-left text-blue-700 underline"
-                    onClick={() => {
-                      const text = Share.generateProfileLink(props.user!.id);
-                      if (text != null) {
-                        ClipboardUtils.copy(text);
-                        setIsCopied(true);
-                      }
-                    }}
-                  >
-                    Copy Link To Clipboard
-                  </button>
-                  <InternalLink
-                    href={`/profile/${props.user.id}`}
-                    className="ml-4 text-xs text-right text-blue-700 underline"
-                  >
-                    Open Public Profile Page
-                  </InternalLink>
-                </div>
-                {isCopied && <div className="text-xs italic text-green-600">Copied!</div>}
-              </div>
-            ) : undefined
-          }
-          onChange={(newValue) => {
-            if (props.user != null) {
-              props.dispatch({
-                type: "UpdateSettings",
-                lensRecording: lb<ISettings>()
-                  .p("isPublicProfile")
-                  .record(newValue === "true"),
-              });
-            } else {
-              alert("You should be logged in to enable public profile");
-            }
-          }}
+        <GroupHeader name="Account" topPadding={true} />
+        <MenuItem
+          name="Account"
+          value={props.user?.email}
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
-      )}
-
-      <GroupHeader name="Workout" topPadding={true} />
-      <MenuItem name="Timers" onClick={() => props.dispatch(Thunk.pushScreen("timers"))} shouldShowRightArrow={true} />
-      <MenuItem
-        shouldShowRightArrow={true}
-        name="Available Plates"
-        onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
-      />
-      <MenuItemEditable
-        type="select"
-        name="Weight Units"
-        value={props.settings.units}
-        values={[
-          ["kg", "kg"],
-          ["lb", "lb"],
-        ]}
-        onChange={(newValue) => {
-          props.dispatch({
-            type: "UpdateSettings",
-            lensRecording: lb<ISettings>()
-              .p("units")
-              .record(newValue as IUnit),
-          });
-        }}
-      />
-      <MenuItemEditable
-        type="select"
-        name="Length Units"
-        value={props.settings.lengthUnits}
-        values={[
-          ["cm", "cm"],
-          ["in", "in"],
-        ]}
-        onChange={(newValue) => {
-          props.dispatch({
-            type: "UpdateSettings",
-            lensRecording: lb<ISettings>()
-              .p("lengthUnits")
-              .record(newValue as ILengthUnit),
-          });
-        }}
-      />
-      {props.user && (
-        <>
-          <GroupHeader name="Friends" />
-          <MenuItem
-            shouldShowRightArrow={true}
-            name="Friends"
-            onClick={() => {
-              props.dispatch({ type: "PushScreen", screen: "friends" });
-            }}
-          />
+        {props.user && (
           <MenuItemEditable
-            type="select"
-            name="Show friends history?"
-            value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
-            values={[
-              ["true", "Yes"],
-              ["false", "No"],
-            ]}
+            type="text"
+            name="Nickname"
+            value={props.settings.nickname || ""}
+            nextLine={<div className="text-xs text-grayv2-main">Used for profile page</div>}
             onChange={(newValue) => {
               props.dispatch({
                 type: "UpdateSettings",
                 lensRecording: lb<ISettings>()
-                  .p("shouldShowFriendsHistory")
-                  .record(newValue === "true"),
+                  .p("nickname")
+                  .record(newValue ? newValue : undefined),
               });
             }}
           />
-        </>
-      )}
-      <GroupHeader name="Import / Export" topPadding={true} />
-      <div className="ls-export-data">
-        <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
-          <button className="py-3">Export data to JSON file</button>
-        </MenuItemWrapper>
-      </div>
-      <div className="ls-export-history">
-        <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
-          <button className="py-3">Export history to CSV file</button>
-        </MenuItemWrapper>
-      </div>
-      <div className="ls-import-data">
-        <ImporterStorage dispatch={props.dispatch} />
-      </div>
-      <div className="ls-import-program">
-        <ImporterProgram dispatch={props.dispatch} />
-      </div>
+        )}
+        {props.user && (
+          <MenuItemEditable
+            type="boolean"
+            name="Is Profile Page Public?"
+            value={props.settings.isPublicProfile ? "true" : "false"}
+            nextLine={
+              props.user?.id && props.settings.isPublicProfile ? (
+                <div>
+                  <div className="flex">
+                    <button
+                      className="mr-auto text-xs text-left text-blue-700 underline"
+                      onClick={() => {
+                        const text = Share.generateProfileLink(props.user!.id);
+                        if (text != null) {
+                          ClipboardUtils.copy(text);
+                          setIsCopied(true);
+                        }
+                      }}
+                    >
+                      Copy Link To Clipboard
+                    </button>
+                    <InternalLink
+                      href={`/profile/${props.user.id}`}
+                      className="ml-4 text-xs text-right text-blue-700 underline"
+                    >
+                      Open Public Profile Page
+                    </InternalLink>
+                  </div>
+                  {isCopied && <div className="text-xs italic text-green-600">Copied!</div>}
+                </div>
+              ) : undefined
+            }
+            onChange={(newValue) => {
+              if (props.user != null) {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("isPublicProfile")
+                    .record(newValue === "true"),
+                });
+              } else {
+                alert("You should be logged in to enable public profile");
+              }
+            }}
+          />
+        )}
 
-      <GroupHeader name="Miscellaneous" topPadding={true} />
-      <div className="ls-changelog">
-        <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
-      </div>
-      <a href="mailto:info@liftosaur.com" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
-        Contact Us
-      </a>
-      <InternalLink href="/privacy.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
-        Privacy Policy
-      </InternalLink>
-      <InternalLink href="/terms.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
-        Terms &amp; Conditions
-      </InternalLink>
-      <InternalLink href="/docs/docs.html" className="block py-3 mx-4 text-base text-left border-b border-gray-200">
-        Documentation
-      </InternalLink>
-      <a
-        href="https://github.com/astashov/liftosaur"
-        className="block py-3 mx-4 text-base text-left border-b border-gray-200"
-      >
-        Source Code on Github
-      </a>
+        <GroupHeader name="Workout" topPadding={true} />
+        <MenuItem
+          name="Timers"
+          onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
+          shouldShowRightArrow={true}
+        />
+        <MenuItem
+          shouldShowRightArrow={true}
+          name="Available Plates"
+          onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Weight Units"
+          value={props.settings.units}
+          values={[
+            ["kg", "kg"],
+            ["lb", "lb"],
+          ]}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("units")
+                .record(newValue as IUnit),
+            });
+          }}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Length Units"
+          value={props.settings.lengthUnits}
+          values={[
+            ["cm", "cm"],
+            ["in", "in"],
+          ]}
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("lengthUnits")
+                .record(newValue as ILengthUnit),
+            });
+          }}
+        />
+        {props.user && (
+          <>
+            <GroupHeader name="Friends" />
+            <MenuItem
+              shouldShowRightArrow={true}
+              name="Friends"
+              onClick={() => {
+                props.dispatch({ type: "PushScreen", screen: "friends" });
+              }}
+            />
+            <MenuItemEditable
+              type="select"
+              name="Show friends history?"
+              value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
+              values={[
+                ["true", "Yes"],
+                ["false", "No"],
+              ]}
+              onChange={(newValue) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("shouldShowFriendsHistory")
+                    .record(newValue === "true"),
+                });
+              }}
+            />
+          </>
+        )}
+        <GroupHeader name="Import / Export" topPadding={true} />
+        <div className="ls-export-data">
+          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
+            <button className="py-3">Export data to JSON file</button>
+          </MenuItemWrapper>
+        </div>
+        <div className="ls-export-history">
+          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
+            <button className="py-3">Export history to CSV file</button>
+          </MenuItemWrapper>
+        </div>
+        <div className="ls-import-data">
+          <ImporterStorage dispatch={props.dispatch} />
+        </div>
+        <div className="ls-import-program">
+          <ImporterProgram dispatch={props.dispatch} />
+        </div>
+
+        <GroupHeader name="Miscellaneous" topPadding={true} />
+        <div className="ls-changelog">
+          <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
+        </div>
+        <a href="mailto:info@liftosaur.com" className="block py-3 text-base text-left border-b border-gray-200">
+          Contact Us
+        </a>
+        <InternalLink href="/privacy.html" className="block py-3 text-base text-left border-b border-gray-200">
+          Privacy Policy
+        </InternalLink>
+        <InternalLink href="/terms.html" className="block py-3 text-base text-left border-b border-gray-200">
+          Terms &amp; Conditions
+        </InternalLink>
+        <InternalLink href="/docs/docs.html" className="block py-3 text-base text-left border-b border-gray-200">
+          Documentation
+        </InternalLink>
+        <a
+          href="https://github.com/astashov/liftosaur"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
+          Source Code on Github
+        </a>
+      </section>
     </Surface>
   );
 }

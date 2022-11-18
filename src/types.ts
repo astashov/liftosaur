@@ -680,6 +680,11 @@ export const TSettings = t.intersection(
       timers: TSettingsTimers,
       equipment: dictionary(TEquipment, TEquipmentData),
       graphs: t.array(TGraph),
+      graphsSettings: t.partial({
+        isSameXAxis: t.boolean,
+        isWithBodyweight: t.boolean,
+        isWithOneRm: t.boolean,
+      }),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,
       units: TUnit,

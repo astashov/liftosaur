@@ -213,4 +213,13 @@ export const migrations = {
 
     return storage;
   },
+  "20221116230818_add_graph_settings": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.graphsSettings = storage.settings.graphsSettings || {
+      isSameXAxis: false,
+      isWithBodyweight: false,
+      isWithOneRm: true,
+    };
+    return storage;
+  },
 };

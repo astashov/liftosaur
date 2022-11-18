@@ -12,6 +12,10 @@ import { IExerciseId, IGraph, ISettings, IStats, IStatsKey } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
 import { ObjectUtils } from "../utils/object";
+import { MenuItemEditable } from "./menuItemEditable";
+import { updateSettings } from "../models/state";
+import { lb } from "lens-shmens";
+import { IconCloseCircle } from "./icons/iconCloseCircle";
 
 interface IModalGraphsProps {
   isHidden: boolean;
@@ -35,10 +39,58 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
     }
     return memo;
   }, new Set());
+  const settings = props.settings;
+  const hasBodyweight = settings.graphs.some((g) => g.id === "weight");
   const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter((k) => !usedStats.has(k));
   const statsLengthKeys = ObjectUtils.keys(props.stats.length).filter((k) => !usedStats.has(k));
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
+      <GroupHeader name="Settings" isExpanded={true}>
+        <MenuItemEditable
+          type="boolean"
+          name="Same range for X axis for all graphs"
+          value={settings.graphsSettings.isSameXAxis ? "true" : "false"}
+          onChange={(v) =>
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("graphsSettings")
+                .p("isSameXAxis")
+                .record(v === "true")
+            )
+          }
+        />
+        {hasBodyweight && (
+          <MenuItemEditable
+            type="boolean"
+            name="Add bodyweight to all graphs"
+            value={settings.graphsSettings.isWithBodyweight ? "true" : "false"}
+            onChange={(v) =>
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("graphsSettings")
+                  .p("isWithBodyweight")
+                  .record(v === "true")
+              )
+            }
+          />
+        )}
+        <MenuItemEditable
+          type="boolean"
+          name="Add calculated 1RM to graphs"
+          value={settings.graphsSettings.isWithOneRm ? "true" : "false"}
+          onChange={(v) =>
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("graphsSettings")
+                .p("isWithOneRm")
+                .record(v === "true")
+            )
+          }
+        />
+      </GroupHeader>
       <form className="relative" data-cy="modal-graphs" onSubmit={(e) => e.preventDefault()}>
         {graphs.length > 0 && <GroupHeader name="Selected Graphs" />}
         <DraggableList
@@ -66,7 +118,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                       className="align-middle"
                       onClick={() => EditGraphs.removeGraph(props.dispatch, graph)}
                     >
-                      <IconDelete />
+                      <IconCloseCircle />
                     </button>
                   </div>
                 </section>

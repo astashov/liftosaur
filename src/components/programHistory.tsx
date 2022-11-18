@@ -93,11 +93,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           }
           rightButtons={
             <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => dispatch(Thunk.pushScreen("musclesProgram"))}
-              />
+              <FooterButton icon={<IconGraphs2 />} text="Graphs" onClick={() => dispatch(Thunk.pushScreen("graphs"))} />
               <FooterButton
                 icon={<IconCog2 />}
                 text="Settings"

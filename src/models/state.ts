@@ -4,7 +4,7 @@ import { IScreen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
-import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay } from "../types";
+import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay, ISettings } from "../types";
 
 export type IEnv = {
   service: Service;
@@ -109,4 +109,8 @@ export interface ILocalStorage {
 
 export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc?: string): void {
   dispatch({ type: "UpdateState", lensRecording, desc });
+}
+
+export function updateSettings(dispatch: IDispatch, lensRecording: ILensRecordingPayload<ISettings>): void {
+  dispatch({ type: "UpdateSettings", lensRecording });
 }

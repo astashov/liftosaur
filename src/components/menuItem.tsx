@@ -19,7 +19,7 @@ export function MenuItemWrapper(props: {
   return (
     <section
       data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
-      className="w-full px-4 text-base text-left"
+      className="w-full text-base text-left"
       onClick={props.onClick}
     >
       <div className="border-b border-grayv2-100">{props.children}</div>

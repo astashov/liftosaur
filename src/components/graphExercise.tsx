@@ -9,11 +9,11 @@ import { IHistoryRecord, IExerciseType, ISettings } from "../types";
 
 interface IGraphProps {
   history: IHistoryRecord[];
-  isWithOneRm: boolean;
+  isWithOneRm?: boolean;
   exercise: IExerciseType;
   settings: ISettings;
   title?: string;
-  isSameXAxis: boolean;
+  isSameXAxis?: boolean;
   minX: number;
   maxX: number;
   bodyweightData?: [number, number][];
@@ -23,7 +23,7 @@ function getData(
   history: IHistoryRecord[],
   exerciseType: IExerciseType,
   settings: ISettings,
-  isWithOneRm: boolean,
+  isWithOneRm?: boolean,
   bodyweightData?: [number, number][]
 ): [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]] {
   const normalizedData = CollectionUtils.sort(history, (a, b) => a.startTime - b.startTime).reduce<

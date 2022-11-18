@@ -14,7 +14,7 @@ interface IGraphStatsProps {
   statsKey: IStatsKey;
   settings: ISettings;
   title?: string;
-  isSameXAxis: boolean;
+  isSameXAxis?: boolean;
   minX: number;
   maxX: number;
 }

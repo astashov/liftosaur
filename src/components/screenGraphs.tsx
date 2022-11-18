@@ -1,6 +1,4 @@
-import { h, JSX } from "preact";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
 import { History } from "../models/history";
@@ -10,23 +8,28 @@ import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
 import { ISettings, IHistoryRecord, IExerciseId, IEquipment, IStats } from "../types";
 import { getLengthDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
-import { GroupHeader } from "./groupHeader";
-import { MenuItemEditable } from "./menuItemEditable";
 import { ILoading } from "../models/state";
+import { Surface } from "./surface";
+import { NavbarView } from "./navbar";
+import { IconCog2 } from "./icons/iconCog2";
+import { FooterButton } from "./footerButton";
+import { Footer2View } from "./footer2";
+import { IconGraphs2 } from "./icons/iconGraphs2";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   loading: ILoading;
   settings: ISettings;
+  screenStack: IScreen[];
   stats: IStats;
   history: IHistoryRecord[];
 }
 
 export function ScreenGraphs(props: IProps): JSX.Element {
+  const { settings } = props;
+  const { isWithBodyweight, isSameXAxis, isWithOneRm } = settings.graphsSettings;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isSameXAxis, setIsSameXAxis] = useState<boolean>(false);
-  const [isWithBodyweight, setIsWithBodyweight] = useState<boolean>(false);
-  const [isWithOneRm, setIsWithOneRm] = useState<boolean>(true);
   const maxSets = History.findAllMaxSets(props.history);
   const exerciseIds = ObjectUtils.keys(maxSets);
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
@@ -73,113 +76,109 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   }
 
   return (
-    <section className="h-full">
-      <HeaderView
-        title="Graphs"
-        left={
-          <button data-cy="graphs-back" onClick={() => props.dispatch(Thunk.pullScreen())}>
-            Back
-          </button>
-        }
-        right={
-          <button data-cy="graphs-modify" onClick={() => setIsModalOpen(true)}>
-            Modify
-          </button>
-        }
-      />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }} data-cy="screen">
-        {exerciseIds.length < 1 ? (
-          <div className="p-8 text-2xl font-bold text-center text-gray-600">
-            Finish at least one workout to see the graphs.
-          </div>
-        ) : props.settings.graphs.length === 0 ? (
-          <div className="p-8 text-2xl font-bold text-center text-gray-600">
-            Select graphs you want to display by clicking "Modify" at right top corner.
-          </div>
-        ) : (
-          <section>
-            <GroupHeader name="Settings">
-              <MenuItemEditable
-                type="boolean"
-                name="Same range for X axis for all graphs"
-                value={isSameXAxis ? "true" : "false"}
-                onChange={(v) => setIsSameXAxis(v === "true")}
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          onHelpClick={() => {}}
+          rightButtons={[
+            <button className="p-2" onClick={() => setIsModalOpen(true)}>
+              <IconCog2 />
+            </button>,
+          ]}
+          screenStack={props.screenStack}
+          title="Graphs"
+        />
+      }
+      footer={
+        <Footer2View
+          dispatch={props.dispatch}
+          rightButtons={
+            <>
+              <FooterButton
+                icon={<IconGraphs2 />}
+                text="Graphs"
+                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
               />
-              {hasBodyweight && (
-                <MenuItemEditable
-                  type="boolean"
-                  name="Add bodyweight to all graphs"
-                  value={isWithBodyweight ? "true" : "false"}
-                  onChange={(v) => setIsWithBodyweight(v === "true")}
+              <FooterButton
+                icon={<IconCog2 />}
+                text="Settings"
+                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+              />
+            </>
+          }
+        />
+      }
+      addons={
+        <ModalGraphs
+          settings={props.settings}
+          isHidden={!isModalOpen}
+          exerciseIds={exerciseIds}
+          stats={props.stats}
+          graphs={props.settings.graphs}
+          onClose={() => setIsModalOpen(false)}
+          dispatch={props.dispatch}
+        />
+      }
+    >
+      {exerciseIds.length < 1 ? (
+        <div className="p-8 text-2xl font-bold text-center text-gray-600">
+          Finish at least one workout to see the graphs.
+        </div>
+      ) : props.settings.graphs.length === 0 ? (
+        <div className="p-8 text-2xl font-bold text-center text-gray-600">
+          Select graphs you want to display by clicking "Modify" at right top corner.
+        </div>
+      ) : (
+        <section className="pb-4">
+          {props.settings.graphs.map((graph) => {
+            if (graph.type === "exercise") {
+              return (
+                <GraphExercise
+                  isSameXAxis={isSameXAxis}
+                  minX={Math.round(minX / 1000)}
+                  maxX={Math.round(maxX / 1000)}
+                  bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
+                  isWithOneRm={isWithOneRm}
+                  key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}`}
+                  settings={props.settings}
+                  history={props.history}
+                  exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
                 />
-              )}
-              <MenuItemEditable
-                type="boolean"
-                name="Add calculated 1RM to graphs"
-                value={isWithOneRm ? "true" : "false"}
-                onChange={(v) => setIsWithOneRm(v === "true")}
-              />
-            </GroupHeader>
-            <GroupHeader name="Graphs" />
-            {props.settings.graphs.map((graph) => {
-              if (graph.type === "exercise") {
-                return (
-                  <GraphExercise
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
-                    isWithOneRm={isWithOneRm}
-                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}`}
-                    settings={props.settings}
-                    history={props.history}
-                    exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
-                  />
-                );
-              } else if (graph.type === "statsWeight") {
-                const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
-                return (
-                  <GraphStats
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    units={props.settings.units}
-                    key={`${graph.id}_${isSameXAxis}`}
-                    settings={props.settings}
-                    collection={collection}
-                    statsKey={graph.id}
-                  />
-                );
-              } else {
-                const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
-                return (
-                  <GraphStats
-                    isSameXAxis={isSameXAxis}
-                    minX={minX}
-                    maxX={maxX}
-                    units={props.settings.lengthUnits}
-                    key={graph.id}
-                    settings={props.settings}
-                    collection={collection}
-                    statsKey={graph.id}
-                  />
-                );
-              }
-            })}
-          </section>
-        )}
-      </section>
-
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
-      <ModalGraphs
-        settings={props.settings}
-        isHidden={!isModalOpen}
-        exerciseIds={exerciseIds}
-        stats={props.stats}
-        graphs={props.settings.graphs}
-        onClose={() => setIsModalOpen(false)}
-        dispatch={props.dispatch}
-      />
-    </section>
+              );
+            } else if (graph.type === "statsWeight") {
+              const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
+              return (
+                <GraphStats
+                  isSameXAxis={isSameXAxis}
+                  minX={Math.round(minX / 1000)}
+                  maxX={Math.round(maxX / 1000)}
+                  units={props.settings.units}
+                  key={`${graph.id}_${isSameXAxis}`}
+                  settings={props.settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              );
+            } else {
+              const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
+              return (
+                <GraphStats
+                  isSameXAxis={isSameXAxis}
+                  minX={minX}
+                  maxX={maxX}
+                  units={props.settings.lengthUnits}
+                  key={graph.id}
+                  settings={props.settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              );
+            }
+          })}
+        </section>
+      )}
+    </Surface>
   );
 }

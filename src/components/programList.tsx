@@ -40,7 +40,7 @@ export function ProgramListView(props: IProps): JSX.Element {
   };
 
   return (
-    <Fragment>
+    <div className="px-4">
       {customPrograms.length === 0 && (
         <p className="px-8 py-2 text-sm text-center text-grayv2-700">
           If you're new to weight lifting, consider starting with <strong>Basic Beginner Routine</strong>.
@@ -150,6 +150,6 @@ export function ProgramListView(props: IProps): JSX.Element {
           ))}
         </Fragment>
       )}
-    </Fragment>
+    </div>
   );
 }

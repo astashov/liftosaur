@@ -223,6 +223,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs
+        screenStack={state.screenStack}
         loading={state.loading}
         settings={state.storage.settings}
         dispatch={dispatch}
