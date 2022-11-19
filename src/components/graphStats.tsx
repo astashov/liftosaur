@@ -13,7 +13,7 @@ interface IGraphStatsProps {
   units: IUnit | ILengthUnit;
   statsKey: IStatsKey;
   settings: ISettings;
-  title?: string;
+  title?: string | null;
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
@@ -47,7 +47,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
     );
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
-      title: props.title || `${Stats.name(props.statsKey)}`,
+      title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,
@@ -120,7 +120,11 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   return (
     <div className="pt-2" data-cy="graph">
       <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" className="box-content h-6 px-8 pt-8 pb-2 text-sm text-center" ref={legendRef}></div>
+      <div
+        data-cy="graph-legend"
+        className={`box-content h-6 px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 text-sm text-center`}
+        ref={legendRef}
+      ></div>
     </div>
   );
 }

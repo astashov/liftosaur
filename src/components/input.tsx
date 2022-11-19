@@ -9,6 +9,8 @@ export type IValidationError = "required" | "pattern-mismatch";
 
 export interface IProps extends JSX.HTMLAttributes<HTMLInputElement> {
   label: string;
+  defaultValue?: number | string;
+  labelSize?: "xs" | "sm";
   errorMessage?: string;
   patternMessage?: string;
   requiredMessage?: string;
@@ -23,7 +25,7 @@ export const Input = forwardRef(
     const onFocusHandler = useCallback(
       (e: Event) => {
         const target = e.target;
-        if (target instanceof HTMLInputElement) {
+        if (target instanceof HTMLInputElement && props.type !== "number") {
           const value = (target as HTMLInputElement).value;
           target.setSelectionRange(0, value.length);
           return false;
@@ -81,11 +83,15 @@ export const Input = forwardRef(
     if (className.indexOf("w-full") !== -1) {
       containerClassName += " w-full";
     }
+    const labelSize = props.labelSize || "sm";
     return (
       <div className={containerClassName}>
         <label className={className} style={{ minHeight: "3.5rem" }}>
           <div className="relative mx-4 my-1">
-            <div className="relative text-sm text-grayv2-700" style={{ top: "2px", left: "0" }}>
+            <div
+              className={`relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+              style={{ top: "2px", left: "0" }}
+            >
               {props.label}
             </div>
             <div className="relative flex" style={{ top: "2px", left: "0" }}>

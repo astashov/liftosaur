@@ -17,7 +17,8 @@ export type IScreen =
   | "editProgramDay"
   | "editProgramDayScript"
   | "friends"
-  | "friendsAdd";
+  | "friendsAdd"
+  | "measurements";
 
 export namespace Screen {
   export const editProgramScreens: IScreen[] = [

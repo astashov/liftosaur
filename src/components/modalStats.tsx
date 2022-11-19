@@ -4,10 +4,12 @@ import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsWeight } from "../types";
 import { EditStats } from "../models/editStats";
+import { GroupHeader } from "./groupHeader";
 
 interface IModalStatsProps {
   dispatch: IDispatch;
   settings: ISettings;
+  isHidden: boolean;
   onClose: () => void;
 }
 
@@ -27,7 +29,8 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
   }
 
   return (
-    <Modal isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+      <GroupHeader name="Enabled measurement types" />
       <form data-cy="modal-stats" onSubmit={(e) => e.preventDefault()}>
         <MenuItemEditable
           onChange={saveWeight("weight")}

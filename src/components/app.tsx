@@ -31,6 +31,7 @@ import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
+import { ScreenMeasurements } from "./screenMeasurements";
 
 interface IProps {
   client: Window["fetch"];
@@ -208,7 +209,18 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "stats") {
     content = (
       <ScreenStats
+        screenStack={state.screenStack}
         loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        stats={state.storage.stats}
+      />
+    );
+  } else if (Screen.current(state.screenStack) === "measurements") {
+    content = (
+      <ScreenMeasurements
+        loading={state.loading}
+        screenStack={state.screenStack}
         dispatch={dispatch}
         settings={state.storage.settings}
         stats={state.storage.stats}

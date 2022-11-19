@@ -16,7 +16,6 @@ import { FooterButton } from "./footerButton";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconCog2 } from "./icons/iconCog2";
 import { Progress } from "../models/progress";
-import { ScrollBarrell } from "./scrollBarrell";
 
 interface IProps {
   program: IProgram;
@@ -88,7 +87,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
                 text="Program"
                 onClick={() => Program.editAction(dispatch, props.program.id)}
               />
-              <FooterButton icon={<IconRuler />} text="Measures" />
+              <FooterButton
+                icon={<IconRuler />}
+                text="Measures"
+                onClick={() => dispatch(Thunk.pushScreen("measurements"))}
+              />
             </>
           }
           rightButtons={

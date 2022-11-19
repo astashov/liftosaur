@@ -103,7 +103,8 @@ function MenuItemValue(
   props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "select") {
-    return <div className="flex-1 pr-2 text-right text-bluev2">{props.value}</div>;
+    const keyValue = (props.values || []).filter(([_, v]) => v === props.value)[0];
+    return <div className="flex-1 pr-2 text-right text-bluev2">{keyValue && keyValue[0]}</div>;
   } else if (props.type === "text") {
     return (
       <input
