@@ -1,9 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { HeaderView } from "../header";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { FooterView } from "../footer";
 import { IconDuplicate } from "../icons/iconDuplicate";
 import { lb } from "lens-shmens";
 import { IconDelete } from "../icons/iconDelete";
@@ -16,14 +14,22 @@ import { ILoading, IState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
-import { IconMuscles } from "../icons/iconMuscles";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram } from "../../types";
 import { SemiButton } from "../semiButton";
+import { IScreen } from "../../models/screen";
+import { Surface } from "../surface";
+import { NavbarView } from "../navbar";
+import { Footer2View } from "../footer2";
+import { FooterButton } from "../footerButton";
+import { IconCog2 } from "../icons/iconCog2";
+import { IconGraphs2 } from "../icons/iconGraphs2";
+import { IconMuscles2 } from "../icons/iconMuscles2";
 
 interface IProps {
   editProgram: IProgram;
   programIndex: number;
+  screenStack: IScreen[];
   dispatch: IDispatch;
   adminKey?: string;
   loading: ILoading;
@@ -33,16 +39,55 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   return (
-    <section className="h-full">
-      <HeaderView
-        title="Edit Program"
-        subtitle={props.editProgram.name}
-        left={<button onClick={() => props.dispatch({ type: "PullScreen" })}>Back</button>}
-      />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        <p className="px-4 py-1 text-sm italic text-center">
-          A program consists of days, a day consists of exercises. Add exercises to days here.
-        </p>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          onHelpClick={() => {}}
+          screenStack={props.screenStack}
+          title="Edit Program"
+          subtitle={props.editProgram.name}
+        />
+      }
+      footer={
+        <Footer2View
+          dispatch={props.dispatch}
+          leftButtons={
+            <FooterButton
+              icon={<IconMuscles2 />}
+              text="Muscles"
+              onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
+            />
+          }
+          rightButtons={
+            <>
+              <FooterButton
+                icon={<IconGraphs2 />}
+                text="Graphs"
+                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
+              />
+              <FooterButton
+                icon={<IconCog2 />}
+                text="Settings"
+                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
+              />
+            </>
+          }
+        />
+      }
+      addons={
+        <ModalPublishProgram
+          isHidden={!shouldShowPublishModal}
+          program={props.editProgram}
+          dispatch={props.dispatch}
+          onClose={() => {
+            setShouldShowPublishModal(false);
+          }}
+        />
+      }
+    >
+      <section className="px-4">
         <MenuItemEditable
           type="text"
           name="Name:"
@@ -223,30 +268,6 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           </div>
         )}
       </section>
-
-      <FooterView
-        loading={props.loading}
-        buttons={
-          <button
-            className="p-4 ls-footer-muscles"
-            aria-label="Muscles"
-            data-cy="footer-muscles"
-            onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
-          >
-            <IconMuscles />
-          </button>
-        }
-        dispatch={props.dispatch}
-      />
-      {shouldShowPublishModal && (
-        <ModalPublishProgram
-          program={props.editProgram}
-          dispatch={props.dispatch}
-          onClose={() => {
-            setShouldShowPublishModal(false);
-          }}
-        />
-      )}
-    </section>
+    </Surface>
   );
 }

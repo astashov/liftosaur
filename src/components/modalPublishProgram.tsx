@@ -9,6 +9,7 @@ import { IProgram } from "../types";
 
 interface IProps {
   program: IProgram;
+  isHidden: boolean;
   dispatch: IDispatch;
   onClose: () => void;
 }
@@ -21,7 +22,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
   const urlRef = useRef<HTMLInputElement>();
   const authorRef = useRef<HTMLInputElement>();
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
       <form>
         <div>
           <label for="program_id">Id</label>

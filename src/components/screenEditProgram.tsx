@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
-import { IScreen } from "../models/screen";
+import { Screen, IScreen } from "../models/screen";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { dequal } from "dequal/lite";
 import { IProgram, IProgramExercise, ISettings } from "../types";
@@ -11,7 +11,7 @@ import { ILoading } from "../models/state";
 interface IProps {
   editProgram: IProgram;
   editExercise?: IProgramExercise;
-  screen: IScreen;
+  screenStack: IScreen[];
   dispatch: IDispatch;
   programIndex: number;
   dayIndex: number;
@@ -21,9 +21,11 @@ interface IProps {
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
-  if (props.screen === "editProgram") {
+  const screen = Screen.current(props.screenStack);
+  if (screen === "editProgram") {
     return (
       <EditProgramDaysList
+        screenStack={props.screenStack}
         loading={props.loading}
         dispatch={props.dispatch}
         programIndex={props.programIndex}
@@ -31,7 +33,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         adminKey={props.adminKey}
       />
     );
-  } else if (props.screen === "editProgramDay") {
+  } else if (screen === "editProgramDay") {
     if (props.dayIndex !== -1) {
       return (
         <EditProgramDay
@@ -47,7 +49,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     } else {
       throw new Error("Opened 'editProgramDay' screen, but 'state.editProgram.editDay' is null");
     }
-  } else if (props.screen === "editProgramExercise") {
+  } else if (screen === "editProgramExercise") {
     const editExercise = props.editExercise;
     if (editExercise == null) {
       throw new Error("Opened 'editProgramExercise' screen, but 'state.editExercise' is null");
@@ -67,6 +69,6 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       />
     );
   } else {
-    throw new Error(`Unknown screen ${props.screen}`);
+    throw new Error(`Unknown screen ${screen}`);
   }
 }

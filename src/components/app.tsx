@@ -251,9 +251,9 @@ export function AppView(props: IProps): JSX.Element | null {
         <ScreenEditProgram
           loading={state.loading}
           adminKey={state.adminKey}
+          screenStack={state.screenStack}
           settings={state.storage.settings}
           editExercise={state.editExercise}
-          screen={Screen.current(state.screenStack)}
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}
           dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}

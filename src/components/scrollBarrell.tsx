@@ -19,7 +19,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
   useEffect(() => {
     const barrel = barrelRef.current;
     if (barrel) {
-      let defaultSelectedIndex = props.values.findIndex(([_, value]) => value === props.defaultSelectedValue);
+      let defaultSelectedIndex = props.values.findIndex(([value, key]) => value === props.defaultSelectedValue);
       defaultSelectedIndex = defaultSelectedIndex === -1 ? 0 : defaultSelectedIndex;
       console.log(defaultSelectedIndex);
       barrel.scrollTop = defaultSelectedIndex * props.itemHeight;
@@ -41,7 +41,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
             const index = Math.round(offset / props.itemHeight);
             const selected = props.values[index];
             if (selected != null) {
-              const value = selected[1];
+              const value = selected[0];
               props.onSelect(value);
             }
           }
@@ -79,7 +79,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
           />
         ))}
-        {props.values.map(([label, value], index) => (
+        {props.values.map(([value, label], index) => (
           <button
             className="flex items-center justify-center w-full cursor-pointer scroll-barrel-item"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}

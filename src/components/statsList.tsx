@@ -63,7 +63,7 @@ export function StatsList(props: IProps): JSX.Element {
         type="select"
         name="Type"
         value={selectedKey}
-        values={statsKeys.map((key) => [Stats.name(key), key])}
+        values={statsKeys.map((key) => [key, Stats.name(key)])}
         onChange={(value) => {
           setSelectedKey(value as IStatsKey);
         }}
