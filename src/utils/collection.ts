@@ -143,6 +143,10 @@ export namespace CollectionUtils {
     return from.filter((t) => t[key] !== value);
   }
 
+  export function nonnull<T>(from: (T | undefined)[]): T[] {
+    return from.filter((t) => t != null) as T[];
+  }
+
   export function uniqBy<T extends {}>(from: T[], key: keyof T): T[] {
     const set = new Set();
     const result = [];

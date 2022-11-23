@@ -25,6 +25,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   if (screen === "editProgram") {
     return (
       <EditProgramDaysList
+        settings={props.settings}
         screenStack={props.screenStack}
         loading={props.loading}
         dispatch={props.dispatch}

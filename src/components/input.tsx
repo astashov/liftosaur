@@ -1,5 +1,5 @@
-import { h, JSX } from "preact";
-import { forwardRef, Ref, useState, useCallback } from "preact/compat";
+import { h, JSX, Ref } from "preact";
+import { forwardRef, useState, useCallback } from "preact/compat";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
@@ -7,8 +7,9 @@ export const inputClassName =
 
 export type IValidationError = "required" | "pattern-mismatch";
 
-export interface IProps extends JSX.HTMLAttributes<HTMLInputElement> {
+export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
   label: string;
+  multiline?: number;
   defaultValue?: number | string;
   labelSize?: "xs" | "sm";
   errorMessage?: string;
@@ -18,7 +19,7 @@ export interface IProps extends JSX.HTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef(
-  (props: IProps, ref: Ref<HTMLInputElement>): JSX.Element => {
+  (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
     const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
 
@@ -95,14 +96,25 @@ export const Input = forwardRef(
               {props.label}
             </div>
             <div className="relative flex" style={{ top: "2px", left: "0" }}>
-              <input
-                ref={ref}
-                onBlur={onBlurHandler}
-                onFocus={onFocusHandler}
-                className="flex-1 border-none focus:outline-none"
-                style={{ fontSize: "16px" }}
-                {...otherProps}
-              />
+              {props.multiline ? (
+                <textarea
+                  ref={ref as Ref<HTMLTextAreaElement>}
+                  onBlur={onBlurHandler}
+                  onFocus={onFocusHandler}
+                  className="flex-1 border-none focus:outline-none"
+                  style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
+                  {...otherProps}
+                />
+              ) : (
+                <input
+                  ref={ref as Ref<HTMLInputElement>}
+                  onBlur={onBlurHandler}
+                  onFocus={onFocusHandler}
+                  className="flex-1 border-none focus:outline-none"
+                  style={{ fontSize: "16px" }}
+                  {...otherProps}
+                />
+              )}
             </div>
           </div>
         </label>

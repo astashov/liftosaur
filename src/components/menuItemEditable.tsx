@@ -115,6 +115,15 @@ function MenuItemValue(
         value={props.value || undefined}
         title={props.patternMessage}
         onBlur={handleChange(props.onChange, props.setPatternError)}
+        onFocus={(e) => {
+          const target = e.target;
+          if (target instanceof HTMLInputElement) {
+            const value = (target as HTMLInputElement).value;
+            target.setSelectionRange(0, value.length);
+            return true;
+          }
+          return undefined;
+        }}
         pattern={props.pattern}
       />
     );

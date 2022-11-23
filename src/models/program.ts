@@ -123,6 +123,10 @@ export namespace Program {
     };
   }
 
+  export function getProgramExerciseById(program: IProgram, id: string): IProgramExercise | undefined {
+    return program.exercises.find((e) => e.id === id);
+  }
+
   export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
     const day = Math.min(program.days.length, Math.max(1, dayIndex || program.nextDay));
     const programDay = program.days[day - 1];

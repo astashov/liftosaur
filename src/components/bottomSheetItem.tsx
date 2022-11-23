@@ -5,13 +5,16 @@ interface IProps {
   icon: JSX.Element;
   isFirst?: boolean;
   description: string;
+  className?: string;
   onClick: () => void;
 }
 
 export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <button
-      className={`block text-base text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""}`}
+      className={`block text-base text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
+        props.className
+      }`}
       onClick={props.onClick}
     >
       <div className={`flex items-center ${!props.isFirst ? "pt-4" : ""}`}>

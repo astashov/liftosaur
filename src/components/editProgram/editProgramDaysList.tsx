@@ -1,21 +1,18 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { GroupHeader } from "../groupHeader";
-import { MenuItem, MenuItemWrapper } from "../menuItem";
-import { IconDuplicate } from "../icons/iconDuplicate";
+import { MenuItem } from "../menuItem";
 import { lb } from "lens-shmens";
-import { IconDelete } from "../icons/iconDelete";
 import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
-import { IconEdit } from "../icons/iconEdit";
 import { ILoading, IState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
-import { IProgram } from "../../types";
+import { IProgram, ISettings } from "../../types";
 import { SemiButton } from "../semiButton";
 import { IScreen } from "../../models/screen";
 import { Surface } from "../surface";
@@ -25,6 +22,16 @@ import { FooterButton } from "../footerButton";
 import { IconCog2 } from "../icons/iconCog2";
 import { IconGraphs2 } from "../icons/iconGraphs2";
 import { IconMuscles2 } from "../icons/iconMuscles2";
+import { IconEditSquare } from "../icons/iconEditSquare";
+import { IconDuplicate2 } from "../icons/iconDuplicate2";
+import { IconTrash } from "../icons/iconTrash";
+import { Exercise } from "../../models/exercise";
+import { CollectionUtils } from "../../utils/collection";
+import { ExerciseImage } from "../exerciseImage";
+import { Program } from "../../models/program";
+import { LinkButton } from "../linkButton";
+import { IconKebab } from "../icons/iconKebab";
+import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 
 interface IProps {
   editProgram: IProgram;
@@ -32,11 +39,13 @@ interface IProps {
   screenStack: IScreen[];
   dispatch: IDispatch;
   adminKey?: string;
+  settings: ISettings;
   loading: ILoading;
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
+  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
 
   return (
     <Surface
@@ -46,6 +55,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           onHelpClick={() => {}}
           screenStack={props.screenStack}
+          rightButtons={[
+            <button className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
+              <IconKebab />
+            </button>,
+          ]}
           title="Edit Program"
           subtitle={props.editProgram.name}
         />
@@ -77,14 +91,24 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         />
       }
       addons={
-        <ModalPublishProgram
-          isHidden={!shouldShowPublishModal}
-          program={props.editProgram}
-          dispatch={props.dispatch}
-          onClose={() => {
-            setShouldShowPublishModal(false);
-          }}
-        />
+        <>
+          <BottomSheetEditProgram
+            onExportProgramToFile={() => {
+              setShouldShowBottomSheet(false);
+              props.dispatch(Thunk.exportProgram(props.editProgram));
+            }}
+            isHidden={!shouldShowBottomSheet}
+            onClose={() => setShouldShowBottomSheet(false)}
+          />
+          <ModalPublishProgram
+            isHidden={!shouldShowPublishModal}
+            program={props.editProgram}
+            dispatch={props.dispatch}
+            onClose={() => {
+              setShouldShowPublishModal(false);
+            }}
+          />
+        </>
       }
     >
       <section className="px-4">
@@ -99,8 +123,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           }}
         />
         <MenuItemEditable
-          type="number"
+          type="select"
           name="Next Day:"
+          values={props.editProgram.days.map((day, i) => [`${i + 1}`, day.name])}
           value={props.editProgram.nextDay.toString()}
           onChange={(newValueStr) => {
             const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
@@ -117,10 +142,26 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           }}
           items={props.editProgram.days}
           element={(day, index, handleTouchStart) => {
+            const exerciseTypes = CollectionUtils.nonnull(
+              day.exercises.map((exercise) => {
+                const programExercise = Program.getProgramExerciseById(props.editProgram, exercise.id);
+                return programExercise
+                  ? Exercise.find(programExercise.exerciseType, props.settings.exercises)
+                  : undefined;
+              })
+            );
             return (
               <MenuItem
                 handleTouchStart={handleTouchStart}
                 name={day.name}
+                addons={exerciseTypes.map((e) => (
+                  <ExerciseImage
+                    exerciseType={e}
+                    size="small"
+                    customExercises={props.settings.exercises}
+                    className="w-6 mr-1"
+                  />
+                ))}
                 value={
                   <Fragment>
                     <button
@@ -130,7 +171,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                         props.dispatch({ type: "EditDayAction", index });
                       }}
                     >
-                      <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                      <IconEditSquare />
                     </button>
                     <button
                       className="px-2 align-middle ls-days-list-copy-day button"
@@ -153,7 +194,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                         });
                       }}
                     >
-                      <IconDuplicate />
+                      <IconDuplicate2 />
                     </button>
                     {props.editProgram.days.length > 1 && (
                       <button
@@ -173,7 +214,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                           });
                         }}
                       >
-                        <IconDelete />
+                        <IconTrash />
                       </button>
                     )}
                   </Fragment>
@@ -182,14 +223,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             );
           }}
         />
-        <MenuItemWrapper
-          name="add-day"
-          onClick={() => {
-            props.dispatch({ type: "CreateDayAction" });
-          }}
-        >
-          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Day +</div>
-        </MenuItemWrapper>
+        <LinkButton className="my-2" data-cy="add-day" onClick={() => props.dispatch({ type: "CreateDayAction" })}>
+          Add New Day
+        </LinkButton>
         <GroupHeader
           name="Exercises"
           help={
@@ -202,6 +238,14 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         {props.editProgram.exercises.map((exercise) => {
           return (
             <MenuItem
+              prefix={
+                <ExerciseImage
+                  className="w-6 mr-3"
+                  exerciseType={exercise.exerciseType}
+                  size="small"
+                  customExercises={props.settings.exercises}
+                />
+              }
               name={exercise.name}
               value={
                 <Fragment>
@@ -212,7 +256,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       EditProgram.editProgramExercise(props.dispatch, exercise);
                     }}
                   >
-                    <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
+                    <IconEditSquare />
                   </button>
                   <button
                     className="px-2 align-middle ls-days-list-copy-exercise button"
@@ -220,7 +264,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);
                     }}
                   >
-                    <IconDuplicate />
+                    <IconDuplicate2 />
                   </button>
                   <button
                     className="px-2 align-middle ls-days-list-delete-exercise button"
@@ -235,26 +279,20 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                       }
                     }}
                   >
-                    <IconDelete />
+                    <IconTrash />
                   </button>
                 </Fragment>
               }
             />
           );
         })}
-        <MenuItemWrapper name="add-exercise" onClick={() => EditProgram.addProgramExercise(props.dispatch)}>
-          <div className="p-2 text-center border border-gray-500 border-dashed rounded-md">Add Exercise +</div>
-        </MenuItemWrapper>
-        <GroupHeader name="Actions" />
-        <div className="p-3 text-center">
-          <SemiButton
-            className="ls-export-program"
-            kind="blue"
-            onClick={() => props.dispatch(Thunk.exportProgram(props.editProgram))}
-          >
-            Export program to file
-          </SemiButton>
-        </div>
+        <LinkButton
+          className="mt-2 mb-6"
+          data-cy="add-exercise"
+          onClick={() => EditProgram.addProgramExercise(props.dispatch)}
+        >
+          Add New Exercise
+        </LinkButton>
         {props.adminKey && (
           <div className="py-3 text-center">
             <Button

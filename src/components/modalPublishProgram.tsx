@@ -2,10 +2,11 @@ import { h, JSX } from "preact";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
-import { inputClassName } from "./input";
+import { Input } from "./input";
 import { useRef } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { IProgram } from "../types";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   program: IProgram;
@@ -22,34 +23,28 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
   const urlRef = useRef<HTMLInputElement>();
   const authorRef = useRef<HTMLInputElement>();
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
       <form>
-        <div>
-          <label for="program_id">Id</label>
-          <input ref={idRef} id="program_id" className={inputClassName} type="text" value={program.id} />
+        <GroupHeader name="Publish Program" topPadding={false} />
+        <div className="mb-2">
+          <Input ref={idRef} label="Id" value={program.id} type="text" />
         </div>
-        <div>
-          <label for="program_name">Name</label>
-          <input ref={nameRef} id="program_name" className={inputClassName} type="text" value={program.name} />
+        <div className="mb-2">
+          <Input ref={nameRef} label="Name" value={program.name} type="text" />
         </div>
-        <div>
-          <label for="program_description">Description</label>
-          <textarea ref={descriptionRef} id="program_description" className={inputClassName}>
-            {program.description}
-          </textarea>
+        <div className="mb-2">
+          <Input ref={descriptionRef} label="Description" value={program.description} multiline={4} />
         </div>
-        <div>
-          <label for="program_url">Url</label>
-          <input ref={urlRef} id="program_url" className={inputClassName} type="text" value={program.url} />
+        <div className="mb-2">
+          <Input ref={urlRef} label="Url" value={program.url} type="text" />
         </div>
-        <div>
-          <label for="program_author">Author</label>
-          <input ref={authorRef} id="program_author" className={inputClassName} type="text" value={program.author} />
+        <div className="mb-2">
+          <Input ref={authorRef} label="Author" value={program.author} type="text" />
         </div>
         <div className="mt-4 text-center">
           <Button
             type="button"
-            kind="green"
+            kind="orange"
             className="mr-3"
             onClick={() => {
               props.onClose();
@@ -64,7 +59,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
               );
             }}
           >
-            Save
+            Public Program
           </Button>
         </div>
       </form>

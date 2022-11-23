@@ -3335,6 +3335,11 @@ export namespace Exercise {
     return { ...exercise, equipment: type.equipment };
   }
 
+  export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {
+    const exercise = maybeGetExercise(type.id, customExercises);
+    return exercise ? { ...exercise, equipment: type.equipment } : undefined;
+  }
+
   export function getById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
     const exercise = getExercise(id, customExercises);
     return { ...exercise, equipment: exercise.defaultEquipment };

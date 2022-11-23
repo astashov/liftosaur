@@ -4,8 +4,10 @@ import { IconHandle } from "./icons/iconHandle";
 import { StringUtils } from "../utils/string";
 
 interface IMenuItemProps {
+  prefix?: ComponentChildren;
   name: string;
   value?: string | JSX.Element;
+  addons?: ComponentChildren;
   shouldShowRightArrow?: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   onClick?: (e: MouseEvent) => void;
@@ -38,7 +40,11 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
             </span>
           </div>
         )}
-        <div className="flex items-center flex-1 py-3 text-left">{props.name}</div>
+        <div className="flex items-center justify-center">{props.prefix}</div>
+        <div className="flex-1">
+          <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
+          <div className="pb-3">{props.addons}</div>
+        </div>
         <div className="flex-1 text-right text-bluev2">{props.value}</div>
         {props.shouldShowRightArrow && (
           <div className="flex items-center py-2 pl-2">

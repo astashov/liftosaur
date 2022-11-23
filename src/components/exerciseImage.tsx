@@ -8,9 +8,11 @@ interface IProps {
   exerciseType: IExerciseType;
   customExercises: IAllCustomExercises;
   size: "large" | "small";
+  className?: string;
 }
 
-export function ExerciseImage({ exerciseType, customExercises, size }: IProps): JSX.Element | null {
+export function ExerciseImage(props: IProps): JSX.Element | null {
+  const { exerciseType, customExercises, size } = props;
   const targetMuscles = Exercise.targetMuscles(exerciseType, customExercises);
   const imgRef = useRef<HTMLImageElement>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,7 +31,7 @@ export function ExerciseImage({ exerciseType, customExercises, size }: IProps): 
       }
     }
   }, []);
-  let className = "inline";
+  let className = `inline ${props.className}`;
   if (isLoading || isError) {
     className = "invisible h-0";
   }
@@ -42,14 +44,18 @@ export function ExerciseImage({ exerciseType, customExercises, size }: IProps): 
   return targetMuscles.length > 0 ? (
     <Fragment>
       <img ref={imgRef} className={className} src={src} />
-      <ExerciseImageAuxiliary isError={isError} isLoading={isLoading} />
+      {props.size === "large" && <ExerciseImageAuxiliary isError={isError} isLoading={isLoading} />}
     </Fragment>
   ) : (
     <ExerciseNoImage>No exercise image</ExerciseNoImage>
   );
 }
 
-function ExerciseImageAuxiliary(props: { isError: boolean; isLoading: boolean }): JSX.Element | null {
+function ExerciseImageAuxiliary(props: {
+  isError: boolean;
+  isLoading: boolean;
+  size: "large" | "small";
+}): JSX.Element | null {
   if (props.isError) {
     return (
       <ExerciseNoImage>

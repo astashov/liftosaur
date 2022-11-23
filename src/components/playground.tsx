@@ -72,7 +72,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         settings={props.settings}
         dispatch={dispatch}
         onChangeReps={() => undefined}
-        isCurrent={true}
+        progress={props.progress}
       />
       <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
       <ModalWeight
