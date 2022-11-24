@@ -19,6 +19,7 @@ import { Footer2View } from "./footer2";
 import { FooterButton } from "./footerButton";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { Input } from "./input";
+import { RightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -131,25 +132,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           title="Add Measurements"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          rightButtons={
-            <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-              />
-              <FooterButton
-                icon={<IconCog2 />}
-                text="Settings"
-                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={<RightFooterButtons dispatch={props.dispatch} />} />}
       addons={
         <ModalStats
           isHidden={!isModalVisible}

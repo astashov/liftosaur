@@ -38,6 +38,7 @@ import { ModalHelpWorkout } from "./modalHelpWorkout";
 import { lb } from "lens-shmens";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
+import { RightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -132,20 +133,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 />
               </>
             }
-            rightButtons={
-              <>
-                <FooterButton
-                  icon={<IconGraphs2 />}
-                  text="Graphs"
-                  onClick={() => dispatch(Thunk.pushScreen("graphs"))}
-                />
-                <FooterButton
-                  icon={<IconCog2 />}
-                  text="Settings"
-                  onClick={() => dispatch(Thunk.pushScreen("settings"))}
-                />
-              </>
-            }
+            rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
             centerButtons={
               <RestTimer
                 mode={props.timerMode ?? "workout"}

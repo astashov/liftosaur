@@ -13,7 +13,6 @@ import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
-import { SemiButton } from "../semiButton";
 import { IScreen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -32,6 +31,7 @@ import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
+import { RightFooterButtons } from "../rightFooterButtons";
 
 interface IProps {
   editProgram: IProgram;
@@ -74,20 +74,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
             />
           }
-          rightButtons={
-            <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-              />
-              <FooterButton
-                icon={<IconCog2 />}
-                text="Settings"
-                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
+          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
         />
       }
       addons={
@@ -223,7 +210,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             );
           }}
         />
-        <LinkButton className="my-2" data-cy="add-day" onClick={() => props.dispatch({ type: "CreateDayAction" })}>
+        <LinkButton className="mt-2 mb-8" data-cy="add-day" onClick={() => props.dispatch({ type: "CreateDayAction" })}>
           Add New Day
         </LinkButton>
         <GroupHeader

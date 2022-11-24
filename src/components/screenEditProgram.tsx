@@ -39,6 +39,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       return (
         <EditProgramDay
           loading={props.loading}
+          screenStack={props.screenStack}
           settings={props.settings}
           dayIndex={props.dayIndex}
           isProgress={false}

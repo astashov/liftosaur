@@ -16,6 +16,7 @@ import { FooterButton } from "./footerButton";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconCog2 } from "./icons/iconCog2";
 import { Progress } from "../models/progress";
+import { RightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   program: IProgram;
@@ -94,16 +95,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               />
             </>
           }
-          rightButtons={
-            <>
-              <FooterButton icon={<IconGraphs2 />} text="Graphs" onClick={() => dispatch(Thunk.pushScreen("graphs"))} />
-              <FooterButton
-                icon={<IconCog2 />}
-                text="Settings"
-                onClick={() => dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
+          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
         />
       }
     >

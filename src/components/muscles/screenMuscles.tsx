@@ -12,6 +12,7 @@ import { FooterButton } from "../footerButton";
 import { IconGraphs2 } from "../icons/iconGraphs2";
 import { Thunk } from "../../ducks/thunks";
 import { Footer2View } from "../footer2";
+import { RightFooterButtons } from "../rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -36,25 +37,7 @@ export function ScreenMuscles(props: IProps): JSX.Element {
           onHelpClick={() => {}}
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          rightButtons={
-            <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-              />
-              <FooterButton
-                icon={<IconCog2 />}
-                text="Settings"
-                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={<RightFooterButtons dispatch={props.dispatch} />} />}
     >
       <MusclesView title={props.title} headerHelp={props.headerHelp} points={props.points} settings={props.settings} />
     </Surface>

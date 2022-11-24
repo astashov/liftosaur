@@ -22,6 +22,7 @@ import { FooterButton } from "./footerButton";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconCog2 } from "./icons/iconCog2";
 import { GroupHeader } from "./groupHeader";
+import { RightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -49,21 +50,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
       footer={
         <Footer2View
           dispatch={props.dispatch}
-          rightButtons={
-            <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-              />
-              <FooterButton
-                isActive={true}
-                icon={<IconCog2 color="#ff8066" />}
-                text="Settings"
-                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
+          rightButtons={<RightFooterButtons dispatch={props.dispatch} active="settings" />}
         />
       }
     >

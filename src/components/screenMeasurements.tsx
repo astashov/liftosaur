@@ -12,6 +12,7 @@ import { IconCog2 } from "./icons/iconCog2";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { StatsList } from "./statsList";
 import { IconDumbbell } from "./icons/iconDumbbell";
+import { RightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -47,20 +48,7 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
               onClick={() => props.dispatch(Thunk.pushScreen("main"))}
             />
           }
-          rightButtons={
-            <>
-              <FooterButton
-                icon={<IconGraphs2 />}
-                text="Graphs"
-                onClick={() => props.dispatch(Thunk.pushScreen("graphs"))}
-              />
-              <FooterButton
-                icon={<IconCog2 />}
-                text="Settings"
-                onClick={() => props.dispatch(Thunk.pushScreen("settings"))}
-              />
-            </>
-          }
+          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
         />
       }
     >
