@@ -64,11 +64,11 @@ module.exports = {
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://api2.liftosaur.com" : "http://local-api.liftosaur.com:3000"
+        process.env.NODE_ENV === "production" ? "https://api2.liftosaur.com" : "https://local-api.liftosaur.com:3000"
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://www.liftosaur.com" : "http://local.liftosaur.com:8080"
+        process.env.NODE_ENV === "production" ? "https://www.liftosaur.com" : "https://local.liftosaur.com:8080"
       ),
     }),
     new CopyPlugin([
@@ -178,31 +178,35 @@ module.exports = {
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     compress: true,
+    https: {
+      key: fs.readFileSync(path.join(process.env.HOME, ".secrets/live/local.liftosaur.com/privkey.pem")),
+      cert: fs.readFileSync(path.join(process.env.HOME, ".secrets/live/local.liftosaur.com/fullchain.pem")),
+    },
     hot: false,
     inline: false,
     liveReload: false,
     host: "0.0.0.0",
     disableHostCheck: true,
     proxy: {
-      "/record": "http://local-api.liftosaur.com:3000/api",
-      "/admin": "http://local-api.liftosaur.com:3000/",
-      "/acceptfriendinvitation": "http://local-api.liftosaur.com:3000/api",
+      "/record": "https://local-api.liftosaur.com:3000/api",
+      "/admin": "https://local-api.liftosaur.com:3000/",
+      "/acceptfriendinvitation": "https://local-api.liftosaur.com:3000/api",
       "/profileimage/*": {
-        target: "http://local-api.liftosaur.com:3000",
+        target: "https://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profileimage?user=${user}`;
         },
       },
       "/profile/*": {
-        target: "http://local-api.liftosaur.com:3000",
+        target: "https://local-api.liftosaur.com:3000",
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profile?user=${user}`;
         },
       },
-      "/programs/*": "http://0.0.0.0:3000",
-      "/programimage/*": "http://local-api.liftosaur.com:3000/api",
+      "/programs/*": "https://0.0.0.0:3000",
+      "/programimage/*": "https://local-api.liftosaur.com:3000/api",
     },
   },
 };

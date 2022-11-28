@@ -1,4 +1,7 @@
 import http from "http";
+import https from "https";
+import * as path from "path";
+import * as fs from "fs";
 import { handler } from "./lambda/index";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
 import { URL } from "url";
@@ -40,25 +43,31 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   };
 }
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const result = (await handler(
-      await requestToProxyEvent(req),
-      { getRemainingTimeInMillis: () => 10000 },
-      () => undefined
-    )) as APIGatewayProxyResult;
-    const body = result.isBase64Encoded ? Buffer.from(result.body, "base64") : result.body;
-    res.statusCode = result.statusCode;
-    for (const k of Object.keys(result.headers || {})) {
-      res.setHeader(k, result.headers![k] as string);
+const server = https.createServer(
+  {
+    key: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/privkey.pem")),
+    cert: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/fullchain.pem")),
+  },
+  async (req, res) => {
+    try {
+      const result = (await handler(
+        await requestToProxyEvent(req),
+        { getRemainingTimeInMillis: () => 10000 },
+        () => undefined
+      )) as APIGatewayProxyResult;
+      const body = result.isBase64Encoded ? Buffer.from(result.body, "base64") : result.body;
+      res.statusCode = result.statusCode;
+      for (const k of Object.keys(result.headers || {})) {
+        res.setHeader(k, result.headers![k] as string);
+      }
+      res.end(body);
+    } catch (e) {
+      console.error(e);
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
     }
-    res.end(body);
-  } catch (e) {
-    console.error(e);
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
   }
-});
-server.listen(3000, "127.0.0.1", () => {
+);
+server.listen(3000, "0.0.0.0", () => {
   console.log(`--------- Server is running ----------`);
 });
