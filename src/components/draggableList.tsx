@@ -55,7 +55,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
             onEnd={() => {
               const d = theData.current!;
               const startIndex = d.index;
-              const pointY = d.pointY - offsetY.current!;
+              const pointY = d.pointY; //  - offsetY.current!;
               let endIndex = 0;
               let currentHeight = 0;
               let nextHeight = heights.current[endIndex]!;
@@ -149,7 +149,10 @@ function getPointY(event: TouchEvent | MouseEvent): number {
 
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   function handleTouchStart(es: TouchEvent | MouseEvent): void {
+    es.preventDefault();
+    heightRef.current = el.current!.clientHeight;
     function handleTouchMove(em: TouchEvent | MouseEvent): void {
+      em.preventDefault();
       const pointY = getPointY(em) + window.pageYOffset - shiftY;
       setY(pointY);
       props.onMove(pointY + Math.round(heightRef.current! / 2));
