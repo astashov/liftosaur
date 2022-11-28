@@ -1,10 +1,9 @@
 import { Program } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { ModalExercise } from "../modalExercise";
 import { useState, useRef } from "preact/hooks";
 import { EditProgram } from "../../models/editProgram";
-import { IconEdit } from "../icons/iconEdit";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
@@ -14,6 +13,9 @@ import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
 import { ISettings, IProgramDay, IProgramExercise, IEquipment, IUnit } from "../../types";
 import { IDeload, IProgression, Progression } from "../../models/progression";
+import { LinkButton } from "../linkButton";
+import { Input } from "../input";
+import { IconArrowUpCircle } from "../icons/iconArrowUpCircle";
 
 interface IProps {
   settings: ISettings;
@@ -39,7 +41,6 @@ function Edit(props: IProps): JSX.Element {
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
-  const inputClassName = `block w-full px-2 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
@@ -95,21 +96,15 @@ function Edit(props: IProps): JSX.Element {
   const [trigger, setTrigger] = useState<boolean>(false);
 
   return (
-    <div>
+    <div className="px-4">
       <MenuItem
         name="Exercise"
-        value={
-          <Fragment>
-            <button data-cy="select-exercise" className="px-4 align-middle" onClick={() => setShowModalExercise(true)}>
-              <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
-            </button>
-            <span>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</span>
-            <div className="text-xs text-blue-700 underline" onClick={() => setShowModalSubstitute(true)}>
-              Substitute
-            </div>
-          </Fragment>
-        }
+        onClick={() => setShowModalExercise(true)}
+        value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
       />
+      <LinkButton className="mb-4" onClick={() => setShowModalSubstitute(true)}>
+        Substitute Exercise
+      </LinkButton>
       <MenuItemEditable
         type="select"
         name="Equipment"
@@ -129,84 +124,75 @@ function Edit(props: IProps): JSX.Element {
       </MenuItemWrapper>
       <MenuItemWrapper name="sets-reps-weight">
         <section className="flex items-center py-1">
-          <div className="flex-1">
-            <label>
-              <div className="text-xs italic">Sets</div>
-              <input
-                data-cy="sets-input"
-                ref={setsRef}
-                type="number"
-                max={100}
-                min={1}
-                className={inputClassName}
-                placeholder="Sets"
-                value={sets.length}
-                onBlur={() => {
-                  EditProgram.updateSimpleExercise(
-                    props.dispatch,
-                    props.settings.units,
-                    getSetsNum(),
-                    getRepsNum(),
-                    getWeightNum()
-                  );
-                  setTrigger(!trigger);
-                }}
-              />
-            </label>
+          <div className="flex-1 min-w-0">
+            <Input
+              label="Sets"
+              data-cy="sets-input"
+              ref={setsRef}
+              type="tel"
+              max={100}
+              min={1}
+              placeholder="Sets"
+              value={sets.length}
+              onBlur={() => {
+                EditProgram.updateSimpleExercise(
+                  props.dispatch,
+                  props.settings.units,
+                  getSetsNum(),
+                  getRepsNum(),
+                  getWeightNum()
+                );
+                setTrigger(!trigger);
+              }}
+            />
           </div>
-          <div className="px-1 pt-3">x</div>
-          <div className="flex-1">
-            <label>
-              <div className="text-xs italic">Reps</div>
-              <input
-                data-cy="reps-input"
-                max={100}
-                min={1}
-                ref={repsRef}
-                type="number"
-                className={inputClassName}
-                placeholder="Reps"
-                value={reps.success ? reps.data : ""}
-                onBlur={() => {
-                  EditProgram.updateSimpleExercise(
-                    props.dispatch,
-                    props.settings.units,
-                    getSetsNum(),
-                    getRepsNum(),
-                    getWeightNum()
-                  );
-                  setTrigger(!trigger);
-                }}
-              />
-            </label>
+          <div className="px-1 pt-5">x</div>
+          <div className="flex-1 min-w-0">
+            <Input
+              label="Reps"
+              data-cy="reps-input"
+              max={100}
+              min={1}
+              ref={repsRef}
+              type="tel"
+              placeholder="Reps"
+              value={reps.success ? reps.data : ""}
+              onBlur={() => {
+                EditProgram.updateSimpleExercise(
+                  props.dispatch,
+                  props.settings.units,
+                  getSetsNum(),
+                  getRepsNum(),
+                  getWeightNum()
+                );
+                setTrigger(!trigger);
+              }}
+            />
           </div>
-          <div className="px-1 pt-3"></div>
-          <div className="flex-1">
-            <label>
-              <div className="text-xs italic">Weight</div>
-              <input
-                data-cy="weight-input"
-                max={2000}
-                min={0}
-                type="number"
-                ref={weightRef}
-                className={inputClassName}
-                placeholder="0"
-                value={weight.success ? weight.data.value : ""}
-                onBlur={() => {
-                  EditProgram.updateSimpleExercise(
-                    props.dispatch,
-                    props.settings.units,
-                    getSetsNum(),
-                    getRepsNum(),
-                    getWeightNum()
-                  );
-                  setTrigger(!trigger);
-                }}
-              />
-            </label>
+          <div className="px-1 pt-5"></div>
+          <div className="flex-1 min-w-0">
+            <Input
+              label="Weight"
+              data-cy="weight-input"
+              max={2000}
+              min={0}
+              type="tel"
+              ref={weightRef}
+              placeholder="0"
+              value={weight.success ? weight.data.value : ""}
+              onBlur={() => {
+                EditProgram.updateSimpleExercise(
+                  props.dispatch,
+                  props.settings.units,
+                  getSetsNum(),
+                  getRepsNum(),
+                  getWeightNum()
+                );
+                setTrigger(!trigger);
+              }}
+            />
           </div>
-          <span className="pt-3 pl-1">{settings.units}</span>
+          <span className="pt-5 pl-1">{settings.units}</span>
         </section>
       </MenuItemWrapper>
       <ProgressionView
@@ -214,8 +200,8 @@ function Edit(props: IProps): JSX.Element {
         dispatch={props.dispatch}
         finishDayExpr={programExercise.finishDayExpr}
       />
-      <div className="p-2 text-center">
-        <Button kind="green" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
+      <div className="p-2 mb-6 text-center">
+        <Button kind="orange" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
           Save
         </Button>
       </div>
@@ -304,8 +290,9 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
     <section>
       <MenuItemEditable
         type="boolean"
+        prefix={<IconArrowUpCircle className="mr-2" color="#38A169" />}
         isNameHtml={true}
-        name="&#x2B06&nbsp;&nbsp;Enable&nbsp;Progression"
+        name="Enable&nbsp;Progression"
         value={progression != null ? "true" : "false"}
         onChange={(v) => {
           const newProgression = progression == null ? { increment: 5, unit: settings.units, attempts: 1 } : undefined;
@@ -314,60 +301,63 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
       />
       {progression != null && (
         <MenuItemWrapper name="progression">
-          <span>Increase by </span>
-          <input
-            min="0"
-            max="100"
-            ref={progressionIncrementRef}
-            className={inputClassName}
-            type="text"
-            value={progression.increment}
-            onBlur={() => {
-              let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
-              value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
-              if (value != null) {
-                setProgression({ ...progression, increment: value });
-              }
-            }}
-          />
-          <select
-            ref={progressionUnitRef}
-            name="units"
-            onChange={() => {
-              const unit = progressionUnitRef.current.value as IUnit | "%";
-              if (unit != null) {
-                setProgression({ ...progression, unit });
-              }
-            }}
-          >
-            <option selected={progression.unit === settings.units} value={settings.units}>
-              {settings.units}
-            </option>
-            <option selected={progression.unit === "%"} value="%">
-              %
-            </option>
-          </select>
-          <span> after </span>
-          <input
-            ref={progressionAttemptsRef}
-            className={inputClassName}
-            type="number"
-            value={progression.attempts}
-            onBlur={() => {
-              let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
-              value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
-              if (value != null) {
-                setProgression({ ...progression, attempts: value });
-              }
-            }}
-          />
-          <span> successful attempts.</span>
+          <div className="py-2">
+            <span>Increase by </span>
+            <input
+              min="0"
+              max="100"
+              ref={progressionIncrementRef}
+              className={inputClassName}
+              type="text"
+              value={progression.increment}
+              onBlur={() => {
+                let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
+                value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
+                if (value != null) {
+                  setProgression({ ...progression, increment: value });
+                }
+              }}
+            />
+            <select
+              ref={progressionUnitRef}
+              name="units"
+              onChange={() => {
+                const unit = progressionUnitRef.current.value as IUnit | "%";
+                if (unit != null) {
+                  setProgression({ ...progression, unit });
+                }
+              }}
+            >
+              <option selected={progression.unit === settings.units} value={settings.units}>
+                {settings.units}
+              </option>
+              <option selected={progression.unit === "%"} value="%">
+                %
+              </option>
+            </select>
+            <span> after </span>
+            <input
+              ref={progressionAttemptsRef}
+              className={inputClassName}
+              type="number"
+              value={progression.attempts}
+              onBlur={() => {
+                let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
+                value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
+                if (value != null) {
+                  setProgression({ ...progression, attempts: value });
+                }
+              }}
+            />
+            <span> successful attempts.</span>
+          </div>
         </MenuItemWrapper>
       )}
       <MenuItemEditable
         type="boolean"
+        prefix={<IconArrowUpCircle className="mr-2" color="#E53E3E" style={{ transform: "rotate(180deg)" }} />}
         isNameHtml={true}
-        name="&#x2B07&nbsp;&nbsp;Enable&nbsp;Deload"
+        name="Enable Deload"
         value={deload != null ? "true" : "false"}
         onChange={(v) => {
           const newDeload = deload == null ? { decrement: 5, unit: settings.units, attempts: 1 } : undefined;
@@ -377,52 +367,54 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
       />
       {deload != null && (
         <MenuItemWrapper name="deload">
-          <span>Decrease by </span>
-          <input
-            ref={deloadDecrementsRef}
-            className={inputClassName}
-            type="text"
-            value={deload.decrement}
-            onBlur={() => {
-              let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
-              value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
-              if (value != null) {
-                setDeload({ ...deload, decrement: value });
-              }
-            }}
-          />
-          <select
-            ref={deloadUnitRef}
-            name="units"
-            onChange={() => {
-              const unit = deloadUnitRef.current.value as IUnit | "%";
-              if (unit != null) {
-                setDeload({ ...deload, unit });
-              }
-            }}
-          >
-            <option selected={deload.unit === settings.units} value={settings.units}>
-              {settings.units}
-            </option>
-            <option selected={deload.unit === "%"} value="%">
-              %
-            </option>
-          </select>
-          <span> after </span>
-          <input
-            ref={deloadFailuresRef}
-            className={inputClassName}
-            type="number"
-            value={deload.attempts}
-            onBlur={() => {
-              let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
-              value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
-              if (value != null) {
-                setDeload({ ...deload, attempts: value });
-              }
-            }}
-          />
-          <span> failed attempts.</span>
+          <div className="py-2">
+            <span>Decrease by </span>
+            <input
+              ref={deloadDecrementsRef}
+              className={inputClassName}
+              type="text"
+              value={deload.decrement}
+              onBlur={() => {
+                let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
+                value = isNaN(value) ? undefined : Math.max(0, Math.min(100, value));
+                if (value != null) {
+                  setDeload({ ...deload, decrement: value });
+                }
+              }}
+            />
+            <select
+              ref={deloadUnitRef}
+              name="units"
+              onChange={() => {
+                const unit = deloadUnitRef.current.value as IUnit | "%";
+                if (unit != null) {
+                  setDeload({ ...deload, unit });
+                }
+              }}
+            >
+              <option selected={deload.unit === settings.units} value={settings.units}>
+                {settings.units}
+              </option>
+              <option selected={deload.unit === "%"} value="%">
+                %
+              </option>
+            </select>
+            <span> after </span>
+            <input
+              ref={deloadFailuresRef}
+              className={inputClassName}
+              type="number"
+              value={deload.attempts}
+              onBlur={() => {
+                let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
+                value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));
+                if (value != null) {
+                  setDeload({ ...deload, attempts: value });
+                }
+              }}
+            />
+            <span> failed attempts.</span>
+          </div>
         </MenuItemWrapper>
       )}
     </section>

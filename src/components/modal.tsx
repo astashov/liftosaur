@@ -1,6 +1,6 @@
 import { h, ComponentChildren, JSX, RefObject } from "preact";
-import { IconClose } from "./icons/iconClose";
 import { useRef, useEffect } from "preact/hooks";
+import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 
 interface IProps {
   children: ComponentChildren;
@@ -49,9 +49,9 @@ export function Modal(props: IProps): JSX.Element {
             data-cy="modal-close"
             onClick={props.onClose}
             className="absolute p-2"
-            style={{ top: "1rem", right: "0.75rem" }}
+            style={{ top: "-3px", right: "-3px" }}
           >
-            <IconClose />
+            <IconCloseCircleOutline />
           </button>
         )}
       </div>

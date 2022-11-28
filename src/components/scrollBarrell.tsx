@@ -55,7 +55,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       className="relative overflow-hidden border-t border-grayv2-100"
       style={{
         transition: "height 150ms ease-in-out, visibility 150ms linear",
-        visibility: props.isExpanded ? "visible" : "hidden",
+        visibility: props.isExpanded ? "inherit" : "hidden",
         height: props.isExpanded ? `${height}px` : 0,
       }}
     >

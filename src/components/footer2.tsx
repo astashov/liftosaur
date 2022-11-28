@@ -4,13 +4,21 @@ import { IDispatch } from "../ducks/types";
 interface IFooterProps {
   dispatch: IDispatch;
   onCtaClick?: () => void;
-  leftButtons?: ComponentChildren;
-  rightButtons?: ComponentChildren;
+  leftButtons?: JSX.Element[];
+  rightButtons?: JSX.Element[];
   centerButtons?: ComponentChildren;
   ctaTitle?: string;
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
+  const leftButtons = [...(props.leftButtons || [])];
+  if (leftButtons.length === 1) {
+    leftButtons.push(<div className="w-16" />);
+  }
+  const rightButtons = [...(props.rightButtons || [])];
+  if (rightButtons.length === 1) {
+    rightButtons.push(<div className="w-16" />);
+  }
   return (
     <div
       className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
@@ -29,7 +37,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         style={{ minHeight: "70px", boxShadow: props.onCtaClick ? "" : "0px -10px 25px rgba(0, 0, 0, 0.05)" }}
       >
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
-          {props.leftButtons}
+          {leftButtons}
         </div>
         <div className="relative" style={{ width: "100px" }}>
           {props.onCtaClick != null ? (
@@ -51,7 +59,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           {props.centerButtons}
         </div>
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
-          {props.rightButtons}
+          {rightButtons}
         </div>
       </div>
     </div>

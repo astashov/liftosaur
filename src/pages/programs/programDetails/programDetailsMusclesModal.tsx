@@ -42,13 +42,7 @@ export function ProgramDetailsMusclesModal(props: IProps): JSX.Element {
       onClose={() => props.dispatch(lb<IProgramDetailsState>().p("muscles").record(undefined))}
     >
       <div style={{ maxWidth: "400px" }}>
-        <MusclesView
-          settings={props.settings}
-          points={points}
-          title={props.program.name}
-          headerTitle={headerTitle}
-          headerHelp={headerHelp}
-        />
+        <MusclesView settings={props.settings} points={points} title={props.program.name} headerHelp={headerHelp} />
       </div>
     </Modal>
   );

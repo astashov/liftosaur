@@ -60,6 +60,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     const isChanged = exercise == null || !dequal(editExercise, exercise);
     return (
       <EditProgramExercise
+        screenStack={props.screenStack}
         loading={props.loading}
         programIndex={props.programIndex}
         days={props.editProgram.days}

@@ -4,12 +4,13 @@ import { useState } from "preact/hooks";
 
 interface IProps {
   tabs: [string, ComponentChildren][];
+  defaultIndex?: number;
   onChange?: (newValue: string) => void;
 }
 
 export function Tabs2(props: IProps): JSX.Element {
   const { tabs, onChange } = props;
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
   return (
     <div>
       <div className="flex">

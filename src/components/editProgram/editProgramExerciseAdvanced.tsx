@@ -19,8 +19,7 @@ import { IconDelete } from "../icons/iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../icons/iconHandle";
 import { SemiButton } from "../semiButton";
-import { IconEdit } from "../icons/iconEdit";
-import { MenuItem, MenuItemWrapper } from "../menuItem";
+import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName, IExercise } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
@@ -42,6 +41,9 @@ import {
 } from "../../types";
 import { Playground } from "../playground";
 import { inputClassName } from "../input";
+import { LinkButton } from "../linkButton";
+import { IconTrash } from "../icons/iconTrash";
+import { IconHelp } from "../icons/iconHelp";
 
 interface IProps {
   settings: ISettings;
@@ -121,29 +123,23 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   ).map((e) => [e, equipmentName(e)]);
 
   return (
-    <div>
-      <p className="px-6 py-1 text-xs italic">
-        This is advanced exercise editing screen. It is very flexible, but you may want to read{" "}
-        <InternalLink href="/docs/docs.html" className="text-blue-700 underline">
-          Documentation
-        </InternalLink>{" "}
-        first to get familiar with the <strong>state variables</strong>, <strong>variations</strong> and{" "}
-        <strong>Liftoscript scripting language</strong>.
-      </p>
+    <div className="px-4">
+      <MenuItemEditable
+        type="text"
+        name="Name"
+        value={programExercise.name}
+        onChange={(newName) => {
+          EditProgram.changeExerciseName(props.dispatch, newName);
+        }}
+      />
       <MenuItem
         name="Exercise"
-        value={
-          <Fragment>
-            <button data-cy="select-exercise" className="px-4 align-middle" onClick={() => setShowModalExercise(true)}>
-              <IconEdit size={20} lineColor="#0D2B3E" penColor="#A5B3BB" />
-            </button>
-            <span>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</span>
-            <div className="text-xs text-blue-700 underline" onClick={() => setShowModalSubstitute(true)}>
-              Substitute
-            </div>
-          </Fragment>
-        }
+        onClick={() => setShowModalExercise(true)}
+        value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
       />
+      <LinkButton className="mb-4" onClick={() => setShowModalSubstitute(true)}>
+        Substitute Exercise
+      </LinkButton>
       <MenuItemEditable
         type="select"
         name="Equipment"
@@ -153,20 +149,17 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
-      <MenuItemWrapper name="exercise-image">
-        <ExerciseImage
-          key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
-          exerciseType={programExercise.exerciseType}
-          customExercises={props.settings.exercises}
-          size="large"
-        />
-      </MenuItemWrapper>
-      <MenuItemEditable
-        type="text"
-        name="Name"
-        value={programExercise.name}
-        onChange={(newName) => {
-          EditProgram.changeExerciseName(props.dispatch, newName);
+      <ExerciseImage
+        key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
+        exerciseType={programExercise.exerciseType}
+        customExercises={props.settings.exercises}
+        size="large"
+      />
+      <EditState
+        dispatch={props.dispatch}
+        programExercise={programExercise}
+        onAddStateVariable={() => {
+          setShouldShowAddStateVariable(true);
         }}
       />
       <Variations
@@ -182,13 +175,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           dispatch={props.dispatch}
         />
       )}
-      <EditState
-        dispatch={props.dispatch}
-        programExercise={programExercise}
-        onAddStateVariable={() => {
-          setShouldShowAddStateVariable(true);
-        }}
-      />
       <Sets
         variationIndex={variationIndex}
         settings={props.settings}
@@ -271,34 +257,46 @@ function Variations(props: IVariationsProps): JSX.Element {
   return (
     <Fragment>
       <GroupHeader
-        name="Variations"
+        topPadding={true}
+        name="Sets Variations"
         help={
           <span>
-            Variations allow you to use various <strong>sets x reps x weight</strong> schemes in exercises. It's useful
-            in some programs, e.g. in GZCLP program you follow 5x3, and if you fail it, you switch to 6x2 scheme. If you
-            don't need anything like that, please ignore it.
+            Sets variations allow you to use different <strong>sets x reps x weight</strong> schemes in exercises. It's
+            useful in some programs, e.g. in GZCLP program you follow 5x3, and if you fail it, you switch to 6x2 scheme.
+            If you don't need anything like that, please ignore it.
           </span>
         }
       />
       <MenuItemEditable
         type="select"
-        name="Variation"
+        name="Selected Variation"
         value={variationIndex.toString()}
         values={programExercise.variations.map((_, i) => [i.toString(), `Variation ${i + 1}`])}
         onChange={(newIndex) => {
           props.onChangeVariation(parseInt(newIndex!, 10));
         }}
       />
-      <div className="p-1">
-        <SemiButton
+      <div className="flex justify-between">
+        <LinkButton
           onClick={() => {
             EditProgram.addVariation(dispatch);
             props.onChangeVariation(props.variationIndex + 1);
           }}
         >
-          Add Variation +
-        </SemiButton>
+          Add New Variation
+        </LinkButton>
+        {programExercise.variations.length > 1 && (
+          <LinkButton
+            onClick={() => {
+              EditProgram.removeVariation(dispatch, props.variationIndex);
+              props.onChangeVariation(Math.max(variationIndex - 1, 0));
+            }}
+          >
+            Delete Current Variation
+          </LinkButton>
+        )}
       </div>
+      <div className="p-1"></div>
     </Fragment>
   );
 }
@@ -319,31 +317,25 @@ function Sets(props: ISetsProps): JSX.Element {
   return (
     <Fragment>
       <GroupHeader
-        name="Sets"
+        topPadding={true}
+        name={programExercise.variations.length > 1 ? `Sets of Variation ${variationIndex + 1}` : "Sets"}
         help={
           <span>
-            Sets, reps and weights of chosen <strong>Variation</strong>. Note that <strong>Reps</strong> and{" "}
-            <strong>Weight</strong> fields are Liftoscript scripts, and the returning value will be used for
-            reps/weight. <strong>AMRAP</strong> means "As Many Reps As Possible", i.e. you do as many reps as you can
-            for it.
+            Sets, reps and weights
+            {programExercise.variations.length > 1 && (
+              <span>
+                of chosen <strong>Variation</strong>
+              </span>
+            )}
+            . Note that <strong>Reps</strong> and <strong>Weight</strong> fields are Liftoscript scripts, and the
+            returning value will be used for reps/weight. <strong>AMRAP</strong> means "As Many Reps As Possible", i.e.
+            you do as many reps as you can for it.
           </span>
         }
       />
-      {programExercise.variations.length > 1 && (
-        <div className="px-1 pt-1 text-xs text-right bg-gray-100">
-          <Button
-            kind="red"
-            onClick={() => {
-              EditProgram.removeVariation(dispatch, variationIndex);
-              props.onRemoveVariation();
-            }}
-          >
-            Remove Variation
-          </Button>
-        </div>
-      )}
-      <ul className="relative z-10 p-1 text-sm bg-gray-100">
+      <ul className="relative z-10 mt-2 text-sm">
         <DraggableList
+          hideBorders={true}
           items={variation.sets}
           element={(set, setIndex, handleTouchStart) => (
             <SetFields
@@ -366,8 +358,8 @@ function Sets(props: ISetsProps): JSX.Element {
           }}
         />
       </ul>
-      <div className="px-1 pb-1 text-sm bg-gray-100">
-        <SemiButton onClick={() => EditProgram.addSet(dispatch, variationIndex)}>Add Set +</SemiButton>
+      <div>
+        <LinkButton onClick={() => EditProgram.addSet(dispatch, variationIndex)}>Add New Set</LinkButton>
       </div>
     </Fragment>
   );
@@ -429,67 +421,91 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
   const weightResult = validate(set.weightExpr.trim(), "weight");
 
   return (
-    <li className="relative px-12 py-1 mb-1 bg-white border border-gray-400 rounded-md">
-      <div className="absolute" style={{ touchAction: "none", top: 12, left: 12 }}>
-        <span className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
-          <IconHandle />
-        </span>
-      </div>
-      <div className="flex">
+    <li className="relative pb-2">
+      <div className="flex p-1 select-none bg-purplev2-100 rounded-2xl">
+        <div className="flex flex-col items-center pt-2">
+          <div className="flex items-center justify-center w-6 h-6 font-bold border rounded-full border-grayv2-main text-grayv2-main">
+            {props.setIndex + 1}
+          </div>
+          <div className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
+            <IconHandle />
+          </div>
+        </div>
+        <div className="flex flex-col flex-1">
+          <div className="flex">
+            <div className="flex-1">
+              <OneLineTextEditor
+                label="Reps"
+                name="reps"
+                state={state}
+                value={set.repsExpr}
+                result={repsResult}
+                onChange={(value) => {
+                  EditProgram.setReps(
+                    props.dispatch,
+                    value,
+                    propsRef.current.variationIndex,
+                    propsRef.current.setIndex
+                  );
+                }}
+              />
+            </div>
+            <div className="px-4 pt-2">
+              <label className="text-center">
+                <div>
+                  <input
+                    checked={set.isAmrap}
+                    className="block checkbox text-bluev2"
+                    id="variation-0-amrap"
+                    type="checkbox"
+                    onChange={(e) => {
+                      EditProgram.setAmrap(
+                        props.dispatch,
+                        e.currentTarget.checked,
+                        props.variationIndex,
+                        props.setIndex
+                      );
+                    }}
+                  />
+                </div>
+                <div className="text-xs leading-none">
+                  <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
+                  <button className="align-middle" onClick={() => alert("As Many Reps As Possible.")}>
+                    <IconHelp size={12} color="#607284" />
+                  </button>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div className="mt-2">
+            <OneLineTextEditor
+              label="Weight"
+              name="weight"
+              state={state}
+              value={set.weightExpr}
+              result={weightResult}
+              onChange={(value) => {
+                EditProgram.setWeight(
+                  props.dispatch,
+                  value,
+                  propsRef.current.variationIndex,
+                  propsRef.current.setIndex
+                );
+              }}
+            />
+          </div>
+        </div>
         {props.isDeleteEnabled && (
-          <button
-            className="absolute p-3"
-            style={{ top: 0, right: 0 }}
-            onClick={() => EditProgram.removeSet(props.dispatch, props.variationIndex, props.setIndex)}
-          >
-            <IconDelete />
-          </button>
-        )}
-        <div className="flex-1 pr-4 overflow-x-auto">
-          <label for="variation-0-reps" className="font-bold">
-            Reps
-          </label>
-          <OneLineTextEditor
-            name="reps"
-            state={state}
-            value={set.repsExpr}
-            result={repsResult}
-            onChange={(value) => {
-              EditProgram.setReps(props.dispatch, value, propsRef.current.variationIndex, propsRef.current.setIndex);
-            }}
-          />
-        </div>
-        <div>
-          <label className="font-bold" for="variation-0-amrap">
-            AMRAP{" "}
-            <button onClick={() => alert("As Many Reps As Possible.")}>
-              <IconQuestion width={12} height={12} />
+          <div>
+            <button
+              className="p-3"
+              style={{ top: 0, right: 0 }}
+              onClick={() => EditProgram.removeSet(props.dispatch, props.variationIndex, props.setIndex)}
+            >
+              <IconTrash />
             </button>
-          </label>
-          <input
-            checked={set.isAmrap}
-            className="block"
-            id="variation-0-amrap"
-            type="checkbox"
-            onChange={(e) => {
-              EditProgram.setAmrap(props.dispatch, e.currentTarget.checked, props.variationIndex, props.setIndex);
-            }}
-          />
-        </div>
-      </div>
-      <div className="mt-2">
-        <label for="variation-0-weight" className="font-bold">
-          Weight
-        </label>
-        <OneLineTextEditor
-          name="weight"
-          state={state}
-          value={set.weightExpr}
-          result={weightResult}
-          onChange={(value) => {
-            EditProgram.setWeight(props.dispatch, value, propsRef.current.variationIndex, propsRef.current.setIndex);
-          }}
-        />
+          </div>
+        )}
       </div>
     </li>
   );
@@ -546,6 +562,7 @@ function EditWarmupSets(props: IEditWarmupSetsProps): JSX.Element {
   return (
     <section>
       <GroupHeader
+        topPadding={true}
         name="Warmup Sets"
         help={
           <p>
@@ -688,8 +705,9 @@ function EditState(props: IStateProps): JSX.Element {
   const state = props.programExercise.state;
 
   return (
-    <section>
+    <section className="px-4 py-2 mt-2 bg-purple-100 rounded-2xl">
       <GroupHeader
+        topPadding={false}
         name="State Variables"
         help={
           <span>
@@ -705,6 +723,7 @@ function EditState(props: IStateProps): JSX.Element {
         return (
           <MenuItemEditable
             name={stateKey}
+            isNameBold={true}
             type="number"
             value={displayValue.toString()}
             valueUnits={Weight.is(value) ? value.unit : undefined}
@@ -716,7 +735,7 @@ function EditState(props: IStateProps): JSX.Element {
         );
       })}
       <div className="p-1">
-        <SemiButton onClick={props.onAddStateVariable}>Add Variable +</SemiButton>
+        <LinkButton onClick={props.onAddStateVariable}>Add State Variable</LinkButton>
       </div>
     </section>
   );

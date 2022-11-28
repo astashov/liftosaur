@@ -6,7 +6,6 @@ import { IDispatch } from "../ducks/types";
 import { GroupHeader } from "./groupHeader";
 import { DraggableList } from "./draggableList";
 import { IconHandle } from "./icons/iconHandle";
-import { IconDelete } from "./icons/iconDelete";
 import { EditGraphs } from "../models/editGraphs";
 import { IExerciseId, IGraph, ISettings, IStats, IStatsKey } from "../types";
 import { MenuItem } from "./menuItem";

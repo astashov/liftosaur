@@ -87,7 +87,7 @@ const ExercisesList = forwardRef(
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 mb-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+          className="block w-full px-4 py-2 mb-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           placeholder="Filter"
           onInput={() => {
@@ -111,7 +111,7 @@ const ExercisesList = forwardRef(
               >
                 <section className="flex items-center">
                   <button
-                    className="button px-3 py-4"
+                    className="px-3 py-4 button"
                     data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
                     onClick={(event) => {
                       event.preventDefault();
@@ -123,7 +123,7 @@ const ExercisesList = forwardRef(
                   </button>
                   <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
                   <button
-                    className="button px-1 py-4"
+                    className="px-1 py-4 button"
                     data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
                     onClick={(event) => {
                       event.preventDefault();
@@ -242,7 +242,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
       <div class="py-4 flex">
         <div class="flex-1">
           <Button
-            kind="gray"
+            kind="grayv2"
             data-cy="custom-exercise-cancel"
             onClick={(e) => {
               e.preventDefault();
@@ -254,7 +254,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
         </div>
         <div class="flex-1 text-right">
           <Button
-            kind="green"
+            kind="orange"
             data-cy="custom-exercise-create"
             onClick={(e) => {
               e.preventDefault();

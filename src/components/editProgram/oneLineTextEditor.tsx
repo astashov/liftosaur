@@ -7,6 +7,7 @@ import { IWeight, IProgramState } from "../../types";
 
 interface IProps {
   name: string;
+  label?: string;
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   value?: string;
@@ -31,7 +32,12 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   }, []);
 
   let className =
-    "focus:outline-none focus:shadow-outline relative z-10 block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none";
+    "relative z-10 block w-full px-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+  if (props.label) {
+    className += " pt-4";
+  } else {
+    className += " py-2";
+  }
   if (props.result != null && !props.result.success) {
     className += " border-red-300";
   } else {
@@ -39,7 +45,12 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   }
 
   return (
-    <div>
+    <div className="relative">
+      {props.label && (
+        <label className="absolute z-20 text-xs text-grayv2-main" style={{ top: "4px", left: "0.75rem" }}>
+          {props.label}
+        </label>
+      )}
       <div data-cy={`oneline-editor-${props.name}`} className={className} ref={divRef}></div>
       {props.result && <EvalResultInEditor result={props.result} />}
     </div>

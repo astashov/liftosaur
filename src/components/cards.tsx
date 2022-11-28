@@ -3,7 +3,6 @@ import { ExerciseView } from "./exercise";
 import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { Timer } from "./timer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise } from "../types";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";

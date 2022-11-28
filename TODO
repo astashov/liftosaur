@@ -43,10 +43,11 @@
   - variable
 
 - When you duplicate the exercise, it uses old one as a template
-- There's 'Use another exercise as a template' select box at the top of "Advanced" tab
+- There's 'Use another exercise as a template select box at the top of "Advanced" tab
 - If exercise template is selected, all the rest exercises
 
-
 ## Broken experiences
-* Share on workout
-* Friends on workout
+
+- Share on workout
+- Friends on workout
+- Barrell selection

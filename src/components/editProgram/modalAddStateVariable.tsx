@@ -1,7 +1,10 @@
 import { h, JSX } from "preact";
 import { Modal } from "../modal";
 import { Button } from "../button";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
+import { GroupHeader } from "../groupHeader";
+import { MenuItemEditable } from "../menuItemEditable";
+import { Input } from "../input";
 
 interface IProps {
   onDone: (newValue?: string, newType?: string) => void;
@@ -10,57 +13,53 @@ interface IProps {
 
 export function ModalAddStateVariable(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>();
-  const typeInput = useRef<HTMLSelectElement>();
+  const [type, setType] = useState("");
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold text-center">Add State Variable</h3>
+    <Modal
+      isFullWidth={true}
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.onDone()}
+    >
+      <GroupHeader size="large" topPadding={false} name="Add State Variable" />
       <form onSubmit={(e) => e.preventDefault()}>
-        <label for="add_state_variable" className="block text-sm font-bold">
-          Variable Name
-        </label>
-        <input
+        <Input
+          label="Variable Name"
           data-cy="modal-add-state-variable-input-name"
           id="add_state_variable"
           ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          value=""
+          defaultValue=""
           type="text"
           autofocus
         />
-        <div className="flex my-4">
-          <label for="add_state_variable_type" className="text-sm font-bold">
-            Variable Type:
-          </label>
-          <select
-            data-cy="modal-add-state-variable-input-type"
-            ref={typeInput}
-            id="add_state_variable_type"
-            className="flex-1 ml-4 text-gray-700"
-          >
-            {[
-              ["", "number"],
-              ["kg", "kg"],
-              ["lb", "lb"],
-            ].map(([key, value]) => (
-              <option value={key}>{value}</option>
-            ))}
-          </select>
-        </div>
-        <div className="mt-4 text-right">
-          <Button
-            data-cy="modal-add-state-variable-cancel"
-            type="button"
-            kind="gray"
-            className="mr-3"
-            onClick={() => props.onDone()}
-          >
+        <MenuItemEditable
+          type="select"
+          values={[
+            ["", "number"],
+            ["kg", "kg"],
+            ["lb", "lb"],
+          ]}
+          value={type}
+          onChange={(v) => {
+            if (v != null) {
+              setType(v);
+            }
+          }}
+          name="Variable Type"
+          data-cy="modal-add-state-variable-input-type"
+        />
+        <div className="flex justify-between mt-4">
+          <Button data-cy="modal-add-state-variable-cancel" type="button" kind="grayv2" onClick={() => props.onDone()}>
             Cancel
           </Button>
           <Button
             data-cy="modal-add-state-variable-submit"
-            kind="green"
+            kind="orange"
             type="submit"
-            onClick={() => props.onDone(textInput.current!.value, typeInput.current!.value)}
+            onClick={() => {
+              props.onDone(textInput.current!.value, type);
+            }}
           >
             Add
           </Button>

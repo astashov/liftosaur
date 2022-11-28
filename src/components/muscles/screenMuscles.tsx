@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
 import { IPoints } from "../../models/muscle";
 import { ISettings } from "../../types";
@@ -7,12 +7,8 @@ import { MusclesView } from "./musclesView";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { IScreen } from "../../models/screen";
-import { IconCog2 } from "../icons/iconCog2";
-import { FooterButton } from "../footerButton";
-import { IconGraphs2 } from "../icons/iconGraphs2";
-import { Thunk } from "../../ducks/thunks";
 import { Footer2View } from "../footer2";
-import { RightFooterButtons } from "../rightFooterButtons";
+import { rightFooterButtons } from "../rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -37,7 +33,7 @@ export function ScreenMuscles(props: IProps): JSX.Element {
           onHelpClick={() => {}}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={<RightFooterButtons dispatch={props.dispatch} />} />}
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
     >
       <MusclesView title={props.title} headerHelp={props.headerHelp} points={props.points} settings={props.settings} />
     </Surface>

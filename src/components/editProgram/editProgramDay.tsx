@@ -5,10 +5,6 @@ import { EditProgram } from "../../models/editProgram";
 import { DraggableList } from "../draggableList";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
-import { IconCheck } from "../icons/iconCheck";
-import { IconDelete } from "../icons/iconDelete";
-import { IconEdit } from "../icons/iconEdit";
-import { SemiButton } from "../semiButton";
 import { Thunk } from "../../ducks/thunks";
 import { ISettings, IProgram, IProgramDay } from "../../types";
 import { ILoading } from "../../models/state";
@@ -17,7 +13,7 @@ import { NavbarView } from "../navbar";
 import { IScreen } from "../../models/screen";
 import { Footer2View } from "../footer2";
 import { FooterButton } from "../footerButton";
-import { RightFooterButtons } from "../rightFooterButtons";
+import { rightFooterButtons } from "../rightFooterButtons";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEditSquare } from "../icons/iconEditSquare";
@@ -61,14 +57,14 @@ export function EditProgramDay(props: IProps): JSX.Element {
       footer={
         <Footer2View
           dispatch={props.dispatch}
-          leftButtons={
+          leftButtons={[
             <FooterButton
               icon={<IconMuscles2 />}
               text="Muscles"
               onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
-            />
-          }
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
+            />,
+          ]}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
         />
       }
     >

@@ -1,5 +1,6 @@
 import { h, JSX, Ref } from "preact";
 import { forwardRef, useState, useCallback } from "preact/compat";
+import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
@@ -9,6 +10,7 @@ export type IValidationError = "required" | "pattern-mismatch";
 
 export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
   label: string;
+  identifier?: string;
   multiline?: number;
   defaultValue?: number | string;
   labelSize?: "xs" | "sm";
@@ -21,6 +23,7 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
 export const Input = forwardRef(
   (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
     const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+    const identifier = props.identifier || StringUtils.dashcase(label.toLowerCase());
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
 
     const onFocusHandler = useCallback(
@@ -87,7 +90,7 @@ export const Input = forwardRef(
     const labelSize = props.labelSize || "sm";
     return (
       <div className={containerClassName}>
-        <label className={className} style={{ minHeight: "3.5rem" }}>
+        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "3.5rem" }}>
           <div className="relative mx-4 my-1">
             <div
               className={`relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
@@ -98,19 +101,21 @@ export const Input = forwardRef(
             <div className="relative flex" style={{ top: "2px", left: "0" }}>
               {props.multiline ? (
                 <textarea
+                  data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLTextAreaElement>}
                   onBlur={onBlurHandler}
                   onFocus={onFocusHandler}
-                  className="flex-1 border-none focus:outline-none"
+                  className="flex-1 min-w-0 border-none focus:outline-none"
                   style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
                   {...otherProps}
                 />
               ) : (
                 <input
+                  data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLInputElement>}
                   onBlur={onBlurHandler}
                   onFocus={onFocusHandler}
-                  className="flex-1 border-none focus:outline-none"
+                  className="flex-1 min-w-0 border-none focus:outline-none"
                   style={{ fontSize: "16px" }}
                   {...otherProps}
                 />

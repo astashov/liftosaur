@@ -18,8 +18,6 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { FooterButton } from "../footerButton";
-import { IconCog2 } from "../icons/iconCog2";
-import { IconGraphs2 } from "../icons/iconGraphs2";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
@@ -31,7 +29,7 @@ import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
-import { RightFooterButtons } from "../rightFooterButtons";
+import { rightFooterButtons } from "../rightFooterButtons";
 
 interface IProps {
   editProgram: IProgram;
@@ -67,14 +65,14 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       footer={
         <Footer2View
           dispatch={props.dispatch}
-          leftButtons={
+          leftButtons={[
             <FooterButton
               icon={<IconMuscles2 />}
               text="Muscles"
               onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
-            />
-          }
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
+            />,
+          ]}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
         />
       }
       addons={
@@ -122,7 +120,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             }
           }}
         />
-        <GroupHeader name="Days" help={<span>Add exercises to days so they appear in workouts.</span>} />
+        <GroupHeader
+          topPadding={true}
+          name="Days"
+          help={<span>Add exercises to days so they appear in workouts.</span>}
+        />
         <DraggableList
           onDragEnd={(startIndex, endIndex) => {
             EditProgram.reorderDays(props.dispatch, props.programIndex, startIndex, endIndex);

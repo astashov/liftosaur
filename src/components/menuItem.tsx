@@ -43,7 +43,7 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
         <div className="flex items-center justify-center">{props.prefix}</div>
         <div className="flex-1">
           <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
-          <div className="pb-3">{props.addons}</div>
+          <div className="pb-2">{props.addons}</div>
         </div>
         <div className="flex-1 text-right text-bluev2">{props.value}</div>
         {props.shouldShowRightArrow && (

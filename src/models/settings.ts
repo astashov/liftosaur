@@ -4,6 +4,11 @@ import { Weight } from "./weight";
 export namespace Settings {
   export function build(): ISettings {
     return {
+      graphsSettings: {
+        isSameXAxis: false,
+        isWithBodyweight: false,
+        isWithOneRm: true,
+      },
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {} },
       equipment: {

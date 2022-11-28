@@ -1,14 +1,15 @@
-import { h, JSX, Fragment } from "preact";
-import { IconDelete } from "./icons/iconDelete";
+import { h, JSX, Fragment, ComponentChildren } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
+import { IconTrash } from "./icons/iconTrash";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean";
 
 interface IMenuItemEditableValueProps {
   name: string;
+  prefix?: ComponentChildren;
   type: IMenuItemType;
   value: string | null;
   valueUnits?: string;
@@ -19,6 +20,7 @@ interface IMenuItemEditableValueProps {
 }
 
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
+  isNameBold?: boolean;
   hasClear?: boolean;
   after?: JSX.Element;
   nextLine?: JSX.Element;
@@ -36,7 +38,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   return (
     <MenuItemWrapper name={props.name}>
       <label
-        className="flex flex-col flex-1 py-3 text-base"
+        className="flex flex-col flex-1 py-1 text-base"
         onClick={(e) => {
           const target = e.target as HTMLElement;
           if (props.type === "select" && !target.classList.contains("scroll-barrel-item")) {
@@ -44,10 +46,11 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           }
         }}
       >
-        <div className="flex flex-1">
+        <div className="flex items-center flex-1">
+          {props.prefix}
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className="flex items-center flex-1"
+            className={`flex items-center flex-1 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
             {props.isNameHtml ? "" : props.name}
@@ -71,7 +74,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               onClick={() => props.onChange && props.onChange(undefined)}
               className="p-2"
             >
-              <IconDelete />
+              <IconTrash />
             </button>
           )}
           {props.after != null ? props.after : undefined}
@@ -104,14 +107,14 @@ function MenuItemValue(
 ): JSX.Element | null {
   if (props.type === "select") {
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
-    return <div className="flex-1 pr-2 text-right text-bluev2">{keyValue && keyValue[1]}</div>;
+    return <div className="flex-1 py-2 pr-2 text-right text-bluev2">{keyValue && keyValue[1]}</div>;
   } else if (props.type === "text") {
     return (
       <input
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 text-right text-bluev2"
+        className="flex-1 py-2 text-right bg-transparent text-bluev2"
         value={props.value || undefined}
         title={props.patternMessage}
         onBlur={handleChange(props.onChange, props.setPatternError)}
@@ -130,7 +133,7 @@ function MenuItemValue(
   } else if (props.type === "boolean") {
     return (
       <div className="flex items-center flex-1 text-right">
-        <label className="flex items-center justify-end flex-1 ">
+        <label className="flex items-center justify-end flex-1 p-2">
           <input
             data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
             key={props.value}
@@ -154,10 +157,19 @@ function MenuItemValue(
           data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
           key={props.value}
           onBlur={handleChange(props.onChange, props.setPatternError)}
-          type="number"
+          type="tel"
           step="0.01"
+          onFocus={(e) => {
+            const target = e.target;
+            if (target instanceof HTMLInputElement) {
+              const value = (target as HTMLInputElement).value;
+              target.setSelectionRange(0, value.length);
+              return true;
+            }
+            return undefined;
+          }}
           title={props.patternMessage}
-          className="items-center flex-1 w-0 min-w-0 p-2 text-right outline-none text-grayv2-700"
+          className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-grayv2-700"
           value={props.value || undefined}
           pattern={props.pattern}
         />

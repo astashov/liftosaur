@@ -8,6 +8,7 @@ interface IData {
 
 interface IDraggableListProps<T> {
   items: T[];
+  hideBorders?: boolean;
   element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   onDragEnd: (startIndex: number, endIndex: number) => void;
 }
@@ -24,11 +25,12 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
   }, []);
 
   return (
-    <div ref={elWrapper}>
+    <div className="relative" ref={elWrapper}>
       {props.items.map((e, i) => (
         <Fragment>
           <DropTarget index={i} heights={heights.current} data={theData.current} />
           <DraggableListItem
+            hideBorders={props.hideBorders}
             isDragging={!!theData.current}
             element={props.element}
             onHeightCalc={(hght) => (heights.current[i] = hght)}
@@ -125,6 +127,7 @@ function DropTarget({
 }
 
 interface IDraggableListItemProps<T> {
+  hideBorders?: boolean;
   isDragging: boolean;
   onStart: (pointY: number) => void;
   onMove: (pointY: number) => void;
@@ -150,8 +153,10 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       const pointY = getPointY(em) + window.pageYOffset - shiftY;
       setY(pointY);
       props.onMove(pointY + Math.round(heightRef.current! / 2));
-      window.document.addEventListener("touchend", handleTouchEnd);
-      window.document.addEventListener("mouseup", handleTouchEnd);
+      if (statusRef.current !== "move") {
+        window.document.addEventListener("touchend", handleTouchEnd);
+        window.document.addEventListener("mouseup", handleTouchEnd);
+      }
       statusRef.current = "move";
     }
     function handleTouchEnd(): void {
@@ -215,7 +220,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       transform: `translateY(${y}px)`,
       zIndex: 100,
       left: 0,
-      borderWidth: "1px 0",
+      borderWidth: props.hideBorders ? "0" : "1px 0",
       touchAction: "none",
       position: "absolute",
       width: "100%",

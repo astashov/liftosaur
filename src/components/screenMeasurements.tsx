@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { IScreen } from "../models/screen";
 import { IStats, ISettings } from "../types";
 import { ILoading } from "../models/state";
@@ -8,11 +8,9 @@ import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { FooterButton } from "./footerButton";
 import { Thunk } from "../ducks/thunks";
-import { IconCog2 } from "./icons/iconCog2";
-import { IconGraphs2 } from "./icons/iconGraphs2";
 import { StatsList } from "./statsList";
 import { IconDumbbell } from "./icons/iconDumbbell";
-import { RightFooterButtons } from "./rightFooterButtons";
+import { rightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -41,14 +39,14 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           onCtaClick={() => props.dispatch(Thunk.pushScreen("stats"))}
           ctaTitle="New Measure"
-          leftButtons={
+          leftButtons={[
             <FooterButton
               icon={<IconDumbbell />}
               text="Workouts"
               onClick={() => props.dispatch(Thunk.pushScreen("main"))}
-            />
-          }
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
+            />,
+          ]}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
         />
       }
     >

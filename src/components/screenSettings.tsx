@@ -18,11 +18,8 @@ import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { IScreen } from "../models/screen";
-import { FooterButton } from "./footerButton";
-import { IconGraphs2 } from "./icons/iconGraphs2";
-import { IconCog2 } from "./icons/iconCog2";
 import { GroupHeader } from "./groupHeader";
-import { RightFooterButtons } from "./rightFooterButtons";
+import { rightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -50,7 +47,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
       footer={
         <Footer2View
           dispatch={props.dispatch}
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} active="settings" />}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch, active: "settings" })}
         />
       }
     >

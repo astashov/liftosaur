@@ -1,8 +1,7 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
 import { History } from "../models/history";
-import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
@@ -12,11 +11,9 @@ import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IconCog2 } from "./icons/iconCog2";
-import { FooterButton } from "./footerButton";
 import { Footer2View } from "./footer2";
-import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IScreen } from "../models/screen";
-import { RightFooterButtons } from "./rightFooterButtons";
+import { rightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -95,7 +92,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
       footer={
         <Footer2View
           dispatch={props.dispatch}
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} active="graphs" />}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch, active: "graphs" })}
         />
       }
       addons={

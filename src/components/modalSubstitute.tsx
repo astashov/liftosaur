@@ -26,7 +26,7 @@ export function ModalSubstitute(props: IModalDateProps): JSX.Element {
 
   return (
     <Modal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
-      <h2 className="text-xl font-bold">Select exercise substitute</h2>
+      <h2 className="text-lg font-bold">Select exercise substitute</h2>
       <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one</p>
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
         <div className="p-4 my-2 bg-gray-200">

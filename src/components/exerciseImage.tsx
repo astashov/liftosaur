@@ -51,11 +51,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   );
 }
 
-function ExerciseImageAuxiliary(props: {
-  isError: boolean;
-  isLoading: boolean;
-  size: "large" | "small";
-}): JSX.Element | null {
+function ExerciseImageAuxiliary(props: { isError: boolean; isLoading: boolean }): JSX.Element | null {
   if (props.isError) {
     return (
       <ExerciseNoImage>

@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
@@ -13,10 +13,8 @@ import { Footer2View } from "./footer2";
 import { IconDoc } from "./icons/iconDoc";
 import { IconRuler } from "./icons/iconRuler";
 import { FooterButton } from "./footerButton";
-import { IconGraphs2 } from "./icons/iconGraphs2";
-import { IconCog2 } from "./icons/iconCog2";
 import { Progress } from "../models/progress";
-import { RightFooterButtons } from "./rightFooterButtons";
+import { rightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   program: IProgram;
@@ -81,21 +79,19 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
           ctaTitle={Progress.isCurrent(nextHistoryRecord) ? "Continue Workout" : "Start Workout"}
-          leftButtons={
-            <>
-              <FooterButton
-                icon={<IconDoc />}
-                text="Program"
-                onClick={() => Program.editAction(dispatch, props.program.id)}
-              />
-              <FooterButton
-                icon={<IconRuler />}
-                text="Measures"
-                onClick={() => dispatch(Thunk.pushScreen("measurements"))}
-              />
-            </>
-          }
-          rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
+          leftButtons={[
+            <FooterButton
+              icon={<IconDoc />}
+              text="Program"
+              onClick={() => Program.editAction(dispatch, props.program.id)}
+            />,
+            <FooterButton
+              icon={<IconRuler />}
+              text="Measures"
+              onClick={() => dispatch(Thunk.pushScreen("measurements"))}
+            />,
+          ]}
+          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
         />
       }
     >

@@ -29,8 +29,6 @@ import { IScreen } from "../models/screen";
 import { FooterButton } from "./footerButton";
 import { IconDoc } from "./icons/iconDoc";
 import { IconMuscles2 } from "./icons/iconMuscles2";
-import { IconGraphs2 } from "./icons/iconGraphs2";
-import { IconCog2 } from "./icons/iconCog2";
 import { IconTrash } from "./icons/iconTrash";
 import { Timer } from "./timer";
 import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
@@ -38,7 +36,7 @@ import { ModalHelpWorkout } from "./modalHelpWorkout";
 import { lb } from "lens-shmens";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
-import { RightFooterButtons } from "./rightFooterButtons";
+import { rightFooterButtons } from "./rightFooterButtons";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -117,23 +115,23 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
         footer={
           <Footer2View
             dispatch={props.dispatch}
-            leftButtons={
-              <>
-                {Progress.isCurrent(props.progress) ? (
-                  <FooterButton
-                    icon={<IconDoc />}
-                    text="Edit Day"
-                    onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
-                  />
-                ) : null}
-                <FooterButton
-                  icon={<IconMuscles2 />}
-                  onClick={() => dispatch(Thunk.pushScreen("musclesDay"))}
-                  text="Muscles"
-                />
-              </>
-            }
-            rightButtons={<RightFooterButtons dispatch={props.dispatch} />}
+            leftButtons={[
+              ...(Progress.isCurrent(props.progress)
+                ? [
+                    <FooterButton
+                      icon={<IconDoc />}
+                      text="Edit Day"
+                      onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
+                    />,
+                  ]
+                : []),
+              <FooterButton
+                icon={<IconMuscles2 />}
+                onClick={() => dispatch(Thunk.pushScreen("musclesDay"))}
+                text="Muscles"
+              />,
+            ]}
+            rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
             centerButtons={
               <RestTimer
                 mode={props.timerMode ?? "workout"}
