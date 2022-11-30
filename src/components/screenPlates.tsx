@@ -1,18 +1,21 @@
 import { h, JSX } from "preact";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
 import { ISettings } from "../types";
 import { ILoading, IState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { ILensDispatchSimple } from "../utils/useLensReducer";
+import { Surface } from "./surface";
+import { NavbarView } from "./navbar";
+import { Footer2View } from "./footer2";
+import { rightFooterButtons } from "./rightFooterButtons";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   loading: ILoading;
+  screenStack: IScreen[];
 }
 
 function dispatch(originalDispatch: IDispatch): ILensDispatchSimple<IState> {
@@ -23,19 +26,25 @@ function dispatch(originalDispatch: IDispatch): ILensDispatchSimple<IState> {
 
 export function ScreenPlates(props: IProps): JSX.Element {
   return (
-    <section className="h-full">
-      <HeaderView
-        title="Equipment Settings"
-        left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>}
-      />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          screenStack={props.screenStack}
+          title="Equipment Settings"
+          onHelpClick={() => {}}
+        />
+      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+    >
+      <section className="px-4">
         <EquipmentSettings
           lensPrefix={lb<IState>().p("storage").p("settings").get()}
           dispatch={dispatch(props.dispatch)}
           settings={props.settings}
         />
       </section>
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
-    </section>
+    </Surface>
   );
 }

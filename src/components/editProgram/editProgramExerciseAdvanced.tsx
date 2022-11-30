@@ -15,15 +15,12 @@ import { ModalAddStateVariable } from "./modalAddStateVariable";
 import { IEither } from "../../utils/types";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
-import { IconDelete } from "../icons/iconDelete";
 import { DraggableList } from "../draggableList";
 import { IconHandle } from "../icons/iconHandle";
-import { SemiButton } from "../semiButton";
 import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName, IExercise } from "../../models/exercise";
 import { InternalLink } from "../../internalLink";
-import { IconQuestion } from "../icons/iconQuestion";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
 import {

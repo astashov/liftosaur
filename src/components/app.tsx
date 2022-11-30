@@ -245,7 +245,14 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "plates") {
-    content = <ScreenPlates loading={state.loading} dispatch={dispatch} settings={state.storage.settings} />;
+    content = (
+      <ScreenPlates
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs

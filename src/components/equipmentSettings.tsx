@@ -5,8 +5,6 @@ import { ISettings, IEquipmentData, IEquipment } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
-import { SemiButton } from "./semiButton";
-import { IconDelete } from "./icons/iconDelete";
 import { StringUtils } from "../utils/string";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
@@ -14,6 +12,8 @@ import { ModalPlates } from "./modalPlates";
 import { ModalNewFixedWeight } from "./modalNewFixedWeight";
 import { useState } from "preact/hooks";
 import { ILensDispatchSimple } from "../utils/useLensReducer";
+import { LinkButton } from "./linkButton";
+import { IconTrash } from "./icons/iconTrash";
 
 interface IProps<T> {
   dispatch: ILensDispatchSimple<T>;
@@ -28,20 +28,22 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
   );
   return (
     <>
-      {ObjectUtils.keys(props.settings.equipment).map((bar) => {
+      {ObjectUtils.keys(props.settings.equipment).map((bar, i) => {
         const equipmentData = props.settings.equipment[bar];
         if (equipmentData) {
           return (
-            <EquipmentSettingsContent
-              key={bar}
-              lensPrefix={props.lensPrefix}
-              dispatch={props.dispatch}
-              equipment={bar}
-              setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
-              setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
-              equipmentData={equipmentData}
-              settings={props.settings}
-            />
+            <div className={i !== 0 ? "mt-6" : ""}>
+              <EquipmentSettingsContent
+                key={bar}
+                lensPrefix={props.lensPrefix}
+                dispatch={props.dispatch}
+                equipment={bar}
+                setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
+                setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
+                equipmentData={equipmentData}
+                settings={props.settings}
+              />
+            </div>
           );
         } else {
           return undefined;
@@ -105,7 +107,7 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   return (
     <div>
-      <GroupHeader name={StringUtils.capitalize(props.equipment)}>
+      <GroupHeader size="large" name={StringUtils.capitalize(props.equipment)}>
         <MenuItemEditable
           name="Is Fixed Weight"
           type="boolean"
@@ -157,8 +159,8 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
     (a, b) => Weight.compare(b, a)
   );
   return (
-    <>
-      <GroupHeader name={`Available fixed weight ${props.name}s`} />
+    <div className="mb-8">
+      <GroupHeader topPadding={true} name={`Available fixed weight ${props.name}s`} />
       {fixed.map((weight, i) => {
         return (
           <MenuItem
@@ -174,14 +176,16 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
                   props.dispatch(lensRecording);
                 }}
               >
-                <IconDelete />
+                <IconTrash />
               </button>
             }
           />
         );
       })}
-      <SemiButton onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}>+ Add</SemiButton>
-    </>
+      <LinkButton onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}>
+        Add New Plate Weight
+      </LinkButton>
+    </div>
   );
 }
 
@@ -202,7 +206,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
     (a, b) => Weight.compare(b.weight, a.weight)
   );
   return (
-    <>
+    <div className="mb-8">
       <MenuItemEditable
         name="Bar"
         type="number"
@@ -218,7 +222,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           }
         }}
       />
-      <GroupHeader name={`Number of ${props.name} plates available`} />
+      <GroupHeader topPadding={true} name={`Number of ${props.name} plates available`} />
       {plates.map((plate) => {
         return (
           <MenuItemEditable
@@ -245,7 +249,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           />
         );
       })}
-      <SemiButton onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}>+ Add</SemiButton>
-    </>
+      <LinkButton onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}>Add New Plate Weight</LinkButton>
+    </div>
   );
 }

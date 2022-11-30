@@ -52,10 +52,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
-        <GroupHeader name="Program" />
         <MenuItem
           shouldShowRightArrow={true}
-          name="Choose Program"
+          name="Program"
           value={props.currentProgramName}
           onClick={() => {
             props.dispatch({ type: "PushScreen", screen: "programs" });
@@ -178,7 +177,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
         {props.user && (
           <>
-            <GroupHeader name="Friends" />
+            <GroupHeader topPadding={true} name="Friends" />
             <MenuItem
               shouldShowRightArrow={true}
               name="Friends"

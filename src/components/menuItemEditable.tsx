@@ -72,6 +72,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             <button
               data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
               onClick={() => props.onChange && props.onChange(undefined)}
+              style={{ marginRight: "-0.5rem" }}
               className="p-2"
             >
               <IconTrash />
@@ -107,7 +108,7 @@ function MenuItemValue(
 ): JSX.Element | null {
   if (props.type === "select") {
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
-    return <div className="flex-1 py-2 pr-2 text-right text-bluev2">{keyValue && keyValue[1]}</div>;
+    return <div className="flex-1 py-2 pl-2 text-right text-bluev2">{keyValue && keyValue[1]}</div>;
   } else if (props.type === "text") {
     return (
       <input
@@ -136,6 +137,7 @@ function MenuItemValue(
         <label className="flex items-center justify-end flex-1 p-2">
           <input
             data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+            style={{ marginRight: "-0.5rem" }}
             key={props.value}
             type="checkbox"
             className="text-right text-bluev2 checkbox"
