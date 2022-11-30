@@ -123,7 +123,7 @@ export function ProgramListView(props: IProps): JSX.Element {
             <GroupHeader name="Or clone from built-in programs" />
           ) : null}
           {programs.map((program) => (
-            <div className="px-4">
+            <div>
               <button
                 className="relative flex items-center w-full py-3 text-left border-b border-gray-200"
                 onClick={() => props.onSelectProgram(program.id)}
