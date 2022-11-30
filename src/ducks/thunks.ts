@@ -29,13 +29,13 @@ export namespace Thunk {
       if (forcedUserEmail == null) {
         const accessToken = await getGoogleAccessToken();
         if (accessToken != null) {
-          const result = await env.service.googleSignIn(accessToken);
-          await handleLogin(dispatch, result, env.service.client);
+          const result = await load(dispatch, "googleSignIn", () => env.service.googleSignIn(accessToken));
+          await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client));
           dispatch(sync());
         }
       } else {
         const result = await env.service.googleSignIn("test", forcedUserEmail);
-        await handleLogin(dispatch, result, env.service.client);
+        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client));
         dispatch(sync());
       }
     };

@@ -227,9 +227,23 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "account") {
-    content = <ScreenAccount loading={state.loading} dispatch={dispatch} email={state.user?.email} />;
+    content = (
+      <ScreenAccount
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        email={state.user?.email}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "timers") {
-    content = <ScreenTimers loading={state.loading} dispatch={dispatch} timers={state.storage.settings.timers} />;
+    content = (
+      <ScreenTimers
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        timers={state.storage.settings.timers}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "plates") {
     content = <ScreenPlates loading={state.loading} dispatch={dispatch} settings={state.storage.settings} />;
   } else if (Screen.current(state.screenStack) === "graphs") {
