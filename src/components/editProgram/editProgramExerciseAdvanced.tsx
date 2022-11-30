@@ -201,9 +201,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         editorResult={finishEditorResult}
         dispatch={props.dispatch}
       />
-      <div className="p-2 text-center">
+      <div className="p-2 mb-4 text-center">
         <Button
-          kind="green"
+          kind="orange"
           disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
           onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}
         >
@@ -585,14 +585,14 @@ function EditWarmupSets(props: IEditWarmupSetsProps): JSX.Element {
         );
       })}
       <div className="p-1">
-        <SemiButton
+        <LinkButton
           data-cy="edit-warmup-set-add"
           onClick={() => {
             EditProgram.addWarmupSet(props.dispatch, warmupSets || []);
           }}
         >
-          Add Warmup Set +
-        </SemiButton>
+          Add Warmup Set
+        </LinkButton>
       </div>
     </section>
   );
@@ -635,7 +635,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
   }, [props.dispatch, props.warmupSets, props.index]);
 
   return (
-    <div className="flex items-center p-2" data-cy="edit-warmup-set">
+    <div className="flex items-center" data-cy="edit-warmup-set">
       <div>
         <input
           data-cy="edit-warmup-set-reps"
@@ -689,7 +689,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
           EditProgram.removeWarmupSet(props.dispatch, props.warmupSets || [], props.index);
         }}
       >
-        <IconDelete />
+        <IconTrash />
       </button>
     </div>
   );
@@ -753,6 +753,7 @@ function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element 
   return (
     <Fragment>
       <GroupHeader
+        topPadding={true}
         name="Finish Day Script"
         help={
           <span>

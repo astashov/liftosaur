@@ -34,6 +34,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
   return (
     <Fragment>
       <GroupHeader
+        topPadding={true}
         name="Playground"
         help={
           <span>

@@ -241,8 +241,7 @@ const ExerciseContentView = memo(
             </div>
           </div>
         </header>
-        <div className="pt-4 text-sm font-bold leading-tight text-grayv2-main">Tap squares to complete sets.</div>
-        <section className="flex flex-wrap pt-2">
+        <section className="flex flex-wrap py-2 pt-2">
           {(isEditMode || warmupSets?.length > 0) && (
             <Fragment>
               {warmupSets.map((set, i) => {

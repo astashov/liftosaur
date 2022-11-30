@@ -4,19 +4,19 @@ import { Modal } from "./modal";
 import { StringUtils } from "../utils/string";
 import { availableMuscles, ICustomExercise, IEquipment, IExerciseId, IMuscle, ISettings } from "../types";
 import { GroupHeader } from "./groupHeader";
-import { SemiButton } from "./semiButton";
 import { forwardRef } from "preact/compat";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { EditCustomExercise } from "../models/editCustomExercise";
 import { ObjectUtils } from "../utils/object";
 import { IconEdit } from "./icons/iconEdit";
-import { IconDelete } from "./icons/iconDelete";
 import { HtmlUtils } from "../utils/html";
 import { LabelAndInput } from "./labelAndInput";
 import { LabelAndSelect } from "./labelAndSelect";
 import { Multiselect } from "./multiselect";
 import { equipmentName, Exercise } from "../models/exercise";
+import { LinkButton } from "./linkButton";
+import { IconTrash } from "./icons/iconTrash";
 
 interface IModalDateProps {
   isHidden: boolean;
@@ -132,13 +132,13 @@ const ExercisesList = forwardRef(
                       }
                     }}
                   >
-                    <IconDelete />
+                    <IconTrash />
                   </button>
                 </section>
               </section>
             );
           })}
-        <SemiButton
+        <LinkButton
           data-cy="custom-exercise-create"
           onClick={(event) => {
             event.preventDefault();
@@ -146,9 +146,9 @@ const ExercisesList = forwardRef(
             props.setIsCustomExerciseDisplayed(true);
           }}
         >
-          Add Custom Exercise +
-        </SemiButton>
-        <GroupHeader name="Built-in exercises" />
+          Add Custom Exercise
+        </LinkButton>
+        <GroupHeader topPadding={true} name="Built-in exercises" />
         {exercises.map((e) => {
           const equipment = Exercise.defaultEquipment(e.id, customExercises);
           return (
