@@ -19,7 +19,8 @@ export function ButtonLike(props: IProps): JSX.Element | null {
   if (friendId != null || numberOfLikes > 0) {
     return (
       <button
-        className={`button pr-2 ${numberOfLikes === 0 ? "unliked" : "liked"}`}
+        className={`button p-2 ${numberOfLikes === 0 ? "unliked" : "liked"}`}
+        style={{ marginRight: "-0.5rem" }}
         data-cy="like"
         onClick={() => {
           if (friendId != null) {

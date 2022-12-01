@@ -241,7 +241,7 @@ const ExerciseContentView = memo(
             </div>
           </div>
         </header>
-        <section className="flex flex-wrap py-2 pt-2">
+        <section className="flex flex-wrap py-2 pt-4">
           {(isEditMode || warmupSets?.length > 0) && (
             <Fragment>
               {warmupSets.map((set, i) => {

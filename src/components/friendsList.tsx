@@ -40,12 +40,12 @@ export function FriendsList(props: IFriendsListProps): JSX.Element {
             <div className="flex items-center">
               <div className="flex-1">
                 {nickname ? (
-                  <div className="p-2">
+                  <div className="py-2 pr-2">
                     <div className="">{nickname}</div>
                     <div className="text-xs italic text-gray-500">id: {id}</div>
                   </div>
                 ) : (
-                  <div className="p-2 italic text-gray-500">id: {id}</div>
+                  <div className="py-2 pr-2 italic text-gray-500">id: {id}</div>
                 )}
               </div>
               <div className="p-1">

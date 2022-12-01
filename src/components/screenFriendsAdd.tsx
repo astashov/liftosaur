@@ -1,6 +1,4 @@
 import { h, JSX } from "preact";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { IAllFriends, ILoading } from "../models/state";
@@ -9,11 +7,17 @@ import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { FriendsList } from "./friendsList";
 import { ModalAddFriend } from "./modalAddFriend";
+import { Footer2View } from "./footer2";
+import { NavbarView } from "./navbar";
+import { Surface } from "./surface";
+import { rightFooterButtons } from "./rightFooterButtons";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
   allFriends: IAllFriends;
   loading: ILoading;
+  screenStack: IScreen[];
 }
 
 export function ScreenFriendsAdd(props: IProps): JSX.Element {
@@ -35,11 +39,33 @@ export function ScreenFriendsAdd(props: IProps): JSX.Element {
   });
 
   return (
-    <section className="h-full">
-      <HeaderView title="Add Friend" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          screenStack={props.screenStack}
+          title="Add Friend"
+          onHelpClick={() => {}}
+        />
+      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      addons={
+        <ModalAddFriend
+          isHidden={friendId == null}
+          onAdd={(message) => {
+            if (friendId != null) {
+              props.dispatch(Thunk.inviteFriend(friendId, message));
+              setFriendId(undefined);
+            }
+          }}
+          onCancel={() => setFriendId(undefined)}
+        />
+      }
+    >
+      <section className="px-4">
         <GroupHeader name="Filter" />
-        <div className="p-1">
+        <div className="py-1">
           <input
             data-cy="add-friend-filter"
             className={inputClassName}
@@ -53,17 +79,6 @@ export function ScreenFriendsAdd(props: IProps): JSX.Element {
         <GroupHeader name="Users List" />
         <FriendsList onAdd={(f) => setFriendId(f)} allFriends={props.allFriends} ids={ids} dispatch={props.dispatch} />
       </section>
-      <ModalAddFriend
-        isHidden={friendId == null}
-        onAdd={(message) => {
-          if (friendId != null) {
-            props.dispatch(Thunk.inviteFriend(friendId, message));
-            setFriendId(undefined);
-          }
-        }}
-        onCancel={() => setFriendId(undefined)}
-      />
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
-    </section>
+    </Surface>
   );
 }

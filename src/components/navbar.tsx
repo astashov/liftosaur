@@ -20,7 +20,7 @@ interface INavbarProps extends INavbarCenterProps {
   dispatch: IDispatch;
   rightButtons?: JSX.Element[];
   onBack?: () => boolean;
-  onHelpClick: () => void;
+  onHelpClick?: () => void;
   loading: ILoading;
   screenStack: IScreen[];
 }
@@ -54,7 +54,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   const isLoading = Object.keys(loadingKeys).length > 0;
   const numberOfLeftButtons = [showBackButton ? 1 : 0, isLoading ? 1 : 0].reduce((a, b) => a + b);
-  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + 1;
+  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.onHelpClick ? 1 : 0);
   const numberOfButtons = Math.max(numberOfLeftButtons, numberOfRightButtons);
 
   return (
@@ -81,9 +81,11 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
       <NavbarCenterView {...props} />
       <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
         {props.rightButtons}
-        <button className="p-2" onClick={props.onHelpClick}>
-          <IconHelp />
-        </button>
+        {props.onHelpClick && (
+          <button className="p-2" onClick={props.onHelpClick}>
+            <IconHelp />
+          </button>
+        )}
       </div>
       {error && (
         <div

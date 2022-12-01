@@ -105,7 +105,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                 likes={props.likes}
               />
               {props.comments.comments[historyRecord.id] != null ? (
-                <span className="align-top">
+                <span className="p-2 align-center">
                   <IconComments />
                   <span className="pl-1">{props.comments.comments[historyRecord.id]?.length || 0}</span>
                 </span>

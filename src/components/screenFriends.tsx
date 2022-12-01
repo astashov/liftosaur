@@ -1,6 +1,4 @@
 import { h, JSX } from "preact";
-import { FooterView } from "./footer";
-import { HeaderView } from "./header";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { Button } from "./button";
@@ -8,11 +6,17 @@ import { IAllFriends, ILoading } from "../models/state";
 import { FriendsList } from "./friendsList";
 import { useEffect } from "preact/hooks";
 import { GroupHeader } from "./groupHeader";
+import { Surface } from "./surface";
+import { NavbarView } from "./navbar";
+import { Footer2View } from "./footer2";
+import { rightFooterButtons } from "./rightFooterButtons";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   allFriends: IAllFriends;
   loading: ILoading;
   dispatch: IDispatch;
+  screenStack: IScreen[];
 }
 
 export function ScreenFriends(props: IProps): JSX.Element {
@@ -25,18 +29,27 @@ export function ScreenFriends(props: IProps): JSX.Element {
   }, []);
 
   return (
-    <section className="h-full">
-      <HeaderView title="Friends" left={<button onClick={() => props.dispatch(Thunk.pullScreen())}>Back</button>} />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          screenStack={props.screenStack}
+          title="Friends"
+          onHelpClick={() => {}}
+        />
+      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+    >
+      <section className="px-4">
         <div className="p-2 text-center">
-          <Button kind="green" onClick={() => props.dispatch(Thunk.pushScreen("friendsAdd"))}>
+          <Button kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("friendsAdd"))}>
             Add Friend
           </Button>
         </div>
         <GroupHeader name="Friends" />
         <FriendsList allFriends={props.allFriends} ids={userIds} dispatch={props.dispatch} />
       </section>
-      <FooterView loading={props.loading} dispatch={props.dispatch} />
-    </section>
+    </Surface>
   );
 }

@@ -203,9 +203,23 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "friends") {
-    content = <ScreenFriends loading={state.loading} allFriends={state.allFriends} dispatch={dispatch} />;
+    content = (
+      <ScreenFriends
+        screenStack={state.screenStack}
+        loading={state.loading}
+        allFriends={state.allFriends}
+        dispatch={dispatch}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "friendsAdd") {
-    content = <ScreenFriendsAdd loading={state.loading} allFriends={state.allFriends} dispatch={dispatch} />;
+    content = (
+      <ScreenFriendsAdd
+        screenStack={state.screenStack}
+        loading={state.loading}
+        allFriends={state.allFriends}
+        dispatch={dispatch}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "stats") {
     content = (
       <ScreenStats
@@ -287,6 +301,8 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "finishDay") {
     content = (
       <ScreenFinishDay
+        screenStack={state.screenStack}
+        loading={state.loading}
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}

@@ -6,9 +6,9 @@ import { IAllComments, IAllFriends, IAllLikes } from "../models/state";
 import { DateUtils } from "../utils/date";
 import { Button } from "./button";
 import { ButtonLike } from "./buttonLike";
-import { IconDelete } from "./icons/iconDelete";
 import { IconSpinner } from "./icons/iconSpinner";
 import { inputClassName } from "./input";
+import { IconTrash } from "./icons/iconTrash";
 
 interface ICommentsProps {
   historyRecordId: number;
@@ -33,7 +33,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
   }, [historyRecordId, friendId]);
 
   return (
-    <div className="px-2 pb-2">
+    <div className="pb-2">
       <h4 className="flex text-sm font-bold" data-cy="comments-header">
         <div className="flex-1">Comments - {comments.length}</div>
         <div>
@@ -46,7 +46,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
           />
         </div>
       </h4>
-      <ul className="px-2 pb-1">
+      <ul className="pb-1">
         {comments.map((comment) => {
           const name =
             currentUserId === comment.userId ? props.nickname : props.friends.friends[comment.userId]?.user.nickname;
@@ -68,7 +68,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
                         data-cy="comment-delete"
                         onClick={() => dispatch(Thunk.removeComment(historyRecordId, comment.id))}
                       >
-                        <IconDelete />
+                        <IconTrash />
                       </button>
                     ) : (
                       <IconSpinner width={20} height={20} />

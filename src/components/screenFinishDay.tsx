@@ -1,7 +1,6 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { History } from "../models/history";
-import { HeaderView } from "./header";
 import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
@@ -12,12 +11,18 @@ import { useState } from "preact/hooks";
 import { ModalShare } from "./modalShare";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, ISettings } from "../types";
+import { NavbarView } from "./navbar";
+import { Surface } from "./surface";
+import { ILoading } from "../models/state";
+import { IScreen } from "../models/screen";
 
 interface IProps {
   history: IHistoryRecord[];
   settings: ISettings;
   userId?: string;
   dispatch: IDispatch;
+  loading: ILoading;
+  screenStack: IScreen[];
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
@@ -28,16 +33,32 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const totalReps = History.totalRecordReps(record);
 
   return (
-    <section className="h-full">
-      <HeaderView title="Congratulations!!!" />
-      <section style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
-        <section className="p-4 text-lg font-bold text-center">
-          <h2 className="text-red-700">Great job finishing</h2>
+    <Surface
+      navbar={
+        <NavbarView
+          loading={props.loading}
+          dispatch={props.dispatch}
+          screenStack={props.screenStack}
+          title="Congratulations!"
+        />
+      }
+      footer={<></>}
+      addons={
+        <>
+          {isShareShown && props.userId != null && (
+            <ModalShare userId={props.userId} id={record.id} onClose={() => setIsShareShown(false)} />
+          )}
+        </>
+      }
+    >
+      <section className="px-4">
+        <section className="p-4 text-base font-bold text-center">
+          <h2 className="text-redv2-main">Great job finishing</h2>
         </section>
         <section className="px-4 text-center">
-          <div className="text-lg">{record.programName}</div>
-          <div className="text-gray-700">{record.dayName}</div>
-          <div>
+          <div className="text-lg text-grayv2-main">{record.programName}</div>
+          <div className="text-xl">{record.dayName}</div>
+          <div className="mt-4">
             Time: <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong> hours
           </div>
           <div>
@@ -83,7 +104,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="flex-1">
             <Button
               className="ls-finish-day-share"
-              kind="blue"
+              kind="purple"
               onClick={() => {
                 if (props.userId == null) {
                   alert("You should be logged in to share workouts.");
@@ -96,16 +117,13 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             </Button>
           </div>
           <div>
-            <Button kind="green" onClick={() => ScreenActions.setScreen(props.dispatch, "main")}>
+            <Button kind="orange" onClick={() => ScreenActions.setScreen(props.dispatch, "main")}>
               Continue
             </Button>
           </div>
         </div>
       </section>
-      {isShareShown && props.userId != null && (
-        <ModalShare userId={props.userId} id={record.id} onClose={() => setIsShareShown(false)} />
-      )}
       <Confetti />
-    </section>
+    </Surface>
   );
 }
