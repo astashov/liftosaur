@@ -38,7 +38,7 @@ export function ScreenPlates(props: IProps): JSX.Element {
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
     >
-      <section className="px-4">
+      <section className="px-2">
         <EquipmentSettings
           lensPrefix={lb<IState>().p("storage").p("settings").get()}
           dispatch={dispatch(props.dispatch)}

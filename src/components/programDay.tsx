@@ -199,6 +199,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
+          setIsShareShown={setIsShareShown}
           onChangeReps={(mode) => {
             if (Progress.isCurrent(progress)) {
               props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });

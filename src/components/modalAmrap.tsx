@@ -20,7 +20,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
           ref={textInput}
           data-cy="modal-amrap-input"
           data-name="modal-input-autofocus"
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="number"
           min="0"
           placeholder="Number of completed reps"

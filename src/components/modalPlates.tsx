@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IUnit } from "../types";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   units: IUnit;
@@ -13,22 +14,27 @@ interface IProps {
 export function ModalPlates(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold">Enter new plate weight</h3>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.onInput(undefined)}
+    >
+      <GroupHeader size="large" name="Enter new plate weight" />
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="number"
           min="0"
           placeholder={`Plate weight in ${props.units}`}
         />
         <div className="mt-4 text-right">
-          <Button type="button" kind="gray" className="mr-3" onClick={() => props.onInput(undefined)}>
+          <Button type="button" kind="grayv2" className="mr-3" onClick={() => props.onInput(undefined)}>
             Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             type="submit"
             className="ls-add-plate"
             onClick={() => {

@@ -4,6 +4,7 @@ import { Button } from "./button";
 import { Modal } from "./modal";
 import { IEquipment, IUnit } from "../types";
 import { StringUtils } from "../utils/string";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   units: IUnit;
@@ -15,8 +16,13 @@ interface IProps {
 export function ModalNewFixedWeight(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold">Enter new {props.equipment} fixed weight</h3>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.onInput(undefined)}
+    >
+      <GroupHeader size="large" name={`Enter new ${props.equipment} fixed weight`} />
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
@@ -26,11 +32,11 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
           placeholder={`${StringUtils.capitalize(props.equipment)} weight in ${props.units}`}
         />
         <div className="mt-4 text-right">
-          <Button type="button" kind="gray" className="mr-3" onClick={() => props.onInput(undefined)}>
+          <Button type="button" kind="grayv2" className="mr-3" onClick={() => props.onInput(undefined)}>
             Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             type="submit"
             className="ls-add-plate"
             onClick={() => {

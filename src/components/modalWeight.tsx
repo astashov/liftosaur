@@ -5,6 +5,7 @@ import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { IProgramExercise, IUnit, IWeight } from "../types";
+import { GroupHeader } from "./groupHeader";
 
 interface IModalWeightProps {
   dispatch: IDispatch;
@@ -17,13 +18,18 @@ interface IModalWeightProps {
 export function ModalWeight(props: IModalWeightProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold">Please enter weight</h3>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
+    >
+      <GroupHeader size="large" name="Please enter weight" />
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           data-cy="modal-weight-input"
-          className="focus:outline-none focus:shadow-outline block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none"
+          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           value={Weight.is(props.weight) ? props.weight.value : props.weight}
           type="number"
           min="0"
@@ -32,15 +38,15 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
         <div className="mt-4 text-right">
           <Button
             type="button"
-            kind="gray"
+            kind="grayv2"
             data-cy="modal-weight-cancel"
             className="mr-3"
             onClick={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
           >
-            Clear
+            Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             data-cy="modal-weight-submit"
             className="ls-modal-set-weight"
             type="submit"

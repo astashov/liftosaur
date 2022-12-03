@@ -32,7 +32,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         const equipmentData = props.settings.equipment[bar];
         if (equipmentData) {
           return (
-            <div className={i !== 0 ? "mt-6" : ""}>
+            <div className={`${i !== 0 ? "mt-6" : ""} px-4 pt-3 pb-2 bg-purplev2-100 rounded-2xl`}>
               <EquipmentSettingsContent
                 key={bar}
                 lensPrefix={props.lensPrefix}
@@ -159,7 +159,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
     (a, b) => Weight.compare(b, a)
   );
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <GroupHeader topPadding={true} name={`Available fixed weight ${props.name}s`} />
       {fixed.map((weight, i) => {
         return (
@@ -206,7 +206,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
     (a, b) => Weight.compare(b.weight, a.weight)
   );
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <MenuItemEditable
         name="Bar"
         type="number"

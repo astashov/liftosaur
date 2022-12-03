@@ -16,7 +16,6 @@ import { ScreenTimers } from "./screenTimers";
 import { ScreenPlates } from "./screenPlates";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
-import { HelpOverlay } from "./helpOverlay";
 import { Progress } from "../models/progress";
 import { dequal } from "dequal";
 import { IState } from "../models/state";
@@ -339,7 +338,6 @@ export function AppView(props: IProps): JSX.Element | null {
     <Fragment>
       {content}
       <Notification dispatch={dispatch} notification={state.notification} />
-      <HelpOverlay dispatch={dispatch} seenIds={state.storage.helps} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
         <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
       )}

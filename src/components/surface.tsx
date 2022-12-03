@@ -13,7 +13,7 @@ export const Surface = forwardRef(
     return (
       <section className="h-full">
         {props.navbar}
-        <section ref={ref} style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+        <section ref={ref} className="py-16">
           {props.children}
         </section>
         {props.footer}

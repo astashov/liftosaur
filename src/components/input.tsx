@@ -4,7 +4,7 @@ import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
-  "inline-block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+  "inline-block w-full px-4 text-base py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline";
 
 export type IValidationError = "required" | "pattern-mismatch";
 
@@ -105,7 +105,7 @@ export const Input = forwardRef(
                   ref={ref as Ref<HTMLTextAreaElement>}
                   onBlur={onBlurHandler}
                   onFocus={onFocusHandler}
-                  className="flex-1 min-w-0 border-none focus:outline-none"
+                  className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
                   {...otherProps}
                 />
@@ -115,7 +115,7 @@ export const Input = forwardRef(
                   ref={ref as Ref<HTMLInputElement>}
                   onBlur={onBlurHandler}
                   onFocus={onFocusHandler}
-                  className="flex-1 min-w-0 border-none focus:outline-none"
+                  className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px" }}
                   {...otherProps}
                 />

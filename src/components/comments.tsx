@@ -95,7 +95,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
         <Button
           disabled={props.comments.isPosting}
           data-cy="new-comment-submit"
-          kind="blue"
+          kind="purple"
           className="ml-2"
           onClick={handleSend}
         >

@@ -41,7 +41,7 @@ export function ModalShare(props: IProps): JSX.Element {
 
       <div className="m-1">
         <button
-          className="ls-modal-share-copy text-blue-700 underline"
+          className="text-blue-700 underline ls-modal-share-copy"
           onClick={() => {
             const text = linkRef.current.textContent;
             if (text != null) {
@@ -54,39 +54,41 @@ export function ModalShare(props: IProps): JSX.Element {
         </button>
         {isCopied && <span className="ml-4 text-gray-600">Copied!</span>}
       </div>
-      <div className="font-bold text-center">OR</div>
-      <div className="m-2 text-center">
-        <Button
-          kind="blue"
-          className="ls-modal-share-facebook"
-          onClick={() => {
-            const url = new URL("https://www.facebook.com/dialog/share");
-            url.searchParams.set("app_id", "3448767138535273");
-            url.searchParams.set("display", "popup");
-            url.searchParams.set("href", link);
-            url.searchParams.set("hashtag", "liftosaur");
-            url.searchParams.set("quote", "Check out my weightlifting workout!");
-            url.searchParams.set("redirect_url", link);
-            window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
-          }}
-        >
-          Share on Facebook
-        </Button>
-      </div>
-      <div className="m-4 text-center">
-        <Button
-          kind="blue"
-          className="ls-modal-share-twitter"
-          onClick={() => {
-            const url = new URL("https://twitter.com/intent/tweet");
-            url.searchParams.set("text", `Check out my weightlifting workout!`);
-            url.searchParams.set("url", link);
-            url.searchParams.set("hashtag", "liftosaur");
-            window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
-          }}
-        >
-          Share on Twitter
-        </Button>
+      <div className="font-bold text-center">Or Share On</div>
+      <div className="flex m-2 mt-4 text-center">
+        <div className="flex-1">
+          <Button
+            kind="purple"
+            className="ls-modal-share-facebook"
+            onClick={() => {
+              const url = new URL("https://www.facebook.com/dialog/share");
+              url.searchParams.set("app_id", "3448767138535273");
+              url.searchParams.set("display", "popup");
+              url.searchParams.set("href", link);
+              url.searchParams.set("hashtag", "liftosaur");
+              url.searchParams.set("quote", "Check out my weightlifting workout!");
+              url.searchParams.set("redirect_url", link);
+              window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
+            }}
+          >
+            Facebook
+          </Button>
+        </div>
+        <div className="flex-1 text-center">
+          <Button
+            kind="purple"
+            className="ls-modal-share-twitter"
+            onClick={() => {
+              const url = new URL("https://twitter.com/intent/tweet");
+              url.searchParams.set("text", `Check out my weightlifting workout!`);
+              url.searchParams.set("url", link);
+              url.searchParams.set("hashtag", "liftosaur");
+              window.open(url.toString(), "_blank", "width=555,height=510,top=20,left=20");
+            }}
+          >
+            Twitter
+          </Button>
+        </div>
       </div>
     </Modal>
   );

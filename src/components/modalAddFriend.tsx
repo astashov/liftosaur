@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { inputClassName } from "./input";
+import { GroupHeader } from "./groupHeader";
 
 interface IModalAddFriendProps {
   isHidden: boolean;
@@ -14,7 +15,7 @@ export function ModalAddFriend(props: IModalAddFriendProps): JSX.Element {
   const textArea = useRef<HTMLTextAreaElement>(null);
   return (
     <Modal isHidden={props.isHidden} autofocusInputRef={textArea} isFullWidth={true}>
-      <h3 className="pb-2 font-bold">Enter some message (optional)</h3>
+      <GroupHeader size="large" name="Enter some message (optional)" />
       <form onSubmit={(e) => e.preventDefault()}>
         <textarea
           ref={textArea}
@@ -26,7 +27,7 @@ export function ModalAddFriend(props: IModalAddFriendProps): JSX.Element {
         <div className="mt-4 text-right">
           <Button
             type="button"
-            kind="gray"
+            kind="grayv2"
             data-cy="modal-add-friend-cancel"
             className="mr-3"
             onClick={() => props.onCancel()}
@@ -34,7 +35,7 @@ export function ModalAddFriend(props: IModalAddFriendProps): JSX.Element {
             Cancel
           </Button>
           <Button
-            kind="green"
+            kind="orange"
             data-cy="modal-add-friend-invite"
             className="ls-modal-set-weight"
             type="submit"

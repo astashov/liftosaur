@@ -23,6 +23,7 @@ interface ICardsViewProps {
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
+  setIsShareShown: (isShown: boolean) => void;
 }
 
 export const CardsView = memo(
@@ -30,9 +31,28 @@ export const CardsView = memo(
     const { friend, userId } = props;
     return (
       <section className="px-4">
-        <div className="pb-2">
-          <div className="text-lg font-semibold">{props.program?.name}</div>
-          <div className="text-sm text-grayv2-main">{props.progress?.dayName}</div>
+        <div className="flex pb-2">
+          <div className="flex-1">
+            <div className="text-lg font-semibold">{props.progress?.programName}</div>
+            <div className="text-sm text-grayv2-main">{props.progress?.dayName}</div>
+          </div>
+          {!friend && !Progress.isCurrent(props.progress) && (
+            <div className="pt-1 pl-2">
+              <Button
+                className="ls-finish-day-share"
+                kind="purple"
+                onClick={() => {
+                  if (props.userId == null) {
+                    alert("You should be logged in to share workouts.");
+                  } else {
+                    props.setIsShareShown(true);
+                  }
+                }}
+              >
+                Share
+              </Button>
+            </div>
+          )}
         </div>
         {friend?.nickname && <div className="px-3 py-1 italic">{friend?.nickname}</div>}
         {props.progress.entries.map((entry, index) => {
