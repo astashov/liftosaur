@@ -80,7 +80,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
           }}
         />
         <section data-cy="selected-exercises">
-          <GroupHeader name="Selected exercises" />
+          <GroupHeader topPadding={true} name="Selected exercises" />
           <DraggableList
             items={day.exercises}
             element={(exerciseRef, i, handleTouchStart) => {

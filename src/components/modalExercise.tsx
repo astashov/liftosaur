@@ -87,7 +87,7 @@ const ExercisesList = forwardRef(
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           placeholder="Filter"
           onInput={() => {

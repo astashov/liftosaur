@@ -31,7 +31,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
           data-cy="modal-weight-input"
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           value={Weight.is(props.weight) ? props.weight.value : props.weight}
-          type="number"
+          type="tel"
           min="0"
           placeholder="Weight in lbs"
         />

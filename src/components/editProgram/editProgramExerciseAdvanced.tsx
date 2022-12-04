@@ -37,7 +37,7 @@ import {
   IProgramExerciseWarmupSet,
 } from "../../types";
 import { Playground } from "../playground";
-import { inputClassName } from "../input";
+import { inputClassName, selectInputOnFocus } from "../input";
 import { LinkButton } from "../linkButton";
 import { IconTrash } from "../icons/iconTrash";
 import { IconHelp } from "../icons/iconHelp";
@@ -637,8 +637,9 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
         <input
           data-cy="edit-warmup-set-reps"
           ref={repsRef}
+          onFocus={selectInputOnFocus}
           className={inputClassName.replace(" px-4 ", " px-2 ")}
-          type="number"
+          type="tel"
           min="0"
           value={warmupSet.reps}
           onBlur={onUpdate}
@@ -649,8 +650,9 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
         <input
           data-cy="edit-warmup-set-value"
           ref={valueRef}
+          onFocus={selectInputOnFocus}
           className={inputClassName.replace(" px-4 ", " px-2 ")}
-          type="number"
+          type="tel"
           min="0"
           value={isPercent ? weightValue * 100 : weightValue}
           onBlur={onUpdate}
@@ -671,10 +673,11 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
           data-cy="edit-warmup-set-threshold"
           min="0"
           step="0.01"
+          onFocus={selectInputOnFocus}
           onBlur={onUpdate}
           ref={thresholdRef}
           className={inputClassName.replace(" px-4 ", " px-2 ")}
-          type="number"
+          type="tel"
           value={threshold.value}
         />
       </div>

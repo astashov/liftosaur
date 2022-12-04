@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
+import { GroupHeader } from "./groupHeader";
 
 interface IModalAmrapProps {
   isHidden: boolean;
@@ -13,15 +14,20 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
 
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold">Please enter number of AMRAP reps</h3>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.dispatch({ type: "ChangeAMRAPAction", value: undefined })}
+    >
+      <GroupHeader size="large" name="Please enter number of AMRAP reps" />
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           data-cy="modal-amrap-input"
           data-name="modal-input-autofocus"
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type="number"
+          type="tel"
           min="0"
           placeholder="Number of completed reps"
         />

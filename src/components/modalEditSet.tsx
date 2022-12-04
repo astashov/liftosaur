@@ -8,6 +8,7 @@ import { inputClassName } from "./input";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
 import { IUnit, ISet } from "../types";
+import { GroupHeader } from "./groupHeader";
 
 interface IModalWeightProps {
   dispatch: IDispatch;
@@ -26,8 +27,15 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const weightInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={repsInput}>
-      <h3 className="pb-2 font-bold">Please enter reps and weight</h3>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={repsInput}
+      shouldShowClose={true}
+      onClose={() => {
+        EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
+      }}
+    >
+      <GroupHeader size="large" name="Please enter reps and weight" />
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="flex items-center">
           <div className="w-24 mr-2">
@@ -37,7 +45,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               className={`${inputClassName}`}
               value={set?.reps}
               required
-              type="number"
+              type="tel"
               min="1"
               placeholder="Reps"
             />
@@ -50,7 +58,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               className={inputClassName}
               value={Weight.is(set?.weight) ? set?.weight.value : set?.weight}
               required
-              type="number"
+              type="tel"
               step="0.05"
               min="0"
               placeholder="Weight"

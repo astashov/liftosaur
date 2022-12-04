@@ -30,7 +30,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
           className={inputClassName}
           id={name}
           name={name}
-          type="number"
+          type="tel"
           value={val}
           onInput={(e) => {
             const newValStr = (e.target as HTMLInputElement).value;

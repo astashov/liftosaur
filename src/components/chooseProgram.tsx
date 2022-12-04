@@ -13,6 +13,8 @@ import { ILoading } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { Surface } from "./surface";
+import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
+import { HelpChooseProgram } from "./help/helpChooseProgram";
 
 interface IProps {
   dispatch: IDispatch;
@@ -38,7 +40,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           loading={props.loading}
           title="Choose a program"
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={props.customPrograms.length === 0 ? <HelpChooseProgramFirstTime /> : <HelpChooseProgram />}
           screenStack={props.screenStack}
         />
       }

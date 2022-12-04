@@ -14,7 +14,7 @@ import { ModalSubstitute } from "../modalSubstitute";
 import { ISettings, IProgramDay, IProgramExercise, IEquipment, IUnit } from "../../types";
 import { IDeload, IProgression, Progression } from "../../models/progression";
 import { LinkButton } from "../linkButton";
-import { Input } from "../input";
+import { Input, selectInputOnFocus } from "../input";
 import { IconArrowUpCircle } from "../icons/iconArrowUpCircle";
 
 interface IProps {
@@ -308,7 +308,8 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
               max="100"
               ref={progressionIncrementRef}
               className={inputClassName}
-              type="text"
+              onFocus={selectInputOnFocus}
+              type="tel"
               value={progression.increment}
               onBlur={() => {
                 let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
@@ -339,7 +340,8 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
             <input
               ref={progressionAttemptsRef}
               className={inputClassName}
-              type="number"
+              onFocus={selectInputOnFocus}
+              type="tel"
               value={progression.attempts}
               onBlur={() => {
                 let value: number | undefined = parseInt(progressionAttemptsRef.current.value, 10);
@@ -372,7 +374,8 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
             <input
               ref={deloadDecrementsRef}
               className={inputClassName}
-              type="text"
+              type="tel"
+              onFocus={selectInputOnFocus}
               value={deload.decrement}
               onBlur={() => {
                 let value: number | undefined = parseFloat(deloadDecrementsRef.current.value);
@@ -403,8 +406,9 @@ function ProgressionView(props: IProgressionProps): JSX.Element {
             <input
               ref={deloadFailuresRef}
               className={inputClassName}
-              type="number"
+              type="tel"
               value={deload.attempts}
+              onFocus={selectInputOnFocus}
               onBlur={() => {
                 let value: number | undefined = parseInt(deloadFailuresRef.current.value, 10);
                 value = isNaN(value) ? undefined : Math.max(0, Math.min(20, value));

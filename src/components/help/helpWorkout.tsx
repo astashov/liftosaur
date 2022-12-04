@@ -1,14 +1,8 @@
-import { h, JSX } from "preact";
-import { Modal } from "./modal";
+import { h, JSX, Fragment } from "preact";
 
-interface IModalGraphsProps {
-  isHidden: boolean;
-  onClose: () => void;
-}
-
-export function ModalHelpWorkout(props: IModalGraphsProps): JSX.Element {
+export function HelpWorkout(): JSX.Element {
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
+    <>
       <h2 className="pb-2 text-xl">Workout Screen</h2>
       <p className="pb-2">This is where all your exercises for the current workout are.</p>
       <p className="pb-2">
@@ -17,8 +11,8 @@ export function ModalHelpWorkout(props: IModalGraphsProps): JSX.Element {
       </p>
       <p className="pb-2">
         Some reps have <strong>+</strong> in it (like <strong>5+</strong>). That is <strong>AMRAP</strong> - As Many
-        Reps As Possible. You should strive to do as many reps as you can there, but if you do less than the number,
-        it's considered unsuccessful set.
+        Reps As Possible. You should strive to do as many reps as you can there, but if you do less than the number on
+        the square, it's considered as an unsuccessful set.
       </p>
       <p className="pb-2">
         In the <strong>Plates for each bar side</strong> section, you can see all the weights you use for that exercise,
@@ -38,6 +32,6 @@ export function ModalHelpWorkout(props: IModalGraphsProps): JSX.Element {
         there're any changes applied, you'll see that under the exercise, in the{" "}
         <strong>Exercise State Variables changes</strong> block.
       </p>
-    </Modal>
+    </>
   );
 }

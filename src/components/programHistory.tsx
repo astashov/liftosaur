@@ -13,8 +13,8 @@ import { Footer2View } from "./footer2";
 import { IconDoc } from "./icons/iconDoc";
 import { IconRuler } from "./icons/iconRuler";
 import { FooterButton } from "./footerButton";
-import { Progress } from "../models/progress";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { HelpProgramHistory } from "./help/helpProgramHistory";
 
 interface IProps {
   program: IProgram;
@@ -69,7 +69,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpProgramHistory />}
           screenStack={props.screenStack}
           title="Workout History"
         />
@@ -78,7 +78,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <Footer2View
           dispatch={props.dispatch}
           onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-          ctaTitle={Progress.isCurrent(nextHistoryRecord) ? "Continue Workout" : "Start Workout"}
+          ctaTitle={props.progress ? "Continue Workout" : "Start Workout"}
           leftButtons={[
             <FooterButton
               icon={<IconDoc />}

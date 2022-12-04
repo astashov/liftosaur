@@ -115,7 +115,7 @@ export function StatsList(props: IProps): JSX.Element {
                   </div>
                   <div className="flex flex-1">
                     <input
-                      type="number"
+                      type="tel"
                       data-cy="input-stats-value"
                       className="flex-1 w-full p-2 text-right text-bluev2"
                       step="0.01"

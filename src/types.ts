@@ -465,7 +465,6 @@ export const TProgressUi = t.partial(
     }),
     entryIndexEditMode: t.number,
     entryIndexInfoMode: t.number,
-    showHelpModal: t.boolean,
   },
   "TProgressUi"
 );

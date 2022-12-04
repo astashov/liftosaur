@@ -25,6 +25,16 @@ export function Modal(props: IProps): JSX.Element {
     prevProps.current = props;
   });
 
+  useEffect(() => {
+    if (!props.isHidden) {
+      console.log("Add stop scrolling");
+      document.body.classList.add("stop-scrolling");
+    } else {
+      console.log("Remove stop scrolling");
+      document.body.classList.remove("stop-scrolling");
+    }
+  }, [props.isHidden]);
+
   if (
     modalRef.current != null &&
     props.autofocusInputRef?.current != null &&
@@ -37,10 +47,13 @@ export function Modal(props: IProps): JSX.Element {
 
   return (
     <section ref={modalRef} className={className} style={{ zIndex: 100 }}>
-      <div data-name="overlay" className="absolute inset-0 opacity-50 bg-grayv2-700"></div>
+      <div
+        data-name="overlay"
+        className="absolute inset-0 z-10 overflow-scroll scrolling-touch opacity-50 bg-grayv2-700"
+      ></div>
       <div
         data-name="modal"
-        className="relative flex flex-col px-6 py-6 bg-white rounded-lg shadow-lg"
+        className="relative z-20 flex flex-col px-6 py-6 bg-white rounded-lg shadow-lg"
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
         <div className="relative h-full overflow-auto">{props.children}</div>

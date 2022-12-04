@@ -134,7 +134,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             label="Reps lifted"
             data-cy="input-reps"
             ref={repsInput}
-            type="number"
+            type="tel"
             className="w-full"
             min="0"
             onInput={() => calculate()}
@@ -147,7 +147,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             data-cy="input-weight"
             ref={weightInput}
             className="w-full"
-            type="number"
+            type="tel"
             min="0"
             onInput={() => calculate()}
             placeholder="0 lbs"

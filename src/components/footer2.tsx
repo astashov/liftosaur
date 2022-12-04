@@ -33,7 +33,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         </div>
       ) : null}
       <div
-        className="relative z-10 flex px-2 pt-4 pb-2 bg-white pointer-events-auto"
+        className="relative z-10 flex px-2 pt-4 bg-white pointer-events-auto footer"
         style={{ minHeight: "70px", boxShadow: props.onCtaClick ? "" : "0px -10px 25px rgba(0, 0, 0, 0.05)" }}
       >
         <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>

@@ -20,24 +20,21 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
 }
 
+export function selectInputOnFocus(e: Event): boolean | undefined {
+  const target = e.target;
+  if (target instanceof HTMLInputElement && e.type !== "number") {
+    const value = (target as HTMLInputElement).value;
+    target.setSelectionRange(0, value.length);
+    return false;
+  }
+  return undefined;
+}
+
 export const Input = forwardRef(
   (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
     const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
     const identifier = props.identifier || StringUtils.dashcase(label.toLowerCase());
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
-
-    const onFocusHandler = useCallback(
-      (e: Event) => {
-        const target = e.target;
-        if (target instanceof HTMLInputElement && props.type !== "number") {
-          const value = (target as HTMLInputElement).value;
-          target.setSelectionRange(0, value.length);
-          return false;
-        }
-        return undefined;
-      },
-      [props.onFocus]
-    );
 
     const onBlurHandler = useCallback(
       (e: Event) => {
@@ -104,7 +101,7 @@ export const Input = forwardRef(
                   data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLTextAreaElement>}
                   onBlur={onBlurHandler}
-                  onFocus={onFocusHandler}
+                  onFocus={selectInputOnFocus}
                   className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
                   {...otherProps}
@@ -114,7 +111,7 @@ export const Input = forwardRef(
                   data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLInputElement>}
                   onBlur={onBlurHandler}
-                  onFocus={onFocusHandler}
+                  onFocus={selectInputOnFocus}
                   className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px" }}
                   {...otherProps}
