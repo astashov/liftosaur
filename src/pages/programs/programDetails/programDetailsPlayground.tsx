@@ -73,13 +73,14 @@ export const Playground = memo(
           showHelp={false}
           entry={entry}
           day={props.day}
+          showKebab={false}
+          progress={progress}
           programExercise={programExercise}
           index={0}
           forceShowStateChanges={true}
           settings={props.settings}
           dispatch={dispatch}
           onChangeReps={() => undefined}
-          isCurrent={true}
         />
         <StateVars
           stateVars={programExercise.state}

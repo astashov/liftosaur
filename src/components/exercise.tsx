@@ -31,6 +31,7 @@ import { Button } from "./button";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
 import { LinkButton } from "./linkButton";
+import { useCallback, useRef } from "preact/hooks";
 
 interface IProps {
   showHelp: boolean;
@@ -41,6 +42,7 @@ interface IProps {
   day: number;
   programExercise?: IProgramExercise;
   index: number;
+  showKebab: boolean;
   friend?: IFriendUser;
   forceShowStateChanges?: boolean;
   dispatch: IDispatch;
@@ -141,7 +143,8 @@ const ExerciseContentView = memo(
       (w) => w.value.toString()
     ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, equipment).plates).length > 0);
     warmupWeights.sort(Weight.compare);
-    const isEditMode = props.progress.ui?.entryIndexEditMode === props.index;
+    const isEditModeRef = useRef(false);
+    isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
     return (
       <Fragment>
         <header className="flex">
@@ -156,23 +159,25 @@ const ExerciseContentView = memo(
           <div className="flex-1 ml-auto">
             <div className="flex">
               <div className="flex-1 text-lg font-bold">{exercise.name}</div>
-              <div>
-                <button
-                  className="py-2 pl-2"
-                  onClick={() => {
-                    updateState(props.dispatch, [
-                      lb<IState>()
-                        .p("progress")
-                        .pi(props.progress.id)
-                        .pi("ui")
-                        .p("exerciseBottomSheet")
-                        .record({ entryIndex: props.index }),
-                    ]);
-                  }}
-                >
-                  <IconKebab />
-                </button>
-              </div>
+              {props.showKebab && (
+                <div>
+                  <button
+                    className="py-2 pl-2"
+                    onClick={() => {
+                      updateState(props.dispatch, [
+                        lb<IState>()
+                          .p("progress")
+                          .pi(props.progress.id)
+                          .pi("ui")
+                          .p("exerciseBottomSheet")
+                          .record({ entryIndex: props.index }),
+                      ]);
+                    }}
+                  >
+                    <IconKebab />
+                  </button>
+                </div>
+              )}
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
             <div
@@ -242,7 +247,7 @@ const ExerciseContentView = memo(
           </div>
         </header>
         <section className="flex flex-wrap py-2 pt-4">
-          {(isEditMode || warmupSets?.length > 0) && (
+          {(isEditModeRef.current || warmupSets?.length > 0) && (
             <Fragment>
               {warmupSets.map((set, i) => {
                 return (
@@ -254,33 +259,36 @@ const ExerciseContentView = memo(
                     >
                       Warmup
                     </div>
-                    <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`}>
+                    <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`}>
                       <ExerciseSetView
                         showHelp={props.showHelp && props.index === 0 && i === 0}
                         settings={props.settings}
                         exercise={props.entry.exercise}
                         isCurrent={!!isCurrentProgress}
                         set={set}
-                        isEditMode={false}
-                        onClick={(event) => {
-                          if (!friend) {
-                            event.preventDefault();
-                            if (isEditMode && props.onStartSetChanging) {
-                              props.onStartSetChanging(true, props.index, i);
-                            } else {
-                              props.onChangeReps("warmup");
-                              handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
+                        isEditMode={isEditModeRef.current}
+                        onClick={useCallback(
+                          (event) => {
+                            if (!friend) {
+                              event.preventDefault();
+                              if (isEditModeRef.current && props.onStartSetChanging) {
+                                props.onStartSetChanging(true, props.index, i);
+                              } else {
+                                props.onChangeReps("warmup");
+                                handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
+                              }
                             }
-                          }
-                        }}
+                          },
+                          [!!friend, isEditModeRef.current, props.index, props.entry]
+                        )}
                       />
-                      {isEditMode && (
+                      {isEditModeRef.current && (
                         <button
                           data-cy="set-edit-mode-remove"
                           style={{ top: "-4px", left: "-13px" }}
                           className="absolute p-1 ls-edit-set-remove"
                           onClick={() => {
-                            EditProgressEntry.removeSet(props.dispatch, true, props.index, i);
+                            EditProgressEntry.removeSet(props.dispatch, props.progress.id, true, props.index, i);
                           }}
                         >
                           <IconCloseCircle />
@@ -290,7 +298,7 @@ const ExerciseContentView = memo(
                   </div>
                 );
               })}
-              {isEditMode && props.onStartSetChanging && (
+              {isEditModeRef.current && props.onStartSetChanging && (
                 <div>
                   <div
                     data-cy="warmup-set-title"
@@ -313,18 +321,18 @@ const ExerciseContentView = memo(
           )}
           {props.entry.sets.map((set, i) => {
             return (
-              <div className={`relative ${isEditMode ? "is-edit-mode" : ""}`} data-cy="workout-set">
+              <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`} data-cy="workout-set">
                 <ExerciseSetView
                   showHelp={props.showHelp && (warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
                   exercise={props.entry.exercise}
                   settings={props.settings}
                   set={set}
                   isCurrent={!!isCurrentProgress}
-                  isEditMode={isEditMode}
+                  isEditMode={isEditModeRef.current}
                   onClick={(event) => {
                     if (!friend) {
                       event.preventDefault();
-                      if (isEditMode && props.onStartSetChanging) {
+                      if (isEditModeRef.current && props.onStartSetChanging) {
                         props.onStartSetChanging(false, props.index, i);
                       } else {
                         props.onChangeReps("workout");
@@ -333,13 +341,13 @@ const ExerciseContentView = memo(
                     }
                   }}
                 />
-                {isEditMode && (
+                {isEditModeRef.current && (
                   <button
                     data-cy="set-edit-mode-remove"
                     style={{ top: "-4px", left: "-13px" }}
                     className="absolute p-1 ls-edit-set-remove"
                     onClick={() => {
-                      EditProgressEntry.removeSet(props.dispatch, false, props.index, i);
+                      EditProgressEntry.removeSet(props.dispatch, props.progress.id, false, props.index, i);
                     }}
                   >
                     <IconCloseCircle />
@@ -348,7 +356,7 @@ const ExerciseContentView = memo(
               </div>
             );
           })}
-          {isEditMode && props.onStartSetChanging && (
+          {isEditModeRef.current && props.onStartSetChanging && (
             <button
               data-cy="add-set"
               onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
@@ -358,7 +366,7 @@ const ExerciseContentView = memo(
             </button>
           )}
         </section>
-        {isEditMode && (
+        {isEditModeRef.current && (
           <div className="text-center">
             <Button
               kind="orange"

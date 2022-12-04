@@ -165,6 +165,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             />
             <ModalEditSet
               isHidden={progress.ui?.editSetModal == null}
+              progressId={progress.id}
               dispatch={props.dispatch}
               units={props.settings.units}
               set={getEditSetData(props.progress)}
@@ -206,7 +207,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             }
           }}
           onStartSetChanging={(isWarmup: boolean, entryIndex: number, setIndex?: number) => {
-            EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex);
+            EditProgressEntry.showEditSetModal(props.dispatch, progress.id, isWarmup, entryIndex, setIndex);
           }}
         />
       </Surface>

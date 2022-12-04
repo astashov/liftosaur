@@ -66,6 +66,7 @@ export const CardsView = memo(
             <ExerciseView
               history={props.history}
               showHelp={true}
+              showKebab={true}
               progress={props.progress}
               friend={friend}
               settings={props.settings}

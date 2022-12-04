@@ -15,13 +15,10 @@ interface IProps {
 
 export function ProgramDetailsMusclesModal(props: IProps): JSX.Element {
   let points: IPoints;
-  let headerTitle: string;
   if (props.muscles.type === "program") {
     points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.settings));
-    headerTitle = "Muscles used in the program";
   } else {
     const day = props.program.days[props.muscles.dayIndex];
-    headerTitle = "Muscles used in the day";
     points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, day, props.settings));
   }
 

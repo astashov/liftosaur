@@ -13,6 +13,7 @@ interface IModalWeightProps {
   dispatch: IDispatch;
   units: IUnit;
   isWarmup: boolean;
+  progressId: number;
   entryIndex: number;
   setIndex?: number;
   set?: ISet;
@@ -77,7 +78,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             data-cy="modal-edit-set-cancel"
             className="mr-3"
             onClick={() => {
-              EditProgressEntry.hideEditSetModal(props.dispatch);
+              EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
             }}
           >
             Cancel
@@ -94,9 +95,16 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                 const isAmrap = !!(isAmrapInput.current?.checked || false);
                 if (!isNaN(reps) && !isNaN(weight)) {
                   const newSet: ISet = { reps, weight: Weight.build(weight, props.units), isAmrap };
-                  EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
+                  EditProgressEntry.editSet(
+                    props.dispatch,
+                    props.progressId,
+                    props.isWarmup,
+                    newSet,
+                    props.entryIndex,
+                    props.setIndex
+                  );
                 } else {
-                  EditProgressEntry.hideEditSetModal(props.dispatch);
+                  EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
                 }
               }
             }}

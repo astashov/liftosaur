@@ -6,6 +6,7 @@ import { ISet } from "../types";
 export namespace EditProgressEntry {
   export function showEditSetModal(
     dispatch: IDispatch,
+    progressId: number,
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number
@@ -13,7 +14,7 @@ export namespace EditProgressEntry {
     dispatch({
       type: "UpdateState",
       lensRecording: [
-        lb<IState>().p("progress").pi(0).pi("ui").p("editSetModal").record({
+        lb<IState>().p("progress").pi(progressId).pi("ui").p("editSetModal").record({
           isWarmup,
           entryIndex,
           setIndex,
@@ -22,15 +23,16 @@ export namespace EditProgressEntry {
     });
   }
 
-  export function hideEditSetModal(dispatch: IDispatch): void {
+  export function hideEditSetModal(dispatch: IDispatch, progressId: number): void {
     dispatch({
       type: "UpdateState",
-      lensRecording: [lb<IState>().p("progress").pi(0).pi("ui").p("editSetModal").record(undefined)],
+      lensRecording: [lb<IState>().p("progress").pi(progressId).pi("ui").p("editSetModal").record(undefined)],
     });
   }
 
   export function editSet(
     dispatch: IDispatch,
+    progressId: number,
     isWarmup: boolean,
     set: ISet,
     entryIndex: number,
@@ -42,7 +44,7 @@ export namespace EditProgressEntry {
         lensRecording: [
           lb<IState>()
             .p("progress")
-            .pi(0)
+            .pi(progressId)
             .p("entries")
             .i(entryIndex)
             .p(isWarmup ? "warmupSets" : "sets")
@@ -59,7 +61,7 @@ export namespace EditProgressEntry {
         lensRecording: [
           lb<IState>()
             .p("progress")
-            .pi(0)
+            .pi(progressId)
             .p("entries")
             .i(entryIndex)
             .p(isWarmup ? "warmupSets" : "sets")
@@ -67,16 +69,22 @@ export namespace EditProgressEntry {
         ],
       });
     }
-    hideEditSetModal(dispatch);
+    hideEditSetModal(dispatch, progressId);
   }
 
-  export function removeSet(dispatch: IDispatch, isWarmup: boolean, entryIndex: number, setIndex: number): void {
+  export function removeSet(
+    dispatch: IDispatch,
+    progressId: number,
+    isWarmup: boolean,
+    entryIndex: number,
+    setIndex: number
+  ): void {
     dispatch({
       type: "UpdateState",
       lensRecording: [
         lb<IState>()
           .p("progress")
-          .pi(0)
+          .pi(progressId)
           .p("entries")
           .i(entryIndex)
           .p(isWarmup ? "warmupSets" : "sets")

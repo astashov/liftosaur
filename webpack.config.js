@@ -188,11 +188,21 @@ module.exports = {
     host: "0.0.0.0",
     disableHostCheck: true,
     proxy: {
-      "/record": "https://local-api.liftosaur.com:3000/api",
-      "/admin": "https://local-api.liftosaur.com:3000/",
-      "/acceptfriendinvitation": "https://local-api.liftosaur.com:3000/api",
+      "/record": {
+        target: "https://local-api.liftosaur.com:3000/api",
+        secure: false,
+      },
+      "/admin": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/acceptfriendinvitation": {
+        target: "https://local-api.liftosaur.com:3000/api",
+        secure: false,
+      },
       "/profileimage/*": {
         target: "https://local-api.liftosaur.com:3000",
+        secure: false,
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profileimage?user=${user}`;
@@ -200,13 +210,20 @@ module.exports = {
       },
       "/profile/*": {
         target: "https://local-api.liftosaur.com:3000",
+        secure: false,
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profile?user=${user}`;
         },
       },
-      "/programs/*": "https://0.0.0.0:3000",
-      "/programimage/*": "https://local-api.liftosaur.com:3000/api",
+      "/programs/*": {
+        target: "https://0.0.0.0:3000",
+        secure: false,
+      },
+      "/programimage/*": {
+        target: "https://local-api.liftosaur.com:3000/api",
+        secure: false,
+      },
     },
   },
 };

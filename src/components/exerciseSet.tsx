@@ -72,7 +72,7 @@ export const ExerciseSetView = memo((props: IProps): JSX.Element => {
       />
     );
   } else {
-    if (set.completedReps === set.reps) {
+    if (set.completedReps >= set.reps) {
       return (
         <CompleteExerciseSet
           isCurrent={props.isCurrent}

@@ -21,7 +21,6 @@ export function ScrollBarrell(props: IProps): JSX.Element {
     if (barrel) {
       let defaultSelectedIndex = props.values.findIndex(([value, key]) => value === props.defaultSelectedValue);
       defaultSelectedIndex = defaultSelectedIndex === -1 ? 0 : defaultSelectedIndex;
-      console.log(defaultSelectedIndex);
       barrel.scrollTop = defaultSelectedIndex * props.itemHeight;
     }
   }, []);
