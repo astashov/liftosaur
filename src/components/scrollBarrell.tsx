@@ -13,15 +13,36 @@ interface IProps {
 export function ScrollBarrell(props: IProps): JSX.Element {
   const height = props.itemHeight * props.numberOfVisibleItems;
   const numberOfDummyItems = Math.floor(props.numberOfVisibleItems / 2);
+  const containerRef = useRef<HTMLDivElement>();
   const barrelRef = useRef<HTMLDivElement>();
   const timer = useRef<number | undefined>(undefined);
+  const isDefaultSet = useRef<boolean>(false);
+  const isTurnedOn = useRef<boolean>(props.isExpanded);
+  const isExpanded = useRef<boolean>(props.isExpanded);
+  isExpanded.current = props.isExpanded;
+
+  function setDefaultIndex(): void {
+    if (!isDefaultSet.current) {
+      const barrel = barrelRef.current;
+      if (barrel) {
+        let defaultSelectedIndex = props.values.findIndex(([value, key]) => value === props.defaultSelectedValue);
+        defaultSelectedIndex = defaultSelectedIndex === -1 ? 0 : defaultSelectedIndex;
+        barrel.scrollTop = defaultSelectedIndex * props.itemHeight;
+        isDefaultSet.current = true;
+      }
+    }
+  }
 
   useEffect(() => {
-    const barrel = barrelRef.current;
-    if (barrel) {
-      let defaultSelectedIndex = props.values.findIndex(([value, key]) => value === props.defaultSelectedValue);
-      defaultSelectedIndex = defaultSelectedIndex === -1 ? 0 : defaultSelectedIndex;
-      barrel.scrollTop = defaultSelectedIndex * props.itemHeight;
+    setDefaultIndex();
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("transitionend", (e) => {
+        isTurnedOn.current = isExpanded.current;
+      });
     }
   }, []);
 
@@ -29,6 +50,9 @@ export function ScrollBarrell(props: IProps): JSX.Element {
     const barrel = barrelRef.current;
     if (barrel) {
       barrel.addEventListener("scroll", (e) => {
+        if (!isTurnedOn.current) {
+          return;
+        }
         const target = e.target as HTMLDivElement;
         if (timer.current) {
           clearTimeout(timer.current);
@@ -52,6 +76,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
   return (
     <div
       className="relative overflow-hidden border-t border-grayv2-100"
+      ref={containerRef}
       style={{
         transition: "height 150ms ease-in-out, visibility 150ms linear",
         visibility: props.isExpanded ? "inherit" : "hidden",
