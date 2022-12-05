@@ -41,6 +41,7 @@ import { inputClassName, selectInputOnFocus } from "../input";
 import { LinkButton } from "../linkButton";
 import { IconTrash } from "../icons/iconTrash";
 import { IconHelp } from "../icons/iconHelp";
+import { IconInfo } from "../icons/iconInfo";
 
 interface IProps {
   settings: ISettings;
@@ -88,6 +89,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
+  const [showVariations, setShowVariations] = useState<boolean>(programExercise.variations.length > 1);
+
+  const variationsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
@@ -159,19 +163,21 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           setShouldShowAddStateVariable(true);
         }}
       />
-      <Variations
-        variationIndex={variationIndex}
-        programExercise={programExercise}
-        dispatch={props.dispatch}
-        onChangeVariation={(i) => setVariationIndex(i)}
-      />
-      {programExercise.variations.length > 1 && (
-        <VariationsEditor
+      <div ref={variationsRef} className={`${!showVariations ? "invisible h-0" : ""}`}>
+        <Variations
+          variationIndex={variationIndex}
           programExercise={programExercise}
-          editorResult={variationScriptResult}
           dispatch={props.dispatch}
+          onChangeVariation={(i) => setVariationIndex(i)}
         />
-      )}
+        {programExercise.variations.length > 1 && (
+          <VariationsEditor
+            programExercise={programExercise}
+            editorResult={variationScriptResult}
+            dispatch={props.dispatch}
+          />
+        )}
+      </div>
       <Sets
         variationIndex={variationIndex}
         settings={props.settings}
@@ -182,6 +188,14 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         }}
         dispatch={props.dispatch}
       />
+      {!showVariations && (
+        <VariationsEnable
+          onClick={() => {
+            setShowVariations(true);
+            variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+        />
+      )}
       <EditWarmupSets dispatch={props.dispatch} programExercise={programExercise} settings={props.settings} />
       {progress && entry && (
         <Playground
@@ -776,5 +790,23 @@ function FinishDayScriptEditor(props: IFinishDayScriptEditorProps): JSX.Element 
         }}
       />
     </Fragment>
+  );
+}
+
+function VariationsEnable(props: { onClick: () => void }): JSX.Element {
+  return (
+    <button className="block p-4 mt-4 bg-purple-100 rounded-2xl" onClick={props.onClick}>
+      <div className="flex">
+        <div className="mr-2">
+          <IconInfo />
+        </div>
+        <div className="flex-1 text-sm text-left">Want to dynamically change number of sets?</div>
+      </div>
+      <div className="mt-2">
+        <Button buttonSize="lg" kind="purple">
+          Enable Sets Variations
+        </Button>
+      </div>
+    </button>
   );
 }
