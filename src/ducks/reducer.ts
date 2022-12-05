@@ -25,6 +25,7 @@ import {
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { Equipment } from "../models/equipment";
+import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 
 declare let Rollbar: RB;
 const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -69,7 +70,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
       likes: { likes: {}, isLoading: false },
       notification,
       loading: { items: {} },
-      programs: [],
+      programs: [basicBeginnerProgram],
       currentHistoryRecord: 0,
       comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
@@ -79,7 +80,7 @@ export async function getInitialState(client: Window["fetch"], url: URL, rawStor
   return {
     screenStack: ["onboarding"],
     progress: {},
-    programs: [],
+    programs: [basicBeginnerProgram],
     loading: { items: {} },
     allFriends: { friends: {}, sortedIds: [], isLoading: false },
     likes: { likes: {}, isLoading: false },
