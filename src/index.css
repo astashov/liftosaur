@@ -132,6 +132,62 @@ input[type="checkbox"].checkbox:disabled {
   cursor: not-allowed;
 }
 
+.shiny-border {
+  border-radius: 3px;
+  position: relative;
+}
+
+.shiny-border > * {
+  position: relative;
+  z-index: 1;
+}
+
+.shiny-border::before,
+.shiny-border::after {
+  content: "";
+  z-index: 0;
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  top: 5%;
+  left: 5%;
+  background: linear-gradient(
+    45deg,
+    #ffff00,
+    #00ff00,
+    #0099ff,
+    #001aff,
+    #a200ff,
+    #ff0055,
+    #ff0000,
+    #ff0055,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #0099ff,
+    #001aff,
+    #a200ff
+  );
+  background-size: 300%;
+  animation: shiny-border 8s linear infinite;
+}
+
+.shiny-border::after {
+  filter: blur(10px);
+  will-change: filter;
+}
+
+@keyframes shiny-border {
+  0%,
+  100% {
+    background-position: 0;
+  }
+
+  50% {
+    background-position: 300%;
+  }
+}
+
 @keyframes wiggle {
   0% {
     transform: rotate(0deg);

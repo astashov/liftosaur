@@ -40,12 +40,16 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
       style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
       onClick={(event) => {
         if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-          editHistoryRecord(
-            historyRecord,
-            dispatch,
-            Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
-            props.friendId
-          );
+          if (Progress.isCurrent(historyRecord)) {
+            dispatch({ type: "StartProgramDayAction" });
+          } else {
+            editHistoryRecord(
+              historyRecord,
+              dispatch,
+              Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
+              props.friendId
+            );
+          }
         }
       }}
     >

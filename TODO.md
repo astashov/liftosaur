@@ -50,5 +50,5 @@
 
 ## Broken experiences
 
-- Hide variations by default
 - Add help
+- Fix tests

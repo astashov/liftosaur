@@ -12,7 +12,7 @@ import { useState } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet } from "../types";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, IExerciseType } from "../types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -27,6 +27,7 @@ import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { ModalExerciseInfo } from "./modalExerciseInfo";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -54,6 +55,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const timers = props.settings.timers;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
+  const [exerciseTypeInfo, setExerciseTypeInfo] = useState<IExerciseType | undefined>(undefined);
 
   if (progress != null) {
     return (
@@ -159,6 +161,12 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
               setIndex={progress.ui?.editSetModal?.setIndex}
             />
+            <ModalExerciseInfo
+              settings={props.settings}
+              isHidden={exerciseTypeInfo == null}
+              exerciseType={exerciseTypeInfo}
+              onClose={() => setExerciseTypeInfo(undefined)}
+            />
             {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
               <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
             )}
@@ -186,6 +194,10 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           }}
           onStartSetChanging={(isWarmup: boolean, entryIndex: number, setIndex?: number) => {
             EditProgressEntry.showEditSetModal(props.dispatch, progress.id, isWarmup, entryIndex, setIndex);
+          }}
+          onExerciseInfoClick={(exerciseType: IExerciseType) => {
+            console.log(exerciseType);
+            setExerciseTypeInfo(exerciseType);
           }}
         />
       </Surface>

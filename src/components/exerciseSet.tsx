@@ -110,13 +110,16 @@ function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExer
 
 function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element {
   const set = props.set;
-  return (
+  console.log("props.showHelp", props.showHelp);
+  const button = (
     <button
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy="set-nonstarted"
-      className={`ls-progress w-12 h-12 my-2 mr-3 leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
+      className={`ls-progress w-12 h-12 ${
+        props.showHelp ? "" : "my-2 mr-3"
+      } leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -128,6 +131,7 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
       </div>
     </button>
   );
+  return props.showHelp ? <div className="my-2 mr-3 shiny-border">{button}</div> : button;
 }
 
 function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {

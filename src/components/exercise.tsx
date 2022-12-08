@@ -47,6 +47,7 @@ interface IProps {
   forceShowStateChanges?: boolean;
   dispatch: IDispatch;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
+  onExerciseInfoClick?: (exercise: IExerciseType) => void;
   onChangeReps: (mode: IProgressMode) => void;
 }
 
@@ -148,17 +149,25 @@ const ExerciseContentView = memo(
     return (
       <Fragment>
         <header className="flex">
-          <div className="pr-4" style={{ width: "62px" }}>
-            {equipment && (
-              <img
-                src={`https://www.liftosaur.com/externalimages/exercises/single/small/${exercise.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
-                alt={`${exercise.name} image`}
-              />
-            )}
+          <div style={{ width: "62px" }}>
+            <button
+              className="px-2"
+              style={{ marginLeft: "-0.5rem" }}
+              onClick={() => props.onExerciseInfoClick?.(exercise)}
+            >
+              {equipment && (
+                <img
+                  src={`https://www.liftosaur.com/externalimages/exercises/single/small/${exercise.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
+                  alt={`${exercise.name} image`}
+                />
+              )}
+            </button>
           </div>
           <div className="flex-1 ml-auto">
             <div className="flex">
-              <div className="flex-1 text-lg font-bold">{exercise.name}</div>
+              <div className="flex-1 text-lg font-bold">
+                <button onClick={() => props.onExerciseInfoClick?.(exercise)}>{exercise.name}</button>
+              </div>
               {props.showKebab && (
                 <div>
                   <button
