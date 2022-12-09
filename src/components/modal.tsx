@@ -49,6 +49,7 @@ export function Modal(props: IProps): JSX.Element {
     <section ref={modalRef} className={className} style={{ zIndex: 100 }}>
       <div
         data-name="overlay"
+        onClick={props.shouldShowClose ? props.onClose : undefined}
         className="absolute inset-0 z-10 overflow-scroll scrolling-touch opacity-50 bg-grayv2-700"
       ></div>
       <div

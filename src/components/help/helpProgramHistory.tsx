@@ -11,9 +11,9 @@ export function HelpProgramHistory(): JSX.Element {
       </p>
       <p className="pb-2">
         Each history item shows the date, program, day, exercises, reps and <strong>max weight</strong> for that
-        exercise. Red reps are unsuccessful ones, i.e. completed reps were less than required reps. Green reps mean they
-        were successful. There's also duration of a workout (hours and minutes), likes and comments (if logged in and
-        has friends).
+        exercise. <span className="text-redv2-main">Red</span> reps are unsuccessful ones, i.e. completed reps were less
+        than required reps. <span className="text-greenv2-main">Green</span> reps mean they were successful. There's
+        also duration of a workout (hours and minutes), likes and comments (if logged in and has friends).
       </p>
       <p className="pb-2">
         In order to see friends workouts, you need to create an account, and then add friends. You can do that on the

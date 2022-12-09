@@ -20,6 +20,7 @@ import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconTrash } from "../icons/iconTrash";
 import { LinkButton } from "../linkButton";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
+import { HelpEditProgramDay } from "../help/helpEditProgramDay";
 
 interface IProps {
   isProgress: boolean;
@@ -48,7 +49,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpEditProgramDay />}
           screenStack={props.screenStack}
           title="Edit Program Day"
           subtitle={day.name}

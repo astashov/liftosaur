@@ -15,6 +15,9 @@ import { IconRuler } from "./icons/iconRuler";
 import { FooterButton } from "./footerButton";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpProgramHistory } from "./help/helpProgramHistory";
+import { BottomSheet } from "./bottomSheet";
+import { BottomSheetItem } from "./bottomSheetItem";
+import { IconEditSquare } from "./icons/iconEditSquare";
 
 interface IProps {
   program: IProgram;
@@ -61,6 +64,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   }, []);
 
   const history = [nextHistoryRecord, ...sortedHistory];
+  const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
 
   return (
     <Surface
@@ -80,11 +84,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
           ctaTitle={props.progress ? "Continue Workout" : "Start Workout"}
           leftButtons={[
-            <FooterButton
-              icon={<IconDoc />}
-              text="Program"
-              onClick={() => Program.editAction(dispatch, props.program.id)}
-            />,
+            <FooterButton icon={<IconDoc />} text="Program" onClick={() => setShowProgramBottomSheet(true)} />,
             <FooterButton
               icon={<IconRuler />}
               text="Measures"
@@ -93,6 +93,27 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           ]}
           rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
         />
+      }
+      addons={
+        <BottomSheet isHidden={!showProgramBottomSheet} onClose={() => setShowProgramBottomSheet(false)}>
+          <div className="p-4">
+            <BottomSheetItem
+              className="choose-program"
+              title="Choose Another Program"
+              isFirst={true}
+              icon={<IconDoc />}
+              description="Select a program for the next workout."
+              onClick={() => dispatch(Thunk.pushScreen("programs"))}
+            />
+            <BottomSheetItem
+              className="edit-program"
+              title="Edit Current Program"
+              icon={<IconEditSquare />}
+              description={`Edit the current program '${props.program.name}'.`}
+              onClick={() => Program.editAction(dispatch, props.program.id)}
+            />
+          </div>
+        </BottomSheet>
       }
     >
       <HistoryRecordsList

@@ -30,6 +30,7 @@ import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { rightFooterButtons } from "../rightFooterButtons";
+import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 
 interface IProps {
   editProgram: IProgram;
@@ -51,7 +52,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpEditProgramDaysList />}
           screenStack={props.screenStack}
           rightButtons={[
             <button className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
