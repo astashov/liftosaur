@@ -110,6 +110,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
             className="flex items-center justify-center w-full cursor-pointer scroll-barrel-item"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
             onClick={() => {
+              props.onSelect(value);
               barrelRef.current.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >

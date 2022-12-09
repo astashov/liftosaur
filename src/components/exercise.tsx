@@ -263,7 +263,7 @@ const ExerciseContentView = memo(
                 return (
                   <div data-cy="warmup-set">
                     <div
-                      data-cy="warmup-set-title text-xs"
+                      data-cy="warmup-set-title"
                       className="text-grayv2-main"
                       style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
                     >

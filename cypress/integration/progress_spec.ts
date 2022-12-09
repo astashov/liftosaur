@@ -1,3 +1,5 @@
+import { g } from "../support/utils";
+
 describe("Progress", () => {
   beforeEach(() => {
     cy.clearCookies();
@@ -7,12 +9,11 @@ describe("Progress", () => {
   });
 
   it("Clones a program and goes through first day", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-cta").click();
 
     // Testing set clicks
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").first().as("firstset");
@@ -52,8 +53,6 @@ describe("Progress", () => {
     cy.get("@thirdSet").click();
     cy.get("[data-cy=modal-amrap-input]").clear().type("8");
     cy.get("[data-cy=modal-amrap-submit]").click();
-
-    cy.contains("Got it!").click();
 
     cy.get("@thirdSet").find("[data-cy=reps-value]").should("have.text", "8");
     cy.get("@thirdSet").find("[data-cy=reps-completed-amrap]").should("have.text", "5+");

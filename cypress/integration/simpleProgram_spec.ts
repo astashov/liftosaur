@@ -9,25 +9,26 @@ describe("Program", () => {
   });
 
   it("creates a new exercise using Simple editor", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
 
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    cy.contains("Create").click();
+    g("footer-cta").click();
 
     g("modal-create-program-input").clear().type("My Program");
     g("modal-create-program-submit").click();
 
-    cy.contains("Add Exercise +").click();
+    cy.contains("Add New Exercise").click();
 
-    g("select-exercise").click();
+    g("menu-item-exercise").click();
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
-    g("menu-item-value-equipment").should("have.value", "barbell");
+    g("menu-item-value-equipment").should("have.text", "Barbell");
 
     cy.contains("Advanced").click();
 
-    cy.contains("Add Variation +").click();
+    cy.contains("Enable Sets Variations").click();
+    cy.contains("Add New Variation").click();
 
     cy.contains("Simple").click();
 
@@ -35,8 +36,9 @@ describe("Program", () => {
 
     cy.contains("Advanced").click();
 
-    g("menu-item-value-variation").select("Variation 2");
-    cy.contains("Remove Variation").click();
+    g("menu-item-name-selected-variation").click();
+    g("menu-item-selected-variation", "scroll-barrel-item-1").click();
+    cy.contains("Delete Current Variation").click();
 
     cy.contains("Simple").click();
 
@@ -52,15 +54,14 @@ describe("Program", () => {
 
     // Running the program
 
-    cy.contains("Back").click();
-    cy.contains("Back").click();
+    g("navbar-back").click();
+    g("navbar-back").click();
 
     g("menu-item-my-program").click();
 
     // Running the program
 
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-cta").click();
 
     g("set-nonstarted").should("have.length", 5);
     g("set-nonstarted").should("have.length", 5);

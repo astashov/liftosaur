@@ -9,15 +9,15 @@ describe("Stats", () => {
   });
 
   it("enters stats and shows graphs", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
 
-    g("tab-stats").click();
-    cy.contains("No stats added yet").should("have.length", 1);
+    g("footer-measures").click();
+    cy.contains("No measurements added yet").should("have.length", 1);
 
-    g("enter-stats").click();
+    g("footer-cta").click();
     g("modify-stats").click();
     g("menu-item-name-shoulders").click();
     g("menu-item-name-forearm-left").click();
@@ -31,7 +31,7 @@ describe("Stats", () => {
 
     g("add-stats").click();
 
-    g("enter-stats").click();
+    g("footer-cta").click();
     g("input-stats-bodyweight").should("have.value", "10");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "30");
@@ -41,7 +41,7 @@ describe("Stats", () => {
     g("input-stats-forearm-left").clear().type("35");
     g("add-stats").click();
 
-    g("enter-stats").click();
+    g("footer-cta").click();
     g("input-stats-bodyweight").should("have.value", "15");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "35");
@@ -51,7 +51,6 @@ describe("Stats", () => {
     g("input-stats-forearm-left").clear().type("40");
     g("add-stats").click();
 
-    g("tab-stats").click();
     g("input-stats-value").should("have.length", 2);
     g("input-stats-value").eq(0).should("have.value", "15");
     g("input-stats-value").eq(1).should("have.value", "10");
@@ -59,12 +58,14 @@ describe("Stats", () => {
     g("input-stats-unit").eq(0).should("have.text", "lb");
     g("input-stats-unit").eq(1).should("have.text", "lb");
 
-    g("stats-selector").select("Shoulders");
+    g("menu-item-name-type").click();
+    g("menu-item-type", "scroll-barrel-item-shoulders").click();
+    cy.waitFor();
     g("input-stats-value").should("have.length", 1);
     g("input-stats-value").eq(0).should("have.value", "20");
     g("input-stats-unit").eq(0).should("have.text", "in");
 
-    g("stats-selector").select("Left Forearm");
+    g("menu-item-type", "scroll-barrel-item-forearmleft").click();
     g("input-stats-value").should("have.length", 3);
     g("input-stats-value").eq(0).should("have.value", "40");
     g("input-stats-value").eq(1).should("have.value", "35");
@@ -82,8 +83,8 @@ describe("Stats", () => {
     g("input-stats-unit").eq(0).should("have.text", "in");
     g("input-stats-unit").eq(1).should("have.text", "in");
 
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-workouts").click({ force: true });
+    g("footer-cta").click();
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").eq(0).click();
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();
