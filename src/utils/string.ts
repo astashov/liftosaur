@@ -12,7 +12,7 @@ export namespace StringUtils {
   }
 
   export function dashcase(string: string): string {
-    return string.replace(/:/g, "").replace(/\s+/g, "-").toLowerCase();
+    return string.replace(/[:,]/g, "").replace(/\s+/g, "-").toLowerCase();
   }
 
   export function truncate(string: string, length: number): string {

@@ -60,7 +60,6 @@ describe("Stats", () => {
 
     g("menu-item-name-type").click();
     g("menu-item-type", "scroll-barrel-item-shoulders").click();
-    cy.waitFor();
     g("input-stats-value").should("have.length", 1);
     g("input-stats-value").eq(0).should("have.value", "20");
     g("input-stats-unit").eq(0).should("have.text", "in");

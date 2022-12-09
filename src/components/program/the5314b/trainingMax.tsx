@@ -9,6 +9,7 @@ import { Thunk } from "../../../ducks/thunks";
 import { IProgram, ISettings, IWeight } from "../../../types";
 import { Input } from "../../input";
 import { LinkButton } from "../../linkButton";
+import { StringUtils } from "../../../utils/string";
 
 interface IProps {
   program: IProgram;
@@ -93,7 +94,11 @@ function TrainingMaxExercise(props: IPropsExercise): JSX.Element {
         />
       </div>
       <div>
-        <LinkButton onClick={() => setShouldShowCalculator(!shouldShowCalculator)} className="text-blue-700 underline">
+        <LinkButton
+          data-cy={`${StringUtils.dashcase(props.name)}-calculate`}
+          onClick={() => setShouldShowCalculator(!shouldShowCalculator)}
+          className="text-blue-700 underline"
+        >
           Calculate
         </LinkButton>
       </div>
