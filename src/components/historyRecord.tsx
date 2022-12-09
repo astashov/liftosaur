@@ -76,7 +76,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             const exercise = Exercise.get(entry.exercise, props.settings.exercises);
             return (
               <div data-cy="history-entry-exercise" className="flex flex-row flex-1">
-                <div data-cy="history-entry-exercise-name flex-1" style={{ maxWidth: "50%" }}>
+                <div data-cy="history-entry-exercise-name" className="flex-1" style={{ maxWidth: "50%" }}>
                   {exercise.name}
                 </div>
                 <div className="flex-1 text-right">

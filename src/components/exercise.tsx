@@ -171,6 +171,7 @@ const ExerciseContentView = memo(
               {props.showKebab && (
                 <div>
                   <button
+                    data-cy="exercise-options"
                     className="py-2 pl-2"
                     onClick={() => {
                       updateState(props.dispatch, [
@@ -378,6 +379,7 @@ const ExerciseContentView = memo(
         {isEditModeRef.current && (
           <div className="text-center">
             <Button
+              data-cy="done-edit-exercise"
               kind="orange"
               onClick={() =>
                 updateState(props.dispatch, [

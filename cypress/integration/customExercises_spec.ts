@@ -9,12 +9,12 @@ describe("Custom Exercises", () => {
   });
 
   it("CRUD custom exercises", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
 
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    cy.contains("Create").click();
+    g("footer-cta").click();
 
     g("modal-create-program-input").clear().type("My Program");
     g("modal-create-program-submit").click();
@@ -22,7 +22,7 @@ describe("Custom Exercises", () => {
     g("edit-day").click();
     cy.contains("Create New Exercise").click();
 
-    g("select-exercise").click();
+    g("menu-item-exercise").click();
     g("custom-exercise-create").click();
     g("custom-exercise-name-input").clear().type("My Exercise");
     g("custom-exercise-equipment-select").select("Band");
@@ -35,19 +35,19 @@ describe("Custom Exercises", () => {
 
     g("menu-item-my-exercise-2").click();
     cy.contains("Save").click();
-    cy.contains("Back").click();
-    cy.contains("Back").click();
+    g("navbar-back").click();
+    g("navbar-back").click();
     g("menu-item-my-program").click();
 
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it").click();
+    g("footer-cta").click();
     g("set-nonstarted").click();
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();
 
-    cy.contains("Edit Program").click();
+    g("footer-program").click({ force: true });
+    g("bottom-sheet-edit-program").click();
     g("edit-exercise").click();
-    g("select-exercise").click();
+    g("menu-item-exercise").click();
     g("custom-exercise-delete-my-exercise-2").click();
 
     g("custom-exercise-create").click();
@@ -57,14 +57,15 @@ describe("Custom Exercises", () => {
 
     g("menu-item-blah-one").click();
     cy.contains("Save").click();
-    cy.contains("Back").click();
+    g("navbar-back").click();
 
     g("history-entry-exercise-name").eq(0).should("have.text", "Blah One");
     g("history-entry-exercise-name").eq(1).should("have.text", "My Exercise 2");
 
-    cy.contains("Edit Program").click();
+    g("footer-program").click({ force: true });
+    g("bottom-sheet-edit-program").click();
     g("edit-exercise").click();
-    g("select-exercise").click();
+    g("menu-item-exercise").click();
     g("custom-exercise-create").click();
 
     g("custom-exercise-name-input").clear().type("My Exercise 2");
@@ -81,12 +82,14 @@ describe("Custom Exercises", () => {
 
     g("menu-item-my-exercise-3").click();
     cy.contains("Save").click();
-    cy.contains("Back").click();
+    g("navbar-back").click();
 
     g("history-entry-exercise-name").eq(0).should("have.text", "My Exercise 3");
     g("history-entry-exercise-name").eq(1).should("have.text", "My Exercise 3");
 
-    g("footer-muscles").click();
+    g("footer-program").click({ force: true });
+    g("bottom-sheet-edit-program").click();
+    g("footer-muscles").click({ force: true });
     g("target-muscles-list").should("contain.text", "Hamstrings");
     g("target-muscles-list").should("contain.text", "Shoulders");
     g("synergist-muscles-list").should("contain.text", "Abs");

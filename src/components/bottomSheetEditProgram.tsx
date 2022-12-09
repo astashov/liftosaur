@@ -14,6 +14,7 @@ export function BottomSheetEditProgram(props: IProps): JSX.Element {
     <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
       <div className="p-4">
         <BottomSheetItem
+          name="export-program"
           className="ls-export-program"
           title="Export Program To File"
           isFirst={true}

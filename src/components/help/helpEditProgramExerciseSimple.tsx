@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { IconCog2 } from "../icons/iconCog2";
+import { JSX, Fragment } from "preact";
 
 export function HelpEditProgramDaysList(): JSX.Element {
   return <></>;

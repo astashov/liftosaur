@@ -44,6 +44,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             <div>
               <button
                 className="absolute"
+                data-cy="footer-cta"
                 style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
                 onClick={props.onCtaClick}
               >

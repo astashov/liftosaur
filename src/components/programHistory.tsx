@@ -98,7 +98,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <BottomSheet isHidden={!showProgramBottomSheet} onClose={() => setShowProgramBottomSheet(false)}>
           <div className="p-4">
             <BottomSheetItem
-              className="choose-program"
+              name="choose-program"
               title="Choose Another Program"
               isFirst={true}
               icon={<IconDoc />}
@@ -106,7 +106,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               onClick={() => dispatch(Thunk.pushScreen("programs"))}
             />
             <BottomSheetItem
-              className="edit-program"
+              name="edit-program"
               title="Edit Current Program"
               icon={<IconEditSquare />}
               description={`Edit the current program '${props.program.name}'.`}

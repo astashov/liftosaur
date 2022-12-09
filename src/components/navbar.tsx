@@ -68,6 +68,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           {showBackButton ? (
             <button
               className="p-2"
+              data-cy="navbar-back"
               onClick={() => {
                 if (!props.onBack || props.onBack()) {
                   props.dispatch(Thunk.pullScreen());

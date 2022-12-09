@@ -27,6 +27,7 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
     >
       <div className="p-4">
         <BottomSheetItem
+          name="edit-exercise"
           title="Edit Exercise"
           isFirst={true}
           icon={<IconEditSquare />}
@@ -40,6 +41,7 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
         />
         <BottomSheetItem
           title="Information"
+          name="information"
           icon={<IconHelp />}
           description="Quick reminder how to do the exercise. If you don't know how to do it at all, better find some youtube videos that explain the proper form"
           onClick={() => {

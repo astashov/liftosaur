@@ -9,14 +9,14 @@ describe("Edit Sets", () => {
   });
 
   it("edits sets properly", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-cta").click();
 
-    g("edit-exercise").eq(1).click();
+    g("exercise-options").eq(1).click();
+    g("bottom-sheet-edit-exercise").click();
     g("add-warmup-set").click();
     g("modal-edit-set-reps-input").clear().type("10");
     g("modal-edit-set-weight-input").clear().type("100");
