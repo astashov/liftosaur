@@ -209,7 +209,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         value={barWeight.value.toString()}
         valueUnits={barWeight.unit}
         onChange={(newValue?: string) => {
-          const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
+          const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
           if (v != null) {
             const lensRecording = props.lensPrefix
               .then(lb<ISettings>().p("equipment").pi(props.name).p("bar").p(props.settings.units).get())

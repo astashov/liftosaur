@@ -133,6 +133,7 @@ function MenuItemValue(
           key={props.value}
           onBlur={handleChange(props.onChange, props.setPatternError)}
           type="number"
+          step="0.01"
           title={props.patternMessage}
           className="items-center flex-1 w-0 min-w-0 p-2 text-right text-gray-700 outline-none"
           value={props.value || undefined}
