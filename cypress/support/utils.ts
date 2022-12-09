@@ -1,5 +1,6 @@
-export function g(dataCy: string): ReturnType<typeof cy.get> {
-  return cy.get(`[data-cy=${dataCy}]`);
+export function g(...dataCys: string[]): ReturnType<typeof cy.get> {
+  const selectors = dataCys.map((dataCy) => `[data-cy=${dataCy}]`).join(" ");
+  return cy.get(selectors);
 }
 
 export function clearCodeMirror(dataCy: string): void {

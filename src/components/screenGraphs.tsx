@@ -81,7 +81,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           onHelpClick={() => {}}
           rightButtons={[
-            <button className="p-2" onClick={() => setIsModalOpen(true)}>
+            <button data-cy="graphs-modify" className="p-2" onClick={() => setIsModalOpen(true)}>
               <IconCog2 />
             </button>,
           ]}
@@ -113,7 +113,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         </div>
       ) : props.settings.graphs.length === 0 ? (
         <div className="p-8 text-2xl font-bold text-center text-gray-600">
-          Select graphs you want to display by clicking "Modify" at right top corner.
+          Select graphs you want to display by tapping <IconCog2 /> icon at right top corner.
         </div>
       ) : (
         <section className="pb-4">

@@ -108,7 +108,14 @@ function MenuItemValue(
 ): JSX.Element | null {
   if (props.type === "select") {
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
-    return <div className="flex-1 py-2 pl-2 text-right text-bluev2">{keyValue && keyValue[1]}</div>;
+    return (
+      <div
+        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        className="flex-1 py-2 pl-2 text-right text-bluev2"
+      >
+        {keyValue && keyValue[1]}
+      </div>
+    );
   } else if (props.type === "text") {
     return (
       <input

@@ -9,25 +9,25 @@ describe("Program", () => {
   });
 
   it("creates a new program and runs it", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
 
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    cy.contains("Create").click();
+    g("footer-cta").click();
 
     g("modal-create-program-input").clear().type("A Program");
     g("modal-create-program-submit").click();
 
     g("menu-item-value-name").clear().type("My Program");
-    cy.contains("Add Day +").click();
-    cy.contains("Back").click();
-    cy.contains("Add Exercise +").click();
+    cy.contains("Add New Day").click();
+    g("navbar-back").click();
+    cy.contains("Add New Exercise").click();
     cy.contains("Advanced").click();
 
-    g("select-exercise").click();
+    g("menu-item-exercise").click();
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
-    g("menu-item-value-equipment").should("have.value", "barbell");
+    g("menu-item-value-equipment").should("have.text", "Barbell");
     g("menu-item-value-name").should("have.value", "Deadlift");
 
     clearCodeMirror("oneline-editor-reps");
@@ -37,9 +37,10 @@ describe("Program", () => {
 
     g("menu-item-value-weight").clear().type("100");
 
-    cy.contains("Add Set +").click();
+    cy.contains("Add New Set").click();
 
-    cy.contains("Add Variation +").click();
+    cy.contains("Enable Sets Variations").click();
+    cy.contains("Add New Variation").click();
     clearCodeMirror("multiline-editor-variation");
     typeCodeMirror("multiline-editor-variation", "(state.weight > 100lb) ? 2 : 1");
 
@@ -51,7 +52,8 @@ describe("Program", () => {
     clearCodeMirror("multiline-editor-finish-day");
     typeCodeMirror("multiline-editor-finish-day", "if (cr[1] == r[1]) {\n  state.weight = w[1] + 10lb\n}");
 
-    g("menu-item-value-choose-day").select("2 - Day 2");
+    g("menu-item-name-choose-day").click();
+    g("menu-item-choose-day", "scroll-barrel-item-2").click();
 
     // Edit warmups
     g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-delete]").click();
@@ -118,7 +120,7 @@ describe("Program", () => {
     g("state-changes-value-weight").should("not.exist");
 
     g("menu-item-value-weight").clear().type("110");
-    g("menu-item-value-choose-day").select("1 - Day 1");
+    g("menu-item-choose-day", "scroll-barrel-item-1").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(2)
@@ -142,8 +144,8 @@ describe("Program", () => {
 
     g("menu-item-value-name").clear().type("First Day");
 
-    cy.contains("Back").click();
-    cy.contains("Back").click();
+    g("navbar-back").click();
+    g("navbar-back").click();
 
     g("menu-item-my-program").click();
 
@@ -160,12 +162,9 @@ describe("Program", () => {
       "2x8"
     );
 
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-cta").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").click({ multiple: true });
-
-    cy.contains("Got it!").click();
 
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();

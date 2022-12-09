@@ -9,7 +9,7 @@ describe("Graphs", () => {
   });
 
   it("edits sets properly", () => {
-    cy.visit("http://local.liftosaur.com:8080");
+    cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     cy.contains("Clone").click();
@@ -17,16 +17,14 @@ describe("Graphs", () => {
 
     g("screen").should("contain.text", "Finish at least one workout to see the graphs");
 
-    g("graphs-back").click();
+    g("navbar-back").click();
 
-    cy.contains("Start New Workout").click();
-    cy.contains("Got it!").click();
+    g("footer-cta").click();
 
     // Complete workout
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").click({ multiple: true });
     cy.get("[data-cy=modal-amrap-input]").clear().type("5");
     cy.get("[data-cy=modal-amrap-submit]").click();
-    cy.contains("Got it!").click();
     cy.get("[data-cy^=exercise-]:contains('Bench Press') [data-cy^=set-]").click({ multiple: true });
     cy.get("[data-cy=modal-amrap-input]").clear().type("5");
     cy.get("[data-cy=modal-amrap-submit]").click();
