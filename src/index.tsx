@@ -50,3 +50,9 @@ IndexedDBUtils.get(getIdbKey(userId, !!adminKey))
     }
   );
 };
+
+(window as any).clearData = (data: any) => {
+  IndexedDBUtils.set(getIdbKey(userId, !!adminKey), undefined).catch((e) => {
+    console.error(e);
+  });
+};

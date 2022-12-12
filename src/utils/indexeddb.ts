@@ -58,7 +58,7 @@ export namespace IndexedDBUtils {
     });
   }
 
-  export function set(key: string, value: string): Promise<void> {
+  export function set(key: string, value?: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const db = await initialize();
       const transaction = db.transaction("keyval", "readwrite");

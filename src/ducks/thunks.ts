@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program, IExportedProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
-import { IProgram } from "../types";
+import { IProgram, IStorage } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
@@ -263,7 +263,13 @@ export namespace Thunk {
   }
 
   export function acceptFriendshipInvitation(friendId: string): IThunk {
-    return friendAction(friendId, "active", (service) => service.acceptFrienshipInvitation(friendId));
+    return friendAction(friendId, "active", async (service, state, dispatch) => {
+      const result = await service.acceptFrienshipInvitation(friendId);
+      if (result.success) {
+        fetchAllFriendsThings(dispatch, state.storage);
+      }
+      return result;
+    });
   }
 
   export function getComments(startDate: string, endDate?: string): IThunk {
@@ -413,12 +419,12 @@ export namespace Thunk {
 function friendAction<T>(
   friendId: string,
   resultingStatus: IFriendStatus | undefined,
-  cb: (service: Service) => Promise<IEither<boolean, string>>
+  cb: (service: Service, state: IState, dispatch: IDispatch) => Promise<IEither<boolean, string>>
 ): IThunk {
   return async (dispatch, getState, env) => {
     const initialStatus = getState().allFriends.friends[friendId]?.status;
     updateState(dispatch, [lb<IState>().p("allFriends").p("friends").pi(friendId).p("status").record("loading")]);
-    const result = await cb(env.service);
+    const result = await cb(env.service, getState(), dispatch);
     updateState(dispatch, [
       lb<IState>()
         .p("allFriends")
@@ -446,17 +452,21 @@ async function load<T>(dispatch: IDispatch, name: string, cb: () => Promise<T>):
   }
 }
 
+function fetchAllFriendsThings(dispatch: IDispatch, storage: IStorage): void {
+  const lastVisibleHistoryRecordIndex = Math.min(20, storage.history.length - 1);
+  const date = storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
+  dispatch(Thunk.fetchFriends(""));
+  dispatch(Thunk.fetchFriendsHistory(date));
+  dispatch(Thunk.fetchLikes(date));
+  dispatch(Thunk.getComments(date));
+}
+
 async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, client: Window["fetch"]): Promise<void> {
   if (result.email != null) {
     Rollbar.configure({ payload: { environment: __ENV__, person: { email: result.email, id: result.user_id } } });
     const storage = await runMigrations(client, result.storage);
     dispatch({ type: "Login", email: result.email, userId: result.user_id });
     dispatch({ type: "SyncStorage", storage });
-    const lastVisibleHistoryRecordIndex = Math.min(20, storage.history.length - 1);
-    const date = storage.history[lastVisibleHistoryRecordIndex]?.date || "2019-01-01T00:00:00.000Z";
-    dispatch(Thunk.fetchFriends(""));
-    dispatch(Thunk.fetchFriendsHistory(date));
-    dispatch(Thunk.fetchLikes(date));
-    dispatch(Thunk.getComments(date));
+    fetchAllFriendsThings(dispatch, storage);
   }
 }
