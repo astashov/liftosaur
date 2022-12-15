@@ -57,7 +57,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   const isLoading = Object.keys(loadingKeys).length > 0;
   const numberOfLeftButtons = [showBackButton ? 1 : 0, isLoading ? 1 : 0].reduce((a, b) => a + b);
-  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.onHelpClick ? 1 : 0);
+  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.onHelpClick || props.helpContent ? 1 : 0);
   const numberOfButtons = Math.max(numberOfLeftButtons, numberOfRightButtons);
   const [shouldShowModalHelp, setShouldShowModalHelp] = useState(false);
 

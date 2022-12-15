@@ -11,6 +11,9 @@ import { rightFooterButtons } from "../rightFooterButtons";
 import { Surface } from "../surface";
 import { Footer2View } from "../footer2";
 import { Tabs2 } from "../tabs2";
+import { useState } from "preact/hooks";
+import { HelpEditProgramExerciseSimple } from "../help/helpEditProgramExerciseSimple";
+import { HelpEditProgramExerciseAdvanced } from "../help/helpEditProgramExerciseAdvanced";
 
 interface IProps {
   settings: ISettings;
@@ -26,6 +29,8 @@ interface IProps {
 
 export function EditProgramExercise(props: IProps): JSX.Element {
   const isEligibleForSimple = Program.isEligibleForSimpleExercise(props.programExercise).success;
+  const initialTab = isEligibleForSimple ? 0 : 1;
+  const [selectedTab, setSelectedTab] = useState<number>(initialTab);
 
   return (
     <Surface
@@ -34,7 +39,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           onBack={() => !props.isChanged || confirm("Are you sure? Your changes won't be saved")}
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={selectedTab === 0 ? <HelpEditProgramExerciseSimple /> : <HelpEditProgramExerciseAdvanced />}
           screenStack={props.screenStack}
           title="Edit Program Exercise"
           subtitle={props.programName}
@@ -43,7 +48,8 @@ export function EditProgramExercise(props: IProps): JSX.Element {
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
     >
       <Tabs2
-        defaultIndex={isEligibleForSimple ? 0 : 1}
+        onChange={(index) => setSelectedTab(index)}
+        defaultIndex={initialTab}
         tabs={[
           ["Simple", <EditProgramExerciseSimple {...props} />],
           ["Advanced", <EditProgramExerciseAdvanced {...props} />],

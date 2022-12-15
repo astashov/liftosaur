@@ -15,6 +15,11 @@
 - Add previous sets/reps under exercises on the workout screen
 - Add graphs zooming/panning
 - Add program vertical lines on graphs
+- Make account switch work properly
+- Migrate to MySQL?
+- Add a way to add notes to exercises and workouts
+- Add retry button to the failed network alert
+- Remove the bell icon from the footer
 
 - Bug:
   Assign lb to state var of type number
@@ -47,8 +52,3 @@
 - When you duplicate the exercise, it uses old one as a template
 - There's 'Use another exercise as a template select box at the top of "Advanced" tab
 - If exercise template is selected, all the rest exercises
-
-## Broken experiences
-
-- Add help
-- Fix tests

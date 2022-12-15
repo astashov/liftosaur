@@ -197,6 +197,11 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         />
       )}
       <EditWarmupSets dispatch={props.dispatch} programExercise={programExercise} settings={props.settings} />
+      <FinishDayScriptEditor
+        programExercise={programExercise}
+        editorResult={finishEditorResult}
+        dispatch={props.dispatch}
+      />
       {progress && entry && (
         <Playground
           day={day}
@@ -207,11 +212,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           onProgressChange={(p) => setProgress(p)}
         />
       )}
-      <FinishDayScriptEditor
-        programExercise={programExercise}
-        editorResult={finishEditorResult}
-        dispatch={props.dispatch}
-      />
       <div className="p-2 mb-4 text-center">
         <Button
           kind="orange"

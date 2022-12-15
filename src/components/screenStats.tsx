@@ -11,13 +11,14 @@ import { ModalStats } from "./modalStats";
 import { EditStats } from "../models/editStats";
 import { StringUtils } from "../utils/string";
 import { ILoading } from "../models/state";
-import { IconCog2 } from "./icons/iconCog2";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen } from "../models/screen";
 import { Footer2View } from "./footer2";
 import { Input } from "./input";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { IconFilter } from "./icons/iconFilter";
+import { HelpStats } from "./help/helpStats";
 
 interface IProps {
   dispatch: IDispatch;
@@ -120,10 +121,10 @@ export function ScreenStats(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpStats />}
           rightButtons={[
             <button className="p-2 ls-modify-stats" data-cy="modify-stats" onClick={() => setIsModalVisible(true)}>
-              <IconCog2 />
+              <IconFilter />
             </button>,
           ]}
           screenStack={props.screenStack}

@@ -124,6 +124,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
+          editProgramId={state.progress[0]?.programId}
           screenStack={state.screenStack}
           comments={state.comments}
           likes={state.likes}

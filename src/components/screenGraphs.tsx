@@ -14,6 +14,8 @@ import { IconCog2 } from "./icons/iconCog2";
 import { Footer2View } from "./footer2";
 import { IScreen } from "../models/screen";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { IconFilter } from "./icons/iconFilter";
+import { HelpGraphs } from "./help/helpGraphs";
 
 interface IProps {
   dispatch: IDispatch;
@@ -79,10 +81,10 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpGraphs />}
           rightButtons={[
             <button data-cy="graphs-modify" className="p-2" onClick={() => setIsModalOpen(true)}>
-              <IconCog2 />
+              <IconFilter />
             </button>,
           ]}
           screenStack={props.screenStack}

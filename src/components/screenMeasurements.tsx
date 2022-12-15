@@ -11,6 +11,7 @@ import { Thunk } from "../ducks/thunks";
 import { StatsList } from "./statsList";
 import { IconDumbbell } from "./icons/iconDumbbell";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { HelpMeasurements } from "./help/helpMeasurements";
 
 interface IProps {
   dispatch: IDispatch;
@@ -29,7 +30,7 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          onHelpClick={() => {}}
+          helpContent={<HelpMeasurements />}
           screenStack={props.screenStack}
           title="Measurements"
         />

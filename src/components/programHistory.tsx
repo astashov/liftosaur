@@ -22,6 +22,7 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 interface IProps {
   program: IProgram;
   progress?: IHistoryRecord;
+  editProgramId?: string;
   history: IHistoryRecord[];
   screenStack: IScreen[];
   friendsHistory: Partial<Record<string, IFriendUser>>;
@@ -110,7 +111,13 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               title="Edit Current Program"
               icon={<IconEditSquare />}
               description={`Edit the current program '${props.program.name}'.`}
-              onClick={() => Program.editAction(dispatch, props.program.id)}
+              onClick={() => {
+                if (props.editProgramId == null || props.editProgramId !== props.program.id) {
+                  Program.editAction(props.dispatch, props.program.id);
+                } else {
+                  alert("You cannot edit the program while that program's workout is in progress");
+                }
+              }}
             />
           </div>
         </BottomSheet>

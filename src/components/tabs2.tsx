@@ -5,7 +5,7 @@ import { useState } from "preact/hooks";
 interface IProps {
   tabs: [string, ComponentChildren][];
   defaultIndex?: number;
-  onChange?: (newValue: string) => void;
+  onChange?: (index: number, newValue: string) => void;
 }
 
 export function Tabs2(props: IProps): JSX.Element {
@@ -27,7 +27,7 @@ export function Tabs2(props: IProps): JSX.Element {
                 data-cy={nameClass}
                 onClick={() => {
                   if (onChange) {
-                    onChange(name);
+                    onChange(index, name);
                   }
                   setSelectedIndex(index);
                 }}
