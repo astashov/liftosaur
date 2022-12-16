@@ -19,7 +19,7 @@
 - Migrate to MySQL?
 - Add a way to add notes to exercises and workouts
 - Add retry button to the failed network alert
-- Remove the bell icon from the footer
+- Add a way to specify exercises by type (e.g. - Pull exercise), and the app will rotate them
 
 - Bug:
   Assign lb to state var of type number

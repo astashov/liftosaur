@@ -21,6 +21,7 @@ import { IScreen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpSettings } from "./help/helpSettings";
+import { WebpushrButton } from "./webpushrButton";
 
 interface IProps {
   dispatch: IDispatch;
@@ -176,6 +177,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
+        <WebpushrButton />
         {props.user && (
           <>
             <GroupHeader topPadding={true} name="Friends" />
