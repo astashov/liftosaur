@@ -8,6 +8,7 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { Button } from "./button";
+import { HelpAccount } from "./help/helpAccount";
 
 interface IProps {
   email?: string;
@@ -25,7 +26,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           screenStack={props.screenStack}
           title="Account"
-          onHelpClick={() => {}}
+          helpContent={<HelpAccount />}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}

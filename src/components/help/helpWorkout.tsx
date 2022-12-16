@@ -1,4 +1,5 @@
 import { h, JSX, Fragment } from "preact";
+import { IconCog2 } from "../icons/iconCog2";
 
 export function HelpWorkout(): JSX.Element {
   return (
@@ -20,6 +21,11 @@ export function HelpWorkout(): JSX.Element {
         means that to get <strong>185lb</strong> you need to put one <strong>45lb</strong> and one <strong>25lb</strong>{" "}
         plate on each side of the bar. By tapping on the weights there you can change them for that workout. It won't
         change the weight in the program though, only for that workout.
+      </p>
+      <p className="pb-2">
+        Note that it <strong>only will use the available plates</strong> in the plates calculator, and it will round up
+        the weights to available plates. Set up what plates you have in the <strong>Settings</strong> screen (bottom
+        right corner, the <IconCog2 /> icon).
       </p>
       <p className="pb-2">
         The order of doing exercises and sets is not important, the app doesn't inforce it at all. You can do

@@ -11,6 +11,7 @@ import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { NavbarView } from "./navbar";
+import { HelpTimers } from "./help/helpTimers";
 
 interface IProps {
   dispatch: IDispatch;
@@ -28,7 +29,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           screenStack={props.screenStack}
           title="Timers"
-          onHelpClick={() => {}}
+          helpContent={<HelpTimers />}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}

@@ -12,6 +12,7 @@ import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { IScreen } from "../models/screen";
+import { HelpFriendsAdd } from "./help/helpFriendsAdd";
 
 interface IProps {
   dispatch: IDispatch;
@@ -46,7 +47,7 @@ export function ScreenFriendsAdd(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           screenStack={props.screenStack}
           title="Add Friend"
-          onHelpClick={() => {}}
+          helpContent={<HelpFriendsAdd />}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}

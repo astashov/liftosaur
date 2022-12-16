@@ -5,6 +5,7 @@ import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { ILoading } from "../../models/state";
 import { IScreen } from "../../models/screen";
+import { HelpMuscles } from "../help/helpMuscles";
 
 interface IProps {
   dispatch: IDispatch;
@@ -24,15 +25,7 @@ export function ScreenMusclesProgram(props: IProps): JSX.Element {
       screenStack={props.screenStack}
       points={points}
       title={props.program.name}
-      headerHelp={
-        <span>
-          Shows how much specific muscles used in the current program. You may use it to find inbalances in your
-          program. We calculate usage for <strong>strength</strong> and <strong>hypertrophy</strong> separately. For{" "}
-          <strong>strength</strong> we consider sets with reps &lt; 8, for <strong>hypertrophy</strong> - sets with reps
-          &gt;= 8. For calculating percentages, we assume each target muscle is 3x of each synergist muscle, we combine
-          all sets and reps, and then normalize by the most used muscle - it will be 100%.
-        </span>
-      }
+      helpContent={<HelpMuscles />}
     />
   );
 }

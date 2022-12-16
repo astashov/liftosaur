@@ -14,7 +14,7 @@ interface IProps {
   dispatch: IDispatch;
   title: string;
   screenStack: IScreen[];
-  headerHelp: JSX.Element;
+  helpContent: JSX.Element;
   points: IPoints;
   settings: ISettings;
   loading: ILoading;
@@ -30,12 +30,12 @@ export function ScreenMuscles(props: IProps): JSX.Element {
           screenStack={props.screenStack}
           title="Muscles Map"
           subtitle={props.title}
-          onHelpClick={() => {}}
+          helpContent={props.helpContent}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
     >
-      <MusclesView title={props.title} headerHelp={props.headerHelp} points={props.points} settings={props.settings} />
+      <MusclesView title={props.title} points={props.points} settings={props.settings} />
     </Surface>
   );
 }

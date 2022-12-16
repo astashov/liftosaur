@@ -13,7 +13,6 @@ import { MenuItem } from "../menuItem";
 
 export interface IMusclesViewProps {
   title: string;
-  headerHelp: JSX.Element;
   points: IPoints;
   settings: ISettings;
 }

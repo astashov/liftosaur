@@ -10,6 +10,7 @@ import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { IScreen } from "../models/screen";
+import { HelpPlates } from "./help/helpPlates";
 
 interface IProps {
   dispatch: IDispatch;
@@ -33,7 +34,7 @@ export function ScreenPlates(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           screenStack={props.screenStack}
           title="Equipment Settings"
-          onHelpClick={() => {}}
+          helpContent={<HelpPlates />}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}

@@ -20,6 +20,7 @@ import { Footer2View } from "./footer2";
 import { IScreen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
 import { rightFooterButtons } from "./rightFooterButtons";
+import { HelpSettings } from "./help/helpSettings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -39,9 +40,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
+          helpContent={<HelpSettings />}
           screenStack={props.screenStack}
           title="Settings"
-          onHelpClick={() => {}}
         />
       }
       footer={
@@ -138,7 +139,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
         <MenuItem
           shouldShowRightArrow={true}
-          name="Available Plates"
+          name="Available Equipment"
           onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
         />
         <MenuItemEditable

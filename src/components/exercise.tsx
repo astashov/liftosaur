@@ -271,7 +271,9 @@ const ExerciseContentView = memo(
                     </div>
                     <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`}>
                       <ExerciseSetView
-                        showHelp={props.showHelp && props.index === 0 && i === 0}
+                        showHelp={
+                          props.showHelp && props.index === 0 && i === 0 && Progress.isFullyEmptySet(props.progress)
+                        }
                         settings={props.settings}
                         exercise={props.entry.exercise}
                         isCurrent={!!isCurrentProgress}
@@ -333,7 +335,13 @@ const ExerciseContentView = memo(
             return (
               <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`} data-cy="workout-set">
                 <ExerciseSetView
-                  showHelp={props.showHelp && (warmupSets?.length || 0) === 0 && props.index === 0 && i === 0}
+                  showHelp={
+                    props.showHelp &&
+                    (warmupSets?.length || 0) === 0 &&
+                    props.index === 0 &&
+                    i === 0 &&
+                    Progress.isFullyEmptySet(props.progress)
+                  }
                   exercise={props.entry.exercise}
                   settings={props.settings}
                   set={set}

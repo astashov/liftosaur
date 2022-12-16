@@ -183,7 +183,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
         );
       })}
       <LinkButton onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}>
-        Add New Plate Weight
+        Add New Fixed Weight
       </LinkButton>
     </div>
   );
