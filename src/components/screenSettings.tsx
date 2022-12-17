@@ -238,6 +238,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <InternalLink href="/terms.html" className="block py-3 text-base text-left border-b border-gray-200">
           Terms &amp; Conditions
         </InternalLink>
+        <InternalLink href="/licenses.html" className="block py-3 text-base text-left border-b border-gray-200">
+          Licenses
+        </InternalLink>
         <InternalLink href="/docs/docs.html" className="block py-3 text-base text-left border-b border-gray-200">
           Documentation
         </InternalLink>

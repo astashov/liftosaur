@@ -37,7 +37,7 @@ export function BottomSheet(props: IProps): JSX.Element {
           boxShadow: "0 -5px 15px rgb(0 0 0 / 30%)",
         }}
       >
-        {props.children}
+        <div className="safe-area-inset-bottom">{props.children}</div>
       </div>
     </div>
   );

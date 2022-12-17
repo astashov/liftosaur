@@ -27,10 +27,8 @@ export function Modal(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (!props.isHidden) {
-      console.log("Add stop scrolling");
       document.body.classList.add("stop-scrolling");
     } else {
-      console.log("Remove stop scrolling");
       document.body.classList.remove("stop-scrolling");
     }
   }, [props.isHidden]);
@@ -54,10 +52,10 @@ export function Modal(props: IProps): JSX.Element {
       ></div>
       <div
         data-name="modal"
-        className="relative z-20 flex flex-col px-6 py-6 bg-white rounded-lg shadow-lg"
+        className="relative z-20 flex flex-col py-6 bg-white rounded-lg shadow-lg"
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
-        <div className="relative h-full overflow-auto">{props.children}</div>
+        <div className="relative h-full px-6 overflow-auto">{props.children}</div>
         {props.shouldShowClose && (
           <button
             data-cy="modal-close"

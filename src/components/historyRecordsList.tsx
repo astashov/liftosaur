@@ -1,5 +1,6 @@
 import { Fragment, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
+import { Progress } from "../models/progress";
 import { IAllComments, IAllLikes, IFriendUser } from "../models/state";
 import { IHistoryRecord, ISettings } from "../types";
 import { HistoryRecordView } from "./historyRecord";
@@ -36,7 +37,13 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
     return memo;
   }, []);
   combinedHistory.sort((a, b) => {
-    return new Date(Date.parse(b.record.date)).getTime() - new Date(Date.parse(a.record.date)).getTime();
+    if (Progress.isCurrent(a.record)) {
+      return -1;
+    } else if (Progress.isCurrent(b.record)) {
+      return 1;
+    } else {
+      return new Date(Date.parse(b.record.date)).getTime() - new Date(Date.parse(a.record.date)).getTime();
+    }
   });
   return (
     <Fragment>

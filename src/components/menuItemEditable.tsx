@@ -50,7 +50,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.prefix}
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className={`flex items-center flex-1 ${props.isNameBold ? "font-bold" : ""}`}
+            className={`flex items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
             {props.isNameHtml ? "" : props.name}
@@ -122,7 +122,7 @@ function MenuItemValue(
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 py-2 text-right bg-transparent text-bluev2"
+        className="flex-1 w-0 py-2 text-right bg-transparent text-bluev2"
         value={props.value || undefined}
         title={props.patternMessage}
         onBlur={handleChange(props.onChange, props.setPatternError)}

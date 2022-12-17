@@ -10,7 +10,6 @@ import { getLengthDataForGraph, getWeightDataForGraph, GraphStats } from "./grap
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IconCog2 } from "./icons/iconCog2";
 import { Footer2View } from "./footer2";
 import { IScreen } from "../models/screen";
 import { rightFooterButtons } from "./rightFooterButtons";
@@ -115,7 +114,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         </div>
       ) : props.settings.graphs.length === 0 ? (
         <div className="p-8 text-2xl font-bold text-center text-gray-600">
-          Select graphs you want to display by tapping <IconCog2 /> icon at right top corner.
+          Select graphs you want to display by tapping <IconFilter /> icon at right top corner.
         </div>
       ) : (
         <section className="pb-4">

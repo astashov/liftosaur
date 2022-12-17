@@ -52,7 +52,6 @@ export function EditProgramDay(props: IProps): JSX.Element {
           helpContent={<HelpEditProgramDay />}
           screenStack={props.screenStack}
           title="Edit Program Day"
-          subtitle={day.name}
         />
       }
       footer={

@@ -14,7 +14,7 @@ export const Surface = forwardRef(
       <section className="h-full">
         {props.navbar}
         <section data-cy="screen" ref={ref} className="py-16">
-          {props.children}
+          <div className="safe-area-inset-bottom safe-area-inset-top">{props.children}</div>
         </section>
         {props.footer}
         {props.addons}

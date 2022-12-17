@@ -141,6 +141,10 @@ module.exports = {
         to: `terms.html`,
       },
       {
+        from: `src/licenses.html`,
+        to: `licenses.html`,
+      },
+      {
         from: `src/sitemap.txt`,
         to: `sitemap.txt`,
       },

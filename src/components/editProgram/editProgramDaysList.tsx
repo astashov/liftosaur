@@ -60,7 +60,6 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             </button>,
           ]}
           title="Edit Program"
-          subtitle={props.editProgram.name}
         />
       }
       footer={

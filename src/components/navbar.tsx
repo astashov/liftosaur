@@ -45,7 +45,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
     };
   });
 
-  let className = "fixed top-0 left-0 z-20 flex items-center justify-center w-full px-2 text-center bg-white";
+  let className =
+    "fixed top-0 left-0 z-20 flex items-center justify-center w-full px-2 text-center bg-white safe-area-inset-top";
   if (isScrolled) {
     className += " has-shadow";
   }
