@@ -8,13 +8,14 @@ import { Progress } from "../models/progress";
 import { Weight } from "../models/weight";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
-import { IHistoryRecord, ISettings, ISet } from "../types";
+import { IHistoryRecord, ISettings, ISet, IUnit } from "../types";
 import { IconComments } from "./icons/iconComments";
 import { IAllComments, IAllLikes } from "../models/state";
 import { HtmlUtils } from "../utils/html";
 import { ButtonLike } from "./buttonLike";
 import { IconWatch } from "./icons/iconWatch";
 import { IconProfile } from "./icons/iconProfile";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -75,18 +76,27 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           {entries.map((entry) => {
             const exercise = Exercise.get(entry.exercise, props.settings.exercises);
             return (
-              <div data-cy="history-entry-exercise" className="flex flex-row flex-1">
-                <div data-cy="history-entry-exercise-name" className="flex-1" style={{ maxWidth: "50%" }}>
-                  {exercise.name}
-                </div>
-                <div className="flex-1 text-right">
-                  <HistoryRecordSetsView
-                    sets={entry.sets}
-                    isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
+              <div
+                data-cy="history-entry-exercise"
+                className="flex flex-row items-center flex-1 py-1 border-b border-grayv2-100"
+              >
+                <div data-cy="history-entry-exercise-img" className="">
+                  <ExerciseImage
+                    className="w-6 mr-3"
+                    exerciseType={exercise}
+                    size="small"
+                    customExercises={props.settings.exercises}
                   />
                 </div>
-                <div data-cy="history-entry-weight" className="w-8 ml-1 font-bold text-right">
-                  {Math.max(...entry.sets.map((s) => Weight.convertTo(s.weight, props.settings.units).value))}
+                <div data-cy="history-entry-exercise-name" className="pr-2 font-bold" style={{ width: "35%" }}>
+                  {exercise.name}
+                </div>
+                <div className="flex-1">
+                  <HistoryRecordSetsView
+                    sets={entry.sets}
+                    unit={props.settings.units}
+                    isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
+                  />
                 </div>
               </div>
             );
@@ -122,29 +132,38 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   );
 }, ComparerUtils.noFns);
 
-function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean }): JSX.Element {
-  const { sets, isNext } = props;
-  if (isNext) {
-    return (
-      <span data-cy="history-entry-sets-next" className="text-gray-600">
-        {Reps.display(sets, isNext)}
-      </span>
-    );
-  } else {
-    if (Reps.isCompleted(sets)) {
-      return (
-        <span data-cy="history-entry-sets-completed" className="text-green-600">
-          {Reps.display(sets)}
-        </span>
-      );
-    } else {
-      return (
-        <span data-cy="history-entry-sets-incompleted" className="text-red-600">
-          {Reps.display(sets)}
-        </span>
-      );
-    }
+function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean; unit: IUnit }): JSX.Element {
+  const groups = Reps.group(props.sets);
+  return (
+    <div className="flex flex-wrap">
+      {groups.map((g) => (
+        <HistoryRecordSet sets={g} isNext={props.isNext} unit={props.unit} />
+      ))}
+    </div>
+  );
+}
+
+function HistoryRecordSet(props: { sets: ISet[]; isNext: boolean; unit: IUnit }): JSX.Element {
+  const { sets, isNext, unit } = props;
+  if (sets.length === 0) {
+    return <div />;
   }
+  const set = sets[0];
+  const length = sets.length;
+  const color = isNext ? "text-grayv2-main" : Reps.isCompletedSet(set) ? "text-greenv2-main" : "text-redv2-main";
+  return (
+    <div className="flex py-2 mr-2 leading-none">
+      <div className="text-center">
+        <div className="pb-1 font-bold border-b border-grayv2-200">
+          <span className={`${color} text-lg`}>{isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set)}</span>
+          {length > 1 && <span className="text-sm text-purplev2-main">x{length}</span>}
+        </div>
+        <div className="pt-2 text-sm font-bold text-grayv2-main">
+          {Weight.display(Weight.convertTo(set.weight, unit), false)}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean, userId?: string): void {

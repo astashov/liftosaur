@@ -6,11 +6,11 @@ import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
 export namespace Weight {
-  export function display(weight: IWeight | number): string {
+  export function display(weight: IWeight | number, withUnit: boolean = true): string {
     if (typeof weight === "number") {
       return `${weight}`;
     } else {
-      return weight.value === 0 ? "BW" : `${weight.value} ${weight.unit}`;
+      return weight.value === 0 ? "BW" : `${weight.value}${withUnit ? ` ${weight.unit}` : ""}`;
     }
   }
 

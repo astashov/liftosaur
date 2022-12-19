@@ -31,6 +31,9 @@ export function Modal(props: IProps): JSX.Element {
     } else {
       document.body.classList.remove("stop-scrolling");
     }
+    return () => {
+      document.body.classList.remove("stop-scrolling");
+    };
   }, [props.isHidden]);
 
   if (
