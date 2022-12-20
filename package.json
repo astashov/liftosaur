@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "yarn docs && NODE_ENV=production yarn build:dev && yarn blog",
+    "build:stage": "yarn docs && NODE_ENV=production STAGE=1 yarn build:dev && yarn blog",
     "analyze": "open dist/report.html",
     "docs": "generate-md --layout ./src/docs/layout/ --input ./src/docs/content/ --output ./docs",
     "blog": "eleventy",

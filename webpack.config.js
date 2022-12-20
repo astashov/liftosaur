@@ -64,11 +64,19 @@ module.exports = {
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __API_HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://api2.liftosaur.com" : "https://local-api.liftosaur.com:3000"
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://api2-dev.liftosaur.com"
+            : "https://api2.liftosaur.com"
+          : "https://local-api.liftosaur.com:3000"
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
-        process.env.NODE_ENV === "production" ? "https://www.liftosaur.com" : "https://local.liftosaur.com:8080"
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://stage.liftosaur.com"
+            : "https://www.liftosaur.com"
+          : "https://local.liftosaur.com:8080"
       ),
     }),
     new CopyPlugin([
