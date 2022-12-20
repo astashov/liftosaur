@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com", "localhost:8080"];
+const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com", "localhost:8080", "stage.liftosaur.com"];
 
 export namespace ResponseUtils {
   // eslint-disable-next-line @typescript-eslint/ban-types
