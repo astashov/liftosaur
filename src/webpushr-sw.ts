@@ -9,6 +9,7 @@ const filesToCache = [
   `/vendors.js?vendor=${__COMMIT_HASH__}`,
   `/images/back-muscles.svg`,
   `/images/front-muscles.svg`,
+  /\/fonts\/.*/,
   /\/externalimages\/exercises\//,
   "/",
   "/index.html",

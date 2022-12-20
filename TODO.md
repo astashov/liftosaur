@@ -20,6 +20,7 @@
 - Add a way to add notes to exercises and workouts
 - Add retry button to the failed network alert
 - Add a way to specify exercises by type (e.g. - Pull exercise), and the app will rotate them
+- Add descriptions to all exercises
 
 - Bug:
   Assign lb to state var of type number
