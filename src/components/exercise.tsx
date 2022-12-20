@@ -63,11 +63,33 @@ function getColor(entry: IHistoryEntry): string {
   }
 }
 
+function getBgColor100(entry: IHistoryEntry): string {
+  const color = getColor(entry);
+  if (color === "green") {
+    return "bg-greenv2-100";
+  } else if (color === "red") {
+    return "bg-redv2-100";
+  } else {
+    return "bg-purplev2-100";
+  }
+}
+
+function getBgColor200(entry: IHistoryEntry): string {
+  const color = getColor(entry);
+  if (color === "green") {
+    return "bg-greenv2-200";
+  } else if (color === "red") {
+    return "bg-redv2-200";
+  } else {
+    return "bg-purplev2-200";
+  }
+}
+
 export const ExerciseView = memo((props: IProps): JSX.Element => {
   const { entry } = props;
   const color = getColor(entry);
   const isImageView = props.progress.ui?.entryIndexInfoMode === props.index;
-  const className = `px-4 pt-4 pb-2 mb-2 rounded-lg bg-${color}v2-100`;
+  const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
   let dataCy;
   if (color === "green") {
     dataCy = "exercise-completed";
@@ -191,7 +213,7 @@ const ExerciseContentView = memo(
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
             <div
-              className={`p-2 pr-8 mt-2 bg-${getColor(props.entry)}v2-200 rounded-2xl`}
+              className={`p-2 pr-8 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}
               style={{
                 backgroundImage: "url(/images/icon-barbell.svg)",
                 backgroundPosition: "15px 13px",
