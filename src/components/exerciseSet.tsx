@@ -110,7 +110,6 @@ function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExer
 
 function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element {
   const set = props.set;
-  console.log("props.showHelp", props.showHelp);
   const button = (
     <button
       data-help-id={props.showHelp ? "progress-set" : undefined}

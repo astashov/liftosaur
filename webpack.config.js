@@ -113,26 +113,6 @@ module.exports = {
         },
       },
       {
-        from: `src/about.css`,
-        to: `about.css`,
-      },
-      {
-        from: `src/record.css`,
-        to: `record.css`,
-      },
-      {
-        from: `src/user.css`,
-        to: `user.css`,
-      },
-      {
-        from: `src/programDetails.css`,
-        to: `programDetails.css`,
-      },
-      {
-        from: `src/admin.css`,
-        to: `admin.css`,
-      },
-      {
         from: `docs`,
         to: `docs`,
       },
