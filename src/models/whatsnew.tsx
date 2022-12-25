@@ -46,6 +46,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20221225": {
+    title: <span>Redesign.</span>,
+    body: (
+      <ul>
+        <li>
+          Big redesign of the whole app! Hopefully it's more visually pleasant, and makes more sense than the previous
+          one.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
