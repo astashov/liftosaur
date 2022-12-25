@@ -68,16 +68,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
-    window._webpushrScriptReady = () => {
-      window.webpushr("fetch_id", (sid) => {
-        dispatch({ type: "StoreWebpushrSidAction", sid });
-      });
-    };
-    if (state.storage.whatsNew == null) {
-      WhatsNew.updateStorage(dispatch);
-    }
     dispatch(Thunk.fetchStorage());
-    dispatch(Thunk.fetchPrograms());
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
@@ -97,6 +88,12 @@ export function AppView(props: IProps): JSX.Element | null {
         LogUtils.log(st.user?.id || st.storage.tempUserId, name);
       }
     });
+    window._webpushrScriptReady = () => {
+      window.webpushr("fetch_id", (sid) => {
+        dispatch({ type: "StoreWebpushrSidAction", sid });
+      });
+    };
+    dispatch(Thunk.fetchInitial());
   }, []);
 
   const currentProgram =

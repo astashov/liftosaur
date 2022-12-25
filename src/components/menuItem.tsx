@@ -6,6 +6,7 @@ import { StringUtils } from "../utils/string";
 interface IMenuItemProps {
   prefix?: ComponentChildren;
   name: string;
+  isBorderless?: boolean;
   value?: string | JSX.Element;
   addons?: ComponentChildren;
   shouldShowRightArrow?: boolean;
@@ -16,6 +17,7 @@ interface IMenuItemProps {
 export function MenuItemWrapper(props: {
   name: string;
   children: ComponentChildren;
+  isBorderless?: boolean;
   onClick?: (e: MouseEvent) => void;
 }): JSX.Element {
   return (
@@ -24,14 +26,14 @@ export function MenuItemWrapper(props: {
       className="w-full text-base text-left"
       onClick={props.onClick}
     >
-      <div className="border-b border-grayv2-100">{props.children}</div>
+      <div className={!props.isBorderless ? "border-b border-grayv2-100" : ""}>{props.children}</div>
     </section>
   );
 }
 
 export function MenuItem(props: IMenuItemProps): JSX.Element {
   return (
-    <MenuItemWrapper name={props.name} onClick={props.onClick}>
+    <MenuItemWrapper name={props.name} onClick={props.onClick} isBorderless={props.isBorderless}>
       <section className="flex items-center">
         {props.handleTouchStart && (
           <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>

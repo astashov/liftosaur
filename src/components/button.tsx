@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   buttonSize?: "xs" | "sm" | "lg";
-  kind: "orange" | "purple" | "grayv2";
+  kind: "orange" | "purple" | "grayv2" | "red";
 }
 
 export function Button(props: IProps): JSX.Element {
@@ -12,6 +12,8 @@ export function Button(props: IProps): JSX.Element {
     className += " bg-purplev2-main";
   } else if (kind === "grayv2") {
     className += " bg-grayv2-main";
+  } else if (kind === "red") {
+    className += " bg-redv2-main";
   } else {
     className += " bg-orangev2";
   }

@@ -149,7 +149,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 }) => {
   const { event, di } = payload;
   const env = Utils.getEnv();
-  const { token, forceuseremail } = getBodyJson(event);
+  const { token, id, forceuseremail } = getBodyJson(event);
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
   if (env === "dev" && forceuseremail != null) {
     openIdJson = {
@@ -173,7 +173,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   let userId = user?.id;
 
   if (userId == null) {
-    userId = UidFactory.generateUid(12);
+    userId = (id as string) || UidFactory.generateUid(12);
     user = UserDao.build(userId, openIdJson.sub, openIdJson.email);
     await userDao.store(user);
   }

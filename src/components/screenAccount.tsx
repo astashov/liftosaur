@@ -9,6 +9,15 @@ import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
+import { Account, IAccount } from "../models/account";
+import { useEffect, useState } from "preact/hooks";
+import { GroupHeader } from "./groupHeader";
+import { MenuItem } from "./menuItem";
+import { IconDoc } from "./icons/iconDoc";
+import { IconDumbbell } from "./icons/iconDumbbell";
+import { IconGoogle } from "./icons/iconGoogle";
+import { LinkButton } from "./linkButton";
+import { IconTrash } from "./icons/iconTrash";
 
 interface IProps {
   email?: string;
@@ -18,6 +27,23 @@ interface IProps {
 }
 
 export function ScreenAccount(props: IProps): JSX.Element {
+  const [currentAccount, setCurrentAccount] = useState<IAccount | undefined>(undefined);
+  const [otherAccounts, setOtherAccounts] = useState<IAccount[]>([]);
+  const [isOtherAccountsEditMode, setIsOtherAccountsEditMode] = useState<boolean>(false);
+
+  function refetchAccounts(): void {
+    Account.getAll().then((accounts) => {
+      const theCurrentAccount = accounts.filter((account) => account.isCurrent)[0];
+      const theOtherAccounts = accounts.filter((account) => !account.isCurrent);
+      setCurrentAccount(theCurrentAccount);
+      setOtherAccounts(theOtherAccounts);
+    });
+  }
+
+  useEffect(() => {
+    refetchAccounts();
+  }, []);
+
   return (
     <Surface
       navbar={
@@ -31,46 +57,177 @@ export function ScreenAccount(props: IProps): JSX.Element {
       }
       footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
     >
-      <section className="px-4 mt-4 text-base text-center">
-        {props.email != null ? (
-          <ScreenAccountLoggedIn email={props.email} dispatch={props.dispatch} />
-        ) : (
-          <ScreenAccountLoggedOut dispatch={props.dispatch} />
+      <section className="px-4">
+        <GroupHeader name="Current Account" />
+        {currentAccount && (
+          <>
+            <MenuItem
+              isBorderless={true}
+              name={currentAccount.name ? currentAccount.name : `id: ${currentAccount.id}`}
+              value={
+                <div className="text-blackv2">
+                  <span className="pr-2 align-middle">{currentAccount.numberOfPrograms}</span>
+                  <span className="pr-4 align-middle">
+                    <IconDoc width={12} height={16} />
+                  </span>
+                  <span className="pr-2 align-middle">{currentAccount.numberOfWorkouts}</span>
+                  <span className="align-middle">
+                    <IconDumbbell width={28} height={19} />
+                  </span>
+                </div>
+              }
+              addons={
+                <div className="text-xs text-grayv2-main">
+                  {props.email ? (
+                    <>
+                      Logged in as <span className="font-bold">{props.email}</span>
+                    </>
+                  ) : (
+                    <>Not logged in to cloud</>
+                  )}
+                </div>
+              }
+            />
+            {props.email ? (
+              <div className="text-center">
+                <Button
+                  kind="purple"
+                  data-cy="menu-item-logout"
+                  className="ls-logout"
+                  onClick={() => props.dispatch(Thunk.logOut())}
+                >
+                  Log Out
+                </Button>
+              </div>
+            ) : (
+              <button
+                className="flex items-center w-full px-4 py-2 mt-2 rounded-lg"
+                style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
+                data-cy="menu-item-login"
+                onClick={() => props.dispatch(Thunk.googleSignIn())}
+              >
+                <span className="">
+                  <IconGoogle />
+                </span>
+                <span className="flex-1">Log in with Google</span>
+              </button>
+            )}
+          </>
+        )}
+        <GroupHeader
+          name="Other local accounts"
+          topPadding={true}
+          rightAddOn={
+            otherAccounts.length > 0 ? (
+              <LinkButton
+                onClick={() => {
+                  setIsOtherAccountsEditMode(!isOtherAccountsEditMode);
+                }}
+              >
+                {isOtherAccountsEditMode ? "Finish Editing" : "Edit"}
+              </LinkButton>
+            ) : undefined
+          }
+        />
+        {otherAccounts.map((account) => (
+          <MenuItem
+            shouldShowRightArrow={!isOtherAccountsEditMode}
+            name={account.name ? account.name : `id: ${account.id}`}
+            onClick={() => {
+              if (
+                !isOtherAccountsEditMode &&
+                confirm(
+                  "Want to switch to this account? You WILL NOT lose your current account, you'll be able to switch back to it later."
+                )
+              ) {
+                props.dispatch(Thunk.switchAccount(account.id));
+              }
+            }}
+            value={
+              <div className="text-blackv2">
+                {isOtherAccountsEditMode ? (
+                  <>
+                    <button
+                      className="p-2 align-middle button"
+                      onClick={() => {
+                        if (
+                          prompt(
+                            "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
+                          )?.toLocaleLowerCase() === "delete"
+                        ) {
+                          props.dispatch(Thunk.deleteAccount(account.id, () => refetchAccounts()));
+                        }
+                      }}
+                    >
+                      <IconTrash />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="pr-2 align-middle">{account.numberOfPrograms}</span>
+                    <span className="pr-4 align-middle">
+                      <IconDoc width={12} height={16} />
+                    </span>
+                    <span className="pr-2 align-middle">{account.numberOfWorkouts}</span>
+                    <span className="align-middle">
+                      <IconDumbbell width={28} height={19} />
+                    </span>
+                  </>
+                )}
+              </div>
+            }
+            addons={
+              <div className="text-xs text-grayv2-main">
+                {account.email && (
+                  <>
+                    Was logged in as <span className="font-bold">{account.email}</span>
+                  </>
+                )}
+              </div>
+            }
+          />
+        ))}
+        <LinkButton
+          onClick={() => {
+            if (
+              confirm(
+                "Want to create a new local account? You WILL NOT lose your current account, you'll be able to switch back to it later."
+              )
+            ) {
+              props.dispatch(Thunk.createAccount());
+            }
+          }}
+        >
+          Create New Local Account
+        </LinkButton>
+        {currentAccount && (
+          <>
+            <GroupHeader name="Delete current account" topPadding={true} />
+            <div>
+              <Button
+                kind="red"
+                className="mt-4 ls-delete-account"
+                onClick={() => {
+                  if (
+                    prompt(
+                      "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
+                    )?.toLocaleLowerCase() === "delete"
+                  ) {
+                    props.dispatch(
+                      Thunk.logOut(() => {
+                        props.dispatch(Thunk.deleteAccount(currentAccount.id));
+                        props.dispatch(Thunk.createAccount());
+                      })
+                    );
+                  }
+                }}
+              >
+                Delete Current Local Account
+              </Button>
+            </div>
+          </>
         )}
       </section>
     </Surface>
-  );
-}
-
-function ScreenAccountLoggedOut(props: { dispatch: IDispatch }): JSX.Element {
-  return (
-    <Button
-      kind="orange"
-      className="mt-8"
-      data-cy="menu-item-login"
-      onClick={() => props.dispatch(Thunk.googleSignIn())}
-    >
-      Log in via Google
-    </Button>
-  );
-}
-
-function ScreenAccountLoggedIn(props: { email: string; dispatch: IDispatch }): JSX.Element {
-  return (
-    <Fragment>
-      <section className="w-full px-6 py-4 text-center" data-cy="menu-item-current-account">
-        Current account: <span className="text-grayv2-main">{props.email}</span>
-      </section>
-      <section className="flex-1 w-full">
-        <Button
-          kind="orange"
-          data-cy="menu-item-logout"
-          className="ls-logout"
-          onClick={() => props.dispatch(Thunk.logOut())}
-        >
-          Log Out
-        </Button>
-      </section>
-    </Fragment>
   );
 }

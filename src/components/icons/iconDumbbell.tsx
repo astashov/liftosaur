@@ -4,16 +4,20 @@ interface IProps {
   style?: { [key: string]: string | number };
   className?: string;
   color?: string;
+  width?: number;
+  height?: number;
 }
 
 export function IconDumbbell(props: IProps): JSX.Element {
+  const width = props.width || 32;
+  const height = props.height || 21;
   const color = props.color || "#3C5063";
   return (
     <svg
       style={props.style}
       className={`inline-block ${props.className}`}
-      width="32"
-      height="21"
+      width={width}
+      height={height}
       viewBox="0 0 32 21"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

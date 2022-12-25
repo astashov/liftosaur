@@ -3,6 +3,7 @@ import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { Link } from "./link";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   dispatch: IDispatch;
@@ -11,7 +12,7 @@ interface IProps {
 export function ScreenOnboarding(props: IProps): JSX.Element {
   return (
     <section className="h-full text-blackv2">
-      <div className="pt-20 text-center">
+      <div className="pt-16 text-center">
         <div
           className="pt-24 bg-no-repeat"
           style={{
@@ -30,6 +31,10 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
           <Link href="/about" target="_blank">
             Read here!
           </Link>
+        </div>
+        <div className="mt-4">
+          Already have an account?{" "}
+          <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("account"))}>Log in!</LinkButton>
         </div>
         <div className="px-6 mt-10">
           If you are <strong>complete noob</strong> in weightlifting, and just want to start,{" "}

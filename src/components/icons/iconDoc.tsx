@@ -2,16 +2,20 @@ import { h, JSX } from "preact";
 
 interface IProps {
   style?: { [key: string]: string | number };
+  width?: number;
+  height?: number;
   className?: string;
 }
 
 export function IconDoc(props: IProps): JSX.Element {
+  const width = props.width || 17;
+  const height = props.height || 22;
   return (
     <svg
       style={props.style}
       className={`inline-block ${props.className}`}
-      width="17"
-      height="22"
+      width={width}
+      height={height}
       viewBox="0 0 17 22"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

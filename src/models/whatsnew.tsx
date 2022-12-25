@@ -57,6 +57,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20221226": {
+    title: <span>New Account Management.</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can have multiple local accounts, and manage them and switch between them. Also, the whole Account
+          screen was updated.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

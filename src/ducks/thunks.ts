@@ -17,6 +17,9 @@ import { History } from "../models/history";
 import { CSV } from "../utils/csv";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
+import { getInitialState } from "./reducer";
+import { IndexedDBUtils } from "../utils/indexeddb";
+import { WhatsNew } from "../models/whatsnew";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -29,22 +32,31 @@ export namespace Thunk {
       if (forcedUserEmail == null) {
         const accessToken = await getGoogleAccessToken();
         if (accessToken != null) {
-          const result = await load(dispatch, "googleSignIn", () => env.service.googleSignIn(accessToken));
-          await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client));
+          const state = getState();
+          const userId = state.user?.id || state.storage.tempUserId;
+          const result = await load(dispatch, "googleSignIn", () => env.service.googleSignIn(accessToken, userId));
+          await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
           dispatch(sync());
         }
       } else {
-        const result = await env.service.googleSignIn("test", forcedUserEmail);
-        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client));
+        const state = getState();
+        const userId = state.user?.id || state.storage.tempUserId;
+        const result = await env.service.googleSignIn("test", userId, forcedUserEmail);
+        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync());
       }
     };
   }
 
-  export function logOut(): IThunk {
+  export function logOut(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
-      await env.service.signout();
-      dispatch({ type: "Logout" });
+      if (getState().user?.id) {
+        await env.service.signout();
+        dispatch({ type: "Logout" });
+      }
+      if (cb) {
+        cb();
+      }
     };
   }
 
@@ -414,6 +426,61 @@ export namespace Thunk {
       }
     };
   }
+
+  export function createAccount(): IThunk {
+    return async (dispatch, getState, env) => {
+      dispatch(
+        Thunk.logOut(async () => {
+          const newState = await getInitialState(env.service.client);
+          dispatch({ type: "ReplaceState", state: newState });
+          dispatch(Thunk.fetchInitial());
+        })
+      );
+    };
+  }
+
+  export function deleteAccount(id: string, cb?: () => void): IThunk {
+    return async (dispatch, getState, env) => {
+      await IndexedDBUtils.remove(`liftosaur_${id}`);
+      if (cb) {
+        cb();
+      }
+    };
+  }
+
+  export function switchAccount(id: string): IThunk {
+    return async (dispatch, getState, env) => {
+      dispatch(
+        Thunk.logOut(async () => {
+          const rawStorage = (await IndexedDBUtils.get(`liftosaur_${id}`)) as string | undefined;
+          if (rawStorage != null) {
+            const result = await Storage.get(env.service.client, JSON.parse(rawStorage)?.storage);
+            if (result.success) {
+              const newState = await getInitialState(env.service.client, { rawStorage });
+              dispatch({ type: "ReplaceState", state: newState });
+              dispatch(Thunk.fetchInitial());
+            } else {
+              alert(`Error while trying to switch the account: ${result.error}`);
+            }
+          } else {
+            alert(`Error while trying to switch the account: missing account ${id}`);
+          }
+        })
+      );
+    };
+  }
+
+  export function fetchInitial(): IThunk {
+    return async (dispatch, getState, env) => {
+      if (getState().storage.whatsNew == null) {
+        WhatsNew.updateStorage(dispatch);
+      }
+      dispatch(Thunk.fetchPrograms());
+      if (getState().user?.id) {
+        fetchAllFriendsThings(dispatch, getState().storage);
+      }
+    };
+  }
 }
 
 function friendAction<T>(
@@ -461,12 +528,25 @@ function fetchAllFriendsThings(dispatch: IDispatch, storage: IStorage): void {
   dispatch(Thunk.getComments(date));
 }
 
-async function handleLogin(dispatch: IDispatch, result: IGetStorageResponse, client: Window["fetch"]): Promise<void> {
+async function handleLogin(
+  dispatch: IDispatch,
+  result: IGetStorageResponse,
+  client: Window["fetch"],
+  oldUserId?: string
+): Promise<void> {
   if (result.email != null) {
     Rollbar.configure({ payload: { environment: __ENV__, person: { email: result.email, id: result.user_id } } });
     const storage = await runMigrations(client, result.storage);
-    dispatch({ type: "Login", email: result.email, userId: result.user_id });
-    dispatch({ type: "SyncStorage", storage });
-    fetchAllFriendsThings(dispatch, storage);
+    storage.tempUserId = result.user_id;
+    storage.email = result.email;
+    if (oldUserId === result.user_id) {
+      dispatch({ type: "SyncStorage", storage });
+      dispatch({ type: "Login", email: result.email, userId: result.user_id });
+    } else {
+      const newState = await getInitialState(client, { storage });
+      newState.user = { id: result.user_id, email: result.email };
+      dispatch({ type: "ReplaceState", state: newState });
+    }
+    dispatch(Thunk.fetchInitial());
   }
 }

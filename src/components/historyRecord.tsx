@@ -80,7 +80,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                 data-cy="history-entry-exercise"
                 className="flex flex-row items-center flex-1 py-1 border-b border-grayv2-100"
               >
-                <div data-cy="history-entry-exercise-img" className="">
+                <div data-cy="history-entry-exercise-img" style={{ minWidth: "2.25rem" }}>
                   <ExerciseImage
                     className="w-6 mr-3"
                     exerciseType={exercise}

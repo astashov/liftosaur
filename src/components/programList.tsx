@@ -86,7 +86,9 @@ export function ProgramListView(props: IProps): JSX.Element {
                     <button
                       className="p-2 align-middle button"
                       onClick={() => {
-                        if (props.editProgramId == null || props.editProgramId !== program.id) {
+                        if (customPrograms.length < 2) {
+                          alert("You cannot delete all your programs, you should have at least one");
+                        } else if (props.editProgramId == null || props.editProgramId !== program.id) {
                           if (confirm("Are you sure?")) {
                             props.dispatch({
                               type: "UpdateState",
