@@ -53,7 +53,7 @@ body {
 
 .CodeMirror pre.CodeMirror-line,
 .CodeMirror pre.CodeMirror-line-like {
-  font-family: "Iosevka Web";
+  font-family: "Iosevka Web" !important;
 }
 
 .program-description a {

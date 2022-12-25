@@ -408,8 +408,8 @@ a.hero-title {
 
 .features-progress-top-oval {
   position: absolute;
-  top: 103px;
-  right: 21px;
+  top: 126px;
+  right: 46px;
   background: url(/images/oval.svg) no-repeat;
   width: 105px;
   height: 56px;
@@ -439,7 +439,7 @@ a.hero-title {
 
 .features-progress-bottom-oval {
   position: absolute;
-  bottom: 30px;
+  bottom: -8px;
   right: 72px;
   background: url(/images/oval.svg) no-repeat;
   width: 105px;
@@ -459,7 +459,7 @@ a.hero-title {
 
 .features-settings-top-arrow {
   position: absolute;
-  top: -28px;
+  top: 37px;
   left: -119px;
   background: url(/images/handdrawn-arrow.svg) no-repeat;
   width: 112px;
@@ -470,7 +470,7 @@ a.hero-title {
 
 .features-settings-top-oval {
   position: absolute;
-  top: 25px;
+  top: 105px;
   left: -17px;
   background: url(/images/oval.svg) no-repeat;
   width: 105px;
@@ -481,7 +481,7 @@ a.hero-title {
 
 .features-settings-top-hint {
   position: absolute;
-  top: -33px;
+  top: 31px;
   left: -305px;
   font-size: 2.5em;
   color: #c53030;
