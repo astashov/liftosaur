@@ -40,10 +40,28 @@ export namespace IndexedDBUtils {
     });
   }
 
-  export function get(key: string): Promise<unknown[]> {
+  export function getAllKeys(): Promise<IDBValidKey[]> {
     return new Promise(async (resolve, reject) => {
       const db = await initialize();
-      const transaction = db.transaction("keyval", "readwrite");
+      const transaction = db.transaction("keyval", "readonly");
+      const objectStore = transaction.objectStore("keyval");
+      const request = objectStore.getAllKeys();
+      request.addEventListener("success", (e) => {
+        const keys = request.result;
+        db.close();
+        resolve(keys);
+      });
+      request.addEventListener("error", (e) => {
+        db.close();
+        reject(e);
+      });
+    });
+  }
+
+  export function get(key: string): Promise<unknown> {
+    return new Promise(async (resolve, reject) => {
+      const db = await initialize();
+      const transaction = db.transaction("keyval", "readonly");
       const objectStore = transaction.objectStore("keyval");
       const request = objectStore.getAll(key);
       request.addEventListener("success", (e) => {

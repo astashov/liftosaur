@@ -30,18 +30,29 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 declare let Rollbar: RB;
 const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
 
-export function getIdbKey(userId?: string, isAdmin?: boolean): string {
-  return userId != null && isAdmin ? `liftosaur_${userId}` : "liftosaur";
+export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
+  const currentAccount = await IndexedDBUtils.get("current_account");
+  if (currentAccount) {
+    return `liftosaur_${currentAccount}`;
+  } else {
+    return userId != null && isAdmin ? `liftosaur_${userId}` : "liftosaur";
+  }
 }
 
-export async function getInitialState(client: Window["fetch"], url: URL, rawStorage?: string): Promise<IState> {
+export async function getInitialState(
+  client: Window["fetch"],
+  args?: { url?: URL; rawStorage?: string; storage?: IStorage }
+): Promise<IState> {
+  const url = args?.url || new URL(document.location.href);
   const userId = url.searchParams.get("userid") || undefined;
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   let storage: ILocalStorage | undefined;
-  if (rawStorage != null) {
+  if (args?.storage) {
+    storage = { storage: args.storage };
+  } else if (args?.rawStorage != null) {
     try {
-      storage = JSON.parse(rawStorage);
+      storage = JSON.parse(args.rawStorage);
     } catch (e) {
       storage = undefined;
     }
@@ -179,6 +190,11 @@ export type IUpdateStateAction = {
   desc?: string;
 };
 
+export type IReplaceStateAction = {
+  type: "ReplaceState";
+  state: IState;
+};
+
 export type IStoreWebpushrSidAction = {
   type: "StoreWebpushrSidAction";
   sid: number;
@@ -237,6 +253,7 @@ export type IAction =
   | IStartTimer
   | IStopTimer
   | IUpdateStateAction
+  | IReplaceStateAction
   | IUpdateSettingsAction
   | IStoreWebpushrSidAction
   | ICreateProgramAction
@@ -264,12 +281,16 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).state = newState;
-  timerId = window.setTimeout(() => {
+  timerId = window.setTimeout(async () => {
     clearTimeout(timerId);
     timerId = undefined;
-    IndexedDBUtils.set(getIdbKey(newState.user?.id, !!newState.adminKey), JSON.stringify(localStorage)).catch((e) => {
+    const key = await getIdbKey(newState.user?.id, !!newState.adminKey);
+    try {
+      await IndexedDBUtils.set("current_account", newState.user?.id || newState.storage.tempUserId);
+      await IndexedDBUtils.set(key, JSON.stringify(localStorage));
+    } catch (e) {
       console.error(e);
-    });
+    }
   }, 100);
   return newState;
 };
@@ -421,7 +442,11 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
   } else if (action.type === "Login") {
-    return { ...state, user: { email: action.email, id: action.userId } };
+    return {
+      ...state,
+      user: { email: action.email, id: action.userId },
+      storage: { ...state.storage, email: action.email },
+    };
   } else if (action.type === "Logout") {
     return { ...state, user: undefined };
   } else if (action.type === "StartTimer") {
@@ -439,6 +464,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         settings: action.lensRecording.fn(state.storage.settings),
       },
     };
+  } else if (action.type === "ReplaceState") {
+    return action.state;
   } else if (action.type === "UpdateState") {
     if (isLoggingEnabled) {
       console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");
@@ -459,6 +486,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (newStorage?.id != null && oldStorage?.id != null && newStorage.id > oldStorage.id) {
       const storage: IStorage = {
         id: newStorage.id,
+        email: newStorage.email,
         stats: {
           weight: {
             weight: CollectionUtils.concatBy(

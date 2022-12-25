@@ -74,6 +74,7 @@ export namespace Storage {
       version: getLatestMigrationVersion(),
       programs: [],
       helps: [],
+      email: undefined,
       whatsNew: undefined,
     };
   }

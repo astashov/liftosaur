@@ -28,7 +28,7 @@ const adminKey = url.searchParams.get("admin");
 
 async function initialize(loadedData: unknown): Promise<void> {
   (window as any).loadedData = loadedData;
-  const initialState = await getInitialState(client, url, loadedData as string | undefined);
+  const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined });
   if (adminKey) {
     initialState.adminKey = adminKey;
   }
@@ -36,23 +36,29 @@ async function initialize(loadedData: unknown): Promise<void> {
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
 }
 
-IndexedDBUtils.get(getIdbKey(userId, !!adminKey))
-  .then(initialize)
-  .catch((e) => {
-    console.error(e);
-    initialize(undefined);
-  });
+IndexedDBUtils.getAllKeys();
 
-(window as any).storeData = (data: any) => {
-  IndexedDBUtils.set(getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch(
+async function main(): Promise<void> {
+  IndexedDBUtils.get(await getIdbKey(userId, !!adminKey))
+    .then(initialize)
+    .catch((e) => {
+      console.error(e);
+      initialize(undefined);
+    });
+}
+
+main();
+
+(window as any).storeData = async (data: any) => {
+  IndexedDBUtils.set(await getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch(
     (e) => {
       console.error(e);
     }
   );
 };
 
-(window as any).clearData = (data: any) => {
-  IndexedDBUtils.set(getIdbKey(userId, !!adminKey), undefined).catch((e) => {
+(window as any).clearData = async (data: any) => {
+  IndexedDBUtils.set(await getIdbKey(userId, !!adminKey), undefined).catch((e) => {
     console.error(e);
   });
 };

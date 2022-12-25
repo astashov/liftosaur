@@ -23,10 +23,10 @@ export class Service {
     this.client = client;
   }
 
-  public async googleSignIn(token: string, forcedUserEmail?: string): Promise<IGetStorageResponse> {
+  public async googleSignIn(token: string, id: string, forcedUserEmail?: string): Promise<IGetStorageResponse> {
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
-      body: JSON.stringify({ token, forceuseremail: forcedUserEmail }),
+      body: JSON.stringify({ token, id, forceuseremail: forcedUserEmail }),
       credentials: "include",
     });
     const json = await response.json();
