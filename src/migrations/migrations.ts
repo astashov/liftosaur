@@ -112,8 +112,8 @@ export const migrations = {
       barbell: {
         multiplier: 2,
         bar: {
-          lb: anyStorage.settings.bars.lb.barbell,
-          kg: anyStorage.settings.bars.kg.barbell,
+          lb: anyStorage.settings.bars?.lb?.barbell || Weight.build(45, "lb"),
+          kg: anyStorage.settings.bars?.kg?.barbell || Weight.build(20, "kg"),
         },
         plates: anyStorage.settings.plates,
         fixed: [],
@@ -122,8 +122,8 @@ export const migrations = {
       trapbar: {
         multiplier: 2,
         bar: {
-          lb: anyStorage.settings.bars.lb.barbell,
-          kg: anyStorage.settings.bars.kg.barbell,
+          lb: anyStorage.settings.bars?.lb?.barbell || Weight.build(45, "lb"),
+          kg: anyStorage.settings.bars?.kg?.barbell || Weight.build(20, "kg"),
         },
         plates: anyStorage.settings.plates,
         fixed: [],
@@ -132,8 +132,8 @@ export const migrations = {
       smith: {
         multiplier: 2,
         bar: {
-          lb: anyStorage.settings.bars.lb.barbell,
-          kg: anyStorage.settings.bars.kg.barbell,
+          lb: anyStorage.settings.bars?.lb?.barbell || Weight.build(45, "lb"),
+          kg: anyStorage.settings.bars?.kg?.barbell || Weight.build(20, "kg"),
         },
         plates: anyStorage.settings.plates,
         fixed: [],
@@ -142,8 +142,8 @@ export const migrations = {
       dumbbell: {
         multiplier: 2,
         bar: {
-          lb: anyStorage.settings.bars.lb.dumbbell,
-          kg: anyStorage.settings.bars.kg.dumbbell,
+          lb: anyStorage.settings.bars?.lb?.dumbbell || Weight.build(10, "lb"),
+          kg: anyStorage.settings.bars?.kg?.dumbbell || Weight.build(5, "kg"),
         },
         plates: anyStorage.settings.plates,
         fixed: [
@@ -167,8 +167,8 @@ export const migrations = {
       ezbar: {
         multiplier: 2,
         bar: {
-          lb: anyStorage.settings.bars.lb.ezbar,
-          kg: anyStorage.settings.bars.kg.ezbar,
+          lb: anyStorage.settings.bars?.lb?.ezbar || Weight.build(20, "lb"),
+          kg: anyStorage.settings.bars?.kg?.ezbar || Weight.build(10, "kg"),
         },
         plates: anyStorage.settings.plates,
         fixed: [],
