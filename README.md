@@ -2,7 +2,7 @@
 
 Link: https://www.liftosaur.com/about
 
-<img src="https://raw.github.com/astashov/liftosaur/master/screenshot.png" alt="Liftosaur Screenshot" width="360" />
+<img src="https://raw.github.com/astashov/liftosaur/master/screenshot2.png" alt="Liftosaur Screenshot" width="360" />
 
 It's a mobile app, that's available as:
 
