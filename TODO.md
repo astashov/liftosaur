@@ -21,8 +21,12 @@
 - Add retry button to the failed network alert
 - Add a way to specify exercises by type (e.g. - Pull exercise), and the app will rotate them
 - Add descriptions to all exercises
+- Easy to preview programs
+- Show rest timer in history and other screens
+- Add next set / plates to push notifs
+- Widget on iOS lock screen
 
-- Bug:
+* Bug:
   Assign lb to state var of type number
 
 ## Friends

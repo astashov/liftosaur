@@ -670,8 +670,8 @@ footer nav li {
   }
 
   .features-progress-top-arrow {
-    top: 80px;
-    left: 122px;
+    top: 100px;
+    left: 94px;
     right: auto;
     width: 43px;
     background-size: contain;
@@ -680,30 +680,30 @@ footer nav li {
   }
 
   .features-progress-top-hint {
-    top: 66px;
-    left: 10px;
+    top: 89px;
+    left: -26px;
     right: auto;
     font-size: 1.5em;
   }
 
   .features-progress-bottom-arrow {
-    left: 99px;
+    right: 107px;
     width: 60px;
-    bottom: -19px;
-    right: auto;
+    bottom: -49px;
+    left: auto;
     height: 30px;
     transform: rotate(240deg) scaleX(-1);
   }
 
   .features-progress-bottom-hint {
-    bottom: -50px;
-    left: 151px;
+    bottom: -57px;
+    left: 150px;
     right: auto;
     font-size: 2em;
   }
 
   .features-settings-top-arrow {
-    top: 85px;
+    top: 170px;
     left: 60px;
     width: 62px;
     height: 33px;
@@ -711,7 +711,7 @@ footer nav li {
   }
 
   .features-settings-top-hint {
-    top: 124px;
+    top: 200px;
     left: 120px;
     font-size: 2em;
   }
