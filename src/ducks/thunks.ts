@@ -88,7 +88,7 @@ export namespace Thunk {
       const result = await load(dispatch, "fetchStorage", () =>
         env.service.getStorage(getState().user?.id, getState().adminKey)
       );
-      await handleLogin(dispatch, result, env.service.client);
+      await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
     };
   }
 
