@@ -25,22 +25,22 @@ describe("Program", () => {
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
     g("menu-item-value-equipment").should("have.text", "Barbell");
 
-    cy.contains("Advanced").click();
+    g("tab-advanced").click();
 
-    cy.contains("Enable Sets Variations").click();
+    cy.get("button").contains("Enable Sets Variations").click();
     cy.contains("Add New Variation").click();
 
-    cy.contains("Simple").click();
+    g("tab-simple").click();
 
     g("simple-errors").should("contain.text", "Should only have one variation");
 
-    cy.contains("Advanced").click();
+    g("tab-advanced").click();
 
     g("menu-item-name-selected-variation").click();
     g("menu-item-selected-variation", "scroll-barrel-item-1").click();
     cy.contains("Delete Current Variation").click();
 
-    cy.contains("Simple").click();
+    g("tab-simple").click();
 
     g("sets-input").clear().type("5");
     g("reps-input").clear().type("3");

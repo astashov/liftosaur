@@ -150,15 +150,25 @@ function HistoryRecordSet(props: { sets: ISet[]; isNext: boolean; unit: IUnit })
   }
   const set = sets[0];
   const length = sets.length;
-  const color = isNext ? "text-grayv2-main" : Reps.isCompletedSet(set) ? "text-greenv2-main" : "text-redv2-main";
+  const isCompleted = Reps.isCompletedSet(set);
+  const color = isNext ? "text-grayv2-main" : isCompleted ? "text-greenv2-main" : "text-redv2-main";
   return (
     <div className="flex py-2 mr-2 leading-none">
       <div className="text-center">
-        <div className="pb-1 font-bold border-b border-grayv2-200">
+        <div
+          data-cy={
+            isNext
+              ? "history-entry-sets-next"
+              : isCompleted
+              ? "history-entry-sets-completed"
+              : "history-entry-sets-incompleted"
+          }
+          className="pb-1 font-bold border-b border-grayv2-200"
+        >
           <span className={`${color} text-lg`}>{isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set)}</span>
           {length > 1 && <span className="text-sm text-purplev2-main">x{length}</span>}
         </div>
-        <div className="pt-2 text-sm font-bold text-grayv2-main">
+        <div data-cy="history-entry-weight" className="pt-2 text-sm font-bold text-grayv2-main">
           {Weight.display(Weight.convertTo(set.weight, unit), false)}
         </div>
       </div>

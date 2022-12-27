@@ -21,7 +21,7 @@ describe("Stats", () => {
     g("modify-stats").click();
     g("menu-item-name-shoulders").click();
     g("menu-item-name-forearm-left").click();
-    g("modal-close").click();
+    g("modal-close").filter(":visible").click();
 
     g("input-stats-neck").should("have.length", 0);
 
@@ -98,7 +98,7 @@ describe("Stats", () => {
     g("menu-item-neck").should("have.length", 0);
 
     g("menu-item-shoulders").click();
-    g("modal-close").click();
+    g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 1);
     g("graph").eq(0).find(".title").should("have.text", "Shoulders");

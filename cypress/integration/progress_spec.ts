@@ -99,11 +99,15 @@ describe("Progress", () => {
 
     // Checking the history record
     cy.get("[data-cy=history-entry-exercise]:contains('Bent Over Row')").as("history-entry");
-    cy.get("@history-entry").find("[data-cy=history-entry-sets-incompleted]").should("have.text", "4/5/2");
-    cy.get("@history-entry").find("[data-cy=history-entry-weight]").should("have.text", "200");
+    cy.get("@history-entry").find("[data-cy=history-entry-sets-incompleted]").eq(0).should("have.text", "4");
+    cy.get("@history-entry").find("[data-cy=history-entry-sets-completed]").eq(0).should("have.text", "5");
+    cy.get("@history-entry").find("[data-cy=history-entry-sets-incompleted]").eq(1).should("have.text", "2");
+    cy.get("@history-entry").find("[data-cy=history-entry-weight]").eq(0).should("have.text", "200");
+    cy.get("@history-entry").find("[data-cy=history-entry-weight]").eq(1).should("have.text", "200");
+    cy.get("@history-entry").find("[data-cy=history-entry-weight]").eq(2).should("have.text", "200");
     cy.get("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-sets-completed]").should(
       "have.text",
-      "3x5"
+      "5x3"
     );
     cy.get("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-weight]").should(
       "have.text",

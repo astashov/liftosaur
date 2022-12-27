@@ -63,7 +63,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   return (
     <>
-      <div className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
+      <div data-cy="navbar" className={className} style={{ transition: "box-shadow 0.2s ease-in-out" }}>
         <div className="flex items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
           {showBackButton ? (
             <button

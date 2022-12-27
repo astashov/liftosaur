@@ -109,7 +109,7 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Chin Up') [data-cy=history-entry-weight]")
-      .should("have.text", "0");
+      .should("have.text", "BW");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-weight]")

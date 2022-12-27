@@ -24,10 +24,12 @@ describe("5/3/1 for beginners calculator", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-weight]")
+      .eq(2)
       .should("have.text", "255");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bench Press') [data-cy=history-entry-weight]")
+      .eq(2)
       .should("have.text", "267.5");
   });
 });

@@ -43,7 +43,7 @@ describe("Graphs", () => {
     g("item-graph-bent-over-row").click();
     g("item-graph-bench-press").click();
 
-    g("modal-close").click();
+    g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 2);
     g("graph").eq(0).find(".title").should("have.text", "Bent Over Row Max Weight");
@@ -54,7 +54,7 @@ describe("Graphs", () => {
     g("item-graph-exercise-bentoverrow").find("[data-cy=remove-graph]").click();
     g("item-graph-squat").click();
 
-    g("modal-close").click();
+    g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 2);
     g("graph").eq(0).find(".title").should("have.text", "Bench Press Max Weight");

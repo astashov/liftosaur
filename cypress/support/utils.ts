@@ -31,7 +31,5 @@ export function login(email: string): void {
   g("footer-settings").click();
   g("menu-item-account").click();
   g("menu-item-login").click();
-  g("menu-item-current-account").should("have.text", `Current account: ${email}`);
-  g("navbar-back").click();
-  g("navbar-back").click();
+  g("navbar").should("have.text", "Workout History");
 }

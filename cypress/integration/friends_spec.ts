@@ -33,7 +33,6 @@ describe("Friends", () => {
 
     g("navbar-back").click();
     g("navbar-back").click();
-    g("navbar-back").click();
 
     cy.get(".history-record-test3", { timeout: 10000 }).eq(0).click();
     cy.get("[data-cy^=exercise-]:contains('Overhead Press')").should("exist");
@@ -55,7 +54,6 @@ describe("Friends", () => {
 
     // TEST 3
     login("test3@example.com");
-    g("navbar-back").click();
     cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").should("have.class", "liked");
     cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").click();
     cy.get("[data-cy=history-record]:eq(1) [data-cy=like]").should("have.class", "liked");
@@ -69,7 +67,6 @@ describe("Friends", () => {
 
     // TEST 4
     login("test4@example.com");
-    g("navbar-back").click();
     cy.get(".history-record-test3", { timeout: 10000 }).eq(0).click();
     g("comment-user").should("contain.text", "test4");
     g("comment-text").should("contain.text", "Hi there!");

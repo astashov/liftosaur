@@ -19,7 +19,7 @@ describe("Stats", () => {
     g("modify-stats").click();
     g("menu-item-name-shoulders").click();
     g("menu-item-name-forearm-left").click();
-    g("modal-close").click();
+    g("modal-close").filter(":visible").click();
 
     g("input-stats-bodyweight").clear().type("10.12");
     g("input-stats-shoulders").clear().type("20.34");

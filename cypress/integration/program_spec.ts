@@ -23,7 +23,7 @@ describe("Program", () => {
     cy.contains("Add New Day").click();
     g("navbar-back").click();
     cy.contains("Add New Exercise").click();
-    cy.contains("Advanced").click();
+    g("tab-advanced").click();
 
     g("menu-item-exercise").click();
     g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
@@ -39,7 +39,7 @@ describe("Program", () => {
 
     cy.contains("Add New Set").click();
 
-    cy.contains("Enable Sets Variations").click();
+    cy.get("button").contains("Enable Sets Variations").click();
     cy.contains("Add New Variation").click();
     clearCodeMirror("multiline-editor-variation");
     typeCodeMirror("multiline-editor-variation", "(state.weight > 100lb) ? 2 : 1");
@@ -159,7 +159,7 @@ describe("Program", () => {
     );
     cy.get("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-sets-next]").should(
       "have.text",
-      "2x8"
+      "8x2"
     );
 
     g("footer-cta").click();
@@ -177,6 +177,6 @@ describe("Program", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-sets-next]")
-      .should("have.text", "1x10");
+      .should("have.text", "10");
   });
 });

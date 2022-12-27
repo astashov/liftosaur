@@ -34,7 +34,9 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
         </div>
         <div className="mt-4">
           Already have an account?{" "}
-          <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("account"))}>Log in!</LinkButton>
+          <LinkButton data-cy="onboarding-login" onClick={() => props.dispatch(Thunk.pushScreen("account"))}>
+            Log in!
+          </LinkButton>
         </div>
         <div className="px-6 mt-10">
           If you are <strong>complete noob</strong> in weightlifting, and just want to start,{" "}
