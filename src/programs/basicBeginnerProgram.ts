@@ -33,12 +33,42 @@ export const basicBeginnerProgram: IProgram = {
       id: "hsoqxnes",
       state: {
         weight: {
-          value: 95,
+          value: 65,
+          unit: "lb",
+        },
+        bump: {
+          value: 2.5,
           unit: "lb",
         },
       },
       finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? (state.bump * 2) : state.bump)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 150,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 125,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 95,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
     },
     {
       variationExpr: "1",
@@ -77,6 +107,47 @@ export const basicBeginnerProgram: IProgram = {
       },
       finishDayExpr:
         "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 120,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 90,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 45,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
+      reuseLogic: {
+        selected: "hsoqxnes",
+        states: {
+          hsoqxnes: {
+            weight: {
+              value: 45,
+              unit: "lb",
+            },
+            bump: {
+              value: 2.5,
+              unit: "lb",
+            },
+          },
+        },
+      },
     },
     {
       variationExpr: "1",
@@ -115,6 +186,47 @@ export const basicBeginnerProgram: IProgram = {
       },
       finishDayExpr:
         "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 120,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 90,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 45,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
+      reuseLogic: {
+        selected: "hsoqxnes",
+        states: {
+          hsoqxnes: {
+            weight: {
+              value: 45,
+              unit: "lb",
+            },
+            bump: {
+              value: 5,
+              unit: "lb",
+            },
+          },
+        },
+      },
     },
     {
       variationExpr: "1",
@@ -146,6 +258,47 @@ export const basicBeginnerProgram: IProgram = {
       id: "xjvluydi",
       state: {},
       finishDayExpr: "",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 60,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 30,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 10,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
+      reuseLogic: {
+        selected: undefined,
+        states: {
+          hsoqxnes: {
+            weight: {
+              value: 0,
+              unit: "lb",
+            },
+            bump: {
+              value: 2.5,
+              unit: "lb",
+            },
+          },
+        },
+      },
     },
     {
       variationExpr: "1",
@@ -184,6 +337,47 @@ export const basicBeginnerProgram: IProgram = {
       },
       finishDayExpr:
         "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 120,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 90,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 45,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
+      reuseLogic: {
+        selected: "hsoqxnes",
+        states: {
+          hsoqxnes: {
+            weight: {
+              value: 45,
+              unit: "lb",
+            },
+            bump: {
+              value: 2.5,
+              unit: "lb",
+            },
+          },
+        },
+      },
     },
     {
       variationExpr: "1",
@@ -222,6 +416,47 @@ export const basicBeginnerProgram: IProgram = {
       },
       finishDayExpr:
         "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      warmupSets: [
+        {
+          reps: 5,
+          threshold: {
+            value: 150,
+            unit: "lb",
+          },
+          value: 0.3,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 125,
+            unit: "lb",
+          },
+          value: 0.5,
+        },
+        {
+          reps: 5,
+          threshold: {
+            value: 95,
+            unit: "lb",
+          },
+          value: 0.8,
+        },
+      ],
+      reuseLogic: {
+        selected: "hsoqxnes",
+        states: {
+          hsoqxnes: {
+            weight: {
+              value: 95,
+              unit: "lb",
+            },
+            bump: {
+              value: 5,
+              unit: "lb",
+            },
+          },
+        },
+      },
     },
   ],
   author: "/r/fitness",

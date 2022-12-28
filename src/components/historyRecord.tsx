@@ -133,7 +133,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
 }, ComparerUtils.noFns);
 
 function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean; unit: IUnit }): JSX.Element {
-  const groups = Reps.group(props.sets);
+  const groups = Reps.group(props.sets, props.isNext);
   return (
     <div className="flex flex-wrap">
       {groups.map((g) => (

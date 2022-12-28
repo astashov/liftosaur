@@ -97,6 +97,12 @@ export function ProgramListView(props: IProps): JSX.Element {
                                   .p("storage")
                                   .p("programs")
                                   .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("currentProgramId")
+                                  .recordModify((id) =>
+                                    id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id
+                                  ),
                               ],
                             });
                           }

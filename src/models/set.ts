@@ -54,12 +54,17 @@ export namespace Reps {
     return sets.every((s) => s.completedReps != null);
   }
 
-  export function group(sets: ISet[]): ISet[][] {
+  export function group(sets: ISet[], isNext?: boolean): ISet[][] {
     return sets.reduce<ISet[][]>(
       (memo, set) => {
         let lastGroup = memo[memo.length - 1];
         const last = lastGroup[lastGroup.length - 1];
-        if (last != null && (!Weight.eq(last.weight, set.weight) || last.completedReps !== set.completedReps)) {
+        if (
+          last != null &&
+          (!Weight.eq(last.weight, set.weight) ||
+            last.completedReps !== set.completedReps ||
+            (isNext && last.isAmrap !== set.isAmrap))
+        ) {
           memo.push([]);
           lastGroup = memo[memo.length - 1];
         }

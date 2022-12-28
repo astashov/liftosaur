@@ -59,7 +59,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
               );
             }}
           >
-            Public Program
+            Publish Program
           </Button>
         </div>
       </form>
