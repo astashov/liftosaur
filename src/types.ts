@@ -421,6 +421,15 @@ export const TProgramExerciseWarmupSet = t.type(
 );
 export type IProgramExerciseWarmupSet = Readonly<t.TypeOf<typeof TProgramExerciseWarmupSet>>;
 
+export const TProgramExerciseReuseLogic = t.type(
+  {
+    selected: t.union([t.string, t.undefined]),
+    states: t.record(t.string, TProgramState),
+  },
+  "TProgramExerciseReuseLogic"
+);
+export type IProgramExerciseReuseLogic = Readonly<t.TypeOf<typeof TProgramExerciseReuseLogic>>;
+
 export const TProgramExercise = t.intersection(
   [
     t.interface({
@@ -433,6 +442,7 @@ export const TProgramExercise = t.intersection(
       finishDayExpr: t.string,
     }),
     t.partial({
+      reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
     }),
   ],

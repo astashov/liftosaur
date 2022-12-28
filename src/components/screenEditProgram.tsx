@@ -67,6 +67,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         programName={props.editProgram.name}
         settings={props.settings}
         dispatch={props.dispatch}
+        allProgramExercises={props.editProgram.exercises}
         programExercise={editExercise}
         isChanged={isChanged}
       />

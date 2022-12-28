@@ -19,6 +19,8 @@ import {
   IProgramExerciseWarmupSet,
 } from "../types";
 import { CollectionUtils } from "../utils/collection";
+import { IProgramState } from "../types";
+import { ProgramExercise } from "./programExercise";
 
 interface I531Tms {
   squat: IWeight;
@@ -55,17 +57,39 @@ export namespace EditProgram {
         .pi("editExercise")
         .p("state")
         .recordModify((state) => {
-          const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
-          const newState = { ...state };
-          const value = state[stateKey];
-          if (v != null) {
-            newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
-          } else {
-            delete newState[stateKey];
-          }
-          return newState;
+          return updateStateVariable(state, stateKey, newValue);
         }),
     ]);
+  }
+
+  export function editReuseLogicStateVariable(
+    dispatch: IDispatch,
+    reuseLogicId: string,
+    stateKey: string,
+    newValue?: string
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .pi("editExercise")
+        .pi("reuseLogic")
+        .pi("states")
+        .pi(reuseLogicId)
+        .recordModify((state) => {
+          return updateStateVariable(state, stateKey, newValue);
+        }),
+    ]);
+  }
+
+  function updateStateVariable(state: IProgramState, stateKey: string, newValue?: string): IProgramState {
+    const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
+    const newState = { ...state };
+    const value = state[stateKey];
+    if (v != null) {
+      newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
+    } else {
+      delete newState[stateKey];
+    }
+    return newState;
   }
 
   export function changeExerciseName(dispatch: IDispatch, newName?: string): void {
@@ -526,5 +550,30 @@ export namespace EditProgram {
 
   export function updateWarmupSets(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[]): void {
     updateState(dispatch, [lb<IState>().pi("editExercise").p("warmupSets").record(warmupSets)]);
+  }
+
+  export function reuseLogic(dispatch: IDispatch, allProgramExercises: IProgramExercise[], id: string): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .pi("editExercise")
+        .p("reuseLogic")
+        .recordModify((oldReuseLogic) => {
+          const reuseProgram = allProgramExercises.filter((pe) => pe.id === id)[0];
+          if (reuseProgram == null) {
+            return { selected: undefined, states: oldReuseLogic?.states || {} };
+          }
+          const states = oldReuseLogic?.states || {};
+          let state = states[id];
+          if (state == null) {
+            state = { ...reuseProgram.state };
+          } else {
+            state = ProgramExercise.mergeStates(state, reuseProgram.state);
+          }
+          return {
+            selected: id,
+            states: { ...states, [id]: state },
+          };
+        }),
+    ]);
   }
 }

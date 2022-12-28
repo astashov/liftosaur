@@ -32,6 +32,7 @@ import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
 import { LinkButton } from "./linkButton";
 import { useCallback, useRef } from "preact/hooks";
+import { ProgramExercise } from "../models/programExercise";
 
 interface IProps {
   showHelp: boolean;
@@ -41,6 +42,7 @@ interface IProps {
   progress: IHistoryRecord;
   day: number;
   programExercise?: IProgramExercise;
+  allProgramExercises?: IProgramExercise[];
   index: number;
   showKebab: boolean;
   friend?: IFriendUser;
@@ -113,14 +115,14 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
           />
         </div>
         {!isImageView && <ExerciseContentView {...props} />}
-        {props.programExercise && (
+        {props.programExercise && props.allProgramExercises && (
           <ProgressStateChanges
             entry={props.entry}
             forceShow={props.forceShowStateChanges}
             settings={props.settings}
             day={props.day}
-            state={props.programExercise.state}
-            script={props.programExercise.finishDayExpr}
+            state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
+            script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
           />
         )}
       </section>

@@ -10,10 +10,12 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { useRef } from "preact/hooks";
+import { ProgramExercise } from "../models/programExercise";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
   programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   settings: ISettings;
   day: number;
   days: IProgramDay[];
@@ -21,7 +23,7 @@ export interface IPlaygroundProps {
 }
 
 export function Playground(props: IPlaygroundProps): JSX.Element {
-  const { programExercise, days, settings, progress } = props;
+  const { programExercise, days, settings, progress, allProgramExercises } = props;
   const entry = progress.entries[0];
   const progressRef = useRef(props.progress);
   progressRef.current = props.progress;
@@ -50,14 +52,14 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         values={[...days.map<[string, string]>((d, i) => [(i + 1).toString(), `${i + 1} - ${d.name}`])]}
         onChange={(newValue) => {
           const newDay = parseInt(newValue || "1", 10);
-          const nextVariationIndex = Program.nextVariationIndex(programExercise, newDay, settings);
+          const nextVariationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, newDay, settings);
           const newEntry = Program.nextHistoryEntry(
             programExercise.exerciseType,
             newDay,
-            programExercise.variations[nextVariationIndex].sets,
-            programExercise.state,
+            ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
+            ProgramExercise.getState(programExercise, allProgramExercises),
             settings,
-            programExercise.warmupSets
+            ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
           );
           props.onProgressChange(History.buildFromEntry(newEntry, newDay));
         }}
@@ -69,6 +71,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         entry={entry}
         day={props.day}
         programExercise={programExercise}
+        allProgramExercises={allProgramExercises}
         index={0}
         forceShowStateChanges={true}
         settings={props.settings}

@@ -74,6 +74,7 @@ export const CardsView = memo(
               index={index}
               entry={entry}
               programExercise={programExercise}
+              allProgramExercises={props.program?.exercises}
               day={props.progress.day}
               dispatch={props.dispatch}
               onChangeReps={props.onChangeReps}

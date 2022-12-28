@@ -28,7 +28,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
               <div className="text-xs font-bold text-gray-500">{date}</div>
               <div>
                 <h2 className="font-bold">{whatsNewRecord.title}</h2>
-                <p>{whatsNewRecord.body}</p>
+                <p className="whatsnew">{whatsNewRecord.body}</p>
               </div>
             </li>
           );

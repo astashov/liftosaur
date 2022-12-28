@@ -181,6 +181,10 @@ input[type="checkbox"].checkbox:disabled {
   will-change: filter;
 }
 
+.whatsnew li {
+  margin-bottom: 0.5rem;
+}
+
 @keyframes shiny-border {
   0%,
   100% {

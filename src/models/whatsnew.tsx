@@ -68,6 +68,26 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20221228": {
+    title: <span>Add Reuse Logic feature</span>,
+    body: (
+      <ul>
+        <li>
+          If you have multiple exercises in a program that share the same logic for sets, reps and weight, and also
+          logic for updating those, you now can "reuse logic" from other exercises. This way you can avoid repeating the
+          same logic over and over again, and you'll have a single source of truth for that logic (in the exercise you
+          reuse).
+        </li>
+        <li>
+          It should be useful for most programs, since usually they have multiple exercises following the same
+          progression/deload pattern.
+        </li>
+        <li>
+          Each exercise still has its own state variables values, but it must have the same variable names and types.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

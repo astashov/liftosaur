@@ -1,5 +1,6 @@
 import { JSX, h, Fragment } from "preact";
 import { memo, useState } from "preact/compat";
+import { ProgramExercise } from "../../../models/programExercise";
 import { Progress } from "../../../models/progress";
 import { Weight } from "../../../models/weight";
 import { IProgramExercise, IProgramSet, ISettings } from "../../../types";
@@ -9,7 +10,7 @@ function getRepsValues(props: IRepsWeightsProps): string[] {
     const value = Progress.executeEntryScript(
       set.repsExpr,
       props.dayIndex,
-      props.programExercise.state,
+      ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
       props.settings,
       "reps"
@@ -23,7 +24,7 @@ function getWeightsValues(props: IRepsWeightsProps): string[] {
     const value = Progress.executeEntryScript(
       set.weightExpr,
       props.dayIndex,
-      props.programExercise.state,
+      ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
       props.settings,
       "weight"
@@ -50,6 +51,7 @@ function areValuesAndScriptsEqual(values: string[], scripts: string[]): boolean 
 interface IRepsWeightsProps {
   sets: IProgramSet[];
   programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   dayIndex: number;
   settings: ISettings;
   shouldShowAllFormulas: boolean;

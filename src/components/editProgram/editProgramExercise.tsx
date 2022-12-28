@@ -20,6 +20,7 @@ interface IProps {
   days: IProgramDay[];
   programIndex: number;
   screenStack: IScreen[];
+  allProgramExercises: IProgramExercise[];
   programExercise: IProgramExercise;
   isChanged: boolean;
   programName: string;

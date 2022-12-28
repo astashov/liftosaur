@@ -29,6 +29,7 @@ import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
 import { ICustomExercise } from "../types";
+import { ProgramExercise } from "./programExercise";
 
 export interface IExportedProgram {
   program: IProgram;
@@ -70,18 +71,19 @@ export namespace Program {
 
   export function programExerciseToHistoryEntry(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     day: number,
     settings: ISettings
   ): IHistoryEntry {
-    const variationIndex = nextVariationIndex(programExercise, day, settings);
-    const sets = programExercise.variations[variationIndex].sets;
+    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, day, settings);
+    const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
     return nextHistoryEntry(
       programExercise.exerciseType,
       day,
       sets,
-      programExercise.state,
+      ProgramExercise.getState(programExercise, allProgramExercises),
       settings,
-      programExercise.warmupSets
+      ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
     );
   }
 
@@ -140,17 +142,23 @@ export namespace Program {
       startTime: Date.now(),
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
-        return programExerciseToHistoryEntry(programExercise, day, settings);
+        return programExerciseToHistoryEntry(programExercise, program.exercises, day, settings);
       }),
     };
   }
 
-  export function nextVariationIndex(programExercise: IProgramExercise, day: number, settings: ISettings): number {
-    const variationIndexResult = runVariationScript(programExercise, day, settings);
+  export function nextVariationIndex(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    day: number,
+    settings: ISettings
+  ): number {
+    const variationIndexResult = runVariationScript(programExercise, allProgramExercises, day, settings);
     if (!variationIndexResult.success) {
       throw new Error(variationIndexResult.error);
     }
-    return Math.max(0, Math.min(variationIndexResult.data - 1, programExercise.variations.length - 1));
+    const variations = ProgramExercise.getVariations(programExercise, allProgramExercises);
+    return Math.max(0, Math.min(variationIndexResult.data - 1, variations.length - 1));
   }
 
   export function parseExerciseFinishDayScript(
@@ -207,15 +215,16 @@ export namespace Program {
 
   export function runVariationScript(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     day: number,
     settings: ISettings
   ): IEither<number, string> {
-    const script = programExercise.variationExpr;
+    const script = ProgramExercise.getVariationScript(programExercise, allProgramExercises);
     try {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
           script,
-          programExercise.state,
+          ProgramExercise.getState(programExercise, allProgramExercises),
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -236,6 +245,7 @@ export namespace Program {
 
   export function runScript(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     script: string,
     day: number,
     settings: ISettings,
@@ -243,6 +253,7 @@ export namespace Program {
   ): IEither<number, string>;
   export function runScript(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     script: string,
     day: number,
     settings: ISettings,
@@ -250,6 +261,7 @@ export namespace Program {
   ): IEither<IWeight, string>;
   export function runScript(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     script: string,
     day: number,
     settings: ISettings,
@@ -259,7 +271,7 @@ export namespace Program {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
           script,
-          programExercise.state,
+          ProgramExercise.getState(programExercise, allProgramExercises),
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -280,18 +292,26 @@ export namespace Program {
 
   export function runFinishDayScript(
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     day: number,
     entry: IHistoryEntry,
     settings: ISettings
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
-    const newState: IProgramState = { ...programExercise.state };
+    const newState: IProgramState = { ...ProgramExercise.getState(programExercise, allProgramExercises) };
 
     try {
-      new ScriptRunner(programExercise.finishDayExpr, newState, bindings, fns, settings.units, {
-        equipment: programExercise.exerciseType.equipment,
-      }).execute();
+      new ScriptRunner(
+        ProgramExercise.getFinishDayScript(programExercise, allProgramExercises),
+        newState,
+        bindings,
+        fns,
+        settings.units,
+        {
+          equipment: programExercise.exerciseType.equipment,
+        }
+      ).execute();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -311,9 +331,20 @@ export namespace Program {
         es.map((e) => {
           const excIndex = programDay.exercises.findIndex((exc) => exc.id === e.id);
           if (excIndex !== -1) {
-            const newStateResult = Program.runFinishDayScript(e, progress.day, progress.entries[excIndex], settings);
+            const newStateResult = Program.runFinishDayScript(
+              e,
+              program.exercises,
+              progress.day,
+              progress.entries[excIndex],
+              settings
+            );
             if (newStateResult.success) {
-              return lf(e).p("state").set(newStateResult.data);
+              const reuseLogicId = e.reuseLogic?.selected;
+              if (reuseLogicId) {
+                return lf(e).pi("reuseLogic").p("states").p(reuseLogicId).set(newStateResult.data);
+              } else {
+                return lf(e).p("state").set(newStateResult.data);
+              }
             } else {
               alert(
                 `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
@@ -403,6 +434,9 @@ export namespace Program {
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
     const errors = [];
+    if (programExercise.reuseLogic?.selected != null) {
+      errors.push("Must not reuse another experiment logic");
+    }
     if (programExercise.state.weight == null) {
       const keys = Object.keys(programExercise.state)
         .map((k) => `<strong>${k}</strong>`)

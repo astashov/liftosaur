@@ -25,6 +25,7 @@ import {
   IProgramExercise,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
+import { ProgramExercise } from "./programExercise";
 
 export interface IScriptBindings {
   day: number;
@@ -372,13 +373,15 @@ export namespace Progress {
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
     programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     day: number,
     settings: ISettings,
     forceWarmupSets?: boolean
   ): IHistoryEntry {
-    const variationIndex = Program.nextVariationIndex(programExercise, day, settings);
-    const sets = programExercise.variations[variationIndex].sets;
-    const state = programExercise.state;
+    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, day, settings);
+    const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(programExercise, allProgramExercises);
 
     const firstWeightExpr = sets[0]?.weightExpr;
     const firstWeight =
@@ -399,7 +402,7 @@ export namespace Progress {
         exercise: programExercise.exerciseType,
         warmupSets: forceWarmupSets
           ? firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExercise.warmupSets)
+            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
             : []
           : progressEntry.warmupSets,
         sets: progressEntry.sets.map((set, i) => {
@@ -455,7 +458,7 @@ export namespace Progress {
         }),
         warmupSets:
           firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExercise.warmupSets)
+            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
             : [],
       };
     }
@@ -473,7 +476,7 @@ export namespace Progress {
       entries: programDay.exercises.map((dayEntry) => {
         const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
         const progressEntry = progress.entries.find((e) => programExercise.exerciseType.id === e.exercise.id);
-        return applyProgramExercise(progressEntry, programExercise, day, settings);
+        return applyProgramExercise(progressEntry, programExercise, program.exercises, day, settings);
       }),
     };
   }

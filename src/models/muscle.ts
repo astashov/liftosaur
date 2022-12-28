@@ -149,13 +149,18 @@ export namespace Muscle {
     return programDay.exercises.reduce(
       (memo, exerciseId) => {
         const programExercise = program.exercises.find((e) => e.id === exerciseId.id)!;
-        return mergePoints(memo, getPointsForExercise(programExercise, program.nextDay, settings));
+        return mergePoints(memo, getPointsForExercise(programExercise, program.exercises, program.nextDay, settings));
       },
       { screenMusclePoints, exercisePoints }
     );
   }
 
-  export function getPointsForExercise(programExercise: IProgramExercise, day: number, settings: ISettings): IPoints {
+  export function getPointsForExercise(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    day: number,
+    settings: ISettings
+  ): IPoints {
     const screenMusclePoints: IScreenMusclePoints = {
       strength: {},
       hypertrophy: {},
@@ -166,7 +171,7 @@ export namespace Muscle {
     };
 
     const id = Exercise.toKey(programExercise.exerciseType);
-    const historyEntry = Program.programExerciseToHistoryEntry(programExercise, day, settings);
+    const historyEntry = Program.programExerciseToHistoryEntry(programExercise, allProgramExercises, day, settings);
     const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
     const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
     for (const set of historyEntry.sets) {

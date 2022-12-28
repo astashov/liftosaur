@@ -14,10 +14,12 @@ import { StateVars } from "./programDetailsStateVars";
 import { lb } from "lens-shmens";
 import { ModalAmrap } from "../../../components/modalAmrap";
 import { ModalWeight } from "../../../components/modalWeight";
+import { ProgramExercise } from "../../../models/programExercise";
 
 interface IPlaygroundProps {
   programId: string;
   programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   variationIndex: number;
   settings: ISettings;
   day: number;
@@ -30,7 +32,14 @@ export const Playground = memo(
       let newProgress;
       if (args.programExercise != null) {
         const entry = progress.entries[0];
-        const newEntry = Progress.applyProgramExercise(entry, args.programExercise, day, settings, true);
+        const newEntry = Progress.applyProgramExercise(
+          entry,
+          args.programExercise,
+          props.allProgramExercises,
+          day,
+          settings,
+          true
+        );
         newProgress = History.buildFromEntry(newEntry, day);
       } else if (args.progress != null) {
         newProgress = args.progress;
@@ -41,15 +50,19 @@ export const Playground = memo(
       }
     };
 
+    const programExerciseState = ProgramExercise.getState(props.programExercise, props.allProgramExercises);
+    const programExerciseVariations = ProgramExercise.getVariations(props.programExercise, props.allProgramExercises);
+    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(props.programExercise, props.allProgramExercises);
+
     const { settings, day, variationIndex, programExercise } = props;
     const [progress, setProgress] = useState(() => {
       const entry = Program.nextHistoryEntry(
         programExercise.exerciseType,
         day,
-        programExercise.variations[variationIndex].sets,
-        programExercise.state,
+        programExerciseVariations[variationIndex].sets,
+        programExerciseState,
         settings,
-        programExercise.warmupSets
+        programExerciseWarmupSets
       );
       return History.buildFromEntry(entry, day);
     });
@@ -76,6 +89,7 @@ export const Playground = memo(
           showKebab={false}
           progress={progress}
           programExercise={programExercise}
+          allProgramExercises={props.allProgramExercises}
           index={0}
           forceShowStateChanges={true}
           settings={props.settings}
@@ -83,13 +97,13 @@ export const Playground = memo(
           onChangeReps={() => undefined}
         />
         <StateVars
-          stateVars={programExercise.state}
+          stateVars={programExerciseState}
           id={programExercise.id}
           settings={settings}
           onChange={(key, value) => {
             const newProgramExercise = {
               ...programExercise,
-              state: { ...programExercise.state, [key]: value },
+              state: { ...programExerciseState, [key]: value },
             };
             props.dispatch(
               lb<IProgramDetailsState>()

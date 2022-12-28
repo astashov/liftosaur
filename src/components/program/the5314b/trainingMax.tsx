@@ -10,6 +10,7 @@ import { IProgram, ISettings, IWeight } from "../../../types";
 import { Input } from "../../input";
 import { LinkButton } from "../../linkButton";
 import { StringUtils } from "../../../utils/string";
+import { ProgramExercise } from "../../../models/programExercise";
 
 interface IProps {
   program: IProgram;
@@ -22,11 +23,15 @@ export function TrainingMax(props: IProps): JSX.Element {
   const exerciseIds = ["squat", "benchPress", "deadlift", "overheadPress"] as const;
   const exercises = exerciseIds.map((id) => Exercise.getById(id, props.settings.exercises));
   const programExercises = props.program.exercises;
+  const squatExercise = programExercises.find((e) => e.exerciseType.id === "squat")!;
+  const benchPressExercise = programExercises.find((e) => e.exerciseType.id === "benchPress")!;
+  const deadliftExercise = programExercises.find((e) => e.exerciseType.id === "deadlift")!;
+  const overheadPressExercise = programExercises.find((e) => e.exerciseType.id === "overheadPress")!;
   const [tms, setTms] = useState({
-    squat: programExercises.find((e) => e.exerciseType.id === "squat")!.state.tm as IWeight,
-    benchPress: programExercises.find((e) => e.exerciseType.id === "benchPress")!.state.tm as IWeight,
-    deadlift: programExercises.find((e) => e.exerciseType.id === "deadlift")!.state.tm as IWeight,
-    overheadPress: programExercises.find((e) => e.exerciseType.id === "overheadPress")!.state.tm as IWeight,
+    squat: ProgramExercise.getState(squatExercise, props.program.exercises).tm as IWeight,
+    benchPress: ProgramExercise.getState(benchPressExercise, props.program.exercises).tm as IWeight,
+    deadlift: ProgramExercise.getState(deadliftExercise, props.program.exercises).tm as IWeight,
+    overheadPress: ProgramExercise.getState(overheadPressExercise, props.program.exercises).tm as IWeight,
   });
 
   return (

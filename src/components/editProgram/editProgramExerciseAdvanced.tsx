@@ -42,34 +42,37 @@ import { LinkButton } from "../linkButton";
 import { IconTrash } from "../icons/iconTrash";
 import { IconHelp } from "../icons/iconHelp";
 import { IconInfo } from "../icons/iconInfo";
+import { ProgramExercise } from "../../models/programExercise";
 
 interface IProps {
   settings: ISettings;
   days: IProgramDay[];
   programIndex: number;
   programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   programName: string;
   dispatch: IDispatch;
 }
 
 function buildProgress(
   programExercise: IProgramExercise,
+  allProgramExercises: IProgramExercise[],
   day: number,
   settings: ISettings
 ): IHistoryRecord | undefined {
   let entry: IHistoryEntry | undefined;
   let variationIndex = 0;
   try {
-    variationIndex = Program.nextVariationIndex(programExercise, day, settings);
+    variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, day, settings);
   } catch (_) {}
   try {
     entry = Program.nextHistoryEntry(
       programExercise.exerciseType,
       day,
-      programExercise.variations[variationIndex].sets,
-      programExercise.state,
+      ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
+      ProgramExercise.getState(programExercise, allProgramExercises),
       settings,
-      programExercise.warmupSets
+      ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
     );
   } catch (e) {
     entry = undefined;
@@ -78,13 +81,13 @@ function buildProgress(
 }
 
 export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
-  const { programExercise } = props;
+  const { programExercise, allProgramExercises } = props;
 
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   const prevProps = useRef<IProps>(props);
   const [variationIndex, setVariationIndex] = useState<number>(0);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(() =>
-    buildProgress(programExercise, 1, props.settings)
+    buildProgress(programExercise, allProgramExercises, 1, props.settings)
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
@@ -95,7 +98,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
-      setProgress(buildProgress(programExercise, progress?.day || 1, props.settings));
+      setProgress(buildProgress(programExercise, allProgramExercises, progress?.day || 1, props.settings));
     }
     prevProps.current = props;
   });
@@ -117,7 +120,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
     ? { success: true, data: undefined }
     : finishScriptResult;
 
-  const variationScriptResult = Program.runVariationScript(programExercise, day, props.settings);
+  const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
@@ -156,6 +159,11 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         customExercises={props.settings.exercises}
         size="large"
       />
+      <ReuseLogic
+        dispatch={props.dispatch}
+        programExercise={programExercise}
+        allProgramExercises={props.allProgramExercises}
+      />
       <EditState
         dispatch={props.dispatch}
         programExercise={programExercise}
@@ -163,54 +171,63 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           setShouldShowAddStateVariable(true);
         }}
       />
-      <div ref={variationsRef} className={`${!showVariations ? "invisible h-0" : ""}`}>
-        <Variations
-          variationIndex={variationIndex}
-          programExercise={programExercise}
-          dispatch={props.dispatch}
-          onChangeVariation={(i) => setVariationIndex(i)}
-        />
-        {programExercise.variations.length > 1 && (
-          <VariationsEditor
+      {!programExercise.reuseLogic?.selected ? (
+        <div>
+          <div ref={variationsRef} className={`${!showVariations ? "invisible h-0" : ""}`}>
+            <Variations
+              variationIndex={variationIndex}
+              programExercise={programExercise}
+              dispatch={props.dispatch}
+              onChangeVariation={(i) => setVariationIndex(i)}
+            />
+            {programExercise.variations.length > 1 && (
+              <VariationsEditor
+                programExercise={programExercise}
+                editorResult={variationScriptResult}
+                dispatch={props.dispatch}
+              />
+            )}
+          </div>
+          <Sets
+            variationIndex={variationIndex}
+            settings={props.settings}
+            day={day}
             programExercise={programExercise}
-            editorResult={variationScriptResult}
+            onRemoveVariation={() => {
+              setVariationIndex(Math.max(variationIndex - 1, 0));
+            }}
             dispatch={props.dispatch}
           />
-        )}
-      </div>
-      <Sets
-        variationIndex={variationIndex}
-        settings={props.settings}
-        day={day}
-        programExercise={programExercise}
-        onRemoveVariation={() => {
-          setVariationIndex(Math.max(variationIndex - 1, 0));
-        }}
-        dispatch={props.dispatch}
-      />
-      {!showVariations && (
-        <VariationsEnable
-          onClick={() => {
-            setShowVariations(true);
-            variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          }}
-        />
-      )}
-      <EditWarmupSets dispatch={props.dispatch} programExercise={programExercise} settings={props.settings} />
-      <FinishDayScriptEditor
-        programExercise={programExercise}
-        editorResult={finishEditorResult}
-        dispatch={props.dispatch}
-      />
-      {progress && entry && (
-        <Playground
-          day={day}
-          programExercise={programExercise}
-          progress={progress}
-          settings={props.settings}
-          days={props.days}
-          onProgressChange={(p) => setProgress(p)}
-        />
+          {!showVariations && (
+            <VariationsEnable
+              onClick={() => {
+                setShowVariations(true);
+                variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            />
+          )}
+          <EditWarmupSets dispatch={props.dispatch} programExercise={programExercise} settings={props.settings} />
+          <FinishDayScriptEditor
+            programExercise={programExercise}
+            editorResult={finishEditorResult}
+            dispatch={props.dispatch}
+          />
+          {progress && entry && (
+            <Playground
+              day={day}
+              programExercise={programExercise}
+              allProgramExercises={allProgramExercises}
+              progress={progress}
+              settings={props.settings}
+              days={props.days}
+              onProgressChange={(p) => setProgress(p)}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="p-8 text-2xl font-bold text-center text-gray-600">
+          {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name} exercise logic is used
+        </div>
       )}
       <div className="p-2 mb-4 text-center">
         <Button
@@ -709,6 +726,52 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
   );
 }
 
+interface IReuseLogicProps {
+  programExercise: IProgramExercise;
+  dispatch: IDispatch;
+  allProgramExercises: IProgramExercise[];
+}
+
+function ReuseLogic(props: IReuseLogicProps): JSX.Element {
+  useEffect(() => {
+    const selected = props.programExercise.reuseLogic?.selected;
+    if (selected) {
+      EditProgram.reuseLogic(props.dispatch, props.allProgramExercises, selected);
+    }
+  }, []);
+
+  return (
+    <section>
+      <GroupHeader
+        name="Reuse logic of other exercises"
+        help={
+          <span>
+            To avoid repetition, if you have multiple exercises that have the same reps, sets and finish day script (but
+            maybe different state variables), you may reuse the logic of another exercise. You'll specify your own state
+            variables, but all the Liftoscript expressions and sets/reps will used from another exercise.
+          </span>
+        }
+      />
+      <MenuItemEditable
+        name="Reuse logic of"
+        type="select"
+        value={props.programExercise.reuseLogic?.selected || ""}
+        values={[
+          ["", "None"],
+          ...props.allProgramExercises
+            .filter((pe) => pe.id !== props.programExercise.id)
+            .map<[string, string]>((e) => [e.id, e.name]),
+        ]}
+        onChange={(newValue) => {
+          if (newValue != null) {
+            EditProgram.reuseLogic(props.dispatch, props.allProgramExercises, newValue);
+          }
+        }}
+      />
+    </section>
+  );
+}
+
 interface IStateProps {
   programExercise: IProgramExercise;
   dispatch: IDispatch;
@@ -716,13 +779,15 @@ interface IStateProps {
 }
 
 function EditState(props: IStateProps): JSX.Element {
-  const state = props.programExercise.state;
+  const { programExercise } = props;
+  const reuseLogicId = programExercise.reuseLogic?.selected;
+  const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
 
   return (
-    <section className="px-4 py-2 mt-2 bg-purple-100 rounded-2xl">
+    <section className="px-4 py-2 mt-8 bg-purple-100 rounded-2xl">
       <GroupHeader
         topPadding={false}
-        name="State Variables"
+        name={reuseLogicId ? "Reused State Variables" : "State Variables"}
         help={
           <span>
             Variables you can use in all Liftoscript scripts of this exercise. They will preserve their values between
@@ -741,16 +806,22 @@ function EditState(props: IStateProps): JSX.Element {
             type="number"
             value={displayValue.toString()}
             valueUnits={Weight.is(value) ? value.unit : undefined}
-            hasClear={true}
+            hasClear={!reuseLogicId}
             onChange={(newValue) => {
-              EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
+              if (reuseLogicId) {
+                EditProgram.editReuseLogicStateVariable(props.dispatch, reuseLogicId, stateKey, newValue);
+              } else {
+                EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
+              }
             }}
           />
         );
       })}
-      <div className="p-1">
-        <LinkButton onClick={props.onAddStateVariable}>Add State Variable</LinkButton>
-      </div>
+      {!reuseLogicId && (
+        <div className="p-1">
+          <LinkButton onClick={props.onAddStateVariable}>Add State Variable</LinkButton>
+        </div>
+      )}
     </section>
   );
 }

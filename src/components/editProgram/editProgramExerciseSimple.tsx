@@ -16,12 +16,14 @@ import { IDeload, IProgression, Progression } from "../../models/progression";
 import { LinkButton } from "../linkButton";
 import { Input, selectInputOnFocus } from "../input";
 import { IconArrowUpCircle } from "../icons/iconArrowUpCircle";
+import { ProgramExercise } from "../../models/programExercise";
 
 interface IProps {
   settings: ISettings;
   days: IProgramDay[];
   programIndex: number;
   programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   programName: string;
   dispatch: IDispatch;
 }
@@ -37,7 +39,7 @@ export function EditProgramExerciseSimple(props: IProps): JSX.Element {
 }
 
 function Edit(props: IProps): JSX.Element {
-  const { programExercise, settings } = props;
+  const { programExercise, allProgramExercises, settings } = props;
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
@@ -46,9 +48,9 @@ function Edit(props: IProps): JSX.Element {
     programExercise.exerciseType.id
   ).map((e) => [e, equipmentName(e)]);
 
-  const sets = programExercise.variations[0].sets;
-  const reps = Program.runScript(programExercise, sets[0].repsExpr, 1, settings, "reps");
-  const weight = Program.runScript(programExercise, sets[0].weightExpr, 1, settings, "weight");
+  const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[0].sets;
+  const reps = Program.runScript(programExercise, allProgramExercises, sets[0].repsExpr, 1, settings, "reps");
+  const weight = Program.runScript(programExercise, allProgramExercises, sets[0].weightExpr, 1, settings, "weight");
 
   const setsRef = useRef<HTMLInputElement>();
   const repsRef = useRef<HTMLInputElement>();
@@ -198,7 +200,7 @@ function Edit(props: IProps): JSX.Element {
       <ProgressionView
         settings={props.settings}
         dispatch={props.dispatch}
-        finishDayExpr={programExercise.finishDayExpr}
+        finishDayExpr={ProgramExercise.getFinishDayScript(programExercise, allProgramExercises)}
       />
       <div className="p-2 mb-6 text-center">
         <Button kind="orange" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
