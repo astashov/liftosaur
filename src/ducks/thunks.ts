@@ -507,16 +507,36 @@ function friendAction<T>(
 }
 
 async function load<T>(dispatch: IDispatch, name: string, cb: () => Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    _load(dispatch, name, cb, 0, resolve, reject);
+  });
+}
+
+function _load<T>(
+  dispatch: IDispatch,
+  name: string,
+  cb: () => Promise<T>,
+  attempt: number,
+  resolve: (arg: T) => void,
+  reject: (arg: unknown) => void
+): void {
   updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(true)]);
-  try {
-    const result = await cb();
-    return result;
-  } catch (e) {
-    updateState(dispatch, [lb<IState>().p("loading").p("error").record("Failed to sync with cloud")]);
-    throw e;
-  } finally {
-    updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(false)]);
-  }
+  cb()
+    .then((r) => {
+      updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(false)]);
+      resolve(r);
+    })
+    .catch((e) => {
+      if (attempt >= 3) {
+        updateState(dispatch, [lb<IState>().p("loading").p("error").record("Failed to sync with cloud")]);
+        updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(false)]);
+        reject(e);
+      } else {
+        setTimeout(() => {
+          _load(dispatch, name, cb, attempt + 1, resolve, reject);
+        }, 1000);
+      }
+    });
 }
 
 function fetchAllFriendsThings(dispatch: IDispatch, storage: IStorage): void {
