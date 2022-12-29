@@ -32,7 +32,7 @@ export const ProgramDetailsExercise = memo(
     const { programExercise, dayIndex, settings, programExerciseIndex, allProgramExercises } = props;
     const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, dayIndex + 1, settings);
     const variation = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex];
-    const finishDayScript = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises)[variationIndex];
+    const finishDayScript = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const progression = Progression.getProgression(finishDayScript);
     const deload = Progression.getDeload(finishDayScript);
 
