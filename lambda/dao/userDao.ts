@@ -9,6 +9,7 @@ export const userTableNames = {
   dev: {
     users: "lftUsersDev",
     usersGoogleId: "lftUsersGoogleIdDev",
+    usersAppleId: "lftUsersAppleIdDev",
     usersNickname: "lftUsersNicknameDev",
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
@@ -18,6 +19,7 @@ export const userTableNames = {
   prod: {
     users: "lftUsers",
     usersGoogleId: "lftUsersGoogleId",
+    usersAppleId: "lftUsersAppleId",
     usersNickname: "lftUsersNickname",
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
@@ -26,14 +28,15 @@ export const userTableNames = {
   },
 } as const;
 
-export interface IUserDao {
+export type IUserDao = {
   id: string;
   email: string;
   createdAt: number;
-  googleId: string;
+  googleId?: string;
+  appleId?: string;
   storage: IStorage;
   nickname?: string;
-}
+};
 
 export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
   storage: Omit<IUserDao["storage"], "programs" | "history" | "stats">;
@@ -72,11 +75,31 @@ export class UserDao {
     }
   }
 
-  public static build(id: string, googleId: string, email: string): IUserDao {
+  public async getByAppleId(appleId: string): Promise<IUserDao | undefined> {
+    const env = Utils.getEnv();
+
+    const items = await this.di.dynamo.query<IUserDao>({
+      tableName: userTableNames[env].users,
+      indexName: userTableNames[env].usersAppleId,
+      expression: "#appleId = :appleId",
+      attrs: { "#appleId": "appleId" },
+      values: { ":appleId": appleId },
+    });
+
+    const id: string | undefined = items?.[0]?.id;
+    if (id != null) {
+      return this.getById(id);
+    } else {
+      return undefined;
+    }
+  }
+
+  public static build(id: string, email: string, opts: { appleId?: string; googleId?: string }): IUserDao {
     return {
       id,
       email,
-      googleId,
+      googleId: opts.googleId,
+      appleId: opts.appleId,
       createdAt: Date.now(),
       storage: {
         history: [],

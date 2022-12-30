@@ -18,7 +18,6 @@
 - Make account switch work properly
 - Migrate to MySQL?
 - Add a way to add notes to exercises and workouts
-- Add retry button to the failed network alert
 - Add a way to specify exercises by type (e.g. - Pull exercise), and the app will rotate them
 - Add descriptions to all exercises
 - Easy to preview programs
@@ -33,3 +32,11 @@
 
 - Add notification dot to friends icon if invitations pending
 - Add friends feeds per user
+
+# Subscription
+
+- Add Sign In with Apple
+- Add subscription modal
+- Lock access to the eligible screens without subscription
+- Add montly subscription on iOS
+- Add fetching and saving transaction when user signs in

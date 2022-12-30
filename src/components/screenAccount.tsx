@@ -18,6 +18,7 @@ import { IconDumbbell } from "./icons/iconDumbbell";
 import { IconGoogle } from "./icons/iconGoogle";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
+import { IconApple } from "./icons/iconApple";
 
 interface IProps {
   email?: string;
@@ -42,6 +43,12 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
   useEffect(() => {
     refetchAccounts();
+    window.AppleID.auth.init({
+      clientId: "com.liftosaur.www.signinapple", // This is the service ID we created.
+      scope: "email", // To tell apple we want the user name and emails fields in the response it sends us.
+      redirectURI: "https://local.liftosaur.com:8080/appleauthcallback.html", // As registered along with our service ID
+      usePopup: true, // Important if we want to capture the data apple sends on the client side.
+    });
   }, []);
 
   return (
@@ -100,17 +107,34 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </Button>
               </div>
             ) : (
-              <button
-                className="flex items-center w-full px-4 py-2 mt-2 rounded-lg"
-                style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
-                data-cy="menu-item-login"
-                onClick={() => props.dispatch(Thunk.googleSignIn())}
-              >
-                <span className="">
-                  <IconGoogle />
-                </span>
-                <span className="flex-1">Log in with Google</span>
-              </button>
+              <div>
+                <div>
+                  <button
+                    className="flex items-center w-full px-4 py-2 mt-2 rounded-lg"
+                    style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
+                    data-cy="menu-item-login"
+                    onClick={() => props.dispatch(Thunk.googleSignIn())}
+                  >
+                    <span className="">
+                      <IconGoogle />
+                    </span>
+                    <span className="flex-1">Log in with Google</span>
+                  </button>
+                </div>
+                <div>
+                  <button
+                    className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2"
+                    onClick={async () => {
+                      props.dispatch(Thunk.appleSignIn());
+                    }}
+                  >
+                    <span style={{ marginTop: "-3px" }}>
+                      <IconApple />
+                    </span>
+                    <span className="flex-1">Log in with Apple</span>
+                  </button>
+                </div>
+              </div>
             )}
           </>
         )}

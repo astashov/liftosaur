@@ -104,6 +104,11 @@ export namespace WhatsNew {
   }
 
   export function newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
+    const url = new URL(window.location.href);
+    const forcedUserEmail = url.searchParams.get("forceuseremail");
+    if (forcedUserEmail != null) {
+      return {};
+    }
     const lastDate = parseInt(lastDateStr, 10);
     return ObjectUtils.keys(whatsNew).reduce<Record<string, IWhatsNew>>((memo, dateStr) => {
       const date = parseInt(dateStr, 10);

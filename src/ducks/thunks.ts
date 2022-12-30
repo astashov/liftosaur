@@ -48,6 +48,20 @@ export namespace Thunk {
     };
   }
 
+  export function appleSignIn(): IThunk {
+    return async (dispatch, getState, env) => {
+      const response = await window.AppleID.auth.signIn();
+      const { id_token, code } = response.authorization;
+      if (id_token != null && code != null) {
+        const state = getState();
+        const userId = state.user?.id || state.storage.tempUserId;
+        const result = await load(dispatch, "appleSignIn", () => env.service.appleSignIn(code, id_token, userId));
+        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
+        dispatch(sync());
+      }
+    };
+  }
+
   export function logOut(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().user?.id) {

@@ -8,6 +8,7 @@ import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
+import rsaPemFromModExp from "rsa-pem-from-mod-exp";
 import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
@@ -28,6 +29,7 @@ import { LikesDao } from "./dao/likesDao";
 import { ResponseUtils } from "./utils/response";
 import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
+import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 // import programsJson from "./programs.json";
 
 interface IOpenIdResponseSuccess {
@@ -143,6 +145,74 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   return ResponseUtils.json(200, event, {});
 };
 
+interface IAppleKeysResponse {
+  keys: Array<{
+    kty: string;
+    kid: string;
+    use: string;
+    alg: string;
+    n: string;
+    e: string;
+  }>;
+}
+
+const appleLoginEndpoint = Endpoint.build("/api/signin/apple");
+const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof appleLoginEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils.getEnv();
+  const { idToken, id } = getBodyJson(event);
+  const keysResponse = await fetch("https://appleid.apple.com/auth/keys");
+  const keysJson = (await keysResponse.json()) as IAppleKeysResponse;
+  const decodedToken = JWT.decode(idToken!, { complete: true });
+  if (decodedToken) {
+    const header = (decodedToken as Record<string, Record<string, string>>).header;
+    const kid = header.kid;
+    const key = keysJson.keys.find((k) => k.kid === kid);
+    if (key != null) {
+      const pem = rsaPemFromModExp(key.n, key.e);
+      const result = JWT.verify(idToken, pem, {
+        issuer: "https://appleid.apple.com",
+        audience: "com.liftosaur.www.signinapple",
+      }) as { sub?: string; email?: string } | undefined;
+      if (result?.sub && result?.email) {
+        const cookieSecret = await di.secrets.getCookieSecret();
+
+        await new AppleAuthTokenDao(di).store(env, idToken, result.sub);
+        const userDao = new UserDao(di);
+        let user = await userDao.getByAppleId(result.sub);
+        let userId = user?.id;
+
+        if (userId == null) {
+          userId = (id as string) || UidFactory.generateUid(12);
+          user = UserDao.build(userId, result.email, { appleId: result.sub });
+          await userDao.store(user);
+        }
+
+        const session = JWT.sign({ userId: userId }, cookieSecret);
+        const resp = { email: result.email, user_id: userId, storage: user!.storage };
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify(resp),
+          headers: {
+            ...ResponseUtils.getHeaders(event),
+            "set-cookie": Cookie.serialize("session", session, {
+              httpOnly: true,
+              domain: ".liftosaur.com",
+              path: "/",
+              expires: new Date(new Date().getFullYear() + 10, 0, 1),
+            }),
+          },
+        };
+      }
+    }
+  }
+
+  return ResponseUtils.json(403, event, { error: "invalid_token" });
+};
+
 const googleLoginEndpoint = Endpoint.build("/api/signin/google");
 const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof googleLoginEndpoint> = async ({
   payload,
@@ -174,7 +244,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 
   if (userId == null) {
     userId = (id as string) || UidFactory.generateUid(12);
-    user = UserDao.build(userId, openIdJson.sub, openIdJson.email);
+    user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
     await userDao.store(user);
   }
 
@@ -757,6 +827,7 @@ export const handler = rollbar.lambdaHandler(
       .post(timerEndpoint, timerHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
+      .post(appleLoginEndpoint, appleLoginHandler)
       .post(signoutEndpoint, signoutHandler)
       .get(getProgramsEndpoint, getProgramsHandler)
       .post(saveStorageEndpoint, saveStorageHandler)

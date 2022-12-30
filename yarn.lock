@@ -8911,6 +8911,11 @@ rollbar@^2.16.2:
   optionalDependencies:
     decache "^3.0.5"
 
+rsa-pem-from-mod-exp@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/rsa-pem-from-mod-exp/-/rsa-pem-from-mod-exp-0.8.5.tgz#6b91c591b5641924580f9993c3d0ca970b17bd70"
+  integrity sha512-D5dt0kd9zpOyZJNk3ObG/wJQCfwDwSD1DawIkRr7LXcflcuvWXqhU0QTFkuJNXM8KZJaXw6TD6xCA2SDHqpZzg==
+
 rsvp@^4.8.4:
   version "4.8.5"
   resolved "https://registry.yarnpkg.com/rsvp/-/rsvp-4.8.5.tgz#c8f155311d167f68f21e168df71ec5b083113734"

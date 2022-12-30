@@ -40,6 +40,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
     usersTable.addGlobalSecondaryIndex({
+      indexName: `lftUsersAppleId${suffix}`,
+      partitionKey: { name: "appleId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    usersTable.addGlobalSecondaryIndex({
       indexName: `lftUsersNickname${suffix}`,
       partitionKey: { name: "nickname", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
@@ -55,6 +60,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,
+      partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
+    const appleAuthKeysTable = new dynamodb.Table(this, `LftAppleAuthKeys${suffix}`, {
+      tableName: `lftAppleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
@@ -218,6 +230,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     cryptoKeySecret.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
+    appleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);
     statsTable.grantReadWriteData(lambdaFunction);
     programsTable.grantReadWriteData(lambdaFunction);

@@ -73,14 +73,17 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bent Over Row') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "142.5");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "205");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bench Press') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "45");
 
     // Workout A
@@ -109,14 +112,17 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Chin Up') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "BW");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "255");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Overhead Press') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "45");
 
     // Workout B
@@ -130,14 +136,17 @@ describe("Basic Beginner Program", () => {
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bent Over Row') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "145");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "182.5");
     cy.get("[data-cy=history-record]")
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bench Press') [data-cy=history-entry-weight]")
+      .eq(0)
       .should("have.text", "47.5");
   });
 });

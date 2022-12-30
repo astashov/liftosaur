@@ -33,6 +33,16 @@ export class Service {
     return { email: json.email, storage: json.storage, user_id: json.user_id };
   }
 
+  public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
+    const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
+      method: "POST",
+      body: JSON.stringify({ code, idToken, id }),
+      credentials: "include",
+    });
+    const json = await response.json();
+    return { email: json.email, storage: json.storage, user_id: json.user_id };
+  }
+
   public async signout(): Promise<void> {
     await this.client(`${__API_HOST__}/api/signout`, {
       method: "POST",
