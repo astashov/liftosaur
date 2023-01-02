@@ -35,8 +35,7 @@
 
 # Subscription
 
-- Add Sign In with Apple
-- Add subscription modal
-- Lock access to the eligible screens without subscription
 - Add montly subscription on iOS
 - Add fetching and saving transaction when user signs in
+- Lock access to the eligible screens without subscription
+- Add subscription modal

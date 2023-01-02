@@ -307,7 +307,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "musclesProgram") {
-    return (
+    content = (
       <ScreenMusclesProgram
         loading={state.loading}
         dispatch={dispatch}
@@ -318,7 +318,7 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen.current(state.screenStack) === "musclesDay") {
     const day = currentProgram!.days[state.editProgram?.dayIndex || (state.progress[0]?.day || 1) - 1 || 0];
-    return (
+    content = (
       <ScreenMusclesDay
         screenStack={state.screenStack}
         loading={state.loading}
@@ -332,8 +332,19 @@ export function AppView(props: IProps): JSX.Element | null {
     return null;
   }
 
+  const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   return (
     <Fragment>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        ${lftAndroidSafeInsetTop ? `.safe-area-inset-top { padding-top: ${lftAndroidSafeInsetTop}px; }` : ""}
+        ${
+          lftAndroidSafeInsetBottom ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }` : ""
+        }
+      `,
+        }}
+      />
       {content}
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (

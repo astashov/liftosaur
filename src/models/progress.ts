@@ -102,6 +102,7 @@ export namespace Progress {
     const duration = settings.timers[mode];
     if (duration != null) {
       SendMessage.toIos({ type: "startTimer", duration: duration.toString(), mode });
+      SendMessage.toAndroid({ type: "startTimer", duration: duration.toString(), mode });
     }
     return {
       ...progress,
@@ -112,6 +113,7 @@ export namespace Progress {
 
   export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
     SendMessage.toIos({ type: "stopTimer" });
+    SendMessage.toAndroid({ type: "stopTimer" });
     return {
       ...progress,
       timerSince: undefined,

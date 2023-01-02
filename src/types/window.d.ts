@@ -11,4 +11,10 @@ interface Window {
       init: (args: { clientId: string; scope: string; redirectURI: string; usePopup: boolean }) => void;
     };
   };
+
+  lftAndroidVersion?: number;
+  lftAndroidSafeInsetTop?: number;
+  lftAndroidSafeInsetBottom?: number;
+  lftAndroidSafeInsetLeft?: number;
+  lftAndroidSafeInsetRight?: number;
 }

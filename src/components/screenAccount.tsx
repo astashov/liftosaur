@@ -20,6 +20,8 @@ import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
 
+declare let __HOST__: string;
+
 interface IProps {
   email?: string;
   loading: ILoading;
@@ -46,7 +48,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
     window.AppleID.auth.init({
       clientId: "com.liftosaur.www.signinapple", // This is the service ID we created.
       scope: "email", // To tell apple we want the user name and emails fields in the response it sends us.
-      redirectURI: "https://local.liftosaur.com:8080/appleauthcallback.html", // As registered along with our service ID
+      redirectURI: `${__HOST__}/appleauthcallback.html`, // As registered along with our service ID
       usePopup: true, // Important if we want to capture the data apple sends on the client side.
     });
   }, []);
