@@ -716,6 +716,12 @@ export const TStats = t.type({
 });
 export type IStats = t.TypeOf<typeof TStats>;
 
+export const TSubscription = t.type({
+  apple: dictionary(t.string, t.null),
+  google: dictionary(t.string, t.null),
+});
+export type ISubscription = t.TypeOf<typeof TSubscription>;
+
 export const TStorage = t.type(
   {
     id: t.number,
@@ -728,6 +734,7 @@ export const TStorage = t.type(
     helps: t.array(t.string),
     tempUserId: t.string,
     email: t.union([t.string, t.undefined]),
+    subscription: TSubscription,
     whatsNew: t.union([t.string, t.undefined]),
   },
   "TStorage"

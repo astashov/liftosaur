@@ -14,9 +14,33 @@ declare global {
   }
 }
 
+let receiveMessage: ((event: MessageEvent) => void) | undefined;
+
 export namespace SendMessage {
   export function isIos(): boolean {
     return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftosaurMessage);
+  }
+
+  export function toIosWithResult<T>(obj: Record<string, string>): Promise<T | undefined> {
+    if (!SendMessage.isIos()) {
+      return Promise.resolve(undefined);
+    }
+    return new Promise((resolve) => {
+      toIos(obj);
+      if (receiveMessage != null) {
+        window.removeEventListener("message", receiveMessage);
+      }
+      receiveMessage = (event) => {
+        if (event.data == null && event.data.type === "iosResponse") {
+          if (receiveMessage != null) {
+            window.removeEventListener("message", receiveMessage);
+            receiveMessage = undefined;
+          }
+          resolve(event.data);
+        }
+      };
+      window.addEventListener("message", receiveMessage);
+    });
   }
 
   export function toIos(obj: Record<string, string>): boolean {
@@ -35,5 +59,9 @@ export namespace SendMessage {
     } else {
       return false;
     }
+  }
+
+  export function isAndroid(): boolean {
+    return !!window.JSAndroidBridge;
   }
 }

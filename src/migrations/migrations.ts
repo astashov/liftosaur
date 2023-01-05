@@ -222,4 +222,9 @@ export const migrations = {
     };
     return storage;
   },
+  "20230107181335_add_subscriptions": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.subscription = { apple: {}, google: {} };
+    return storage;
+  },
 };

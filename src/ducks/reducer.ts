@@ -436,11 +436,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "PushScreen") {
-    if (state.screenStack.length > 0 && state.screenStack[state.screenStack.length - 1] !== action.screen) {
-      return { ...state, screenStack: Screen.push(state.screenStack, action.screen) };
-    } else {
-      return state;
+    if (state.screenStack.length > 0) {
+      const screen = action.screen;
+      if (state.screenStack[state.screenStack.length - 1] !== screen) {
+        return { ...state, screenStack: Screen.push(state.screenStack, screen) };
+      }
     }
+    return state;
   } else if (action.type === "PullScreen") {
     return { ...state, screenStack: Screen.pull(state.screenStack) };
   } else if (action.type === "Login") {
@@ -577,6 +579,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           isPublicProfile: newStorage.settings.isPublicProfile,
           shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
           nickname: newStorage.settings.nickname,
+        },
+        subscription: {
+          apple: { ...oldStorage.subscription.apple, ...newStorage.subscription.apple },
+          google: { ...oldStorage.subscription.google, ...newStorage.subscription.google },
         },
         tempUserId: newStorage.tempUserId || UidFactory.generateUid(10),
         currentProgramId: newStorage.currentProgramId,

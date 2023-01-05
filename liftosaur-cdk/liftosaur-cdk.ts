@@ -163,6 +163,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
         webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
         cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKeyDev-qFcITJ",
+        appleAppSharedSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
+        googleServiceAccountPubsub:
+          "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
       },
       prod: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
@@ -170,6 +173,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
         webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
         cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKey-4Uxrea",
+        appleAppSharedSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
+        googleServiceAccountPubsub:
+          "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
       },
     };
 
@@ -187,6 +193,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     const cryptoKeySecret = sm.Secret.fromSecretAttributes(this, `lftCryptoKey${suffix}`, {
       secretArn: secretArns[env].cryptoKey,
+    });
+    const appleAppSharedSecret = sm.Secret.fromSecretAttributes(this, `lftAppleAppSharedSecret${suffix}`, {
+      secretArn: secretArns[env].appleAppSharedSecret,
+    });
+    const googleServiceAccountPubsub = sm.Secret.fromSecretAttributes(this, `lftGoogleServiceAccountPubsub${suffix}`, {
+      secretArn: secretArns[env].googleServiceAccountPubsub,
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
@@ -228,6 +240,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
     webpushrKey.grantRead(lambdaFunction);
     webpushrAuthToken.grantRead(lambdaFunction);
     cryptoKeySecret.grantRead(lambdaFunction);
+    appleAppSharedSecret.grantRead(lambdaFunction);
+    googleServiceAccountPubsub.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     appleAuthKeysTable.grantReadWriteData(lambdaFunction);
@@ -251,4 +265,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

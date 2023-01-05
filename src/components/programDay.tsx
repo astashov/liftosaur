@@ -12,7 +12,7 @@ import { useState } from "preact/hooks";
 import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, IExerciseType } from "../types";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, IExerciseType, ISubscription } from "../types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -39,6 +39,7 @@ interface IProps {
   userId?: string;
   dispatch: IDispatch;
   loading: ILoading;
+  subscription: ISubscription;
   friend?: IFriendUser;
   comments: IAllComments;
   likes: IAllLikes;
@@ -175,6 +176,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
       >
         <CardsView
           friends={props.friends}
+          subscription={props.subscription}
           nickname={props.nickname}
           history={props.history}
           settings={props.settings}
@@ -196,7 +198,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             EditProgressEntry.showEditSetModal(props.dispatch, progress.id, isWarmup, entryIndex, setIndex);
           }}
           onExerciseInfoClick={(exerciseType: IExerciseType) => {
-            console.log(exerciseType);
             setExerciseTypeInfo(exerciseType);
           }}
         />

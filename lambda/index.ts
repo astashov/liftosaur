@@ -30,7 +30,7 @@ import { ResponseUtils } from "./utils/response";
 import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
-// import programsJson from "./programs.json";
+import { Subscriptions } from "./utils/subscriptions";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -110,6 +110,34 @@ const timerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof timerEn
   return ResponseUtils.json(response.status, event, body);
 };
 
+const postVerifyAppleReceiptEndpoint = Endpoint.build("/api/verifyapplereceipt");
+const postVerifyAppleReceiptHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postVerifyAppleReceiptEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const appleReceipt = bodyJson.appleReceipt;
+  const verifiedAppleReceipt = await new Subscriptions(di.log, di.secrets).verifyAppleReceipt(appleReceipt);
+  return ResponseUtils.json(200, event, { result: !!verifiedAppleReceipt });
+};
+
+const postVerifyGooglePurchaseTokenEndpoint = Endpoint.build("/api/verifygooglepurchasetoken");
+const postVerifyGooglePurchaseTokenHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postVerifyGooglePurchaseTokenEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const googlePurchaseToken = bodyJson.googlePurchaseToken;
+  const verifiedGooglePurchaseToken = await new Subscriptions(di.log, di.secrets).verifyGooglePurchaseToken(
+    googlePurchaseToken
+  );
+  return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
+};
+
 const getStorageEndpoint = Endpoint.build("/api/storage", { key: "string?", userid: "string?" });
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
@@ -124,9 +152,14 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     userId = await getCurrentUserId(event, di);
   }
   if (userId != null) {
-    const user = await new UserDao(di).getById(userId);
+    const userDao = new UserDao(di);
+    const user = await userDao.getById(userId);
     if (user != null) {
-      return ResponseUtils.json(200, event, { storage: user.storage, email: user.email, user_id: user.id });
+      return ResponseUtils.json(200, event, {
+        storage: user.storage,
+        email: user.email,
+        user_id: user.id,
+      });
     }
   }
   return ResponseUtils.json(200, event, {});
@@ -139,8 +172,11 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   const { event, di } = payload;
   const user = await getCurrentUser(event, di);
   if (user != null) {
-    const storage: IStorage = getBodyJson(event).storage;
-    await new UserDao(di).saveStorage(user, storage);
+    const bodyJson = getBodyJson(event);
+    const storage: IStorage = bodyJson.storage;
+    const userDao = new UserDao(di);
+
+    await userDao.saveStorage(user, storage);
   }
   return ResponseUtils.json(200, event, {});
 };
@@ -162,7 +198,8 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
 }) => {
   const { event, di } = payload;
   const env = Utils.getEnv();
-  const { idToken, id } = getBodyJson(event);
+  const bodyJson = getBodyJson(event);
+  const { idToken, id } = bodyJson;
   const keysResponse = await fetch("https://appleid.apple.com/auth/keys");
   const keysJson = (await keysResponse.json()) as IAppleKeysResponse;
   const decodedToken = JWT.decode(idToken!, { complete: true });
@@ -191,7 +228,11 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         }
 
         const session = JWT.sign({ userId: userId }, cookieSecret);
-        const resp = { email: result.email, user_id: userId, storage: user!.storage };
+        const resp = {
+          email: result.email,
+          user_id: userId,
+          storage: user!.storage,
+        };
 
         return {
           statusCode: 200,
@@ -219,7 +260,8 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 }) => {
   const { event, di } = payload;
   const env = Utils.getEnv();
-  const { token, id, forceuseremail } = getBodyJson(event);
+  const bodyJson = getBodyJson(event);
+  const { token, id, forceuseremail } = bodyJson;
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
   if (env === "dev" && forceuseremail != null) {
     openIdJson = {
@@ -249,7 +291,11 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   }
 
   const session = JWT.sign({ userId: userId }, cookieSecret);
-  const resp = { email: openIdJson.email, user_id: userId, storage: user!.storage };
+  const resp = {
+    email: openIdJson.email,
+    user_id: userId,
+    storage: user!.storage,
+  };
 
   return {
     statusCode: 200,
@@ -826,6 +872,8 @@ export const handler = rollbar.lambdaHandler(
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .post(timerEndpoint, timerHandler)
       .get(getStorageEndpoint, getStorageHandler)
+      .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
+      .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
       .post(appleLoginEndpoint, appleLoginHandler)
       .post(signoutEndpoint, signoutHandler)

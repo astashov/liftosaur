@@ -72,6 +72,7 @@ export namespace Storage {
       settings: Settings.build(),
       history: [],
       version: getLatestMigrationVersion(),
+      subscription: { apple: {}, google: {} },
       programs: [],
       helps: [],
       email: undefined,

@@ -3,7 +3,7 @@ import { buildCardsReducer, ICardsAction } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
-import { IHistoryRecord, IProgramDay, IProgramExercise, ISettings } from "../types";
+import { IHistoryRecord, IProgramDay, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ExerciseView } from "./exercise";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -15,6 +15,7 @@ import { ProgramExercise } from "../models/programExercise";
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
   programExercise: IProgramExercise;
+  subscription: ISubscription;
   allProgramExercises: IProgramExercise[];
   settings: ISettings;
   day: number;
@@ -70,6 +71,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         showHelp={false}
         entry={entry}
         day={props.day}
+        subscription={props.subscription}
         programExercise={programExercise}
         allProgramExercises={allProgramExercises}
         index={0}

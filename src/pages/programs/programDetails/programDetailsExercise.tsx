@@ -5,7 +5,7 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progression } from "../../../models/progression";
-import { IProgramExercise, ISettings } from "../../../types";
+import { IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { DeloadView } from "./programDetailsDeload";
 import { FinishDayExprView } from "./programDetailsFinishDayExpr";
 import { Playground } from "./programDetailsPlayground";
@@ -18,6 +18,7 @@ interface IProgramDetailsExerciseProps {
   programExercise: IProgramExercise;
   allProgramExercises: IProgramExercise[];
   programExerciseIndex: number;
+  subscription: ISubscription;
   dayIndex: number;
   settings: ISettings;
   shouldShowAllFormulas: boolean;
@@ -91,6 +92,7 @@ export const ProgramDetailsExercise = memo(
               <div className="flex-1 program-details-exercise-playground">
                 <Playground
                   programId={props.programId}
+                  subscription={props.subscription}
                   programExercise={programExercise}
                   allProgramExercises={allProgramExercises}
                   variationIndex={variationIndex}

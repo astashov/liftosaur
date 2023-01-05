@@ -5,7 +5,7 @@ import { EditStats } from "../models/editStats";
 import { Length } from "../models/length";
 import { Stats } from "../models/stats";
 import { Weight } from "../models/weight";
-import { ILength, ISettings, IStats, IStatsKey, IWeight } from "../types";
+import { ILength, ISettings, IStats, IStatsKey, ISubscription, IWeight } from "../types";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
@@ -13,10 +13,12 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
 import { GraphStats, getWeightDataForGraph, getLengthDataForGraph } from "./graphStats";
 import { IconTrash } from "./icons/iconTrash";
+import { Locker } from "./locker";
 
 interface IProps {
   stats: IStats;
   settings: ISettings;
+  subscription: ISubscription;
   dispatch: IDispatch;
 }
 
@@ -68,19 +70,22 @@ export function StatsList(props: IProps): JSX.Element {
           setSelectedKey(value as IStatsKey);
         }}
       />
-      {graphPoints.length > 2 && (
-        <GraphStats
-          title={null}
-          isSameXAxis={false}
-          minX={graphPoints[0][0]}
-          maxX={graphPoints[graphPoints.length - 1][0]}
-          units={props.settings.units}
-          key={selectedKey}
-          settings={props.settings}
-          collection={graphPoints}
-          statsKey={selectedKey}
-        />
-      )}
+      <div className="relative">
+        <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+        {graphPoints.length > 2 && (
+          <GraphStats
+            title={null}
+            isSameXAxis={false}
+            minX={graphPoints[0][0]}
+            maxX={graphPoints[graphPoints.length - 1][0]}
+            units={props.settings.units}
+            key={selectedKey}
+            settings={props.settings}
+            collection={graphPoints}
+            statsKey={selectedKey}
+          />
+        )}
+      </div>
       {values.length === 0 ? (
         <div className="py-12 text-xl text-center text-grayv2-main">
           No {Stats.name(selectedKey)} measurements added yet

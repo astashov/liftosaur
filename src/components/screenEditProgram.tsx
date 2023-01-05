@@ -5,7 +5,7 @@ import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { Screen, IScreen } from "../models/screen";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { dequal } from "dequal/lite";
-import { IProgram, IProgramExercise, ISettings } from "../types";
+import { IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
 
 interface IProps {
@@ -14,6 +14,7 @@ interface IProps {
   screenStack: IScreen[];
   dispatch: IDispatch;
   programIndex: number;
+  subscription: ISubscription;
   dayIndex: number;
   settings: ISettings;
   adminKey?: string;
@@ -61,6 +62,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     return (
       <EditProgramExercise
         screenStack={props.screenStack}
+        subscription={props.subscription}
         loading={props.loading}
         programIndex={props.programIndex}
         days={props.editProgram.days}

@@ -203,7 +203,14 @@ function Edit(props: IProps): JSX.Element {
         finishDayExpr={ProgramExercise.getFinishDayScript(programExercise, allProgramExercises)}
       />
       <div className="p-2 mb-6 text-center">
-        <Button kind="orange" onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}>
+        <Button
+          kind="orange"
+          onClick={() => {
+            setTimeout(() => {
+              EditProgram.saveExercise(props.dispatch, props.programIndex);
+            }, 50);
+          }}
+        >
           Save
         </Button>
       </div>

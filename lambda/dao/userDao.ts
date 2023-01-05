@@ -111,6 +111,7 @@ export class UserDao {
         helps: [],
         tempUserId: "",
         settings: Settings.build(),
+        subscription: { apple: {}, google: {} },
         email: undefined,
         whatsNew: undefined,
       },

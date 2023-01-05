@@ -85,6 +85,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
       </div>
       <ProgramDetails
         settings={state.settings}
+        subscription={{ google: {}, apple: {} }}
         key={`${program.id}_${state.shouldShowAllFormulas}_${state.shouldShowAllScripts}`}
         program={program}
         shouldShowAllFormulas={state.shouldShowAllFormulas}

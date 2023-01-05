@@ -22,5 +22,9 @@
     "source-map-support": "^0.5.19",
     "uplot": "^1.6.8",
     "yatro": "^0.2.3"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.2",
+    "ts-node": "^10.9.1"
   }
 }

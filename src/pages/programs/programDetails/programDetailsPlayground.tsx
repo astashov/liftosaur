@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "preact/hooks";
 import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
-import { IHistoryRecord, IProgramExercise, ISettings } from "../../../types";
+import { IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
 import { Program } from "../../../models/program";
 import { IDispatch } from "../../../ducks/types";
@@ -20,6 +20,7 @@ interface IPlaygroundProps {
   programId: string;
   programExercise: IProgramExercise;
   allProgramExercises: IProgramExercise[];
+  subscription: ISubscription;
   variationIndex: number;
   settings: ISettings;
   day: number;
@@ -86,6 +87,7 @@ export const Playground = memo(
           showHelp={false}
           entry={entry}
           day={props.day}
+          subscription={props.subscription}
           showKebab={false}
           progress={progress}
           programExercise={programExercise}

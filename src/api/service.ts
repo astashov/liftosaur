@@ -8,6 +8,8 @@ export interface IGetStorageResponse {
   user_id: string;
 }
 
+const cachePromises: Partial<Record<string, unknown>> = {};
+
 declare let __API_HOST__: string;
 
 export interface IRecordResponse {
@@ -23,10 +25,18 @@ export class Service {
     this.client = client;
   }
 
-  public async googleSignIn(token: string, id: string, forcedUserEmail?: string): Promise<IGetStorageResponse> {
+  public async googleSignIn(
+    token: string,
+    id: string,
+    args: { forcedUserEmail?: string }
+  ): Promise<IGetStorageResponse> {
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
-      body: JSON.stringify({ token, id, forceuseremail: forcedUserEmail }),
+      body: JSON.stringify({
+        token,
+        id,
+        forceuseremail: args.forcedUserEmail,
+      }),
       credentials: "include",
     });
     const json = await response.json();
@@ -36,7 +46,11 @@ export class Service {
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
     const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
       method: "POST",
-      body: JSON.stringify({ code, idToken, id }),
+      body: JSON.stringify({
+        code,
+        idToken,
+        id,
+      }),
       credentials: "include",
     });
     const json = await response.json();
@@ -68,6 +82,47 @@ export class Service {
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
     return { email: json.email, storage: json.storage, user_id: json.user_id };
+  }
+
+  private async cache(key: string, fn: () => Promise<unknown>): Promise<unknown> {
+    if (cachePromises[key] == null) {
+      cachePromises[key] = fn();
+    }
+    return cachePromises[key];
+  }
+
+  public async verifyAppleReceipt(appleReceipt: string): Promise<boolean> {
+    const json = await this.cache(`verifyAppleReceipt:${appleReceipt}`, async () => {
+      try {
+        const url = new URL(`${__API_HOST__}/api/verifyapplereceipt`);
+        const result = await this.client(url.toString(), {
+          method: "POST",
+          body: JSON.stringify({ appleReceipt }),
+          credentials: "include",
+        });
+        return result.status === 200 ? result.json() : { result: true };
+      } catch {
+        return { result: true };
+      }
+    });
+    return !!(json as { result: boolean }).result;
+  }
+
+  public async verifyGooglePurchaseToken(googlePurchaseToken: string): Promise<boolean> {
+    const json = await this.cache(`verifyGooglePurchaseToken:${googlePurchaseToken}`, async () => {
+      try {
+        const url = new URL(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+        const result = await this.client(url.toString(), {
+          method: "POST",
+          body: JSON.stringify({ googlePurchaseToken }),
+          credentials: "include",
+        });
+        return result.status === 200 ? result.json() : { result: true };
+      } catch {
+        return { result: true };
+      }
+    });
+    return !!(json as { result: boolean }).result;
   }
 
   public async getFriends(username: string): Promise<IFriend[]> {

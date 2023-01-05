@@ -507,7 +507,7 @@ export namespace EditProgram {
     }
     lbs.push(lb<IState>().pi("editExercise").p("finishDayExpr").record(finishDayExpr.join("\n")));
 
-    updateState(dispatch, lbs);
+    updateState(dispatch, lbs, "Setting Progression or Deload in simple exercise");
   }
 
   export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise): void {

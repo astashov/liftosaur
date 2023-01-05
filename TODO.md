@@ -39,3 +39,23 @@
 - Add fetching and saving transaction when user signs in
 - Lock access to the eligible screens without subscription
 - Add subscription modal
+
+Locked screens:
+
+- Advanced exercise editor
+- Muscles
+- Graphs
+- Plates calculator
+
+# Subscriptions
+
+Token coming:
+
+- from app native
+  - from purchase
+  - from restore
+- from server
+  |native |server |result |
+  |-------|---------|-------|
+  |false |true |false |
+  |true |false |false |

@@ -31,6 +31,8 @@ import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
 import { ScreenMeasurements } from "./screenMeasurements";
+import { ScreenSubscription } from "./screenSubscription";
+import { Subscriptions } from "../utils/subscriptions";
 
 interface IProps {
   client: Window["fetch"];
@@ -64,6 +66,16 @@ export function AppView(props: IProps): JSX.Element | null {
         }, 0);
       }
     },
+    (action, oldState, newState) => {
+      if (oldState.storage.subscription.apple !== newState.storage.subscription.apple) {
+        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, service, newState.storage.subscription);
+      }
+    },
+    (action, oldState, newState) => {
+      if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
+        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, service, newState.storage.subscription);
+      }
+    },
   ]);
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
@@ -88,11 +100,20 @@ export function AppView(props: IProps): JSX.Element | null {
         LogUtils.log(st.user?.id || st.storage.tempUserId, name);
       }
     });
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "setAppleReceipt") {
+        dispatch(Thunk.setAppleReceipt(event.data.receipt));
+      } else if (event.data?.type === "setGooglePurchaseToken") {
+        dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+      }
+    });
     window._webpushrScriptReady = () => {
       window.webpushr("fetch_id", (sid) => {
         dispatch({ type: "StoreWebpushrSidAction", sid });
       });
     };
+    Subscriptions.cleanupOutdatedAppleReceipts(dispatch, service, state.storage.subscription);
+    Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
   }, []);
 
@@ -102,6 +123,8 @@ export function AppView(props: IProps): JSX.Element | null {
   let content: JSX.Element;
   if (Screen.current(state.screenStack) === "onboarding") {
     content = <ScreenOnboarding dispatch={dispatch} />;
+  } else if (Screen.current(state.screenStack) === "subscription") {
+    content = <ScreenSubscription dispatch={dispatch} loading={state.loading} screenStack={state.screenStack} />;
   } else if (
     Screen.current(state.screenStack) === "programs" ||
     (Screen.current(state.screenStack) === "main" && currentProgram == null)
@@ -147,6 +170,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramDayView
           friends={state.allFriends}
           loading={state.loading}
+          subscription={state.storage.subscription}
           likes={state.likes}
           comments={state.comments}
           userId={state.user?.id}
@@ -173,6 +197,7 @@ export function AppView(props: IProps): JSX.Element | null {
           nickname={state.storage.settings.nickname}
           loading={state.loading}
           history={state.storage.history}
+          subscription={state.storage.subscription}
           userId={state.user?.id}
           progress={progress}
           isChanged={isChanged}
@@ -232,6 +257,7 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenMeasurements
         loading={state.loading}
         screenStack={state.screenStack}
+        subscription={state.storage.subscription}
         dispatch={dispatch}
         settings={state.storage.settings}
         stats={state.storage.stats}
@@ -283,6 +309,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ScreenEditProgram
           loading={state.loading}
           adminKey={state.adminKey}
+          subscription={state.storage.subscription}
           screenStack={state.screenStack}
           settings={state.storage.settings}
           editExercise={state.editExercise}

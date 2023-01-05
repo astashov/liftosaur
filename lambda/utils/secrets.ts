@@ -3,6 +3,19 @@ import { SecretsManager } from "aws-sdk";
 import { LogUtil } from "./log";
 import { Utils } from "../utils";
 
+interface IGoogleServiceAccountPubsub {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+}
+
 export class SecretsUtil {
   private _secrets?: SecretsManager;
   private readonly _cache: Partial<Record<string, string>> = {};
@@ -77,5 +90,24 @@ export class SecretsUtil {
         prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
       })
     );
+  }
+
+  public async getAppleAppSharedSecret(): Promise<string> {
+    return this.cache("appleAppSharedSecret", () =>
+      this.getSecret({
+        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
+        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
+      })
+    );
+  }
+
+  public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
+    const json = this.cache("googleServiceAccountPubsub", () =>
+      this.getSecret({
+        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
+        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
+      })
+    );
+    return json.then((s) => JSON.parse(s));
   }
 }

@@ -3,7 +3,7 @@ import { IDispatch } from "../../ducks/types";
 import { h, JSX } from "preact";
 import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
-import { ISettings, IProgramDay, IProgramExercise } from "../../types";
+import { ISettings, IProgramDay, IProgramExercise, ISubscription } from "../../types";
 import { ILoading } from "../../models/state";
 import { IScreen } from "../../models/screen";
 import { NavbarView } from "../navbar";
@@ -21,6 +21,7 @@ interface IProps {
   programIndex: number;
   screenStack: IScreen[];
   allProgramExercises: IProgramExercise[];
+  subscription: ISubscription;
   programExercise: IProgramExercise;
   isChanged: boolean;
   programName: string;

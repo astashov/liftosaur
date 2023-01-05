@@ -19,6 +19,7 @@ import {
   IWeight,
   IHistoryRecord,
   ISet,
+  ISubscription,
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IFriendUser, IState, updateState } from "../models/state";
@@ -33,6 +34,8 @@ import { ExerciseImage } from "./exerciseImage";
 import { LinkButton } from "./linkButton";
 import { useCallback, useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
+import { Subscriptions } from "../utils/subscriptions";
+import { Locker } from "./locker";
 
 interface IProps {
   showHelp: boolean;
@@ -47,6 +50,7 @@ interface IProps {
   showKebab: boolean;
   friend?: IFriendUser;
   forceShowStateChanges?: boolean;
+  subscription: ISubscription;
   dispatch: IDispatch;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
@@ -170,6 +174,8 @@ const ExerciseContentView = memo(
     warmupWeights.sort(Weight.compare);
     const isEditModeRef = useRef(false);
     isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
+    const isSubscribed = Subscriptions.hasSubscription(props.subscription);
+
     return (
       <Fragment>
         <header className="flex">
@@ -215,7 +221,7 @@ const ExerciseContentView = memo(
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
             <div
-              className={`p-2 pr-8 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}
+              className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}
               style={{
                 backgroundImage: "url(/images/icon-barbell.svg)",
                 backgroundPosition: "15px 13px",
@@ -223,61 +229,70 @@ const ExerciseContentView = memo(
               }}
             >
               <div className="py-1 pl-8 text-xs text-grayv2-main">Plates for each bar side</div>
-              {warmupWeights.map((w) => {
-                const isCurrent =
-                  nextSet != null &&
-                  Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
-                const className = isCurrent ? "font-bold" : "";
-                return (
-                  <div className={`${className} flex items-start`}>
-                    <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
-                      {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-                    </span>
-                    <span className="text-left whitespace-no-wrap text-grayv2-500">
-                      {w.value} {w.unit}
-                    </span>
-                    <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                  </div>
-                );
-              })}
-              {workoutWeights.map((w, i) => {
-                const isCurrent =
-                  nextSet != null &&
-                  Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
-                const className = isCurrent ? "font-bold" : "";
-                return (
-                  <div className={`${className} flex items-start`}>
-                    <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
-                      {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-                    </span>
-                    <button
-                      data-help-id={
-                        props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined
-                      }
-                      data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
-                      data-help-offset-x={-80}
-                      data-help-width={140}
-                      data-cy="change-weight"
-                      className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
-                      style={{ fontWeight: "inherit" }}
-                      onClick={() => {
-                        if (!friend) {
-                          props.dispatch({
-                            type: "ChangeWeightAction",
-                            weight: w,
-                            exercise: props.entry.exercise,
-                            programExercise: props.programExercise,
-                          });
+              <div className="relative pr-8" style={{ minHeight: isSubscribed ? "auto" : "6rem" }}>
+                <Locker
+                  dispatch={props.dispatch}
+                  topic="Plates Calculator"
+                  blur={4}
+                  subscription={props.subscription}
+                />
+                {warmupWeights.map((w) => {
+                  const isCurrent =
+                    nextSet != null &&
+                    Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
+                  const className = isCurrent ? "font-bold" : "";
+                  return (
+                    <div className={`${className} flex items-start`}>
+                      <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
+                        {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                      </span>
+                      <span className="text-left whitespace-no-wrap text-grayv2-500">
+                        {w.value} {w.unit}
+                      </span>
+                      <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                    </div>
+                  );
+                })}
+                {workoutWeights.map((w, i) => {
+                  const isCurrent =
+                    nextSet != null &&
+                    Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w);
+                  const className = isCurrent ? "font-bold" : "";
+                  return (
+                    <div className={`${className} flex items-start`}>
+                      <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
+                        {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                      </span>
+                      <button
+                        data-help-id={
+                          props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined
                         }
-                      }}
-                    >
-                      {w.value} {w.unit}
-                    </button>
-                    <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                  </div>
-                );
-              })}
+                        data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
+                        data-help-offset-x={-80}
+                        data-help-width={140}
+                        data-cy="change-weight"
+                        className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
+                        style={{ fontWeight: "inherit" }}
+                        onClick={() => {
+                          if (!friend) {
+                            props.dispatch({
+                              type: "ChangeWeightAction",
+                              weight: w,
+                              exercise: props.entry.exercise,
+                              programExercise: props.programExercise,
+                            });
+                          }
+                        }}
+                      >
+                        {w.value} {w.unit}
+                      </button>
+                      <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+            {nextSet && !isSubscribed && <NextSet nextSet={nextSet} />}
           </div>
         </header>
         <section className="flex flex-wrap py-2 pt-4">
@@ -322,7 +337,7 @@ const ExerciseContentView = memo(
                         <button
                           data-cy="set-edit-mode-remove"
                           style={{ top: "-4px", left: "-13px" }}
-                          className="absolute p-1 ls-edit-set-remove"
+                          className="absolute z-10 p-1 ls-edit-set-remove"
                           onClick={() => {
                             EditProgressEntry.removeSet(props.dispatch, props.progress.id, true, props.index, i);
                           }}
@@ -387,7 +402,7 @@ const ExerciseContentView = memo(
                   <button
                     data-cy="set-edit-mode-remove"
                     style={{ top: "-4px", left: "-13px" }}
-                    className="absolute p-1 ls-edit-set-remove"
+                    className="absolute z-10 p-1 ls-edit-set-remove"
                     onClick={() => {
                       EditProgressEntry.removeSet(props.dispatch, props.progress.id, false, props.index, i);
                     }}
@@ -429,6 +444,19 @@ const ExerciseContentView = memo(
     );
   }
 );
+
+function NextSet(props: { nextSet: ISet }): JSX.Element {
+  const nextSet = props.nextSet;
+  return (
+    <div className="pt-2 text-xs text-grayv2-main">
+      Next Set:{" "}
+      <strong>
+        {nextSet.isAmrap ? "at least " : ""}
+        {nextSet.reps} reps x {Weight.print(nextSet.weight)}
+      </strong>
+    </div>
+  );
+}
 
 function HistoricalSameEntry(props: { historicalEntries: IHistoricalEntries }): JSX.Element {
   const { max, last } = props.historicalEntries;

@@ -1,12 +1,13 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
-import { IProgram, ISettings } from "../../../types";
+import { IProgram, ISettings, ISubscription } from "../../../types";
 import { ProgramDetailsExercise } from "./programDetailsExercise";
 import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
 
 export interface IProgramDetailsProps {
   settings: ISettings;
   program: IProgram;
+  subscription: ISubscription;
   shouldShowAllScripts: boolean;
   shouldShowAllFormulas: boolean;
   dispatch: IProgramDetailsDispatch;
@@ -55,6 +56,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
                   <ProgramDetailsExercise
                     programId={props.program.id}
                     programExercise={programExercise}
+                    subscription={props.subscription}
                     allProgramExercises={props.program.exercises}
                     programExerciseIndex={index}
                     dayIndex={dayIndex}

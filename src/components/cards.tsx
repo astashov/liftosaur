@@ -4,7 +4,15 @@ import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
 import { memo } from "preact/compat";
-import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise, IExerciseType } from "../types";
+import {
+  IHistoryRecord,
+  IProgram,
+  ISettings,
+  IProgressMode,
+  IProgramExercise,
+  IExerciseType,
+  ISubscription,
+} from "../types";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
 
@@ -19,6 +27,7 @@ interface ICardsViewProps {
   comments: IAllComments;
   likes: IAllLikes;
   isTimerShown: boolean;
+  subscription: ISubscription;
   settings: ISettings;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
@@ -75,6 +84,7 @@ export const CardsView = memo(
               entry={entry}
               programExercise={programExercise}
               allProgramExercises={props.program?.exercises}
+              subscription={props.subscription}
               day={props.progress.day}
               dispatch={props.dispatch}
               onChangeReps={props.onChangeReps}

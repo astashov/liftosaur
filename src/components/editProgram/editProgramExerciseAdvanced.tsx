@@ -35,6 +35,7 @@ import {
   IProgramState,
   IWeight,
   IProgramExerciseWarmupSet,
+  ISubscription,
 } from "../../types";
 import { Playground } from "../playground";
 import { inputClassName, selectInputOnFocus } from "../input";
@@ -49,6 +50,7 @@ interface IProps {
   days: IProgramDay[];
   programIndex: number;
   programExercise: IProgramExercise;
+  subscription: ISubscription;
   allProgramExercises: IProgramExercise[];
   programName: string;
   dispatch: IDispatch;
@@ -215,6 +217,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           {progress && entry && (
             <Playground
               day={day}
+              subscription={props.subscription}
               programExercise={programExercise}
               allProgramExercises={allProgramExercises}
               progress={progress}

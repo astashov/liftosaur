@@ -20,6 +20,9 @@ import { DateUtils } from "../utils/date";
 import { getInitialState } from "./reducer";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { WhatsNew } from "../models/whatsnew";
+import { Screen } from "../models/screen";
+import { Subscriptions } from "../utils/subscriptions";
+import { SendMessage } from "../utils/sendMessage";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -34,14 +37,16 @@ export namespace Thunk {
         if (accessToken != null) {
           const state = getState();
           const userId = state.user?.id || state.storage.tempUserId;
-          const result = await load(dispatch, "googleSignIn", () => env.service.googleSignIn(accessToken, userId));
+          const result = await load(dispatch, "googleSignIn", async () =>
+            env.service.googleSignIn(accessToken, userId, {})
+          );
           await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
           dispatch(sync());
         }
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
-        const result = await env.service.googleSignIn("test", userId, forcedUserEmail);
+        const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
         await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync());
       }
@@ -55,7 +60,7 @@ export namespace Thunk {
       if (id_token != null && code != null) {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
-        const result = await load(dispatch, "appleSignIn", () => env.service.appleSignIn(code, id_token, userId));
+        const result = await load(dispatch, "appleSignIn", async () => env.service.appleSignIn(code, id_token, userId));
         await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync());
       }
@@ -77,7 +82,7 @@ export namespace Thunk {
   export function sync(): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().adminKey == null && getState().user != null) {
-        await load(dispatch, "sync", () => env.service.postStorage(getState().storage));
+        await load(dispatch, "sync", async () => env.service.postStorage(getState().storage));
       }
     };
   }
@@ -118,7 +123,13 @@ export namespace Thunk {
   }
 
   export function pushScreen(screen: IScreen): IThunk {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+      if (
+        ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
+        !Subscriptions.hasSubscription(getState().storage.subscription)
+      ) {
+        screen = "subscription";
+      }
       dispatch({ type: "PushScreen", screen });
       window.scroll(0, 0);
     };
@@ -492,6 +503,31 @@ export namespace Thunk {
       dispatch(Thunk.fetchPrograms());
       if (getState().user?.id) {
         fetchAllFriendsThings(dispatch, getState().storage);
+      }
+      SendMessage.toIos({ type: "restoreSubscriptions" });
+      SendMessage.toAndroid({ type: "restoreSubscriptions" });
+    };
+  }
+
+  export function setAppleReceipt(receipt?: string): IThunk {
+    return async (dispatch, getState, env) => {
+      if (receipt) {
+        Subscriptions.setAppleReceipt(dispatch, receipt);
+        if (Screen.current(getState().screenStack) === "subscription") {
+          dispatch(Thunk.pullScreen());
+        }
+      }
+    };
+  }
+
+  export function setGooglePurchaseToken(productId?: string, token?: string): IThunk {
+    return async (dispatch, getState, env) => {
+      if (productId && token) {
+        const purchaseToken = JSON.stringify({ productId, token });
+        Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
+        if (Screen.current(getState().screenStack) === "subscription") {
+          dispatch(Thunk.pullScreen());
+        }
       }
     };
   }
