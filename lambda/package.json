@@ -24,7 +24,6 @@
     "yatro": "^0.2.3"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.2",
-    "ts-node": "^10.9.1"
+    "@types/node-fetch": "^2.6.2"
   }
 }

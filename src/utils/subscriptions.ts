@@ -6,8 +6,13 @@ import { ISubscription } from "../types";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
-    const url = new URL(document.location.href);
-    const subscriptionParam = url.searchParams.get("subscription") || undefined;
+    let subscriptionParam: string | undefined;
+    if (window?.document?.location?.href) {
+      const url = new URL(window.document.location.href);
+      subscriptionParam = url.searchParams.get("subscription") || undefined;
+    } else {
+      subscriptionParam = undefined;
+    }
     if (!subscriptionParam) {
       return true;
     }
