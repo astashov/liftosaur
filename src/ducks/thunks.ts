@@ -512,9 +512,11 @@ export namespace Thunk {
   export function setAppleReceipt(receipt?: string): IThunk {
     return async (dispatch, getState, env) => {
       if (receipt) {
-        Subscriptions.setAppleReceipt(dispatch, receipt);
-        if (Screen.current(getState().screenStack) === "subscription") {
-          dispatch(Thunk.pullScreen());
+        if (await Subscriptions.verifyAppleReceipt(env.service, receipt)) {
+          Subscriptions.setAppleReceipt(dispatch, receipt);
+          if (Screen.current(getState().screenStack) === "subscription") {
+            dispatch(Thunk.pullScreen());
+          }
         }
       }
     };
@@ -524,9 +526,11 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       if (productId && token) {
         const purchaseToken = JSON.stringify({ productId, token });
-        Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
-        if (Screen.current(getState().screenStack) === "subscription") {
-          dispatch(Thunk.pullScreen());
+        if (await Subscriptions.verifyGooglePurchaseToken(env.service, purchaseToken)) {
+          Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
+          if (Screen.current(getState().screenStack) === "subscription") {
+            dispatch(Thunk.pullScreen());
+          }
         }
       }
     };
