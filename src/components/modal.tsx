@@ -7,6 +7,7 @@ interface IProps {
   autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   isHidden?: boolean;
   isFullWidth?: boolean;
+  noPaddings?: boolean;
   shouldShowClose?: boolean;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
@@ -55,7 +56,7 @@ export function Modal(props: IProps): JSX.Element {
       ></div>
       <div
         data-name="modal"
-        className="relative z-20 flex flex-col py-6 bg-white rounded-lg shadow-lg"
+        className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-white rounded-lg shadow-lg`}
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
         <div className="relative h-full px-6 overflow-auto">{props.children}</div>

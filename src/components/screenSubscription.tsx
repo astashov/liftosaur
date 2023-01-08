@@ -1,16 +1,18 @@
 import { h, JSX, Fragment } from "preact";
-import { IDispatch } from "../ducks/types";
+import { IDispatch, IThunk } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen } from "../models/screen";
 import { ILoading } from "../models/state";
-import { IconDoc } from "./icons/iconDoc";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { Button } from "./button";
 import { SendMessage } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
+import { useState } from "preact/hooks";
+import { Modal } from "./modal";
+import { IconBell } from "./icons/iconBell";
 
 interface IProps {
   loading: ILoading;
@@ -19,6 +21,11 @@ interface IProps {
 }
 
 export function ScreenSubscription(props: IProps): JSX.Element {
+  const [isPlatesCalculatorShown, setIsPlatesCalculatorShown] = useState<boolean>(false);
+  const [isGraphsShown, setIsGraphsShown] = useState<boolean>(false);
+  const [isMusclesShown, setIsMusclesShown] = useState<boolean>(false);
+  const [isNotifsShown, setIsNotifsShown] = useState<boolean>(false);
+
   return (
     <Surface
       navbar={
@@ -35,6 +42,83 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         />
       }
       footer={<></>}
+      addons={[
+        <Modal
+          noPaddings={true}
+          isHidden={!isPlatesCalculatorShown}
+          onClose={() => setIsPlatesCalculatorShown(false)}
+          shouldShowClose={true}
+        >
+          <h3 className="pt-4 pb-2 text-lg font-bold">Plates Calculator</h3>
+          <p className="pb-2">What plates to add to each side of a bar to get the necessary weight</p>
+          <p className="pb-4">
+            E.g. on a screenshot below it says that to get <strong>175lb</strong>, you need to add <strong>45lb</strong>{" "}
+            plate and <strong>2 x 10lb</strong> plates to the each side of the bar.
+          </p>
+          <div className="text-center">
+            <img
+              src="/images/plates_calculator_subs.png"
+              style={{ boxShadow: "0 25px 50px 0px rgb(0 0 0 / 25%)" }}
+              alt="Plates Calculator screenshot"
+            />
+          </div>
+        </Modal>,
+        <Modal
+          noPaddings={true}
+          isHidden={!isGraphsShown}
+          onClose={() => setIsGraphsShown(false)}
+          shouldShowClose={true}
+        >
+          <h3 className="pt-4 pb-2 text-lg font-bold">Graphs</h3>
+          <p className="pb-4">
+            Shows graphs of exercises and also bodyweight and measurements. You can overlay bodyweight graph on exercise
+            graphs to see how your bodyweight affected your progress. It can also show calculated 1 rep max, a unified
+            metric of your strength.
+          </p>
+          <div className="text-center">
+            <img
+              src="/images/graphs_subs.png"
+              style={{ boxShadow: "0 25px 50px 0px rgb(0 0 0 / 25%)" }}
+              alt="Graphs screenshot"
+            />
+          </div>
+        </Modal>,
+        <Modal
+          noPaddings={true}
+          isHidden={!isMusclesShown}
+          onClose={() => setIsMusclesShown(false)}
+          shouldShowClose={true}
+        >
+          <h3 className="pt-4 pb-2 text-lg font-bold">Muscles</h3>
+          <p className="pb-4">
+            Shows the balance of the muscles you activate during the day, or for the whole program. You could use it to
+            find imbalances in your program.
+          </p>
+          <div className="text-center">
+            <img
+              src="/images/muscles_subs.png"
+              style={{ boxShadow: "0 25px 50px 0px rgb(0 0 0 / 25%)" }}
+              alt="Muscles screenshot"
+            />
+          </div>
+        </Modal>,
+        <Modal
+          noPaddings={true}
+          isHidden={!isNotifsShown}
+          onClose={() => setIsNotifsShown(false)}
+          shouldShowClose={true}
+        >
+          <h3 className="pt-4 pb-2 text-lg font-bold">Rest Timer Notifications</h3>
+          <p className="pb-4">When the rest timer runs out, you'll get a notification it's time to start a new set</p>
+          <div className="text-center">
+            <img
+              src="/images/notifs_subs.jpg"
+              style={{ boxShadow: "0 25px 50px 0px rgb(0 0 0 / 25%)" }}
+              alt="Notification screenshot"
+            />
+          </div>
+        </Modal>,
+      ]}
     >
       <section className="flex flex-col flex-1 px-4">
         <div
@@ -47,17 +131,29 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         ></div>
         <ul>
           <Feature
-            icon={<IconDoc />}
-            title="Powerful exercise editor"
-            description="Where you can define any logic for changing reps, weight and sets over time"
-          />
-          <Feature
             icon={<IconBarbell color="#3C5063" />}
             title="Plates Calculator"
             description="What plates to add to each side of a bar to get the necessary weight"
+            onClick={() => setIsPlatesCalculatorShown(true)}
           />
-          <Feature icon={<IconGraphs2 />} title="Graphs" description="So you could visualize your progress over time" />
-          <Feature icon={<IconMuscles2 />} title="Muscles" description="To see the muscle balance of your program" />
+          <Feature
+            icon={<IconGraphs2 />}
+            title="Graphs"
+            description="So you could visualize your progress over time"
+            onClick={() => setIsGraphsShown(true)}
+          />
+          <Feature
+            icon={<IconMuscles2 />}
+            title="Muscles"
+            description="To see the muscle balance of your program"
+            onClick={() => setIsMusclesShown(true)}
+          />
+          <Feature
+            icon={<IconBell />}
+            title="Rest Timer Notifications"
+            description="When it's about to start a new set, you'll get a notification."
+            onClick={() => setIsNotifsShown(true)}
+          />
         </ul>
         <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-white safe-area-inset-bottom">
           <div className="flex flex-row">
@@ -124,13 +220,22 @@ function webAlert(): void {
   );
 }
 
-function Feature(props: { icon: JSX.Element; title: string; description: string }): JSX.Element {
+interface IFeatureProps {
+  icon: JSX.Element;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+function Feature(props: IFeatureProps): JSX.Element {
   return (
-    <li className="flex flex-row flex-1 mb-8">
+    <li className="flex flex-row flex-1 mb-8" onClick={props.onClick}>
       <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
       <div className="flex-1">
-        <h3 className="text-lg font-bold">{props.title}</h3>
-        <p className="text-sm text-grayv2-main">{props.description}</p>
+        <h3 className="text-base font-bold">
+          <LinkButton>{props.title}</LinkButton>
+        </h3>
+        <p className="text-sm text-blackv2">{props.description}</p>
       </div>
     </li>
   );
