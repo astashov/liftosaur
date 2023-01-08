@@ -53,11 +53,13 @@ interface IVerifyAppleReceiptResponse {
 export class Subscriptions {
   constructor(private readonly log: LogUtil, private readonly secretsUtil: SecretsUtil) {}
 
-  public async verifyAppleReceipt(appleReceipt?: string): Promise<string | undefined | null> {
+  public async verifyAppleReceipt(
+    appleReceipt?: string,
+    env: "dev" | "prod" = Utils.getEnv()
+  ): Promise<string | undefined | null> {
     if (appleReceipt == null) {
       return undefined;
     }
-    const env = Utils.getEnv();
     const url =
       env === "prod" ? "https://buy.itunes.apple.com/verifyReceipt" : "https://sandbox.itunes.apple.com/verifyReceipt";
     try {
@@ -74,14 +76,19 @@ export class Subscriptions {
       const products = ["com.liftosaur.subscription.ios_montly", "com.liftosaur.subscription.ios_yearly"];
       const inAppPurchases = json.receipt?.in_app?.filter((purchase) => products.indexOf(purchase.product_id) !== -1);
       const hasNonExpired = !!inAppPurchases?.some((p) => parseInt(p.expires_date_ms, 10) > Date.now());
-      this.log.log("Apple Receipt success status: ", json.status);
-      this.log.log("Apple Receipt has non-expired subscription: ", hasNonExpired);
-      console.log("-------- Receipt is verifying!", `${JSON.stringify(appleReceipt)}`.slice(0, 15));
-      console.log("It's status is: ", json.status);
-      console.log("It's not expired: ", hasNonExpired);
-      const result = json.status === 0 && hasNonExpired ? appleReceipt : null;
-      console.log("-------- And it's: ", result?.slice(0, 15));
-      return result;
+      if (json.status === 21007 && env === "prod") {
+        this.log.log("Got 21007, retrying in dev environment");
+        return this.verifyAppleReceipt(appleReceipt, "dev");
+      } else {
+        this.log.log("Apple Receipt success status: ", json.status);
+        this.log.log("Apple Receipt has non-expired subscription: ", hasNonExpired);
+        console.log("-------- Receipt is verifying!", `${JSON.stringify(appleReceipt)}`.slice(0, 15));
+        console.log("It's status is: ", json.status);
+        console.log("It's not expired: ", hasNonExpired);
+        const result = json.status === 0 && hasNonExpired ? appleReceipt : null;
+        console.log("-------- And it's: ", result?.slice(0, 15));
+        return result;
+      }
     } catch (error) {
       this.log.log("Apple Receipt verification error: ", error);
       return appleReceipt;
