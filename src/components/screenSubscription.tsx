@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen } from "../models/screen";
-import { ILoading } from "../models/state";
+import { ILoading, IState, ISubscriptionLoading, updateState } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs2 } from "./icons/iconGraphs2";
 import { IconMuscles2 } from "./icons/iconMuscles2";
@@ -13,10 +13,13 @@ import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { IconBell } from "./icons/iconBell";
+import { lb } from "lens-shmens";
+import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
   loading: ILoading;
   screenStack: IScreen[];
+  subscriptionLoading?: ISubscriptionLoading;
   dispatch: IDispatch;
 }
 
@@ -164,6 +167,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     if (SendMessage.isIos() || SendMessage.isAndroid()) {
                       SendMessage.toIos({ type: "subscribeMontly" });
                       SendMessage.toAndroid({ type: "subscribeMontly" });
+                      updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ monthly: true })]);
                     } else {
                       webAlert();
                     }
@@ -171,7 +175,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   className="w-full"
                   kind="orange"
                 >
-                  $4.99/month
+                  {!props.subscriptionLoading?.monthly ? (
+                    "$4.99/month"
+                  ) : (
+                    <IconSpinner color="white" width={18} height={18} />
+                  )}
                 </Button>
               </div>
               <div className="flex-1 px-2 text-center">
@@ -180,6 +188,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     if (SendMessage.isIos() || SendMessage.isAndroid()) {
                       SendMessage.toIos({ type: "subscribeYearly" });
                       SendMessage.toAndroid({ type: "subscribeYearly" });
+                      updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })]);
                     } else {
                       webAlert();
                     }
@@ -187,7 +196,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   className="w-full"
                   kind="purple"
                 >
-                  $49.99/year
+                  {!props.subscriptionLoading?.yearly ? (
+                    "$49.99/year"
+                  ) : (
+                    <IconSpinner color="white" width={18} height={18} />
+                  )}
                 </Button>
               </div>
             </div>

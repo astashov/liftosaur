@@ -73,6 +73,11 @@ export interface IComment {
   text: string;
 }
 
+export interface ISubscriptionLoading {
+  monthly?: boolean;
+  yearly?: boolean;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -86,6 +91,7 @@ export interface IState {
   currentHistoryRecord?: number;
   loading: ILoading;
   currentHistoryRecordUserId?: string;
+  subscriptionLoading?: ISubscriptionLoading;
   progress: Partial<Record<number, IHistoryRecord>>;
   comments: IAllComments;
   editProgram?: {

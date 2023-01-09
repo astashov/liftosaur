@@ -18,7 +18,7 @@ import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
 import { dequal } from "dequal";
-import { IState } from "../models/state";
+import { IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -33,6 +33,7 @@ import { ScreenOnboarding } from "./screenOnboarding";
 import { ScreenMeasurements } from "./screenMeasurements";
 import { ScreenSubscription } from "./screenSubscription";
 import { Subscriptions } from "../utils/subscriptions";
+import { lb } from "lens-shmens";
 
 interface IProps {
   client: Window["fetch"];
@@ -105,6 +106,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+      } else if (event.data?.type === "stopSubscriptionLoading") {
+        updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       }
     });
     window._webpushrScriptReady = () => {
@@ -124,7 +127,14 @@ export function AppView(props: IProps): JSX.Element | null {
   if (Screen.current(state.screenStack) === "onboarding") {
     content = <ScreenOnboarding dispatch={dispatch} />;
   } else if (Screen.current(state.screenStack) === "subscription") {
-    content = <ScreenSubscription dispatch={dispatch} loading={state.loading} screenStack={state.screenStack} />;
+    content = (
+      <ScreenSubscription
+        subscriptionLoading={state.subscriptionLoading}
+        dispatch={dispatch}
+        loading={state.loading}
+        screenStack={state.screenStack}
+      />
+    );
   } else if (
     Screen.current(state.screenStack) === "programs" ||
     (Screen.current(state.screenStack) === "main" && currentProgram == null)
