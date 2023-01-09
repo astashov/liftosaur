@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IDispatch, IThunk } from "../ducks/types";
+import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen } from "../models/screen";
@@ -155,58 +155,63 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             onClick={() => setIsNotifsShown(true)}
           />
         </ul>
-        <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-white safe-area-inset-bottom">
-          <div className="flex flex-row">
-            <div className="flex-1 px-2 text-center">
-              <Button
-                onClick={() => {
-                  if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                    SendMessage.toIos({ type: "subscribeMontly" });
-                    SendMessage.toAndroid({ type: "subscribeMontly" });
-                  } else {
-                    webAlert();
-                  }
-                }}
-                className="w-full"
-                kind="orange"
-              >
-                $4.99/month
-              </Button>
+        <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-white">
+          <div className="safe-area-inset-bottom">
+            <div className="flex flex-row">
+              <div className="flex-1 px-2 text-center">
+                <Button
+                  onClick={() => {
+                    if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                      SendMessage.toIos({ type: "subscribeMontly" });
+                      SendMessage.toAndroid({ type: "subscribeMontly" });
+                    } else {
+                      webAlert();
+                    }
+                  }}
+                  className="w-full"
+                  kind="orange"
+                >
+                  $4.99/month
+                </Button>
+              </div>
+              <div className="flex-1 px-2 text-center">
+                <Button
+                  onClick={() => {
+                    if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                      SendMessage.toIos({ type: "subscribeYearly" });
+                      SendMessage.toAndroid({ type: "subscribeYearly" });
+                    } else {
+                      webAlert();
+                    }
+                  }}
+                  className="w-full"
+                  kind="purple"
+                >
+                  $49.99/year
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 px-2 text-center">
-              <Button
-                onClick={() => {
-                  if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                    SendMessage.toIos({ type: "subscribeYearly" });
-                    SendMessage.toAndroid({ type: "subscribeYearly" });
-                  } else {
-                    webAlert();
-                  }
-                }}
-                className="w-full"
-                kind="purple"
-              >
-                $49.99/year
-              </Button>
-            </div>
-          </div>
-          <div className="pt-2 font-bold text-center">Includes free trial for 14 days!</div>
-          <div className="text-center">
-            <LinkButton
-              onClick={() => {
-                if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                  SendMessage.toIos({ type: "redeemCoupon" });
-                  SendMessage.toAndroid({ type: "redeemCoupon" });
-                } else {
-                  alert(
-                    "You can only redeem the coupon from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, and try it there!"
-                  );
-                }
-              }}
-              className="pt-2 font-bold text-center"
-            >
-              Redeem coupon
-            </LinkButton>
+            <div className="pt-2 font-bold text-center">Includes free trial for 14 days!</div>
+            {(SendMessage.isAndroid() ||
+              (SendMessage.isIos() && parseFloat(window.lftIosVersion || "0.0") >= 14.0)) && (
+              <div className="text-center">
+                <LinkButton
+                  onClick={() => {
+                    if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                      SendMessage.toIos({ type: "redeemCoupon" });
+                      SendMessage.toAndroid({ type: "redeemCoupon" });
+                    } else {
+                      alert(
+                        "You can only redeem the coupon from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, and try it there!"
+                      );
+                    }
+                  }}
+                  className="pt-2 font-bold text-center"
+                >
+                  Redeem coupon
+                </LinkButton>
+              </div>
+            )}
           </div>
         </div>
       </section>

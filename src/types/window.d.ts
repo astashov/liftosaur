@@ -17,4 +17,5 @@ interface Window {
   lftAndroidSafeInsetBottom?: number;
   lftAndroidSafeInsetLeft?: number;
   lftAndroidSafeInsetRight?: number;
+  lftIosVersion?: string;
 }

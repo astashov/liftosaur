@@ -23,9 +23,11 @@ import {
   IProgramState,
   IEquipment,
   IProgramExercise,
+  ISubscription,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
+import { Subscriptions } from "../utils/subscriptions";
 
 export interface IScriptBindings {
   day: number;
@@ -97,10 +99,11 @@ export namespace Progress {
     progress: IHistoryRecord,
     timestamp: number,
     mode: IProgressMode,
-    settings: ISettings
+    settings: ISettings,
+    subscription: ISubscription
   ): IHistoryRecord {
     const duration = settings.timers[mode];
-    if (duration != null) {
+    if (duration != null && Subscriptions.hasSubscription(subscription)) {
       SendMessage.toIos({ type: "startTimer", duration: duration.toString(), mode });
       SendMessage.toAndroid({ type: "startTimer", duration: duration.toString(), mode });
     }

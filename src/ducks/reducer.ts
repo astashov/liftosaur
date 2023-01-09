@@ -456,7 +456,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "StartTimer") {
     return Progress.setProgress(
       state,
-      Progress.startTimer(Progress.getProgress(state)!, action.timestamp, action.mode, state.storage.settings)
+      Progress.startTimer(
+        Progress.getProgress(state)!,
+        action.timestamp,
+        action.mode,
+        state.storage.settings,
+        state.storage.subscription
+      )
     );
   } else if (action.type === "StopTimer") {
     return Progress.setProgress(state, Progress.stopTimer(Progress.getProgress(state)!));

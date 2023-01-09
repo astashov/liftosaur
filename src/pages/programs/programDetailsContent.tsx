@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { useRef } from "preact/compat";
 import { Settings } from "../../models/settings";
 import { IProgram } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
