@@ -34,11 +34,6 @@ interface IProps {
 
 export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
-  let areFriendsEnabled = false;
-  if (window?.document?.location?.href) {
-    const url = new URL(window.document.location.href);
-    areFriendsEnabled = !!url.searchParams.get("friends");
-  }
 
   return (
     <Surface
@@ -183,7 +178,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           }}
         />
         <WebpushrButton />
-        {props.user && areFriendsEnabled && (
+        {props.user && Features.areFriendsEnabled() && (
           <>
             <GroupHeader topPadding={true} name="Friends" />
             <MenuItem

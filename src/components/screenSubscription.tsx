@@ -15,6 +15,7 @@ import { Modal } from "./modal";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
+import { InternalLink } from "../internalLink";
 
 interface IProps {
   loading: ILoading;
@@ -205,26 +206,33 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               </div>
             </div>
             <div className="pt-2 font-bold text-center">Includes free trial for 14 days!</div>
-            {(SendMessage.isAndroid() ||
-              (SendMessage.isIos() && parseFloat(window.lftIosVersion || "0.0") >= 14.0)) && (
-              <div className="text-center">
-                <LinkButton
-                  onClick={() => {
-                    if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                      SendMessage.toIos({ type: "redeemCoupon" });
-                      SendMessage.toAndroid({ type: "redeemCoupon" });
-                    } else {
-                      alert(
-                        "You can only redeem the coupon from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, and try it there!"
-                      );
-                    }
-                  }}
-                  className="pt-2 font-bold text-center"
-                >
-                  Redeem coupon
-                </LinkButton>
+            <div className="flex flex-row">
+              {(SendMessage.isAndroid() ||
+                (SendMessage.isIos() && parseFloat(window.lftIosVersion || "0.0") >= 14.0)) && (
+                <div className="flex-1 text-center">
+                  <LinkButton
+                    onClick={() => {
+                      if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                        SendMessage.toIos({ type: "redeemCoupon" });
+                        SendMessage.toAndroid({ type: "redeemCoupon" });
+                      } else {
+                        alert(
+                          "You can only redeem the coupon from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, and try it there!"
+                        );
+                      }
+                    }}
+                    className="pt-2 font-bold text-center"
+                  >
+                    Redeem coupon
+                  </LinkButton>
+                </div>
+              )}
+              <div className="flex-1 text-center">
+                <InternalLink href="/terms.html" className="font-bold underline border-none text-bluev2">
+                  Terms of use
+                </InternalLink>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>

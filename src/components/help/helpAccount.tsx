@@ -1,4 +1,5 @@
 import { h, JSX, Fragment } from "preact";
+import { Features } from "../../utils/features";
 
 export function HelpAccount(): JSX.Element {
   return (
@@ -10,7 +11,9 @@ export function HelpAccount(): JSX.Element {
       </p>
       <p className="pb-2">
         After you log in, your data will be synced to the cloud, so even if you lose your phone, your progress won't be
-        lost. Also, you'll be able to add friends, see their progress, comment and like their workouts.
+        lost.
+        {Features.areFriendsEnabled() &&
+          "Also, you'll be able to add friends, see their progress, comment and like their workouts."}
       </p>
     </>
   );

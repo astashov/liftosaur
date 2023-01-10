@@ -1,5 +1,9 @@
 # Documentation
 
+## Contact Us
+
+If you have any questions, don't hesitate to contact us at <a href="mailto:info@liftosaur.com">info@liftosaur.com</a>!
+
 ## Workouts
 
 You can clone existing workouts and edit cloned ones, or create your own workouts from scratch.

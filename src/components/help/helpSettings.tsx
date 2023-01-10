@@ -1,4 +1,5 @@
 import { h, JSX, Fragment } from "preact";
+import { Features } from "../../utils/features";
 
 export function HelpSettings(): JSX.Element {
   return (
@@ -6,13 +7,14 @@ export function HelpSettings(): JSX.Element {
       <h2 className="pb-2 text-xl">Settings</h2>
       <p className="pb-2">
         This is the main settings screen. The settings are grouped by a common theme (Account, Workout, etc). Some
-        settings are only visible if you're logged in, e.g. the "Friends" settings.
+        settings are only visible if you're logged in.
       </p>
       <p className="pb-2">
         Under <strong>Account</strong> section, you can go to the account screen, and log in there. For now, we only
         support <strong>login via Google</strong>. After you log in, your data will be synced to the cloud, so even if
-        you lose your phone, your progress won't be lost. Also, you'll be able to add friends, see their progress,
-        comment and like their workouts.
+        you lose your phone, your progress won't be lost.
+        {Features.areFriendsEnabled() &&
+          "Also, you'll be able to add friends, see their progress, comment and like their workouts."}
       </p>
       <p className="pb-2">
         Make sure to set your <strong>Available Equipment</strong>. The plates you specify there would be used when
