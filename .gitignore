@@ -12,6 +12,7 @@
 /liftosaur-cdk/*.d.ts
 /dist-lambda
 /lambda/node_modules
+/lambda/scripts
 /template.yaml
 
 # CDK asset staging directory

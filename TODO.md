@@ -4,7 +4,6 @@
     - Building the monolith
   - Greyskull LP
   - nSuns LP
-- Add errors handling to HTTP calls
 - Add deleting account
 - Add achievements
 - Add ability to publish user programs
@@ -24,6 +23,9 @@
 - Show rest timer in history and other screens
 - Add next set / plates to push notifs
 - Widget on iOS lock screen
+- Add time spent on each exercise
+- Add quick-switch of exercise on workout screen
+- Link to workout from a graph
 
 * Bug:
   Assign lb to state var of type number
@@ -32,30 +34,3 @@
 
 - Add notification dot to friends icon if invitations pending
 - Add friends feeds per user
-
-# Subscription
-
-- Add montly subscription on iOS
-- Add fetching and saving transaction when user signs in
-- Lock access to the eligible screens without subscription
-- Add subscription modal
-
-Locked screens:
-
-- Advanced exercise editor
-- Muscles
-- Graphs
-- Plates calculator
-
-# Subscriptions
-
-Token coming:
-
-- from app native
-  - from purchase
-  - from restore
-- from server
-  |native |server |result |
-  |-------|---------|-------|
-  |false |true |false |
-  |true |false |false |
