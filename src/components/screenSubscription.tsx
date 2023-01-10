@@ -227,7 +227,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   </LinkButton>
                 </div>
               )}
-              <div className="flex-1 text-center">
+              <div className="flex-1 pt-2 text-center">
                 <InternalLink href="/terms.html" className="font-bold underline border-none text-bluev2">
                   Terms of use
                 </InternalLink>
