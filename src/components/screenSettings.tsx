@@ -22,6 +22,7 @@ import { GroupHeader } from "./groupHeader";
 import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpSettings } from "./help/helpSettings";
 import { WebpushrButton } from "./webpushrButton";
+import { Features } from "../utils/features";
 
 interface IProps {
   dispatch: IDispatch;
