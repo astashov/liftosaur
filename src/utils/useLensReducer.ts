@@ -17,7 +17,8 @@ export type ILensDispatch<TState> = (
   desc?: string
 ) => void | Promise<void>;
 
-const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
+const isLoggingEnabled =
+  typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
 
 export function useLensReducer<TState>(
   initialState: TState,

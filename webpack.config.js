@@ -43,6 +43,15 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.esm.js$/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
     ],
   },
   optimization: {
@@ -167,8 +176,9 @@ module.exports = {
     ]),
     new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
+  mode: process.env.NODE_ENV === "production" ? "production" : "development",
   devServer: {
-    contentBase: path.join(__dirname, "dist"),
+    static: path.join(__dirname, "dist"),
     compress: true,
     https:
       process.env.NODE_ENV === "production"
@@ -178,10 +188,9 @@ module.exports = {
             cert: fs.readFileSync(path.join(process.env.HOME, ".secrets/live/local.liftosaur.com/fullchain.pem")),
           },
     hot: false,
-    inline: false,
+    allowedHosts: "all",
     liveReload: false,
     host: "0.0.0.0",
-    disableHostCheck: true,
     proxy: {
       "/record": {
         target: "https://local-api.liftosaur.com:3000/api",

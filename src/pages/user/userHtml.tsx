@@ -3,13 +3,6 @@ import { Page } from "../../components/page";
 import { UserContent } from "./userContent";
 import { IStorage } from "../../types";
 
-// Overrides to make sure Graphs will render server-side
-global.requestAnimationFrame = global.requestAnimationFrame || undefined;
-global.document = global.document || undefined;
-global.window = global.window || undefined;
-global.devicePixelRatio = global.devicePixelRatio || 1;
-global.navigator = global.navigator || { language: "en" };
-
 interface IProps {
   data: IStorage;
   userId: string;
