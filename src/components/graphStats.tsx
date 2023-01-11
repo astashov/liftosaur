@@ -7,6 +7,7 @@ import { ILengthUnit, ISettings, IStatsKey, IStatsLengthValue, IStatsWeightValue
 import { Length } from "../models/length";
 import { Stats } from "../models/stats";
 import { DateUtils } from "../utils/date";
+import { GraphsPlugins } from "../utils/graphsPlugins";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -52,9 +53,11 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       width: rect.width,
       height: rect.height,
       cursor: {
+        y: false,
         lock: true,
       },
       plugins: [
+        GraphsPlugins.zoom(),
         {
           hooks: {
             setCursor: [

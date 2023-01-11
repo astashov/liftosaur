@@ -6,6 +6,7 @@ import { DateUtils } from "../utils/date";
 import { Exercise, equipmentToBarKey } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings } from "../types";
+import { GraphsPlugins } from "../utils/graphsPlugins";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -94,6 +95,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
         lock: true,
       },
       plugins: [
+        GraphsPlugins.zoom(),
         {
           hooks: {
             setCursor: [
