@@ -84,6 +84,7 @@ function Entry(props: IEntryProps): JSX.Element {
       </div>
       <div className="record-graph">
         <GraphExercise
+          isWithProgramLines={true}
           isSameXAxis={false}
           minX={0}
           isWithOneRm={true}

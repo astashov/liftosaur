@@ -12,6 +12,7 @@ import { IDispatch } from "../ducks/types";
 interface IGraphProps {
   history: IHistoryRecord[];
   isWithOneRm?: boolean;
+  isWithProgramLines?: boolean;
   exercise: IExerciseType;
   settings: ISettings;
   title?: string;
@@ -112,7 +113,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
       },
       plugins: [
         GraphsPlugins.zoom(),
-        GraphsPlugins.programLines(result.changeProgramTimes),
+        ...(props.isWithProgramLines ? [GraphsPlugins.programLines(result.changeProgramTimes)] : []),
         {
           hooks: {
             setCursor: [

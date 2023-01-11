@@ -89,6 +89,20 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             )
           }
         />
+        <MenuItemEditable
+          type="boolean"
+          name="Add program lines to graphs"
+          value={settings.graphsSettings.isWithProgramLines ? "true" : "false"}
+          onChange={(v) =>
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("graphsSettings")
+                .p("isWithProgramLines")
+                .record(v === "true")
+            )
+          }
+        />
       </GroupHeader>
       <form className="relative" data-cy="modal-graphs" onSubmit={(e) => e.preventDefault()}>
         {graphs.length > 0 && <GroupHeader name="Selected Graphs" />}

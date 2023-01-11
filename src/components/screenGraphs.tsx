@@ -27,7 +27,7 @@ interface IProps {
 
 export function ScreenGraphs(props: IProps): JSX.Element {
   const { settings } = props;
-  const { isWithBodyweight, isSameXAxis, isWithOneRm } = settings.graphsSettings;
+  const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const maxSets = History.findAllMaxSets(props.history);
   const exerciseIds = ObjectUtils.keys(maxSets);
@@ -127,8 +127,9 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                   maxX={Math.round(maxX / 1000)}
                   bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
                   isWithOneRm={isWithOneRm}
-                  key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}`}
+                  key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
                   settings={props.settings}
+                  isWithProgramLines={isWithProgramLines}
                   history={props.history}
                   exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
                   dispatch={props.dispatch}

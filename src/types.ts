@@ -693,6 +693,7 @@ export const TSettings = t.intersection(
         isSameXAxis: t.boolean,
         isWithBodyweight: t.boolean,
         isWithOneRm: t.boolean,
+        isWithProgramLines: t.boolean,
       }),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,

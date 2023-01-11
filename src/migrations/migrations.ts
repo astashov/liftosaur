@@ -224,7 +224,14 @@ export const migrations = {
   },
   "20230107181335_add_subscriptions": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    storage.subscription = { apple: {}, google: {} };
+    storage.subscription = storage.subscription || { apple: {}, google: {} };
+    return storage;
+  },
+  "20230111092752_add_graph_program_lines": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.settings.graphsSettings.isWithProgramLines == null) {
+      storage.settings.graphsSettings.isWithProgramLines = true;
+    }
     return storage;
   },
 };
