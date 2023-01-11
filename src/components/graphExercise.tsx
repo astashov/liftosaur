@@ -90,6 +90,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
       width: rect.width,
       height: rect.height,
       cursor: {
+        y: false,
         lock: true,
       },
       plugins: [

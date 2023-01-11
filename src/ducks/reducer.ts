@@ -28,7 +28,8 @@ import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 
 declare let Rollbar: RB;
-const isLoggingEnabled = window.location ? !!new URL(window.location.href).searchParams.get("log") : false;
+const isLoggingEnabled =
+  typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
   const currentAccount = await IndexedDBUtils.get("current_account");
