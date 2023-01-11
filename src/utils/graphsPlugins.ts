@@ -10,14 +10,11 @@ interface IFromTo {
 
 export class GraphsPlugins {
   public static zoom(): UPlot.Plugin {
-    function init(u: uPlot, opts: UPlot.Options, data: UPlot.AlignedData): void {
-      console.log("init");
+    function init(u: uPlot): void {
       const over = u.over;
       let rect: { left: number; top: number; width: number; height: number };
       let oxRange: number;
-      let oyRange: number;
       let xVal: number;
-      let yVal: number;
       let fr: IFromTo = { x: 0, y: 0, dx: 0, dy: 0, d: 0 };
       let to: IFromTo = { x: 0, y: 0, dx: 0, dy: 0, d: 0 };
 
@@ -91,11 +88,9 @@ export class GraphsPlugins {
 
       function touchmove(e: TouchEvent): void {
         if (e.touches.length > 1) {
-          console.log("Prevent default");
           e.preventDefault();
         }
         to = getPos(e);
-        console.log("to", to);
 
         if (!rafPending) {
           rafPending = true;
@@ -108,22 +103,12 @@ export class GraphsPlugins {
           e.preventDefault();
         }
         rect = over.getBoundingClientRect();
-
         fr = getPos(e);
-        console.log("fr", fr);
 
         oxRange = (u.scales.x.max || 0) - (u.scales.x.min || 0);
-        oyRange = (u.scales.y.max || 0) - (u.scales.y.min || 0);
-        console.log("oxRange", oxRange);
-        console.log("oyRange", oyRange);
 
         const left = fr.x;
-        const top = fr.y;
-
         xVal = u.posToVal(left, "x");
-        yVal = u.posToVal(top, "y");
-        console.log("xVal", xVal);
-        console.log("yVal", yVal);
 
         document.addEventListener("touchmove", touchmove, { passive: false });
       });
@@ -136,6 +121,61 @@ export class GraphsPlugins {
     return {
       hooks: {
         init,
+      },
+    };
+  }
+
+  public static programLines(programTimes: [number, string][]): UPlot.Plugin {
+    return {
+      hooks: {
+        draw: [
+          (self: UPlot): void => {
+            let programsOverlay: HTMLElement | null = self.over.querySelector(".programs-overlay");
+            if (programsOverlay == null) {
+              programsOverlay = document.createElement("div") as HTMLElement;
+              programsOverlay.classList.add("programs-overlay");
+              programsOverlay.style.position = "absolute";
+              programsOverlay.style.top = "0";
+              programsOverlay.style.left = "0";
+              programsOverlay.style.bottom = "0";
+              programsOverlay.style.right = "0";
+              self.over.appendChild(programsOverlay);
+            }
+            programsOverlay.innerHTML = "";
+            const lineColor = "#D2D8DE";
+            const textColor = "#8B9BAB";
+            const changeProgramPos = programTimes.map<[number, string]>((i) => [self.valToPos(i[0], "x"), i[1]]);
+            for (let i = 0; i < changeProgramPos.length; i += 1) {
+              const [pos, programName] = changeProgramPos[i];
+              if (pos > 0 && pos < self.over.clientWidth) {
+                const posEl = document.createElement("div");
+                posEl.style.position = "absolute";
+                posEl.style.top = "0";
+                posEl.style.bottom = "0";
+                posEl.style.left = `${pos}px`;
+                posEl.style.width = `1px`;
+                posEl.style.backgroundColor = lineColor;
+                programsOverlay.appendChild(posEl);
+
+                const shouldShiftRight = pos < 15;
+                const neighborPos = shouldShiftRight ? changeProgramPos[i + 1] : changeProgramPos[i - 1];
+                if (neighborPos == null || Math.abs(neighborPos[0] - pos) > 15) {
+                  const textEl = document.createElement("div");
+                  textEl.textContent = programName;
+                  textEl.style.position = "absolute";
+                  textEl.style.top = shouldShiftRight ? "-15px" : "0";
+                  textEl.style.left = `${pos}px`;
+                  textEl.style.fontSize = "10px";
+                  textEl.style.color = textColor;
+                  textEl.style.transform = "rotate(90deg)";
+                  textEl.style.transformOrigin = shouldShiftRight ? "0 100%" : "0 0";
+                  textEl.style.whiteSpace = "nowrap";
+                  programsOverlay.appendChild(textEl);
+                }
+              }
+            }
+          },
+        ],
       },
     };
   }

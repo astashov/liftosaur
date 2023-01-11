@@ -7,6 +7,7 @@ import { Exercise, equipmentToBarKey } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
+import { IDispatch } from "../ducks/types";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -18,6 +19,7 @@ interface IGraphProps {
   minX: number;
   maxX: number;
   bodyweightData?: [number, number][];
+  dispatch?: IDispatch;
 }
 
 function getData(
@@ -26,10 +28,21 @@ function getData(
   settings: ISettings,
   isWithOneRm?: boolean,
   bodyweightData?: [number, number][]
-): [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]] {
+): {
+  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
+  historyRecords: { [key: number]: IHistoryRecord };
+  changeProgramTimes: [number, string][];
+} {
+  const changeProgramTimes: [number, string][] = [];
+  let currentProgram: string | undefined = undefined;
+  const historyRecords: { [key: number]: IHistoryRecord } = {};
   const normalizedData = CollectionUtils.sort(history, (a, b) => a.startTime - b.startTime).reduce<
     [number, number | null, number | null, number | null, number | null][]
   >((memo, i) => {
+    if (!currentProgram || currentProgram !== i.programName) {
+      currentProgram = i.programName;
+      changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
+    }
     const entry = i.entries.filter((e) => e.exercise.id === exerciseType.id)[0];
     if (entry != null) {
       const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
@@ -43,8 +56,10 @@ function getData(
           const bar = equipmentToBarKey(exerciseType.equipment);
           onerm = Weight.getOneRepMax(maxSet.weight, maxSet.completedReps || 0, settings, bar).value;
         }
+        const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
+        historyRecords[timestamp] = i;
         memo.push([
-          new Date(Date.parse(i.date)).getTime() / 1000,
+          timestamp,
           Weight.convertTo(maxSet.weight, settings.units).value,
           maxSet.completedReps!,
           onerm,
@@ -74,7 +89,7 @@ function getData(
     },
     [[], [], [], [], []]
   );
-  return data;
+  return { data, changeProgramTimes, historyRecords };
 }
 
 export function GraphExercise(props: IGraphProps): JSX.Element {
@@ -84,7 +99,8 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
   useEffect(() => {
     const rect = graphRef.current.getBoundingClientRect();
     const exercise = Exercise.get(props.exercise, props.settings.exercises);
-    const data = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
+    const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
+    const data = result.data;
     const opts: UPlot.Options = {
       title: props.title || `${exercise.name} Max Weight`,
       class: "graph-max-weight",
@@ -96,16 +112,20 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
       },
       plugins: [
         GraphsPlugins.zoom(),
+        GraphsPlugins.programLines(result.changeProgramTimes),
         {
           hooks: {
             setCursor: [
               (self: UPlot): void => {
                 const idx = self.cursor.idx!;
-                const date = new Date(data[0][idx] * 1000);
+                const timestamp = data[0][idx];
+                const date = new Date(timestamp * 1000);
                 const weight = data[1][idx];
                 const reps = data[2][idx];
                 const onerm = data[3][idx];
                 const bodyweight = data[4][idx];
+                const historyRecord = result.historyRecords[timestamp];
+                const dispatch = props.dispatch;
                 let text: string;
                 if (weight != null && units != null && reps != null) {
                   text = `${DateUtils.format(
@@ -114,6 +134,9 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                   if (props.isWithOneRm && onerm != null) {
                     text += `, 1RM = <strong>${onerm}</strong> ${units}s`;
                   }
+                  if (historyRecord != null && dispatch) {
+                    text += ` <button class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                  }
                 } else if (bodyweight != null) {
                   text = `${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}`;
                 } else {
@@ -121,6 +144,12 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                 }
                 if (legendRef.current != null) {
                   legendRef.current.innerHTML = text;
+                  const button = legendRef.current.querySelector(".workout-link");
+                  if (button && dispatch) {
+                    button.addEventListener("click", () => {
+                      dispatch({ type: "EditHistoryRecord", historyRecord });
+                    });
+                  }
                 }
               },
             ],

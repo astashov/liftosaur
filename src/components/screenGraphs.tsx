@@ -131,6 +131,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                   settings={props.settings}
                   history={props.history}
                   exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
+                  dispatch={props.dispatch}
                 />
               );
             } else if (graph.type === "statsWeight") {
