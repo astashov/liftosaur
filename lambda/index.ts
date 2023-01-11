@@ -205,13 +205,14 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   const decodedToken = JWT.decode(idToken!, { complete: true });
   if (decodedToken) {
     const header = (decodedToken as Record<string, Record<string, string>>).header;
+    const content = (decodedToken as Record<string, Record<string, string>>).payload;
     const kid = header.kid;
     const key = keysJson.keys.find((k) => k.kid === kid);
     if (key != null) {
       const pem = rsaPemFromModExp(key.n, key.e);
       const result = JWT.verify(idToken, pem, {
         issuer: "https://appleid.apple.com",
-        audience: "com.liftosaur.www.signinapple",
+        audience: content.aud,
       }) as { sub?: string; email?: string } | undefined;
       if (result?.sub && result?.email) {
         const cookieSecret = await di.secrets.getCookieSecret();

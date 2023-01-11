@@ -31,7 +31,7 @@ export namespace SendMessage {
         window.removeEventListener("message", receiveMessage);
       }
       receiveMessage = (event) => {
-        if (event.data == null && event.data.type === "iosResponse") {
+        if (event.data?.type === "iosResponse") {
           if (receiveMessage != null) {
             window.removeEventListener("message", receiveMessage);
             receiveMessage = undefined;

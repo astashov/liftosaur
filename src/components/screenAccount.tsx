@@ -89,10 +89,10 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 <div className="text-xs text-grayv2-main">
                   {props.email ? (
                     <>
-                      Logged in as <span className="font-bold">{props.email}</span>
+                      Signed in as <span className="font-bold">{props.email}</span>
                     </>
                   ) : (
-                    <>Not logged in to cloud</>
+                    <>Not signed in to cloud</>
                   )}
                 </div>
               }
@@ -105,7 +105,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                   className="ls-logout"
                   onClick={() => props.dispatch(Thunk.logOut())}
                 >
-                  Log Out
+                  Sign Out
                 </Button>
               </div>
             ) : (
@@ -120,7 +120,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                     <span className="">
                       <IconGoogle />
                     </span>
-                    <span className="flex-1">Log in with Google</span>
+                    <span className="flex-1">Sign in with Google</span>
                   </button>
                 </div>
                 <div>
@@ -133,7 +133,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                     <span style={{ marginTop: "-3px" }}>
                       <IconApple />
                     </span>
-                    <span className="flex-1">Log in with Apple</span>
+                    <span className="flex-1">Sign in with Apple</span>
                   </button>
                 </div>
               </div>

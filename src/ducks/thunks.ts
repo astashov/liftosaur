@@ -55,8 +55,25 @@ export namespace Thunk {
 
   export function appleSignIn(): IThunk {
     return async (dispatch, getState, env) => {
-      const response = await window.AppleID.auth.signIn();
-      const { id_token, code } = response.authorization;
+      let id_token: string;
+      let code: string;
+      if (SendMessage.isIos()) {
+        const result = await SendMessage.toIosWithResult<{ id_token: string; code: string } | { error: string }>({
+          type: "signInWithApple",
+        });
+        if (!result) {
+          return;
+        }
+        if ("error" in result) {
+          alert(result.error);
+          return;
+        } else {
+          ({ id_token, code } = result);
+        }
+      } else {
+        const response = await window.AppleID.auth.signIn();
+        ({ id_token, code } = response.authorization);
+      }
       if (id_token != null && code != null) {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;

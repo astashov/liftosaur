@@ -1,3 +1,5 @@
+import { SendMessage } from "./sendMessage";
+
 declare let __HOST__: string;
 
 let windowRef: Window | null = null;
@@ -23,15 +25,19 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
 
     const windowOpts = "toolbar=no, menubar=no, width=600, height=700, top=100, left=100";
 
-    if (windowRef == null || windowRef.closed) {
-      windowRef = window.open(url, "google-auth", windowOpts);
-    } else if (windowUrl !== url) {
-      windowRef = window.open(url, "google-auth", windowOpts);
-      if (windowRef != null) {
+    if (SendMessage.isIos()) {
+      SendMessage.toIos({ type: "signInWithGoogle" });
+    } else {
+      if (windowRef == null || windowRef.closed) {
+        windowRef = window.open(url, "google-auth", windowOpts);
+      } else if (windowUrl !== url) {
+        windowRef = window.open(url, "google-auth", windowOpts);
+        if (windowRef != null) {
+          windowRef.focus();
+        }
+      } else {
         windowRef.focus();
       }
-    } else {
-      windowRef.focus();
     }
 
     receiveMessage = (event) => {
