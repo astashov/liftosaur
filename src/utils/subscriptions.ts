@@ -7,7 +7,7 @@ import { ISubscription } from "../types";
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
     let subscriptionParam: string | undefined;
-    if (window?.document?.location?.href) {
+    if (typeof window !== "undefined" && window?.document?.location?.href) {
       const url = new URL(window.document.location.href);
       subscriptionParam = url.searchParams.get("subscription") || undefined;
     } else {
