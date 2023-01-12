@@ -66,7 +66,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <GroupHeader name="Account" topPadding={true} />
         <MenuItem
           name="Account"
-          value={props.user?.email}
+          value={props.user?.email === "noemail@example.com" ? "Signed In" : props.user?.email}
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />

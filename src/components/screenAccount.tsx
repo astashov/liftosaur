@@ -88,9 +88,13 @@ export function ScreenAccount(props: IProps): JSX.Element {
               addons={
                 <div className="text-xs text-grayv2-main">
                   {props.email ? (
-                    <>
-                      Signed in as <span className="font-bold">{props.email}</span>
-                    </>
+                    props.email === "noemail@example.com" ? (
+                      <></>
+                    ) : (
+                      <>
+                        Signed in as <span className="font-bold">{props.email}</span>
+                      </>
+                    )
                   ) : (
                     <>Not signed in to cloud</>
                   )}
@@ -204,7 +208,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             }
             addons={
               <div className="text-xs text-grayv2-main">
-                {account.email && (
+                {account.email && account.email !== "noemail@example.com" && (
                   <>
                     Was logged in as <span className="font-bold">{account.email}</span>
                   </>

@@ -214,7 +214,8 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         issuer: "https://appleid.apple.com",
         audience: content.aud,
       }) as { sub?: string; email?: string } | undefined;
-      if (result?.sub && result?.email) {
+      if (result?.sub) {
+        const email = result.email || "noemail@example.com";
         const cookieSecret = await di.secrets.getCookieSecret();
 
         await new AppleAuthTokenDao(di).store(env, idToken, result.sub);
@@ -224,13 +225,13 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
 
         if (userId == null) {
           userId = (id as string) || UidFactory.generateUid(12);
-          user = UserDao.build(userId, result.email, { appleId: result.sub });
+          user = UserDao.build(userId, email, { appleId: result.sub });
           await userDao.store(user);
         }
 
         const session = JWT.sign({ userId: userId }, cookieSecret);
         const resp = {
-          email: result.email,
+          email: email,
           user_id: userId,
           storage: user!.storage,
         };
