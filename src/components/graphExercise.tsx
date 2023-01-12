@@ -133,7 +133,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                     date
                   )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                   if (props.isWithOneRm && onerm != null) {
-                    text += `, 1RM = <strong>${onerm}</strong> ${units}s`;
+                    text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                   }
                   if (historyRecord != null && dispatch) {
                     text += ` <button class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
@@ -141,16 +141,22 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                 } else if (bodyweight != null) {
                   text = `${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}`;
                 } else {
-                  text = "";
+                  return;
                 }
                 if (legendRef.current != null) {
                   legendRef.current.innerHTML = text;
-                  const button = legendRef.current.querySelector(".workout-link");
-                  if (button && dispatch) {
-                    button.addEventListener("click", () => {
-                      dispatch({ type: "EditHistoryRecord", historyRecord });
-                    });
-                  }
+                  setTimeout(() => {
+                    const button = legendRef.current.querySelector(".workout-link");
+                    if (button && dispatch) {
+                      console.log("Set click listener", weight, button);
+                      button.addEventListener("click", () => {
+                        dispatch({ type: "EditHistoryRecord", historyRecord });
+                      });
+                      button.addEventListener("touchstart", () => {
+                        dispatch({ type: "EditHistoryRecord", historyRecord });
+                      });
+                    }
+                  }, 0);
                 }
               },
             ],
