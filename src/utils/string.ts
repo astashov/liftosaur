@@ -16,7 +16,11 @@ export namespace StringUtils {
   }
 
   export function truncate(string: string, length: number): string {
-    return string.slice(0, length);
+    if (string.length > length) {
+      return `${string.slice(0, length - 3)}...`;
+    } else {
+      return string;
+    }
   }
 
   export function unindent(string: string): string {

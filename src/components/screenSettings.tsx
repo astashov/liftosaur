@@ -23,6 +23,7 @@ import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpSettings } from "./help/helpSettings";
 import { WebpushrButton } from "./webpushrButton";
 import { Features } from "../utils/features";
+import { StringUtils } from "../utils/string";
 
 interface IProps {
   dispatch: IDispatch;
@@ -66,7 +67,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <GroupHeader name="Account" topPadding={true} />
         <MenuItem
           name="Account"
-          value={props.user?.email === "noemail@example.com" ? "Signed In" : props.user?.email}
+          value={
+            props.user?.email === "noemail@example.com"
+              ? "Signed In"
+              : StringUtils.truncate(props.user?.email || "", 30)
+          }
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />

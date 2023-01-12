@@ -23,6 +23,7 @@ import { WhatsNew } from "../models/whatsnew";
 import { Screen } from "../models/screen";
 import { Subscriptions } from "../utils/subscriptions";
 import { SendMessage } from "../utils/sendMessage";
+import { UidFactory } from "../utils/generator";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -577,34 +578,55 @@ function friendAction<T>(
   };
 }
 
-async function load<T>(dispatch: IDispatch, name: string, cb: () => Promise<T>): Promise<T> {
+async function load<T>(dispatch: IDispatch, type: string, cb: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
-    _load(dispatch, name, cb, 0, resolve, reject);
+    const name = UidFactory.generateUid(4);
+    _load(dispatch, name, type, cb, 0, resolve, reject);
   });
 }
 
 function _load<T>(
   dispatch: IDispatch,
   name: string,
+  type: string,
   cb: () => Promise<T>,
   attempt: number,
   resolve: (arg: T) => void,
   reject: (arg: unknown) => void
 ): void {
-  updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(true)]);
+  updateState(dispatch, [
+    lb<IState>()
+      .p("loading")
+      .p("items")
+      .p(name)
+      .recordModify((i) => {
+        if (i == null) {
+          return { startTime: Date.now(), attempt, type };
+        } else {
+          return { ...i, attempt };
+        }
+      }),
+  ]);
   cb()
     .then((r) => {
-      updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(false)]);
+      updateState(dispatch, [lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now())]);
       resolve(r);
     })
     .catch((e) => {
       if (attempt >= 3) {
-        updateState(dispatch, [lb<IState>().p("loading").p("error").record("Failed to sync with cloud")]);
-        updateState(dispatch, [lb<IState>().p("loading").p("items").p(name).record(false)]);
+        updateState(dispatch, [
+          lb<IState>()
+            .p("loading")
+            .p("items")
+            .pi(name)
+            .p("error")
+            .record(e.message || "Error"),
+          lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
+        ]);
         reject(e);
       } else {
         setTimeout(() => {
-          _load(dispatch, name, cb, attempt + 1, resolve, reject);
+          _load(dispatch, name, type, cb, attempt + 1, resolve, reject);
         }, 1000);
       }
     });

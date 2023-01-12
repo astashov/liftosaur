@@ -4,13 +4,15 @@ import { IDispatch } from "../ducks/types";
 import { IScreen } from "../models/screen";
 import { IconBack } from "./icons/iconBack";
 import { IconHelp } from "./icons/iconHelp";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { ILoading, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
 import { Modal } from "./modal";
 import { Link } from "./link";
+import { ObjectUtils } from "../utils/object";
+import { ModalDebug } from "./modalDebug";
 
 interface INavbarCenterProps {
   title: ComponentChildren;
@@ -29,6 +31,8 @@ interface INavbarProps extends INavbarCenterProps {
 
 export const NavbarView = (props: INavbarProps): JSX.Element => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showDebug, setShowDebug] = useState(0);
+  const timerRef = useRef<number | undefined>(undefined);
   const showBackButton = props.screenStack.length > 1;
 
   useEffect(() => {
@@ -52,8 +56,9 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   }
 
   const loadingItems = props.loading.items;
-  const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]);
-  const error = props.loading.error;
+  const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]?.endTime == null);
+  const errors = ObjectUtils.filter(props.loading.items, (k, v) => v?.error != null);
+  const error = ObjectUtils.values(errors)[0]?.error;
 
   const isLoading = Object.keys(loadingKeys).length > 0;
   const numberOfLeftButtons = [showBackButton ? 1 : 0, isLoading ? 1 : 0].reduce((a, b) => a + b);
@@ -84,7 +89,24 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             </span>
           ) : null}
         </div>
-        <NavbarCenterView {...props} />
+        <NavbarCenterView
+          {...props}
+          onTitleClick={
+            props.onTitleClick ||
+            (() => {
+              if (timerRef.current != null) {
+                clearTimeout(timerRef.current);
+                timerRef.current = undefined;
+              }
+              setShowDebug(showDebug + 1);
+              timerRef.current = window.setTimeout(() => {
+                if (showDebug <= 3) {
+                  setShowDebug(0);
+                }
+              }, 1000);
+            })
+          }
+        />
         <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
           {props.helpContent && (
@@ -107,7 +129,15 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
               </div>
               <button
                 className="px-3"
-                onClick={() => updateState(props.dispatch, [lb<IState>().p("loading").p("error").record(undefined)])}
+                onClick={() =>
+                  updateState(props.dispatch, [
+                    lb<IState>()
+                      .p("loading")
+                      .recordModify((l) => {
+                        return { ...l, items: ObjectUtils.filter(l.items, (k, v) => v?.error == null) };
+                      }),
+                  ])
+                }
               >
                 <IconClose size={16} color="#E53E3E" />
               </button>
@@ -130,6 +160,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           </p>
         </Modal>
       )}
+      {showDebug > 4 && <ModalDebug onClose={() => setShowDebug(0)} loading={props.loading} />}
     </>
   );
 };

@@ -95,6 +95,25 @@ export namespace DateUtils {
     return [year, month, day, hours, minutes, seconds].join("");
   }
 
+  export function formatHHMMSS(date: Date | string | number): string {
+    const d = new Date(date);
+    let seconds = `${d.getSeconds()}`;
+    let minutes = `${d.getMinutes()}`;
+    let hours = `${d.getHours()}`;
+
+    if (seconds.length < 2) {
+      seconds = `0${seconds}`;
+    }
+    if (minutes.length < 2) {
+      minutes = `0${minutes}`;
+    }
+    if (hours.length < 2) {
+      hours = `0${hours}`;
+    }
+
+    return [hours, minutes, seconds].join(":");
+  }
+
   export function fromYYYYMMDD(dateStr: string, separator: string = "-"): string {
     const regexp = new RegExp(`^(\\d{4})${separator}(\\d{2})${separator}(\\d{2})$`);
     const regexpMatchArray = dateStr.match(regexp);

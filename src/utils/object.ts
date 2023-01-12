@@ -13,6 +13,17 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function filter<T extends {}>(obj: T, cb: (key: keyof T, value: T[keyof T]) => boolean): Partial<T> {
+    const filteredKeys = ObjectUtils.keys(obj).filter((key) => {
+      const value = obj[key];
+      return cb(key, value);
+    });
+    return filteredKeys.reduce<Partial<T>>((memo, k) => {
+      memo[k] = obj[k];
+      return memo;
+    }, {});
+  }
+
   export function sortedByKeys<T extends {}>(obj: T, sortedKeys: Array<keyof T>): Array<[keyof T, T[keyof T]]> {
     const arr: Array<[keyof T, T[keyof T]]> = [];
     const copyObj = { ...obj };

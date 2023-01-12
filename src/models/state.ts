@@ -47,9 +47,16 @@ export interface IAllFriends {
   isLoading: boolean;
 }
 
-export type ILoading = {
-  items: Partial<Record<string, boolean>>;
+export interface ILoadingItem {
+  startTime: number;
+  type: string;
+  attempt?: number;
+  endTime?: number;
   error?: string;
+}
+
+export type ILoading = {
+  items: Partial<Record<string, ILoadingItem>>;
 };
 
 export interface IAllComments {
