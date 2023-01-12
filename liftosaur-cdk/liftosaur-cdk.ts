@@ -17,7 +17,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const depsLayer = new lambda.LayerVersion(this, `LftNodeDependencies${suffix}`, {
       code: lambda.Code.fromAsset("dist-lambda", {
         bundling: {
-          image: lambda.Runtime.NODEJS_14_X.bundlingDockerImage,
+          image: lambda.Runtime.NODEJS_16_X.bundlingDockerImage,
           command: [
             "bash",
             "-c",
@@ -180,25 +180,25 @@ export class LiftosaurCdkStack extends cdk.Stack {
     };
 
     const keyCookieSecret = sm.Secret.fromSecretAttributes(this, `LftKeyCookieSecret${suffix}`, {
-      secretArn: secretArns[env].cookieSecret,
+      secretCompleteArn: secretArns[env].cookieSecret,
     });
     const keyApiKey = sm.Secret.fromSecretAttributes(this, `LftKeyApiKey${suffix}`, {
-      secretArn: secretArns[env].apiKey,
+      secretCompleteArn: secretArns[env].apiKey,
     });
     const webpushrKey = sm.Secret.fromSecretAttributes(this, `LftWebpushrKey${suffix}`, {
-      secretArn: secretArns[env].webpushrKey,
+      secretCompleteArn: secretArns[env].webpushrKey,
     });
     const webpushrAuthToken = sm.Secret.fromSecretAttributes(this, `LftWebpushrAuthToken${suffix}`, {
-      secretArn: secretArns[env].webpushrAuthToken,
+      secretCompleteArn: secretArns[env].webpushrAuthToken,
     });
     const cryptoKeySecret = sm.Secret.fromSecretAttributes(this, `lftCryptoKey${suffix}`, {
-      secretArn: secretArns[env].cryptoKey,
+      secretCompleteArn: secretArns[env].cryptoKey,
     });
     const appleAppSharedSecret = sm.Secret.fromSecretAttributes(this, `lftAppleAppSharedSecret${suffix}`, {
-      secretArn: secretArns[env].appleAppSharedSecret,
+      secretCompleteArn: secretArns[env].appleAppSharedSecret,
     });
     const googleServiceAccountPubsub = sm.Secret.fromSecretAttributes(this, `lftGoogleServiceAccountPubsub${suffix}`, {
-      secretArn: secretArns[env].googleServiceAccountPubsub,
+      secretCompleteArn: secretArns[env].googleServiceAccountPubsub,
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
@@ -207,7 +207,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 2048,
       layers: [depsLayer],

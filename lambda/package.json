@@ -20,7 +20,7 @@
     "rollbar": "^2.21.1",
     "rsa-pem-from-mod-exp": "^0.8.5",
     "source-map-support": "^0.5.19",
-    "uplot": "^1.6.8",
+    "uplot": "^1.6.23",
     "yatro": "^0.2.3"
   },
   "devDependencies": {
