@@ -101,6 +101,6 @@ describe("Stats", () => {
     g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 1);
-    g("graph").eq(0).find(".title").should("have.text", "Shoulders");
+    g("graph").eq(0).find(".u-title").should("have.text", "Shoulders");
   });
 });

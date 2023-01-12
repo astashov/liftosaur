@@ -46,8 +46,8 @@ describe("Graphs", () => {
     g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 2);
-    g("graph").eq(0).find(".title").should("have.text", "Bent Over Row Max Weight");
-    g("graph").eq(1).find(".title").should("have.text", "Bench Press Max Weight");
+    g("graph").eq(0).find(".u-title").should("have.text", "Bent Over Row Max Weight");
+    g("graph").eq(1).find(".u-title").should("have.text", "Bench Press Max Weight");
 
     g("graphs-modify").click();
 
@@ -57,7 +57,7 @@ describe("Graphs", () => {
     g("modal-close").filter(":visible").click();
 
     g("graph").should("have.length", 2);
-    g("graph").eq(0).find(".title").should("have.text", "Bench Press Max Weight");
-    g("graph").eq(1).find(".title").should("have.text", "Squat Max Weight");
+    g("graph").eq(0).find(".u-title").should("have.text", "Bench Press Max Weight");
+    g("graph").eq(1).find(".u-title").should("have.text", "Squat Max Weight");
   });
 });

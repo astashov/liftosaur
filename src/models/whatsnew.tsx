@@ -88,6 +88,23 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230111": {
+    title: <span>Graph Improvements</span>,
+    body: (
+      <ul>
+        <li>
+          <ul className="pl-4 list-disc">
+            <li>Using 2 fingers, you can pinch-zoom graphs now.</li>
+            <li>Also using 2 fingers you can move the zoomed area.</li>
+            <li>By double-tapping a graph, you can reset the zoom and return to its original size.</li>
+            <li>Added vertical lines on the graphs when program was changed.</li>
+            <li>Added a link in the legend to the selected workout on the graph.</li>
+            <li>Removed the horizontal line on the cursor, since it was pretty useless.</li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
