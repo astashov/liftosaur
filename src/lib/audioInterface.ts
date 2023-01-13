@@ -18,7 +18,7 @@ export class AudioInterface implements IAudioInterface {
   }
 
   public play(): void {
-    const isPlayed = SendMessage.toIos({ type: "playSound" });
+    const isPlayed = SendMessage.toIos({ type: "playSound" }) || SendMessage.toAndroid({ type: "playSound" });
     if (!isPlayed) {
       this.audio.play();
     }
