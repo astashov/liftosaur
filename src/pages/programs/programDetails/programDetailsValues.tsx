@@ -3,11 +3,12 @@ import { memo, useState } from "preact/compat";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progress } from "../../../models/progress";
 import { Weight } from "../../../models/weight";
-import { IProgramExercise, IProgramSet, ISettings } from "../../../types";
+import { IProgramExercise, IProgramSet, ISet, ISettings, IWeight } from "../../../types";
+import { HistoryRecordProgramSetsView, HistoryRecordSetsView } from "../../../components/historyRecordSets";
 
-function getRepsValues(props: IRepsWeightsProps): string[] {
+function getRepsValues(props: IRepsWeightsProps): number[] {
   return props.sets.map((set) => {
-    const value = Progress.executeEntryScript(
+    return Progress.executeEntryScript(
       set.repsExpr,
       props.dayIndex,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
@@ -15,11 +16,10 @@ function getRepsValues(props: IRepsWeightsProps): string[] {
       props.settings,
       "reps"
     );
-    return `${value}`;
   }, []);
 }
 
-function getWeightsValues(props: IRepsWeightsProps): string[] {
+function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
   return props.sets.map((set) => {
     const value = Progress.executeEntryScript(
       set.weightExpr,
@@ -29,10 +29,7 @@ function getWeightsValues(props: IRepsWeightsProps): string[] {
       props.settings,
       "weight"
     );
-    const result = Weight.display(
-      Weight.roundConvertTo(value, props.settings, props.programExercise.exerciseType.equipment)
-    );
-    return result;
+    return Weight.roundConvertTo(value, props.settings, props.programExercise.exerciseType.equipment);
   }, []);
 }
 
@@ -44,10 +41,6 @@ function getRepsScripts(props: { sets: IProgramSet[] }): string[] {
   return props.sets.map((set) => set.repsExpr);
 }
 
-function areValuesAndScriptsEqual(values: string[], scripts: string[]): boolean {
-  return values.length === scripts.length && values.every((v, i) => v === scripts[i]);
-}
-
 interface IRepsWeightsProps {
   sets: IProgramSet[];
   programExercise: IProgramExercise;
@@ -57,109 +50,54 @@ interface IRepsWeightsProps {
   shouldShowAllFormulas: boolean;
 }
 
-export const Reps = memo(
+export const RepsAndWeight = memo(
   (props: IRepsWeightsProps): JSX.Element => {
-    const values = getRepsValues(props);
-    const scripts = getRepsScripts({ sets: props.sets });
-    return <ValuesAndFormula values={values} scripts={scripts} shouldShowAllFormulas={props.shouldShowAllFormulas} />;
-  }
-);
-
-export const Weights = memo(
-  (props: IRepsWeightsProps): JSX.Element => {
-    const values = getWeightsValues(props);
-    const scripts = getWeightsScripts({ sets: props.sets });
-    return <ValuesAndFormula values={values} scripts={scripts} shouldShowAllFormulas={props.shouldShowAllFormulas} />;
-  }
-);
-
-interface IValuesAndFormulaProps {
-  values: string[];
-  scripts: string[];
-  shouldShowAllFormulas: boolean;
-}
-
-function ValuesAndFormula(props: IValuesAndFormulaProps): JSX.Element {
-  const { values, scripts } = props;
-  const areEqual = areValuesAndScriptsEqual(values, scripts);
-  const [isDisplayingFormula, setIsDisplayingFormula] = useState(props.shouldShowAllFormulas);
-  return (
-    <div>
-      {(areEqual || !isDisplayingFormula) && (
-        <>
-          <GroupedValues values={values} />{" "}
-          {!areEqual && (
-            <span className="whitespace-no-wrap">
-              (
-              <button
-                className="text-sm text-blue-700 underline"
-                onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
-              >
-                Show Formula
-              </button>
-              )
-            </span>
-          )}
-        </>
-      )}
-      {!areEqual && isDisplayingFormula && (
-        <>
-          <GroupedValues values={scripts} />{" "}
-          <span className="whitespace-no-wrap">
-            (
-            <button
-              onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
-              className="text-sm text-blue-700 underline"
-            >
-              Show Values
-            </button>
-            )
-          </span>
-        </>
-      )}
-    </div>
-  );
-}
-
-const GroupedValues = memo(
-  (props: { values: string[] }): JSX.Element => {
-    const groups = props.values.reduce<[string, number][]>((acc, value) => {
-      const last = acc[acc.length - 1];
-      if (last == null) {
-        acc.push([value, 1]);
-      } else {
-        const [lastValue] = last;
-        if (lastValue === value) {
-          acc[acc.length - 1][1] += 1;
-        } else {
-          acc.push([value, 1]);
-        }
-      }
-      return acc;
-    }, []);
-    const jsxes = groups.map((group) => {
-      const [reps, sets] = group;
-      return (
-        <span>
-          {sets > 1 && (
-            <Fragment>
-              <span>{sets}</span>
-              <span> x </span>
-            </Fragment>
-          )}
-          <span>{reps}</span>
-        </span>
-      );
-    });
+    const [isDisplayingFormula, setIsDisplayingFormula] = useState(props.shouldShowAllFormulas);
+    const repsValues = getRepsValues(props);
+    const weightValues = getWeightsValues(props);
+    const repsScripts = getRepsScripts(props);
+    const weightsScripts = getWeightsScripts(props);
+    const sets: ISet[] = repsValues.map<ISet>((reps, i) => ({
+      reps: reps,
+      weight: weightValues[i],
+      isAmrap: !!props.sets[i]?.isAmrap,
+    }));
+    const areEqual =
+      repsScripts.length === repsValues.length &&
+      repsScripts.every((v, i) => v === repsScripts[i]) &&
+      weightValues.length === weightsScripts.length &&
+      weightsScripts.every((v, i) => v === `${weightValues[i].value}`);
     return (
-      <span>
-        {jsxes.map((el, i) => (
-          <span>
-            {i !== 0 ? <span> / </span> : <Fragment></Fragment>}
-            {el}
-          </span>
-        ))}
-      </span>
+      <div>
+        {(areEqual || !isDisplayingFormula) && (
+          <>
+            <HistoryRecordSetsView sets={sets} isNext={true} unit={props.settings.units} />
+            {!areEqual && (
+              <div className="whitespace-no-wrap">
+                <button
+                  className="text-sm underline text-bluev2"
+                  onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
+                >
+                  Show Formula
+                </button>
+              </div>
+            )}
+          </>
+        )}
+        {!areEqual && isDisplayingFormula && (
+          <>
+            <HistoryRecordProgramSetsView sets={props.sets} />
+            <div className="whitespace-no-wrap">
+              <button
+                onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
+                className="text-sm text-blue-700 underline"
+              >
+                Show Values
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     );
   }
 );

@@ -35,9 +35,13 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
       <div className="px-4 pt-3" dangerouslySetInnerHTML={{ __html: props.program.description }} />
       {props.program.days.map((day, dayIndex) => {
         return (
-          <section className={`py-2 px-4 ${dayIndex % 2 === 0 ? "bg-white" : "bg-white"}`}>
+          <section
+            className={`pt-2 pb-16 px-4 ${dayIndex > 0 ? "border-grayv2-400 border-t" : ""} ${
+              dayIndex % 2 === 0 ? "bg-white" : "bg-white"
+            }`}
+          >
             <div className="flex items-center">
-              <h2 className="flex-1 pt-4 pb-4 text-xl text-gray-600">{day.name}</h2>
+              <h2 className="flex-1 pt-4 pb-4 text-2xl text-gray-600">{day.name}</h2>
               <div className="pl-2">
                 <button
                   onClick={() => {

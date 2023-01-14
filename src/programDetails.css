@@ -1,4 +1,7 @@
 /* purgecss start ignore */
+
+@import "fonts.css";
+
 html,
 body {
   height: 100%;
@@ -7,7 +10,7 @@ body {
 body {
   font-size: 16px;
   line-height: 1.55em;
-  font-family: Arial, sans-serif;
+  font-family: Poppins, sans-serif;
 }
 
 .content {
@@ -25,6 +28,10 @@ body {
 
 .program-details-header {
   padding-left: 1em;
+}
+
+.block.code {
+  font-family: "Iosevka Web" !important;
 }
 
 @media (max-width: 600px) {

@@ -10,7 +10,7 @@ import { DeloadView } from "./programDetailsDeload";
 import { FinishDayExprView } from "./programDetailsFinishDayExpr";
 import { Playground } from "./programDetailsPlayground";
 import { ProgressionView } from "./programDetailsProgression";
-import { Reps, Weights } from "./programDetailsValues";
+import { RepsAndWeight } from "./programDetailsValues";
 import { IProgramDetailsDispatch } from "./types";
 
 interface IProgramDetailsExerciseProps {
@@ -59,19 +59,9 @@ export const ProgramDetailsExercise = memo(
             </div>
             <div className="flex">
               <div className="flex-1 pr-2 program-details-exercise-content">
-                <h3 className="font-bold">{programExercise.name}</h3>
+                <h3 className="text-lg font-bold">{programExercise.name}</h3>
                 <div className="pt-2">
-                  <Reps
-                    sets={variation.sets}
-                    programExercise={programExercise}
-                    allProgramExercises={allProgramExercises}
-                    dayIndex={dayIndex}
-                    settings={settings}
-                    shouldShowAllFormulas={props.shouldShowAllFormulas}
-                  />
-                </div>
-                <div className="pt-2">
-                  <Weights
+                  <RepsAndWeight
                     sets={variation.sets}
                     programExercise={programExercise}
                     allProgramExercises={allProgramExercises}
