@@ -123,22 +123,26 @@ a {
 
 .content-cta {
   margin-top: 20px;
+}
+
+.content-cta-row {
   display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
 }
 
+.content-cta-row-bottom {
+  margin-top: -1rem;
+}
+
 .content-cta-button {
   white-space: nowrap;
-  color: #fff;
-  padding: 0.5em 1em;
   font-weight: bold;
-  border: 1px solid #2f855a;
-  border-radius: 0.25rem;
-  background-color: #48bb78;
-  text-decoration: none;
-  font-size: 1.5em;
-  display: block;
+  text-decoration: underline;
+  font-size: 1;
+  display: inline-block;
 }
 
 .content-cta-button-sub {
@@ -153,7 +157,6 @@ a {
 }
 
 .content-cta-android a {
-  margin-bottom: 1rem;
   display: block;
 }
 
@@ -170,11 +173,6 @@ a {
   .footer-content-cta {
     font-size: 0.8em;
   }
-
-  .content-cta-android img {
-    width: 11rem;
-    height: 4.5rem;
-  }
 }
 
 @media (max-width: 820px) {
@@ -184,11 +182,6 @@ a {
 
   .footer-content-cta {
     font-size: 0.7em;
-  }
-
-  .content-cta-android img {
-    width: 10rem;
-    height: 4rem;
   }
 }
 
@@ -623,8 +616,8 @@ footer nav li {
     padding: 12px 24px;
   }
 
-  .content-cta-button {
-    font-size: 2em;
+  .content-cta-row-bottom {
+    font-size: 1.5em;
   }
 
   .hero-video {

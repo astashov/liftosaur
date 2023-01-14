@@ -24,5 +24,12 @@
   "background_color": "#ffffff",
   "display": "fullscreen",
   "scope": "/",
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.liftosaur.www.twa"
+    }
+  ],
   "theme_color": "#ffffff"
 }
