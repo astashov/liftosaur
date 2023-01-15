@@ -105,6 +105,28 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230115": {
+    title: <span>Program Preview</span>,
+    body: (
+      <ul>
+        <li>
+          Added Program Preview, that shows the high-level overview of a program. It lists all the days and exercises,
+          all the sets variations (sets/reps/weight), you could see the formulas/scripts for each exercise, and muscles
+          for each day and the whole program. You can use it for 2 cases:
+          <ul className="pl-4 list-disc">
+            <li>
+              When you pick a built-in program, there's a "Preview" button in the modal with the program info. So you
+              could see now what you sign up for.
+            </li>
+            <li>
+              When you build your own program, there's "Preview" footer button. If will give you high-level overview of
+              the program, and could help to make sure everything works right there.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
