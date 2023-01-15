@@ -9,6 +9,7 @@ interface IProps {
   isFullWidth?: boolean;
   noPaddings?: boolean;
   shouldShowClose?: boolean;
+  overflowHidden?: boolean;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
 }
@@ -59,7 +60,9 @@ export function Modal(props: IProps): JSX.Element {
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-white rounded-lg shadow-lg`}
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
-        <div className="relative h-full px-6 overflow-auto">{props.children}</div>
+        <div className={`relative h-full px-6 ${props.overflowHidden ? "overflow-hidden" : "overflow-auto"}`}>
+          {props.children}
+        </div>
         {props.shouldShowClose && (
           <button
             data-cy="modal-close"

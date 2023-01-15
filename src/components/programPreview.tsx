@@ -22,6 +22,8 @@ import { MusclesView } from "./muscles/musclesView";
 import { LinkButton } from "./linkButton";
 import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { StringUtils } from "../utils/string";
+import { Locker } from "./locker";
+import { Subscriptions } from "../utils/subscriptions";
 
 export type IPreviewProgramMuscles =
   | {
@@ -138,6 +140,8 @@ export function ProgramPreview(props: IProps): JSX.Element {
           muscles={musclesModal}
           onClose={() => setMusclesModal(undefined)}
           program={program}
+          subscription={props.subscription}
+          dispatch={props.dispatch}
           settings={props.settings}
         />
       )}
@@ -208,6 +212,13 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                 </button>
               </div>
             </div>
+            <h4
+              data-cy="program-exercise-equipment"
+              style={{ marginTop: "-0.25rem" }}
+              className="pb-2 text-sm text-grayv2-main"
+            >
+              {StringUtils.capitalize(programExercise.exerciseType.equipment || "bodyweight")}
+            </h4>
             {variations.map((variation, variationIndex) => {
               return (
                 <div className={`${variationIndex > 1 ? "pt-2" : ""}`}>
@@ -319,6 +330,8 @@ interface IProgramPreviewMusclesModalProps {
   muscles: IPreviewProgramMuscles;
   program: IProgram;
   settings: ISettings;
+  dispatch: IDispatch;
+  subscription: ISubscription;
   onClose: () => void;
 }
 
@@ -336,7 +349,13 @@ export function ProgramPreviewMusclesModal(props: IProgramPreviewMusclesModalPro
       : `Muscles for day '${props.program.days[props.muscles.dayIndex].name}'`;
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
+    <Modal
+      shouldShowClose={true}
+      onClose={props.onClose}
+      isFullWidth={true}
+      overflowHidden={!Subscriptions.hasSubscription(props.subscription)}
+    >
+      <Locker topic="Muscles" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
       <h2 className="pb-2 text-xl font-bold text-center">{title}</h2>
       <MusclesView settings={props.settings} points={points} title={props.program.name} />
     </Modal>
