@@ -55,6 +55,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         <Fragment>
           {program != null && (
             <ModalProgramInfo
+              settings={props.settings}
               program={program}
               hasCustomPrograms={props.customPrograms.length > 0}
               onClose={() => setSelectedProgramId(undefined)}

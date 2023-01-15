@@ -324,6 +324,23 @@ export namespace Program {
     return { success: true, data: newState };
   }
 
+  export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
+    const dayApproxTimes = program.days.map((d, i) => dayApproxTimeMs(i, program, settings));
+    return dayApproxTimes.reduce((acc, t) => acc + t, 0) / dayApproxTimes.length;
+  }
+
+  export function dayApproxTimeMs(dayIndex: number, program: IProgram, settings: ISettings): number {
+    const day = program.days[dayIndex];
+    return day.exercises.reduce((acc, e) => {
+      const programExercise = program.exercises.find((pe) => pe.id === e.id);
+      if (programExercise) {
+        return acc + ProgramExercise.approxTimeMs(dayIndex, programExercise, program.exercises, settings);
+      } else {
+        return acc;
+      }
+    }, 0);
+  }
+
   export function runAllFinishDayScripts(program: IProgram, progress: IHistoryRecord, settings: ISettings): IProgram {
     const programDay = program.days[progress.day - 1];
     const newProgram = lf(program)

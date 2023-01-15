@@ -24,6 +24,9 @@ import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { StringUtils } from "../utils/string";
 import { Locker } from "./locker";
 import { Subscriptions } from "../utils/subscriptions";
+import { Program } from "../models/program";
+import { TimeUtils } from "../utils/time";
+import { IconWatch } from "./icons/iconWatch";
 
 export type IPreviewProgramMuscles =
   | {
@@ -88,12 +91,19 @@ export function ProgramPreview(props: IProps): JSX.Element {
             By {program.author}
           </h3>
         )}
+        <div className="py-1">
+          <IconWatch />{" "}
+          <span className="align-middle">
+            Average time to finish a workout:{" "}
+            <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(program, props.settings))}</strong>
+          </span>
+        </div>
         {program.description && <div className="pt-2" dangerouslySetInnerHTML={{ __html: program.description }} />}
         <GroupHeader name="Days and Exercises" topPadding={true} />
         {program.days.map((day, dayIndex) => {
           return (
             <section data-cy={`day-${dayIndex + 1}`} className="pb-4">
-              <div className="flex items-center pb-2">
+              <div className="flex items-center">
                 <h2 data-cy="program-day-name" className="flex-1 text-2xl text-gray-600">
                   {dayIndex + 1}. {day.name}
                 </h2>
@@ -107,6 +117,13 @@ export function ProgramPreview(props: IProps): JSX.Element {
                     <IconMuscles2 />
                   </button>
                 </div>
+              </div>
+              <div className="pb-2">
+                <IconWatch />{" "}
+                <span className="align-middle">
+                  Approximate time to finish:{" "}
+                  <strong>{TimeUtils.formatHHMM(Program.dayApproxTimeMs(dayIndex, program, props.settings))}</strong>
+                </span>
               </div>
               <ul>
                 {day.exercises.map((dayEntry, index) => {

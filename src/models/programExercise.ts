@@ -1,4 +1,12 @@
-import { IProgramExercise, IProgramState, IProgramExerciseVariation, IProgramExerciseWarmupSet } from "../types";
+import {
+  IProgramExercise,
+  IProgramState,
+  IProgramExerciseVariation,
+  IProgramExerciseWarmupSet,
+  ISettings,
+} from "../types";
+import { Program } from "./program";
+import { ProgramSet } from "./programSet";
 
 export namespace ProgramExercise {
   export function getState(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): IProgramState {
@@ -69,5 +77,20 @@ export namespace ProgramExercise {
     allProgramExercises: IProgramExercise[]
   ): IProgramExercise {
     return getReusedProgramExercise(programExercise, allProgramExercises) || programExercise;
+  }
+
+  export function approxTimeMs(
+    dayIndex: number,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    settings: ISettings
+  ): number {
+    const programExerciseVariations = getVariations(programExercise, allProgramExercises);
+    const nextVariationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, dayIndex, settings);
+    const variation = programExerciseVariations[nextVariationIndex];
+    return variation.sets.reduce(
+      (memo, set) => memo + ProgramSet.approxTimeMs(set, dayIndex, programExercise, allProgramExercises, settings),
+      0
+    );
   }
 }
