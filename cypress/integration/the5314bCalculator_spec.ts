@@ -12,7 +12,7 @@ describe("5/3/1 for beginners calculator", () => {
     cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.contains("5/3/1 For Beginners").click();
-    cy.contains("Clone").click();
+    g("clone-program").click();
     g("squat-training-max-lb-input").clear().type("300");
     g("bench-press-calculate").click();
     g("input-reps").clear().type("5");

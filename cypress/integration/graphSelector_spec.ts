@@ -12,7 +12,7 @@ describe("Graphs", () => {
     cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
-    cy.contains("Clone").click();
+    g("clone-program").click();
     g("footer-graphs").click();
 
     g("screen").should("contain.text", "Finish at least one workout to see the graphs");

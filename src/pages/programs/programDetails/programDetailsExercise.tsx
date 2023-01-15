@@ -1,3 +1,4 @@
+import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useState } from "preact/hooks";
@@ -11,7 +12,7 @@ import { FinishDayExprView } from "./programDetailsFinishDayExpr";
 import { Playground } from "./programDetailsPlayground";
 import { ProgressionView } from "./programDetailsProgression";
 import { RepsAndWeight } from "./programDetailsValues";
-import { IProgramDetailsDispatch } from "./types";
+import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
 
 interface IProgramDetailsExerciseProps {
   programId: string;
@@ -88,7 +89,16 @@ export const ProgramDetailsExercise = memo(
                   variationIndex={variationIndex}
                   settings={settings}
                   day={dayIndex + 1}
-                  dispatch={props.dispatch}
+                  onProgramExerciseUpdate={(newProgramExercise) => {
+                    props.dispatch(
+                      lb<IProgramDetailsState>()
+                        .p("programs")
+                        .findBy("id", props.programId)
+                        .p("exercises")
+                        .findBy("id", newProgramExercise.id)
+                        .record(newProgramExercise)
+                    );
+                  }}
                 />
               </div>
             </div>

@@ -48,11 +48,13 @@ interface IRepsWeightsProps {
   dayIndex: number;
   settings: ISettings;
   shouldShowAllFormulas: boolean;
+  forceShowFormula?: boolean;
 }
 
 export const RepsAndWeight = memo(
   (props: IRepsWeightsProps): JSX.Element => {
     const [isDisplayingFormula, setIsDisplayingFormula] = useState(props.shouldShowAllFormulas);
+    const forceShowFormula = props.forceShowFormula;
     const repsValues = getRepsValues(props);
     const weightValues = getWeightsValues(props);
     const repsScripts = getRepsScripts(props);
@@ -69,10 +71,10 @@ export const RepsAndWeight = memo(
       weightsScripts.every((v, i) => v === `${weightValues[i].value}`);
     return (
       <div>
-        {(areEqual || !isDisplayingFormula) && (
+        {(areEqual || (forceShowFormula == null ? !isDisplayingFormula : !forceShowFormula)) && (
           <>
             <HistoryRecordSetsView sets={sets} isNext={true} unit={props.settings.units} />
-            {!areEqual && (
+            {!areEqual && forceShowFormula == null && (
               <div className="whitespace-no-wrap">
                 <button
                   className="text-sm underline text-bluev2"
@@ -84,17 +86,19 @@ export const RepsAndWeight = memo(
             )}
           </>
         )}
-        {!areEqual && isDisplayingFormula && (
+        {!areEqual && (forceShowFormula == null ? isDisplayingFormula : forceShowFormula) && (
           <>
             <HistoryRecordProgramSetsView sets={props.sets} />
-            <div className="whitespace-no-wrap">
-              <button
-                onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
-                className="text-sm text-blue-700 underline"
-              >
-                Show Values
-              </button>
-            </div>
+            {forceShowFormula == null && (
+              <div className="whitespace-no-wrap">
+                <button
+                  onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
+                  className="text-sm text-blue-700 underline"
+                >
+                  Show Values
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

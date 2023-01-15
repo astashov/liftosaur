@@ -609,7 +609,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       name: action.name,
       url: "",
       author: "",
-      description: action.name,
+      description: "",
       nextDay: 1,
       days: [{ name: "Day 1", exercises: [] }],
       exercises: [],

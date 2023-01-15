@@ -12,7 +12,7 @@ describe("Edit Sets", () => {
     cy.visit("https://local.liftosaur.com:8080");
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
-    cy.contains("Clone").click();
+    g("clone-program").click();
     g("footer-cta").click();
 
     g("exercise-options").eq(1).click();

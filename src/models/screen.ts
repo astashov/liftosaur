@@ -19,7 +19,8 @@ export type IScreen =
   | "friends"
   | "friendsAdd"
   | "measurements"
-  | "subscription";
+  | "subscription"
+  | "programPreview";
 
 export namespace Screen {
   export const editProgramScreens: IScreen[] = [

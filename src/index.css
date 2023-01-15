@@ -6,6 +6,7 @@
 
 @import "~codemirror/lib/codemirror.css";
 @import "~codemirror/addon/hint/show-hint.css";
+@import "~prismjs/themes/prism.css";
 @import "fonts.css";
 
 body {
@@ -43,6 +44,7 @@ body {
   color: darkblue;
 }
 
+.code.block,
 .CodeMirror pre.CodeMirror-line,
 .CodeMirror pre.CodeMirror-line-like {
   font-family: "Iosevka Web" !important;

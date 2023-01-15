@@ -30,6 +30,7 @@ import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
 import { ICustomExercise } from "../types";
 import { ProgramExercise } from "./programExercise";
+import { Thunk } from "../ducks/thunks";
 
 export interface IExportedProgram {
   program: IProgram;
@@ -384,6 +385,16 @@ export namespace Program {
       finishDayExpr: "",
       variationExpr: "1",
     };
+  }
+
+  export function previewProgram(dispatch: IDispatch, programId: string, showCustomPrograms: boolean): void {
+    updateState(dispatch, [
+      lb<IState>().p("previewProgram").record({
+        id: programId,
+        showCustomPrograms,
+      }),
+    ]);
+    dispatch(Thunk.pushScreen("programPreview"));
   }
 
   export function cloneProgram(dispatch: IDispatch, program: IProgram): void {

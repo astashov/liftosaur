@@ -31,6 +31,7 @@ import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { rightFooterButtons } from "../rightFooterButtons";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
+import { IconPreview } from "../icons/iconPreview";
 
 interface IProps {
   editProgram: IProgram;
@@ -70,6 +71,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               icon={<IconMuscles2 />}
               text="Muscles"
               onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
+            />,
+            <FooterButton
+              icon={<IconPreview />}
+              text="Preview"
+              onClick={() => Program.previewProgram(props.dispatch, props.editProgram.id, true)}
             />,
           ]}
           rightButtons={rightFooterButtons({ dispatch: props.dispatch })}

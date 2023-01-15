@@ -101,6 +101,10 @@ export interface IState {
   subscriptionLoading?: ISubscriptionLoading;
   progress: Partial<Record<number, IHistoryRecord>>;
   comments: IAllComments;
+  previewProgram?: {
+    id: string;
+    showCustomPrograms?: boolean;
+  };
   editProgram?: {
     id: string;
     dayIndex?: number;

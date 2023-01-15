@@ -5,13 +5,11 @@ import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
 import { IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
-import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
 import { Program } from "../../../models/program";
 import { IDispatch } from "../../../ducks/types";
 import { ICardsAction } from "../../../ducks/reducer";
 import { ExerciseView } from "../../../components/exercise";
 import { StateVars } from "./programDetailsStateVars";
-import { lb } from "lens-shmens";
 import { ModalAmrap } from "../../../components/modalAmrap";
 import { ModalWeight } from "../../../components/modalWeight";
 import { ProgramExercise } from "../../../models/programExercise";
@@ -24,7 +22,8 @@ interface IPlaygroundProps {
   variationIndex: number;
   settings: ISettings;
   day: number;
-  dispatch: IProgramDetailsDispatch;
+  hidePlatesCalculator?: boolean;
+  onProgramExerciseUpdate: (programExercise: IProgramExercise) => void;
 }
 
 export const Playground = memo(
@@ -92,6 +91,7 @@ export const Playground = memo(
           progress={progress}
           programExercise={programExercise}
           allProgramExercises={props.allProgramExercises}
+          hidePlatesCalculator={props.hidePlatesCalculator}
           index={0}
           forceShowStateChanges={true}
           settings={props.settings}
@@ -107,14 +107,7 @@ export const Playground = memo(
               ...programExercise,
               state: { ...programExerciseState, [key]: value },
             };
-            props.dispatch(
-              lb<IProgramDetailsState>()
-                .p("programs")
-                .findBy("id", props.programId)
-                .p("exercises")
-                .findBy("id", newProgramExercise.id)
-                .record(newProgramExercise)
-            );
+            props.onProgramExerciseUpdate(newProgramExercise);
             updateProgress({ programExercise: newProgramExercise });
           }}
         />

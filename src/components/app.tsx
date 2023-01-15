@@ -34,6 +34,7 @@ import { ScreenMeasurements } from "./screenMeasurements";
 import { ScreenSubscription } from "./screenSubscription";
 import { Subscriptions } from "../utils/subscriptions";
 import { lb } from "lens-shmens";
+import { ScreenProgramPreview } from "./screenProgramPreview";
 
 interface IProps {
   client: Window["fetch"];
@@ -243,6 +244,25 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch={dispatch}
       />
     );
+  } else if (Screen.current(state.screenStack) === "programPreview") {
+    if (state.previewProgram?.id == null) {
+      setTimeout(() => {
+        dispatch(Thunk.pullScreen());
+      }, 0);
+      content = <></>;
+    } else {
+      content = (
+        <ScreenProgramPreview
+          screenStack={state.screenStack}
+          loading={state.loading}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          selectedProgramId={state.previewProgram?.id}
+          programs={state.previewProgram?.showCustomPrograms ? state.storage.programs : state.programs}
+          subscription={state.storage.subscription}
+        />
+      );
+    }
   } else if (Screen.current(state.screenStack) === "friendsAdd") {
     content = (
       <ScreenFriendsAdd

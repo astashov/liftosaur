@@ -58,6 +58,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               program={program}
               hasCustomPrograms={props.customPrograms.length > 0}
               onClose={() => setSelectedProgramId(undefined)}
+              onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
               onSelect={() => {
                 Program.cloneProgram(props.dispatch, program);
                 if (program.id === "the5314b") {

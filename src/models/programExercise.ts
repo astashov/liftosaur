@@ -49,10 +49,10 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).warmupSets;
   }
 
-  export function getProgramExercise<T>(
+  export function getReusedProgramExercise<T>(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
-  ): IProgramExercise {
+  ): IProgramExercise | undefined {
     const reuseLogicId = programExercise.reuseLogic?.selected;
     if (reuseLogicId != null) {
       const reusedProgramExercise = allProgramExercises.filter((pe) => pe.id === reuseLogicId)[0];
@@ -61,6 +61,13 @@ export namespace ProgramExercise {
       }
     }
 
-    return programExercise;
+    return undefined;
+  }
+
+  export function getProgramExercise<T>(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): IProgramExercise {
+    return getReusedProgramExercise(programExercise, allProgramExercises) || programExercise;
   }
 }
