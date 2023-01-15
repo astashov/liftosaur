@@ -1,6 +1,9 @@
 export function g(...dataCys: string[]): ReturnType<typeof cy.get> {
-  const selectors = dataCys.map((dataCy) => `[data-cy=${dataCy}]`).join(" ");
-  return cy.get(selectors, { timeout: 8000 });
+  return cy.get(s(...dataCys), { timeout: 8000 });
+}
+
+export function s(...dataCys): string {
+  return dataCys.map((dataCy) => `[data-cy=${dataCy}]`).join(" ");
 }
 
 export function clearCodeMirror(dataCy: string): void {

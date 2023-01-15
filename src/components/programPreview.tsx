@@ -21,6 +21,7 @@ import { Modal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";
 import { LinkButton } from "./linkButton";
 import { ModalExerciseInfo } from "./modalExerciseInfo";
+import { StringUtils } from "../utils/string";
 
 export type IPreviewProgramMuscles =
   | {
@@ -58,7 +59,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
           }}
         />
         <div className="flex items-center pt-2">
-          <h2 className="flex-1 text-2xl font-bold leading-tight">
+          <h2 data-cy="program-name" className="flex-1 text-2xl font-bold leading-tight">
             {program.url ? (
               <a className="underline text-bluev2" target="_blank" href={program.url}>
                 {program.name}
@@ -68,27 +69,36 @@ export function ProgramPreview(props: IProps): JSX.Element {
             )}
           </h2>
           <div>
-            <button className="p-2 align-middle" onClick={() => setShowFx(!showFx)}>
+            <button data-cy="program-show-fx" className="p-2 align-middle" onClick={() => setShowFx(!showFx)}>
               <IconFx color={showFx ? "#FF8066" : "#171718"} />
             </button>
-            <button className="p-2 align-middle" onClick={() => setMusclesModal({ type: "program" })}>
+            <button
+              data-cy="program-show-muscles"
+              className="p-2 align-middle"
+              onClick={() => setMusclesModal({ type: "program" })}
+            >
               <IconMuscles2 />
             </button>
           </div>
         </div>
-        {program.author && <h3 className="text-sm font-bold uppercase text-grayv2-main">By {program.author}</h3>}
+        {program.author && (
+          <h3 data-cy="program-author" className="text-sm font-bold uppercase text-grayv2-main">
+            By {program.author}
+          </h3>
+        )}
         {program.description && <div className="pt-2" dangerouslySetInnerHTML={{ __html: program.description }} />}
         <GroupHeader name="Days and Exercises" topPadding={true} />
         {program.days.map((day, dayIndex) => {
           return (
-            <section className="pb-4">
+            <section data-cy={`day-${dayIndex + 1}`} className="pb-4">
               <div className="flex items-center pb-2">
-                <h2 className="flex-1 text-2xl text-gray-600">
+                <h2 data-cy="program-day-name" className="flex-1 text-2xl text-gray-600">
                   {dayIndex + 1}. {day.name}
                 </h2>
                 <div>
                   <button
                     style={{ marginRight: "-0.5rem" }}
+                    data-cy="program-show-day-muscles"
                     className="p-2"
                     onClick={() => setMusclesModal({ type: "day", dayIndex })}
                   >
@@ -166,10 +176,10 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
   const progression = Progression.getProgression(finishDayScript);
   const deload = Progression.getDeload(finishDayScript);
   return (
-    <li className="pb-4" id={programExercise.id}>
-      <div className="flex w-full program-preview-exercise">
+    <li className="pb-4" id={programExercise.id} data-cy={StringUtils.dashcase(programExercise.name)}>
+      <div className="flex w-full">
         <div
-          className="pr-4 program-details-exercise-image"
+          className="pr-4"
           onClick={() => props.onExerciseTypeClick(programExercise.exerciseType)}
           style={{ minWidth: "6.5em", width: "6.5em" }}
         >
@@ -180,16 +190,20 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
           />
         </div>
         <div className="flex flex-1">
-          <div className="flex-1 program-details-exercise-content">
+          <div className="flex-1">
             <div className="flex items-center">
-              <h3 className="flex-1 text-lg font-bold">
+              <h3 data-cy="program-exercise-name" className="flex-1 text-lg font-bold">
                 {programExerciseIndex + 1}. {programExercise.name}
               </h3>
               <div style={{ marginRight: "-0.5rem" }}>
-                <button className="p-2" onClick={() => setShowScripts(!showScripts)}>
+                <button data-cy="program-exercise-show-fx" className="p-2" onClick={() => setShowScripts(!showScripts)}>
                   <IconFx color={showScripts ? "#FF8066" : "#171718"} />
                 </button>
-                <button className="p-2" onClick={() => setShowPlayground(!showPlayground)}>
+                <button
+                  data-cy="program-exercise-show-playground"
+                  className="p-2"
+                  onClick={() => setShowPlayground(!showPlayground)}
+                >
                   <IconSquare5 color={showPlayground ? "#FF8066" : "#171718"} />
                 </button>
               </div>
@@ -216,28 +230,30 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                 </div>
               );
             })}
-            <div>
-              {reusedProgramExercise && (
-                <>
-                  Reused logic from{" "}
-                  <LinkButton
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const el = document.getElementById(reusedProgramExercise.id);
-                      if (el) {
-                        const top = window.pageYOffset + el.getBoundingClientRect().top - 70;
-                        window.scrollTo({ top, behavior: "smooth" });
-                      }
-                    }}
-                  >
-                    {reusedProgramExercise.name}
-                  </LinkButton>
-                  exercise
-                </>
-              )}
+            <div data-cy="program-exercise-info">
+              <div>
+                {reusedProgramExercise && (
+                  <>
+                    Reused logic from{" "}
+                    <LinkButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const el = document.getElementById(reusedProgramExercise.id);
+                        if (el) {
+                          const top = window.pageYOffset + el.getBoundingClientRect().top - 70;
+                          window.scrollTo({ top, behavior: "smooth" });
+                        }
+                      }}
+                    >
+                      {reusedProgramExercise.name}
+                    </LinkButton>
+                    exercise
+                  </>
+                )}
+              </div>
+              <div>{progression && <ProgressionView progression={progression} />}</div>
+              <div>{deload && <DeloadView deload={deload} />}</div>
             </div>
-            <div>{progression && <ProgressionView progression={progression} />}</div>
-            <div>{deload && <DeloadView deload={deload} />}</div>
           </div>
         </div>
       </div>
@@ -292,7 +308,7 @@ export const FinishDayExprView = memo((props: { finishDayExpr: string }): JSX.El
   return (
     <div className="pt-2">
       <span className="text-sm font-bold">Finish Day Script: </span>
-      <pre className="overflow-auto text-sm">
+      <pre data-cy="finish-day-script" className="overflow-auto text-sm">
         <code class="block code language-javascript" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
       </pre>
     </div>

@@ -22,7 +22,7 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
       <div className="text-sm text-grayv2-700">by {program.author}</div>
       <div dangerouslySetInnerHTML={{ __html: program.description }} className="mt-4 program-description" />
       <p className="mt-6 text-center">
-        <Button type="button" kind="purple" className="mr-3" onClick={props.onPreview}>
+        <Button data-cy="preview-program" type="button" kind="purple" className="mr-3" onClick={props.onPreview}>
           Preview
         </Button>
         <Button

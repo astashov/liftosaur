@@ -22,13 +22,14 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
     const name = `${id}_${key}`;
     const val = typeof variable === "number" ? variable : variable.value;
     return (
-      <li className="flex items-center pb-2">
+      <li data-cy={`state-var-${key}`} className="flex items-center pb-2">
         <label className="pr-2 font-bold" for={name}>
           {key}
         </label>
         <input
           className={inputClassName}
           id={name}
+          data-cy={`state-var-${key}-input`}
           name={name}
           type="tel"
           value={val}
