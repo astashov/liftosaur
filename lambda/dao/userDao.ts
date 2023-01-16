@@ -1,4 +1,4 @@
-import { IStorage, IHistoryRecord, IProgram, IWeight, ILength, IStats } from "../../src/types";
+import { IStorage, IHistoryRecord, IProgram, IWeight, ILength, IStats, IPartialStorage } from "../../src/types";
 import { Settings } from "../../src/models/settings";
 import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
@@ -156,35 +156,46 @@ export class UserDao {
     }
   }
 
-  public async getById(userId: string): Promise<IUserDao | undefined> {
+  public getHistoryByUserId(userId: string): Promise<IHistoryRecord[]> {
     const env = Utils.getEnv();
+    return this.di.dynamo.query<IHistoryRecord>({
+      tableName: userTableNames[env].historyRecords,
+      indexName: userTableNames[env].historyRecordsDate,
+      expression: "#userId = :userId",
+      scanIndexForward: false,
+      attrs: { "#userId": "userId" },
+      values: { ":userId": userId },
+    });
+  }
 
+  public async getStatsByUserId(userId: string): Promise<IStats> {
+    const env = Utils.getEnv();
+    const statsDb = await this.di.dynamo.query<IStatDb>({
+      tableName: userTableNames[env].stats,
+      expression: "#userId = :userId",
+      scanIndexForward: false,
+      attrs: { "#userId": "userId" },
+      values: { ":userId": userId },
+    });
+    return convertStatsFromDb(statsDb);
+  }
+
+  public getProgramsByUserId(userId: string): Promise<IProgram[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.query<IProgram>({
+      tableName: userTableNames[env].programs,
+      expression: "#userId = :userId",
+      attrs: { "#userId": "userId" },
+      values: { ":userId": userId },
+    });
+  }
+
+  public async getById(userId: string): Promise<IUserDao | undefined> {
     const userDao = await this.getLimitedById(userId);
     if (userDao != null) {
-      const history = await this.di.dynamo.query<IHistoryRecord>({
-        tableName: userTableNames[env].historyRecords,
-        indexName: userTableNames[env].historyRecordsDate,
-        expression: "#userId = :userId",
-        scanIndexForward: false,
-        attrs: { "#userId": "userId" },
-        values: { ":userId": userId },
-      });
-
-      const programs = await this.di.dynamo.query<IProgram>({
-        tableName: userTableNames[env].programs,
-        expression: "#userId = :userId",
-        attrs: { "#userId": "userId" },
-        values: { ":userId": userId },
-      });
-
-      const statsDb = await this.di.dynamo.query<IStatDb>({
-        tableName: userTableNames[env].stats,
-        expression: "#userId = :userId",
-        scanIndexForward: false,
-        attrs: { "#userId": "userId" },
-        values: { ":userId": userId },
-      });
-      const stats = convertStatsFromDb(statsDb);
+      const history = await this.getHistoryByUserId(userId);
+      const programs = await this.getProgramsByUserId(userId);
+      const stats = await this.getStatsByUserId(userId);
 
       return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
     } else {
@@ -192,97 +203,112 @@ export class UserDao {
     }
   }
 
-  public async saveStorage(user: IUserDao, storage: IStorage): Promise<void> {
+  public async saveStorage(user: ILimitedUserDao, storage: IPartialStorage): Promise<void> {
     const { history, programs, stats, ...userStorage } = storage;
     const statsObj = stats || { length: {}, weight: {} };
     const env = Utils.getEnv();
     const updatedUser: ILimitedUserDao = { ...user, storage: userStorage };
 
-    const newHistoryIds = CollectionUtils.collectToSet(storage.history, "id");
-    const historyToDelete = user.storage.history.filter((r) => !newHistoryIds.has(r.id));
-    const newProgramIds = CollectionUtils.collectToSet(storage.programs, "id");
-    const programsToDelete = user.storage.programs.filter((r) => !newProgramIds.has(r.id));
+    let historyDeletes: Promise<void>[] = [];
+    let historyUpdates: Promise<void>[] = [];
+    if (history) {
+      const userHistory = await this.getHistoryByUserId(user.id);
+      const newHistoryIds = CollectionUtils.collectToSet(history || [], "id");
+      const historyToDelete = userHistory.filter((r) => !newHistoryIds.has(r.id));
 
-    const historyDeletes = CollectionUtils.inGroupsOf(23, historyToDelete).map(async (group) => {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].historyRecords,
-        keys: group.map((record) => ({ id: record.id, userId: user.id })),
+      historyDeletes = CollectionUtils.inGroupsOf(23, historyToDelete).map(async (group) => {
+        await this.di.dynamo.batchDelete({
+          tableName: userTableNames[env].historyRecords,
+          keys: group.map((record) => ({ id: record.id, userId: user.id })),
+        });
       });
-    });
 
-    const historyUpdates = CollectionUtils.inGroupsOf(23, history).map(async (group) => {
-      const items = CollectionUtils.uniqBy(group, "id").map((record) => ({ ...record, userId: user.id }));
-      await this.di.dynamo.batchPut({ tableName: userTableNames[env].historyRecords, items });
-    });
-
-    const programDeletes = CollectionUtils.inGroupsOf(23, programsToDelete).map(async (group) => {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].programs,
-        keys: group.map((record) => ({ id: record.id, userId: user.id })),
+      historyUpdates = CollectionUtils.inGroupsOf(23, history).map(async (group) => {
+        const items = CollectionUtils.uniqBy(group, "id").map((record) => ({ ...record, userId: user.id }));
+        await this.di.dynamo.batchPut({ tableName: userTableNames[env].historyRecords, items });
       });
-    });
-
-    const programUpdates = CollectionUtils.inGroupsOf(23, programs).map(async (group) => {
-      await this.di.dynamo.batchPut({
-        tableName: userTableNames[env].programs,
-        items: group.map((record) => ({ ...record, userId: user.id })),
-      });
-    });
-
-    const newStatNames = new Set<string>();
-    for (const k of ObjectUtils.keys(statsObj.length)) {
-      const s = statsObj.length[k];
-      for (const v of s || []) {
-        newStatNames.add(`${v.timestamp}_${k}`);
-      }
     }
-    for (const k of ObjectUtils.keys(statsObj.weight)) {
-      const s = statsObj.weight[k];
-      for (const v of s || []) {
-        newStatNames.add(`${v.timestamp}_${k}`);
-      }
+
+    let programDeletes: Promise<void>[] = [];
+    let programUpdates: Promise<void>[] = [];
+    if (programs) {
+      const userPrograms = await this.getProgramsByUserId(user.id);
+      const newProgramIds = CollectionUtils.collectToSet(programs || [], "id");
+      const programsToDelete = userPrograms.filter((r) => !newProgramIds.has(r.id));
+      programDeletes = CollectionUtils.inGroupsOf(23, programsToDelete).map(async (group) => {
+        await this.di.dynamo.batchDelete({
+          tableName: userTableNames[env].programs,
+          keys: group.map((record) => ({ id: record.id, userId: user.id })),
+        });
+      });
+
+      programUpdates = CollectionUtils.inGroupsOf(23, programs).map(async (group) => {
+        await this.di.dynamo.batchPut({
+          tableName: userTableNames[env].programs,
+          items: group.map((record) => ({ ...record, userId: user.id })),
+        });
+      });
     }
-    const statsToDelete = [];
-    for (const k of ObjectUtils.keys(user.storage.stats.weight)) {
-      const s = user.storage.stats.weight[k];
-      for (const v of s || []) {
-        const name = `${v.timestamp}_${k}`;
-        if (!newStatNames.has(name)) {
-          statsToDelete.push(name);
+
+    let statsDeletes: Promise<void>[] = [];
+    let statsUpdates: Promise<void>[] = [];
+    if (stats) {
+      const userStats = await this.getStatsByUserId(user.id);
+      const newStatNames = new Set<string>();
+      for (const k of ObjectUtils.keys(statsObj.length)) {
+        const s = statsObj.length[k];
+        for (const v of s || []) {
+          newStatNames.add(`${v.timestamp}_${k}`);
         }
       }
-    }
-    for (const k of ObjectUtils.keys(user.storage.stats.length)) {
-      const s = user.storage.stats.length[k];
-      for (const v of s || []) {
-        const name = `${v.timestamp}_${k}`;
-        if (!newStatNames.has(name)) {
-          statsToDelete.push(name);
+      for (const k of ObjectUtils.keys(statsObj.weight)) {
+        const s = statsObj.weight[k];
+        for (const v of s || []) {
+          newStatNames.add(`${v.timestamp}_${k}`);
         }
       }
-    }
-    const statsDeletes = CollectionUtils.inGroupsOf(23, statsToDelete).map(async (group) => {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].stats,
-        keys: group.map((record) => ({ userId: user.id, name: record })),
+      const statsToDelete = [];
+      for (const k of ObjectUtils.keys(userStats.weight)) {
+        const s = userStats.weight[k];
+        for (const v of s || []) {
+          const name = `${v.timestamp}_${k}`;
+          if (!newStatNames.has(name)) {
+            statsToDelete.push(name);
+          }
+        }
+      }
+      for (const k of ObjectUtils.keys(userStats.length)) {
+        const s = userStats.length[k];
+        for (const v of s || []) {
+          const name = `${v.timestamp}_${k}`;
+          if (!newStatNames.has(name)) {
+            statsToDelete.push(name);
+          }
+        }
+      }
+      statsDeletes = CollectionUtils.inGroupsOf(23, statsToDelete).map(async (group) => {
+        await this.di.dynamo.batchDelete({
+          tableName: userTableNames[env].stats,
+          keys: group.map((record) => ({ userId: user.id, name: record })),
+        });
       });
-    });
 
-    const statsLengthArray: IStatDb[] = ObjectUtils.keys(statsObj.length).flatMap((key) => {
-      const st = statsObj.length[key] || [];
-      return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "length" }));
-    });
-    const statsWeightArray: IStatDb[] = ObjectUtils.keys(statsObj.weight).flatMap((key) => {
-      const st = statsObj.weight[key] || [];
-      return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "weight" }));
-    });
-    const statsArray = statsLengthArray.concat(statsWeightArray);
-    const statsUpdates = CollectionUtils.inGroupsOf(23, statsArray).map(async (group) => {
-      await this.di.dynamo.batchPut({
-        tableName: userTableNames[env].stats,
-        items: group.map((record) => ({ ...record, userId: user.id })),
+      const statsLengthArray: IStatDb[] = ObjectUtils.keys(statsObj.length).flatMap((key) => {
+        const st = statsObj.length[key] || [];
+        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "length" }));
       });
-    });
+      const statsWeightArray: IStatDb[] = ObjectUtils.keys(statsObj.weight).flatMap((key) => {
+        const st = statsObj.weight[key] || [];
+        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "weight" }));
+      });
+      const statsArray = statsLengthArray.concat(statsWeightArray);
+      statsUpdates = CollectionUtils.inGroupsOf(23, statsArray).map(async (group) => {
+        await this.di.dynamo.batchPut({
+          tableName: userTableNames[env].stats,
+          items: group.map((record) => ({ ...record, userId: user.id })),
+        });
+      });
+    }
 
     await Promise.all([
       this.store(updatedUser),

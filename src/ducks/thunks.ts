@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program, IExportedProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
-import { IProgram, IStorage } from "../types";
+import { IProgram, IStorage, IPartialStorage } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
@@ -42,14 +42,14 @@ export namespace Thunk {
             env.service.googleSignIn(accessToken, userId, {})
           );
           await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
-          dispatch(sync());
+          dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
         }
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
         await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
-        dispatch(sync());
+        dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
   }
@@ -80,7 +80,7 @@ export namespace Thunk {
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "appleSignIn", async () => env.service.appleSignIn(code, id_token, userId));
         await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
-        dispatch(sync());
+        dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
   }
@@ -97,10 +97,20 @@ export namespace Thunk {
     };
   }
 
-  export function sync(): IThunk {
+  export function sync(args: { withHistory: boolean; withStats: boolean; withPrograms: boolean }): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().adminKey == null && getState().user != null) {
-        await load(dispatch, "sync", async () => env.service.postStorage(getState().storage));
+        const storage: IPartialStorage = { ...getState().storage };
+        if (!args.withHistory) {
+          storage.history = undefined;
+        }
+        if (!args.withStats) {
+          storage.stats = undefined;
+        }
+        if (!args.withPrograms) {
+          storage.programs = undefined;
+        }
+        await load(dispatch, "sync", async () => env.service.postStorage(storage));
       }
     };
   }

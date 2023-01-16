@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
-import { UserDao, IUserDao } from "./dao/userDao";
+import { UserDao, ILimitedUserDao } from "./dao/userDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
@@ -78,10 +78,10 @@ async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<s
   return undefined;
 }
 
-async function getCurrentUser(event: APIGatewayProxyEvent, di: IDI): Promise<IUserDao | undefined> {
+async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Promise<ILimitedUserDao | undefined> {
   const userId = await getCurrentUserId(event, di);
   if (userId != null) {
-    return new UserDao(di).getById(userId);
+    return new UserDao(di).getLimitedById(userId);
   } else {
     return undefined;
   }
@@ -170,7 +170,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   payload,
 }) => {
   const { event, di } = payload;
-  const user = await getCurrentUser(event, di);
+  const user = await getCurrentLimitedUser(event, di);
   if (user != null) {
     const bodyJson = getBodyJson(event);
     const storage: IStorage = bodyJson.storage;

@@ -741,3 +741,6 @@ export const TStorage = t.type(
   "TStorage"
 );
 export type IStorage = t.TypeOf<typeof TStorage>;
+
+export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
+  Partial<Pick<IStorage, "history" | "stats" | "programs">>;

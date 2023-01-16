@@ -48,7 +48,13 @@ export function AppView(props: IProps): JSX.Element | null {
   const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, { service, audio }, [
     (action, oldState, newState) => {
       if (oldState.storage !== newState.storage) {
-        dispatch(Thunk.sync());
+        dispatch(
+          Thunk.sync({
+            withHistory: oldState.storage.history !== newState.storage.history,
+            withStats: oldState.storage.stats !== newState.storage.stats,
+            withPrograms: oldState.storage.programs !== newState.storage.programs,
+          })
+        );
       }
     },
     (action, oldState, newState) => {

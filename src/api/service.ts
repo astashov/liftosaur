@@ -1,5 +1,5 @@
 import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
-import { IStorage, IHistoryRecord, ISettings, IProgram } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
 
 export interface IGetStorageResponse {
@@ -65,7 +65,7 @@ export class Service {
     });
   }
 
-  public async postStorage(storage: IStorage): Promise<void> {
+  public async postStorage(storage: IPartialStorage): Promise<void> {
     await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",
       body: JSON.stringify({ storage }),
