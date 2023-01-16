@@ -224,12 +224,19 @@ a {
 a.hero-title {
   color: #1a202c;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  line-height: 1em;
 }
 
 .hero-title img {
   width: 7.75em;
   height: 7.75em;
   vertical-align: middle;
+}
+
+.hero-title-right {
+  margin-left: 16px;
 }
 
 .hero-title h1 {
@@ -239,8 +246,12 @@ a.hero-title {
   font-family: Poppins;
   color: #1a202c;
   vertical-align: middle;
-  margin-left: 16px;
-  line-height: 2em;
+  line-height: 1em;
+}
+
+.hero-title h3 {
+  color: #607284;
+  font-weight: normal;
 }
 
 .hero-content p {
@@ -254,6 +265,10 @@ a.hero-title {
   margin: 0 auto;
   padding: 0 2em;
   line-height: 1.7;
+}
+
+.intro p {
+  padding-bottom: 0.5rem;
 }
 
 .intro h2 {

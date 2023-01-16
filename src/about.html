@@ -13,14 +13,14 @@
     <meta property="og:title" content="Liftosaur: Weightlifting Tracking App" />
     <meta
       property="og:description"
-      content="Webapp for tracking weightlifting progress, with built-in progressive overload routines."
+      content="Webapp for tracking weightlifting progress, with built-in progressive overload programs."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://www.liftosaur.com/images/logo-square.png" />
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="A weight lifting tracking app, that allows you to follow popular weight lifting routines"
+      content="Flexible weight lifting tracking app, that allows you to follow popular weight lifting programs"
     />
   </head>
   <body>
@@ -49,15 +49,20 @@
           <div class="hero-content-wrapper">
             <a href="/" class="hero-title">
               <img src="/images/logo.svg" alt="Liftosaur Logo" />
-              <h1>Liftosaur</h1>
+              <div class="hero-title-right">
+                <h1>Liftosaur</h1>
+                <h3>Weighlifting app for serious lifters.</h3>
+              </div>
             </a>
             <p>
-              The most flexible weightlifting tracker app ever. Build complex routines like
-              <a href="https://stronglifts.com/5x5/" target="_blank">Stronglifts 5x5</a>,
-              <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP</a>,
-              <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1</a>, etc and define the logic of
-              progressions and deloads using built-in scripting language. Or choose one of the pre-created weightlifting
-              routines from <a href="https://thefitness.wiki/" target="_blank">r/fitness and r/weightroom</a>.
+              The most powerful weightlifting app ever. Build weighlifting programs, with any progression and deloading
+              logic, be in control of your progress.
+            </p>
+            <p>
+              Or choose one of the existing programs, like
+              <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP</a> or
+              <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1</a> that helped thousands of lifters
+              to get bigger and stronger.
             </p>
             <div class="content-cta">
               <div class="content-cta-row">
@@ -103,13 +108,32 @@
     <section class="intro">
       <h2>Summary</h2>
       <p>
-        This app allows you to get experience similar to e.g.
-        <a href="https://stronglifts.com/apps/" target="_blank">Stronglifts 5x5 app</a>, but for any possible
-        weightlifting routine ever. <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP</a>,
-        <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1</a>,
-        <a href="https://thefitness.wiki/routines/nsuns-lp/" target="_blank">nSuns LP</a>, or any variation of those
-        could be expressed via built-in scripting language <a href="/docs/docs.html"><strong>Liftoscript</strong></a
-        >. E.g. Squats progression and deload logic in Stronglifts 5x5 could be expressed in
+        One of the most important concepts in weight lifting is <strong>progressive overload</strong>. It means that you
+        should constantly challenge yourself by increating the weights or number of reps, and your body would respond to
+        it by getting stronger and bigger.
+      </p>
+
+      <p>
+        When you start lifting, you can increase the weights every week, but in several months you will reach a point
+        where you can't increase the weights so often. That's when you need to switch to a new program, try new patterns
+        of periodically adding and reducing weight. There's a lot of various programs created by experienced
+        weighlifters, who found ways to keep progressing. There're
+        <a href="https://thefitness.wiki/routines/gzclp/" target="_blank">GZCLP by Cody LeFever</a>,
+        <a href="https://thefitness.wiki/5-3-1-primer/" target="_blank">5/3/1 by Jim Wendler</a>,
+        <a href="https://thefitness.wiki/routines/nsuns-lp/" target="_blank">nSuns LP by u/nSuns</a> - different people
+        like different programs, and different programs work differently for different people.
+      </p>
+
+      <p>
+        Liftosaur allows you to try all those programs, modify them, and keep track of your progress no matter what
+        program you use. It's a companion of your weightlifting journey, and it is there for a long run. It defines all
+        those programs using built-in scripting language <a href="/docs/docs.html"><strong>Liftoscript</strong></a
+        >, which is a very simple scripting language, that looks like JavaScript.
+      </p>
+
+      <p>
+        You don't have to use or know about it, you can stick to built-in programs, but with it you can tailor the
+        programs for you. E.g. Squats progression and deload logic in Stronglifts 5x5 could be expressed in
         <strong>Liftoscript</strong> as:
       </p>
 
@@ -128,8 +152,8 @@ if (state.failures > 2) {
       <p>
         And you can modify it in any way you want. E.g. you may change increments to 2.5lb, change max number of
         failures to 5, you may completely change the logic to anything you want. You have access to completed sets,
-        reps, weights, you can create any state variables you want. There's also a bunch of example routines written in
-        the same Liftoscript language from
+        reps, weights, you can create any state variables you want. There's a bunch of example programs written in the
+        same Liftoscript language from
         <a href="https://thefitness.wiki/" target="_blank">thefitness.wiki</a>.
       </p>
       <p class="intro-more">Read more or watch the video tutorial in <a href="/docs/docs.html">Documentation</a></p>
@@ -155,7 +179,7 @@ if (state.failures > 2) {
         <li class="features-right">
           <div class="features-content">
             <div class="features-content-data">
-              <h4>Built-in workout routines</h4>
+              <h4>Built-in workout programs</h4>
               <p>Choose from multiple precreated workouts, that helped thousands of Reddit lifters become stronger.</p>
             </div>
           </div>
