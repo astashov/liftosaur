@@ -278,7 +278,17 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
-    return ResponseUtils.json(403, event, openIdJson);
+    const url = `https://www.googleapis.com/oauth2/v1/tokeninfo?id_token=${token}`;
+    const googleApiResponse = await fetch(url);
+    const response = await googleApiResponse.json();
+    if ("error" in response) {
+      return ResponseUtils.json(403, event, openIdJson);
+    } else {
+      openIdJson = {
+        sub: response.user_id,
+        email: response.email,
+      };
+    }
   }
 
   await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);

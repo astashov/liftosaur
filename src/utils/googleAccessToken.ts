@@ -27,6 +27,8 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
 
     if (SendMessage.isIos()) {
       SendMessage.toIos({ type: "signInWithGoogle" });
+    } else if (SendMessage.isAndroid()) {
+      SendMessage.toAndroid({ type: "signInWithGoogle" });
     } else {
       if (windowRef == null || windowRef.closed) {
         windowRef = window.open(url, "google-auth", windowOpts);
