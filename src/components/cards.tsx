@@ -4,17 +4,10 @@ import { IDispatch } from "../ducks/types";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
 import { memo } from "preact/compat";
-import {
-  IHistoryRecord,
-  IProgram,
-  ISettings,
-  IProgressMode,
-  IProgramExercise,
-  IExerciseType,
-  ISubscription,
-} from "../types";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise, ISubscription } from "../types";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
+import { Thunk } from "../ducks/thunks";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -32,7 +25,6 @@ interface ICardsViewProps {
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode) => void;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
-  onExerciseInfoClick?: (exercise: IExerciseType) => void;
   setIsShareShown: (isShown: boolean) => void;
 }
 
@@ -88,7 +80,9 @@ export const CardsView = memo(
               day={props.progress.day}
               dispatch={props.dispatch}
               onChangeReps={props.onChangeReps}
-              onExerciseInfoClick={props.onExerciseInfoClick}
+              onExerciseInfoClick={() => {
+                props.dispatch(Thunk.pushExerciseStatsScreen(entry.exercise));
+              }}
               onStartSetChanging={props.onStartSetChanging}
             />
           );

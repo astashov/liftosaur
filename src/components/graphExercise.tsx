@@ -227,7 +227,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
   }, []);
 
   return (
-    <div className="pt-2" data-cy="graph">
+    <div className="relative z-0 pt-2" data-cy="graph">
       <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
       <div data-cy="graph-legend" className="box-content h-6 px-8 pt-8 pb-2 text-sm text-center" ref={legendRef}></div>
     </div>

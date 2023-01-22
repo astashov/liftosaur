@@ -8,6 +8,8 @@ interface IMenuItemProps {
   name: string;
   isBorderless?: boolean;
   value?: string | JSX.Element;
+  expandName?: boolean;
+  expandValue?: boolean;
   addons?: ComponentChildren;
   shouldShowRightArrow?: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
@@ -43,11 +45,11 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
           </div>
         )}
         <div className="flex items-center justify-center">{props.prefix}</div>
-        <div className="flex-1">
+        <div className={`${props.expandValue ? "" : "flex-1"}`}>
           <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
           <div className="pb-2">{props.addons}</div>
         </div>
-        <div className="flex-1 text-right text-bluev2">{props.value}</div>
+        <div className={`${props.expandName ? "" : "flex-1"} text-right text-bluev2`}>{props.value}</div>
         {props.shouldShowRightArrow && (
           <div className="flex items-center py-2 pl-2">
             <IconArrowRight style={{ color: "#a0aec0" }} />

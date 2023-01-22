@@ -18,7 +18,7 @@ export function renderUserHtml(storage: IStorage, userId: string): string {
 export function userImage(storage: IStorage): Promise<Buffer> {
   const history = storage.history;
   const program = Program.getCurrentProgram(storage);
-  const maxSets = History.findAllMaxSets(history);
+  const maxSets = History.findAllMaxSetsPerId(history);
   const order: IExerciseId[] = ["benchPress", "overheadPress", "squat", "deadlift", "bentOverRow", "pullUp", "chinUp"];
   const json: IProfileImageGeneratorArgs = {
     programName: program?.name || "",

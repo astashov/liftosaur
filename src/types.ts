@@ -474,7 +474,6 @@ export const TProgressUi = t.partial(
       entryIndex: t.number,
     }),
     entryIndexEditMode: t.number,
-    entryIndexInfoMode: t.number,
   },
   "TProgressUi"
 );
@@ -694,6 +693,9 @@ export const TSettings = t.intersection(
         isWithBodyweight: t.boolean,
         isWithOneRm: t.boolean,
         isWithProgramLines: t.boolean,
+      }),
+      exerciseStatsSettings: t.type({
+        ascendingSort: t.boolean,
       }),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,

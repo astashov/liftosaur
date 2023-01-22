@@ -20,6 +20,7 @@ export type IScreen =
   | "friendsAdd"
   | "measurements"
   | "subscription"
+  | "exerciseStats"
   | "programPreview";
 
 export namespace Screen {

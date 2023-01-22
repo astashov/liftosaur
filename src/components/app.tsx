@@ -35,6 +35,8 @@ import { ScreenSubscription } from "./screenSubscription";
 import { Subscriptions } from "../utils/subscriptions";
 import { lb } from "lens-shmens";
 import { ScreenProgramPreview } from "./screenProgramPreview";
+import { ScreenExerciseStats } from "./screenExerciseStats";
+import { Exercise } from "../models/exercise";
 
 interface IProps {
   client: Window["fetch"];
@@ -308,6 +310,28 @@ export function AppView(props: IProps): JSX.Element | null {
         email={state.user?.email}
       />
     );
+  } else if (Screen.current(state.screenStack) === "exerciseStats") {
+    const exercise = state.viewExerciseType
+      ? Exercise.find(state.viewExerciseType, state.storage.settings.exercises)
+      : undefined;
+    if (exercise == null) {
+      setTimeout(() => {
+        dispatch(Thunk.pullScreen());
+      }, 0);
+      content = <></>;
+    } else {
+      content = (
+        <ScreenExerciseStats
+          history={state.storage.history}
+          screenStack={state.screenStack}
+          loading={state.loading}
+          dispatch={dispatch}
+          exercise={exercise}
+          settings={state.storage.settings}
+          subscription={state.storage.subscription}
+        />
+      );
+    }
   } else if (Screen.current(state.screenStack) === "timers") {
     content = (
       <ScreenTimers

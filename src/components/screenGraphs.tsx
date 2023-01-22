@@ -29,7 +29,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const { settings } = props;
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const maxSets = History.findAllMaxSets(props.history);
+  const maxSets = History.findAllMaxSetsPerId(props.history);
   const exerciseIds = ObjectUtils.keys(maxSets);
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];

@@ -114,7 +114,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
               barrelRef.current.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >
-            {label}
+            {StringUtils.truncate(label, 35)}
           </button>
         ))}
         {Array.apply(null, Array(numberOfDummyItems)).map(() => (

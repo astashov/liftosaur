@@ -30,8 +30,6 @@ import { lb } from "lens-shmens";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
-import { ExerciseImage } from "./exerciseImage";
-import { LinkButton } from "./linkButton";
 import { useCallback, useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
 import { Subscriptions } from "../utils/subscriptions";
@@ -95,7 +93,6 @@ function getBgColor200(entry: IHistoryEntry): string {
 export const ExerciseView = memo((props: IProps): JSX.Element => {
   const { entry } = props;
   const color = getColor(entry);
-  const isImageView = props.progress.ui?.entryIndexInfoMode === props.index;
   const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
   let dataCy;
   if (color === "green") {
@@ -109,17 +106,7 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
   return (
     <Fragment>
       <section data-cy={dataCy} className={className}>
-        <div className={!isImageView ? "h-0 overflow-hidden p-0 m-0" : ""}>
-          <ExerciseImageView
-            {...props}
-            onCloseClick={() => {
-              updateState(props.dispatch, [
-                lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexInfoMode").record(undefined),
-              ]);
-            }}
-          />
-        </div>
-        {!isImageView && <ExerciseContentView {...props} />}
+        <ExerciseContentView {...props} />
         {props.programExercise && props.allProgramExercises && (
           <ProgressStateChanges
             entry={props.entry}
@@ -134,20 +121,6 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
     </Fragment>
   );
 }, ComparerUtils.noFns);
-
-function ExerciseImageView(props: IProps & { onCloseClick: () => void }): JSX.Element {
-  const e = props.entry.exercise;
-  const exercise = Exercise.get(e, props.settings.exercises);
-  return (
-    <section className="relative px-4 pt-4 pb-2 mb-2 text-center bg-gray-100 border border-gray-300 rounded-lg">
-      <div className="text-lg font-bold text-left">{exercise.name}</div>
-      <ExerciseImage exerciseType={e} customExercises={props.settings.exercises} size="large" />
-      <LinkButton className="box-content absolute top-0 right-0 p-4" onClick={props.onCloseClick}>
-        Back to sets
-      </LinkButton>
-    </section>
-  );
-}
 
 const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {
@@ -178,7 +151,7 @@ const ExerciseContentView = memo(
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
 
     return (
-      <Fragment>
+      <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
         <header className="flex">
           <div style={{ width: "62px" }}>
             <button
@@ -197,7 +170,10 @@ const ExerciseContentView = memo(
           <div className="flex-1 ml-auto">
             <div className="flex">
               <div className="flex-1 text-lg font-bold">
-                <button onClick={() => props.onExerciseInfoClick?.(exercise)}>{exercise.name}</button>
+                <button data-cy="exercise-name" onClick={() => props.onExerciseInfoClick?.(exercise)}>
+                  <span className="pr-1">{exercise.name}</span>{" "}
+                  <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
+                </button>
               </div>
               {props.showKebab && (
                 <div>
@@ -449,7 +425,7 @@ const ExerciseContentView = memo(
         )}
         {historicalSameEntry && <HistoricalSameEntry historicalEntries={historicalSameEntry} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
-      </Fragment>
+      </div>
     );
   }
 );

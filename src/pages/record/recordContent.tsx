@@ -80,10 +80,10 @@ function MaxWeights(props: IMaxWeightsProps): JSX.Element {
       />
       <ul>
         {props.data.record.entries
-          .filter((e) => (History.getMaxSet(e)?.completedReps || 0) > 0)
+          .filter((e) => (History.getMaxSetFromEntry(e)?.completedReps || 0) > 0)
           .map((entry) => {
             const exercise = Exercise.get(entry.exercise, props.data.settings.exercises);
-            const set = History.getMaxSet(entry)!;
+            const set = History.getMaxSetFromEntry(entry)!;
             return (
               <li>
                 <strong>{exercise.name}</strong>: <SetView set={set} units={props.data.settings.units} />

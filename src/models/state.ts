@@ -4,7 +4,7 @@ import { IScreen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
-import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay, ISettings } from "../types";
+import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay, ISettings, IExerciseType } from "../types";
 
 export type IEnv = {
   service: Service;
@@ -109,6 +109,7 @@ export interface IState {
     id: string;
     dayIndex?: number;
   };
+  viewExerciseType?: IExerciseType;
   editExercise?: IProgramExercise;
   adminKey?: string;
   showWhatsNew?: boolean;

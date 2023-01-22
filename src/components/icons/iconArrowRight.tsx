@@ -4,15 +4,19 @@ interface IProps {
   style?: { [key: string]: string | number };
   className?: string;
   color?: string;
+  width?: number;
+  height?: number;
 }
 
 export function IconArrowRight(props: IProps): JSX.Element {
+  const width = props.width || 7;
+  const height = props.height || 12;
   return (
     <svg
       style={props.style}
       className={props.className}
-      width="7"
-      height="12"
+      width={width}
+      height={height}
       viewBox="0 0 7 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

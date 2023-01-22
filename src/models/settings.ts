@@ -9,6 +9,9 @@ export namespace Settings {
         isWithBodyweight: false,
         isWithOneRm: true,
       },
+      exerciseStatsSettings: {
+        ascendingSort: false,
+      },
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {} },
       equipment: {

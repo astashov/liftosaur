@@ -10,7 +10,9 @@ export namespace Weight {
     if (typeof weight === "number") {
       return `${weight}`;
     } else {
-      return weight.value === 0 ? "BW" : `${weight.value}${withUnit ? ` ${weight.unit}` : ""}`;
+      return weight.value === 0
+        ? "BW"
+        : `${parseFloat(weight.value.toFixed(2)).toString()}${withUnit ? ` ${weight.unit}` : ""}`;
     }
   }
 
@@ -50,7 +52,9 @@ export namespace Weight {
   }
 
   export function getOneRepMax(weight: IWeight, reps: number, settings: ISettings, bar?: IBarKey): IWeight {
-    if (reps === 1) {
+    if (reps === 0) {
+      return Weight.build(0, weight.unit);
+    } else if (reps === 1) {
       return weight;
     } else {
       // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
@@ -176,8 +180,8 @@ export namespace Weight {
     return weight.value === value.value && weight.unit === value.unit;
   }
 
-  export function max(weight: IWeight, ...weights: IWeight[]): IWeight {
-    return CollectionUtils.sort([weight, ...weights], Weight.compareReverse)[0];
+  export function max(weights: IWeight[]): IWeight | undefined {
+    return CollectionUtils.sort(weights, Weight.compareReverse)[0];
   }
 
   export function roundConvertTo(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {

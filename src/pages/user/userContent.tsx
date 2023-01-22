@@ -14,7 +14,7 @@ interface IProps {
 
 export function UserContent(props: IProps): JSX.Element {
   const { history, settings } = props.data;
-  const maxSets = History.findAllMaxSets(props.data.history);
+  const maxSets = History.findAllMaxSetsPerId(props.data.history);
   const order: IExerciseId[] = ["benchPress", "overheadPress", "squat", "deadlift"];
   const hasMainLifts = ObjectUtils.keys(maxSets).some((k) => order.indexOf(k) !== -1);
 

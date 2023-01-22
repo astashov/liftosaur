@@ -121,7 +121,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   }, []);
 
   return (
-    <div className="pt-2" data-cy="graph">
+    <div className="relative z-0 pt-2" data-cy="graph">
       <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
       <div
         data-cy="graph-legend"

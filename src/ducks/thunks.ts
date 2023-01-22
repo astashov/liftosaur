@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program, IExportedProgram } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IPartialStorage } from "../types";
+import { IProgram, IStorage, IPartialStorage, IExerciseType } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
@@ -547,6 +547,13 @@ export namespace Thunk {
           }
         }
       }
+    };
+  }
+
+  export function pushExerciseStatsScreen(exerciseType: IExerciseType): IThunk {
+    return async (dispatch, getState, env) => {
+      updateState(dispatch, [lb<IState>().p("viewExerciseType").record(exerciseType)]);
+      dispatch(Thunk.pushScreen("exerciseStats"));
     };
   }
 

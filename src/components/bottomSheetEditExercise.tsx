@@ -3,10 +3,11 @@ import { IDispatch } from "../ducks/types";
 import { BottomSheet } from "./bottomSheet";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { BottomSheetItem } from "./bottomSheetItem";
-import { IconHelp } from "./icons/iconHelp";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../types";
+import { Thunk } from "../ducks/thunks";
+import { IconStats } from "./icons/iconStats";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -40,15 +41,18 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
           }
         />
         <BottomSheetItem
-          title="Information"
-          name="information"
-          icon={<IconHelp />}
-          description="Quick reminder how to do the exercise. If you don't know how to do it at all, better find some youtube videos that explain the proper form"
+          title="Exercise Stats"
+          name="exercise-stats"
+          icon={<IconStats />}
+          description="Various stats about this exercise. Your progress graphs, your personal records, exercise history."
           onClick={() => {
-            updateState(props.dispatch, [
-              lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexInfoMode").record(entryIndex),
-              lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseBottomSheet").record(undefined),
-            ]);
+            if (entryIndex != null) {
+              const entry = props.progress.entries[entryIndex];
+              updateState(props.dispatch, [
+                lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseBottomSheet").record(undefined),
+              ]);
+              props.dispatch(Thunk.pushExerciseStatsScreen(entry.exercise));
+            }
           }}
         />
       </div>

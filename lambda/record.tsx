@@ -26,7 +26,7 @@ export async function recordImage(storage: IStorage, recordId: number): Promise<
       exercises: historyRecord.entries.map((entry) => {
         const exercise = Exercise.get(entry.exercise, storage.settings.exercises);
         const prSet = History.findPersonalRecord(recordId, entry, history);
-        const set = History.getMaxSet(entry);
+        const set = History.getMaxSetFromEntry(entry);
         const value = `${set?.completedReps || 0} ${StringUtils.pluralize(
           "rep",
           set?.completedReps || 0

@@ -1,9 +1,10 @@
-import { Exercise } from "./exercise";
+import { equipmentToBarKey, Exercise } from "./exercise";
 import { Progress } from "./progress";
 import { CollectionUtils } from "../utils/collection";
 
 import { Weight } from "./weight";
 import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight, ISettings } from "../types";
+import { ICollectorFn } from "../utils/collector";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -35,9 +36,22 @@ export namespace History {
     };
   }
 
-  export function getMaxSet(entry: IHistoryEntry): ISet | undefined {
+  export function getMaxSetFromEntry(entry: IHistoryEntry): ISet | undefined {
     return CollectionUtils.sort(
       entry.sets.filter((s) => (s.completedReps || 0) > 0),
+      (a, b) => {
+        const weightDiff = Weight.compare(b.weight, a.weight);
+        if (weightDiff === 0 && a.completedReps && b.completedReps) {
+          return b.completedReps - a.completedReps;
+        }
+        return weightDiff;
+      }
+    )[0];
+  }
+
+  export function getMaxSet(sets: ISet[]): ISet | undefined {
+    return CollectionUtils.sort(
+      sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
         const weightDiff = Weight.compare(b.weight, a.weight);
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
@@ -59,11 +73,103 @@ export namespace History {
     return prs;
   }
 
-  export function findAllMaxSets(history: IHistoryRecord[]): Partial<Record<IExerciseId, ISet>> {
+  export function findAllUsedExerciseTypes(history: IHistoryRecord[]): Partial<Record<string, IExerciseType>> {
+    const set: Partial<Record<string, IExerciseType>> = {};
+    for (const record of history) {
+      for (const entry of record.entries) {
+        set[Exercise.toKey(entry.exercise)] = entry.exercise;
+      }
+    }
+    return set;
+  }
+
+  export function collectMinAndMaxTime(): ICollectorFn<IHistoryRecord, { minTime: number; maxTime: number }> {
+    return {
+      fn: (acc, hr) => {
+        if (acc.maxTime < hr.startTime) {
+          acc.maxTime = hr.startTime;
+        }
+        if (acc.minTime > hr.startTime) {
+          acc.minTime = hr.startTime;
+        }
+        return acc;
+      },
+      initial: { maxTime: 0, minTime: Infinity },
+    };
+  }
+
+  export function collectAllUsedExerciseTypes(): ICollectorFn<IHistoryRecord, Partial<Record<string, IExerciseType>>> {
+    return {
+      fn: (acc, hr) => {
+        for (const entry of hr.entries) {
+          acc[Exercise.toKey(entry.exercise)] = entry.exercise;
+        }
+        return acc;
+      },
+      initial: {},
+    };
+  }
+
+  export function collectAllHistoryRecordsOfExerciseType(
+    exerciseType: IExerciseType
+  ): ICollectorFn<IHistoryRecord, IHistoryRecord[]> {
+    return {
+      fn: (acc, hr) => {
+        const hasExercise = hr.entries.some((e) => Exercise.eq(e.exercise, exerciseType));
+        if (hasExercise) {
+          acc.push(hr);
+        }
+        return acc;
+      },
+      initial: [],
+    };
+  }
+
+  export function collectWeightPersonalRecord(
+    exerciseType: IExerciseType,
+    unit: IUnit
+  ): ICollectorFn<IHistoryRecord, { maxWeight: IWeight; maxWeightHistoryRecord?: IHistoryRecord }> {
+    return {
+      fn: (acc, hr) => {
+        const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
+        const maxSet = getMaxSet(entries.flatMap((e) => e.sets));
+        if (maxSet != null && Weight.gt(maxSet.weight, acc.maxWeight)) {
+          acc = { maxWeight: maxSet.weight, maxWeightHistoryRecord: hr };
+        }
+        return acc;
+      },
+      initial: { maxWeight: Weight.build(0, unit) },
+    };
+  }
+
+  export function collect1RMPersonalRecord(
+    exerciseType: IExerciseType,
+    settings: ISettings
+  ): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
+    const bar = equipmentToBarKey(exerciseType.equipment);
+    return {
+      fn: (acc, hr) => {
+        const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
+        const allSets = entries.flatMap((e) => e.sets);
+        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
+          s,
+          Weight.getOneRepMax(s.weight, s.completedReps || 0, settings, bar),
+        ]);
+        const max1RM = CollectionUtils.sort(all1RMs, (a, b) => Weight.compare(b[1], a[1]))[0];
+        if (max1RM != null && Weight.gt(max1RM[1], acc.max1RM)) {
+          acc = { max1RM: max1RM[1], max1RMHistoryRecord: hr, max1RMSet: max1RM[0] };
+        }
+        return acc;
+      },
+      initial: { max1RM: Weight.build(0, settings.units) },
+    };
+  }
+
+  export function findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<IExerciseId, ISet>> {
     const maxSets: Partial<Record<IExerciseId, ISet>> = {};
     for (const r of history) {
       for (const e of r.entries) {
-        const entryMaxSet = getMaxSet(e);
+        const entryMaxSet = getMaxSetFromEntry(e);
         if (
           entryMaxSet != null &&
           (entryMaxSet.completedReps || 0) > 0 &&
@@ -81,7 +187,7 @@ export namespace History {
     for (const r of history) {
       for (const e of r.entries) {
         if (Exercise.eq(e.exercise, exerciseType)) {
-          const entryMaxSet = getMaxSet(e);
+          const entryMaxSet = getMaxSetFromEntry(e);
           if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
             if (maxSet == null || Weight.gt(entryMaxSet.weight, maxSet.weight)) {
               maxSet = entryMaxSet;
@@ -95,7 +201,7 @@ export namespace History {
 
   export function findPersonalRecord(id: number, entry: IHistoryEntry, history: IHistoryRecord[]): ISet | undefined {
     let isMax: boolean | undefined;
-    const entryMaxSet = getMaxSet(entry);
+    const entryMaxSet = getMaxSetFromEntry(entry);
     if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
       for (const r of history) {
         if (r.id < id) {
@@ -104,7 +210,7 @@ export namespace History {
               if (isMax == null) {
                 isMax = true;
               }
-              const maxSet = getMaxSet(e);
+              const maxSet = getMaxSetFromEntry(e);
               if (maxSet != null && Weight.gte(maxSet.weight, entryMaxSet.weight)) {
                 isMax = false;
               }

@@ -54,7 +54,7 @@ export const migrations = {
   },
   "20210130224533_add_settings_graphs": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    const historyExercises = ObjectUtils.keys(History.findAllMaxSets(storage.history));
+    const historyExercises = ObjectUtils.keys(History.findAllMaxSetsPerId(storage.history));
     const exerciseIds: IExerciseId[] = ["squat", "benchPress", "overheadPress", "deadlift"];
     const graphs: IExerciseId[] = [];
     for (const exerciseId of exerciseIds) {
@@ -232,6 +232,16 @@ export const migrations = {
     if (storage.settings.graphsSettings.isWithProgramLines == null) {
       storage.settings.graphsSettings.isWithProgramLines = true;
     }
+    return storage;
+  },
+  "20230121135616_add_exercise_stats_settings": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.exerciseStatsSettings = storage.settings.exerciseStatsSettings || {
+      ascendingSort: false,
+    };
     return storage;
   },
 };
