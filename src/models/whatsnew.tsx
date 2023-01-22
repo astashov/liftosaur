@@ -127,6 +127,22 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230121": {
+    title: <span>Exercise Stats</span>,
+    body: (
+      <ul>
+        <li>
+          Added Exercise Stats - a new screen that shows various statistics for an exercise. It shows the graph, the
+          personal records, the history of the exercise. You can switch between different exercises right on that
+          screen.
+        </li>
+        <li>
+          The entrypoint to that screen is from the workout screen - when you tap on the exercise name, exercise image,
+          or when you open the bottom sheet - there's an option "Exercise Stats"
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

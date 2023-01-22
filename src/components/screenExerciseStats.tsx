@@ -26,6 +26,7 @@ import { Weight } from "../models/weight";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { StringUtils } from "../utils/string";
+import { useGradualList } from "../utils/useGradualList";
 
 interface IProps {
   exercise: IExercise;
@@ -56,6 +57,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const history = CollectionUtils.sort(unsortedHistory, (a, b) => {
     return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
   });
+
+  const [containerRef, visibleRecords] = useGradualList(history, 20, () => {});
+
   const exercises = CollectionUtils.nonnull(
     Object.values(exerciseTypes).map<[string, string] | undefined>((e) => {
       if (e != null) {
@@ -70,6 +74,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   return (
     <Surface
+      ref={containerRef}
       navbar={
         <NavbarView
           loading={props.loading}
@@ -203,7 +208,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                 />
               </section>
             )}
-            {history.map((historyRecord) => {
+            {history.slice(0, visibleRecords).map((historyRecord) => {
               return (
                 <MenuItemWrapper
                   onClick={() => {
