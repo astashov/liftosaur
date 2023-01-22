@@ -322,6 +322,7 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       content = (
         <ScreenExerciseStats
+          key={Exercise.toKey(exercise)}
           history={state.storage.history}
           screenStack={state.screenStack}
           loading={state.loading}

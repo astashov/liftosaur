@@ -121,47 +121,53 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           {props.settings.graphs.map((graph) => {
             if (graph.type === "exercise") {
               return (
-                <GraphExercise
-                  isSameXAxis={isSameXAxis}
-                  minX={Math.round(minX / 1000)}
-                  maxX={Math.round(maxX / 1000)}
-                  bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
-                  isWithOneRm={isWithOneRm}
-                  key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
-                  settings={props.settings}
-                  isWithProgramLines={isWithProgramLines}
-                  history={props.history}
-                  exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
-                  dispatch={props.dispatch}
-                />
+                <div className="mb-2">
+                  <GraphExercise
+                    isSameXAxis={isSameXAxis}
+                    minX={Math.round(minX / 1000)}
+                    maxX={Math.round(maxX / 1000)}
+                    bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
+                    isWithOneRm={isWithOneRm}
+                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
+                    settings={props.settings}
+                    isWithProgramLines={isWithProgramLines}
+                    history={props.history}
+                    exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
+                    dispatch={props.dispatch}
+                  />
+                </div>
               );
             } else if (graph.type === "statsWeight") {
               const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
               return (
-                <GraphStats
-                  isSameXAxis={isSameXAxis}
-                  minX={Math.round(minX / 1000)}
-                  maxX={Math.round(maxX / 1000)}
-                  units={props.settings.units}
-                  key={`${graph.id}_${isSameXAxis}`}
-                  settings={props.settings}
-                  collection={collection}
-                  statsKey={graph.id}
-                />
+                <div className="mb-2">
+                  <GraphStats
+                    isSameXAxis={isSameXAxis}
+                    minX={Math.round(minX / 1000)}
+                    maxX={Math.round(maxX / 1000)}
+                    units={props.settings.units}
+                    key={`${graph.id}_${isSameXAxis}`}
+                    settings={props.settings}
+                    collection={collection}
+                    statsKey={graph.id}
+                  />
+                </div>
               );
             } else {
               const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
               return (
-                <GraphStats
-                  isSameXAxis={isSameXAxis}
-                  minX={minX}
-                  maxX={maxX}
-                  units={props.settings.lengthUnits}
-                  key={graph.id}
-                  settings={props.settings}
-                  collection={collection}
-                  statsKey={graph.id}
-                />
+                <div className="mb-2">
+                  <GraphStats
+                    isSameXAxis={isSameXAxis}
+                    minX={minX}
+                    maxX={maxX}
+                    units={props.settings.lengthUnits}
+                    key={graph.id}
+                    settings={props.settings}
+                    collection={collection}
+                    statsKey={graph.id}
+                  />
+                </div>
               );
             }
           })}

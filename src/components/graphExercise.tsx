@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
@@ -96,6 +97,8 @@ function getData(
 export function GraphExercise(props: IGraphProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
+  const selectedHistoryRecordRef = useRef<IHistoryRecord | undefined>(null);
+  const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise.toKey(props.exercise)}`;
   const units = props.settings.units;
   useEffect(() => {
     const rect = graphRef.current.getBoundingClientRect();
@@ -129,34 +132,24 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                 const dispatch = props.dispatch;
                 let text: string;
                 if (weight != null && units != null && reps != null) {
-                  text = `${DateUtils.format(
+                  text = `<span>${DateUtils.format(
                     date
                   )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                   if (props.isWithOneRm && onerm != null) {
                     text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                   }
                   if (historyRecord != null && dispatch) {
-                    text += ` <button class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                    text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
                   }
+                  text += "</span>";
                 } else if (bodyweight != null) {
-                  text = `${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}`;
+                  text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</span>`;
                 } else {
                   return;
                 }
                 if (legendRef.current != null) {
                   legendRef.current.innerHTML = text;
-                  setTimeout(() => {
-                    const button = legendRef.current.querySelector(".workout-link");
-                    if (button && dispatch) {
-                      console.log("Set click listener", weight, button);
-                      button.addEventListener("click", () => {
-                        dispatch({ type: "EditHistoryRecord", historyRecord });
-                      });
-                      button.addEventListener("touchstart", () => {
-                        dispatch({ type: "EditHistoryRecord", historyRecord });
-                      });
-                    }
-                  }, 0);
+                  selectedHistoryRecordRef.current = historyRecord;
                 }
               },
             ],
@@ -224,6 +217,15 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
     if (underEl != null) {
       underEl.addEventListener("touchstart", handler);
     }
+
+    (window as any)[graphGoToHistoryRecordFnName] = (): void => {
+      if (props.dispatch && selectedHistoryRecordRef.current != null) {
+        props.dispatch({ type: "EditHistoryRecord", historyRecord: selectedHistoryRecordRef.current });
+      }
+    };
+    return () => {
+      delete (window as any)[graphGoToHistoryRecordFnName];
+    };
   }, []);
 
   return (
