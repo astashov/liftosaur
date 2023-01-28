@@ -76,6 +76,22 @@ const muscleToScreenMuscleMapping = ObjectUtils.keys(screenMuscleToMuscleMapping
 }, {} as any);
 
 export namespace Muscle {
+  export function getEmptyScreenMusclesPoints(): IScreenMusclePointsColl {
+    return {
+      shoulders: 0,
+      triceps: 0,
+      back: 0,
+      abs: 0,
+      glutes: 0,
+      hamstrings: 0,
+      quadriceps: 0,
+      chest: 0,
+      biceps: 0,
+      calves: 0,
+      forearms: 0,
+    };
+  }
+
   function normalize(obj: IScreenMusclePointsColl, maxValue: number): IScreenMusclePointsColl {
     return ObjectUtils.keys(obj).reduce<IScreenMusclePointsColl>((memo, key) => {
       memo[key] = (obj[key] || 0) / maxValue;
@@ -108,6 +124,10 @@ export namespace Muscle {
 
   export function getScreenMusclesFromMuscle(muscle: IMuscle): IScreenMuscle[] {
     return muscleToScreenMuscleMapping[muscle];
+  }
+
+  export function getMusclesFromScreenMuscle(muscle: IScreenMuscle): IMuscle[] {
+    return screenMuscleToMuscleMapping[muscle];
   }
 
   export function getPointsForProgram(program: IProgram, settings: ISettings): IPoints {
@@ -222,7 +242,10 @@ export namespace Muscle {
     return { screenMusclePoints, exercisePoints };
   }
 
-  function mergeScreenMusclePoints(a: IScreenMusclePointsColl, b: IScreenMusclePointsColl): IScreenMusclePointsColl {
+  export function mergeScreenMusclePoints(
+    a: IScreenMusclePointsColl,
+    b: IScreenMusclePointsColl
+  ): IScreenMusclePointsColl {
     return ObjectUtils.combinedKeys(a, b).reduce<IScreenMusclePointsColl>((memo, screenMuscle) => {
       const oldValue = a[screenMuscle] || 0;
       const newValue = b[screenMuscle] || 0;

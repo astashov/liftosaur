@@ -7,9 +7,12 @@ interface IProps<T> {
   css: string[];
   js: string[];
   ogTitle?: string;
+  maxWidth?: number;
   ogDescription?: string;
   ogUrl?: string;
   ogImage?: string;
+  skipTopNavMenu?: boolean;
+  skipFooter?: boolean;
   data: T;
   children?: ComponentChildren;
   postHead?: JSX.Element;
@@ -49,11 +52,11 @@ export function Page<T>(props: IProps<T>): JSX.Element {
       </head>
       <body>
         <div class="content">
-          <TopNavMenu />
-          <div id="app" style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
+          {!props.skipTopNavMenu && <TopNavMenu />}
+          <div id="app" style={{ maxWidth: props.maxWidth || 800, margin: "0 auto", width: "100%" }}>
             {props.children}
           </div>
-          <FooterPage />
+          {!props.skipFooter && <FooterPage />}
         </div>
         <div id="data" style={{ display: "none" }}>
           {JSON.stringify(props.data)}

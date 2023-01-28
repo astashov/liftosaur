@@ -2,11 +2,22 @@ import { h, JSX } from "preact";
 
 interface IProps {
   style?: { [key: string]: string | number };
+  width?: number;
+  height?: number;
 }
 
 export function IconTrash(props: IProps): JSX.Element {
+  const width = props.width || 17;
+  const height = props.height || 21;
   return (
-    <svg style={props.style} width="17" height="21" viewBox="0 0 17 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      style={props.style}
+      width={width}
+      height={height}
+      viewBox="0 0 17 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"

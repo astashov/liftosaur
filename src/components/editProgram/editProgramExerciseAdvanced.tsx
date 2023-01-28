@@ -251,7 +251,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       {showModalSubstitute && (
         <ModalSubstitute
           exerciseType={programExercise.exerciseType}
-          settings={props.settings}
+          customExercises={props.settings.exercises}
           onChange={(exerciseId) => {
             setShowModalSubstitute(false);
             if (exerciseId != null) {

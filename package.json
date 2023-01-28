@@ -94,6 +94,7 @@
     "cookie": "^0.4.0",
     "deepmerge": "^4.2.2",
     "dequal": "^2.0.2",
+    "fflate": "^0.7.4",
     "fp-ts": "^2.6.2",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",

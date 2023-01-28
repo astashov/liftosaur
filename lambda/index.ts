@@ -31,6 +31,10 @@ import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
+import { renderBuilderHtml } from "./builder";
+import { gunzip } from "fflate";
+import { NodeEncoder } from "./utils/nodeEncoder";
+import { IBuilderProgram } from "../src/pages/builder/models/types";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -813,6 +817,30 @@ const getProgramDetailsHandler: RouteHandler<
   }
 };
 
+const getBuilderEndpoint = Endpoint.build("/builder", { data: "string?" });
+const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getBuilderEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const di = payload.di;
+  const data = params.data;
+  let program: IBuilderProgram | undefined;
+  if (data) {
+    try {
+      const programJson = await NodeEncoder.decode(data);
+      program = JSON.parse(programJson);
+    } catch (e) {
+      di.log.log(e);
+    }
+  }
+
+  return {
+    statusCode: 200,
+    body: renderBuilderHtml(fetch, program),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -884,6 +912,7 @@ export const handler = rollbar.lambdaHandler(
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .post(timerEndpoint, timerHandler)
       .get(getStorageEndpoint, getStorageHandler)
+      .get(getBuilderEndpoint, getBuilderHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(googleLoginEndpoint, googleLoginHandler)

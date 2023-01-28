@@ -64,4 +64,13 @@ export namespace StringUtils {
       return true;
     }
   }
+
+  export function nextName(name: string): string {
+    const match = name.match(/(\d+)$/);
+    if (match) {
+      const number = parseInt(match[0], 10);
+      return name.replace(/\d+$/, (number + 1).toString());
+    }
+    return name + " 2";
+  }
 }

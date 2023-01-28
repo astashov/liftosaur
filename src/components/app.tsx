@@ -18,7 +18,7 @@ import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
 import { dequal } from "dequal";
-import { IState, updateState } from "../models/state";
+import { IEnv, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
@@ -47,7 +47,8 @@ interface IProps {
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio } = props;
   const service = new Service(client);
-  const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, { service, audio }, [
+  const env: IEnv = { service, audio };
+  const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, env, [
     (action, oldState, newState) => {
       if (oldState.storage !== newState.storage) {
         dispatch(

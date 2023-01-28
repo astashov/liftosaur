@@ -4,42 +4,31 @@ import { Modal } from "./modal";
 import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
-import { IExerciseType, IExerciseId, IAllCustomExercises, IMuscle } from "../types";
+import { IExerciseId, IAllCustomExercises } from "../types";
+import { IScreenMuscle, Muscle } from "../models/muscle";
 
 interface IModalSubstituteProps {
-  exerciseType: IExerciseType;
+  screenMuscle: IScreenMuscle;
   customExercises: IAllCustomExercises;
   onChange: (value?: IExerciseId) => void;
 }
 
-export function ModalSubstitute(props: IModalSubstituteProps): JSX.Element {
+export function ModalExercisesByMuscle(props: IModalSubstituteProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
-  const tms = Exercise.targetMuscles(props.exerciseType, props.customExercises);
-  const sms = Exercise.synergistMuscles(props.exerciseType, props.customExercises);
 
-  const exercise = Exercise.get(props.exerciseType, props.customExercises);
-  let exercises = Exercise.similar(props.exerciseType, props.customExercises);
+  let exercises = Exercise.sortedByScreenMuscle(props.screenMuscle, props.customExercises);
   if (filter) {
     exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter, e[0].name.toLowerCase()));
   }
 
   return (
     <Modal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()}>
-      <h2 className="text-lg font-bold">Select exercise substitute</h2>
-      <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one</p>
+      <h2 className="text-lg font-bold">Select exercises for {StringUtils.capitalize(props.screenMuscle)}</h2>
+      <p className="py-2">It adds an exercise to the last day of the current week</p>
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
-        <div className="p-4 my-2 bg-gray-200">
-          <h2 className="text-lg font-bold">Current Exercise</h2>
-          <ExerciseView
-            currentTargetMuscles={tms}
-            currentSynergistMuscles={sms}
-            exercise={exercise}
-            customExercises={props.customExercises}
-          />
-        </div>
         <div className="py-2">
-          <h3 className="text-lg font-bold">Filter similar exercises</h3>
+          <h3 className="text-lg font-bold">Filter exercises</h3>
           <input
             ref={textInput}
             className={inputClassName}
@@ -59,12 +48,7 @@ export function ModalSubstitute(props: IModalSubstituteProps): JSX.Element {
                 props.onChange(e.id);
               }}
             >
-              <ExerciseView
-                currentSynergistMuscles={sms}
-                currentTargetMuscles={tms}
-                exercise={e}
-                customExercises={props.customExercises}
-              />
+              <ExerciseView screenMuscle={props.screenMuscle} exercise={e} customExercises={props.customExercises} />
             </section>
           );
         })}
@@ -76,17 +60,15 @@ export function ModalSubstitute(props: IModalSubstituteProps): JSX.Element {
 interface IExerciseViewProps {
   exercise: IExercise;
   customExercises: IAllCustomExercises;
-  currentTargetMuscles: IMuscle[];
-  currentSynergistMuscles: IMuscle[];
+  screenMuscle: IScreenMuscle;
 }
 
 function ExerciseView(props: IExerciseViewProps): JSX.Element {
   const e = props.exercise;
-  const tms = props.currentTargetMuscles;
-  const sms = props.currentSynergistMuscles;
   const equipment = Exercise.defaultEquipment(e.id, props.customExercises);
   const targetMuscles = Exercise.targetMuscles(e, props.customExercises);
   const synergistMuscles = Exercise.synergistMuscles(e, props.customExercises);
+  const muscles = Muscle.getMusclesFromScreenMuscle(props.screenMuscle);
   return (
     <div>
       <section className="flex items-center">
@@ -106,7 +88,7 @@ function ExerciseView(props: IExerciseViewProps): JSX.Element {
           {targetMuscles.map((m, i) => {
             return (
               <span>
-                <span className={tms.indexOf(m) !== -1 ? "text-green-700" : "text-red-700"}>{m}</span>
+                <span className={muscles.indexOf(m) !== -1 ? "text-green-700" : "text-red-700"}>{m}</span>
                 {i !== targetMuscles.length - 1 ? ", " : ""}
               </span>
             );
@@ -117,7 +99,7 @@ function ExerciseView(props: IExerciseViewProps): JSX.Element {
           {synergistMuscles.map((m, i) => {
             return (
               <span>
-                <span className={sms.indexOf(m) !== -1 ? "text-green-700" : "text-red-700"}>{m}</span>
+                <span className={muscles.indexOf(m) !== -1 ? "text-green-700" : "text-red-700"}>{m}</span>
                 {i !== synergistMuscles.length - 1 ? ", " : ""}
               </span>
             );

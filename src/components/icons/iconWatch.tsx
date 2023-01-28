@@ -1,15 +1,24 @@
 import { h, JSX } from "preact";
 
-export function IconWatch(): JSX.Element {
-  const color = "#607284";
+interface IProps {
+  style?: { [key: string]: string | number };
+  width?: number;
+  height?: number;
+  color?: string;
+  className?: string;
+}
+
+export function IconWatch(props: IProps): JSX.Element {
+  const color = props.color || "#607284";
   return (
     <svg
-      width="15"
-      height="18"
+      width={props.width || 15}
+      height={props.height || 18}
       viewBox="0 0 15 18"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="inline-block"
+      className={`inline-block ${props.className || ""}`}
+      style={props.style}
     >
       <path
         d="M7.5 17.0181C11.0036 17.0181 13.8438 14.1779 13.8438 10.6743C13.8438 7.17076 11.0036 4.33057 7.5 4.33057C3.99644 4.33057 1.15625 7.17076 1.15625 10.6743C1.15625 14.1779 3.99644 17.0181 7.5 17.0181Z"

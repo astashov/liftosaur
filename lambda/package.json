@@ -8,6 +8,7 @@
   "dependencies": {
     "cookie": "^0.4.1",
     "deepmerge": "^4.2.2",
+    "fflate": "^0.7.4",
     "fp-ts": "^2.9.5",
     "io-ts": "^2.2.16",
     "jimp": "^0.16.1",

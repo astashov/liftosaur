@@ -18,6 +18,7 @@ module.exports = {
           "900": "#210566",
         },
         orangev2: "#FF8066",
+        yellowv2: "#8C8E00",
         grayv2: {
           main: "#607284",
           "50": "#F5F7F8",

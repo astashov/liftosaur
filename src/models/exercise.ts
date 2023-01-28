@@ -14,6 +14,7 @@ import {
   IMetaExercises,
   IProgramExerciseWarmupSet,
 } from "../types";
+import { IScreenMuscle, Muscle } from "./muscle";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -3211,6 +3212,7 @@ export type IExercise = {
   defaultWarmup?: number;
   equipment?: IEquipment;
   defaultEquipment?: IEquipment;
+  onerm?: number;
 };
 
 export function warmupValues(): Partial<Record<number, IProgramExerciseWarmupSet[]>> {
@@ -3496,6 +3498,32 @@ export namespace Exercise {
         }
         if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
           rating -= 20;
+        }
+      }
+      return [e, rating];
+    });
+    rated.sort((a, b) => b[1] - a[1]);
+    return rated.filter(([, r]) => r > 0);
+  }
+
+  export function sortedByScreenMuscle(
+    muscle: IScreenMuscle,
+    customExercises: IAllCustomExercises
+  ): [IExercise, number][] {
+    const muscles = Muscle.getMusclesFromScreenMuscle(muscle);
+
+    const rated = Exercise.all(customExercises).map<[IExercise, number]>((e) => {
+      let rating = 0;
+      const tm = Exercise.targetMuscles(e, customExercises);
+      const sm = Exercise.synergistMuscles(e, customExercises);
+      for (const m of tm) {
+        if (muscles.indexOf(m) !== -1) {
+          rating += 100;
+        }
+      }
+      for (const m of sm) {
+        if (muscles.indexOf(m) !== -1) {
+          rating += 10;
         }
       }
       return [e, rating];

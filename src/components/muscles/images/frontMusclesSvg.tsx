@@ -9,11 +9,12 @@ interface IMuscleStyle {
 interface IProps {
   muscles?: Partial<Record<IScreenMuscle, IMuscleStyle>>;
   contour?: IMuscleStyle;
+  defaultOpacity?: number;
 }
 
 export function FrontMusclesSvg(props: IProps): JSX.Element {
   function getOpacity(muscle: IScreenMuscle): number {
-    return props.muscles?.[muscle]?.opacity ?? 0.3;
+    return props.muscles?.[muscle]?.opacity ?? props.defaultOpacity ?? 0.3;
   }
 
   function getFill(muscle: IScreenMuscle): string {
