@@ -17,26 +17,32 @@ export class BuilderExerciseModel {
 
   public static getScreenMusclePointsForExercise(exercise: IBuilderExercise): IScreenMusclePointsColl {
     const targetMuscles = Exercise.targetMuscles(exercise.exerciseType, {});
+    const targetScreenMuscles = targetMuscles.reduce<Set<IScreenMuscle>>((memo, muscle) => {
+      for (const m of Muscle.getScreenMusclesFromMuscle(muscle)) {
+        memo.add(m);
+      }
+      return memo;
+    }, new Set());
     const synergistMuscles = Exercise.synergistMuscles(exercise.exerciseType, {});
+    const synergistScreenMuscles = synergistMuscles.reduce<Set<IScreenMuscle>>((memo, muscle) => {
+      for (const m of Muscle.getScreenMusclesFromMuscle(muscle)) {
+        memo.add(m);
+      }
+      return memo;
+    }, new Set());
 
     const points: Partial<Record<IScreenMuscle, number>> = Muscle.getEmptyScreenMusclesPoints();
 
     for (const set of exercise.sets) {
       const completedRepsForWeight = Math.exp(-0.031 * (set.weightPercentage - 200)) * 2.7 - 52;
       const completeness = set.reps / completedRepsForWeight;
-      for (const muscle of targetMuscles) {
-        const screenMuscles = Muscle.getScreenMusclesFromMuscle(muscle);
-        for (const screenMuscle of screenMuscles) {
-          points[screenMuscle] = points[screenMuscle] || 0;
-          points[screenMuscle]! += completeness;
-        }
+      for (const screenMuscle of targetScreenMuscles) {
+        points[screenMuscle] = points[screenMuscle] || 0;
+        points[screenMuscle]! += completeness;
       }
-      for (const muscle of synergistMuscles) {
-        const screenMuscles = Muscle.getScreenMusclesFromMuscle(muscle);
-        for (const screenMuscle of screenMuscles) {
-          points[screenMuscle] = points[screenMuscle] || 0;
-          points[screenMuscle]! += completeness * 0.3;
-        }
+      for (const screenMuscle of synergistScreenMuscles) {
+        points[screenMuscle] = points[screenMuscle] || 0;
+        points[screenMuscle]! += completeness * 0.3;
       }
     }
     return points;
