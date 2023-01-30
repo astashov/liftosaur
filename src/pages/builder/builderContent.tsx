@@ -15,6 +15,7 @@ import { Encoder } from "../../utils/encoder";
 import { IBuilderProgram } from "./models/types";
 import { BuilderExerciseModel } from "./models/builderExerciseModel";
 import { ObjectUtils } from "../../utils/object";
+import { useCopyPaste } from "./utils/copypaste";
 
 export interface IBuilderContentProps {
   client: Window["fetch"];
@@ -41,16 +42,25 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       const url = new URL(window.location.href);
       url.search = urlParams.toString();
       window.history.replaceState({ path: url.toString() }, "", url.toString());
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).state = newState;
     },
   ]);
+
+  useCopyPaste(state, dispatch);
+
   const modalExerciseUi = state.ui.modalExercise;
   const modalSubstituteUi = state.ui.modalSubstitute;
   const modalExercisesByMuscle = state.ui.modalExercisesByMuscle;
 
   return (
     <section className="py-16">
-      <h1 className="text-2xl font-bold">Weightlifting Program Builder</h1>
-      <h2 className="mt-16 text-xl font-bold">
+      <h1 className="text-2xl font-bold">
+        <a className="font-bold underline text-bluev2 " href="/builder">
+          Weightlifting Program Builder
+        </a>
+      </h1>
+      <h2 className="pb-3 mt-16 text-xl font-bold">
         <BuilderLinkInlineInput
           value={state.program.name}
           onInputString={(value) => {
@@ -61,6 +71,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       {state.program.weeks.map((week, index) => (
         <BuilderWeek
           numberOfWeeks={state.program.weeks.length}
+          selectedExercise={state.ui.selectedExercise}
           week={week}
           index={index}
           settings={state.settings}

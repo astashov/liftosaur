@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IBuilderExercise, IBuilderWeek } from "../models/types";
+import { IBuilderExercise, IBuilderWeek, ISelectedExercise } from "../models/types";
 import { IBuilderDispatch, IBuilderSettings, IBuilderState } from "../models/builderReducer";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { LinkButton } from "../../../components/linkButton";
@@ -10,9 +10,11 @@ import { BuilderLinkInlineInput } from "./builderInlineInput";
 import { Weight } from "../../../models/weight";
 import { BuilderWeekModel, IVolumeSplit } from "../models/builderWeekModel";
 import { ObjectUtils } from "../../../utils/object";
+import { HtmlUtils } from "../../../utils/html";
 import { CollectionUtils } from "../../../utils/collection";
 import { StringUtils } from "../../../utils/string";
 import { IEquipment } from "../../../types";
+import { BuilderExerciseModel } from "../models/builderExerciseModel";
 
 interface IBuilderExerciseProps {
   exercise: IBuilderExercise;
@@ -21,6 +23,7 @@ interface IBuilderExerciseProps {
   dayIndex: number;
   weekIndex: number;
   settings: IBuilderSettings;
+  selectedExercise?: ISelectedExercise;
   dispatch: IBuilderDispatch;
 }
 
@@ -35,14 +38,42 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
     .p("exercises")
     .i(props.index);
   const volumeSplit = BuilderWeekModel.calculateVolumeSplit(props.week, props.exercise.exerciseType);
-  const musclePoints = BuilderWeekModel.getScreenMusclePointsForWeek(props.week, props.exercise.exerciseType);
+  const musclePoints = BuilderExerciseModel.getScreenMusclePointsForExercise(props.exercise);
   const equipments = Exercise.sortedEquipments(props.exercise.exerciseType.id).map<[string, string]>((e) => [
     e,
     equipmentName(e),
   ]);
+  const isSelected =
+    props.selectedExercise != null &&
+    props.selectedExercise.weekIndex === props.weekIndex &&
+    props.selectedExercise.dayIndex === props.dayIndex &&
+    props.selectedExercise.exerciseIndex === props.index;
 
   return (
-    <div className="flex pb-8 mt-6 border-b border-grayv2-200">
+    <div
+      className="box-content flex w-full p-2 pb-8 mt-6 rounded selectable"
+      style={{
+        marginLeft: "-0.5rem",
+        marginRight: "-0.5rem",
+        borderBottom: isSelected ? "1px solid #28839F" : "1px solid #D2D8DE",
+        borderLeft: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderTop: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderRight: isSelected ? "1px solid #28839F" : "1px solid white",
+      }}
+      onClick={(e) => {
+        const hasActionableElement =
+          e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
+        if (!hasActionableElement) {
+          props.dispatch([
+            lb<IBuilderState>().p("ui").p("selectedExercise").record({
+              weekIndex: props.weekIndex,
+              dayIndex: props.dayIndex,
+              exerciseIndex: props.index,
+            }),
+          ]);
+        }
+      }}
+    >
       <div className="pr-4 border-r border-grayv2-100" style={{ flex: 3 }}>
         <div className="flex">
           <div>
@@ -150,10 +181,11 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
             <span className="ml-2">Superset</span>
           </label>
         </div>
-        <div className="py-1">
+        <div className="py-1" style={{ opacity: props.exercise.isSuperset ? 0.5 : 1 }}>
           <span className="font-bold">Rest Timer: </span>
           <BuilderLinkInlineInput
             maxLength={5}
+            disabled={props.exercise.isSuperset}
             type="tel"
             value={props.exercise.restTimer}
             onInputNumber={(num) => props.dispatch([lbe.p("restTimer").record(num)])}

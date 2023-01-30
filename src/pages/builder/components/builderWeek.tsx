@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IBuilderWeek } from "../models/types";
+import { IBuilderWeek, ISelectedExercise } from "../models/types";
 import { IBuilderDispatch, IBuilderSettings, IBuilderState } from "../models/builderReducer";
 import { BuilderDay } from "./builderDay";
 import { BuilderLinkInlineInput } from "./builderInlineInput";
@@ -11,12 +11,14 @@ import { CollectionUtils } from "../../../utils/collection";
 import { BuilderWeekMuscles } from "./builderWeekMuscles";
 import { useRef } from "preact/compat";
 import { useEffect } from "preact/hooks";
+import { HtmlUtils } from "../../../utils/html";
 
 interface IBuilderWeekProps {
   week: IBuilderWeek;
   numberOfWeeks: number;
   index: number;
   settings: IBuilderSettings;
+  selectedExercise?: ISelectedExercise;
   dispatch: IBuilderDispatch;
 }
 
@@ -24,6 +26,11 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
   const week = props.week;
   const sectionRef = useRef<HTMLElement>(null);
   const musclesRef = useRef<HTMLDivElement>(null);
+  const isSelected =
+    props.selectedExercise != null &&
+    props.selectedExercise.weekIndex === props.index &&
+    props.selectedExercise.dayIndex == null &&
+    props.selectedExercise.exerciseIndex == null;
 
   useEffect(() => {
     function handleScroll(): void {
@@ -42,10 +49,33 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
   }, []);
 
   return (
-    <section className="py-6 border-b border-grayv2-300" ref={sectionRef}>
+    <section
+      className="px-2 py-3 rounded selectable"
+      onClick={(e) => {
+        const hasActionableElement =
+          e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
+        console.log(hasActionableElement);
+        if (!hasActionableElement) {
+          props.dispatch([
+            lb<IBuilderState>().p("ui").p("selectedExercise").record({
+              weekIndex: props.index,
+            }),
+          ]);
+        }
+      }}
+      ref={sectionRef}
+      style={{
+        marginLeft: "-0.5rem",
+        marginRight: "-0.5rem",
+        borderBottom: isSelected ? "1px solid #28839F" : "1px solid #BAC4CD",
+        borderLeft: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderTop: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderRight: isSelected ? "1px solid #28839F" : "1px solid white",
+      }}
+    >
       <div className="flex gap-8">
         <div style={{ flex: 4 }}>
-          <div className="flex flex-1">
+          <div className="flex flex-1 pb-2">
             <h3 className="flex-1 text-lg font-bold">
               <BuilderLinkInlineInput
                 value={week.name}
@@ -77,6 +107,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
             <BuilderDay
               week={week}
               numberOfDays={week.days.length}
+              selectedExercise={props.selectedExercise}
               day={day}
               settings={props.settings}
               weekIndex={props.index}

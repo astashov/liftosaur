@@ -1,7 +1,11 @@
 export namespace HtmlUtils {
-  export function someInParents(element: Element | null, fn: (node: Element) => boolean): boolean {
+  export function someInParents(
+    element: Element | null,
+    fn: (node: Element) => boolean,
+    finalElement?: Element
+  ): boolean {
     let el = element;
-    while (el && el instanceof Element) {
+    while (el && el instanceof Element && el !== finalElement) {
       if (fn(el)) {
         return true;
       }
@@ -12,6 +16,23 @@ export namespace HtmlUtils {
 
   export function classInParents(element: Element | null, cssClass: string): boolean {
     return someInParents(element, (n) => n.classList.contains(cssClass));
+  }
+
+  export function selectableInParents(element: Element | null, finalElement: Element): boolean {
+    return HtmlUtils.someInParents(
+      element,
+      (n) => {
+        return (
+          n instanceof HTMLAnchorElement ||
+          n instanceof HTMLButtonElement ||
+          n instanceof HTMLSelectElement ||
+          n instanceof HTMLLabelElement ||
+          n instanceof HTMLInputElement ||
+          n.classList.contains("selectable")
+        );
+      },
+      finalElement
+    );
   }
 
   export function escapeHtml(initialString: string): string {

@@ -48,8 +48,15 @@ export interface IBuilderModalExercisesByMuscle {
   weekIndex: number;
 }
 
+export interface ISelectedExercise {
+  weekIndex: number;
+  dayIndex?: number;
+  exerciseIndex?: number;
+}
+
 export interface IBuilderUI {
   modalExercise?: IBuilderModalExercise;
   modalExercisesByMuscle?: IBuilderModalExercisesByMuscle;
   modalSubstitute?: IBuilderModalSubstitute;
+  selectedExercise?: ISelectedExercise;
 }

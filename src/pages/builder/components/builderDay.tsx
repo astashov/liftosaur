@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IBuilderDay, IBuilderWeek } from "../models/types";
+import { IBuilderDay, IBuilderWeek, ISelectedExercise } from "../models/types";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { BuilderExercise } from "./builderExercise";
 import { IBuilderDispatch, IBuilderSettings, IBuilderState } from "../models/builderReducer";
@@ -11,6 +11,7 @@ import { IconTrash } from "../../../components/icons/iconTrash";
 import { BuilderLinkInlineInput } from "./builderInlineInput";
 import { TimeUtils } from "../../../utils/time";
 import { BuilderDayModel } from "../models/builderDayModel";
+import { HtmlUtils } from "../../../utils/html";
 
 interface IBuilderDayProps {
   day: IBuilderDay;
@@ -19,6 +20,7 @@ interface IBuilderDayProps {
   numberOfDays: number;
   weekIndex: number;
   settings: IBuilderSettings;
+  selectedExercise?: ISelectedExercise;
   dispatch: IBuilderDispatch;
 }
 
@@ -29,8 +31,36 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
   const time = BuilderDayModel.approxTimeMs(day);
   const duration = TimeUtils.formatHHMM(time);
   const calories = BuilderDayModel.calories(time);
+  const isSelected =
+    props.selectedExercise != null &&
+    props.selectedExercise.weekIndex === props.weekIndex &&
+    props.selectedExercise.dayIndex === props.index &&
+    props.selectedExercise.exerciseIndex == null;
+
   return (
-    <section className="pt-4 pb-6">
+    <section
+      style={{
+        marginLeft: "-0.5rem",
+        marginRight: "-0.5rem",
+        borderBottom: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderLeft: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderTop: isSelected ? "1px solid #28839F" : "1px solid white",
+        borderRight: isSelected ? "1px solid #28839F" : "1px solid white",
+      }}
+      className="px-2 pt-2 pb-6 rounded selectable"
+      onClick={(e) => {
+        const hasActionableElement =
+          e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
+        if (!hasActionableElement) {
+          props.dispatch([
+            lb<IBuilderState>().p("ui").p("selectedExercise").record({
+              weekIndex: props.weekIndex,
+              dayIndex: props.index,
+            }),
+          ]);
+        }
+      }}
+    >
       <div className="sticky z-10 flex py-2 bg-white">
         <div className="flex-1">
           <h3 className="inline-block text-base font-bold align-middle">
@@ -78,6 +108,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
         {day.exercises.map((exercise, index) => (
           <div className="relative">
             <BuilderExercise
+              selectedExercise={props.selectedExercise}
               week={props.week}
               weekIndex={props.weekIndex}
               dayIndex={props.index}
