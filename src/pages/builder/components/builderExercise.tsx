@@ -206,7 +206,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
         </div>
         <h4 className="pt-1 font-bold">Weekly Stats:</h4>
         <div className="pl-2">
-          <span>Intensity: </span>
+          <span>Volume {props.settings.unit}: </span>
           <span className="font-bold">
             {Weight.display(
               BuilderWeekModel.calculateIntensity(props.week, props.exercise.exerciseType, props.settings.unit)
@@ -214,7 +214,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
           </span>
         </div>
         <div className="pl-2">
-          <div className="font-bold">Volume: </div>
+          <div className="font-bold">Volume %: </div>
           {ObjectUtils.keys(volumeSplit).map((key) => {
             return (
               <div className="text-grayv2-main">
