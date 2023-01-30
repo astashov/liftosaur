@@ -9,8 +9,6 @@ import { BuilderDayModel } from "../models/builderDayModel";
 import { StringUtils } from "../../../utils/string";
 import { CollectionUtils } from "../../../utils/collection";
 import { BuilderWeekMuscles } from "./builderWeekMuscles";
-import { useRef } from "preact/compat";
-import { useEffect } from "preact/hooks";
 import { HtmlUtils } from "../../../utils/html";
 
 interface IBuilderWeekProps {
