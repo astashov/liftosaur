@@ -24,8 +24,8 @@ export class BuilderDayModel {
   }
 
   public static approxSetTimeMs(set: IBuilderSet, restTime: number): number {
-    const secondsPerRep = 7;
-    const prepareTime = 20;
+    const secondsPerRep = 6;
+    const prepareTime = 10;
     const timeToRep = (prepareTime + set.reps * secondsPerRep) * 1000;
     const timeToRest = restTime * 1000;
     const totalTime = timeToRep + timeToRest;

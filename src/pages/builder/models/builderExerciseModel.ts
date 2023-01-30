@@ -34,7 +34,18 @@ export class BuilderExerciseModel {
     const points: Partial<Record<IScreenMuscle, number>> = Muscle.getEmptyScreenMusclesPoints();
 
     for (const set of exercise.sets) {
-      const completedRepsForWeight = Math.exp(-0.031 * (set.weightPercentage - 200)) * 2.7 - 52;
+      let completedRepsForWeight;
+      if (set.weightPercentage > 95) {
+        completedRepsForWeight = 300 - 3 * set.weightPercentage; // 95/15,99/3
+      } else if (set.weightPercentage > 85) {
+        completedRepsForWeight = 442 - 4.5 * set.weightPercentage; // 85/60,95/15
+      } else if (set.weightPercentage > 75) {
+        completedRepsForWeight = 570 - 6 * set.weightPercentage; // 85/60,75/120
+      } else if (set.weightPercentage > 60) {
+        completedRepsForWeight = 930 - 11 * set.weightPercentage; // 75/120,60/270
+      } else {
+        completedRepsForWeight = 1600 - 22 * set.weightPercentage;
+      }
       const completeness = set.reps / completedRepsForWeight;
       for (const screenMuscle of targetScreenMuscles) {
         points[screenMuscle] = points[screenMuscle] || 0;
