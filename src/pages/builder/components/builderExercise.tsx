@@ -188,7 +188,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
             disabled={props.exercise.isSuperset}
             type="tel"
             value={props.exercise.restTimer}
-            onInputNumber={(num) => props.dispatch([lbe.p("restTimer").record(num)])}
+            onInputInt={(num) => props.dispatch([lbe.p("restTimer").record(num)])}
           />
           <span className="font-bold"> sec</span>
         </div>
@@ -197,8 +197,8 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
           <BuilderLinkInlineInput
             maxLength={5}
             type="tel"
-            value={props.exercise.onerm.value}
-            onInputNumber={(num) => {
+            value={Weight.convertTo(props.exercise.onerm, props.settings.unit).value}
+            onInputFloat={(num) => {
               props.dispatch([lbe.p("onerm").record(Weight.build(num, props.settings.unit))]);
             }}
           />

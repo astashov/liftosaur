@@ -87,7 +87,7 @@ function BuilderExerciseSet(props: IBuilderExerciseSetProps): JSX.Element {
             className="text-lg text-center text-grayv2-main"
             maxLength={3}
             minWidth={1}
-            onInputNumber={(reps) => {
+            onInputInt={(reps) => {
               props.dispatch([lbe.record({ ...set, reps })]);
             }}
           />
@@ -99,7 +99,7 @@ function BuilderExerciseSet(props: IBuilderExerciseSetProps): JSX.Element {
             className="text-sm font-bold text-center text-grayv2-main"
             maxLength={4}
             minWidth={1}
-            onInputNumber={(weightPercentage) => {
+            onInputFloat={(weightPercentage) => {
               props.dispatch([lbe.record({ ...set, weightPercentage })]);
             }}
           />

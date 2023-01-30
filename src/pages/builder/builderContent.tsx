@@ -17,6 +17,9 @@ import { BuilderExerciseModel } from "./models/builderExerciseModel";
 import { ObjectUtils } from "../../utils/object";
 import { useCopyPaste } from "./utils/copypaste";
 import { useUndoRedo } from "./utils/undoredo";
+import { BuilderCopyLink } from "./components/builderCopyLink";
+import { BuilderModalSettings } from "./components/builderModalSettings";
+import { IconCog2 } from "../../components/icons/iconCog2";
 
 export interface IBuilderContentProps {
   client: Window["fetch"];
@@ -76,14 +79,26 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const modalExerciseUi = state.ui.modalExercise;
   const modalSubstituteUi = state.ui.modalSubstitute;
   const modalExercisesByMuscle = state.ui.modalExercisesByMuscle;
+  const modalSettings = state.ui.modalSettings;
 
   return (
     <section className="py-16">
-      <h1 className="text-2xl font-bold">
-        <a className="font-bold underline text-bluev2 " href="/builder">
-          Weightlifting Program Builder
-        </a>
-      </h1>
+      <div className="flex items-center">
+        <h1 className="flex-1 text-2xl font-bold">
+          <a className="font-bold underline text-bluev2 " href="/builder">
+            Weightlifting Program Builder
+          </a>
+        </h1>
+        <div>
+          <BuilderCopyLink />
+          <button
+            className="p-2"
+            onClick={() => dispatch([lb<IBuilderState>().p("ui").p("modalSettings").record(true)])}
+          >
+            <IconCog2 />
+          </button>
+        </div>
+      </div>
       <h2 className="pb-3 mt-16 text-xl font-bold">
         <BuilderLinkInlineInput
           value={state.program.name}
@@ -187,6 +202,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
           }}
         />
       )}
+      {modalSettings && <BuilderModalSettings dispatch={dispatch} unit={state.settings.unit} />}
     </section>
   );
 }

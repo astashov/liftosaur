@@ -5,7 +5,8 @@ import { useRef } from "preact/hooks";
 export interface IBuilderInlineInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
   style?: JSX.CSSProperties;
   minWidth?: number;
-  onInputNumber?: (value: number) => void;
+  onInputInt?: (value: number) => void;
+  onInputFloat?: (value: number) => void;
   onInputString?: (value: string) => void;
 }
 
@@ -26,9 +27,13 @@ export function BuilderInlineInput(props: IBuilderInlineInputProps): JSX.Element
       onInput={(e) => {
         if (e.target instanceof HTMLInputElement) {
           const value = e.target.value;
-          const num = parseInt(value, 10);
-          if (!Number.isNaN(num)) {
-            props.onInputNumber?.(num);
+          const int = parseInt(value, 10);
+          if (!Number.isNaN(int)) {
+            props.onInputInt?.(int);
+          }
+          const float = parseFloat(value);
+          if (!Number.isNaN(float)) {
+            props.onInputFloat?.(float);
           }
           props.onInputString?.(value);
         }

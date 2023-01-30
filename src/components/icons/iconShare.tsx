@@ -1,8 +1,15 @@
 import { h, JSX } from "preact";
 
-export function IconShare(): JSX.Element {
+interface IProps {
+  size?: number;
+  color?: string;
+}
+
+export function IconShare(props: IProps): JSX.Element {
+  const size = props.size || 24;
+  const color = props.color || "white";
   return (
-    <svg fill="white" width={24} height={24} viewBox="0 0 512 512">
+    <svg fill={color} width={size} height={size} viewBox="0 0 512 512">
       <path
         d="M508.271,194.568l-149.333-128c-3.146-2.708-7.583-3.323-11.396-1.594c-3.781,1.74-6.208,5.521-6.208,9.688v74.813
 				c-119.188,3.313-176.688,62.312-204.021,112.031c-23.771,43.219-29.104,86.01-30.302,103.573
