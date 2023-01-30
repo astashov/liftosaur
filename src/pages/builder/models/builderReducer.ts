@@ -9,6 +9,10 @@ export interface IBuilderSettings {
 export interface IBuilderState {
   program: IBuilderProgram;
   settings: IBuilderSettings;
+  history: {
+    past: IBuilderProgram[];
+    future: IBuilderProgram[];
+  };
   ui: IBuilderUI;
 }
 

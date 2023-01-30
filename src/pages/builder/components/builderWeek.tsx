@@ -54,7 +54,6 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
       onClick={(e) => {
         const hasActionableElement =
           e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
-        console.log(hasActionableElement);
         if (!hasActionableElement) {
           props.dispatch([
             lb<IBuilderState>().p("ui").p("selectedExercise").record({

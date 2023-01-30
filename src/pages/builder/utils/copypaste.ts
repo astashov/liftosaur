@@ -114,7 +114,6 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
           );
         }
       });
-      console.log(state);
     }
     window.removeEventListener("copy", onCopy);
     window.removeEventListener("paste", onPaste);
