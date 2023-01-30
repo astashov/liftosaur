@@ -32,7 +32,6 @@ import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
 import { renderBuilderHtml } from "./builder";
-import { gunzip } from "fflate";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { IBuilderProgram } from "../src/pages/builder/models/types";
 

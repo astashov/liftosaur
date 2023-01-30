@@ -208,11 +208,6 @@ input[type="checkbox"].checkbox:disabled {
   }
 }
 
-.sticky {
-  position: fixed;
-  top: 0;
-}
-
 /* purgecss end ignore */
 
 @tailwind utilities;

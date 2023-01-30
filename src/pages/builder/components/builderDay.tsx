@@ -61,7 +61,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
         }
       }}
     >
-      <div className="sticky z-10 flex py-2 bg-white">
+      <div className="sticky top-0 z-10 flex py-2 bg-white">
         <div className="flex-1">
           <h3 className="inline-block text-base font-bold align-middle">
             <BuilderLinkInlineInput

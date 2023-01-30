@@ -24,29 +24,11 @@ interface IBuilderWeekProps {
 
 export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
   const week = props.week;
-  const sectionRef = useRef<HTMLElement>(null);
-  const musclesRef = useRef<HTMLDivElement>(null);
   const isSelected =
     props.selectedExercise != null &&
     props.selectedExercise.weekIndex === props.index &&
     props.selectedExercise.dayIndex == null &&
     props.selectedExercise.exerciseIndex == null;
-
-  useEffect(() => {
-    function handleScroll(): void {
-      if (musclesRef.current && sectionRef.current) {
-        const offsetTop = sectionRef.current.offsetTop;
-        const scrollTop = window.pageYOffset;
-        if (scrollTop > offsetTop) {
-          musclesRef.current.classList.add("sticky");
-        } else {
-          musclesRef.current.classList.remove("sticky");
-        }
-      }
-    }
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <section
@@ -62,7 +44,6 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
           ]);
         }
       }}
-      ref={sectionRef}
       style={{
         marginLeft: "-0.5rem",
         marginRight: "-0.5rem",
@@ -132,9 +113,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
           </LinkButton>
         </div>
         <div style={{ flex: 2 }}>
-          <div ref={musclesRef}>
-            <BuilderWeekMuscles weekIndex={props.index} week={props.week} dispatch={props.dispatch} />
-          </div>
+          <BuilderWeekMuscles weekIndex={props.index} week={props.week} dispatch={props.dispatch} />
         </div>
       </div>
     </section>
