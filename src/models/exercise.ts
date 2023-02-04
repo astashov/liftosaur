@@ -2403,8 +2403,8 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Hips"],
     },
     dumbbell: {
-      targetMuscles: ["Gluteus Maximus", "Hamstrings"],
-      synergistMuscles: ["Quadriceps", "Soleus"],
+      targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
+      synergistMuscles: ["Quadriceps", "Soleus", "Hamstrings"],
       bodyParts: ["Hips"],
     },
   },
