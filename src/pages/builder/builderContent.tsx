@@ -20,6 +20,10 @@ import { useUndoRedo } from "./utils/undoredo";
 import { BuilderCopyLink } from "./components/builderCopyLink";
 import { BuilderModalSettings } from "./components/builderModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
+import { useEffect, useState } from "preact/hooks";
+import { BuilderModalOnboarding } from "./components/builderModalOnboarding";
+import { IconHelp } from "../../components/icons/iconHelp";
+import { BuilderHelpOverlay } from "./components/builderHelpOverlay";
 
 export interface IBuilderContentProps {
   client: Window["fetch"];
@@ -75,6 +79,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
 
   useCopyPaste(state, dispatch);
   useUndoRedo(state, dispatch);
+  const [showOnboarding, setShowOnboarding] = useState<number>(0);
 
   const modalExerciseUi = state.ui.modalExercise;
   const modalSubstituteUi = state.ui.modalSubstitute;
@@ -92,14 +97,29 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
         <div>
           <BuilderCopyLink />
           <button
-            className="p-2"
+            className="p-2 align-middle"
             onClick={() => dispatch([lb<IBuilderState>().p("ui").p("modalSettings").record(true)])}
           >
             <IconCog2 />
           </button>
+          <button
+            className="p-2 align-middle"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem("liftosaur-builder-help-displayed", "0");
+              }
+              setShowOnboarding(showOnboarding + 1);
+            }}
+          >
+            <IconHelp />
+          </button>
         </div>
       </div>
-      <h2 className="pb-3 mt-16 text-xl font-bold">
+      <p className="pb-2">
+        This is a tool to build your weightlifting programs. It allows to make sure you have enough volume for each
+        muscle group, and balance it with the time you spent in the gym.
+      </p>
+      <h2 className="pb-3 mt-8 text-xl font-bold">
         <BuilderLinkInlineInput
           value={state.program.name}
           onInputString={(value) => {
@@ -203,6 +223,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
         />
       )}
       {modalSettings && <BuilderModalSettings dispatch={dispatch} unit={state.settings.unit} />}
+      <BuilderHelpOverlay key={showOnboarding} />
     </section>
   );
 }

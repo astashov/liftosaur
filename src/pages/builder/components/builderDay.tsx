@@ -71,7 +71,13 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
               }}
             />
           </h3>
-          <div className="inline-block ml-2 align-middle">
+          <div
+            className="inline-block ml-2 align-middle"
+            data-help-id="builder-day-time"
+            data-help-order={3}
+            data-help="See approximately how much time (HH:MM) the workout will take."
+            data-help-position="bottom"
+          >
             <IconWatch className="mr-1 align-middle" style={{ marginBottom: "2px" }} />
             <span className="font-bold align-middle">{duration}</span>
           </div>

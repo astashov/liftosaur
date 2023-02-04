@@ -111,7 +111,17 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
           </LinkButton>
         </div>
         <div style={{ flex: 2 }}>
-          <BuilderWeekMuscles weekIndex={props.index} week={props.week} dispatch={props.dispatch} />
+          <div
+            data-help-id="builder-week-muscles"
+            data-help-order={4}
+            data-help="See how much weekly total volume you have per muscle group with all exercises"
+            data-help-position="top"
+            data-help-offset-x="-40"
+            data-help-offset-y="-30"
+            data-help-height="120"
+          >
+            <BuilderWeekMuscles weekIndex={props.index} week={props.week} dispatch={props.dispatch} />
+          </div>
         </div>
       </div>
     </section>

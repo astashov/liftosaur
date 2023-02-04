@@ -124,7 +124,15 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
                 })}
               </select>
             </div>
-            <div className="pt-2">
+            <div
+              className="pt-2"
+              data-help-id="builder-exercise-sets"
+              data-help-order={1}
+              data-help="Add exercises, reps and sets, using percentage of 1RM for weight"
+              data-help-position="bottom"
+              data-help-offset-x="-100"
+              data-help-offset-y="-30"
+            >
               <BuilderExerciseSets
                 exerciseIndex={props.index}
                 dayIndex={props.dayIndex}
@@ -135,21 +143,31 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
             </div>
           </div>
         </div>
-        <h4 className="font-bold">Contributions:</h4>
-        <ul>
-          {CollectionUtils.sort(
-            ObjectUtils.keys(musclePoints),
-            (a, b) => (musclePoints[b] || 0) - (musclePoints[a] || 0)
-          )
-            .filter((a) => (musclePoints[a] || 0) > 0)
-            .map((key) => {
-              return (
-                <li>
-                  {StringUtils.capitalize(key)} - {musclePointValue((musclePoints[key] || 0) * 100)}
-                </li>
-              );
-            })}
-        </ul>
+        <div
+          data-help-id="builder-exercise-contributions"
+          data-help-order={2}
+          data-help="See how much it contributes to muscle weekly volume norm (which is ~15 sets of 70% 1RM per muscle)"
+          data-help-height="120"
+          data-help-position="top"
+          data-help-offset-x="-100"
+          data-help-offset-y="-20"
+        >
+          <h4 className="font-bold">Contributions:</h4>
+          <ul>
+            {CollectionUtils.sort(
+              ObjectUtils.keys(musclePoints),
+              (a, b) => (musclePoints[b] || 0) - (musclePoints[a] || 0)
+            )
+              .filter((a) => (musclePoints[a] || 0) > 0)
+              .map((key) => {
+                return (
+                  <li>
+                    {StringUtils.capitalize(key)} - {musclePointValue((musclePoints[key] || 0) * 100)}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
         <div className="mt-2">
           <LinkButton
             onClick={() => {
@@ -168,29 +186,39 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
         </div>
       </div>
       <div className="pl-4" style={{ flex: 2 }}>
-        <div>
-          <label className="flex items-center py-2">
-            <input
-              type="checkbox"
-              className="text-bluev2 checkbox"
-              checked={props.exercise.isSuperset}
-              onChange={(e: Event): void => {
-                props.dispatch([lbe.p("isSuperset").record(!!(e.target as HTMLInputElement)?.checked)]);
-              }}
+        <div
+          data-help-id="builder-exercise-rest-timer"
+          data-help-order={5}
+          data-help="Rest Timer and Superset affect the overall workout time"
+          data-help-height="120"
+          data-help-position="top"
+          data-help-offset-x="-100"
+          data-help-offset-y="-20"
+        >
+          <div>
+            <label className="flex items-center py-2">
+              <input
+                type="checkbox"
+                className="text-bluev2 checkbox"
+                checked={props.exercise.isSuperset}
+                onChange={(e: Event): void => {
+                  props.dispatch([lbe.p("isSuperset").record(!!(e.target as HTMLInputElement)?.checked)]);
+                }}
+              />
+              <span className="ml-2">Superset</span>
+            </label>
+          </div>
+          <div className="py-1" style={{ opacity: props.exercise.isSuperset ? 0.5 : 1 }}>
+            <span className="font-bold">Rest Timer: </span>
+            <BuilderLinkInlineInput
+              maxLength={5}
+              disabled={props.exercise.isSuperset}
+              type="tel"
+              value={props.exercise.restTimer}
+              onInputInt={(num) => props.dispatch([lbe.p("restTimer").record(num)])}
             />
-            <span className="ml-2">Superset</span>
-          </label>
-        </div>
-        <div className="py-1" style={{ opacity: props.exercise.isSuperset ? 0.5 : 1 }}>
-          <span className="font-bold">Rest Timer: </span>
-          <BuilderLinkInlineInput
-            maxLength={5}
-            disabled={props.exercise.isSuperset}
-            type="tel"
-            value={props.exercise.restTimer}
-            onInputInt={(num) => props.dispatch([lbe.p("restTimer").record(num)])}
-          />
-          <span className="font-bold"> sec</span>
+            <span className="font-bold"> sec</span>
+          </div>
         </div>
         <div className="py-1">
           <span className="font-bold">1 RM: </span>
