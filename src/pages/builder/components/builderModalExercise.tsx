@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { forwardRef } from "preact/compat";
-import { Ref, useRef, useState } from "preact/hooks";
+import { Ref, useEffect, useRef, useState } from "preact/hooks";
 import { Modal } from "../../../components/modal";
 import { Exercise } from "../../../models/exercise";
 import { IExerciseId } from "../../../types";
@@ -10,6 +10,7 @@ import { IBuilderDispatch } from "../models/builderReducer";
 interface IBuilderModalExerciseProps {
   onChange: (value?: IExerciseId) => void;
   dispatch: IBuilderDispatch;
+  isHidden: boolean;
 }
 
 export function BuilderModalExercise(props: IBuilderModalExerciseProps): JSX.Element {
@@ -17,8 +18,14 @@ export function BuilderModalExercise(props: IBuilderModalExerciseProps): JSX.Ele
   const [filter, setFilter] = useState<string>("");
 
   return (
-    <Modal autofocusInputRef={textInput} shouldShowClose={true} onClose={() => props.onChange()} isFullWidth={true}>
+    <Modal
+      isHidden={props.isHidden}
+      autofocusInputRef={textInput}
+      shouldShowClose={true}
+      onClose={() => props.onChange()}
+    >
       <ExercisesList
+        isHidden={props.isHidden}
         dispatch={props.dispatch}
         filter={filter}
         setFilter={setFilter}
@@ -35,6 +42,7 @@ interface IExercisesListProps {
   onChange: (value?: IExerciseId) => void;
   textInput: Ref<HTMLInputElement>;
   dispatch: IBuilderDispatch;
+  isHidden: boolean;
 }
 
 const ExercisesList = forwardRef(
@@ -45,6 +53,12 @@ const ExercisesList = forwardRef(
     if (filter) {
       exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter, e.name.toLowerCase()));
     }
+
+    useEffect(() => {
+      if (textInput.current) {
+        textInput.current.value = "";
+      }
+    }, [props.isHidden]);
 
     return (
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>

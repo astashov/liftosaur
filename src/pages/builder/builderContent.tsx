@@ -150,29 +150,28 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       >
         Add Week
       </LinkButton>
-      {modalExerciseUi && (
-        <BuilderModalExercise
-          dispatch={dispatch}
-          onChange={(exerciseId) => {
-            if (exerciseId) {
-              const exercise = Exercise.getById(exerciseId, {});
-              dispatch([
-                lb<IBuilderState>()
-                  .p("program")
-                  .p("weeks")
-                  .i(modalExerciseUi.weekIndex)
-                  .p("days")
-                  .i(modalExerciseUi.dayIndex)
-                  .p("exercises")
-                  .i(modalExerciseUi.exerciseIndex)
-                  .p("exerciseType")
-                  .record({ id: exercise.id, equipment: exercise.equipment }),
-              ]);
-            }
-            dispatch([lb<IBuilderState>().p("ui").p("modalExercise").record(undefined)]);
-          }}
-        />
-      )}
+      <BuilderModalExercise
+        isHidden={!modalExerciseUi}
+        dispatch={dispatch}
+        onChange={(exerciseId) => {
+          if (exerciseId && modalExerciseUi) {
+            const exercise = Exercise.getById(exerciseId, {});
+            dispatch([
+              lb<IBuilderState>()
+                .p("program")
+                .p("weeks")
+                .i(modalExerciseUi.weekIndex)
+                .p("days")
+                .i(modalExerciseUi.dayIndex)
+                .p("exercises")
+                .i(modalExerciseUi.exerciseIndex)
+                .p("exerciseType")
+                .record({ id: exercise.id, equipment: exercise.equipment }),
+            ]);
+          }
+          dispatch([lb<IBuilderState>().p("ui").p("modalExercise").record(undefined)]);
+        }}
+      />
       {modalSubstituteUi && (
         <ModalSubstitute
           exerciseType={modalSubstituteUi.exerciseType}

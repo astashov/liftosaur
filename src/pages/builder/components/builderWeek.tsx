@@ -119,6 +119,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
             data-help-offset-x="-40"
             data-help-offset-y="-30"
             data-help-height="120"
+            className="sticky top-0"
           >
             <BuilderWeekMuscles weekIndex={props.index} week={props.week} dispatch={props.dispatch} />
           </div>

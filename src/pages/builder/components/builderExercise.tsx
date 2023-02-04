@@ -318,9 +318,9 @@ function volumeSplitValue(key: keyof IVolumeSplit, value: number): JSX.Element {
 
 function musclePointValue(value: number): JSX.Element {
   let color = "";
-  if (value > 60) {
+  if (value >= 20) {
     color = "text-greenv2-main";
-  } else if (value > 30) {
+  } else if (value >= 10) {
     color = "text-yellowv2";
   } else {
     color = "text-redv2-main";

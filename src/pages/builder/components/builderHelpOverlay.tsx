@@ -58,7 +58,7 @@ export function BuilderHelpOverlay(): JSX.Element | null {
                 <IconLogo style={{ filter: "drop-shadow(0px 0px 4px rgba(255, 255, 255, 1))" }} />
               </div>
               <div className="flex-1">
-                Welcome to the weightlifting program builder! Build your workouts and making sure you get enough weekly
+                Welcome to the weightlifting program builder! Build your workouts, make sure you get enough weekly
                 volume for the muscles you need, and balance the time you spend in the gym.
               </div>
             </div>

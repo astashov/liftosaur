@@ -17,7 +17,7 @@ export function BuilderLinkInlineInput(props: IBuilderInlineInputProps): JSX.Ele
 export function BuilderInlineInput(props: IBuilderInlineInputProps): JSX.Element {
   const { className, minWidth, style, onInput, ...otherProps } = props;
   const elRef = useRef<HTMLInputElement>(null);
-  const length = Math.max(minWidth == null ? 0 : minWidth, `${props.value}`.length);
+  const length = Math.max(minWidth == null ? 0 : minWidth, `${props.value}`.length + 1);
 
   return (
     <input

@@ -29,7 +29,7 @@ export function BuilderWeekMuscles(props: IBuilderWeekMusclesProps): JSX.Element
   const rightColumn: IScreenMuscle[] = ["shoulders", "abs", "quadriceps", "chest", "biceps", "forearms"];
 
   return (
-    <section className="sticky top-0 builder-week-muscles">
+    <section className="builder-week-muscles">
       <h3 className="pt-2 font-bold">{props.week.name} volume per muscle group</h3>
       <section className="flex p-4">
         <div className="relative flex-1">
