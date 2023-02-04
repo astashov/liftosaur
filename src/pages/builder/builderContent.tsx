@@ -20,8 +20,7 @@ import { useUndoRedo } from "./utils/undoredo";
 import { BuilderCopyLink } from "./components/builderCopyLink";
 import { BuilderModalSettings } from "./components/builderModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
-import { useEffect, useState } from "preact/hooks";
-import { BuilderModalOnboarding } from "./components/builderModalOnboarding";
+import { useState } from "preact/hooks";
 import { IconHelp } from "../../components/icons/iconHelp";
 import { BuilderHelpOverlay } from "./components/builderHelpOverlay";
 
