@@ -14,7 +14,7 @@ export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <button
       data-cy={`bottom-sheet-${props.name}`}
-      className={`block text-base text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
+      className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
         props.className
       }`}
       onClick={props.onClick}

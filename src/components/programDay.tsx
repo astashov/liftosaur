@@ -8,7 +8,6 @@ import { ModalDate } from "./modalDate";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
-import { Thunk } from "../ducks/thunks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, ISubscription } from "../types";
@@ -16,9 +15,6 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { IScreen } from "../models/screen";
-import { FooterButton } from "./footerButton";
-import { IconDoc } from "./icons/iconDoc";
-import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IconTrash } from "./icons/iconTrash";
 import { Timer } from "./timer";
 import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
@@ -98,26 +94,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           />
         }
         footer={
-          <Footer2View
-            dispatch={props.dispatch}
-            leftButtons={[
-              ...(Progress.isCurrent(props.progress)
-                ? [
-                    <FooterButton
-                      icon={<IconDoc />}
-                      text="Edit Day"
-                      onClick={() => Progress.editDayAction(props.dispatch, progress.programId, progress.day - 1)}
-                    />,
-                  ]
-                : []),
-              <FooterButton
-                icon={<IconMuscles2 />}
-                onClick={() => dispatch(Thunk.pushScreen("musclesDay"))}
-                text="Muscles"
-              />,
-            ]}
-            rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
-          />
+          <Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />
         }
         addons={
           <>

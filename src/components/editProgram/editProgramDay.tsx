@@ -12,7 +12,6 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { IScreen } from "../../models/screen";
 import { Footer2View } from "../footer2";
-import { FooterButton } from "../footerButton";
 import { rightFooterButtons } from "../rightFooterButtons";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { ExerciseImage } from "../exerciseImage";
@@ -21,6 +20,10 @@ import { IconTrash } from "../icons/iconTrash";
 import { LinkButton } from "../linkButton";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { HelpEditProgramDay } from "../help/helpEditProgramDay";
+import { BottomSheetItem } from "../bottomSheetItem";
+import { BottomSheet } from "../bottomSheet";
+import { useState } from "preact/hooks";
+import { IconKebab } from "../icons/iconKebab";
 
 interface IProps {
   isProgress: boolean;
@@ -42,6 +45,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
   const program = props.editProgram;
   const day = props.editDay;
   const { dayIndex } = props;
+  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
 
   return (
     <Surface
@@ -51,21 +55,29 @@ export function EditProgramDay(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpEditProgramDay />}
           screenStack={props.screenStack}
+          rightButtons={[
+            <button className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
+              <IconKebab />
+            </button>,
+          ]}
           title="Edit Program Day"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          leftButtons={[
-            <FooterButton
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      addons={
+        <BottomSheet isHidden={!shouldShowBottomSheet} onClose={() => setShouldShowBottomSheet(false)}>
+          <div className="p-4">
+            <BottomSheetItem
+              isFirst={true}
+              name="muscles-day"
+              className="ls-muscles-day"
+              title="Muscles"
               icon={<IconMuscles2 />}
-              text="Muscles"
+              description="Muscle balance of the current day."
               onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
-            />,
-          ]}
-          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
-        />
+            />
+          </div>
+        </BottomSheet>
       }
     >
       <section className="px-4">

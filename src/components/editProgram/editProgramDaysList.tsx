@@ -17,8 +17,6 @@ import { IScreen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
-import { FooterButton } from "../footerButton";
-import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
@@ -31,7 +29,6 @@ import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { rightFooterButtons } from "../rightFooterButtons";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
-import { IconPreview } from "../icons/iconPreview";
 
 interface IProps {
   editProgram: IProgram;
@@ -63,24 +60,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           title="Edit Program"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          leftButtons={[
-            <FooterButton
-              icon={<IconMuscles2 />}
-              text="Muscles"
-              onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
-            />,
-            <FooterButton
-              icon={<IconPreview />}
-              text="Preview"
-              onClick={() => Program.previewProgram(props.dispatch, props.editProgram.id, true)}
-            />,
-          ]}
-          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
       addons={
         <>
           <BottomSheetEditProgram
@@ -88,6 +68,8 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               setShouldShowBottomSheet(false);
               props.dispatch(Thunk.exportProgram(props.editProgram));
             }}
+            editProgramId={props.editProgram.id}
+            dispatch={props.dispatch}
             isHidden={!shouldShowBottomSheet}
             onClose={() => setShouldShowBottomSheet(false)}
           />

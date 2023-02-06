@@ -8,6 +8,8 @@ import { IHistoryRecord, IProgram, ISettings, IProgressMode, IProgramExercise, I
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
 import { Thunk } from "../ducks/thunks";
+import { IconMuscles2 } from "./icons/iconMuscles2";
+import { IconEditSquare } from "./icons/iconEditSquare";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -36,7 +38,22 @@ export const CardsView = memo(
         <div className="flex pb-2">
           <div className="flex-1">
             <div className="text-lg font-semibold">{props.progress?.programName}</div>
-            <div className="text-sm text-grayv2-main">{props.progress?.dayName}</div>
+            <div className="flex text-sm text-grayv2-main">
+              <div className="flex-1 mr-2 align-middle">{props.progress?.dayName}</div>
+              <div className="align-middle">
+                <button
+                  className="px-2 ml-1 align-middle"
+                  onClick={() =>
+                    Progress.editDayAction(props.dispatch, props.progress.programId, props.progress.day - 1)
+                  }
+                >
+                  <IconEditSquare />
+                </button>
+                <button onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))} className="px-2 align-middle">
+                  <IconMuscles2 />
+                </button>
+              </div>
+            </div>
           </div>
           {!friend && !Progress.isCurrent(props.progress) && (
             <div className="pt-1 pl-2">
