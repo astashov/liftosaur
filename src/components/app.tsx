@@ -37,6 +37,7 @@ import { lb } from "lens-shmens";
 import { ScreenProgramPreview } from "./screenProgramPreview";
 import { ScreenExerciseStats } from "./screenExerciseStats";
 import { Exercise } from "../models/exercise";
+import { RestTimer } from "./restTimer";
 
 interface IProps {
   client: Window["fetch"];
@@ -225,9 +226,6 @@ export function AppView(props: IProps): JSX.Element | null {
           comments={state.comments}
           likes={state.likes}
           dispatch={dispatch}
-          webpushr={state.webpushr}
-          timerSince={progress.timerSince}
-          timerMode={progress.timerMode}
           settings={state.storage.settings}
           screenStack={state.screenStack}
         />
@@ -421,6 +419,7 @@ export function AppView(props: IProps): JSX.Element | null {
     return null;
   }
 
+  const progress = state.progress[state.currentHistoryRecord!];
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   return (
     <Fragment>
@@ -435,6 +434,15 @@ export function AppView(props: IProps): JSX.Element | null {
         }}
       />
       {content}
+      {progress && (
+        <RestTimer
+          mode={progress.timerMode ?? "workout"}
+          timerStart={progress.timerSince}
+          webpushr={state.webpushr}
+          timers={state.storage.settings.timers}
+          dispatch={dispatch}
+        />
+      )}
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
         <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />

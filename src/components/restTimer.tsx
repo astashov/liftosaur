@@ -50,13 +50,17 @@ export function RestTimer(props: IProps): JSX.Element | null {
   if (timer != null && props.timerStart != null) {
     const timeDifference = Date.now() - props.timerStart;
     const isTimeOut = timeDifference > timer * 1000;
-    const className = isTimeOut ? "text-redv2-main" : "";
+    const className = isTimeOut ? "bg-redv2-main" : "bg-grayv2-main";
     return (
-      <section className="font-bold text-center">
-        <div className={className}>
-          <div>{TimeUtils.formatMMSS(timeDifference)}</div>
-          <div style={{ marginTop: "-4px" }}>{isTimeOut ? "It's time!" : "Rest timer"}</div>
-        </div>
+      <section
+        role="button"
+        onClick={() => {
+          props.dispatch({ type: "StartProgramDayAction" });
+        }}
+        className={`${className} w-16 fixed z-50 font-bold text-center px-2 py-2 text-white rounded-lg shadow-xl`}
+        style={{ right: "1rem", bottom: "5rem", boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+      >
+        {TimeUtils.formatMMSS(timeDifference)}
       </section>
     );
   } else {

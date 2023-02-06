@@ -3,7 +3,6 @@ import { CardsView } from "./cards";
 import { IDispatch } from "../ducks/types";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
-import { RestTimer } from "./restTimer";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
@@ -52,7 +51,6 @@ interface IProps {
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
   const friend = props.friend;
-  const timers = props.settings.timers;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
 
@@ -119,15 +117,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               />,
             ]}
             rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
-            centerButtons={
-              <RestTimer
-                mode={props.timerMode ?? "workout"}
-                timerStart={props.timerSince}
-                webpushr={props.webpushr}
-                timers={timers}
-                dispatch={props.dispatch}
-              />
-            }
           />
         }
         addons={
