@@ -13,7 +13,7 @@ describe("Progress", () => {
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("clone-program").click();
-    g("footer-cta").click();
+    g("start-workout").click();
 
     // Testing set clicks
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").first().as("firstset");

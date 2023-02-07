@@ -55,7 +55,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
           helpContent={<HelpEditProgramDay />}
           screenStack={props.screenStack}
           rightButtons={[
-            <button className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
+            <button data-cy="navbar-3-dot" className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
               <IconKebab />
             </button>,
           ]}

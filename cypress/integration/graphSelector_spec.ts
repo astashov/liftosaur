@@ -19,7 +19,7 @@ describe("Graphs", () => {
 
     g("navbar-back").click();
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     // Complete workout
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").click({ multiple: true });

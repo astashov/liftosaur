@@ -15,7 +15,7 @@ describe("Stats", () => {
     g("clone-program").click();
 
     g("footer-measures").click();
-    g("footer-cta").click();
+    g("add-measurements").click();
     g("modify-stats").click();
     g("menu-item-name-shoulders").click();
     g("menu-item-name-forearm-left").click();
@@ -32,7 +32,7 @@ describe("Stats", () => {
     g("menu-item-length-units", "scroll-barrel-item-cm").click();
     g("navbar-back").click();
 
-    g("footer-cta").click();
+    g("add-measurements").click();
     cy.contains("Shoulders (cm)").should("have.length", 1);
     g("input-stats-shoulders").should("have.value", 51.66);
     g("input-stats-shoulders").clear().type("40");

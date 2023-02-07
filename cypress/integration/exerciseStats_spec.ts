@@ -8,7 +8,6 @@ function finishExercise(name: string): void {
 
 function switchBackToFirstDay(): void {
   g("footer-program").click({ force: true });
-  g("bottom-sheet-edit-program").click();
   g("menu-item-name-next-day").click();
   g("scroll-barrel-item-1").click();
   g("navbar-back").click();
@@ -41,7 +40,7 @@ describe("Exercise Stats", () => {
 
     switchBackToFirstDay();
 
-    g("footer-cta").click();
+    g("start-workout").click();
     g("entry-bent-over-row").find(s("exercise-name")).click();
     g("menu-item-name-exercise").should("be.visible");
     g("exercise-stats-image").should("be.visible");
@@ -59,7 +58,7 @@ describe("Exercise Stats", () => {
 
     switchBackToFirstDay();
 
-    g("footer-cta").click();
+    g("start-workout").click();
     g("entry-bent-over-row").find(s("exercise-name")).click();
     g("max-weight-value").should("have.text", "67.5 lb");
     g("one-rm-value").should("have.text", "77.5 lb (5 x 67.5 lb)");

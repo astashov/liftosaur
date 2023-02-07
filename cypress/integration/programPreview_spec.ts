@@ -76,9 +76,9 @@ describe("Basic Beginner Program", () => {
     g("navbar-back").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("clone-program").click();
-    g("footer-program").click({ force: true });
-    g("bottom-sheet-edit-program").click();
-    g("footer-preview").click();
+    g("footer-program").click();
+    g("navbar-3-dot").click();
+    g("bottom-sheet-preview-program").click();
     g("program-name").should("have.text", "Basic Beginner Routine");
   });
 });

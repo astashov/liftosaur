@@ -14,7 +14,7 @@ describe("Custom Exercises", () => {
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    g("footer-cta").click();
+    g("create-program").click();
 
     g("modal-create-program-input").clear().type("My Program");
     g("modal-create-program-submit").click();
@@ -39,13 +39,12 @@ describe("Custom Exercises", () => {
     g("navbar-back").click();
     g("menu-item-my-program").click();
 
-    g("footer-cta").click();
+    g("start-workout").click();
     g("set-nonstarted").click();
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();
 
     g("footer-program").click({ force: true });
-    g("bottom-sheet-edit-program").click();
     g("edit-exercise").click();
     g("menu-item-exercise").click();
     g("custom-exercise-delete-my-exercise-2").click();
@@ -63,7 +62,6 @@ describe("Custom Exercises", () => {
     g("history-entry-exercise-name").eq(1).should("have.text", "My Exercise 2");
 
     g("footer-program").click({ force: true });
-    g("bottom-sheet-edit-program").click();
     g("edit-exercise").click();
     g("menu-item-exercise").click();
     g("custom-exercise-create").click();
@@ -88,8 +86,8 @@ describe("Custom Exercises", () => {
     g("history-entry-exercise-name").eq(1).should("have.text", "My Exercise 3");
 
     g("footer-program").click({ force: true });
-    g("bottom-sheet-edit-program").click();
-    g("footer-muscles").click({ force: true });
+    g("navbar-3-dot").click();
+    g("bottom-sheet-muscles-program").click();
     g("target-muscles-list").should("contain.text", "Hamstrings");
     g("target-muscles-list").should("contain.text", "Shoulders");
     g("synergist-muscles-list").should("contain.text", "Abs");

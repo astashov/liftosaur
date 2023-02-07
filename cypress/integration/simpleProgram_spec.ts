@@ -14,7 +14,7 @@ describe("Program", () => {
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    g("footer-cta").click();
+    g("create-program").click();
 
     g("modal-create-program-input").clear().type("My Program");
     g("modal-create-program-submit").click();
@@ -61,7 +61,7 @@ describe("Program", () => {
 
     // Running the program
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     g("set-nonstarted").should("have.length", 5);
     g("set-nonstarted").should("have.length", 5);

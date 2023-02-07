@@ -13,7 +13,7 @@ describe("Basic Beginner Program", () => {
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("clone-program").click();
-    g("footer-cta").click();
+    g("start-workout").click();
 
     // Workout A
 
@@ -40,7 +40,7 @@ describe("Basic Beginner Program", () => {
 
     // Workout B
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     // First exercise is successful
     cy.get("[data-cy^=exercise-]:contains('Chin Up') [data-cy^=set-]").click({ multiple: true });
@@ -88,7 +88,7 @@ describe("Basic Beginner Program", () => {
 
     // Workout A
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     // First exercise is successful
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").click({ multiple: true });
@@ -127,7 +127,7 @@ describe("Basic Beginner Program", () => {
 
     // Workout B
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();

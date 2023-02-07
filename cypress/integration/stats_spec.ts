@@ -17,7 +17,7 @@ describe("Stats", () => {
     g("footer-measures").click();
     cy.contains("No measurements added yet").should("have.length", 1);
 
-    g("footer-cta").click();
+    g("add-measurements").click();
     g("modify-stats").click();
     g("menu-item-name-shoulders").click();
     g("menu-item-name-forearm-left").click();
@@ -31,7 +31,7 @@ describe("Stats", () => {
 
     g("add-stats").click();
 
-    g("footer-cta").click();
+    g("add-measurements").click();
     g("input-stats-bodyweight").should("have.value", "10");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "30");
@@ -41,7 +41,7 @@ describe("Stats", () => {
     g("input-stats-forearm-left").clear().type("35");
     g("add-stats").click();
 
-    g("footer-cta").click();
+    g("add-measurements").click();
     g("input-stats-bodyweight").should("have.value", "15");
     g("input-stats-shoulders").should("have.value", "20");
     g("input-stats-forearm-left").should("have.value", "35");
@@ -82,8 +82,8 @@ describe("Stats", () => {
     g("input-stats-unit").eq(0).should("have.text", "in");
     g("input-stats-unit").eq(1).should("have.text", "in");
 
-    g("footer-workouts").click({ force: true });
-    g("footer-cta").click();
+    g("footer-workout").click();
+    g("start-workout").click();
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").eq(0).click();
     cy.contains("Finish the workout").click();
     cy.contains("Continue").click();

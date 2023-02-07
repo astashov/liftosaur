@@ -14,7 +14,7 @@ describe("Program", () => {
     // Creating the program
 
     cy.contains("Pick or Create a Program").click();
-    g("footer-cta").click();
+    g("create-program").click();
 
     g("modal-create-program-input").clear().type("A Program");
     g("modal-create-program-submit").click();
@@ -151,7 +151,7 @@ describe("Program", () => {
 
     // Running the program
 
-    g("history-record-date").should("have.text", "Next");
+    g("history-record-date").should("have.text", "Start");
     g("history-record-program").should("have.text", "My Program, First Day");
     cy.get("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-weight]").should(
       "have.text",
@@ -162,7 +162,7 @@ describe("Program", () => {
       "8x2"
     );
 
-    g("footer-cta").click();
+    g("start-workout").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]").click({ multiple: true });
 

@@ -13,7 +13,7 @@ describe("Edit Sets", () => {
     cy.contains("Pick or Create a Program").click();
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("clone-program").click();
-    g("footer-cta").click();
+    g("start-workout").click();
 
     g("exercise-options").eq(1).click();
     g("bottom-sheet-edit-exercise").click();

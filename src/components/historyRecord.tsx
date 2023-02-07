@@ -61,11 +61,19 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         )}
         <div className="flex">
           <div className="flex-1 font-bold" data-cy="history-record-date">
-            {Progress.isCurrent(historyRecord)
-              ? Progress.isFullyEmptySet(historyRecord)
-                ? "Next"
-                : "Ongoing"
-              : DateUtils.format(historyRecord.date)}
+            {Progress.isCurrent(historyRecord) ? (
+              Progress.isFullyEmptySet(historyRecord) ? (
+                <span data-cy="start-workout" className="underline">
+                  Start
+                </span>
+              ) : (
+                <span data-cy="start-workout" className="underline">
+                  Continue
+                </span>
+              )
+            ) : (
+              DateUtils.format(historyRecord.date)
+            )}
           </div>
           <div className="flex-1 text-xs text-right text-gray-600" data-cy="history-record-program">
             {historyRecord.programName}, {historyRecord.dayName}
