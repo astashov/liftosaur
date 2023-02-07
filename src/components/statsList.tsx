@@ -14,6 +14,8 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { GraphStats, getWeightDataForGraph, getLengthDataForGraph } from "./graphStats";
 import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
+import { Button } from "./button";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   stats: IStats;
@@ -50,7 +52,16 @@ export function StatsList(props: IProps): JSX.Element {
   const values = getValues(props.stats, selectedKey);
 
   if (statsKeys.length === 0) {
-    return <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>;
+    return (
+      <div>
+        <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>
+        <div className="text-center">
+          <Button kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("stats"))}>
+            Add measurements
+          </Button>
+        </div>
+      </div>
+    );
   }
   const units = selectedKey === "weight" ? props.settings.units : props.settings.lengthUnits;
   const graphPoints =
@@ -60,6 +71,11 @@ export function StatsList(props: IProps): JSX.Element {
 
   return (
     <div className="px-4" data-cy={`stats-list-${selectedKey}`}>
+      <div className="pb-2 text-center">
+        <Button kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("stats"))}>
+          Add measurements
+        </Button>
+      </div>
       <GroupHeader name="Selected Measurement Type" />
       <MenuItemEditable
         type="select"
@@ -87,9 +103,11 @@ export function StatsList(props: IProps): JSX.Element {
         )}
       </div>
       {values.length === 0 ? (
-        <div className="py-12 text-xl text-center text-grayv2-main">
-          No {Stats.name(selectedKey)} measurements added yet
-        </div>
+        <>
+          <div className="py-12 text-xl text-center text-grayv2-main">
+            No {Stats.name(selectedKey)} measurements added yet
+          </div>
+        </>
       ) : (
         <>
           <GroupHeader name="List of measurements" topPadding={false} />

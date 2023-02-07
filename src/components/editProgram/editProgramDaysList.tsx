@@ -84,6 +84,15 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
+        <GroupHeader name="Current Program" />
+        <MenuItem
+          name="Program"
+          value={props.editProgram.name}
+          expandValue={true}
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+        />
+        <GroupHeader name="Program Details" topPadding={true} />
         <MenuItemEditable
           type="text"
           name="Name:"

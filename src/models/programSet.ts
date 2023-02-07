@@ -42,7 +42,6 @@ export namespace ProgramSet {
     const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
     const timeToRest = (settings.timers.workout || 0) * 1000;
     const totalTime = timeToRep + timeToRest;
-    console.log("timeToRep: ", timeToRep, "timeToRest: ", timeToRest, "totalTime: ", totalTime);
     return totalTime;
   }
 }

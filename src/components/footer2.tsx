@@ -59,7 +59,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               <CreateButton isActive={Screen.tab(props.screen) === "workout"} />
             </button>
             <div
-              className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : "text-grayv2-700"}
+              className={Screen.tab(props.screen) === "workout" ? "text-purplev2-700" : ""}
               style={{ fontSize: "10px", paddingTop: "30px" }}
             >
               Workout

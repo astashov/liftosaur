@@ -6,7 +6,7 @@ import { Program } from "../models/program";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { ModalPostClone } from "./modalPostClone";
 import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
@@ -14,6 +14,8 @@ import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
 import { HelpChooseProgram } from "./help/helpChooseProgram";
+import { Button } from "./button";
+import { Footer2View } from "./footer2";
 
 interface IProps {
   dispatch: IDispatch;
@@ -31,6 +33,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   const [shouldShowPostCloneModal, setShouldShowPostCloneModal] = useState<boolean>(false);
 
   const program = props.programs.find((p) => p.id === selectedProgramId);
+  const noPrograms = props.customPrograms.length === 0;
 
   return (
     <Surface
@@ -39,18 +42,18 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           loading={props.loading}
           title="Choose a program"
           dispatch={props.dispatch}
-          helpContent={props.customPrograms.length === 0 ? <HelpChooseProgramFirstTime /> : <HelpChooseProgram />}
+          helpContent={noPrograms ? <HelpChooseProgramFirstTime /> : <HelpChooseProgram />}
           screenStack={props.screenStack}
         />
       }
-      footer={<></>}
+      footer={noPrograms ? <></> : <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <Fragment>
           {program != null && (
             <ModalProgramInfo
               settings={props.settings}
               program={program}
-              hasCustomPrograms={props.customPrograms.length > 0}
+              hasCustomPrograms={!noPrograms}
               onClose={() => setSelectedProgramId(undefined)}
               onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
               onSelect={() => {
@@ -82,6 +85,11 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         </Fragment>
       }
     >
+      <div className="pb-2 text-center">
+        <Button kind="purple" onClick={() => setShouldCreateProgram(true)}>
+          Create new program
+        </Button>
+      </div>
       <ProgramListView
         onSelectProgram={(id) => setSelectedProgramId(id)}
         programs={props.programs}
