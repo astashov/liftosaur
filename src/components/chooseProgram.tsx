@@ -11,7 +11,6 @@ import { ModalPostClone } from "./modalPostClone";
 import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
 import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
 import { Surface } from "./surface";
 import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
 import { HelpChooseProgram } from "./help/helpChooseProgram";
@@ -44,13 +43,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           screenStack={props.screenStack}
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          onCtaClick={() => setShouldCreateProgram(true)}
-          ctaTitle="Create Program"
-        />
-      }
+      footer={<></>}
       addons={
         <Fragment>
           {program != null && (

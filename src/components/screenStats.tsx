@@ -13,10 +13,9 @@ import { StringUtils } from "../utils/string";
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
 import { Input } from "./input";
-import { rightFooterButtons } from "./rightFooterButtons";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
 
@@ -131,7 +130,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           title="Add Measurements"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <ModalStats
           isHidden={!isModalVisible}

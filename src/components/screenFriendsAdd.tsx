@@ -10,8 +10,7 @@ import { ModalAddFriend } from "./modalAddFriend";
 import { Footer2View } from "./footer2";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
-import { rightFooterButtons } from "./rightFooterButtons";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { HelpFriendsAdd } from "./help/helpFriendsAdd";
 
 interface IProps {
@@ -50,7 +49,7 @@ export function ScreenFriendsAdd(props: IProps): JSX.Element {
           helpContent={<HelpFriendsAdd />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <ModalAddFriend
           isHidden={friendId == null}

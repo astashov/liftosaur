@@ -10,9 +10,8 @@ import { ISettings, IProgram, IProgramDay } from "../../types";
 import { ILoading } from "../../models/state";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
-import { IScreen } from "../../models/screen";
+import { IScreen, Screen } from "../../models/screen";
 import { Footer2View } from "../footer2";
-import { rightFooterButtons } from "../rightFooterButtons";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEditSquare } from "../icons/iconEditSquare";
@@ -63,7 +62,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
           title="Edit Program Day"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <BottomSheet isHidden={!shouldShowBottomSheet} onClose={() => setShouldShowBottomSheet(false)}>
           <div className="p-4">

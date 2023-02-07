@@ -5,9 +5,8 @@ import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
 import { ISettings, IProgramDay, IProgramExercise, ISubscription } from "../../types";
 import { ILoading } from "../../models/state";
-import { IScreen } from "../../models/screen";
 import { NavbarView } from "../navbar";
-import { rightFooterButtons } from "../rightFooterButtons";
+import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { Footer2View } from "../footer2";
 import { Tabs2 } from "../tabs2";
@@ -47,7 +46,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           subtitle={props.programName}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <Tabs2
         onChange={(index) => setSelectedTab(index)}

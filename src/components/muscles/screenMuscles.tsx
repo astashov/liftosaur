@@ -6,9 +6,8 @@ import { ILoading } from "../../models/state";
 import { MusclesView } from "./musclesView";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
-import { IScreen } from "../../models/screen";
+import { IScreen, Screen } from "../../models/screen";
 import { Footer2View } from "../footer2";
-import { rightFooterButtons } from "../rightFooterButtons";
 
 interface IProps {
   dispatch: IDispatch;
@@ -33,7 +32,7 @@ export function ScreenMuscles(props: IProps): JSX.Element {
           helpContent={props.helpContent}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <MusclesView title={props.title} points={props.points} settings={props.settings} />
     </Surface>

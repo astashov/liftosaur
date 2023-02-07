@@ -8,12 +8,9 @@ import { HistoryRecordsList } from "./historyRecordsList";
 import { IAllComments, IAllLikes, IFriendUser, ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
 import { IconDoc } from "./icons/iconDoc";
-import { IconRuler } from "./icons/iconRuler";
-import { FooterButton } from "./footerButton";
-import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpProgramHistory } from "./help/helpProgramHistory";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
@@ -66,22 +63,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           title="Workout History"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          onCtaClick={() => props.dispatch({ type: "StartProgramDayAction" })}
-          ctaTitle={props.progress ? "Continue Workout" : "Start Workout"}
-          leftButtons={[
-            <FooterButton icon={<IconDoc />} text="Program" onClick={() => setShowProgramBottomSheet(true)} />,
-            <FooterButton
-              icon={<IconRuler />}
-              text="Measures"
-              onClick={() => dispatch(Thunk.pushScreen("measurements"))}
-            />,
-          ]}
-          rightButtons={rightFooterButtons({ dispatch: props.dispatch })}
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <BottomSheet isHidden={!showProgramBottomSheet} onClose={() => setShowProgramBottomSheet(false)}>
           <div className="p-4">

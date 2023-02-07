@@ -5,8 +5,7 @@ import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { rightFooterButtons } from "./rightFooterButtons";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { ProgramPreview } from "./programPreview";
 
 interface IProps {
@@ -30,7 +29,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
           title="Program Preview"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <ProgramPreview
         dispatch={props.dispatch}

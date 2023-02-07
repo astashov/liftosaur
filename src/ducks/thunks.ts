@@ -150,6 +150,17 @@ export namespace Thunk {
     };
   }
 
+  export function pushToEditProgram(): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      const currentProgram =
+        state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
+      if (currentProgram) {
+        Program.editAction(dispatch, currentProgram.id);
+      }
+    };
+  }
+
   export function pushScreen(screen: IScreen): IThunk {
     return async (dispatch, getState) => {
       if (

@@ -17,9 +17,8 @@ import { ImporterProgram } from "./importerProgram";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
-import { rightFooterButtons } from "./rightFooterButtons";
 import { HelpSettings } from "./help/helpSettings";
 import { WebpushrButton } from "./webpushrButton";
 import { Features } from "../utils/features";
@@ -48,12 +47,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           title="Settings"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          rightButtons={rightFooterButtons({ dispatch: props.dispatch, active: "settings" })}
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <section className="px-4">
         <MenuItem

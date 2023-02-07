@@ -13,7 +13,7 @@ import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
-import { IScreen } from "../../models/screen";
+import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
@@ -27,7 +27,6 @@ import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
-import { rightFooterButtons } from "../rightFooterButtons";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 
 interface IProps {
@@ -60,7 +59,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           title="Edit Program"
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <>
           <BottomSheetEditProgram

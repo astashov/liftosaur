@@ -347,7 +347,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         ...state,
         currentHistoryRecord: progress.id,
         currentHistoryRecordUserId: undefined,
-        screenStack: Screen.push(state.screenStack, "progress"),
+        screenStack:
+          Screen.current(state.screenStack) !== "progress"
+            ? Screen.push(state.screenStack, "progress")
+            : state.screenStack,
       };
     } else if (state.storage.currentProgramId != null) {
       // TODO: What if the program is missing?

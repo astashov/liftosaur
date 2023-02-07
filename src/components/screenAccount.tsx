@@ -2,8 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ILoading } from "../models/state";
-import { rightFooterButtons } from "./rightFooterButtons";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -64,7 +63,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           helpContent={<HelpAccount />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <section className="px-4">
         <GroupHeader name="Current Account" />

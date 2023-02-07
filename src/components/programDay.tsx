@@ -14,14 +14,13 @@ import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, ISubscription
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen } from "../models/screen";
 import { IconTrash } from "./icons/iconTrash";
 import { Timer } from "./timer";
 import { BottomSheetEditExercise } from "./bottomSheetEditExercise";
 import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
-import { rightFooterButtons } from "./rightFooterButtons";
+import { IScreen, Screen } from "../models/screen";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -93,9 +92,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             ]}
           />
         }
-        footer={
-          <Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />
-        }
+        footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
         addons={
           <>
             <BottomSheetEditExercise

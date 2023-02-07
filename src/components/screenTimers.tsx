@@ -6,10 +6,9 @@ import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettingsTimers, ISettings } from "../types";
 import { ILoading } from "../models/state";
-import { IScreen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
-import { rightFooterButtons } from "./rightFooterButtons";
 import { NavbarView } from "./navbar";
 import { HelpTimers } from "./help/helpTimers";
 
@@ -32,7 +31,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
           helpContent={<HelpTimers />}
         />
       }
-      footer={<Footer2View dispatch={props.dispatch} rightButtons={rightFooterButtons({ dispatch: props.dispatch })} />}
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <section className="px-4">
         {ObjectUtils.keys(props.timers).map((timerType) => {

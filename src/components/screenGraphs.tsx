@@ -11,8 +11,7 @@ import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { IScreen } from "../models/screen";
-import { rightFooterButtons } from "./rightFooterButtons";
+import { IScreen, Screen } from "../models/screen";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpGraphs } from "./help/helpGraphs";
 
@@ -90,12 +89,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           title="Graphs"
         />
       }
-      footer={
-        <Footer2View
-          dispatch={props.dispatch}
-          rightButtons={rightFooterButtons({ dispatch: props.dispatch, active: "graphs" })}
-        />
-      }
+      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <ModalGraphs
           settings={props.settings}
