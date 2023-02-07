@@ -143,6 +143,21 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230207": {
+    title: <span>Footer navigation</span>,
+    body: (
+      <ul>
+        <li>
+          We've got complains that the footer navigation is confusing. And indeed, the left part was different from
+          screen to screen, and it sometimes was hard to understand where are you.
+        </li>
+        <li>
+          So, now the footer nav is always the same across all screens. The screen-based buttons got moved to either
+          3-dot menu in the navbar, or to regular buttons right on the screen.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
