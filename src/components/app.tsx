@@ -5,7 +5,7 @@ import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
 import { Program } from "../models/program";
-import { Screen } from "../models/screen";
+import { IScreen, Screen } from "../models/screen";
 import { ScreenSettings } from "./screenSettings";
 import { ScreenAccount } from "./screenAccount";
 import { useThunkReducer } from "../utils/useThunkReducer";
@@ -421,6 +421,7 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const progress = state.progress[state.currentHistoryRecord!];
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
+  const screensWithoutTimer: IScreen[] = ["subscription"];
   return (
     <Fragment>
       <style
@@ -434,7 +435,7 @@ export function AppView(props: IProps): JSX.Element | null {
         }}
       />
       {content}
-      {progress && (
+      {progress && screensWithoutTimer.indexOf(Screen.current(state.screenStack)) === -1 && (
         <RestTimer
           mode={progress.timerMode ?? "workout"}
           timerStart={progress.timerSince}

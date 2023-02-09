@@ -34,7 +34,7 @@ export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
     const { friend, userId } = props;
     return (
-      <section className="px-4">
+      <section className="px-4 pb-4">
         <div className="flex pb-2">
           <div className="flex-1">
             <div className="text-lg font-semibold">{props.progress?.programName}</div>

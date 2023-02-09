@@ -52,16 +52,17 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const isTimeOut = timeDifference > timer * 1000;
     const className = isTimeOut ? "bg-redv2-main" : "bg-grayv2-main";
     return (
-      <section
-        role="button"
-        onClick={() => {
-          props.dispatch({ type: "StartProgramDayAction" });
-        }}
-        className={`${className} w-16 fixed z-50 font-bold text-center px-2 py-2 text-white rounded-lg shadow-xl`}
-        style={{ right: "1rem", bottom: "5rem", boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
-      >
-        {TimeUtils.formatMMSS(timeDifference)}
-      </section>
+      <div className="fixed z-50 safe-area-inset-bottom " style={{ right: "1rem", bottom: "5rem" }}>
+        <button
+          onClick={() => {
+            props.dispatch({ type: "StartProgramDayAction" });
+          }}
+          className={`${className} w-16 font-bold text-center px-2 py-2 text-white rounded-lg shadow-xl`}
+          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+        >
+          {TimeUtils.formatMMSS(timeDifference)}
+        </button>
+      </div>
     );
   } else {
     return null;
