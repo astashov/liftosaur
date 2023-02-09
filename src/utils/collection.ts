@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace CollectionUtils {
   // inGroupsOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3).forEach((e) => print(e));
@@ -104,6 +105,22 @@ export namespace CollectionUtils {
   export function sort<T>(arr: T[], compareFn?: (a: T, b: T) => number): T[] {
     const arrCopy = [...arr];
     arrCopy.sort(compareFn);
+    return arrCopy;
+  }
+
+  export function sortInOrder<T extends {}, K extends keyof T>(arr: T[], key: K, order: T[K][]): T[] {
+    const arrCopy = [...arr];
+    arrCopy.sort((a, b) => {
+      const aIndex = order.indexOf(a[key]);
+      const bIndex = order.indexOf(b[key]);
+      if (aIndex === -1) {
+        return 1;
+      } else if (bIndex === -1) {
+        return -1;
+      } else {
+        return aIndex - bIndex;
+      }
+    });
     return arrCopy;
   }
 

@@ -91,6 +91,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         </Button>
       </div>
       <ProgramListView
+        settings={props.settings}
         onSelectProgram={(id) => setSelectedProgramId(id)}
         programs={props.programs}
         customPrograms={props.customPrograms}

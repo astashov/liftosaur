@@ -556,18 +556,23 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
 
-export const TProgram = t.type(
-  {
-    exercises: t.array(TProgramExercise),
-    id: t.string,
-    name: t.string,
-    description: t.string,
-    url: t.string,
-    author: t.string,
-    nextDay: t.number,
-    days: t.array(TProgramDay),
-    tags: t.array(TProgramTag),
-  },
+export const TProgram = t.intersection(
+  [
+    t.interface({
+      exercises: t.array(TProgramExercise),
+      id: t.string,
+      name: t.string,
+      description: t.string,
+      url: t.string,
+      author: t.string,
+      nextDay: t.number,
+      days: t.array(TProgramDay),
+      tags: t.array(TProgramTag),
+    }),
+    t.partial({
+      shortDescription: t.string,
+    }),
+  ],
   "TProgram"
 );
 export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;

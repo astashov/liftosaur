@@ -162,6 +162,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230209": {
+    title: <span>Choose Programs screen redesign</span>,
+    body: (
+      <ul>
+        <li>
+          Now it shows all the exercise images a built-in program contains, as well as the required equipment and
+          approximate time to finish a workout from the program. Hopefully it'll help with choosing the right program.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

@@ -6,38 +6,33 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
 import { IState } from "../models/state";
-import { IProgram } from "../types";
+import { IProgram, ISettings, IEquipment } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/compat";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEditSquare } from "./icons/iconEditSquare";
+import { Exercise, IExercise } from "../models/exercise";
+import { ObjectUtils } from "../utils/object";
+import { ExerciseImage } from "./exerciseImage";
+import { TimeUtils } from "../utils/time";
+import { IconWatch } from "./icons/iconWatch";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
   programs: IProgram[];
   customPrograms?: IProgram[];
+  settings: ISettings;
   dispatch: IDispatch;
   editProgramId?: string;
 }
 
 export function ProgramListView(props: IProps): JSX.Element {
   const customPrograms = CollectionUtils.sort(props.customPrograms || [], (a, b) => a.name.localeCompare(b.name));
-  const programs = CollectionUtils.sort(props.programs || [], (a, b) => a.name.localeCompare(b.name));
+  const programs = props.programs;
 
   const [isEditMode, setIsEditMode] = useState(false);
-
-  const tagToColor = {
-    "first-starter": "text-orange-700",
-    beginner: "text-orange-700",
-    barbell: "text-green-700",
-    dumbbell: "text-green-700",
-    intermediate: "text-orange-700",
-    woman: "text-pink-700",
-    ppl: "text-orange-700",
-    hypertrophy: "text-blue-700",
-  };
 
   return (
     <div className="px-4">
@@ -130,34 +125,88 @@ export function ProgramListView(props: IProps): JSX.Element {
           {props.customPrograms && props.customPrograms.length > 0 ? (
             <GroupHeader name="Or clone from built-in programs" />
           ) : null}
-          {programs.map((program) => (
-            <div>
-              <button
-                className="relative flex items-center w-full py-3 text-left border-b border-gray-200"
-                onClick={() => props.onSelectProgram(program.id)}
-              >
-                <div className="flex-1">
-                  <span>{program.name}</span>
-                  <div>
-                    {program.tags.map((tag) => (
-                      <span
-                        className={`inline-block mr-2 my-0 text-xs text-white whitespace-no-wrap rounded-full ${
-                          tagToColor[tag] || "bg-red-700"
-                        }`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right" style={{ lineHeight: "1em" }}>
-                  <IconArrowRight />
-                </div>
-              </button>
-            </div>
-          ))}
+          <div className="pt-2">
+            {programs.map((program) => (
+              <BuiltInProgram
+                settings={props.settings}
+                program={program}
+                onClick={() => {
+                  props.onSelectProgram(program.id);
+                }}
+              />
+            ))}
+          </div>
         </Fragment>
       )}
     </div>
+  );
+}
+
+interface IBuiltInProgramProps {
+  program: IProgram;
+  settings: ISettings;
+  onClick: () => void;
+}
+
+function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
+  const program = props.program;
+  const exerciseObj: Partial<Record<string, IExercise>> = {};
+  const equipmentSet: Set<IEquipment | undefined> = new Set();
+  for (const day of program.days) {
+    for (const ex of day.exercises) {
+      const programExercise = Program.getProgramExerciseById(program, ex.id);
+      if (programExercise) {
+        const exercise = Exercise.find(programExercise.exerciseType, props.settings.exercises);
+        if (exercise) {
+          exerciseObj[Exercise.toKey(programExercise.exerciseType)] = exercise;
+          if (exercise.equipment !== "bodyweight") {
+            equipmentSet.add(exercise.equipment);
+          }
+        }
+      }
+    }
+  }
+  const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
+  const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
+  const time = TimeUtils.formatHHMM(Program.dayAverageTimeMs(program, props.settings));
+
+  return (
+    <button
+      className="relative flex items-center w-full p-3 mb-4 text-left bg-orange-100 rounded-lg"
+      style={{ boxShadow: "0 0 8px 0 rgb(142 140 0 / 25%)" }}
+      onClick={props.onClick}
+    >
+      <div className="flex-1">
+        <div className="flex items-center">
+          <h3 className="flex-1 mr-2 text-lg font-bold">{program.name}</h3>
+          <div>
+            <IconWatch className="mb-1 align-middle" />
+            <span className="pl-1 align-middle">{time}h</span>
+          </div>
+        </div>
+        <h4 className="text-sm text-grayv2-main">{program.shortDescription}</h4>
+        <div className="py-3">
+          {exercises.map((e) => (
+            <ExerciseImage
+              exerciseType={e}
+              size="small"
+              customExercises={props.settings.exercises}
+              className="w-6 mr-1"
+            />
+          ))}
+        </div>
+        <div className="text-xs">
+          <span>Equipment: </span>
+          {equipment.map((e, i) => {
+            return (
+              <>
+                {i !== 0 && <>, </>}
+                <span className="font-bold">{e}</span>
+              </>
+            );
+          })}
+        </div>
+      </div>
+    </button>
   );
 }

@@ -1,4 +1,5 @@
 import { IProgram } from "../../src/types";
+import { CollectionUtils } from "../../src/utils/collection";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 
@@ -23,7 +24,20 @@ export class ProgramDao {
 
   public async getAll(): Promise<IProgramPayload[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.scan({ tableName: tableNames[env].programs });
+    const programs: IProgramPayload[] = await this.di.dynamo.scan({ tableName: tableNames[env].programs });
+    return CollectionUtils.sortInOrder(programs, "id", [
+      "basicBeginner",
+      "the5314b",
+      "gzclp",
+      "dbPpl",
+      "ss1",
+      "ss2",
+      "ss3",
+      "strongcurves1",
+      "strongcurves2",
+      "strongcurves3",
+      "texasmethod",
+    ]);
   }
 
   public async get(id: string): Promise<IProgramPayload | undefined> {

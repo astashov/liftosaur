@@ -181,8 +181,10 @@ export namespace Thunk {
     };
   }
 
-  export function publishProgram(args: Pick<IProgram, "id" | "author" | "name" | "description" | "url">): IThunk {
-    const { id, author, name, description, url } = args;
+  export function publishProgram(
+    args: Pick<IProgram, "id" | "author" | "name" | "shortDescription" | "description" | "url">
+  ): IThunk {
+    const { id, author, name, description, shortDescription, url } = args;
     return async (dispatch, getState, env) => {
       const state = getState();
       const program = {
@@ -191,6 +193,7 @@ export namespace Thunk {
         author,
         name,
         description,
+        shortDescription,
         url,
       };
       if (state.adminKey) {

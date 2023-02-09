@@ -461,6 +461,7 @@ export const basicBeginnerProgram: IProgram = {
   ],
   author: "/r/fitness",
   name: "Basic Beginner Routine",
+  shortDescription: "Great first starter program.",
   description:
     "<div><p>This is a great starting routine for complete beginners.</p><p>It's simple, easy to follow routine, which will introduce you to weight lifting.</p><p>You should run it for ~3 months, and then switch to some other routine, like '5/3/1 for beginners'.</p></div>",
   days: [

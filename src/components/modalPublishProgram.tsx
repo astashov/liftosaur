@@ -19,6 +19,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
   const { program, dispatch } = props;
   const idRef = useRef<HTMLInputElement>();
   const nameRef = useRef<HTMLInputElement>();
+  const shortDescriptionRef = useRef<HTMLInputElement>();
   const descriptionRef = useRef<HTMLTextAreaElement>();
   const urlRef = useRef<HTMLInputElement>();
   const authorRef = useRef<HTMLInputElement>();
@@ -31,6 +32,9 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
         </div>
         <div className="mb-2">
           <Input ref={nameRef} label="Name" value={program.name} type="text" />
+        </div>
+        <div className="mb-2">
+          <Input ref={shortDescriptionRef} label="Short Description" value={program.shortDescription} type="text" />
         </div>
         <div className="mb-2">
           <Input ref={descriptionRef} label="Description" value={program.description} multiline={4} />
@@ -52,6 +56,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
                 Thunk.publishProgram({
                   id: idRef.current.value,
                   name: nameRef.current.value,
+                  shortDescription: shortDescriptionRef.current.value,
                   description: descriptionRef.current.value,
                   url: urlRef.current.value,
                   author: authorRef.current.value,

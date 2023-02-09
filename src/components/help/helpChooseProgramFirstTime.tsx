@@ -16,12 +16,6 @@ export function HelpChooseProgramFirstTime(): JSX.Element {
         increasing or decreasing reps and weights over time, depending on your workout performance.
       </p>
       <p className="pb-2">
-        Each program has <strong>tags</strong>, which define the style of the program. Like, whether it's assumes you
-        have access to <strong>barbell</strong>, or <strong>dumbbell</strong> only, whether it's{" "}
-        <strong>beginner</strong> or
-        <strong>intermediate</strong>, etc.
-      </p>
-      <p className="pb-2">
         After you pick a program, you can modify it in any way you want. The app is very flexible, you can change the
         reps/weights logic, using a special scripting language called{" "}
         <Link href="/docs/docs.html#liftoscript-tutorial">Liftoscript</Link>
