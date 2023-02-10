@@ -39,8 +39,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
   const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
-
-  const [containerRef, visibleRecords] = useGradualList(props.history, 20, (vr, nextVr) => {
+  const history = [nextHistoryRecord, ...sortedHistory];
+  const [containerRef, visibleRecords] = useGradualList(history, 20, (vr, nextVr) => {
     const enddate = sortedHistory[vr - 1]?.date;
     const startdate = sortedHistory[nextVr - 1]?.date;
     dispatch(Thunk.fetchFriendsHistory(startdate || "2019-01-01T00:00:00.000Z", enddate));
@@ -48,7 +48,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     dispatch(Thunk.getComments(startdate || "2019-01-01T00:00:00.000Z", enddate));
   });
 
-  const history = [nextHistoryRecord, ...sortedHistory];
   const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
 
   return (

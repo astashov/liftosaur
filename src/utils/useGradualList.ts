@@ -22,7 +22,7 @@ export function useGradualList<T>(
     }
     window.addEventListener("scroll", scrollHandler);
     return () => window.removeEventListener("scroll", scrollHandler);
-  }, []);
+  }, [collection.length]);
 
   return [containerRef, visibleRecordsRef.current];
 }
