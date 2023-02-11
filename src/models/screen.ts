@@ -1,6 +1,7 @@
 export type ITab = "program" | "measurements" | "workout" | "graphs" | "settings";
 
 export type IScreen =
+  | "first"
   | "onboarding"
   | "main"
   | "settings"
@@ -118,6 +119,9 @@ export namespace Screen {
         return "workout";
       }
       case "programPreview": {
+        return "program";
+      }
+      case "first": {
         return "program";
       }
     }

@@ -38,6 +38,7 @@ import { ScreenProgramPreview } from "./screenProgramPreview";
 import { ScreenExerciseStats } from "./screenExerciseStats";
 import { Exercise } from "../models/exercise";
 import { RestTimer } from "./restTimer";
+import { ScreenFirst } from "./screenFirst";
 
 interface IProps {
   client: Window["fetch"];
@@ -135,7 +136,9 @@ export function AppView(props: IProps): JSX.Element | null {
     state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
 
   let content: JSX.Element;
-  if (Screen.current(state.screenStack) === "onboarding") {
+  if (Screen.current(state.screenStack) === "first") {
+    content = <ScreenFirst dispatch={dispatch} />;
+  } else if (Screen.current(state.screenStack) === "onboarding") {
     content = <ScreenOnboarding dispatch={dispatch} />;
   } else if (Screen.current(state.screenStack) === "subscription") {
     content = (

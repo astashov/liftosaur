@@ -68,6 +68,10 @@ body {
   width: 100%;
 }
 
+.left-right-animation {
+  animation: left-right-animation 2s infinite ease-in-out;
+}
+
 .is-edit-mode {
   animation: wiggle 0.25s infinite;
 }
@@ -187,6 +191,18 @@ input[type="checkbox"].checkbox:disabled {
 
   50% {
     background-position: 300%;
+  }
+}
+
+@keyframes left-right-animation {
+  0% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  100% {
+    transform: translateX(0px);
   }
 }
 
