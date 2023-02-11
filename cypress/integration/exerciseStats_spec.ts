@@ -22,8 +22,10 @@ describe("Exercise Stats", () => {
   });
 
   it("works", () => {
-    cy.visit("https://local.liftosaur.com:8080");
-    cy.contains("Start Basic Beginner Routine").click();
+    cy.visit("https://local.liftosaur.com:8080?skipintro=1");
+    cy.get("button:contains('Basic Beginner Routine')").click();
+    g("clone-program").click();
+    g("start-workout").click();
     g("entry-bent-over-row").find(s("exercise-name")).click();
     g("exercise-stats-image").should("be.visible");
     g("max-weight-value").should("not.be.visible");

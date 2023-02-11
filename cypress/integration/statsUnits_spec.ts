@@ -9,8 +9,7 @@ describe("Stats", () => {
   });
 
   it("converts length units properly", () => {
-    cy.visit("https://local.liftosaur.com:8080");
-    cy.contains("Pick or Create a Program").click();
+    cy.visit("https://local.liftosaur.com:8080?skipintro=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("clone-program").click();
 

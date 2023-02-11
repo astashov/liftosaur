@@ -29,8 +29,9 @@ export function clearAll(): void {
 
 export function login(email: string): void {
   clearAll();
-  cy.visit(`https://local.liftosaur.com:8080/?forceuseremail=${email}&friends=1`);
-  cy.contains("Start Basic Beginner Routine").click();
+  cy.visit(`https://local.liftosaur.com:8080/?forceuseremail=${email}&friends=1&skipintro=1`);
+  cy.get("button:contains('Basic Beginner Routine')").click();
+  g("clone-program").click();
   g("footer-settings").click();
   g("menu-item-account").click();
   g("menu-item-login").click();

@@ -30,6 +30,10 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 declare let Rollbar: RB;
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
+const shouldSkipIntro =
+  typeof window !== "undefined" && window?.location
+    ? !!new URL(window.location.href).searchParams.get("skipintro")
+    : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
   const currentAccount = await IndexedDBUtils.get("current_account");
@@ -73,7 +77,11 @@ export async function getInitialState(
         ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
         : false;
 
-    const screenStack: IScreen[] = finalStorage.currentProgramId ? ["main"] : ["first"];
+    const screenStack: IScreen[] = finalStorage.currentProgramId
+      ? ["main"]
+      : shouldSkipIntro
+      ? ["programs"]
+      : ["first"];
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
@@ -90,7 +98,7 @@ export async function getInitialState(
     };
   }
   return {
-    screenStack: ["first"],
+    screenStack: [shouldSkipIntro ? "programs" : "first"],
     progress: {},
     programs: [basicBeginnerProgram],
     loading: { items: {} },
