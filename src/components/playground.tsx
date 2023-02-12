@@ -75,6 +75,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         programExercise={programExercise}
         allProgramExercises={allProgramExercises}
         index={0}
+        hidePlatesCalculator={true}
         forceShowStateChanges={true}
         settings={props.settings}
         dispatch={dispatch}

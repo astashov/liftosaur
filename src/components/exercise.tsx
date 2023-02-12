@@ -33,7 +33,8 @@ import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { useCallback, useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
 import { Subscriptions } from "../utils/subscriptions";
-import { Locker } from "./locker";
+import { LinkButton } from "./linkButton";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   showHelp: boolean;
@@ -206,75 +207,85 @@ const ExerciseContentView = memo(
                   backgroundRepeat: "no-repeat",
                 }}
               >
-                <div className="py-1 pl-8 text-xs text-grayv2-main">Plates for each bar side</div>
-                <div className="relative pr-8" style={{ minHeight: isSubscribed ? "auto" : "6rem" }}>
-                  <Locker
-                    dispatch={props.dispatch}
-                    topic="Plates Calculator"
-                    blur={4}
-                    subscription={props.subscription}
-                  />
-                  {warmupWeights.map((w) => {
-                    const isCurrent =
-                      nextSet != null &&
-                      Weight.eq(
-                        Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment),
-                        w
-                      );
-                    const className = isCurrent ? "font-bold" : "";
-                    return (
-                      <div className={`${className} flex items-start`}>
-                        <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
-                          {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-                        </span>
-                        <span className="text-left whitespace-no-wrap text-grayv2-500">
-                          {w.value} {w.unit}
-                        </span>
-                        <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                      </div>
-                    );
-                  })}
-                  {workoutWeights.map((w, i) => {
-                    const isCurrent =
-                      nextSet != null &&
-                      Weight.eq(
-                        Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment),
-                        w
-                      );
-                    const className = isCurrent ? "font-bold" : "";
-                    return (
-                      <div className={`${className} flex items-start`}>
-                        <span style={{ minWidth: "16px" }} className="inline-block mx-2 text-center align-text-bottom">
-                          {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
-                        </span>
-                        <button
-                          data-help-id={
-                            props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined
-                          }
-                          data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
-                          data-help-offset-x={-80}
-                          data-help-width={140}
-                          data-cy="change-weight"
-                          className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
-                          style={{ fontWeight: "inherit" }}
-                          onClick={() => {
-                            if (!friend) {
-                              props.dispatch({
-                                type: "ChangeWeightAction",
-                                weight: w,
-                                exercise: props.entry.exercise,
-                                programExercise: props.programExercise,
-                              });
-                            }
-                          }}
-                        >
-                          {w.value} {w.unit}
-                        </button>
-                        <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
-                      </div>
-                    );
-                  })}
+                <div className="py-1 pl-8 text-xs text-grayv2-main">
+                  {isSubscribed ? (
+                    "Plates for each bar side"
+                  ) : (
+                    <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
+                      See plates for each side
+                    </LinkButton>
+                  )}
                 </div>
+                {isSubscribed && (
+                  <div className="relative pr-8">
+                    {warmupWeights.map((w) => {
+                      const isCurrent =
+                        nextSet != null &&
+                        Weight.eq(
+                          Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment),
+                          w
+                        );
+                      const className = isCurrent ? "font-bold" : "";
+                      return (
+                        <div className={`${className} flex items-start`}>
+                          <span
+                            style={{ minWidth: "16px" }}
+                            className="inline-block mx-2 text-center align-text-bottom"
+                          >
+                            {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                          </span>
+                          <span className="text-left whitespace-no-wrap text-grayv2-500">
+                            {w.value} {w.unit}
+                          </span>
+                          <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                        </div>
+                      );
+                    })}
+                    {workoutWeights.map((w, i) => {
+                      const isCurrent =
+                        nextSet != null &&
+                        Weight.eq(
+                          Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment),
+                          w
+                        );
+                      const className = isCurrent ? "font-bold" : "";
+                      return (
+                        <div className={`${className} flex items-start`}>
+                          <span
+                            style={{ minWidth: "16px" }}
+                            className="inline-block mx-2 text-center align-text-bottom"
+                          >
+                            {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
+                          </span>
+                          <button
+                            data-help-id={
+                              props.showHelp && props.index === 0 && i === 0 ? "progress-change-weight" : undefined
+                            }
+                            data-help="Press here to change weight of the sets. Weights are rounded according to available plates, so make sure you updated them in Settings"
+                            data-help-offset-x={-80}
+                            data-help-width={140}
+                            data-cy="change-weight"
+                            className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
+                            style={{ fontWeight: "inherit" }}
+                            onClick={() => {
+                              if (!friend) {
+                                props.dispatch({
+                                  type: "ChangeWeightAction",
+                                  weight: w,
+                                  exercise: props.entry.exercise,
+                                  programExercise: props.programExercise,
+                                });
+                              }
+                            }}
+                          >
+                            {w.value} {w.unit}
+                          </button>
+                          <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
             {nextSet && (!isSubscribed || props.hidePlatesCalculator) && <NextSet nextSet={nextSet} />}
