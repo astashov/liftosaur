@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IStorage } from "../src/types";
+import { IProgram, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -34,6 +34,7 @@ import { Subscriptions } from "./utils/subscriptions";
 import { renderBuilderHtml } from "./builder";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { IBuilderProgram } from "../src/pages/builder/models/types";
+import { renderProgramHtml } from "./program";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -840,6 +841,30 @@ const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   };
 };
 
+const getProgramEndpoint = Endpoint.build("/program", { data: "string?" });
+const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const di = payload.di;
+  const data = params.data;
+  let program: IProgram | undefined;
+  if (data) {
+    try {
+      const programJson = await NodeEncoder.decode(data);
+      program = JSON.parse(programJson);
+    } catch (e) {
+      di.log.log(e);
+    }
+  }
+
+  return {
+    statusCode: 200,
+    body: renderProgramHtml(fetch, program),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -912,6 +937,7 @@ export const handler = rollbar.lambdaHandler(
       .post(timerEndpoint, timerHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)
+      .get(getProgramEndpoint, getProgramHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
