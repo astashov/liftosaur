@@ -21,6 +21,7 @@ import {
 import { CollectionUtils } from "../utils/collection";
 import { IProgramState } from "../types";
 import { ProgramExercise } from "./programExercise";
+import { EditProgramLenses } from "./editProgramLenses";
 
 interface I531Tms {
   squat: IWeight;
@@ -321,17 +322,11 @@ export namespace EditProgram {
     endDayIndex: number
   ): void {
     updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .i(programIndex)
-        .p("days")
-        .recordModify((days) => {
-          const newDays = [...days];
-          const [daysToMove] = newDays.splice(startDayIndex, 1);
-          newDays.splice(endDayIndex, 0, daysToMove);
-          return newDays;
-        }),
+      EditProgramLenses.reorderDays(
+        lb<IState>().p("storage").p("programs").i(programIndex),
+        startDayIndex,
+        endDayIndex
+      ),
     ]);
   }
 
@@ -343,19 +338,12 @@ export namespace EditProgram {
     endExceciseIndex: number
   ): void {
     updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .findBy("id", program.id)
-        .p("days")
-        .i(dayIndex)
-        .p("exercises")
-        .recordModify((exercises) => {
-          const newExercises = [...exercises];
-          const [exercisesToMove] = newExercises.splice(startExerciseIndex, 1);
-          newExercises.splice(endExceciseIndex, 0, exercisesToMove);
-          return newExercises;
-        }),
+      EditProgramLenses.reorderExercises(
+        lb<IState>().p("storage").p("programs").findBy("id", program.id),
+        dayIndex,
+        startExerciseIndex,
+        endExceciseIndex
+      ),
     ]);
   }
 

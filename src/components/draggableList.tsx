@@ -9,6 +9,7 @@ interface IData {
 interface IDraggableListProps<T> {
   items: T[];
   hideBorders?: boolean;
+  isTransparent?: boolean;
   element: (item: T, index: number, handleWrapper: (touchEvent: TouchEvent | MouseEvent) => void) => JSX.Element;
   onDragEnd: (startIndex: number, endIndex: number) => void;
 }
@@ -31,6 +32,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
           <DropTarget index={i} heights={heights.current} data={theData.current} />
           <DraggableListItem
             hideBorders={props.hideBorders}
+            isTransparent={props.isTransparent}
             isDragging={!!theData.current}
             element={props.element}
             onHeightCalc={(hght) => (heights.current[i] = hght)}
@@ -128,6 +130,7 @@ function DropTarget({
 
 interface IDraggableListItemProps<T> {
   hideBorders?: boolean;
+  isTransparent?: boolean;
   isDragging: boolean;
   onStart: (pointY: number) => void;
   onMove: (pointY: number) => void;
@@ -217,7 +220,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
   let className = "";
   let style = {};
   if (y != null) {
-    className = `${className} absolute w-full bg-white`;
+    className = `${className} absolute w-full ${props.isTransparent ? "" : "bg-white"}}`;
     style = {
       top: 0,
       transform: `translateY(${y}px)`,
@@ -227,7 +230,7 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       touchAction: "none",
       position: "absolute",
       width: "100%",
-      background: "white",
+      background: !props.isTransparent ? "white" : undefined,
     };
   }
 

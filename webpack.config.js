@@ -16,6 +16,7 @@ module.exports = {
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
     programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
     builder: ["./src/builder.tsx", "./src/builder.css", "./src/index.css"],
+    program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
@@ -226,6 +227,10 @@ module.exports = {
         secure: false,
       },
       "/builder": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/program": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
