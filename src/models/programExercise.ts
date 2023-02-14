@@ -4,8 +4,11 @@ import {
   IProgramExerciseVariation,
   IProgramExerciseWarmupSet,
   ISettings,
+  IHistoryRecord,
+  IHistoryEntry,
 } from "../types";
 import { Program } from "./program";
+import { History } from "./history";
 import { ProgramSet } from "./programSet";
 
 export namespace ProgramExercise {
@@ -92,5 +95,31 @@ export namespace ProgramExercise {
       (memo, set) => memo + ProgramSet.approxTimeMs(set, dayIndex, programExercise, allProgramExercises, settings),
       0
     );
+  }
+
+  export function buildProgress(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    day: number,
+    settings: ISettings
+  ): IHistoryRecord | undefined {
+    let entry: IHistoryEntry | undefined;
+    let variationIndex = 0;
+    try {
+      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, day, settings);
+    } catch (_) {}
+    try {
+      entry = Program.nextHistoryEntry(
+        programExercise.exerciseType,
+        day,
+        ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
+        ProgramExercise.getState(programExercise, allProgramExercises),
+        settings,
+        ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
+      );
+    } catch (e) {
+      entry = undefined;
+    }
+    return entry != null ? History.buildFromEntry(entry, day) : undefined;
   }
 }
