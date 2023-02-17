@@ -32,7 +32,6 @@ export function EditProgramWarmupSets(props: IEditProgramWarmupSetsProps): JSX.E
   return (
     <section>
       <GroupHeader
-        topPadding={true}
         name="Warmup Sets"
         help={
           <p>

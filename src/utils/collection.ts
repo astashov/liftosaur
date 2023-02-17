@@ -156,6 +156,10 @@ export namespace CollectionUtils {
     return from.map((e, i) => (i === index ? item : e));
   }
 
+  export function setBy<T extends {}, K extends keyof T, V extends T[K]>(from: T[], key: K, value: V, newItem: T): T[] {
+    return from.map((e) => (e[key] === value ? newItem : e));
+  }
+
   export function removeBy<T extends {}, K extends keyof T, V extends T[K]>(from: T[], key: K, value: V): T[] {
     return from.filter((t) => t[key] !== value);
   }

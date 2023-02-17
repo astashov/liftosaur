@@ -1,5 +1,4 @@
 import { h, JSX, Fragment } from "preact";
-import { ExerciseSetView } from "./exerciseSet";
 import { Exercise } from "../models/exercise";
 import { History, IHistoricalEntries } from "../models/history";
 import { IDispatch } from "../ducks/types";
@@ -7,7 +6,6 @@ import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
 import { CollectionUtils } from "../utils/collection";
 import { ProgressStateChanges } from "./progressStateChanges";
-import { EditProgressEntry } from "../models/editProgressEntry";
 import { memo } from "preact/compat";
 import { ComparerUtils } from "../utils/comparer";
 import {
@@ -29,12 +27,12 @@ import { IconKebab } from "./icons/iconKebab";
 import { lb } from "lens-shmens";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { IconCloseCircle } from "./icons/iconCloseCircle";
-import { useCallback, useRef } from "preact/hooks";
+import { useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
 import { Subscriptions } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
+import { ExerciseSets } from "./exerciseSets";
 
 interface IProps {
   showHelp: boolean;
@@ -292,132 +290,19 @@ const ExerciseContentView = memo(
           </div>
         </header>
         <section className="flex flex-wrap py-2 pt-4">
-          {(isEditModeRef.current || warmupSets?.length > 0) && (
-            <Fragment>
-              {warmupSets.map((set, i) => {
-                return (
-                  <div data-cy="warmup-set">
-                    <div
-                      data-cy="warmup-set-title"
-                      className="text-grayv2-main"
-                      style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
-                    >
-                      Warmup
-                    </div>
-                    <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`}>
-                      <ExerciseSetView
-                        showHelp={
-                          props.showHelp && props.index === 0 && i === 0 && Progress.isFullyEmptySet(props.progress)
-                        }
-                        settings={props.settings}
-                        exercise={props.entry.exercise}
-                        isCurrent={!!isCurrentProgress}
-                        set={set}
-                        isEditMode={isEditModeRef.current}
-                        onClick={useCallback(
-                          (event) => {
-                            if (!friend) {
-                              event.preventDefault();
-                              if (isEditModeRef.current && props.onStartSetChanging) {
-                                props.onStartSetChanging(true, props.index, i);
-                              } else {
-                                props.onChangeReps("warmup");
-                                handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
-                              }
-                            }
-                          },
-                          [!!friend, isEditModeRef.current, props.index, props.entry]
-                        )}
-                      />
-                      {isEditModeRef.current && (
-                        <button
-                          data-cy="set-edit-mode-remove"
-                          style={{ top: "-4px", left: "-13px" }}
-                          className="absolute z-10 p-1 ls-edit-set-remove"
-                          onClick={() => {
-                            EditProgressEntry.removeSet(props.dispatch, props.progress.id, true, props.index, i);
-                          }}
-                        >
-                          <IconCloseCircle />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {isEditModeRef.current && props.onStartSetChanging && (
-                <div>
-                  <div
-                    data-cy="warmup-set-title"
-                    className="text-xs text-grayv2-main"
-                    style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
-                  >
-                    Warmup
-                  </div>
-                  <button
-                    data-cy="add-warmup-set"
-                    onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
-                    className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup is-edit-mode"
-                  >
-                    +
-                  </button>
-                </div>
-              )}
-              <div style={{ width: "1px" }} className="h-12 my-2 mr-3 bg-grayv2-400"></div>
-            </Fragment>
-          )}
-          {props.entry.sets.map((set, i) => {
-            return (
-              <div className={`relative ${isEditModeRef.current ? "is-edit-mode" : ""}`} data-cy="workout-set">
-                <ExerciseSetView
-                  showHelp={
-                    props.showHelp &&
-                    (warmupSets?.length || 0) === 0 &&
-                    props.index === 0 &&
-                    i === 0 &&
-                    Progress.isFullyEmptySet(props.progress)
-                  }
-                  exercise={props.entry.exercise}
-                  settings={props.settings}
-                  set={set}
-                  isCurrent={!!isCurrentProgress}
-                  isEditMode={isEditModeRef.current}
-                  onClick={(event) => {
-                    if (!friend) {
-                      event.preventDefault();
-                      if (isEditModeRef.current && props.onStartSetChanging) {
-                        props.onStartSetChanging(false, props.index, i);
-                      } else {
-                        props.onChangeReps("workout");
-                        handleClick(props.dispatch, props.entry.exercise, set.weight, i, "workout");
-                      }
-                    }
-                  }}
-                />
-                {isEditModeRef.current && (
-                  <button
-                    data-cy="set-edit-mode-remove"
-                    style={{ top: "-4px", left: "-13px" }}
-                    className="absolute z-10 p-1 ls-edit-set-remove"
-                    onClick={() => {
-                      EditProgressEntry.removeSet(props.dispatch, props.progress.id, false, props.index, i);
-                    }}
-                  >
-                    <IconCloseCircle />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-          {isEditModeRef.current && props.onStartSetChanging && (
-            <button
-              data-cy="add-set"
-              onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-              className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add is-edit-mode"
-            >
-              +
-            </button>
-          )}
+          <ExerciseSets
+            isEditMode={isEditModeRef.current}
+            warmupSets={warmupSets}
+            index={props.index}
+            progress={props.progress}
+            showHelp={props.showHelp}
+            settings={props.settings}
+            entry={props.entry}
+            friend={friend}
+            onStartSetChanging={props.onStartSetChanging}
+            onChangeReps={props.onChangeReps}
+            dispatch={props.dispatch}
+          />
         </section>
         {isEditModeRef.current && (
           <div className="text-center">
@@ -518,16 +403,6 @@ function HistoricalAmrapSets(props: {
       )}
     </div>
   );
-}
-
-function handleClick(
-  dispatch: IDispatch,
-  exercise: IExerciseType,
-  weight: IWeight,
-  setIndex: number,
-  mode: IProgressMode
-): void {
-  dispatch({ type: "ChangeRepsAction", exercise, setIndex, weight, mode });
 }
 
 const WeightView = memo(

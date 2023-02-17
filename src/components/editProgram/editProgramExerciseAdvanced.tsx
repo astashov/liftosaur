@@ -3,7 +3,6 @@ import { Program } from "../../models/program";
 import { GroupHeader } from "../groupHeader";
 import { IDispatch } from "../../ducks/types";
 import { MenuItemEditable } from "../menuItemEditable";
-import { MultiLineTextEditor } from "./multiLineTextEditor";
 import { Button } from "../button";
 import { EditProgram } from "../../models/editProgram";
 import { useState, useRef, useEffect } from "preact/hooks";
@@ -25,12 +24,14 @@ import {
 } from "../../types";
 import { Playground } from "../playground";
 import { LinkButton } from "../linkButton";
-import { IconInfo } from "../icons/iconInfo";
 import { ProgramExercise } from "../../models/programExercise";
 import { EditProgramSets } from "./editProgramSets";
 import { EditProgramWarmupSets } from "./editProgramWarmupSets";
 import { EditProgramFinishDayScriptEditor } from "./editProgramFinishDayScriptEditor";
 import { EditProgramStateVariables } from "./editProgramStateVariables";
+import { EditCustomExercise } from "../../models/editCustomExercise";
+import { EditProgramVariationsEnable } from "./editProgramVariationsEnable";
+import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 
 interface IProps {
   settings: ISettings;
@@ -153,10 +154,12 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               onChangeVariation={(i) => setVariationIndex(i)}
             />
             {programExercise.variations.length > 1 && (
-              <VariationsEditor
+              <EditProgramVariationsEditor
                 programExercise={programExercise}
                 editorResult={variationScriptResult}
-                dispatch={props.dispatch}
+                onChange={(value) => {
+                  EditProgram.setExerciseVariationExpr(props.dispatch, value);
+                }}
               />
             )}
           </div>
@@ -165,9 +168,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             settings={props.settings}
             day={day}
             programExercise={programExercise}
-            onRemoveVariation={() => {
-              setVariationIndex(Math.max(variationIndex - 1, 0));
-            }}
             onChangeReps={(reps: string, variation: number, setIndex: number) => {
               EditProgram.setReps(props.dispatch, reps, variation, setIndex);
             }}
@@ -188,7 +188,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             }}
           />
           {!showVariations && (
-            <VariationsEnable
+            <EditProgramVariationsEnable
               onClick={() => {
                 setShowVariations(true);
                 variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -267,7 +267,10 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        dispatch={props.dispatch}
+        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, exercise) => {
+          EditCustomExercise.createOrUpdate(props.dispatch, name, equipment, targetMuscles, synergistMuscles, exercise);
+        }}
+        onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {
@@ -336,40 +339,6 @@ function Variations(props: IVariationsProps): JSX.Element {
   );
 }
 
-interface IVariationsEditorProps {
-  programExercise: IProgramExercise;
-  dispatch: IDispatch;
-  editorResult: IEither<number, string>;
-}
-
-function VariationsEditor(props: IVariationsEditorProps): JSX.Element {
-  const { programExercise } = props;
-
-  return (
-    <Fragment>
-      <GroupHeader
-        name="Variation Selection Script"
-        help={
-          <span>
-            Liftoscript script, it should return Variation number (e.g. <strong>1</strong> or <strong>2</strong>), and
-            that variation will be used in the workout.
-          </span>
-        }
-      />
-      <MultiLineTextEditor
-        name="variation"
-        state={programExercise.state}
-        result={props.editorResult}
-        value={programExercise.variationExpr}
-        height={4}
-        onChange={(value) => {
-          EditProgram.setExerciseVariationExpr(props.dispatch, value);
-        }}
-      />
-    </Fragment>
-  );
-}
-
 interface IReuseLogicProps {
   programExercise: IProgramExercise;
   dispatch: IDispatch;
@@ -413,23 +382,5 @@ function ReuseLogic(props: IReuseLogicProps): JSX.Element {
         }}
       />
     </section>
-  );
-}
-
-function VariationsEnable(props: { onClick: () => void }): JSX.Element {
-  return (
-    <button className="block p-4 mt-4 bg-purple-100 rounded-2xl" onClick={props.onClick}>
-      <div className="flex">
-        <div className="mr-2">
-          <IconInfo />
-        </div>
-        <div className="flex-1 text-sm text-left">Want to dynamically change number of sets?</div>
-      </div>
-      <div className="mt-2">
-        <Button buttonSize="lg" kind="purple">
-          Enable Sets Variations
-        </Button>
-      </div>
-    </button>
   );
 }

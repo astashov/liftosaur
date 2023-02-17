@@ -17,6 +17,7 @@ import { LinkButton } from "../linkButton";
 import { Input, selectInputOnFocus } from "../input";
 import { IconArrowUpCircle } from "../icons/iconArrowUpCircle";
 import { ProgramExercise } from "../../models/programExercise";
+import { EditCustomExercise } from "../../models/editCustomExercise";
 
 interface IProps {
   settings: ISettings;
@@ -229,7 +230,10 @@ function Edit(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        dispatch={props.dispatch}
+        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, exercise) => {
+          EditCustomExercise.createOrUpdate(props.dispatch, name, equipment, targetMuscles, synergistMuscles, exercise);
+        }}
+        onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {

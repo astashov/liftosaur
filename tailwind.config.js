@@ -6,7 +6,7 @@ module.exports = {
         bluev2: "#28839F",
         purplev2: {
           main: "#8356F6",
-          "50": "#FFFFFF",
+          "50": "#FCFAFF",
           "100": "#FAF8FF",
           "200": "#F3EFFD",
           "300": "#BCA3FA",

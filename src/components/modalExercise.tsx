@@ -6,8 +6,6 @@ import { availableMuscles, ICustomExercise, IEquipment, IExerciseId, IMuscle, IS
 import { GroupHeader } from "./groupHeader";
 import { forwardRef } from "preact/compat";
 import { Button } from "./button";
-import { IDispatch } from "../ducks/types";
-import { EditCustomExercise } from "../models/editCustomExercise";
 import { ObjectUtils } from "../utils/object";
 import { IconEdit } from "./icons/iconEdit";
 import { HtmlUtils } from "../utils/html";
@@ -18,14 +16,21 @@ import { equipmentName, Exercise } from "../models/exercise";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 
-interface IModalDateProps {
+interface IModalExerciseProps {
   isHidden: boolean;
   settings: ISettings;
   onChange: (value?: IExerciseId) => void;
-  dispatch: IDispatch;
+  onCreateOrUpdate: (
+    name: string,
+    equipment: IEquipment,
+    targetMuscles: IMuscle[],
+    synergistMuscles: IMuscle[],
+    exercise?: ICustomExercise
+  ) => void;
+  onDelete: (id: string) => void;
 }
 
-export function ModalExercise(props: IModalDateProps): JSX.Element {
+export function ModalExercise(props: IModalExerciseProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [isCustomExerciseDisplayed, setIsCustomExerciseDisplayed] = useState<boolean>(false);
@@ -44,17 +49,17 @@ export function ModalExercise(props: IModalDateProps): JSX.Element {
           exercise={editingExercise}
           setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
           settings={props.settings}
-          dispatch={props.dispatch}
+          onCreateOrUpdate={props.onCreateOrUpdate}
         />
       ) : (
         <ExercisesList
-          dispatch={props.dispatch}
           filter={filter}
           setFilter={setFilter}
           setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
           setEditingExercise={setEditingExercise}
           textInput={textInput}
           onChange={props.onChange}
+          onDelete={props.onDelete}
           settings={props.settings}
         />
       )}
@@ -69,8 +74,8 @@ interface IExercisesListProps {
   setEditingExercise: (exercise?: ICustomExercise) => void;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   onChange: (value?: IExerciseId) => void;
+  onDelete: (id: string) => void;
   textInput: Ref<HTMLInputElement>;
-  dispatch: IDispatch;
 }
 
 const ExercisesList = forwardRef(
@@ -128,7 +133,7 @@ const ExercisesList = forwardRef(
                     onClick={(event) => {
                       event.preventDefault();
                       if (confirm(`Are you sure you want to delete ${e.name}?`)) {
-                        EditCustomExercise.markDeleted(props.dispatch, e.id);
+                        props.onDelete(e.id);
                       }
                     }}
                   >
@@ -182,7 +187,13 @@ interface IEditCustomExerciseProps {
   settings: ISettings;
   exercise?: ICustomExercise;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
-  dispatch: IDispatch;
+  onCreateOrUpdate: (
+    name: string,
+    equipment: IEquipment,
+    targetMuscles: IMuscle[],
+    synergistMuscles: IMuscle[],
+    exercise?: ICustomExercise
+  ) => void;
 }
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
@@ -264,14 +275,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
                 setNameError("Name already taken");
               } else {
                 setNameError(undefined);
-                EditCustomExercise.createOrUpdate(
-                  props.dispatch,
-                  name,
-                  equipment,
-                  targetMuscles,
-                  synergistMuscles,
-                  props.exercise
-                );
+                props.onCreateOrUpdate(name, equipment, targetMuscles, synergistMuscles, props.exercise);
                 props.setIsCustomExerciseDisplayed(false);
               }
             }}
