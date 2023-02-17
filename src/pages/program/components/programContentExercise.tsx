@@ -14,18 +14,22 @@ import { RepsAndWeight } from "../../programs/programDetails/programDetailsValue
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
 import { lb } from "lens-shmens";
+import { EditProgramLenses } from "../../../models/editProgramLenses";
+import { IconTrash } from "../../../components/icons/iconTrash";
 
 interface IProgramContentExerciseProps {
   program: IProgram;
   programExercise: IProgramExercise;
   settings: ISettings;
-  dayIndex: number;
-  handleTouchStart: (e: TouchEvent | MouseEvent) => void;
+  dayIndex?: number;
+  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   dispatch: ILensDispatch<IProgramEditorState>;
 }
 
 export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX.Element {
-  const { programExercise, program, settings, dayIndex } = props;
+  const { programExercise, program, settings } = props;
+  const isUnassigned = props.dayIndex == null;
+  const dayIndex = props.dayIndex || 0;
   const approxTime = TimeUtils.formatHHMM(
     ProgramExercise.approxTimeMs(dayIndex, programExercise, program.exercises, settings)
   );
@@ -41,11 +45,13 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
         className="flex items-center px-4 rounded-lg bg-purplev2-100"
         style={{ border: "1px solid rgb(125 103 189 / 15%)" }}
       >
-        <div className="p-2 mr-1 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-          <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
-            <IconHandle />
-          </span>
-        </div>
+        {props.handleTouchStart && (
+          <div className="p-2 mr-1 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
+            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+              <IconHandle />
+            </span>
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center flex-1">
             <div className="mr-3">
@@ -62,7 +68,18 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                 <IconWatch className="mb-1 align-middle" />
                 <span className="pl-1 align-middle">{approxTime} h</span>
               </div>
-              <button className="p-2">
+              <button
+                className="p-2"
+                onClick={() =>
+                  props.dispatch(
+                    EditProgramLenses.copyProgramExercise(
+                      lb<IProgramEditorState>().p("program"),
+                      programExercise,
+                      props.dayIndex
+                    )
+                  )
+                }
+              >
                 <IconDuplicate2 />
               </button>
               <button
@@ -78,8 +95,24 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
               >
                 <IconEditSquare />
               </button>
-              <button className="p-2">
-                <IconCloseCircleOutline />
+              <button
+                className="p-2"
+                onClick={() =>
+                  props.dispatch(
+                    isUnassigned
+                      ? EditProgramLenses.removeProgramExercise(
+                          lb<IProgramEditorState>().p("program"),
+                          programExercise.id
+                        )
+                      : EditProgramLenses.toggleDayExercise(
+                          lb<IProgramEditorState>().p("program"),
+                          dayIndex,
+                          programExercise.id
+                        )
+                  )
+                }
+              >
+                {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}
               </button>
             </div>
           </div>

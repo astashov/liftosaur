@@ -4,7 +4,6 @@ import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { IExercise } from "./exercise";
 import { Weight } from "./weight";
-import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
 import { StringUtils } from "../utils/string";
@@ -157,28 +156,18 @@ export namespace EditProgram {
 
   export function removeProgramExercise(dispatch: IDispatch, program: IProgram, exerciseId: string): void {
     updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .findBy("id", program.id)
-        .p("exercises")
-        .recordModify((es) => es.filter((e) => e.id !== exerciseId)),
+      EditProgramLenses.removeProgramExercise(
+        lb<IState>().p("storage").p("programs").findBy("id", program.id),
+        exerciseId
+      ),
     ]);
   }
 
   export function copyProgramExercise(dispatch: IDispatch, program: IProgram, exercise: IProgramExercise): void {
-    const newName = `${exercise.name} Copy`;
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .findBy("id", program.id)
-        .p("exercises")
-        .recordModify((es) => {
-          const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
-          return [...es, newExercise];
-        }),
-    ]);
+    updateState(
+      dispatch,
+      EditProgramLenses.copyProgramExercise(lb<IState>().p("storage").p("programs").findBy("id", program.id), exercise)
+    );
   }
 
   export function toggleDayExercise(
@@ -188,20 +177,11 @@ export namespace EditProgram {
     exerciseId: string
   ): void {
     updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .findBy("id", program.id)
-        .p("days")
-        .i(dayIndex)
-        .p("exercises")
-        .recordModify((es) => {
-          if (es.some((e) => e.id === exerciseId)) {
-            return es.filter((e) => e.id !== exerciseId);
-          } else {
-            return [...es, { id: exerciseId }];
-          }
-        }),
+      EditProgramLenses.toggleDayExercise(
+        lb<IState>().p("storage").p("programs").findBy("id", program.id),
+        dayIndex,
+        exerciseId
+      ),
     ]);
   }
 

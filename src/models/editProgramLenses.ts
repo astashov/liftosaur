@@ -12,6 +12,7 @@ import {
   IWeight,
 } from "../types";
 import { CollectionUtils } from "../utils/collection";
+import { UidFactory } from "../utils/generator";
 import { Exercise, IExercise, warmupValues } from "./exercise";
 import { Program } from "./program";
 import { ProgramExercise } from "./programExercise";
@@ -64,6 +65,59 @@ export namespace EditProgramLenses {
         const [exercisesToMove] = newExercises.splice(startExerciseIndex, 1);
         newExercises.splice(endExceciseIndex, 0, exercisesToMove);
         return newExercises;
+      });
+  }
+
+  export function removeProgramExercise<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    exerciseId: string
+  ): ILensRecordingPayload<T> {
+    return prefix.p("exercises").recordModify((es) => es.filter((e) => e.id !== exerciseId));
+  }
+
+  export function copyProgramExercise<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    exercise: IProgramExercise,
+    dayIndex?: number
+  ): ILensRecordingPayload<T>[] {
+    const newName = `${exercise.name} Copy`;
+    const arr: ILensRecordingPayload<T>[] = [];
+    const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
+    arr.push(prefix.p("exercises").recordModify((es) => [...es, newExercise]));
+    if (dayIndex != null) {
+      arr.push(toggleDayExercise(prefix, dayIndex, newExercise.id));
+      arr.push(
+        prefix
+          .p("days")
+          .i(dayIndex)
+          .recordModify((day) => {
+            const oldIndex = day.exercises.findIndex((e) => e.id === exercise.id);
+            const newIndex = day.exercises.findIndex((e) => e.id === newExercise.id);
+            const newExercises = [...day.exercises];
+            const ex = newExercises.splice(newIndex, 1)[0];
+            newExercises.splice(oldIndex + 1, 0, ex);
+            return { ...day, exercises: newExercises };
+          })
+      );
+    }
+    return arr;
+  }
+
+  export function toggleDayExercise<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    dayIndex: number,
+    exerciseId: string
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("days")
+      .i(dayIndex)
+      .p("exercises")
+      .recordModify((es) => {
+        if (es.some((e) => e.id === exerciseId)) {
+          return es.filter((e) => e.id !== exerciseId);
+        } else {
+          return [...es, { id: exerciseId }];
+        }
       });
   }
 
