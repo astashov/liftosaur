@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { CodeEditor } from "../../editor";
+import type { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
 import { IProgramState } from "../../types";
@@ -16,29 +16,32 @@ interface IProps {
 }
 
 export function MultiLineTextEditor(props: IProps): JSX.Element {
-  const codeEditor = useRef(
-    new CodeEditor({
-      state: props.state,
-      onChange: props.onChange,
-      onBlur: props.onBlur,
-      value: props.value,
-      multiLine: true,
-      height: props.height,
-    })
-  );
-
+  const codeEditor = useRef<CodeEditor | undefined>(undefined);
   useEffect(() => {
-    codeEditor.current.attach(divRef.current!);
+    import("../../editor").then(({ CodeEditor: CE }) => {
+      const ce = new CE({
+        state: props.state,
+        onChange: props.onChange,
+        onBlur: props.onBlur,
+        value: props.value,
+        multiLine: true,
+        height: props.height,
+      });
+      ce.attach(divRef.current!);
+      codeEditor.current = ce;
+    });
   }, []);
 
   useEffect(() => {
-    codeEditor.current.updateState(props.state);
+    if (codeEditor.current) {
+      codeEditor.current.updateState(props.state);
+    }
   });
 
   const divRef = useRef<HTMLDivElement>();
 
   let className =
-    "focus:outline-none focus:shadow-outline relative z-10 block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none";
+    "relative z-10 block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
   if (props.result != null && !props.result.success) {
     className += " border-red-500";
   } else {

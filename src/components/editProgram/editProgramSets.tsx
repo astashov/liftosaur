@@ -18,7 +18,8 @@ interface IEditProgramSets {
   day: number;
   variationIndex: number;
   settings: ISettings;
-  onRemoveVariation: () => void;
+  inOneLine?: boolean;
+  onDeleteVariation?: (variationIndex: number) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
@@ -31,11 +32,23 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
   const { programExercise, day, settings, variationIndex } = props;
   const variation = programExercise.variations[variationIndex];
   const [resetCounter, setResetCounter] = useState(0);
+  const onDeleteVariation = props.onDeleteVariation;
   return (
     <Fragment>
       <GroupHeader
         topPadding={true}
         name={programExercise.variations.length > 1 ? `Sets of Variation ${variationIndex + 1}` : "Sets"}
+        rightAddOn={
+          onDeleteVariation ? (
+            <button
+              style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
+              className="p-2"
+              onClick={() => onDeleteVariation(variationIndex)}
+            >
+              <IconTrash />
+            </button>
+          ) : undefined
+        }
         help={
           <span>
             Sets, reps and weights
@@ -60,6 +73,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               equipment={programExercise.exerciseType.equipment}
               settings={settings}
               handleTouchStart={handleTouchStart}
+              inOneLine={props.inOneLine}
               day={day}
               set={set}
               state={programExercise.state}
@@ -91,6 +105,7 @@ interface ISetFieldsProps {
   day: number;
   settings: ISettings;
   variationIndex: number;
+  inOneLine?: boolean;
   setIndex: number;
   equipment?: IEquipment;
   isDeleteEnabled: boolean;
@@ -145,76 +160,183 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 
   return (
     <li className="relative pb-2">
-      <div className="flex p-1 select-none bg-purplev2-100 rounded-2xl">
-        <div className="flex flex-col items-center pt-2">
-          <div className="flex items-center justify-center w-6 h-6 font-bold border rounded-full border-grayv2-main text-grayv2-main">
-            {props.setIndex + 1}
+      <div className={`flex p-1 ${props.inOneLine ? "pt-2" : ""} select-none bg-purplev2-100 rounded-2xl`}>
+        <div
+          className={`flex ${props.inOneLine ? "flex-row-reverse mr-2" : "flex-col pt-2"} items-center`}
+          style={{ marginTop: props.inOneLine ? "-1.25rem" : "0" }}
+        >
+          <div className={`${props.inOneLine ? "py-2" : ""}`}>
+            <SetNumber setIndex={props.setIndex} />
           </div>
-          <div className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
-            <IconHandle />
-          </div>
+          <Handle handleTouchStart={props.handleTouchStart} />
         </div>
         <div className="flex flex-col flex-1">
           <div className="flex">
             <div className="flex-1">
-              <OneLineTextEditor
-                label="Reps"
-                name="reps"
+              <RepsInput
+                repsResult={repsResult}
+                variationIndex={propsRef.current.variationIndex}
+                setIndex={propsRef.current.setIndex}
                 state={state}
-                value={set.repsExpr}
-                result={repsResult}
-                onChange={(value) => {
-                  props.onChangeReps(value, propsRef.current.variationIndex, propsRef.current.setIndex);
-                }}
+                set={set}
+                onChangeReps={props.onChangeReps}
               />
             </div>
+            {props.inOneLine && (
+              <div className="flex-1 ml-2">
+                <WeightInput
+                  weightResult={weightResult}
+                  variationIndex={propsRef.current.variationIndex}
+                  setIndex={propsRef.current.setIndex}
+                  state={state}
+                  set={set}
+                  onChangeWeight={props.onChangeWeight}
+                />
+              </div>
+            )}
             <div className="px-4 pt-2">
-              <label className="text-center">
-                <div>
-                  <input
-                    checked={set.isAmrap}
-                    className="block checkbox text-bluev2"
-                    id="variation-0-amrap"
-                    type="checkbox"
-                    onChange={(e) => {
-                      props.onChangeAmrap(e.currentTarget.checked, props.variationIndex, props.setIndex);
-                    }}
-                  />
-                </div>
-                <div className="text-xs leading-none">
-                  <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
-                  <button className="align-middle" onClick={() => alert("As Many Reps As Possible.")}>
-                    <IconHelp size={12} color="#607284" />
-                  </button>
-                </div>
-              </label>
+              <Amrap
+                onChangeAmrap={props.onChangeAmrap}
+                set={set}
+                variationIndex={propsRef.current.variationIndex}
+                setIndex={propsRef.current.setIndex}
+              />
             </div>
           </div>
-          <div className="mt-2">
-            <OneLineTextEditor
-              label="Weight"
-              name="weight"
-              state={state}
-              value={set.weightExpr}
-              result={weightResult}
-              onChange={(value) => {
-                props.onChangeWeight(value, propsRef.current.variationIndex, propsRef.current.setIndex);
-              }}
-            />
-          </div>
+          {!props.inOneLine && (
+            <div className="mt-2">
+              <WeightInput
+                weightResult={weightResult}
+                variationIndex={propsRef.current.variationIndex}
+                setIndex={propsRef.current.setIndex}
+                state={state}
+                set={set}
+                onChangeWeight={props.onChangeWeight}
+              />
+            </div>
+          )}
         </div>
         {props.isDeleteEnabled && (
           <div>
-            <button
-              className="p-3"
-              style={{ top: 0, right: 0 }}
-              onClick={() => props.onRemoveSet(props.variationIndex, props.setIndex)}
-            >
-              <IconTrash />
-            </button>
+            <DeleteBtn
+              onRemoveSet={props.onRemoveSet}
+              variationIndex={propsRef.current.variationIndex}
+              setIndex={propsRef.current.setIndex}
+            />
           </div>
         )}
       </div>
     </li>
+  );
+}
+
+function DeleteBtn(props: {
+  onRemoveSet: (variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}): JSX.Element {
+  return (
+    <button
+      className="p-3"
+      style={{ top: 0, right: 0 }}
+      onClick={() => props.onRemoveSet(props.variationIndex, props.setIndex)}
+    >
+      <IconTrash />
+    </button>
+  );
+}
+
+function Handle(props: { handleTouchStart?: (e: TouchEvent | MouseEvent) => void }): JSX.Element {
+  return (
+    <div className="p-2 cursor-move" onTouchStart={props.handleTouchStart} onMouseDown={props.handleTouchStart}>
+      <IconHandle />
+    </div>
+  );
+}
+
+function SetNumber(props: { setIndex: number }): JSX.Element {
+  return (
+    <div className="flex items-center justify-center w-6 h-6 font-bold border rounded-full border-grayv2-main text-grayv2-main">
+      {props.setIndex + 1}
+    </div>
+  );
+}
+
+interface IRepsInputProps {
+  state: IProgramState;
+  set: IProgramSet;
+  repsResult: IEither<number | IWeight | undefined, string>;
+  onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function RepsInput(props: IRepsInputProps): JSX.Element {
+  return (
+    <OneLineTextEditor
+      label="Reps"
+      name="reps"
+      state={props.state}
+      value={props.set.repsExpr}
+      result={props.repsResult}
+      onChange={(value) => {
+        props.onChangeReps(value, props.variationIndex, props.setIndex);
+      }}
+    />
+  );
+}
+
+interface IWeightInputProps {
+  state: IProgramState;
+  set: IProgramSet;
+  weightResult: IEither<number | IWeight | undefined, string>;
+  onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function WeightInput(props: IWeightInputProps): JSX.Element {
+  return (
+    <OneLineTextEditor
+      label="Weight"
+      name="weight"
+      state={props.state}
+      value={props.set.weightExpr}
+      result={props.weightResult}
+      onChange={(value) => {
+        props.onChangeWeight(value, props.variationIndex, props.setIndex);
+      }}
+    />
+  );
+}
+
+interface IAmrapProps {
+  set: IProgramSet;
+  onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function Amrap(props: IAmrapProps): JSX.Element {
+  return (
+    <label className="text-center">
+      <div>
+        <input
+          checked={props.set.isAmrap}
+          className="block checkbox text-bluev2"
+          id="variation-0-amrap"
+          type="checkbox"
+          onChange={(e) => {
+            props.onChangeAmrap(e.currentTarget.checked, props.variationIndex, props.setIndex);
+          }}
+        />
+      </div>
+      <div className="text-xs leading-none">
+        <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
+        <button className="align-middle" onClick={() => alert("As Many Reps As Possible.")}>
+          <IconHelp size={12} color="#607284" />
+        </button>
+      </div>
+    </label>
   );
 }

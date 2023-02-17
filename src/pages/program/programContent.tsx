@@ -2,7 +2,7 @@ import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { DraggableList } from "../../components/draggableList";
 import { basicBeginnerProgram } from "../../programs/basicBeginnerProgram";
-import { IProgram, IProgramState } from "../../types";
+import { IProgram } from "../../types";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { IProgramEditorState } from "./models/types";
@@ -11,17 +11,11 @@ import { TimeUtils } from "../../utils/time";
 import { Program } from "../../models/program";
 import { Settings } from "../../models/settings";
 import { IconHandle } from "../../components/icons/iconHandle";
-import { ExerciseImage } from "../../components/exerciseImage";
-import { ProgramExercise } from "../../models/programExercise";
-import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
-import { IconEditSquare } from "../../components/icons/iconEditSquare";
-import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
-import { RepsAndWeight } from "../programs/programDetails/programDetailsValues";
-import { ObjectUtils } from "../../utils/object";
-import { Weight } from "../../models/weight";
 import { EditProgramLenses } from "../../models/editProgramLenses";
 import { LinkButton } from "../../components/linkButton";
 import { StringUtils } from "../../utils/string";
+import { ProgramContentExercise } from "./components/programContentExercise";
+import { ProgramContentEditExercise } from "./components/programContentEditExercise";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -44,7 +38,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         exercises: [],
         tags: [],
       },
-    exercises: {},
+    editExercises: {},
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client });
   return (
@@ -91,97 +85,28 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                     if (!programExercise) {
                       return <></>;
                     }
-                    const approxTime = TimeUtils.formatHHMM(
-                      ProgramExercise.approxTimeMs(i, programExercise, state.program.exercises, state.settings)
-                    );
-                    const reusedProgramExercise = ProgramExercise.getReusedProgramExercise(
-                      programExercise,
-                      state.program.exercises
-                    );
-                    const stateVars = ProgramExercise.getState(programExercise, state.program.exercises);
-                    const variations = ProgramExercise.getVariations(programExercise, state.program.exercises);
-                    return (
-                      <div className="relative py-2">
-                        <div
-                          className="absolute text-xs text-grayv2-main"
-                          style={{ bottom: "0.5rem", right: "0.5rem" }}
-                        >
-                          id: {programExercise.id}
-                        </div>
-                        <div
-                          className="flex items-center px-4 bg-purple-100 rounded-lg"
-                          style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.25)" }}
-                        >
-                          <div className="p-2 mr-1 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                            <span onMouseDown={handleTouchStart2} onTouchStart={handleTouchStart2}>
-                              <IconHandle />
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center flex-1">
-                              <div className="mr-3">
-                                <ExerciseImage
-                                  className="w-8"
-                                  exerciseType={programExercise.exerciseType}
-                                  size="small"
-                                  customExercises={state.settings.exercises}
-                                />
-                              </div>
-                              <div className="flex-1 mr-2">{programExercise!!.name}</div>
-                              <div className="flex self-start">
-                                <div className="p-2">
-                                  <IconWatch className="mb-1 align-middle" />
-                                  <span className="pl-1 align-middle">{approxTime} h</span>
-                                </div>
-                                <button className="p-2">
-                                  <IconDuplicate2 />
-                                </button>
-                                <button className="p-2">
-                                  <IconEditSquare />
-                                </button>
-                                <button className="p-2">
-                                  <IconCloseCircleOutline />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="flex items-center">
-                              <div>
-                                {variations.map((variation, variationIndex) => {
-                                  return (
-                                    <div className={`${variationIndex > 1 ? "pt-2" : ""}`}>
-                                      {variations.length > 1 && (
-                                        <div className="text-xs text-grayv2-main" style={{ marginBottom: "-4px" }}>
-                                          Variation {variationIndex + 1}
-                                        </div>
-                                      )}
-                                      <div>
-                                        <RepsAndWeight
-                                          sets={variation.sets}
-                                          programExercise={programExercise}
-                                          allProgramExercises={state.program.exercises}
-                                          dayIndex={i}
-                                          settings={state.settings}
-                                          shouldShowAllFormulas={false}
-                                          forceShowFormula={false}
-                                        />
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              <div className="flex-1 ml-4 text-sm">
-                                <div>
-                                  <StateVars stateVars={stateVars} />
-                                </div>
-                                {reusedProgramExercise && (
-                                  <div className="text-grayv2-main">Reused logic from {reusedProgramExercise.name}</div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
+                    const editProgramExercise = state.editExercises[programExercise.id];
+                    if (editProgramExercise) {
+                      return (
+                        <ProgramContentEditExercise
+                          programExercise={editProgramExercise}
+                          program={state.program}
+                          settings={state.settings}
+                          dispatch={dispatch}
+                        />
+                      );
+                    } else {
+                      return (
+                        <ProgramContentExercise
+                          programExercise={programExercise}
+                          dayIndex={i}
+                          handleTouchStart={handleTouchStart2}
+                          program={state.program}
+                          settings={state.settings}
+                          dispatch={dispatch}
+                        />
+                      );
+                    }
                   }}
                   onDragEnd={(startIndex, endIndex) =>
                     dispatch(
@@ -220,23 +145,5 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         Add new day
       </LinkButton>
     </section>
-  );
-}
-
-function StateVars(props: { stateVars: IProgramState }): JSX.Element {
-  return (
-    <>
-      {ObjectUtils.keys(props.stateVars).map((key, i) => {
-        const value = props.stateVars[key];
-        return (
-          <>
-            {i !== 0 ? ", " : ""}
-            <span>
-              <strong>{key}</strong>: {typeof value === "number" ? value : Weight.display(value)}
-            </span>
-          </>
-        );
-      })}
-    </>
   );
 }

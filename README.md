@@ -1,4 +1,4 @@
-# 🏋 Liftosaur: free, open-sourced powerful weight lifting tracker PWA for serious lifters.
+# 🏋 Liftosaur: Open-source powerful weight lifting tracker PWA for serious lifters.
 
 Link: https://www.liftosaur.com/about
 

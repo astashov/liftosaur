@@ -1,6 +1,5 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { CodeEditor } from "../../editor";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
 import { IWeight, IProgramState } from "../../types";
@@ -17,18 +16,19 @@ interface IProps {
 
 export function OneLineTextEditor(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
-  const codeEditor = useRef(
-    new CodeEditor({
-      state: props.state,
-      onChange: (value) => props.onChange?.(value),
-      onBlur: (value) => props.onBlur?.(value),
-      value: props.value,
-      multiLine: false,
-    })
-  );
-
+  const codeEditor = useRef<unknown | undefined>(undefined);
   useEffect(() => {
-    codeEditor.current.attach(divRef.current!);
+    import("../../editor").then(({ CodeEditor }) => {
+      const ce = new CodeEditor({
+        state: props.state,
+        onChange: (value) => props.onChange?.(value),
+        onBlur: (value) => props.onBlur?.(value),
+        value: props.value,
+        multiLine: false,
+      });
+      ce.attach(divRef.current!);
+      codeEditor.current = ce;
+    });
   }, []);
 
   let className =

@@ -2,7 +2,7 @@ import { lb, lf, lbu, ILensRecordingPayload } from "lens-shmens";
 import { Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
-import { Exercise, IExercise, warmupValues } from "./exercise";
+import { IExercise } from "./exercise";
 import { Weight } from "./weight";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
@@ -18,9 +18,6 @@ import {
   ISettings,
   IProgramExerciseWarmupSet,
 } from "../types";
-import { CollectionUtils } from "../utils/collection";
-import { IProgramState } from "../types";
-import { ProgramExercise } from "./programExercise";
 import { EditProgramLenses } from "./editProgramLenses";
 
 interface I531Tms {
@@ -33,34 +30,12 @@ interface I531Tms {
 export namespace EditProgram {
   export function addStateVariable(dispatch: IDispatch, newName?: string, newType?: IUnit): void {
     if (newName != null && newType != null) {
-      updateState(dispatch, [
-        lb<IState>()
-          .pi("editExercise")
-          .p("state")
-          .recordModify((state) => {
-            const newState = { ...state };
-            let newValue: IWeight | number;
-            if (newType === "lb" || newType === "kg") {
-              newValue = Weight.build(0, newType);
-            } else {
-              newValue = 0;
-            }
-            newState[newName] = newValue;
-            return newState;
-          }),
-      ]);
+      updateState(dispatch, [EditProgramLenses.addStateVariable(lb<IState>().pi("editExercise"), newName, newType)]);
     }
   }
 
   export function editStateVariable(dispatch: IDispatch, stateKey: string, newValue?: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("state")
-        .recordModify((state) => {
-          return updateStateVariable(state, stateKey, newValue);
-        }),
-    ]);
+    updateState(dispatch, [EditProgramLenses.editStateVariable(lb<IState>().pi("editExercise"), stateKey, newValue)]);
   }
 
   export function editReuseLogicStateVariable(
@@ -70,27 +45,8 @@ export namespace EditProgram {
     newValue?: string
   ): void {
     updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .pi("reuseLogic")
-        .pi("states")
-        .pi(reuseLogicId)
-        .recordModify((state) => {
-          return updateStateVariable(state, stateKey, newValue);
-        }),
+      EditProgramLenses.editReuseLogicStateVariable(lb<IState>().pi("editExercise"), reuseLogicId, stateKey, newValue),
     ]);
-  }
-
-  function updateStateVariable(state: IProgramState, stateKey: string, newValue?: string): IProgramState {
-    const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
-    const newState = { ...state };
-    const value = state[stateKey];
-    if (v != null) {
-      newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
-    } else {
-      delete newState[stateKey];
-    }
-    return newState;
   }
 
   export function changeExerciseName(dispatch: IDispatch, newName?: string): void {
@@ -104,85 +60,46 @@ export namespace EditProgram {
 
   export function changeExerciseId(dispatch: IDispatch, settings: ISettings, newId?: IExerciseId): void {
     if (newId != null) {
-      const exercise = Exercise.get({ id: newId, equipment: "barbell" }, settings.exercises);
-      updateState(dispatch, [
-        lb<IState>().pi("editExercise").p("exerciseType").p("id").record(exercise.id),
-        lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(exercise.defaultEquipment),
-        lb<IState>().pi("editExercise").p("name").record(exercise.name),
-        lb<IState>().pi("editExercise").p("warmupSets").record(undefined),
-      ]);
+      updateState(dispatch, EditProgramLenses.changeExerciseId(lb<IState>().pi("editExercise"), settings, newId));
     }
   }
 
   export function changeExerciseEquipment(dispatch: IDispatch, newEquipment?: IEquipment): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("exerciseType").p("equipment").record(newEquipment)]);
+    updateState(dispatch, [EditProgramLenses.changeExerciseEquipment(lb<IState>().pi("editExercise"), newEquipment)]);
   }
 
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .i(setIndex)
-        .p("repsExpr")
-        .record(value),
+      EditProgramLenses.setReps(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
     ]);
   }
 
   export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .i(setIndex)
-        .p("weightExpr")
-        .record(value),
+      EditProgramLenses.setWeight(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
     ]);
   }
 
   export function setAmrap(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .i(setIndex)
-        .p("isAmrap")
-        .record(value),
+      EditProgramLenses.setAmrap(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
     ]);
   }
 
   export function setExerciseFinishDayExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("finishDayExpr").record(value)]);
+    updateState(dispatch, [EditProgramLenses.setExerciseFinishDayExpr(lb<IState>().pi("editExercise"), value)]);
   }
 
   export function setExerciseVariationExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("variationExpr").record(value)]);
+    updateState(dispatch, [EditProgramLenses.setExerciseVariationExpr(lb<IState>().pi("editExercise"), value)]);
   }
 
   export function addVariation(dispatch: IDispatch): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .recordModify((v) => {
-          return [...v, Program.createVariation()];
-        }),
-    ]);
+    updateState(dispatch, [EditProgramLenses.addVariation(lb<IState>().pi("editExercise"))]);
   }
 
   export function removeVariation(dispatch: IDispatch, variationIndex: number): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .recordModify((v) => v.filter((_, i) => i !== variationIndex)),
-    ]);
+    updateState(dispatch, [EditProgramLenses.removeVariation(lb<IState>().pi("editExercise"), variationIndex)]);
   }
 
   export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
@@ -202,17 +119,7 @@ export namespace EditProgram {
     endSetIndex: number
   ): void {
     updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .recordModify((sets) => {
-          const newSets = [...sets];
-          const [setsToMove] = newSets.splice(startSetIndex, 1);
-          newSets.splice(endSetIndex, 0, setsToMove);
-          return newSets;
-        }),
+      EditProgramLenses.reorderSets(lb<IState>().pi("editExercise"), variationIndex, startSetIndex, endSetIndex),
     ]);
   }
 
@@ -223,28 +130,11 @@ export namespace EditProgram {
   }
 
   export function addSet(dispatch: IDispatch, variationIndex: number): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .recordModify((sets) => {
-          const set = { ...sets[sets.length - 1] };
-          return [...sets, set];
-        }),
-    ]);
+    updateState(dispatch, [EditProgramLenses.addSet(lb<IState>().pi("editExercise"), variationIndex)]);
   }
 
   export function removeSet(dispatch: IDispatch, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("variations")
-        .i(variationIndex)
-        .p("sets")
-        .recordModify((sets) => sets.filter((s, i) => i !== setIndex)),
-    ]);
+    updateState(dispatch, [EditProgramLenses.removeSet(lb<IState>().pi("editExercise"), variationIndex, setIndex)]);
   }
 
   export function addProgramExercise(dispatch: IDispatch): void {
@@ -499,31 +389,15 @@ export namespace EditProgram {
   }
 
   export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise): void {
-    const defaultWarmup = (exercise.defaultWarmup && warmupValues()[exercise.defaultWarmup]) || [];
-    updateWarmupSets(dispatch, defaultWarmup);
+    updateState(dispatch, [EditProgramLenses.setDefaultWarmupSets(lb<IState>().pi("editExercise"), exercise)]);
   }
 
   export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[]): void {
-    const warmupSets = [...ws];
-    const lastWarmupSet = warmupSets[warmupSets.length - 1];
-    if (lastWarmupSet != null) {
-      warmupSets.push({
-        reps: lastWarmupSet.reps,
-        threshold: Weight.clone(lastWarmupSet.threshold),
-        value: typeof lastWarmupSet.value === "number" ? lastWarmupSet.value : Weight.clone(lastWarmupSet.value),
-      });
-    } else {
-      warmupSets.push({
-        reps: 5,
-        threshold: Weight.build(45, "lb"),
-        value: 0.8,
-      });
-    }
-    updateWarmupSets(dispatch, warmupSets);
+    updateState(dispatch, [EditProgramLenses.addWarmupSet(lb<IState>().pi("editExercise"), ws)]);
   }
 
   export function removeWarmupSet(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[], index: number): void {
-    updateWarmupSets(dispatch, CollectionUtils.removeAt(warmupSets, index));
+    updateState(dispatch, [EditProgramLenses.removeWarmupSet(lb<IState>().pi("editExercise"), warmupSets, index)]);
   }
 
   export function updateWarmupSet(
@@ -532,36 +406,12 @@ export namespace EditProgram {
     index: number,
     newWarmupSet: IProgramExerciseWarmupSet
   ): void {
-    const newWarmupSets = CollectionUtils.setAt(warmupSets, index, newWarmupSet);
-    updateWarmupSets(dispatch, newWarmupSets);
-  }
-
-  export function updateWarmupSets(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[]): void {
-    updateState(dispatch, [lb<IState>().pi("editExercise").p("warmupSets").record(warmupSets)]);
+    updateState(dispatch, [
+      EditProgramLenses.updateWarmupSet(lb<IState>().pi("editExercise"), warmupSets, index, newWarmupSet),
+    ]);
   }
 
   export function reuseLogic(dispatch: IDispatch, allProgramExercises: IProgramExercise[], id: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("reuseLogic")
-        .recordModify((oldReuseLogic) => {
-          const reuseProgram = allProgramExercises.filter((pe) => pe.id === id)[0];
-          if (reuseProgram == null) {
-            return { selected: undefined, states: oldReuseLogic?.states || {} };
-          }
-          const states = oldReuseLogic?.states || {};
-          let state = states[id];
-          if (state == null) {
-            state = { ...reuseProgram.state };
-          } else {
-            state = ProgramExercise.mergeStates(state, reuseProgram.state);
-          }
-          return {
-            selected: id,
-            states: { ...states, [id]: state },
-          };
-        }),
-    ]);
+    updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
   }
 }

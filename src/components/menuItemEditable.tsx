@@ -5,7 +5,7 @@ import { StringUtils } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
 
-type IMenuItemType = "text" | "number" | "select" | "boolean";
+type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
 
 interface IMenuItemEditableValueProps {
   name: string;
@@ -103,10 +103,25 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   );
 }
 
-function MenuItemValue(
+export function MenuItemValue(
   props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
-  if (props.type === "select") {
+  if (props.type === "desktop-select") {
+    return (
+      <select
+        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        className="border rounded border-grayv2-main"
+        value={props.value || undefined}
+        onChange={handleChange(props.onChange, props.setPatternError)}
+      >
+        {(props.values || []).map(([key, value]) => (
+          <option value={key} selected={key === props.value}>
+            {value}
+          </option>
+        ))}
+      </select>
+    );
+  } else if (props.type === "select") {
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
     return (
       <div
