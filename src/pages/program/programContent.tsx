@@ -20,6 +20,9 @@ import { GroupHeader } from "../../components/groupHeader";
 import { useState } from "preact/hooks";
 import { ObjectUtils } from "../../utils/object";
 import { ProgramContentModalExistingExercise } from "./components/programContentModalExistingExercise";
+import { Encoder } from "../../utils/encoder";
+import { undo, undoRedoMiddleware, useUndoRedo, canUndo, canRedo, redo } from "../builder/utils/undoredo";
+import { IconUndo } from "../../components/icons/iconUndo";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -42,9 +45,29 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         exercises: [],
         tags: [],
       },
+    history: {
+      past: [],
+      future: [],
+    },
     editExercises: {},
   };
-  const [state, dispatch] = useLensReducer(initialState, { client: props.client });
+  const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
+    async (action, oldState, newState) => {
+      if (oldState.program !== newState.program) {
+        await Encoder.encodeIntoUrl(JSON.stringify(newState.program));
+      }
+    },
+    async (action, oldState, newState) => {
+      if (
+        !("type" in action && action.type === "Update" && action.desc === "undo") &&
+        oldState.program !== newState.program
+      ) {
+        undoRedoMiddleware(dispatch, oldState);
+      }
+    },
+  ]);
+  useUndoRedo(state, dispatch);
+
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
 
   const assignedExerciseIds = new Set(state.program.days.flatMap((d) => d.exercises.map((e) => e.id)));
@@ -52,14 +75,36 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   return (
     <section className="px-4 py-2">
       <div>
-        <h1 className="pb-4 text-2xl font-bold">
-          <BuilderLinkInlineInput
-            value={state.program.name}
-            onInputString={(v) => {
-              dispatch(lb<IProgramEditorState>().p("program").p("name").record(v));
-            }}
-          />
-        </h1>
+        <div className="flex items-center">
+          <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
+            <BuilderLinkInlineInput
+              value={state.program.name}
+              onInputString={(v) => {
+                dispatch(lb<IProgramEditorState>().p("program").p("name").record(v));
+              }}
+            />
+          </h1>
+          <div>
+            <button
+              style={{ cursor: canUndo(state) ? "pointer" : "default" }}
+              title="Undo"
+              className="p-2"
+              disabled={!canUndo(state)}
+              onClick={() => undo(dispatch, state)}
+            >
+              <IconUndo color={!canUndo(state) ? "#BAC4CD" : "#171718"} />
+            </button>
+            <button
+              style={{ cursor: canRedo(state) ? "pointer" : "default" }}
+              title="Redo"
+              className="p-2"
+              disabled={!canRedo(state)}
+              onClick={() => redo(dispatch, state)}
+            >
+              <IconUndo style={{ transform: "scale(-1,  1)" }} color={!canRedo(state) ? "#BAC4CD" : "#171718"} />
+            </button>
+          </div>
+        </div>
         <DraggableList
           hideBorders={true}
           items={state.program.days}

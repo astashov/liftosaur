@@ -35,12 +35,12 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
   const stateVars = ProgramExercise.getState(programExercise, program.exercises);
   const variations = ProgramExercise.getVariations(programExercise, program.exercises);
   return (
-    <div className="relative py-2">
+    <div className="relative my-2">
       <div className="absolute text-xs text-grayv2-main" style={{ bottom: "0.5rem", right: "0.5rem" }}>
         id: {programExercise.id}
       </div>
       <div
-        className="flex items-center px-4 rounded-lg bg-purplev2-100"
+        className="flex items-center px-4 py-1 rounded-lg bg-purplev2-100"
         style={{ border: "1px solid rgb(125 103 189 / 15%)" }}
       >
         {props.handleTouchStart && (
@@ -67,17 +67,17 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                 <span className="pl-1 align-middle">{approxTime} h</span>
               </div>
               {props.onCopy && (
-                <button className="p-2" onClick={props.onCopy}>
+                <button title="Clone Exercise" className="p-2" onClick={props.onCopy}>
                   <IconDuplicate2 />
                 </button>
               )}
               {props.onEdit && (
-                <button onClick={props.onEdit} className="p-2">
+                <button title="Edit Exercise" onClick={props.onEdit} className="p-2">
                   <IconEditSquare />
                 </button>
               )}
               {props.onDelete && (
-                <button className="p-2" onClick={props.onDelete}>
+                <button title={isUnassigned ? "Delete" : "Remove from day"} className="p-2" onClick={props.onDelete}>
                   {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}
                 </button>
               )}
