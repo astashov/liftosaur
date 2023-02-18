@@ -1,49 +1,83 @@
 import { lb } from "lens-shmens";
 import { useEffect } from "preact/hooks";
-import { IBuilderDispatch, IBuilderState } from "../models/builderReducer";
+import { ILensDispatch } from "../../../utils/useLensReducer";
 
-export function useUndoRedo(state: IBuilderState, dispatch: IBuilderDispatch): void {
+export interface IUndoRedoState<T> {
+  history: {
+    past: T[];
+    future: T[];
+  };
+  program: T;
+}
+
+export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, oldState: S): void {
+  dispatch([
+    lb<S>()
+      .p("history")
+      .recordModify((history) => {
+        return { ...history, past: [...history.past, oldState.program], future: [] };
+      }),
+  ]);
+}
+
+export function canUndo<T, S extends IUndoRedoState<T>>(state: S): T | undefined {
+  return state.history.past[state.history.past.length - 1];
+}
+
+export function canRedo<T, S extends IUndoRedoState<T>>(state: S): T | undefined {
+  return state.history.future[0];
+}
+
+export function undo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, state: S): void {
+  const previousState = canUndo<T, S>(state);
+  if (previousState) {
+    dispatch(
+      [
+        lb<S>()
+          .p("history")
+          .recordModify((history) => {
+            return {
+              past: state.history.past.slice(0, state.history.past.length - 1),
+              future: [state.program, ...history.future],
+            };
+          }),
+        lb<S>().p("program").record(previousState),
+      ],
+      "undo"
+    );
+  }
+}
+
+export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, state: S): void {
+  const nextState = canRedo<T, S>(state);
+  if (nextState) {
+    dispatch(
+      [
+        lb<S>()
+          .p("history")
+          .recordModify((history) => {
+            return {
+              past: [...history.past, state.program],
+              future: state.history.future.slice(1, state.history.future.length),
+            };
+          }),
+        lb<S>().p("program").record(nextState),
+      ],
+      "undo"
+    );
+  }
+}
+
+export function useUndoRedo<T, S extends IUndoRedoState<T>>(state: S, dispatch: ILensDispatch<S>): void {
   useEffect(() => {
     function onKeyPress(event: KeyboardEvent): void {
       if ((event.key === "z" || event.key === "Z") && (event.ctrlKey || event.metaKey)) {
         if (!event.shiftKey) {
           event.preventDefault();
-          const previousState = state.history.past[state.history.past.length - 1];
-          if (previousState) {
-            dispatch(
-              [
-                lb<IBuilderState>()
-                  .p("history")
-                  .recordModify((history) => {
-                    return {
-                      past: state.history.past.slice(0, state.history.past.length - 1),
-                      future: [state.program, ...history.future],
-                    };
-                  }),
-                lb<IBuilderState>().p("program").record(previousState),
-              ],
-              "undo"
-            );
-          }
+          undo(dispatch, state);
         } else {
           event.preventDefault();
-          const nextState = state.history.future[0];
-          if (nextState) {
-            dispatch(
-              [
-                lb<IBuilderState>()
-                  .p("history")
-                  .recordModify((history) => {
-                    return {
-                      past: [...history.past, state.program],
-                      future: state.history.future.slice(1, state.history.future.length),
-                    };
-                  }),
-                lb<IBuilderState>().p("program").record(nextState),
-              ],
-              "undo"
-            );
-          }
+          redo(dispatch, state);
         }
       }
     }

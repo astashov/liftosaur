@@ -1,6 +1,15 @@
 import { gzip, gunzip } from "fflate";
 
 export class Encoder {
+  public static async encodeIntoUrl(str: string): Promise<void> {
+    const base64data = await Encoder.encode(str);
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set("data", base64data);
+    const url = new URL(window.location.href);
+    url.search = urlParams.toString();
+    window.history.replaceState({ path: url.toString() }, "", url.toString());
+  }
+
   public static encode(str: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const textEncoder = new TextEncoder();

@@ -16,7 +16,7 @@ import { IBuilderProgram } from "./models/types";
 import { BuilderExerciseModel } from "./models/builderExerciseModel";
 import { ObjectUtils } from "../../utils/object";
 import { useCopyPaste } from "./utils/copypaste";
-import { useUndoRedo } from "./utils/undoredo";
+import { undoRedoMiddleware, useUndoRedo } from "./utils/undoredo";
 import { BuilderCopyLink } from "./components/builderCopyLink";
 import { BuilderModalSettings } from "./components/builderModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
@@ -47,13 +47,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.program !== newState.program) {
-        const string = JSON.stringify(newState.program);
-        const base64data = await Encoder.encode(string);
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set("data", base64data);
-        const url = new URL(window.location.href);
-        url.search = urlParams.toString();
-        window.history.replaceState({ path: url.toString() }, "", url.toString());
+        await Encoder.encodeIntoUrl(JSON.stringify(newState.program));
       }
     },
     async (action, oldState, newState) => {
@@ -61,13 +55,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
         !("type" in action && action.type === "Update" && action.desc === "undo") &&
         oldState.program !== newState.program
       ) {
-        dispatch([
-          lb<IBuilderState>()
-            .p("history")
-            .recordModify((history) => {
-              return { ...history, past: [...history.past, oldState.program], future: [] };
-            }),
-        ]);
+        undoRedoMiddleware(dispatch, oldState);
       }
     },
     async (action, oldState, newState) => {
