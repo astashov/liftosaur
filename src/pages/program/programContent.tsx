@@ -1,14 +1,12 @@
 import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { DraggableList } from "../../components/draggableList";
-import { basicBeginnerProgram } from "../../programs/basicBeginnerProgram";
-import { IProgram } from "../../types";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { IProgramEditorState } from "./models/types";
 import { IconWatch } from "../../components/icons/iconWatch";
 import { TimeUtils } from "../../utils/time";
-import { Program } from "../../models/program";
+import { IExportedProgram, Program } from "../../models/program";
 import { Settings } from "../../models/settings";
 import { IconHandle } from "../../components/icons/iconHandle";
 import { EditProgramLenses } from "../../models/editProgramLenses";
@@ -27,29 +25,35 @@ import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { IconTrash } from "../../components/icons/iconTrash";
 import { CollectionUtils } from "../../utils/collection";
+import { BuilderCopyLink } from "../builder/components/builderCopyLink";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { UidFactory } from "../../utils/generator";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
-  program?: IProgram;
+  exportedProgram?: IExportedProgram;
 }
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
+  const defaultSettings = Settings.build();
   const initialState: IProgramEditorState = {
-    settings: Settings.build(),
+    settings: {
+      ...defaultSettings,
+      exercises: { ...defaultSettings.exercises, ...props.exportedProgram?.customExercises },
+    },
     current: {
-      program: props.program ||
-        basicBeginnerProgram || {
-          id: "My Program",
-          name: "My Program",
-          url: "",
-          author: "",
-          shortDescription: "",
-          description: "",
-          nextDay: 1,
-          days: [{ name: "Day 1", exercises: [] }],
-          exercises: [],
-          tags: [],
-        },
+      program: props.exportedProgram?.program || {
+        id: UidFactory.generateUid(8),
+        name: "My Program",
+        url: "",
+        author: "",
+        shortDescription: "",
+        description: "",
+        nextDay: 1,
+        days: [{ name: "Day 1", exercises: [] }],
+        exercises: [],
+        tags: [],
+      },
       editExercises: {},
     },
     history: {
@@ -60,7 +64,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
-        await Encoder.encodeIntoUrl(JSON.stringify(newState.current.program));
+        const exportedProgram: IExportedProgram = {
+          program: newState.current.program,
+          customExercises: newState.settings.exercises,
+          version: getLatestMigrationVersion(),
+        };
+        await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }
     },
     async (action, oldState, newState) => {
@@ -95,14 +104,20 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       <div>
         <div className="flex items-center">
           <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
-            <BuilderLinkInlineInput
-              value={program.name}
-              onInputString={(v) => {
-                dispatch(lbProgram.p("name").record(v));
-              }}
-            />
+            <div>
+              <BuilderLinkInlineInput
+                value={program.name}
+                onInputString={(v) => {
+                  dispatch(lbProgram.p("name").record(v));
+                }}
+              />
+            </div>
+            <div className="text-xs font-normal text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+              id: {program.id}
+            </div>
           </h1>
-          <div>
+          <div className="flex">
+            <BuilderCopyLink msg="Copied the link with this program to the clipboard" />
             <button
               style={{ cursor: canUndo(state) ? "pointer" : "default" }}
               title="Undo"

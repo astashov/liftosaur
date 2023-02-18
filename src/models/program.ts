@@ -31,6 +31,10 @@ import { DateUtils } from "../utils/date";
 import { ICustomExercise } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
+import { getLatestMigrationVersion } from "../migrations/migrations";
+import { Encoder } from "../utils/encoder";
+
+declare let __HOST__: string;
 
 export interface IExportedProgram {
   program: IProgram;
@@ -495,7 +499,22 @@ export namespace Program {
     }
   }
 
-  export function exportProgram(program: IProgram, settings: ISettings, version: string): void {
+  export function exportProgramToFile(program: IProgram, settings: ISettings, version: string): void {
+    const payload = exportProgram(program, settings, version);
+    Exporter.toFile(
+      `liftosaur_${program.name.replace(/\s+/g, "-")}_${DateUtils.formatYYYYMMDD(Date.now())}.json`,
+      JSON.stringify(payload, null, 2)
+    );
+  }
+
+  export async function exportProgramToLink(program: IProgram, settings: ISettings, version: string): Promise<string> {
+    const payload = exportProgram(program, settings, version);
+    const url = await Encoder.encodeIntoUrl(JSON.stringify(payload), __HOST__);
+    url.pathname = "/program";
+    return url.toString();
+  }
+
+  function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
     const customExerciseIds = program.exercises.reduce<string[]>((memo, programExercise) => {
       const id = programExercise.exerciseType.id;
       const isBuiltIn = !!Exercise.findById(id, {});
@@ -506,14 +525,10 @@ export namespace Program {
     }, []);
 
     const customExercises = ObjectUtils.pick(settings.exercises, customExerciseIds);
-    const payload: IExportedProgram = {
+    return {
       customExercises,
       program,
-      version,
+      version: version || getLatestMigrationVersion(),
     };
-    Exporter.toFile(
-      `liftosaur_${program.name.replace(/\s+/g, "-")}_${DateUtils.formatYYYYMMDD(Date.now())}.json`,
-      JSON.stringify(payload, null, 2)
-    );
   }
 }

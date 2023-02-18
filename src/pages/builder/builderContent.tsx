@@ -49,7 +49,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
-        await Encoder.encodeIntoUrl(JSON.stringify(newState.current.program));
+        await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(newState.current.program));
       }
     },
     async (action, oldState, newState) => {

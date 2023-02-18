@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IProgram, IStorage } from "../src/types";
+import { IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -35,6 +35,8 @@ import { renderBuilderHtml } from "./builder";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { IBuilderProgram } from "../src/pages/builder/models/types";
 import { renderProgramHtml } from "./program";
+import { IExportedProgram } from "../src/models/program";
+import { ImportExporter } from "../src/lib/importexporter";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -848,11 +850,16 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 }) => {
   const di = payload.di;
   const data = params.data;
-  let program: IProgram | undefined;
+  let program: IExportedProgram | undefined;
   if (data) {
     try {
-      const programJson = await NodeEncoder.decode(data);
-      program = JSON.parse(programJson);
+      const exportedProgramJson = await NodeEncoder.decode(data);
+      const result = await ImportExporter.getExportedProgram(fetch, exportedProgramJson);
+      if (result.success) {
+        program = result.data;
+      } else {
+        di.log.log(result.error);
+      }
     } catch (e) {
       di.log.log(e);
     }
