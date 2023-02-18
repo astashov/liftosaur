@@ -81,6 +81,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   ).map((e) => [e, equipmentName(e)]);
   const lbe = lb<IProgramEditorState>().p("current").p("editExercises").pi(programExercise.id);
   const areVariationsEnabled = programExercise.variations.length > 1;
+  const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success;
 
   return (
     <div className="p-2 bg-white border rounded-lg border-purplev2-400">
@@ -249,7 +250,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
                 props.dispatch(EditProgramLenses.updateWarmupSet(lbe, warmupSets, index, newWarmupSet));
               }}
               onSetDefaultWarmupSets={(ex) => {
-                props.dispatch(EditProgramLenses.setDefaultWarmupSets(lbe, ex));
+                props.dispatch(EditProgramLenses.setDefaultWarmupSets(lbe, ex), "setDefaultWarmupSets");
               }}
             />
           </section>
@@ -263,6 +264,17 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         </>
       )}
       <div className="p-2 mb-4 text-center">
+        <Button
+          className="mr-2"
+          onClick={() => {
+            props.dispatch([
+              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+            ]);
+          }}
+          kind="grayv2"
+        >
+          Cancel
+        </Button>
         <Button
           onClick={() => {
             const getters = {
@@ -284,7 +296,8 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
             ]);
           }}
           kind="orange"
-          disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
+          disabled={isSaveDisabled}
+          className={isSaveDisabled ? "opacity-50 cursor-default" : ""}
         >
           Save
         </Button>

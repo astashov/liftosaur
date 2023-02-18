@@ -23,6 +23,10 @@ import { ProgramContentModalExistingExercise } from "./components/programContent
 import { Encoder } from "../../utils/encoder";
 import { undo, undoRedoMiddleware, useUndoRedo, canUndo, canRedo, redo } from "../builder/utils/undoredo";
 import { IconUndo } from "../../components/icons/iconUndo";
+import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
+import { IconArrowRight } from "../../components/icons/iconArrowRight";
+import { IconTrash } from "../../components/icons/iconTrash";
+import { CollectionUtils } from "../../utils/collection";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -60,11 +64,14 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       }
     },
     async (action, oldState, newState) => {
+      // if ("type" in action && action.type === "Update") {
+      //   console.log(action.lensRecording[0], action.desc);
+      // }
       if (
         !(
           "type" in action &&
           action.type === "Update" &&
-          (action.desc === "undo" || action.desc === "ensureReuseLogic")
+          (action.desc === "undo" || action.desc === "ensureReuseLogic" || action.desc === "setDefaultWarmupSets")
         ) &&
         oldState.current !== newState.current
       ) {
@@ -75,6 +82,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   useUndoRedo(state, dispatch);
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
+  const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
 
   const program = state.current.program;
   const editExercises = state.current.editExercises;
@@ -133,91 +141,132 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h2 className="flex items-center" style={{ height: "2.25rem" }}>
-                    <span className="text-xl">
-                      <BuilderLinkInlineInput
-                        value={day.name}
-                        onInputString={(v) => {
-                          dispatch(lbProgram.p("days").i(i).p("name").record(v));
+                  <div className="flex">
+                    <h2 className="flex items-center flex-1 mr-2" style={{ height: "2.25rem" }}>
+                      <button
+                        title={collapsedDays[i] ? "Expand day" : "Collapse day"}
+                        onClick={() => {
+                          const newCollapsedDays = [...collapsedDays];
+                          newCollapsedDays[i] = !newCollapsedDays[i];
+                          setCollapsedDays(newCollapsedDays);
                         }}
-                      />
-                    </span>
-                    <span className="mx-4 text-grayv2-main">{day.exercises.length} exercises</span>
-                    <div className="text-grayv2-main">
-                      <IconWatch className="mb-1 align-middle" />
-                      <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
-                    </div>
-                  </h2>
-                  <DraggableList
-                    hideBorders={true}
-                    items={day.exercises}
-                    element={(dayExercise, i2, handleTouchStart2) => {
-                      const programExercise = Program.getProgramExerciseById(program, dayExercise.id);
-                      if (!programExercise) {
-                        return <></>;
-                      }
-                      const editProgramExercise = editExercises[programExercise.id];
-                      if (editProgramExercise) {
-                        return (
-                          <ProgramContentEditExercise
-                            programExercise={editProgramExercise}
-                            program={program}
-                            settings={state.settings}
-                            dispatch={dispatch}
-                          />
-                        );
-                      } else {
-                        return (
-                          <ProgramContentExercise
-                            programExercise={programExercise}
-                            dayIndex={i}
-                            handleTouchStart={handleTouchStart2}
-                            program={program}
-                            settings={state.settings}
-                            onEdit={() => {
-                              dispatch(
-                                lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
-                              );
-                            }}
-                            onDelete={() => {
-                              dispatch(EditProgramLenses.toggleDayExercise(lbProgram, i, programExercise.id));
-                            }}
-                            onCopy={() => {
-                              dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise, i));
-                            }}
-                          />
-                        );
-                      }
-                    }}
-                    onDragEnd={(startIndex, endIndex) =>
-                      dispatch(EditProgramLenses.reorderExercises(lbProgram, i, startIndex, endIndex))
-                    }
-                  />
-                  <div>
-                    <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
-                      Add existing exercise to {day.name}
-                    </LinkButton>
-                    <LinkButton
-                      className="ml-8"
-                      onClick={() => {
-                        const newExercise = Program.createExercise();
-                        dispatch([
-                          lbProgram.p("exercises").recordModify((ex) => {
-                            return [...ex, newExercise];
-                          }),
-                          EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
-                          lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
-                        ]);
-                      }}
-                    >
-                      Create new exercise in {day.name}
-                    </LinkButton>
+                        className="w-8 p-2 mr-1 text-center"
+                      >
+                        {collapsedDays[i] ? (
+                          <IconArrowRight className="inline-block" />
+                        ) : (
+                          <IconArrowDown2 className="inline-block" />
+                        )}
+                      </button>
+                      <span className="text-xl">
+                        <BuilderLinkInlineInput
+                          value={day.name}
+                          onInputString={(v) => {
+                            dispatch(lbProgram.p("days").i(i).p("name").record(v));
+                          }}
+                        />
+                      </span>
+                      <span className="mx-4 text-grayv2-main">{day.exercises.length} exercises</span>
+                      <div className="text-grayv2-main">
+                        <IconWatch className="mb-1 align-middle" />
+                        <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
+                      </div>
+                    </h2>
+                    {program.days.length > 1 && (
+                      <button
+                        title="Remove day"
+                        data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
+                        className="px-2 align-middle ls-days-list-delete-day button"
+                        onClick={() => {
+                          dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
+                          setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
+                        }}
+                      >
+                        <IconTrash />
+                      </button>
+                    )}
                   </div>
+                  {!collapsedDays[i] && (
+                    <div>
+                      <DraggableList
+                        hideBorders={true}
+                        items={day.exercises}
+                        element={(dayExercise, i2, handleTouchStart2) => {
+                          const programExercise = Program.getProgramExerciseById(program, dayExercise.id);
+                          if (!programExercise) {
+                            return <></>;
+                          }
+                          const editProgramExercise = editExercises[programExercise.id];
+                          if (editProgramExercise) {
+                            return (
+                              <ProgramContentEditExercise
+                                programExercise={editProgramExercise}
+                                program={program}
+                                settings={state.settings}
+                                dispatch={dispatch}
+                              />
+                            );
+                          } else {
+                            return (
+                              <ProgramContentExercise
+                                programExercise={programExercise}
+                                dayIndex={i}
+                                handleTouchStart={handleTouchStart2}
+                                program={program}
+                                settings={state.settings}
+                                onEdit={() => {
+                                  dispatch(
+                                    lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
+                                  );
+                                }}
+                                onDelete={() => {
+                                  dispatch(EditProgramLenses.toggleDayExercise(lbProgram, i, programExercise.id));
+                                }}
+                                onCopy={() => {
+                                  dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise, i));
+                                }}
+                              />
+                            );
+                          }
+                        }}
+                        onDragEnd={(startIndex, endIndex) =>
+                          dispatch(EditProgramLenses.reorderExercises(lbProgram, i, startIndex, endIndex))
+                        }
+                      />
+                      <div>
+                        <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
+                          Add existing exercise to {day.name}
+                        </LinkButton>
+                        <LinkButton
+                          className="ml-8"
+                          onClick={() => {
+                            const newExercise = Program.createExercise();
+                            dispatch([
+                              lbProgram.p("exercises").recordModify((ex) => {
+                                return [...ex, newExercise];
+                              }),
+                              EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
+                              lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
+                            ]);
+                          }}
+                        >
+                          Create new exercise in {day.name}
+                        </LinkButton>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
             );
           }}
-          onDragEnd={(startIndex, endIndex) => dispatch(EditProgramLenses.reorderDays(lbProgram, startIndex, endIndex))}
+          onDragEnd={(startIndex, endIndex) => {
+            dispatch(EditProgramLenses.reorderDays(lbProgram, startIndex, endIndex));
+            const newCollapsedDays = [...collapsedDays];
+            const oldStartDayIndex = newCollapsedDays[startIndex];
+            newCollapsedDays[startIndex] = newCollapsedDays[endIndex];
+            newCollapsedDays[endIndex] = oldStartDayIndex;
+            setCollapsedDays(newCollapsedDays);
+          }}
         />
         <LinkButton
           onClick={() => {
@@ -269,7 +318,6 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       <ProgramContentModalExistingExercise
         dayIndex={showAddExistingExerciseModal || 0}
         onChange={(value) => {
-          console.log(value);
           if (value && showAddExistingExerciseModal != null) {
             dispatch(EditProgramLenses.toggleDayExercise(lbProgram, showAddExistingExerciseModal, value));
           }
