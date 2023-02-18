@@ -9,6 +9,9 @@
         "components": [
           {
             "/": "googleauthcallback.html"
+          },
+          {
+            "/": "program"
           }
         ]
       }
