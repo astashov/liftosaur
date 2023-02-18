@@ -16,12 +16,18 @@ interface IProps {
 }
 
 export function MultiLineTextEditor(props: IProps): JSX.Element {
+  const onChange = (value: string): void => {
+    if (props.onChange && !window.isUndoing) {
+      props.onChange(value);
+    }
+  };
+
   const codeEditor = useRef<CodeEditor | undefined>(undefined);
   useEffect(() => {
     import("../../editor").then(({ CodeEditor: CE }) => {
       const ce = new CE({
         state: props.state,
-        onChange: props.onChange,
+        onChange: onChange,
         onBlur: props.onBlur,
         value: props.value,
         multiLine: true,
@@ -37,6 +43,15 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
       codeEditor.current.updateState(props.state);
     }
   });
+
+  useEffect(() => {
+    if (window.isUndoing) {
+      const ce = codeEditor.current;
+      if (ce && props.value != null) {
+        ce.setValue(props.value);
+      }
+    }
+  }, [props.value]);
 
   const divRef = useRef<HTMLDivElement>();
 

@@ -17,6 +17,7 @@ interface IArgs {
 export class CodeEditor {
   private readonly args: IArgs;
   private state: IProgramState;
+  private codeMirror?: CodeMirror.Editor;
 
   constructor(args: IArgs = {}) {
     this.args = args;
@@ -25,6 +26,12 @@ export class CodeEditor {
 
   public updateState(newState: IProgramState): void {
     this.state = newState;
+  }
+
+  public setValue(value: string): void {
+    if (this.codeMirror) {
+      this.codeMirror.setValue(value);
+    }
   }
 
   public attach(container: HTMLElement): void {
@@ -65,6 +72,7 @@ export class CodeEditor {
     });
 
     const codemirror = CodeMirror(container, { mode: "liftosaur", value: this.args.value || "" });
+    this.codeMirror = codemirror;
 
     codemirror.on("keyup", (e, s) => {
       if (s.type === "keyup" && (e.state.completionActive == null || e.state.completionActive.data.list.length === 0)) {

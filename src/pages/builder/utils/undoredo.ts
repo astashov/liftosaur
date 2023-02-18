@@ -36,6 +36,7 @@ export function undo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
         lb<S>()
           .p("history")
           .recordModify((history) => {
+            window.isUndoing = true;
             return {
               past: state.history.past.slice(0, state.history.past.length - 1),
               future: [state.current, ...history.future],
@@ -56,6 +57,7 @@ export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
         lb<S>()
           .p("history")
           .recordModify((history) => {
+            window.isUndoing = true;
             return {
               past: [...history.past, state.current],
               future: state.history.future.slice(1, state.history.future.length),
@@ -71,7 +73,13 @@ export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
 export function useUndoRedo<T, S extends IUndoRedoState<T>>(state: S, dispatch: ILensDispatch<S>): void {
   useEffect(() => {
     function onKeyPress(event: KeyboardEvent): void {
-      if ((event.key === "z" || event.key === "Z") && (event.ctrlKey || event.metaKey)) {
+      console.log(event);
+      if (
+        !(event.target instanceof HTMLTextAreaElement) &&
+        !(event.target instanceof HTMLInputElement) &&
+        (event.key === "z" || event.key === "Z") &&
+        (event.ctrlKey || event.metaKey)
+      ) {
         if (!event.shiftKey) {
           event.preventDefault();
           undo(dispatch, state);
@@ -82,6 +90,7 @@ export function useUndoRedo<T, S extends IUndoRedoState<T>>(state: S, dispatch: 
       }
     }
     window.addEventListener("keydown", onKeyPress);
+    window.isUndoing = false;
     return () => window.removeEventListener("keydown", onKeyPress);
   }, [state]);
 }

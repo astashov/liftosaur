@@ -77,7 +77,11 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                 </button>
               )}
               {props.onDelete && (
-                <button title={isUnassigned ? "Delete" : "Remove from day"} className="p-2" onClick={props.onDelete}>
+                <button
+                  title={isUnassigned ? "Delete exercise" : "Remove exercise from day"}
+                  className="p-2"
+                  onClick={props.onDelete}
+                >
                   {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}
                 </button>
               )}

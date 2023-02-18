@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
+import type { CodeEditor } from "../../editor";
 import { IWeight, IProgramState } from "../../types";
 
 interface IProps {
@@ -16,12 +17,19 @@ interface IProps {
 
 export function OneLineTextEditor(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
-  const codeEditor = useRef<unknown | undefined>(undefined);
+  const codeEditor = useRef<CodeEditor | undefined>(undefined);
+
+  const onChange = (value: string): void => {
+    if (props.onChange && !window.isUndoing) {
+      props.onChange(value);
+    }
+  };
+
   useEffect(() => {
-    import("../../editor").then(({ CodeEditor }) => {
-      const ce = new CodeEditor({
+    import("../../editor").then(({ CodeEditor: CE }) => {
+      const ce = new CE({
         state: props.state,
-        onChange: (value) => props.onChange?.(value),
+        onChange: (value) => onChange(value),
         onBlur: (value) => props.onBlur?.(value),
         value: props.value,
         multiLine: false,
@@ -30,6 +38,15 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
       codeEditor.current = ce;
     });
   }, []);
+
+  useEffect(() => {
+    if (window.isUndoing) {
+      const ce = codeEditor.current;
+      if (ce && props.value != null) {
+        ce.setValue(props.value);
+      }
+    }
+  }, [props.value]);
 
   let className =
     "relative z-10 block w-full px-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
