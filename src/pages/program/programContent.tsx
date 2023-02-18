@@ -17,6 +17,9 @@ import { StringUtils } from "../../utils/string";
 import { ProgramContentExercise } from "./components/programContentExercise";
 import { ProgramContentEditExercise } from "./components/programContentEditExercise";
 import { GroupHeader } from "../../components/groupHeader";
+import { useState } from "preact/hooks";
+import { ObjectUtils } from "../../utils/object";
+import { ProgramContentModalExistingExercise } from "./components/programContentModalExistingExercise";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -42,6 +45,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     editExercises: {},
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client });
+  const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
+
   const assignedExerciseIds = new Set(state.program.days.flatMap((d) => d.exercises.map((e) => e.id)));
   const unassignedExercises = state.program.exercises.filter((e) => !assignedExerciseIds.has(e.id));
   return (
@@ -74,11 +79,18 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                 </div>
                 <div className="flex-1">
                   <h2 className="flex items-center" style={{ height: "2.25rem" }}>
-                    <span className="text-xl">{day.name}</span>
-                    <span className="ml-2">{day.exercises.length} exercises</span>
-                    <div>
+                    <span className="text-xl">
+                      <BuilderLinkInlineInput
+                        value={day.name}
+                        onInputString={(v) => {
+                          dispatch(lb<IProgramEditorState>().p("program").p("days").i(i).p("name").record(v));
+                        }}
+                      />
+                    </span>
+                    <span className="mx-4 text-grayv2-main">{day.exercises.length} exercises</span>
+                    <div className="text-grayv2-main">
                       <IconWatch className="mb-1 align-middle" />
-                      <span className="pl-1 align-middle">{approxDayTime}h</span>
+                      <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
                     </div>
                   </h2>
                   <DraggableList
@@ -107,7 +119,32 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                             handleTouchStart={handleTouchStart2}
                             program={state.program}
                             settings={state.settings}
-                            dispatch={dispatch}
+                            onEdit={() => {
+                              dispatch(
+                                lb<IProgramEditorState>()
+                                  .p("editExercises")
+                                  .p(programExercise.id)
+                                  .record(ObjectUtils.clone(programExercise))
+                              );
+                            }}
+                            onDelete={() => {
+                              dispatch(
+                                EditProgramLenses.toggleDayExercise(
+                                  lb<IProgramEditorState>().p("program"),
+                                  i,
+                                  programExercise.id
+                                )
+                              );
+                            }}
+                            onCopy={() => {
+                              dispatch(
+                                EditProgramLenses.copyProgramExercise(
+                                  lb<IProgramEditorState>().p("program"),
+                                  programExercise,
+                                  i
+                                )
+                              );
+                            }}
                           />
                         );
                       }
@@ -123,6 +160,36 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       )
                     }
                   />
+                  <div>
+                    <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
+                      Add existing exercise to {day.name}
+                    </LinkButton>
+                    <LinkButton
+                      className="ml-8"
+                      onClick={() => {
+                        const newExercise = Program.createExercise();
+                        dispatch([
+                          lb<IProgramEditorState>()
+                            .p("program")
+                            .p("exercises")
+                            .recordModify((ex) => {
+                              return [...ex, newExercise];
+                            }),
+                          EditProgramLenses.toggleDayExercise(
+                            lb<IProgramEditorState>().p("program"),
+                            i,
+                            newExercise.id
+                          ),
+                          lb<IProgramEditorState>()
+                            .p("editExercises")
+                            .p(newExercise.id)
+                            .record(ObjectUtils.clone(newExercise)),
+                        ]);
+                      }}
+                    >
+                      Create new exercise in {day.name}
+                    </LinkButton>
+                  </div>
                 </div>
               </section>
             );
@@ -169,13 +236,52 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   programExercise={programExercise}
                   program={state.program}
                   settings={state.settings}
-                  dispatch={dispatch}
+                  onEdit={() => {
+                    dispatch(
+                      lb<IProgramEditorState>()
+                        .p("editExercises")
+                        .p(programExercise.id)
+                        .record(ObjectUtils.clone(programExercise))
+                    );
+                  }}
+                  onDelete={() => {
+                    dispatch(
+                      EditProgramLenses.removeProgramExercise(
+                        lb<IProgramEditorState>().p("program"),
+                        programExercise.id
+                      )
+                    );
+                  }}
+                  onCopy={() => {
+                    dispatch(
+                      EditProgramLenses.copyProgramExercise(lb<IProgramEditorState>().p("program"), programExercise)
+                    );
+                  }}
                 />
               );
             }
           })}
         </div>
       )}
+      <ProgramContentModalExistingExercise
+        dayIndex={showAddExistingExerciseModal || 0}
+        onChange={(value) => {
+          console.log(value);
+          if (value && showAddExistingExerciseModal != null) {
+            dispatch(
+              EditProgramLenses.toggleDayExercise(
+                lb<IProgramEditorState>().p("program"),
+                showAddExistingExerciseModal,
+                value
+              )
+            );
+          }
+          setShowAddExistingExerciseModal(undefined);
+        }}
+        isHidden={showAddExistingExerciseModal == null}
+        program={state.program}
+        settings={state.settings}
+      />
     </section>
   );
 }

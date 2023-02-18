@@ -11,10 +11,6 @@ import { IProgram, IProgramExercise, IProgramState, ISettings } from "../../../t
 import { ObjectUtils } from "../../../utils/object";
 import { TimeUtils } from "../../../utils/time";
 import { RepsAndWeight } from "../../programs/programDetails/programDetailsValues";
-import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IProgramEditorState } from "../models/types";
-import { lb } from "lens-shmens";
-import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { IconTrash } from "../../../components/icons/iconTrash";
 
 interface IProgramContentExerciseProps {
@@ -23,7 +19,9 @@ interface IProgramContentExerciseProps {
   settings: ISettings;
   dayIndex?: number;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
-  dispatch: ILensDispatch<IProgramEditorState>;
+  onCopy?: () => void;
+  onDelete?: () => void;
+  onEdit?: () => void;
 }
 
 export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX.Element {
@@ -68,52 +66,21 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                 <IconWatch className="mb-1 align-middle" />
                 <span className="pl-1 align-middle">{approxTime} h</span>
               </div>
-              <button
-                className="p-2"
-                onClick={() =>
-                  props.dispatch(
-                    EditProgramLenses.copyProgramExercise(
-                      lb<IProgramEditorState>().p("program"),
-                      programExercise,
-                      props.dayIndex
-                    )
-                  )
-                }
-              >
-                <IconDuplicate2 />
-              </button>
-              <button
-                onClick={() => {
-                  props.dispatch(
-                    lb<IProgramEditorState>()
-                      .p("editExercises")
-                      .p(programExercise.id)
-                      .record(ObjectUtils.clone(programExercise))
-                  );
-                }}
-                className="p-2"
-              >
-                <IconEditSquare />
-              </button>
-              <button
-                className="p-2"
-                onClick={() =>
-                  props.dispatch(
-                    isUnassigned
-                      ? EditProgramLenses.removeProgramExercise(
-                          lb<IProgramEditorState>().p("program"),
-                          programExercise.id
-                        )
-                      : EditProgramLenses.toggleDayExercise(
-                          lb<IProgramEditorState>().p("program"),
-                          dayIndex,
-                          programExercise.id
-                        )
-                  )
-                }
-              >
-                {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}
-              </button>
+              {props.onCopy && (
+                <button className="p-2" onClick={props.onCopy}>
+                  <IconDuplicate2 />
+                </button>
+              )}
+              {props.onEdit && (
+                <button onClick={props.onEdit} className="p-2">
+                  <IconEditSquare />
+                </button>
+              )}
+              {props.onDelete && (
+                <button className="p-2" onClick={props.onDelete}>
+                  {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center">

@@ -83,7 +83,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const areVariationsEnabled = programExercise.variations.length > 1;
 
   return (
-    <div className="p-2 rounded-lg bg-purplev2-50" style={{ border: "1px solid rgb(125 103 189 / 15%)" }}>
+    <div className="p-2 bg-white border rounded-lg border-purplev2-400">
       <div className="flex">
         <div>
           <ExerciseImage
