@@ -16,6 +16,8 @@ import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
 import { HelpChooseProgram } from "./help/helpChooseProgram";
 import { Button } from "./button";
 import { Footer2View } from "./footer2";
+import { ModalImportFromLink } from "./modalImportFromLink";
+import { importFromLink } from "../utils/importFromLink";
 
 interface IProps {
   dispatch: IDispatch;
@@ -30,6 +32,7 @@ interface IProps {
 export function ChooseProgramView(props: IProps): JSX.Element {
   const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
   const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
+  const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
   const [shouldShowPostCloneModal, setShouldShowPostCloneModal] = useState<boolean>(false);
 
   const program = props.programs.find((p) => p.id === selectedProgramId);
@@ -82,12 +85,29 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               dispatch={props.dispatch}
             />
           )}
+          <ModalImportFromLink
+            isHidden={!showImportFromLink}
+            onSubmit={async (link) => {
+              if (link) {
+                const data = await importFromLink(link);
+                if (data.success) {
+                  props.dispatch(Thunk.importProgram(data.data));
+                } else {
+                  alert(data.error.join("\n"));
+                }
+              }
+              setShowImportFromLink(false);
+            }}
+          />
         </Fragment>
       }
     >
       <div className="pb-2 text-center">
-        <Button data-cy="create-program" kind="purple" onClick={() => setShouldCreateProgram(true)}>
+        <Button className="mr-2" data-cy="create-program" kind="purple" onClick={() => setShouldCreateProgram(true)}>
           Create new program
+        </Button>
+        <Button data-cy="import-program-from-link" kind="orange" onClick={() => setShowImportFromLink(true)}>
+          Import from link
         </Button>
       </div>
       <ProgramListView

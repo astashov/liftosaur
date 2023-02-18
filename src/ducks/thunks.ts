@@ -3,7 +3,7 @@ import { IScreen } from "../models/screen";
 import RB from "rollbar";
 import { IGetStorageResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
-import { Program, IExportedProgram } from "../models/program";
+import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
 import { IProgram, IStorage, IPartialStorage, IExerciseType } from "../types";
@@ -24,6 +24,7 @@ import { Screen } from "../models/screen";
 import { Subscriptions } from "../utils/subscriptions";
 import { SendMessage } from "../utils/sendMessage";
 import { UidFactory } from "../utils/generator";
+import { ClipboardUtils } from "../utils/clipboard";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -413,10 +414,19 @@ export namespace Thunk {
     };
   }
 
-  export function exportProgram(program: IProgram): IThunk {
+  export function exportProgramToFile(program: IProgram): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      Program.exportProgram(program, state.storage.settings, state.storage.version);
+      Program.exportProgramToFile(program, state.storage.settings, state.storage.version);
+    };
+  }
+
+  export function exportProgramToLink(program: IProgram): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      const link = await Program.exportProgramToLink(program, state.storage.settings, state.storage.version);
+      await ClipboardUtils.copy(link);
+      alert("Link copied to clipboard:\n\n" + link);
     };
   }
 
@@ -449,22 +459,9 @@ export namespace Thunk {
 
   export function importProgram(maybeProgram: string): IThunk {
     return async (dispatch, getState, env) => {
-      let parsedMaybeProgram: IExportedProgram;
-      try {
-        parsedMaybeProgram = JSON.parse(maybeProgram);
-      } catch (e) {
-        alert("Couldn't parse the provided file");
-        return;
-      }
-      const payload = Storage.getDefault();
-      payload.settings.exercises = { ...payload.settings.exercises, ...parsedMaybeProgram.customExercises };
-      payload.programs.push(parsedMaybeProgram.program);
-      payload.version = parsedMaybeProgram.version;
-      const result = await Storage.get(env.service.client, payload, false);
+      const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram);
       if (result.success) {
-        const storage = result.data;
-        const customExercises = storage.settings.exercises;
-        const program = storage.programs.filter((p) => p.id === parsedMaybeProgram.program.id)[0];
+        const { program, customExercises } = result.data;
         updateState(
           dispatch,
           [
@@ -489,7 +486,7 @@ export namespace Thunk {
         );
         alert("Successfully imported");
       } else {
-        alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
+        alert(result.error.join("\n"));
       }
     };
   }

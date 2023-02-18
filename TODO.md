@@ -29,3 +29,14 @@
 
 - Add notification dot to friends icon if invitations pending
 - Add friends feeds per user
+
+## Web Editor
+
+- Add deeplink support to iOS
+- Add deeplink support to Android
+- Add a way to login on desktop
+- Add a way to choose your programs on desktop
+- Update the /about page
+- Add links to the /program to the menu
+- Add muscles to web editor
+- Verify I didn't break the app

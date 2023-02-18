@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { IProgram } from "../../types";
+import { IExportedProgram } from "../../models/program";
 import { ProgramContent } from "./programContent";
 
 interface IProps {
-  program?: IProgram;
+  exportedProgram?: IExportedProgram;
   client: Window["fetch"];
 }
 

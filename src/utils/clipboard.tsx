@@ -1,9 +1,10 @@
 export namespace ClipboardUtils {
-  export function copy(text: string): void {
+  export async function copy(text: string): Promise<void> {
     if (!navigator.clipboard) {
       fallbackCopyTextToClipboard(text);
     } else {
-      navigator.clipboard.writeText(text);
+      await copyTextToClipboard(text);
+      fallbackCopyTextToClipboard(text);
     }
   }
 
@@ -21,5 +22,21 @@ export namespace ClipboardUtils {
 
     document.execCommand("copy");
     document.body.removeChild(textArea);
+  }
+
+  function copyTextToClipboard(text: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      navigator.permissions
+        .query({ name: "clipboard-write" })
+        .then((result) => {
+          if (result.state === "granted" || result.state === "prompt") {
+            navigator.clipboard.writeText(text);
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        })
+        .catch(() => resolve(false));
+    });
   }
 }

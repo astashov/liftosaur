@@ -26,6 +26,7 @@ import { EditProgramVariationsEnable } from "../../../components/editProgram/edi
 import { EditProgramVariationsEditor } from "../../../components/editProgram/editProgramVariationsEditor";
 import { EditProgramWarmupSets } from "../../../components/editProgram/editProgramWarmupSets";
 import { EditProgramFinishDayScriptEditor } from "../../../components/editProgram/editProgramFinishDayScriptEditor";
+import { EditCustomExerciseLenses } from "../../../models/editCustomExerciseLenses";
 
 interface IProps {
   settings: ISettings;
@@ -326,8 +327,21 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        onCreateOrUpdate={() => {}}
-        onDelete={() => {}}
+        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, ex) => {
+          props.dispatch(
+            EditCustomExerciseLenses.createOrUpdate(
+              lb<IProgramEditorState>().p("settings"),
+              name,
+              equipment,
+              targetMuscles,
+              synergistMuscles,
+              ex
+            )
+          );
+        }}
+        onDelete={(id) => {
+          props.dispatch(EditCustomExerciseLenses.markDeleted(lb<IProgramEditorState>().p("settings"), id));
+        }}
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {

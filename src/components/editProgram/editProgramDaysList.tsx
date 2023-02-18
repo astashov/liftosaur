@@ -65,7 +65,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           <BottomSheetEditProgram
             onExportProgramToFile={() => {
               setShouldShowBottomSheet(false);
-              props.dispatch(Thunk.exportProgram(props.editProgram));
+              props.dispatch(Thunk.exportProgramToFile(props.editProgram));
+            }}
+            onExportProgramToLink={() => {
+              setShouldShowBottomSheet(false);
+              props.dispatch(Thunk.exportProgramToLink(props.editProgram));
             }}
             editProgramId={props.editProgram.id}
             dispatch={props.dispatch}

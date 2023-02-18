@@ -3,7 +3,8 @@ import { IconLink } from "../../../components/icons/iconLink";
 import { useState } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
 
-export function BuilderCopyLink(): JSX.Element {
+export function BuilderCopyLink(props: { msg?: string }): JSX.Element {
+  const msg = props.msg || "Copied this workout link to clipboard";
   const [showInfo, setShowInfo] = useState<boolean>(false);
   const timeout = useRef<number | undefined>(undefined);
 
@@ -26,8 +27,9 @@ export function BuilderCopyLink(): JSX.Element {
 
   return (
     <span>
-      {showInfo && <span className="mr-2 align-middle">Copied this workout link to clipboard</span>}
+      {showInfo && <span className="mr-2 align-middle">{msg}</span>}
       <button
+        title="Copy link to clipboard"
         className="p-2 align-middle"
         onClick={() => {
           navigator.permissions.query({ name: "clipboard-write" }).then((result) => {

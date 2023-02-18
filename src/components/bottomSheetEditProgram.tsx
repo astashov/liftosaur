@@ -7,10 +7,12 @@ import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { Program } from "../models/program";
+import { IconLink } from "./icons/iconLink";
 
 interface IProps {
   isHidden: boolean;
   onExportProgramToFile: () => void;
+  onExportProgramToLink: () => void;
   editProgramId: string;
   dispatch: IDispatch;
   onClose: () => void;
@@ -44,6 +46,14 @@ export function BottomSheetEditProgram(props: IProps): JSX.Element {
           icon={<IconDoc />}
           description="Exports to a JSON file that you can import later or share with your friends. You can also import it to the app on another device."
           onClick={props.onExportProgramToFile}
+        />
+        <BottomSheetItem
+          name="copy-link"
+          className="ls-export-program"
+          title="Copy Link to Program"
+          icon={<IconLink />}
+          description="So you can open it in the web editor, or share with somebody."
+          onClick={props.onExportProgramToLink}
         />
       </div>
     </BottomSheet>

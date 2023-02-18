@@ -56,7 +56,7 @@ export namespace Storage {
         : validate(finalStorage, TStorage, "storage");
       return result;
     } else {
-      return { success: false, error: ["Provided file is empty"] };
+      return { success: false, error: ["Provided data is empty"] };
     }
   }
 
