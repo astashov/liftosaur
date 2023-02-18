@@ -31,9 +31,11 @@ export interface IBuilderContentProps {
 
 export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const initialState: IBuilderState = {
-    program: props.program || {
-      name: "My Program",
-      weeks: [BuilderWeekModel.build("Week 1")],
+    current: {
+      program: props.program || {
+        name: "My Program",
+        weeks: [BuilderWeekModel.build("Week 1")],
+      },
     },
     settings: {
       unit: "lb",
@@ -46,14 +48,14 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
-      if (oldState.program !== newState.program) {
-        await Encoder.encodeIntoUrl(JSON.stringify(newState.program));
+      if (oldState.current.program !== newState.current.program) {
+        await Encoder.encodeIntoUrl(JSON.stringify(newState.current.program));
       }
     },
     async (action, oldState, newState) => {
       if (
         !("type" in action && action.type === "Update" && action.desc === "undo") &&
-        oldState.program !== newState.program
+        oldState.current.program !== newState.current.program
       ) {
         undoRedoMiddleware(dispatch, oldState);
       }
@@ -108,15 +110,15 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       </p>
       <h2 className="pb-3 mt-8 text-xl font-bold">
         <BuilderLinkInlineInput
-          value={state.program.name}
+          value={state.current.program.name}
           onInputString={(value) => {
-            dispatch([lb<IBuilderState>().p("program").p("name").record(value)]);
+            dispatch([lb<IBuilderState>().p("current").p("program").p("name").record(value)]);
           }}
         />
       </h2>
-      {state.program.weeks.map((week, index) => (
+      {state.current.program.weeks.map((week, index) => (
         <BuilderWeek
-          numberOfWeeks={state.program.weeks.length}
+          numberOfWeeks={state.current.program.weeks.length}
           selectedExercise={state.ui.selectedExercise}
           week={week}
           index={index}
@@ -126,10 +128,11 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       ))}
       <LinkButton
         onClick={() => {
-          const lastWeek = state.program.weeks[state.program.weeks.length - 1];
+          const lastWeek = state.current.program.weeks[state.current.program.weeks.length - 1];
           const week = BuilderWeekModel.build(StringUtils.nextName(lastWeek.name));
           dispatch([
             lb<IBuilderState>()
+              .p("current")
               .p("program")
               .p("weeks")
               .recordModify((weeks) => [...weeks, week]),
@@ -146,6 +149,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
             const exercise = Exercise.getById(exerciseId, {});
             dispatch([
               lb<IBuilderState>()
+                .p("current")
                 .p("program")
                 .p("weeks")
                 .i(modalExerciseUi.weekIndex)
@@ -169,6 +173,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
               const exercise = Exercise.getById(exerciseId, {});
               dispatch([
                 lb<IBuilderState>()
+                  .p("current")
                   .p("program")
                   .p("weeks")
                   .i(modalSubstituteUi.weekIndex)
@@ -192,9 +197,10 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
             if (exerciseId) {
               const exercise = Exercise.getById(exerciseId, {});
               const exType = ObjectUtils.pick(exercise, ["id", "equipment"]);
-              const week = state.program.weeks[modalExercisesByMuscle.weekIndex];
+              const week = state.current.program.weeks[modalExercisesByMuscle.weekIndex];
               dispatch([
                 lb<IBuilderState>()
+                  .p("current")
                   .p("program")
                   .p("weeks")
                   .i(modalExercisesByMuscle.weekIndex)

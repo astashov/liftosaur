@@ -18,13 +18,15 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
             let copypaste: ICopyPaste;
             if (selected.exerciseIndex != null && selected.dayIndex != null) {
               const exercise =
-                state.program.weeks[selected.weekIndex].days[selected.dayIndex].exercises[selected.exerciseIndex];
+                state.current.program.weeks[selected.weekIndex].days[selected.dayIndex].exercises[
+                  selected.exerciseIndex
+                ];
               copypaste = { type: "exercise", exercise };
             } else if (selected.dayIndex != null) {
-              const day = state.program.weeks[selected.weekIndex].days[selected.dayIndex];
+              const day = state.current.program.weeks[selected.weekIndex].days[selected.dayIndex];
               copypaste = { type: "day", day };
             } else {
-              const week = state.program.weeks[selected.weekIndex];
+              const week = state.current.program.weeks[selected.weekIndex];
               copypaste = { type: "week", week };
             }
             navigator.clipboard.writeText(JSON.stringify(copypaste));
@@ -44,7 +46,7 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
             (clipText) => {
               const copypaste: ICopyPaste = JSON.parse(clipText);
               const weekIndex = selectedExercise.weekIndex;
-              const week = state.program.weeks[weekIndex];
+              const week = state.current.program.weeks[weekIndex];
               const dayIndex = selectedExercise.dayIndex || week.days.length - 1;
               const day = week.days[dayIndex];
               const exerciseIndex = selectedExercise.exerciseIndex || day.exercises.length - 1;
@@ -52,6 +54,7 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
                 case "week": {
                   dispatch([
                     lb<IBuilderState>()
+                      .p("current")
                       .p("program")
                       .p("weeks")
                       .recordModify((weeks) => {
@@ -69,6 +72,7 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
                 case "day": {
                   dispatch([
                     lb<IBuilderState>()
+                      .p("current")
                       .p("program")
                       .p("weeks")
                       .i(weekIndex)
@@ -88,6 +92,7 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
                 case "exercise": {
                   dispatch([
                     lb<IBuilderState>()
+                      .p("current")
                       .p("program")
                       .p("weeks")
                       .i(weekIndex)

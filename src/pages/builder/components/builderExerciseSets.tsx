@@ -17,6 +17,7 @@ interface IBuilderExerciseSetsProps {
 
 export function BuilderExerciseSets(props: IBuilderExerciseSetsProps): JSX.Element {
   const lbe = lb<IBuilderState>()
+    .p("current")
     .p("program")
     .p("weeks")
     .i(props.weekIndex)

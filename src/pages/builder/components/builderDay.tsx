@@ -26,7 +26,7 @@ interface IBuilderDayProps {
 
 export function BuilderDay(props: IBuilderDayProps): JSX.Element {
   const day = props.day;
-  const lbe = lb<IBuilderState>().p("program").p("weeks").i(props.weekIndex).p("days").i(props.index);
+  const lbe = lb<IBuilderState>().p("current").p("program").p("weeks").i(props.weekIndex).p("days").i(props.index);
   const lastExercise = day.exercises[day.exercises.length - 1];
   const time = BuilderDayModel.approxTimeMs(day);
   const duration = TimeUtils.formatHHMM(time);
@@ -96,6 +96,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
                 if (confirm("Are you sure you want to delete this workout?")) {
                   props.dispatch([
                     lb<IBuilderState>()
+                      .p("current")
                       .p("program")
                       .p("weeks")
                       .i(props.weekIndex)
@@ -130,6 +131,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
                   onClick={() =>
                     props.dispatch([
                       lb<IBuilderState>()
+                        .p("current")
                         .p("program")
                         .p("weeks")
                         .i(props.weekIndex)

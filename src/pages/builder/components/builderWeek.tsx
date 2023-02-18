@@ -58,7 +58,9 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
               <BuilderLinkInlineInput
                 value={week.name}
                 onInputString={(value) => {
-                  props.dispatch([lb<IBuilderState>().p("program").p("weeks").i(props.index).p("name").record(value)]);
+                  props.dispatch([
+                    lb<IBuilderState>().p("current").p("program").p("weeks").i(props.index).p("name").record(value),
+                  ]);
                 }}
               />
             </h3>
@@ -69,6 +71,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
                     if (confirm("Are you sure you want to delete this week?")) {
                       props.dispatch([
                         lb<IBuilderState>()
+                          .p("current")
                           .p("program")
                           .p("weeks")
                           .recordModify((weeks) => CollectionUtils.removeAt(weeks, props.index)),
@@ -99,6 +102,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
               const day = BuilderDayModel.build(StringUtils.nextName(lastDay.name));
               props.dispatch([
                 lb<IBuilderState>()
+                  .p("current")
                   .p("program")
                   .p("weeks")
                   .i(props.index)
