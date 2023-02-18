@@ -30,6 +30,7 @@ interface IBuilderExerciseProps {
 export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
   const exercise = Exercise.get(props.exercise.exerciseType, {});
   const lbe = lb<IBuilderState>()
+    .p("current")
     .p("program")
     .p("weeks")
     .i(props.weekIndex)

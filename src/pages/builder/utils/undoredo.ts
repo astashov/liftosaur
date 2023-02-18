@@ -7,7 +7,7 @@ export interface IUndoRedoState<T> {
     past: T[];
     future: T[];
   };
-  program: T;
+  current: T;
 }
 
 export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, oldState: S): void {
@@ -15,7 +15,7 @@ export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILe
     lb<S>()
       .p("history")
       .recordModify((history) => {
-        return { ...history, past: [...history.past, oldState.program], future: [] };
+        return { ...history, past: [...history.past, oldState.current], future: [] };
       }),
   ]);
 }
@@ -38,10 +38,10 @@ export function undo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
           .recordModify((history) => {
             return {
               past: state.history.past.slice(0, state.history.past.length - 1),
-              future: [state.program, ...history.future],
+              future: [state.current, ...history.future],
             };
           }),
-        lb<S>().p("program").record(previousState),
+        lb<S>().p("current").record(previousState),
       ],
       "undo"
     );
@@ -57,11 +57,11 @@ export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
           .p("history")
           .recordModify((history) => {
             return {
-              past: [...history.past, state.program],
+              past: [...history.past, state.current],
               future: state.history.future.slice(1, state.history.future.length),
             };
           }),
-        lb<S>().p("program").record(nextState),
+        lb<S>().p("current").record(nextState),
       ],
       "undo"
     );

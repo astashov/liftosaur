@@ -79,7 +79,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
   ).map((e) => [e, equipmentName(e)]);
-  const lbe = lb<IProgramEditorState>().p("editExercises").pi(programExercise.id);
+  const lbe = lb<IProgramEditorState>().p("current").p("editExercises").pi(programExercise.id);
   const areVariationsEnabled = programExercise.variations.length > 1;
 
   return (
@@ -266,10 +266,11 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         <Button
           onClick={() => {
             const getters = {
-              editExercise: lb<IProgramEditorState>().p("editExercises").p(programExercise.id).get(),
+              editExercise: lbe.get(),
             };
             props.dispatch([
               lbu<IProgramEditorState, typeof getters>(getters)
+                .p("current")
                 .p("program")
                 .p("exercises")
                 .recordModify((exercises, { editExercise }) => {
@@ -279,7 +280,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
                     return exercises;
                   }
                 }),
-              lb<IProgramEditorState>().p("editExercises").p(programExercise.id).record(undefined),
+              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
             ]);
           }}
           kind="orange"
@@ -346,7 +347,7 @@ function ReuseLogic(props: IReuseLogicProps): JSX.Element {
   useEffect(() => {
     const selected = props.programExercise.reuseLogic?.selected;
     if (selected) {
-      props.dispatch(EditProgramLenses.reuseLogic(props.lbe, props.allProgramExercises, selected));
+      props.dispatch(EditProgramLenses.reuseLogic(props.lbe, props.allProgramExercises, selected), "ensureReuseLogic");
     }
   }, []);
 

@@ -32,35 +32,41 @@ export interface IProgramContentProps {
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const initialState: IProgramEditorState = {
     settings: Settings.build(),
-    program: props.program ||
-      basicBeginnerProgram || {
-        id: "My Program",
-        name: "My Program",
-        url: "",
-        author: "",
-        shortDescription: "",
-        description: "",
-        nextDay: 1,
-        days: [{ name: "Day 1", exercises: [] }],
-        exercises: [],
-        tags: [],
-      },
+    current: {
+      program: props.program ||
+        basicBeginnerProgram || {
+          id: "My Program",
+          name: "My Program",
+          url: "",
+          author: "",
+          shortDescription: "",
+          description: "",
+          nextDay: 1,
+          days: [{ name: "Day 1", exercises: [] }],
+          exercises: [],
+          tags: [],
+        },
+      editExercises: {},
+    },
     history: {
       past: [],
       future: [],
     },
-    editExercises: {},
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
-      if (oldState.program !== newState.program) {
-        await Encoder.encodeIntoUrl(JSON.stringify(newState.program));
+      if (oldState.current.program !== newState.current.program) {
+        await Encoder.encodeIntoUrl(JSON.stringify(newState.current.program));
       }
     },
     async (action, oldState, newState) => {
       if (
-        !("type" in action && action.type === "Update" && action.desc === "undo") &&
-        oldState.program !== newState.program
+        !(
+          "type" in action &&
+          action.type === "Update" &&
+          (action.desc === "undo" || action.desc === "ensureReuseLogic")
+        ) &&
+        oldState.current !== newState.current
       ) {
         undoRedoMiddleware(dispatch, oldState);
       }
@@ -70,17 +76,21 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
 
-  const assignedExerciseIds = new Set(state.program.days.flatMap((d) => d.exercises.map((e) => e.id)));
-  const unassignedExercises = state.program.exercises.filter((e) => !assignedExerciseIds.has(e.id));
+  const program = state.current.program;
+  const editExercises = state.current.editExercises;
+  const assignedExerciseIds = new Set(program.days.flatMap((d) => d.exercises.map((e) => e.id)));
+  const unassignedExercises = program.exercises.filter((e) => !assignedExerciseIds.has(e.id));
+  const lbProgram = lb<IProgramEditorState>().p("current").p("program");
+  const lbEditExercises = lb<IProgramEditorState>().p("current").p("editExercises");
   return (
     <section className="px-4 py-2">
       <div>
         <div className="flex items-center">
           <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
             <BuilderLinkInlineInput
-              value={state.program.name}
+              value={program.name}
               onInputString={(v) => {
-                dispatch(lb<IProgramEditorState>().p("program").p("name").record(v));
+                dispatch(lbProgram.p("name").record(v));
               }}
             />
           </h1>
@@ -107,9 +117,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         </div>
         <DraggableList
           hideBorders={true}
-          items={state.program.days}
+          items={program.days}
           element={(day, i, handleTouchStart) => {
-            const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(i, state.program, state.settings));
+            const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(i, program, state.settings));
             return (
               <section className="flex w-full px-2 py-1 text-left">
                 <div className="flex flex-col">
@@ -128,7 +138,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       <BuilderLinkInlineInput
                         value={day.name}
                         onInputString={(v) => {
-                          dispatch(lb<IProgramEditorState>().p("program").p("days").i(i).p("name").record(v));
+                          dispatch(lbProgram.p("days").i(i).p("name").record(v));
                         }}
                       />
                     </span>
@@ -142,16 +152,16 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                     hideBorders={true}
                     items={day.exercises}
                     element={(dayExercise, i2, handleTouchStart2) => {
-                      const programExercise = Program.getProgramExerciseById(state.program, dayExercise.id);
+                      const programExercise = Program.getProgramExerciseById(program, dayExercise.id);
                       if (!programExercise) {
                         return <></>;
                       }
-                      const editProgramExercise = state.editExercises[programExercise.id];
+                      const editProgramExercise = editExercises[programExercise.id];
                       if (editProgramExercise) {
                         return (
                           <ProgramContentEditExercise
                             programExercise={editProgramExercise}
-                            program={state.program}
+                            program={program}
                             settings={state.settings}
                             dispatch={dispatch}
                           />
@@ -162,47 +172,25 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                             programExercise={programExercise}
                             dayIndex={i}
                             handleTouchStart={handleTouchStart2}
-                            program={state.program}
+                            program={program}
                             settings={state.settings}
                             onEdit={() => {
                               dispatch(
-                                lb<IProgramEditorState>()
-                                  .p("editExercises")
-                                  .p(programExercise.id)
-                                  .record(ObjectUtils.clone(programExercise))
+                                lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
                               );
                             }}
                             onDelete={() => {
-                              dispatch(
-                                EditProgramLenses.toggleDayExercise(
-                                  lb<IProgramEditorState>().p("program"),
-                                  i,
-                                  programExercise.id
-                                )
-                              );
+                              dispatch(EditProgramLenses.toggleDayExercise(lbProgram, i, programExercise.id));
                             }}
                             onCopy={() => {
-                              dispatch(
-                                EditProgramLenses.copyProgramExercise(
-                                  lb<IProgramEditorState>().p("program"),
-                                  programExercise,
-                                  i
-                                )
-                              );
+                              dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise, i));
                             }}
                           />
                         );
                       }
                     }}
                     onDragEnd={(startIndex, endIndex) =>
-                      dispatch(
-                        EditProgramLenses.reorderExercises(
-                          lb<IProgramEditorState>().p("program"),
-                          i,
-                          startIndex,
-                          endIndex
-                        )
-                      )
+                      dispatch(EditProgramLenses.reorderExercises(lbProgram, i, startIndex, endIndex))
                     }
                   />
                   <div>
@@ -214,21 +202,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       onClick={() => {
                         const newExercise = Program.createExercise();
                         dispatch([
-                          lb<IProgramEditorState>()
-                            .p("program")
-                            .p("exercises")
-                            .recordModify((ex) => {
-                              return [...ex, newExercise];
-                            }),
-                          EditProgramLenses.toggleDayExercise(
-                            lb<IProgramEditorState>().p("program"),
-                            i,
-                            newExercise.id
-                          ),
-                          lb<IProgramEditorState>()
-                            .p("editExercises")
-                            .p(newExercise.id)
-                            .record(ObjectUtils.clone(newExercise)),
+                          lbProgram.p("exercises").recordModify((ex) => {
+                            return [...ex, newExercise];
+                          }),
+                          EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
+                          lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
                         ]);
                       }}
                     >
@@ -239,22 +217,14 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               </section>
             );
           }}
-          onDragEnd={(startIndex, endIndex) =>
-            dispatch(EditProgramLenses.reorderDays(lb<IProgramEditorState>().p("program"), startIndex, endIndex))
-          }
+          onDragEnd={(startIndex, endIndex) => dispatch(EditProgramLenses.reorderDays(lbProgram, startIndex, endIndex))}
         />
         <LinkButton
           onClick={() => {
             dispatch(
-              lb<IProgramEditorState>()
-                .p("program")
-                .p("days")
-                .recordModify((days) => {
-                  return [
-                    ...days,
-                    Program.createDay(StringUtils.nextName(state.program.days[state.program.days.length - 1].name)),
-                  ];
-                })
+              lbProgram.p("days").recordModify((days) => {
+                return [...days, Program.createDay(StringUtils.nextName(program.days[program.days.length - 1].name))];
+              })
             );
           }}
         >
@@ -265,12 +235,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         <div>
           <GroupHeader topPadding={true} name="Unassigned exercises" />
           {unassignedExercises.map((programExercise) => {
-            const editProgramExercise = state.editExercises[programExercise.id];
+            const editProgramExercise = editExercises[programExercise.id];
             if (editProgramExercise) {
               return (
                 <ProgramContentEditExercise
                   programExercise={editProgramExercise}
-                  program={state.program}
+                  program={program}
                   settings={state.settings}
                   dispatch={dispatch}
                 />
@@ -279,28 +249,16 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               return (
                 <ProgramContentExercise
                   programExercise={programExercise}
-                  program={state.program}
+                  program={program}
                   settings={state.settings}
                   onEdit={() => {
-                    dispatch(
-                      lb<IProgramEditorState>()
-                        .p("editExercises")
-                        .p(programExercise.id)
-                        .record(ObjectUtils.clone(programExercise))
-                    );
+                    dispatch(lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise)));
                   }}
                   onDelete={() => {
-                    dispatch(
-                      EditProgramLenses.removeProgramExercise(
-                        lb<IProgramEditorState>().p("program"),
-                        programExercise.id
-                      )
-                    );
+                    dispatch(EditProgramLenses.removeProgramExercise(lbProgram, programExercise.id));
                   }}
                   onCopy={() => {
-                    dispatch(
-                      EditProgramLenses.copyProgramExercise(lb<IProgramEditorState>().p("program"), programExercise)
-                    );
+                    dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise));
                   }}
                 />
               );
@@ -313,18 +271,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         onChange={(value) => {
           console.log(value);
           if (value && showAddExistingExerciseModal != null) {
-            dispatch(
-              EditProgramLenses.toggleDayExercise(
-                lb<IProgramEditorState>().p("program"),
-                showAddExistingExerciseModal,
-                value
-              )
-            );
+            dispatch(EditProgramLenses.toggleDayExercise(lbProgram, showAddExistingExerciseModal, value));
           }
           setShowAddExistingExerciseModal(undefined);
         }}
         isHidden={showAddExistingExerciseModal == null}
-        program={state.program}
+        program={program}
         settings={state.settings}
       />
     </section>

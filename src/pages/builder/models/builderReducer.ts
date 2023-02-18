@@ -7,7 +7,7 @@ export interface IBuilderSettings {
   unit: "kg" | "lb";
 }
 
-export interface IBuilderState extends IUndoRedoState<IBuilderProgram> {
+export interface IBuilderState extends IUndoRedoState<{ program: IBuilderProgram }> {
   settings: IBuilderSettings;
   ui: IBuilderUI;
 }
