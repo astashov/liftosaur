@@ -30,6 +30,8 @@ import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UidFactory } from "../../utils/generator";
 import { ProgramContentMuscles } from "./components/programContentMuscles";
 import { dequal } from "dequal";
+import { IconCog2 } from "../../components/icons/iconCog2";
+import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -94,6 +96,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
   const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const program = state.current.program;
   const editExercises = state.current.editExercises;
@@ -121,6 +124,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
             </h1>
             <div className="flex">
               <BuilderCopyLink msg="Copied the link with this program to the clipboard" />
+              <button title="Settings" className="p-2" onClick={() => setShowSettingsModal(true)}>
+                <IconCog2 />
+              </button>
               <button
                 style={{ cursor: canUndo(state) ? "pointer" : "default" }}
                 title="Undo"
@@ -352,6 +358,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         isHidden={showAddExistingExerciseModal == null}
         program={program}
         settings={state.settings}
+      />
+      <ProgramContentModalSettings
+        isHidden={!showSettingsModal}
+        settings={state.settings}
+        dispatch={dispatch}
+        onClose={() => setShowSettingsModal(false)}
       />
     </section>
   );
