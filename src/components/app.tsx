@@ -39,6 +39,7 @@ import { ScreenExerciseStats } from "./screenExerciseStats";
 import { Exercise } from "../models/exercise";
 import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
+import { ImportExporter } from "../lib/importexporter";
 
 interface IProps {
   client: Window["fetch"];
@@ -120,6 +121,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
+      } else if (event.data?.type === "universalLink") {
+        ImportExporter.handleUniversalLink(dispatch, event.data.link);
       }
     });
     window._webpushrScriptReady = () => {

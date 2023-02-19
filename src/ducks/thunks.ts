@@ -462,6 +462,13 @@ export namespace Thunk {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram);
       if (result.success) {
         const { program, customExercises } = result.data;
+        if (!confirm(`Do you want to import program ${program.name}?`)) {
+          return;
+        }
+        const hasExistingProgram = getState().storage.programs.some((p) => p.id === program.id);
+        if (hasExistingProgram && !confirm("Program with the same id already exists, do you want to overwrite it?")) {
+          return;
+        }
         updateState(
           dispatch,
           [
