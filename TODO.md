@@ -32,11 +32,9 @@
 
 ## Web Editor
 
-- Add deeplink support to iOS
-- Add deeplink support to Android
-- Add a way to login on desktop
-- Add a way to choose your programs on desktop
+- Add settings controls
 - Update the /about page
 - Add links to the /program to the menu
-- Add muscles to web editor
+- Add a way to login on desktop
+- Add a way to choose your programs on desktop
 - Verify I didn't break the app

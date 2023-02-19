@@ -28,6 +28,8 @@ import { CollectionUtils } from "../../utils/collection";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UidFactory } from "../../utils/generator";
+import { ProgramContentMuscles } from "./components/programContentMuscles";
+import { dequal } from "dequal";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -101,235 +103,244 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const lbEditExercises = lb<IProgramEditorState>().p("current").p("editExercises");
   return (
     <section className="px-4 py-2">
-      <div>
-        <div className="flex items-center">
-          <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
-            <div>
-              <BuilderLinkInlineInput
-                value={program.name}
-                onInputString={(v) => {
-                  dispatch(lbProgram.p("name").record(v));
-                }}
-              />
+      <div className="flex">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center">
+            <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
+              <div>
+                <BuilderLinkInlineInput
+                  value={program.name}
+                  onInputString={(v) => {
+                    dispatch(lbProgram.p("name").record(v));
+                  }}
+                />
+              </div>
+              <div className="text-xs font-normal text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+                id: {program.id}
+              </div>
+            </h1>
+            <div className="flex">
+              <BuilderCopyLink msg="Copied the link with this program to the clipboard" />
+              <button
+                style={{ cursor: canUndo(state) ? "pointer" : "default" }}
+                title="Undo"
+                className="p-2"
+                disabled={!canUndo(state)}
+                onClick={() => undo(dispatch, state)}
+              >
+                <IconUndo color={!canUndo(state) ? "#BAC4CD" : "#171718"} />
+              </button>
+              <button
+                style={{ cursor: canRedo(state) ? "pointer" : "default" }}
+                title="Redo"
+                className="p-2"
+                disabled={!canRedo(state)}
+                onClick={() => redo(dispatch, state)}
+              >
+                <IconUndo style={{ transform: "scale(-1,  1)" }} color={!canRedo(state) ? "#BAC4CD" : "#171718"} />
+              </button>
             </div>
-            <div className="text-xs font-normal text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
-              id: {program.id}
-            </div>
-          </h1>
-          <div className="flex">
-            <BuilderCopyLink msg="Copied the link with this program to the clipboard" />
-            <button
-              style={{ cursor: canUndo(state) ? "pointer" : "default" }}
-              title="Undo"
-              className="p-2"
-              disabled={!canUndo(state)}
-              onClick={() => undo(dispatch, state)}
-            >
-              <IconUndo color={!canUndo(state) ? "#BAC4CD" : "#171718"} />
-            </button>
-            <button
-              style={{ cursor: canRedo(state) ? "pointer" : "default" }}
-              title="Redo"
-              className="p-2"
-              disabled={!canRedo(state)}
-              onClick={() => redo(dispatch, state)}
-            >
-              <IconUndo style={{ transform: "scale(-1,  1)" }} color={!canRedo(state) ? "#BAC4CD" : "#171718"} />
-            </button>
           </div>
-        </div>
-        <DraggableList
-          hideBorders={true}
-          items={program.days}
-          element={(day, i, handleTouchStart) => {
-            const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(i, program, state.settings));
-            return (
-              <section className="flex w-full px-2 py-1 text-left">
-                <div className="flex flex-col">
-                  <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                    <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
-                      <IconHandle />
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="h-full bg-grayv2-200" style={{ width: "1px" }} />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex">
-                    <h2 className="flex items-center flex-1 mr-2" style={{ height: "2.25rem" }}>
-                      <button
-                        title={collapsedDays[i] ? "Expand day" : "Collapse day"}
-                        onClick={() => {
-                          const newCollapsedDays = [...collapsedDays];
-                          newCollapsedDays[i] = !newCollapsedDays[i];
-                          setCollapsedDays(newCollapsedDays);
-                        }}
-                        className="w-8 p-2 mr-1 text-center"
-                      >
-                        {collapsedDays[i] ? (
-                          <IconArrowRight className="inline-block" />
-                        ) : (
-                          <IconArrowDown2 className="inline-block" />
-                        )}
-                      </button>
-                      <span className="text-xl">
-                        <BuilderLinkInlineInput
-                          value={day.name}
-                          onInputString={(v) => {
-                            dispatch(lbProgram.p("days").i(i).p("name").record(v));
-                          }}
-                        />
+          <DraggableList
+            hideBorders={true}
+            items={program.days}
+            element={(day, i, handleTouchStart) => {
+              const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(i, program, state.settings));
+              return (
+                <section className="flex w-full px-2 py-1 text-left">
+                  <div className="flex flex-col">
+                    <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
+                      <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
+                        <IconHandle />
                       </span>
-                      <span className="mx-4 text-grayv2-main">{day.exercises.length} exercises</span>
-                      <div className="text-grayv2-main">
-                        <IconWatch className="mb-1 align-middle" />
-                        <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
-                      </div>
-                    </h2>
-                    {program.days.length > 1 && (
-                      <button
-                        title="Remove day"
-                        data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
-                        className="px-2 align-middle ls-days-list-delete-day button"
-                        onClick={() => {
-                          dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
-                          setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
-                        }}
-                      >
-                        <IconTrash />
-                      </button>
-                    )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-full bg-grayv2-200" style={{ width: "1px" }} />
+                    </div>
                   </div>
-                  {!collapsedDays[i] && (
-                    <div>
-                      <DraggableList
-                        hideBorders={true}
-                        items={day.exercises}
-                        element={(dayExercise, i2, handleTouchStart2) => {
-                          const programExercise = Program.getProgramExerciseById(program, dayExercise.id);
-                          if (!programExercise) {
-                            return <></>;
-                          }
-                          const editProgramExercise = editExercises[programExercise.id];
-                          if (editProgramExercise) {
-                            return (
-                              <ProgramContentEditExercise
-                                programExercise={editProgramExercise}
-                                program={program}
-                                settings={state.settings}
-                                dispatch={dispatch}
-                              />
-                            );
-                          } else {
-                            return (
-                              <ProgramContentExercise
-                                programExercise={programExercise}
-                                dayIndex={i}
-                                handleTouchStart={handleTouchStart2}
-                                program={program}
-                                settings={state.settings}
-                                onEdit={() => {
-                                  dispatch(
-                                    lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
-                                  );
-                                }}
-                                onDelete={() => {
-                                  dispatch(EditProgramLenses.toggleDayExercise(lbProgram, i, programExercise.id));
-                                }}
-                                onCopy={() => {
-                                  dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise, i));
-                                }}
-                              />
-                            );
-                          }
-                        }}
-                        onDragEnd={(startIndex, endIndex) =>
-                          dispatch(EditProgramLenses.reorderExercises(lbProgram, i, startIndex, endIndex))
-                        }
-                      />
-                      <div>
-                        <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
-                          Add existing exercise to {day.name}
-                        </LinkButton>
-                        <LinkButton
-                          className="ml-8"
+                  <div className="flex-1 min-w-0">
+                    <div className="flex">
+                      <h2 className="flex items-center flex-1 mr-2" style={{ height: "2.25rem" }}>
+                        <button
+                          title={collapsedDays[i] ? "Expand day" : "Collapse day"}
                           onClick={() => {
-                            const newExercise = Program.createExercise();
-                            dispatch([
-                              lbProgram.p("exercises").recordModify((ex) => {
-                                return [...ex, newExercise];
-                              }),
-                              EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
-                              lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
-                            ]);
+                            const newCollapsedDays = [...collapsedDays];
+                            newCollapsedDays[i] = !newCollapsedDays[i];
+                            setCollapsedDays(newCollapsedDays);
+                          }}
+                          className="w-8 p-2 mr-1 text-center"
+                        >
+                          {collapsedDays[i] ? (
+                            <IconArrowRight className="inline-block" />
+                          ) : (
+                            <IconArrowDown2 className="inline-block" />
+                          )}
+                        </button>
+                        <span className="text-xl">
+                          <BuilderLinkInlineInput
+                            value={day.name}
+                            onInputString={(v) => {
+                              dispatch(lbProgram.p("days").i(i).p("name").record(v));
+                            }}
+                          />
+                        </span>
+                        <span className="mx-4 text-grayv2-main">{day.exercises.length} exercises</span>
+                        <div className="text-grayv2-main">
+                          <IconWatch className="mb-1 align-middle" />
+                          <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
+                        </div>
+                      </h2>
+                      {program.days.length > 1 && (
+                        <button
+                          title="Remove day"
+                          data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
+                          className="px-2 align-middle ls-days-list-delete-day button"
+                          onClick={() => {
+                            dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
+                            setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
                           }}
                         >
-                          Create new exercise in {day.name}
-                        </LinkButton>
-                      </div>
+                          <IconTrash />
+                        </button>
+                      )}
                     </div>
-                  )}
-                </div>
-              </section>
-            );
-          }}
-          onDragEnd={(startIndex, endIndex) => {
-            dispatch(EditProgramLenses.reorderDays(lbProgram, startIndex, endIndex));
-            const newCollapsedDays = [...collapsedDays];
-            const oldStartDayIndex = newCollapsedDays[startIndex];
-            newCollapsedDays[startIndex] = newCollapsedDays[endIndex];
-            newCollapsedDays[endIndex] = oldStartDayIndex;
-            setCollapsedDays(newCollapsedDays);
-          }}
-        />
-        <LinkButton
-          onClick={() => {
-            dispatch(
-              lbProgram.p("days").recordModify((days) => {
-                return [...days, Program.createDay(StringUtils.nextName(program.days[program.days.length - 1].name))];
-              })
-            );
-          }}
-        >
-          Add new day
-        </LinkButton>
-      </div>
-      {unassignedExercises.length > 0 && (
-        <div>
-          <GroupHeader topPadding={true} name="Unassigned exercises" />
-          {unassignedExercises.map((programExercise) => {
-            const editProgramExercise = editExercises[programExercise.id];
-            if (editProgramExercise) {
-              return (
-                <ProgramContentEditExercise
-                  programExercise={editProgramExercise}
-                  program={program}
-                  settings={state.settings}
-                  dispatch={dispatch}
-                />
+                    {!collapsedDays[i] && (
+                      <div>
+                        <DraggableList
+                          hideBorders={true}
+                          items={day.exercises}
+                          element={(dayExercise, i2, handleTouchStart2) => {
+                            const programExercise = Program.getProgramExerciseById(program, dayExercise.id);
+                            if (!programExercise) {
+                              return <></>;
+                            }
+                            const editProgramExercise = editExercises[programExercise.id];
+                            if (editProgramExercise) {
+                              const isChanged = !dequal(editProgramExercise, programExercise);
+                              return (
+                                <ProgramContentEditExercise
+                                  isChanged={isChanged}
+                                  programExercise={editProgramExercise}
+                                  program={program}
+                                  settings={state.settings}
+                                  dispatch={dispatch}
+                                />
+                              );
+                            } else {
+                              return (
+                                <ProgramContentExercise
+                                  programExercise={programExercise}
+                                  dayIndex={i}
+                                  handleTouchStart={handleTouchStart2}
+                                  program={program}
+                                  settings={state.settings}
+                                  onEdit={() => {
+                                    dispatch(
+                                      lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
+                                    );
+                                  }}
+                                  onDelete={() => {
+                                    dispatch(EditProgramLenses.toggleDayExercise(lbProgram, i, programExercise.id));
+                                  }}
+                                  onCopy={() => {
+                                    dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise, i));
+                                  }}
+                                />
+                              );
+                            }
+                          }}
+                          onDragEnd={(startIndex, endIndex) =>
+                            dispatch(EditProgramLenses.reorderExercises(lbProgram, i, startIndex, endIndex))
+                          }
+                        />
+                        <div>
+                          <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
+                            Add existing exercise to {day.name}
+                          </LinkButton>
+                          <LinkButton
+                            className="ml-8"
+                            onClick={() => {
+                              const newExercise = Program.createExercise();
+                              dispatch([
+                                lbProgram.p("exercises").recordModify((ex) => {
+                                  return [...ex, newExercise];
+                                }),
+                                EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
+                                lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
+                              ]);
+                            }}
+                          >
+                            Create new exercise in {day.name}
+                          </LinkButton>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
               );
-            } else {
-              return (
-                <ProgramContentExercise
-                  programExercise={programExercise}
-                  program={program}
-                  settings={state.settings}
-                  onEdit={() => {
-                    dispatch(lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise)));
-                  }}
-                  onDelete={() => {
-                    dispatch(EditProgramLenses.removeProgramExercise(lbProgram, programExercise.id));
-                  }}
-                  onCopy={() => {
-                    dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise));
-                  }}
-                />
+            }}
+            onDragEnd={(startIndex, endIndex) => {
+              dispatch(EditProgramLenses.reorderDays(lbProgram, startIndex, endIndex));
+              const newCollapsedDays = [...collapsedDays];
+              const oldStartDayIndex = newCollapsedDays[startIndex];
+              newCollapsedDays[startIndex] = newCollapsedDays[endIndex];
+              newCollapsedDays[endIndex] = oldStartDayIndex;
+              setCollapsedDays(newCollapsedDays);
+            }}
+          />
+          <LinkButton
+            onClick={() => {
+              dispatch(
+                lbProgram.p("days").recordModify((days) => {
+                  return [...days, Program.createDay(StringUtils.nextName(program.days[program.days.length - 1].name))];
+                })
               );
-            }
-          })}
+            }}
+          >
+            Add new day
+          </LinkButton>
+          {unassignedExercises.length > 0 && (
+            <div>
+              <GroupHeader topPadding={true} name="Unassigned exercises" />
+              {unassignedExercises.map((programExercise) => {
+                const editProgramExercise = editExercises[programExercise.id];
+                if (editProgramExercise) {
+                  const isChanged = !dequal(editProgramExercise, programExercise);
+                  return (
+                    <ProgramContentEditExercise
+                      isChanged={isChanged}
+                      programExercise={editProgramExercise}
+                      program={program}
+                      settings={state.settings}
+                      dispatch={dispatch}
+                    />
+                  );
+                } else {
+                  return (
+                    <ProgramContentExercise
+                      programExercise={programExercise}
+                      program={program}
+                      settings={state.settings}
+                      onEdit={() => {
+                        dispatch(lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise)));
+                      }}
+                      onDelete={() => {
+                        dispatch(EditProgramLenses.removeProgramExercise(lbProgram, programExercise.id));
+                      }}
+                      onCopy={() => {
+                        dispatch(EditProgramLenses.copyProgramExercise(lbProgram, programExercise));
+                      }}
+                    />
+                  );
+                }
+              })}
+            </div>
+          )}
         </div>
-      )}
+        <div className="w-64">
+          <ProgramContentMuscles program={program} settings={state.settings} />
+        </div>
+      </div>
       <ProgramContentModalExistingExercise
         dayIndex={showAddExistingExerciseModal || 0}
         onChange={(value) => {
