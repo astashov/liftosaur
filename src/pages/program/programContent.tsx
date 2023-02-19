@@ -155,7 +155,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                     <div className="h-full bg-grayv2-200" style={{ width: "1px" }} />
                   </div>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex">
                     <h2 className="flex items-center flex-1 mr-2" style={{ height: "2.25rem" }}>
                       <button
