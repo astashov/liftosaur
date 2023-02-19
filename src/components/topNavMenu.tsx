@@ -26,8 +26,9 @@ export function TopNavMenu(): JSX.Element {
         <ul className="flex-1 inline-block align-middle list-none">
           {[
             ["App", "/"],
-            ["Documentation", "/docs/docs.html"],
+            ["Docs", "/docs/docs.html"],
             ["Blog", "/blog"],
+            ["Program Builder", "/program"],
           ].map(([text, link]) => {
             return (
               <li className="inline-block mx-4 my-0 leading-normal align-middle list-none">

@@ -17,7 +17,8 @@ export function FooterPage(): JSX.Element {
             <ul className="flex-1 md:pr-6">
               {[
                 ["App", "/"],
-                ["Documentation", "/docs/docs.html"],
+                ["Docs", "/docs/docs.html"],
+                ["Program Builder", "/program"],
                 ["Blog", "/blog"],
                 ["Terms & Conditions", "/terms.html"],
                 ["Privacy", "/privacy.html"],
