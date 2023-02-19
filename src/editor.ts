@@ -160,7 +160,7 @@ export class CodeEditor {
     });
 
     codemirror.setSize(
-      "100%",
+      null,
       (this.args.multiLine ? this.args.height ?? 16 : 1) * codemirror.defaultTextHeight() + 2 * 4
     );
 

@@ -56,7 +56,10 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
         />
         {availableExercises.map((programExercise) => {
           return (
-            <button onClick={() => props.onChange(programExercise.id)} className="block w-full cursor-pointer">
+            <button
+              onClick={() => props.onChange(programExercise.id)}
+              className="block w-full text-left cursor-pointer"
+            >
               <ProgramContentExercise
                 programExercise={programExercise}
                 program={props.program}

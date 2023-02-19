@@ -27,11 +27,13 @@ import { EditProgramVariationsEditor } from "../../../components/editProgram/edi
 import { EditProgramWarmupSets } from "../../../components/editProgram/editProgramWarmupSets";
 import { EditProgramFinishDayScriptEditor } from "../../../components/editProgram/editProgramFinishDayScriptEditor";
 import { EditCustomExerciseLenses } from "../../../models/editCustomExerciseLenses";
+import { IconCloseCircleOutline } from "../../../components/icons/iconCloseCircleOutline";
 
 interface IProps {
   settings: ISettings;
   program: IProgram;
   programExercise: IProgramExercise;
+  isChanged: boolean;
   dispatch: ILensDispatch<IProgramEditorState>;
 }
 
@@ -85,7 +87,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success;
 
   return (
-    <div className="p-2 bg-white border rounded-lg border-purplev2-400">
+    <div className="relative p-2 bg-white border rounded-lg border-purplev2-400">
       <div className="flex">
         <div>
           <ExerciseImage
@@ -268,9 +270,14 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         <Button
           className="mr-2"
           onClick={() => {
-            props.dispatch([
-              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
-            ]);
+            if (
+              !props.isChanged ||
+              confirm("Are you sure? If you cancel, all your changes in this exercise would be lost")
+            ) {
+              props.dispatch([
+                lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+              ]);
+            }
           }}
           kind="grayv2"
         >
@@ -303,6 +310,22 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
           Save
         </Button>
       </div>
+      <button
+        className="absolute p-2"
+        style={{ top: "0.25rem", right: "0.25rem" }}
+        onClick={() => {
+          if (
+            !props.isChanged ||
+            confirm("Are you sure? If you cancel, all your changes in this exercise would be lost")
+          ) {
+            props.dispatch([
+              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+            ]);
+          }
+        }}
+      >
+        <IconCloseCircleOutline />
+      </button>
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
         onDone={(newName, newType) => {
