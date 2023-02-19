@@ -170,9 +170,9 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           </div>
           <Handle handleTouchStart={props.handleTouchStart} />
         </div>
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 min-w-0">
           <div className="flex">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <RepsInput
                 repsResult={repsResult}
                 variationIndex={propsRef.current.variationIndex}
@@ -183,7 +183,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               />
             </div>
             {props.inOneLine && (
-              <div className="flex-1 ml-2">
+              <div className="flex-1 min-w-0 ml-2">
                 <WeightInput
                   weightResult={weightResult}
                   variationIndex={propsRef.current.variationIndex}
