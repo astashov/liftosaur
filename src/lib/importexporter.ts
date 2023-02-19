@@ -5,6 +5,9 @@ import { IExportedProgram } from "../models/program";
 import { Storage } from "../models/storage";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
+import { importFromLink } from "../utils/importFromLink";
+import { IDispatch } from "../ducks/types";
+import { Thunk } from "../ducks/thunks";
 
 export namespace ImportExporter {
   export function exportStorage(storage: IStorage): void {
@@ -33,6 +36,18 @@ export namespace ImportExporter {
       return { success: true, data: { customExercises, program, version: getLatestMigrationVersion() } };
     } else {
       return result;
+    }
+  }
+
+  export async function handleUniversalLink(dispatch: IDispatch, link: string): Promise<void> {
+    const url = new URL(link);
+    if (url.pathname === "/program" && url.searchParams.has("data")) {
+      const data = await importFromLink(link);
+      if (data.success) {
+        dispatch(Thunk.importProgram(data.data));
+      } else {
+        alert(data.error.join("\n"));
+      }
     }
   }
 }
