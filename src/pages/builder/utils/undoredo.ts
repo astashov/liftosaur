@@ -73,7 +73,6 @@ export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
 export function useUndoRedo<T, S extends IUndoRedoState<T>>(state: S, dispatch: ILensDispatch<S>): void {
   useEffect(() => {
     function onKeyPress(event: KeyboardEvent): void {
-      console.log(event);
       if (
         !(event.target instanceof HTMLTextAreaElement) &&
         !(event.target instanceof HTMLInputElement) &&

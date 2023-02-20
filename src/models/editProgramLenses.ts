@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
 import {
   IEquipment,
   IExerciseId,
@@ -13,6 +13,7 @@ import {
 } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
+import { StringUtils } from "../utils/string";
 import { Exercise, IExercise, warmupValues } from "./exercise";
 import { Program } from "./program";
 import { ProgramExercise } from "./programExercise";
@@ -335,6 +336,82 @@ export namespace EditProgramLenses {
   ): ILensRecordingPayload<T> {
     const newWarmupSets = CollectionUtils.setAt(warmupSets, index, newWarmupSet);
     return prefix.p("warmupSets").record(newWarmupSets);
+  }
+
+  export function updateSimpleExercise<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    units: IUnit,
+    sets: number,
+    reps: number,
+    weight: number
+  ): ILensRecordingPayload<T>[] {
+    return [
+      prefix
+        .p("variations")
+        .i(0)
+        .p("sets")
+        .record(
+          Array.apply(null, Array(sets)).map(() => ({
+            repsExpr: reps.toString(),
+            weightExpr: "state.weight",
+            isAmrap: false,
+          }))
+        ),
+      prefix.p("state").p("weight").record(Weight.build(weight, units)),
+    ];
+  }
+
+  export function setProgression<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    progression?: { increment: number; unit: IUnit | "%"; attempts: number },
+    deload?: { decrement: number; unit: IUnit | "%"; attempts: number }
+  ): ILensRecordingPayload<T>[] {
+    const lbs: ILensRecordingPayload<T>[] = [];
+    lbs.push(prefix.p("state").p("successes").record(0));
+    lbs.push(prefix.p("state").p("failures").record(0));
+    const finishDayExpr = [];
+    if (progression != null) {
+      finishDayExpr.push(
+        StringUtils.unindent(`
+          // Simple Exercise Progression script '${progression.increment}${progression.unit},${progression.attempts}'
+          if (completedReps >= reps) {
+            state.successes = state.successes + 1
+            if (state.successes >= ${progression.attempts}) {
+              ${
+                progression.unit === "%"
+                  ? `state.weight = roundWeight(state.weight * ${1 + progression.increment / 100})`
+                  : `state.weight = state.weight + ${progression.increment}${progression.unit}`
+              }
+              state.successes = 0
+              state.failures = 0
+            }
+          }
+          // End Simple Exercise Progression script
+        `)
+      );
+    }
+    if (deload != null) {
+      finishDayExpr.push(
+        StringUtils.unindent(`
+          // Simple Exercise Deload script '${deload.decrement}${deload.unit},${deload.attempts}'
+          if (!(completedReps >= reps)) {
+            state.failures = state.failures + 1
+            if (state.failures >= ${deload.attempts}) {
+              ${
+                deload.unit === "%"
+                  ? `state.weight = roundWeight(state.weight * ${1 - deload.decrement / 100})`
+                  : `state.weight = state.weight - ${deload.decrement}${deload.unit}`
+              }
+              state.successes = 0
+              state.failures = 0
+            }
+          }
+          // End Simple Exercise Deload script
+        `)
+      );
+    }
+    lbs.push(prefix.p("finishDayExpr").record(finishDayExpr.join("\n")));
+    return lbs;
   }
 }
 

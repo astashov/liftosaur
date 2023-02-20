@@ -1,12 +1,10 @@
-import { lb, lf, lbu, ILensRecordingPayload } from "lens-shmens";
+import { lb, lf, lbu } from "lens-shmens";
 import { Program } from "./program";
 import { Screen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { IExercise } from "./exercise";
-import { Weight } from "./weight";
 import { ObjectUtils } from "../utils/object";
 import { updateState, IState } from "./state";
-import { StringUtils } from "../utils/string";
 import {
   IWeight,
   IUnit,
@@ -296,21 +294,10 @@ export namespace EditProgram {
     weight?: number
   ): void {
     if (sets != null && reps != null && weight != null) {
-      updateState(dispatch, [
-        lb<IState>()
-          .pi("editExercise")
-          .p("variations")
-          .i(0)
-          .p("sets")
-          .record(
-            Array.apply(null, Array(sets)).map(() => ({
-              repsExpr: reps.toString(),
-              weightExpr: "state.weight",
-              isAmrap: false,
-            }))
-          ),
-        lb<IState>().pi("editExercise").p("state").p("weight").record(Weight.build(weight, units)),
-      ]);
+      updateState(
+        dispatch,
+        EditProgramLenses.updateSimpleExercise(lb<IState>().pi("editExercise"), units, sets, reps, weight)
+      );
     }
   }
 
@@ -319,53 +306,11 @@ export namespace EditProgram {
     progression?: { increment: number; unit: IUnit | "%"; attempts: number },
     deload?: { decrement: number; unit: IUnit | "%"; attempts: number }
   ): void {
-    const lbs: ILensRecordingPayload<IState>[] = [];
-    lbs.push(lb<IState>().pi("editExercise").p("state").p("successes").record(0));
-    lbs.push(lb<IState>().pi("editExercise").p("state").p("failures").record(0));
-    const finishDayExpr = [];
-    if (progression != null) {
-      finishDayExpr.push(
-        StringUtils.unindent(`
-          // Simple Exercise Progression script '${progression.increment}${progression.unit},${progression.attempts}'
-          if (completedReps >= reps) {
-            state.successes = state.successes + 1
-            if (state.successes >= ${progression.attempts}) {
-              ${
-                progression.unit === "%"
-                  ? `state.weight = roundWeight(state.weight * ${1 + progression.increment / 100})`
-                  : `state.weight = state.weight + ${progression.increment}${progression.unit}`
-              }
-              state.successes = 0
-              state.failures = 0
-            }
-          }
-          // End Simple Exercise Progression script
-        `)
-      );
-    }
-    if (deload != null) {
-      finishDayExpr.push(
-        StringUtils.unindent(`
-          // Simple Exercise Deload script '${deload.decrement}${deload.unit},${deload.attempts}'
-          if (!(completedReps >= reps)) {
-            state.failures = state.failures + 1
-            if (state.failures >= ${deload.attempts}) {
-              ${
-                deload.unit === "%"
-                  ? `state.weight = roundWeight(state.weight * ${1 - deload.decrement / 100})`
-                  : `state.weight = state.weight - ${deload.decrement}${deload.unit}`
-              }
-              state.successes = 0
-              state.failures = 0
-            }
-          }
-          // End Simple Exercise Deload script
-        `)
-      );
-    }
-    lbs.push(lb<IState>().pi("editExercise").p("finishDayExpr").record(finishDayExpr.join("\n")));
-
-    updateState(dispatch, lbs, "Setting Progression or Deload in simple exercise");
+    updateState(
+      dispatch,
+      EditProgramLenses.setProgression(lb<IState>().pi("editExercise"), progression, deload),
+      "Setting Progression or Deload in simple exercise"
+    );
   }
 
   export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise): void {
