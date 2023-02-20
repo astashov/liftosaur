@@ -32,6 +32,7 @@ import { ProgramContentMuscles } from "./components/programContentMuscles";
 import { dequal } from "dequal";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
+import { EditExerciseUtil } from "./utils/editExerciseUtil";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -220,12 +221,13 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                             if (!programExercise) {
                               return <></>;
                             }
-                            const editProgramExercise = editExercises[programExercise.id];
+                            const editProgramExercise = editExercises[EditExerciseUtil.getKey(programExercise.id, i)];
                             if (editProgramExercise) {
                               const isChanged = !dequal(editProgramExercise, programExercise);
                               return (
                                 <ProgramContentEditExercise
                                   isChanged={isChanged}
+                                  dayIndex={i}
                                   programExercise={editProgramExercise}
                                   program={program}
                                   settings={state.settings}
@@ -242,7 +244,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                                   settings={state.settings}
                                   onEdit={() => {
                                     dispatch(
-                                      lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise))
+                                      lbEditExercises
+                                        .p(EditExerciseUtil.getKey(programExercise.id, i))
+                                        .record(ObjectUtils.clone(programExercise))
                                     );
                                   }}
                                   onDelete={() => {
@@ -272,7 +276,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                                   return [...ex, newExercise];
                                 }),
                                 EditProgramLenses.toggleDayExercise(lbProgram, i, newExercise.id),
-                                lbEditExercises.p(newExercise.id).record(ObjectUtils.clone(newExercise)),
+                                lbEditExercises
+                                  .p(EditExerciseUtil.getKey(newExercise.id, i))
+                                  .record(ObjectUtils.clone(newExercise)),
                               ]);
                             }}
                           >
@@ -309,7 +315,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
             <div>
               <GroupHeader topPadding={true} name="Unassigned exercises" />
               {unassignedExercises.map((programExercise) => {
-                const editProgramExercise = editExercises[programExercise.id];
+                const editProgramExercise = editExercises[EditExerciseUtil.getKey(programExercise.id)];
                 if (editProgramExercise) {
                   const isChanged = !dequal(editProgramExercise, programExercise);
                   return (
@@ -328,7 +334,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       program={program}
                       settings={state.settings}
                       onEdit={() => {
-                        dispatch(lbEditExercises.p(programExercise.id).record(ObjectUtils.clone(programExercise)));
+                        dispatch(
+                          lbEditExercises
+                            .p(EditExerciseUtil.getKey(programExercise.id))
+                            .record(ObjectUtils.clone(programExercise))
+                        );
                       }}
                       onDelete={() => {
                         dispatch(EditProgramLenses.removeProgramExercise(lbProgram, programExercise.id));
@@ -344,7 +354,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           )}
         </div>
         <div className="w-64">
-          <ProgramContentMuscles program={program} settings={state.settings} />
+          <div className="sticky top-0 self-start">
+            <ProgramContentMuscles program={program} settings={state.settings} />
+          </div>
         </div>
       </div>
       <ProgramContentModalExistingExercise

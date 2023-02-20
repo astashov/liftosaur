@@ -19,11 +19,13 @@ import { Program } from "../../../models/program";
 import { IEither } from "../../../utils/types";
 import { Button } from "../../../components/button";
 import { CollectionUtils } from "../../../utils/collection";
+import { EditExerciseUtil } from "../utils/editExerciseUtil";
 
 interface IProgramContentEditExerciseAdvancedProps {
   dispatch: ILensDispatch<IProgramEditorState>;
   programExercise: IProgramExercise;
   program: IProgram;
+  dayIndex?: number;
   settings: ISettings;
   lbe: LensBuilder<IProgramEditorState, IProgramExercise, {}>;
   progress?: IHistoryRecord;
@@ -206,7 +208,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               confirm("Are you sure? If you cancel, all your changes in this exercise would be lost")
             ) {
               props.dispatch([
-                lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+                lb<IProgramEditorState>()
+                  .p("current")
+                  .p("editExercises")
+                  .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+                  .record(undefined),
               ]);
             }
           }}
@@ -231,7 +237,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                     return exercises;
                   }
                 }),
-              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+              lb<IProgramEditorState>()
+                .p("current")
+                .p("editExercises")
+                .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+                .record(undefined),
             ]);
           }}
           kind="orange"
