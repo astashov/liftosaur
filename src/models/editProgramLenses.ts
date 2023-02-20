@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import {
   IEquipment,
   IExerciseId,
