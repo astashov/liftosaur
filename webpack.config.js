@@ -102,8 +102,9 @@ module.exports = {
         },
       },
       {
-        from: "_redirects",
-        to: "",
+        from: process.env.STAGE ? "_redirects_staging" : "_redirects",
+        to: "./_redirects",
+        toType: "file",
       },
       {
         from: "_headers",
