@@ -30,7 +30,6 @@ export function BuilderHelpOverlay(): JSX.Element | null {
         const id = e.getAttribute("data-help-id")!;
         if (!memo[id]) {
           const boundingClientRect = e.getBoundingClientRect();
-          console.log(boundingClientRect);
           memo[id] = {
             id,
             content: e.getAttribute("data-help")!,

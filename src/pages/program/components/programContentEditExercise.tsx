@@ -61,7 +61,6 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
     .p("current")
     .p("editExercises")
     .pi(EditExerciseUtil.getKey(programExercise.id, props.dayIndex));
-  console.log("Rerender ProgramContentEditExercise");
 
   return (
     <div className="relative p-2 bg-white border rounded-lg border-purplev2-400">
@@ -80,7 +79,6 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
             <BuilderInlineInput
               value={programExercise.name}
               onInputString={(str) => {
-                console.log(str);
                 props.dispatch(lbe.p("name").record(str));
               }}
             />
