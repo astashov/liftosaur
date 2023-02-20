@@ -61,7 +61,7 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
               />
             </div>
             <div className="flex-1 mr-2">{programExercise!!.name}</div>
-            <div className="flex self-start">
+            <div className="flex self-start" style={{ marginRight: "-0.5rem" }}>
               <div className="p-2">
                 <IconWatch className="mb-1 align-middle" />
                 <span className="pl-1 align-middle">{approxTime} h</span>

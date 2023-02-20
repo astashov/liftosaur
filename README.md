@@ -7,9 +7,10 @@ Link: https://www.liftosaur.com/about
 It's a mobile app, that's available as:
 
 - [PWA](https://www.liftosaur.com) - meaning you can open the page in a browser on your mobile phone, add it to a home screen, and it will behave exactly as a regular app.
-- [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1) - also PWA really, just packed into a regular installable Android app.
+- [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa) - thin Android app around this PWA with some native features added.
+- [iOS app](https://apps.apple.com/us/app/liftosaur/id1661880849) - thin iOS app around this PWA with some native features added.
 
-The main idea is to make a weight lifting tracker app, that is flexible enough to implement pretty much any weight lifting routine. It should automatically handle progressive overloads and deloads based on the logic you define. Any program should be possible to implement - Stronglifts 5x5, GZCLP, any 5/3/1s, any PPL, you name it.
+The main idea is to make a weightlifting tracker app, that is flexible enough to implement pretty much any weightlifting routine. It should automatically handle progressive overloads and deloads based on the logic you define. Any program should be possible to implement - Stronglifts 5x5, GZCLP, any 5/3/1s, any PPL, you name it.
 
 To describe the logic, there's a built-in scripting language called [Liftoscript](https://www.liftosaur.com/docs/docs.html#liftoscript-tutorial), which is a very simple programming language with JavaScript-like syntax. It has some built-in variables and some custom number types (e.g. `kg` and `lb`), but other than that it's pretty simple. E.g. Stronglifts 5x5 logic could look like this if written in Liftoscript:
 
@@ -49,6 +50,7 @@ if (state.failures > 2) {
 - Optional public profile page, e.g. this is [mine](https://www.liftosaur.com/profile/tiolnbjbleke).
 - Track bodyweight and other body measurements (biceps, chest, waist, etc)
 - Correlate bodyweight changes with lifts graphs
+- Web Editor to create programs
 
 # Implementation details
 

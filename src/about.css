@@ -355,6 +355,26 @@ a.hero-title {
   display: flex;
 }
 
+.features-center {
+  text-align: center;
+  list-style: none;
+}
+
+.features-center .features-content {
+  padding-top: 0;
+}
+
+.features-center .features-content-data {
+  width: 100%;
+  max-width: 100%;
+}
+
+.features-center .features-image-content {
+  margin: 2em auto 0;
+  width: 80%;
+  height: auto;
+}
+
 .features-right {
   flex-direction: row-reverse;
 }
