@@ -80,7 +80,7 @@ export const Input = forwardRef(
       }
     }
 
-    let containerClassName = "inline-block";
+    let containerClassName = "inline-block bg-white";
     if (className.indexOf("w-full") !== -1) {
       containerClassName += " w-full";
     }

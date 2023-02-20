@@ -15,6 +15,8 @@ interface IProps {
   state: IProgramState;
 }
 
+let editorImport: Promise<{ CodeEditor: typeof CodeEditor }>;
+
 export function OneLineTextEditor(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
   const codeEditor = useRef<CodeEditor | undefined>(undefined);
@@ -26,7 +28,11 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   };
 
   useEffect(() => {
-    import("../../editor").then(({ CodeEditor: CE }) => {
+    if (editorImport == null) {
+      editorImport = import("../../editor");
+    }
+    console.log("Mounting oneline editor");
+    editorImport.then(({ CodeEditor: CE }) => {
       const ce = new CE({
         state: props.state,
         onChange: (value) => onChange(value),

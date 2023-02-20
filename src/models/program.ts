@@ -486,11 +486,8 @@ export namespace Program {
     if (sets.some((s) => sets[0].repsExpr !== s.repsExpr)) {
       errors.push("All sets should have the same reps");
     }
-    if (sets[0].weightExpr !== "state.weight") {
+    if (sets.some((s) => s.weightExpr !== "state.weight")) {
       errors.push("All sets should have the weight = <strong>state.weight</strong>");
-    }
-    if (sets.some((s) => sets[0].weightExpr !== s.weightExpr)) {
-      errors.push("All sets should have the same weight expression");
     }
     if (errors.length > 0) {
       return { success: false, error: errors };
