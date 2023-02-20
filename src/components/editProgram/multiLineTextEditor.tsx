@@ -24,13 +24,11 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
     }
   };
 
-  console.log("Multiline");
   const codeEditor = useRef<CodeEditor | undefined>(undefined);
   useEffect(() => {
     if (editorImport == null) {
       editorImport = import("../../editor");
     }
-    console.log("Mounting multiline editor");
     editorImport.then(({ CodeEditor: CE }) => {
       const ce = new CE({
         state: props.state,

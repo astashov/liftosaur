@@ -31,7 +31,6 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
   const allProgramExercises = program.exercises;
   const entry = progress?.entries[0];
   const isEligibleForSimple = Program.isEligibleForSimpleExercise(props.programExercise);
-  console.log(isEligibleForSimple);
   if (!isEligibleForSimple.success) {
     return <EditProgramExerciseSimpleErrors errors={isEligibleForSimple.error} />;
   }

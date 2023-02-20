@@ -31,7 +31,6 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
     if (editorImport == null) {
       editorImport = import("../../editor");
     }
-    console.log("Mounting oneline editor");
     editorImport.then(({ CodeEditor: CE }) => {
       const ce = new CE({
         state: props.state,

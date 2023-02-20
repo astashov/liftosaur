@@ -78,9 +78,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       }
     },
     async (action, oldState, newState) => {
-      if ("type" in action && action.type === "Update") {
-        console.log(action.lensRecording[0], action.desc);
-      }
+      // if ("type" in action && action.type === "Update") {
+      //   console.log(action.lensRecording[0], action.desc);
+      // }
       if (
         !(
           "type" in action &&
