@@ -3,6 +3,7 @@ interface Window {
   _webpushrScriptReady: () => void;
   webpushr: (name: "fetch_id", fn: (sid: number) => void) => void;
   handleGapiLoad: () => void;
+  isUndoing?: boolean;
   AppleID: {
     auth: {
       signIn: () => Promise<{
