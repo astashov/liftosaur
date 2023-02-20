@@ -19,10 +19,12 @@ import { ProgramContentEditExerciseAdvanced } from "./programContentEditExercise
 import { Tabs2 } from "../../../components/tabs2";
 import { Program } from "../../../models/program";
 import { ProgramContentEditExerciseSimple } from "./programContentEditExerciseSimple";
+import { EditExerciseUtil } from "../utils/editExerciseUtil";
 
 interface IProps {
   settings: ISettings;
   program: IProgram;
+  dayIndex?: number;
   programExercise: IProgramExercise;
   isChanged: boolean;
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -55,7 +57,10 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
   ).map((e) => [e, equipmentName(e)]);
-  const lbe = lb<IProgramEditorState>().p("current").p("editExercises").pi(programExercise.id);
+  const lbe = lb<IProgramEditorState>()
+    .p("current")
+    .p("editExercises")
+    .pi(EditExerciseUtil.getKey(programExercise.id, props.dayIndex));
   console.log("Rerender ProgramContentEditExercise");
 
   return (
@@ -116,6 +121,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
             "Simple Mode",
             <ProgramContentEditExerciseSimple
               isChanged={props.isChanged}
+              dayIndex={props.dayIndex}
               program={props.program}
               onProgressChange={setProgress}
               programExercise={props.programExercise}
@@ -128,6 +134,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
           [
             "Advanced Mode",
             <ProgramContentEditExerciseAdvanced
+              dayIndex={props.dayIndex}
               settings={props.settings}
               programExercise={programExercise}
               isChanged={props.isChanged}
@@ -149,7 +156,11 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
             confirm("Are you sure? If you cancel, all your changes in this exercise would be lost")
           ) {
             props.dispatch([
-              lb<IProgramEditorState>().p("current").p("editExercises").p(programExercise.id).record(undefined),
+              lb<IProgramEditorState>()
+                .p("current")
+                .p("editExercises")
+                .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+                .record(undefined),
             ]);
           }
         }}
