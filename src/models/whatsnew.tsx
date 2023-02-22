@@ -4,6 +4,8 @@ import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
+import { InternalLink } from "../internalLink";
+import { toIosWithResult } from "../utils/sendMessage";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -169,6 +171,26 @@ const whatsNew: Record<string, IWhatsNew> = {
         <li>
           Now it shows all the exercise images a built-in program contains, as well as the required equipment and
           approximate time to finish a workout from the program. Hopefully it'll help with choosing the right program.
+        </li>
+      </ul>
+    ),
+  },
+  "20230222": {
+    title: <span>Web Editor for programs</span>,
+    body: (
+      <ul>
+        <li>
+          There's a new web editor for programs, so you could edit the programs from a laptop -{" "}
+          <InternalLink className="font-bold underline text-bluev2" href="/programs">
+            liftosaur.com/programs
+          </InternalLink>
+          . You can create a program there, then copy the link, and paste it into the app (on the program selection
+          screen). You can also generate a link for any of your programs (on the program edit screen), and open in the
+          web editor, edit there, copy link again, and paste it into the app to import the changes.
+        </li>
+        <li>
+          Those links are immutable - any change in the program would change the link. You can share those links if you
+          want to share your program with somebody else, and they'll be able to import the program into their app.
         </li>
       </ul>
     ),

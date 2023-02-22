@@ -9,7 +9,7 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
 import { ILoading, IState } from "../../models/state";
 import { Button } from "../button";
-import { useState } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
@@ -28,6 +28,8 @@ import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { InternalLink } from "../../internalLink";
 
 interface IProps {
   editProgram: IProgram;
@@ -42,6 +44,13 @@ interface IProps {
 export function EditProgramDaysList(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
   const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
+  const [link, setLink] = useState<string>("");
+
+  useEffect(() => {
+    Program.exportProgramToLink(props.editProgram, props.settings, getLatestMigrationVersion()).then((l) => {
+      setLink(l);
+    });
+  }, [props.editProgram]);
 
   return (
     <Surface
@@ -88,6 +97,13 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
+        <div className="mb-2 text-sm text-grayv2-main">
+          You can use{" "}
+          <InternalLink className="font-bold underline text-bluev2" href={link}>
+            this link
+          </InternalLink>{" "}
+          to edit this program on your laptop
+        </div>
         <GroupHeader name="Current Program" />
         <MenuItem
           name="Program"
