@@ -425,8 +425,8 @@ a.hero-title {
 
 .features-progress-top-arrow {
   position: absolute;
-  top: 30px;
-  right: -118px;
+  top: 72px;
+  right: -44px;
   background: url(/images/handdrawn-arrow.svg) no-repeat;
   width: 112px;
   background-size: contain;
@@ -436,8 +436,8 @@ a.hero-title {
 
 .features-progress-top-oval {
   position: absolute;
-  top: 126px;
-  right: 46px;
+  top: 156px;
+  right: 83px;
   background: url(/images/oval.svg) no-repeat;
   width: 105px;
   height: 56px;
@@ -447,8 +447,8 @@ a.hero-title {
 
 .features-progress-top-hint {
   position: absolute;
-  top: 20px;
-  right: -385px;
+  top: 41px;
+  right: -315px;
   font-size: 2.5em;
   color: #c53030;
   font-family: Dancing Script, cursive;
@@ -457,7 +457,7 @@ a.hero-title {
 .features-progress-bottom-arrow {
   position: absolute;
   bottom: -50px;
-  right: -28px;
+  right: -70px;
   background: url(/images/handdrawn-arrow.svg) no-repeat;
   width: 112px;
   background-size: contain;
@@ -467,8 +467,8 @@ a.hero-title {
 
 .features-progress-bottom-oval {
   position: absolute;
-  bottom: -8px;
-  right: 72px;
+  bottom: 37px;
+  right: -16px;
   background: url(/images/oval.svg) no-repeat;
   width: 105px;
   height: 56px;
@@ -479,7 +479,7 @@ a.hero-title {
 .features-progress-bottom-hint {
   position: absolute;
   bottom: -50px;
-  right: -205px;
+  right: -244px;
   font-size: 2.5em;
   color: #c53030;
   font-family: Dancing Script, cursive;
@@ -695,8 +695,8 @@ footer nav li {
   }
 
   .features-progress-top-arrow {
-    top: 100px;
-    left: 94px;
+    top: 129px;
+    left: 69px;
     right: auto;
     width: 43px;
     background-size: contain;
@@ -705,24 +705,24 @@ footer nav li {
   }
 
   .features-progress-top-hint {
-    top: 89px;
-    left: -26px;
+    top: 121px;
+    left: -46px;
     right: auto;
     font-size: 1.5em;
   }
 
   .features-progress-bottom-arrow {
-    right: 107px;
+    right: 74px;
     width: 60px;
-    bottom: -49px;
+    bottom: -17px;
     left: auto;
     height: 30px;
-    transform: rotate(240deg) scaleX(-1);
+    transform: rotate(123deg);
   }
 
   .features-progress-bottom-hint {
-    bottom: -57px;
-    left: 150px;
+    bottom: -37px;
+    left: 10px;
     right: auto;
     font-size: 2em;
   }
