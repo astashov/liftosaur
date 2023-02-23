@@ -56,11 +56,13 @@ export namespace Screen {
   }
 
   export function shouldConfirmNavigation(state: IState): string | undefined {
-    const progress = state.progress[state.currentHistoryRecord!]!;
-    if (progress && !Progress.isCurrent(progress)) {
-      const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
-      if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
-        return "Are you sure? Changes won't be saved.";
+    if (state.currentHistoryRecord) {
+      const progress = state.progress[state.currentHistoryRecord];
+      if (progress && !Progress.isCurrent(progress)) {
+        const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
+        if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
+          return "Are you sure? Changes won't be saved.";
+        }
       }
     }
 

@@ -25,6 +25,7 @@ import { Subscriptions } from "../utils/subscriptions";
 import { SendMessage } from "../utils/sendMessage";
 import { UidFactory } from "../utils/generator";
 import { ClipboardUtils } from "../utils/clipboard";
+import { Progress } from "../models/progress";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -165,8 +166,13 @@ export namespace Thunk {
   export function pushScreen(screen: IScreen): IThunk {
     return async (dispatch, getState) => {
       const confirmation = Screen.shouldConfirmNavigation(getState());
-      if (confirmation && !confirm(confirmation)) {
-        return;
+      if (confirmation) {
+        if (confirm(confirmation)) {
+          dispatch(Thunk.cleanup());
+          dispatch({ type: "PullScreen" });
+        } else {
+          return;
+        }
       }
       if (
         ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
@@ -179,11 +185,37 @@ export namespace Thunk {
     };
   }
 
+  export function cleanup(): IThunk {
+    return async (dispatch, getState) => {
+      const state = getState();
+      if (state.currentHistoryRecord) {
+        const progress = state.progress[state.currentHistoryRecord];
+        if (progress && !Progress.isCurrent(progress)) {
+          updateState(dispatch, [
+            lb<IState>().p("currentHistoryRecord").record(undefined),
+            lb<IState>()
+              .p("progress")
+              .recordModify((progresses) => Progress.stop(progresses, progress.id)),
+          ]);
+        }
+      }
+
+      const editExercise = state.editExercise;
+      if (editExercise) {
+        updateState(dispatch, [lb<IState>().p("editExercise").record(undefined)]);
+      }
+    };
+  }
+
   export function pullScreen(): IThunk {
     return async (dispatch, getState) => {
       const confirmation = Screen.shouldConfirmNavigation(getState());
-      if (confirmation && !confirm(confirmation)) {
-        return;
+      if (confirmation) {
+        if (confirm(confirmation)) {
+          dispatch(Thunk.cleanup());
+        } else {
+          return;
+        }
       }
       dispatch({ type: "PullScreen" });
       window.scroll(0, 0);

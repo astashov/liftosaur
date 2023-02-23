@@ -15,7 +15,7 @@ describe("Program", () => {
 
     g("create-program").click();
 
-    g("modal-create-program-input").clear().type("A Program");
+    g("modal-create-program-input").click().clear().type("A Program");
     g("modal-create-program-submit").click();
 
     g("menu-item-value-name").click().clear().type("My Program");
