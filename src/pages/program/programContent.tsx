@@ -41,10 +41,12 @@ export interface IProgramContentProps {
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const defaultSettings = Settings.build();
+  const programContentSettings = props.exportedProgram?.settings || Settings.programContentBuild();
   const initialState: IProgramEditorState = {
     settings: {
       ...defaultSettings,
-      exercises: { ...defaultSettings.exercises, ...props.exportedProgram?.customExercises },
+      ...programContentSettings,
+      exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
     },
     current: {
       program: props.exportedProgram?.program || {
@@ -68,11 +70,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
-      if (oldState.current.program !== newState.current.program) {
+      if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
         const exportedProgram: IExportedProgram = {
           program: newState.current.program,
           customExercises: newState.settings.exercises,
           version: getLatestMigrationVersion(),
+          settings: ObjectUtils.pick(newState.settings, ["timers", "units"]),
         };
         await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }

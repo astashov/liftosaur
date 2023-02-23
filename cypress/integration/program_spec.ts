@@ -18,7 +18,7 @@ describe("Program", () => {
     g("modal-create-program-input").clear().type("A Program");
     g("modal-create-program-submit").click();
 
-    g("menu-item-value-name").clear().type("My Program");
+    g("menu-item-value-name").click().clear().type("My Program");
     cy.contains("Add New Day").click();
     g("navbar-back").click();
     cy.contains("Add New Exercise").click();

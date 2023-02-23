@@ -5,7 +5,6 @@ import { DateUtils } from "../utils/date";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
-import { toIosWithResult } from "../utils/sendMessage";
 
 export interface IWhatsNew {
   title: JSX.Element;

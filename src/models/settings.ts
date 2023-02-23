@@ -1,9 +1,20 @@
-import { ISettings } from "../types";
+import { ISettings, IProgramContentSettings } from "../types";
 import { Weight } from "./weight";
 
 export namespace Settings {
+  export function programContentBuild(): IProgramContentSettings {
+    return {
+      timers: {
+        warmup: 90,
+        workout: 180,
+      },
+      units: "lb",
+    };
+  }
+
   export function build(): ISettings {
     return {
+      ...programContentBuild(),
       graphsSettings: {
         isSameXAxis: false,
         isWithBodyweight: false,
@@ -178,11 +189,6 @@ export namespace Settings {
       shouldShowFriendsHistory: true,
       exercises: {},
       graphs: [],
-      timers: {
-        warmup: 90,
-        workout: 180,
-      },
-      units: "lb",
     };
   }
 }

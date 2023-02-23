@@ -751,3 +751,5 @@ export type IStorage = t.TypeOf<typeof TStorage>;
 
 export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
+
+export type IProgramContentSettings = Pick<ISettings, "timers" | "units">;

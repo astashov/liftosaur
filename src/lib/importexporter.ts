@@ -8,6 +8,7 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { importFromLink } from "../utils/importFromLink";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
+import { ObjectUtils } from "../utils/object";
 
 export namespace ImportExporter {
   export function exportStorage(storage: IStorage): void {
@@ -25,6 +26,7 @@ export namespace ImportExporter {
       return { success: false, error: ["Couldn't parse the provided file"] };
     }
     const payload = Storage.getDefault();
+    payload.settings = { ...payload.settings, ...parsedMaybeProgram.settings };
     payload.settings.exercises = { ...payload.settings.exercises, ...parsedMaybeProgram.customExercises };
     payload.programs.push(parsedMaybeProgram.program);
     payload.version = parsedMaybeProgram.version;
@@ -33,7 +35,15 @@ export namespace ImportExporter {
       const storage = result.data;
       const customExercises = storage.settings.exercises;
       const program = storage.programs.filter((p) => p.id === parsedMaybeProgram.program.id)[0];
-      return { success: true, data: { customExercises, program, version: getLatestMigrationVersion() } };
+      return {
+        success: true,
+        data: {
+          customExercises,
+          program,
+          version: getLatestMigrationVersion(),
+          settings: ObjectUtils.pick(payload.settings, ["timers", "units"]),
+        },
+      };
     } else {
       return result;
     }

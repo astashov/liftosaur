@@ -28,7 +28,7 @@ import {
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
-import { ICustomExercise } from "../types";
+import { ICustomExercise, IProgramContentSettings } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -40,6 +40,7 @@ export interface IExportedProgram {
   program: IProgram;
   customExercises: Partial<Record<string, ICustomExercise>>;
   version: string;
+  settings: IProgramContentSettings;
 }
 
 export namespace Program {
@@ -526,6 +527,7 @@ export namespace Program {
       customExercises,
       program,
       version: version || getLatestMigrationVersion(),
+      settings: ObjectUtils.pick(settings, ["units", "timers"]),
     };
   }
 }
