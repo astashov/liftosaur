@@ -22,7 +22,6 @@ interface IProps {
   allProgramExercises: IProgramExercise[];
   subscription: ISubscription;
   programExercise: IProgramExercise;
-  isChanged: boolean;
   programName: string;
   loading: ILoading;
   dispatch: IDispatch;
@@ -37,7 +36,6 @@ export function EditProgramExercise(props: IProps): JSX.Element {
     <Surface
       navbar={
         <NavbarView
-          onBack={() => !props.isChanged || confirm("Are you sure? Your changes won't be saved")}
           loading={props.loading}
           dispatch={props.dispatch}
           helpContent={selectedTab === 0 ? <HelpEditProgramExerciseSimple /> : <HelpEditProgramExerciseAdvanced />}

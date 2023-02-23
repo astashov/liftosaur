@@ -17,7 +17,6 @@ import { ScreenPlates } from "./screenPlates";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
-import { dequal } from "dequal";
 import { IEnv, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
@@ -204,7 +203,6 @@ export function AppView(props: IProps): JSX.Element | null {
           history={[]}
           friend={friend}
           progress={progress}
-          isChanged={false}
           program={undefined}
           dispatch={dispatch}
           nickname={state.storage.settings.nickname}
@@ -213,8 +211,6 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     } else {
-      const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
-      const isChanged = oldHistoryRecord != null && !dequal(oldHistoryRecord, progress);
       const program = Progress.isCurrent(progress)
         ? Program.getProgram(state, progress.programId) || currentProgram
         : undefined;
@@ -227,7 +223,6 @@ export function AppView(props: IProps): JSX.Element | null {
           subscription={state.storage.subscription}
           userId={state.user?.id}
           progress={progress}
-          isChanged={isChanged}
           program={program}
           comments={state.comments}
           likes={state.likes}

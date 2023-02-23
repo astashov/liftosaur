@@ -4,7 +4,6 @@ import { EditProgramDay } from "./editProgram/editProgramDay";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { Screen, IScreen } from "../models/screen";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
-import { dequal } from "dequal/lite";
 import { IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
 
@@ -57,8 +56,6 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     if (editExercise == null) {
       throw new Error("Opened 'editProgramExercise' screen, but 'state.editExercise' is null");
     }
-    const exercise = props.editProgram.exercises.find((e) => e.id === editExercise.id);
-    const isChanged = exercise == null || !dequal(editExercise, exercise);
     return (
       <EditProgramExercise
         screenStack={props.screenStack}
@@ -71,7 +68,6 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         dispatch={props.dispatch}
         allProgramExercises={props.editProgram.exercises}
         programExercise={editExercise}
-        isChanged={isChanged}
       />
     );
   } else {

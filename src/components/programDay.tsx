@@ -27,7 +27,6 @@ interface IProps {
   history: IHistoryRecord[];
   program?: IProgram;
   settings: ISettings;
-  isChanged: boolean;
   friends: IAllFriends;
   userId?: string;
   dispatch: IDispatch;
@@ -70,9 +69,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               ) : (
                 <Timer startTime={props.progress.startTime} />
               )
-            }
-            onBack={() =>
-              !props.isChanged || Progress.isCurrent(progress) || confirm("Are you sure? Changes won't be saved.")
             }
             rightButtons={[
               ...(friend

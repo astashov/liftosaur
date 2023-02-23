@@ -164,6 +164,10 @@ export namespace Thunk {
 
   export function pushScreen(screen: IScreen): IThunk {
     return async (dispatch, getState) => {
+      const confirmation = Screen.shouldConfirmNavigation(getState());
+      if (confirmation && !confirm(confirmation)) {
+        return;
+      }
       if (
         ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
         !Subscriptions.hasSubscription(getState().storage.subscription)
@@ -176,7 +180,11 @@ export namespace Thunk {
   }
 
   export function pullScreen(): IThunk {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+      const confirmation = Screen.shouldConfirmNavigation(getState());
+      if (confirmation && !confirm(confirmation)) {
+        return;
+      }
       dispatch({ type: "PullScreen" });
       window.scroll(0, 0);
     };

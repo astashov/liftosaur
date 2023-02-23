@@ -1,3 +1,8 @@
+import { IState } from "./state";
+import { dequal } from "dequal";
+import { Program } from "./program";
+import { Progress } from "./progress";
+
 export type ITab = "program" | "measurements" | "workout" | "graphs" | "settings";
 
 export type IScreen =
@@ -48,6 +53,28 @@ export namespace Screen {
 
   export function previous(stack: IScreen[]): IScreen | undefined {
     return stack[stack.length - 2];
+  }
+
+  export function shouldConfirmNavigation(state: IState): string | undefined {
+    const progress = state.progress[state.currentHistoryRecord!]!;
+    if (progress && !Progress.isCurrent(progress)) {
+      const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
+      if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
+        return "Are you sure? Changes won't be saved.";
+      }
+    }
+
+    const editExercise = state.editExercise;
+    if (editExercise) {
+      let editProgram = Program.getEditingProgram(state);
+      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+      const exercise = editProgram?.exercises.find((e) => e.id === editExercise.id);
+      if (exercise == null || !dequal(editExercise, exercise)) {
+        return "Are you sure? Your changes won't be saved";
+      }
+    }
+
+    return undefined;
   }
 
   export function tab(screen: IScreen): ITab {
