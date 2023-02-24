@@ -18,7 +18,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
   const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
 
   return (
-    <section className="px-4 py-2 mt-8 bg-purple-100 rounded-2xl">
+    <section className="px-4 py-2 bg-purple-100 rounded-2xl">
       <GroupHeader
         topPadding={false}
         name={reuseLogicId ? "Reused State Variables" : "State Variables"}

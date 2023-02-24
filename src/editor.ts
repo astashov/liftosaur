@@ -42,8 +42,9 @@ export class CodeEditor {
       return {
         startState: () => ({}),
         token: (stream: StringStream, state: IState) => {
-          const peek = stream.peek();
+          let peek = stream.peek();
           let token: string | null = null;
+          console.log(peek);
           if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+(lb|kg)?/)) {
             token = "number";
           } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
@@ -55,6 +56,16 @@ export class CodeEditor {
           } else if (peek != null && ["[", "]", "(", ")", "{", "}"].indexOf(peek) !== -1) {
             stream.next();
             token = "bracket";
+          } else if (peek != null && ["/"].indexOf(peek) !== -1) {
+            stream.next();
+            peek = stream.peek();
+            if (peek != null && ["/"].indexOf(peek) !== -1) {
+              token = "comment";
+              stream.skipToEnd();
+            } else {
+              stream.next();
+              token = "atom";
+            }
           } else if (peek != null && ["+", "-", "*", "=", ">", "<", "/", "^"].indexOf(peek) !== -1) {
             stream.next();
             token = "atom";

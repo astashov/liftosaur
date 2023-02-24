@@ -16,7 +16,7 @@ import { UidFactory } from "../utils/generator";
 import { StringUtils } from "../utils/string";
 import { Exercise, IExercise, warmupValues } from "./exercise";
 import { Program } from "./program";
-import { ProgramExercise } from "./programExercise";
+import { IProgramExerciseExample, ProgramExercise } from "./programExercise";
 import { Weight } from "./weight";
 
 export namespace EditProgramLenses {
@@ -336,6 +336,20 @@ export namespace EditProgramLenses {
   ): ILensRecordingPayload<T> {
     const newWarmupSets = CollectionUtils.setAt(warmupSets, index, newWarmupSet);
     return prefix.p("warmupSets").record(newWarmupSets);
+  }
+
+  export function applyProgramExerciseExample<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    example: IProgramExerciseExample
+  ): ILensRecordingPayload<T> {
+    return prefix.recordModify((pe) => {
+      return {
+        ...pe,
+        finishDayExpr: example.finishDayExpr,
+        state: example.state,
+        variations: [{ sets: [...example.sets] }],
+      };
+    });
   }
 
   export function updateSimpleExercise<T>(

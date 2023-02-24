@@ -41,7 +41,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
   };
 
   return (
-    <section className="px-4 py-2 mt-8 bg-purple-100 rounded-2xl">
+    <section className="px-4 py-2 bg-purple-100 rounded-2xl">
       <GroupHeader topPadding={false} name="Playground" />
       {!props.hideDay && (
         <div>

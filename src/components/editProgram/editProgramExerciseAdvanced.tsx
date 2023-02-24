@@ -130,20 +130,22 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         programExercise={programExercise}
         allProgramExercises={props.allProgramExercises}
       />
-      <EditProgramStateVariables
-        onEditStateVariable={(stateKey, newValue) => {
-          const reuseLogicId = programExercise.reuseLogic?.selected;
-          if (reuseLogicId) {
-            EditProgram.editReuseLogicStateVariable(props.dispatch, reuseLogicId, stateKey, newValue);
-          } else {
-            EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
-          }
-        }}
-        programExercise={programExercise}
-        onAddStateVariable={() => {
-          setShouldShowAddStateVariable(true);
-        }}
-      />
+      <div className="mt-8">
+        <EditProgramStateVariables
+          onEditStateVariable={(stateKey, newValue) => {
+            const reuseLogicId = programExercise.reuseLogic?.selected;
+            if (reuseLogicId) {
+              EditProgram.editReuseLogicStateVariable(props.dispatch, reuseLogicId, stateKey, newValue);
+            } else {
+              EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
+            }
+          }}
+          programExercise={programExercise}
+          onAddStateVariable={() => {
+            setShouldShowAddStateVariable(true);
+          }}
+        />
+      </div>
       {!programExercise.reuseLogic?.selected ? (
         <div>
           <div ref={variationsRef} className={`${!showVariations ? "invisible h-0" : ""}`}>

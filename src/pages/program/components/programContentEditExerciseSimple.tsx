@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { lb, LensBuilder, lbu } from "lens-shmens";
 import { h, JSX } from "preact";
 import { EditProgramExerciseSimpleProgression } from "../../../components/editProgram/editProgramExerciseSimpleProgression";
@@ -59,7 +60,7 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
             />
           </section>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 mt-8">
           {progress && entry && (
             <ProgramContentPlayground
               hideDay={true}

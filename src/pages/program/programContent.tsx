@@ -33,6 +33,7 @@ import { dequal } from "dequal";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { EditExerciseUtil } from "./utils/editExerciseUtil";
+import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -43,6 +44,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const defaultSettings = Settings.build();
   const programContentSettings = props.exportedProgram?.settings || Settings.programContentBuild();
   const initialState: IProgramEditorState = {
+    ui: {},
     settings: {
       ...defaultSettings,
       ...programContentSettings,
@@ -108,6 +110,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const unassignedExercises = program.exercises.filter((e) => !assignedExerciseIds.has(e.id));
   const lbProgram = lb<IProgramEditorState>().p("current").p("program");
   const lbEditExercises = lb<IProgramEditorState>().p("current").p("editExercises");
+  const lbExamples = state.ui.showExamplesForExerciseKey
+    ? lbEditExercises.pi(state.ui.showExamplesForExerciseKey)
+    : undefined;
   return (
     <section className="px-4 py-2">
       <div className="flex">
@@ -380,6 +385,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         dispatch={dispatch}
         onClose={() => setShowSettingsModal(false)}
       />
+      {lbExamples && <ProgramContentModalExerciseExamples dispatch={dispatch} lbe={lbExamples!} />}
     </section>
   );
 }

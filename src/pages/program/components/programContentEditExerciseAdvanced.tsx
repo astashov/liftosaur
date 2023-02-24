@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { h, JSX, Fragment } from "preact";
 import { EditProgramStateVariables } from "../../../components/editProgram/editProgramStateVariables";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -61,6 +62,23 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
 
   return (
     <>
+      <div className="my-2 text-sm text-grayv2-main">
+        Need inspiration? Check out{" "}
+        <LinkButton
+          className="cursor-pointer"
+          onClick={() =>
+            props.dispatch(
+              lb<IProgramEditorState>()
+                .p("ui")
+                .p("showExamplesForExerciseKey")
+                .record(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+            )
+          }
+        >
+          examples
+        </LinkButton>{" "}
+        of different exercise logic
+      </div>
       <div className="flex" style={{ gap: "1rem" }}>
         <div className="flex-1">
           <EditProgramStateVariables

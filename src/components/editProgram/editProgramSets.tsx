@@ -254,7 +254,7 @@ function Handle(props: { handleTouchStart?: (e: TouchEvent | MouseEvent) => void
   );
 }
 
-function SetNumber(props: { setIndex: number }): JSX.Element {
+export function SetNumber(props: { setIndex: number }): JSX.Element {
   return (
     <div className="flex items-center justify-center w-6 h-6 font-bold border rounded-full border-grayv2-main text-grayv2-main">
       {props.setIndex + 1}

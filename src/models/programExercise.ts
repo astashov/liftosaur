@@ -6,10 +6,19 @@ import {
   ISettings,
   IHistoryRecord,
   IHistoryEntry,
+  IProgramSet,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
+
+export interface IProgramExerciseExample {
+  title: string;
+  description: string;
+  sets: IProgramSet[];
+  state: IProgramState;
+  finishDayExpr: string;
+}
 
 export namespace ProgramExercise {
   export function getState(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): IProgramState {
