@@ -1,10 +1,14 @@
+import { SendMessage } from "./sendMessage";
+
 export namespace ClipboardUtils {
   export async function copy(text: string): Promise<void> {
-    if (!navigator.clipboard) {
-      fallbackCopyTextToClipboard(text);
-    } else {
-      await copyTextToClipboard(text);
-      fallbackCopyTextToClipboard(text);
+    if (!SendMessage.toIos({ type: "copyToClipboard", value: text })) {
+      if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+      } else {
+        await copyTextToClipboard(text);
+        fallbackCopyTextToClipboard(text);
+      }
     }
   }
 

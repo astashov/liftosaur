@@ -24,17 +24,10 @@
 
 * Bug:
   Assign lb to state var of type number
+  Buttons on choose a program
+  Narrow selector if only one option in Chrome
 
 ## Friends
 
 - Add notification dot to friends icon if invitations pending
 - Add friends feeds per user
-
-## Web Editor
-
-- Add settings controls
-- Update the /about page
-- Add links to the /program to the menu
-- Add a way to login on desktop
-- Add a way to choose your programs on desktop
-- Verify I didn't break the app

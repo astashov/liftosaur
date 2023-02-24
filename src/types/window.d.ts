@@ -13,9 +13,11 @@ interface Window {
   };
   isUndoing?: boolean;
   lftAndroidVersion?: number;
+  lftAndroidAppVersion?: string;
   lftAndroidSafeInsetTop?: number;
   lftAndroidSafeInsetBottom?: number;
   lftAndroidSafeInsetLeft?: number;
   lftAndroidSafeInsetRight?: number;
   lftIosVersion?: string;
+  lftIosAppVersion?: string;
 }

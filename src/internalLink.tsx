@@ -9,10 +9,36 @@ interface IProps {
 
 export function InternalLink(props: IProps): JSX.Element {
   if (SendMessage.isIos()) {
+    if (SendMessage.iosAppVersion() > 4) {
+      return (
+        <button
+          className={`block w-full ${props.className}`}
+          onClick={() => {
+            const url = new URL(props.href, window.location.href);
+            SendMessage.toIos({ type: "openUrl", url: url.toString() });
+          }}
+        >
+          {props.children}
+        </button>
+      );
+    } else {
+      return (
+        <a href={props.href} className={props.className}>
+          {props.children}
+        </a>
+      );
+    }
+  } else if (SendMessage.isAndroid() && SendMessage.androidAppVersion() > 11) {
     return (
-      <a href={props.href} className={props.className}>
+      <button
+        className={`block w-full ${props.className}`}
+        onClick={() => {
+          const url = new URL(props.href, window.location.href);
+          SendMessage.toAndroid({ type: "openUrl", url: url.toString() });
+        }}
+      >
         {props.children}
-      </a>
+      </button>
     );
   } else {
     return (

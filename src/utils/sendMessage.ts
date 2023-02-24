@@ -17,6 +17,14 @@ declare global {
 let receiveMessage: ((event: MessageEvent) => void) | undefined;
 
 export namespace SendMessage {
+  export function iosAppVersion(): number {
+    return parseInt(window.lftIosAppVersion || "0", 10);
+  }
+
+  export function androidAppVersion(): number {
+    return parseInt(window.lftAndroidAppVersion || "0", 10);
+  }
+
   export function isIos(): boolean {
     return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftosaurMessage);
   }

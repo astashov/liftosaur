@@ -180,8 +180,8 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           There's a new web editor for programs, so you could edit the programs from a laptop -{" "}
-          <InternalLink className="font-bold underline text-bluev2" href="/programs">
-            liftosaur.com/programs
+          <InternalLink className="font-bold underline text-bluev2" href="/program">
+            liftosaur.com/program
           </InternalLink>
           . You can create a program there, then copy the link, and paste it into the app (on the program selection
           screen). You can also generate a link for any of your programs (on the program edit screen), and open in the
