@@ -292,9 +292,10 @@ export namespace EditProgramLenses {
 
   export function setDefaultWarmupSets<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
-    exercise: IExercise
+    exercise: IExercise,
+    units: IUnit
   ): ILensRecordingPayload<T> {
-    const defaultWarmup = (exercise.defaultWarmup && warmupValues()[exercise.defaultWarmup]) || [];
+    const defaultWarmup = (exercise.defaultWarmup && warmupValues(units)[exercise.defaultWarmup]) || [];
     return prefix.p("warmupSets").record(defaultWarmup);
   }
 

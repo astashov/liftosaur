@@ -220,7 +220,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               EditProgram.updateWarmupSet(props.dispatch, warmupSets, index, newWarmupSet);
             }}
             onSetDefaultWarmupSets={(exercise) => {
-              EditProgram.setDefaultWarmupSets(props.dispatch, exercise);
+              EditProgram.setDefaultWarmupSets(props.dispatch, exercise, props.settings.units);
             }}
           />
           <EditProgramFinishDayScriptEditor

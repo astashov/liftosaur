@@ -194,7 +194,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 props.dispatch(EditProgramLenses.updateWarmupSet(lbe, warmupSets, index, newWarmupSet));
               }}
               onSetDefaultWarmupSets={(ex) => {
-                props.dispatch(EditProgramLenses.setDefaultWarmupSets(lbe, ex), "setDefaultWarmupSets");
+                props.dispatch(
+                  EditProgramLenses.setDefaultWarmupSets(lbe, ex, props.settings.units),
+                  "setDefaultWarmupSets"
+                );
               }}
             />
           </section>

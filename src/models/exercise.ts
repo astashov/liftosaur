@@ -13,6 +13,7 @@ import {
   IMuscle,
   IMetaExercises,
   IProgramExerciseWarmupSet,
+  IUnit,
 } from "../types";
 import { IScreenMuscle, Muscle } from "./muscle";
 
@@ -3215,56 +3216,56 @@ export type IExercise = {
   onerm?: number;
 };
 
-export function warmupValues(): Partial<Record<number, IProgramExerciseWarmupSet[]>> {
+export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerciseWarmupSet[]>> {
   return {
     10: [
       {
         reps: 5,
-        threshold: Weight.build(60, "lb"),
+        threshold: units === "lb" ? Weight.build(60, "lb") : Weight.build(30, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: Weight.build(30, "lb"),
+        threshold: units === "lb" ? Weight.build(30, "lb") : Weight.build(15, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: Weight.build(10, "lb"),
+        threshold: units === "lb" ? Weight.build(10, "lb") : Weight.build(5, "kg"),
         value: 0.8,
       },
     ],
     45: [
       {
         reps: 5,
-        threshold: Weight.build(120, "lb"),
+        threshold: units === "lb" ? Weight.build(120, "lb") : Weight.build(60, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: Weight.build(90, "lb"),
+        threshold: units === "lb" ? Weight.build(90, "lb") : Weight.build(45, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: Weight.build(45, "lb"),
+        threshold: units === "lb" ? Weight.build(45, "lb") : Weight.build(20, "kg"),
         value: 0.8,
       },
     ],
     95: [
       {
         reps: 5,
-        threshold: Weight.build(150, "lb"),
+        threshold: units === "lb" ? Weight.build(150, "lb") : Weight.build(70, "kg"),
         value: 0.3,
       },
       {
         reps: 5,
-        threshold: Weight.build(125, "lb"),
+        threshold: units === "lb" ? Weight.build(125, "lb") : Weight.build(60, "kg"),
         value: 0.5,
       },
       {
         reps: 5,
-        threshold: Weight.build(95, "lb"),
+        threshold: units === "lb" ? Weight.build(95, "lb") : Weight.build(40, "kg"),
         value: 0.8,
       },
     ],
@@ -3272,15 +3273,15 @@ export function warmupValues(): Partial<Record<number, IProgramExerciseWarmupSet
 }
 
 function warmup45(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues()[45] || [])(weight, settings, equipment);
+  return warmup(warmupValues(settings.units)[45] || [])(weight, settings, equipment);
 }
 
 function warmup95(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues()[95] || [])(weight, settings, equipment);
+  return warmup(warmupValues(settings.units)[95] || [])(weight, settings, equipment);
 }
 
 function warmup10(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues()[10] || [])(weight, settings, equipment);
+  return warmup(warmupValues(settings.units)[10] || [])(weight, settings, equipment);
 }
 
 function warmup(

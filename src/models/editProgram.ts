@@ -135,9 +135,9 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.removeSet(lb<IState>().pi("editExercise"), variationIndex, setIndex)]);
   }
 
-  export function addProgramExercise(dispatch: IDispatch): void {
+  export function addProgramExercise(dispatch: IDispatch, units: IUnit): void {
     updateState(dispatch, [
-      lb<IState>().p("editExercise").record(Program.createExercise()),
+      lb<IState>().p("editExercise").record(Program.createExercise(units)),
       lb<IState>()
         .p("screenStack")
         .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
@@ -318,8 +318,8 @@ export namespace EditProgram {
     );
   }
 
-  export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise): void {
-    updateState(dispatch, [EditProgramLenses.setDefaultWarmupSets(lb<IState>().pi("editExercise"), exercise)]);
+  export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise, unit: IUnit): void {
+    updateState(dispatch, [EditProgramLenses.setDefaultWarmupSets(lb<IState>().pi("editExercise"), exercise, unit)]);
   }
 
   export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[]): void {

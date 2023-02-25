@@ -1,4 +1,4 @@
-import { Exercise } from "./exercise";
+import { Exercise, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { Screen } from "./screen";
@@ -24,6 +24,7 @@ import {
   IProgramExerciseVariation,
   IEquipment,
   IProgramExerciseWarmupSet,
+  IUnit,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -392,7 +393,8 @@ export namespace Program {
     };
   }
 
-  export function createExercise(): IProgramExercise {
+  export function createExercise(units: IUnit): IProgramExercise {
+    const defaultWarmup = warmupValues(units)[45];
     return {
       name: "Squat",
       id: UidFactory.generateUid(8),
@@ -402,8 +404,9 @@ export namespace Program {
         equipment: "barbell",
       },
       state: {
-        weight: Weight.build(45, "lb"),
+        weight: units === "kg" ? Weight.build(20, units) : Weight.build(45, units),
       },
+      warmupSets: defaultWarmup,
       finishDayExpr: "",
       variationExpr: "1",
     };

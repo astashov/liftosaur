@@ -135,7 +135,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
           />
           <LinkButton
             className="mt-2 mb-6 ls-day-add-exercise"
-            onClick={() => EditProgram.addProgramExercise(props.dispatch)}
+            onClick={() => EditProgram.addProgramExercise(props.dispatch, props.settings.units)}
           >
             Create New Exercise
           </LinkButton>

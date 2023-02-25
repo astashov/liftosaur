@@ -278,7 +278,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                           <LinkButton
                             className="ml-8"
                             onClick={() => {
-                              const newExercise = Program.createExercise();
+                              const newExercise = Program.createExercise(state.settings.units);
                               dispatch([
                                 lbProgram.p("exercises").recordModify((ex) => {
                                   return [...ex, newExercise];
