@@ -155,7 +155,7 @@ const examples: IProgramExerciseExample[] = [
 
 export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesProps): JSX.Element {
   return (
-    <section className="p-4 text-sm">
+    <section className="text-sm">
       <div className="my-2">
         <InternalLink className="font-bold underline text-bluev2" href="/docs/docs.html">
           Check the tutorial for Liftoscript
@@ -167,20 +167,20 @@ export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesP
           <section className={`${i !== 0 && "border-t border-grayv2-200 pt-8 mt-8"}`}>
             <h3 className="text-lg font-bold">{example.title}</h3>
             <h4 className="mt-1 mb-2 text-xs leading-4 text-grayv2-main">{example.description}</h4>
-            <div className="flex" style={{ gap: "0.5rem" }}>
+            <div className="flex flex-col sm:flex-row" style={{ gap: "0.5rem" }}>
               <div className="flex-1 min-w-0">
                 <GroupHeader name="Sets" />
                 {example.sets.map((set, setIndex) => {
                   return (
                     <div className="flex items-center px-2 py-1 my-1 rounded-lg bg-purplev2-100">
                       <SetNumber setIndex={setIndex} />
-                      <Field label="Reps" right={set.isAmrap ? "AMRAP" : undefined} value={set.repsExpr} />
-                      <Field label="Weight" value={set.weightExpr} />
+                      <Field flex={2} label="Reps" right={set.isAmrap ? "AMRAP" : undefined} value={set.repsExpr} />
+                      <Field flex={3} label="Weight" value={set.weightExpr} />
                     </div>
                   );
                 })}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pb-2">
                 <GroupHeader name="Finish Day Script" />
                 <pre
                   className="block p-2 my-1 overflow-auto border rounded-lg border-grayv2-300 code"
@@ -198,12 +198,12 @@ export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesP
   );
 }
 
-function Field(props: { label: string; value: string; right?: string }): JSX.Element {
+function Field(props: { flex: number; label: string; value: string; right?: string }): JSX.Element {
   const value = Prism.highlight(props.value, Prism.languages.javascript, "javascript");
   return (
     <div
-      className="relative flex-1 min-w-0 ml-2 leading-none bg-white border rounded-lg border-purplev2-300"
-      style={{ padding: "1.125rem 0.5rem 0.25rem 0.5rem" }}
+      className="relative min-w-0 ml-2 leading-none bg-white border rounded-lg border-purplev2-300"
+      style={{ flex: props.flex, padding: "1.125rem 0.5rem 0.25rem 0.5rem" }}
     >
       <div className="absolute text-xs text-grayv2-500" style={{ top: "2px", left: "8px" }}>
         {props.label}
@@ -213,7 +213,7 @@ function Field(props: { label: string; value: string; right?: string }): JSX.Ele
           {props.right}
         </div>
       )}
-      <pre className="block overflow-auto font-bold code" dangerouslySetInnerHTML={{ __html: value }} />
+      <pre className="block overflow-auto font-bold leading-5 code" dangerouslySetInnerHTML={{ __html: value }} />
     </div>
   );
 }

@@ -32,6 +32,7 @@ import { EditProgramStateVariables } from "./editProgramStateVariables";
 import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramVariationsEnable } from "./editProgramVariationsEnable";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
+import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
 
 interface IProps {
   settings: ISettings;
@@ -57,6 +58,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const [showVariations, setShowVariations] = useState<boolean>(programExercise.variations.length > 1);
+  const [showModalExamples, setShowModalExamples] = useState<boolean>(false);
 
   const variationsRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +68,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         ProgramExercise.buildProgress(programExercise, allProgramExercises, progress?.day || 1, props.settings)
       );
     }
+    window.isUndoing = false;
     prevProps.current = props;
   });
   const entry = progress?.entries[0];
@@ -94,6 +97,13 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   return (
     <div className="px-4">
+      <div className="my-2 text-sm text-grayv2-main">
+        Need inspiration? Check out{" "}
+        <LinkButton className="cursor-pointer" onClick={() => setShowModalExamples(true)}>
+          examples
+        </LinkButton>{" "}
+        of different exercise logic
+      </div>
       <MenuItemEditable
         type="text"
         name="Name"
@@ -280,6 +290,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           }
         }}
       />
+      {showModalExamples && (
+        <ModalEditProgramExerciseExamples dispatch={props.dispatch} onClose={() => setShowModalExamples(false)} />
+      )}
     </div>
   );
 }

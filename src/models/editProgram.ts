@@ -16,6 +16,7 @@ import {
   IProgramExerciseWarmupSet,
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
+import { IProgramExerciseExample } from "./programExercise";
 
 interface I531Tms {
   squat: IWeight;
@@ -267,6 +268,10 @@ export namespace EditProgram {
       ],
       "Save Exercise"
     );
+  }
+
+  export function applyProgramExerciseExample(dispatch: IDispatch, example: IProgramExerciseExample): void {
+    updateState(dispatch, [EditProgramLenses.applyProgramExerciseExample(lb<IState>().pi("editExercise"), example)]);
   }
 
   export function set531Tms(dispatch: IDispatch, programIndex: number, tms: I531Tms): void {

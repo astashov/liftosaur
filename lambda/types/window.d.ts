@@ -4,6 +4,8 @@ interface Window {
   webpushr: (name: "fetch_id", fn: (sid: number) => void) => void;
   handleGapiLoad: () => void;
   isUndoing?: boolean;
+  lftAndroidAppVersion?: string;
+  lftIosAppVersion?: string;
   AppleID: {
     auth: {
       signIn: () => Promise<{

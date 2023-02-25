@@ -194,6 +194,21 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230224": {
+    title: <span>Inspirations in the Advanced Edit Mode</span>,
+    body: (
+      <ul>
+        <li>
+          Now in the "Advanced" mode of the exercise editor (both on a phone and in the web editor), there's a link at
+          the top that opens a modal with various examples of the reps/weight and finish day scripts.
+        </li>
+        <li>
+          You could use it for "inspiration", to reuse some of the recipes, or come up with your own based on those. Or
+          just to see what you can do with <strong>Liftoscript</strong>.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

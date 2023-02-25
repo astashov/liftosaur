@@ -21,7 +21,7 @@ export function ProgramContentModalExerciseExamples(props: IProgramContentModalE
         props.dispatch(lb<IProgramEditorState>().p("ui").p("showExamplesForExerciseKey").record(undefined))
       }
     >
-      <div style={{ maxWidth: "900px" }}>
+      <div style={{ maxWidth: "900px" }} className="px-4">
         <EditProgramExerciseExamples
           onSelect={(e) => {
             if (confirm("Are you sure? This will overwrite your current exercise.")) {
