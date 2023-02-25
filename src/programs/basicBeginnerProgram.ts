@@ -253,6 +253,7 @@ export const basicBeginnerProgram: IProgram = {
       ],
       exerciseType: {
         id: "chinUp",
+        equipment: "bodyweight",
       },
       name: "Chin Up",
       id: "xjvluydi",

@@ -115,7 +115,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     : undefined;
   return (
     <section className="px-4 py-2">
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         <div className="flex-1 min-w-0">
           <div className="flex items-center">
             <h1 className="flex-1 pb-4 mr-2 text-2xl font-bold">
