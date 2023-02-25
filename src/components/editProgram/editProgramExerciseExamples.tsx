@@ -7,153 +7,161 @@ import { LinkButton } from "../linkButton";
 import { SetNumber } from "./editProgramSets";
 import Prism from "prismjs";
 import { InternalLink } from "../../internalLink";
+import { IUnit } from "../../types";
 
 interface IEditProgramExerciseExamplesProps {
+  unit: IUnit;
   onSelect: (example: IProgramExerciseExample) => void;
 }
 
-const examples: IProgramExerciseExample[] = [
-  {
-    title: "Linear progression",
-    description:
-      "We increase weight every succesful workout. This good for beginners, while you're getting newbie gains",
-    sets: [
-      {
-        repsExpr: "5",
-        weightExpr: "state.weight",
-        isAmrap: false,
-      },
-    ],
-    finishDayExpr: StringUtils.unindent(`
-      if (completedReps >= reps) {
-        state.weight = state.weight + 5lb
-      }
-    `),
-    state: {
-      weight: Weight.build(100, "lb"),
-    },
-  },
+function getExamples(unit: IUnit): IProgramExerciseExample[] {
+  const defaultWeight = unit === "lb" ? Weight.build(100, "lb") : Weight.build(40, "kg");
+  const defaultBump = unit === "kg" ? "2.5kg" : "5lb";
 
-  {
-    title: "Linear progression with deload",
-    description: "Similar to Linear Progression, but we also deload on 3rd unsuccessful attempt",
-    sets: [
-      {
-        repsExpr: "5",
-        weightExpr: "state.weight",
-        isAmrap: false,
-      },
-    ],
-    finishDayExpr: StringUtils.unindent(`
-      if (completedReps >= reps) {
-        state.weight = state.weight + 5lb
-      } else {
-        state.failures = state.failures + 1
-      }
-      if (state.failures > 2) {
-        state.failures = 0
-        state.weight = state.weight * 0.9
-      }
-    `),
-    state: {
-      weight: Weight.build(100, "lb"),
-      failures: 0,
-    },
-  },
-
-  {
-    title: "At least one more rep",
-    description:
-      "Similar to Linear Progression, but we only consider it failure if you lifted less than last time. I.e if you need to lift 2x12, and you lifted 12 and 6 reps, but last time you lifted 12 and 4 reps, we don't consider it a failure. We'll increase weight only when you lift 2x12 though.",
-    sets: [
-      {
-        repsExpr: "12",
-        weightExpr: "state.weight",
-        isAmrap: false,
-      },
-      {
-        repsExpr: "12",
-        weightExpr: "state.weight",
-        isAmrap: false,
-      },
-    ],
-    finishDayExpr: StringUtils.unindent(`
-      if (completedReps >= reps) {
-        state.weight = state.weight + 5lb
-        state.failures = 0
-        state.lastReps = 0
-      } else {
-        if (completedReps[1] + completedReps[2] <= state.lastReps) {
-          state.failures = state.failures + 1
-        } else {
-          state.lastReps = completedReps[1] + completedReps[2]
-        }
-        if (state.failures >= 3) {
-          state.weight = state.weight - 5lb
-          state.lastReps = 0
-          state.failures = 0
-        }
-      }
-    `),
-    state: {
-      weight: Weight.build(100, "lb"),
-      lastReps: 0,
-      failures: 0,
-    },
-  },
-
-  {
-    title: "5/3/1",
-    description:
-      "Often used in Jim Wendler's 5/3/1 programs, where we use percentage of training max for weights, and increase weight every 3 weeks.",
-    sets: [
-      {
-        repsExpr: "5",
-        weightExpr: "state.weight * 0.75",
-        isAmrap: false,
-      },
-      { repsExpr: "3", weightExpr: "state.weight * 0.85", isAmrap: false },
-      { repsExpr: "1", weightExpr: "state.weight * 0.95", isAmrap: true },
-    ],
-    finishDayExpr: StringUtils.unindent(`
-        // Increase weight every 3 weeks
-        if (day == 9) {
-          state.weight = state.weight + 5lb
+  return [
+    {
+      title: "Linear progression",
+      description:
+        "We increase weight every succesful workout. This good for beginners, while you're getting newbie gains",
+      sets: [
+        {
+          repsExpr: "5",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.weight = state.weight + ${defaultBump}
         }
       `),
-    state: {
-      weight: Weight.build(100, "lb"),
-    },
-  },
-
-  {
-    title: "Reps ladder-up",
-    description:
-      "We increase reps from 8 to 12, then increase weight and reset reps to 6. This works well for hypertrophy programs.",
-    sets: [
-      {
-        repsExpr: "state.reps",
-        weightExpr: "state.weight",
-        isAmrap: false,
+      state: {
+        weight: defaultWeight,
       },
-    ],
-    finishDayExpr: StringUtils.unindent(`
-      if (completedReps >= reps) {
-        state.reps = state.reps + 1
-      }
-      if (state.reps > 12) {
-        state.reps = 8
-        state.weight = state.weight + 5lb
-      }
-    `),
-    state: {
-      reps: 8,
-      weight: Weight.build(100, "lb"),
     },
-  },
-];
+
+    {
+      title: "Linear progression with deload",
+      description: "Similar to Linear Progression, but we also deload on 3rd unsuccessful attempt",
+      sets: [
+        {
+          repsExpr: "5",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.weight = state.weight + ${defaultBump}
+        } else {
+          state.failures = state.failures + 1
+        }
+        if (state.failures > 2) {
+          state.failures = 0
+          state.weight = state.weight * 0.9
+        }
+      `),
+      state: {
+        weight: defaultWeight,
+        failures: 0,
+      },
+    },
+
+    {
+      title: "At least one more rep",
+      description:
+        "Similar to Linear Progression, but we only consider it failure if you lifted less than last time. I.e if you need to lift 2x12, and you lifted 12 and 6 reps, but last time you lifted 12 and 4 reps, we don't consider it a failure. We'll increase weight only when you lift 2x12 though.",
+      sets: [
+        {
+          repsExpr: "12",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+        {
+          repsExpr: "12",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.weight = state.weight + ${defaultBump}
+          state.failures = 0
+          state.lastReps = 0
+        } else {
+          if (completedReps[1] + completedReps[2] <= state.lastReps) {
+            state.failures = state.failures + 1
+          } else {
+            state.lastReps = completedReps[1] + completedReps[2]
+          }
+          if (state.failures >= 3) {
+            state.weight = state.weight - ${defaultBump}
+            state.lastReps = 0
+            state.failures = 0
+          }
+        }
+      `),
+      state: {
+        weight: defaultWeight,
+        lastReps: 0,
+        failures: 0,
+      },
+    },
+
+    {
+      title: "5/3/1",
+      description:
+        "Often used in Jim Wendler's 5/3/1 programs, where we use percentage of training max for weights, and increase weight every 3 weeks.",
+      sets: [
+        {
+          repsExpr: "5",
+          weightExpr: "state.weight * 0.75",
+          isAmrap: false,
+        },
+        { repsExpr: "3", weightExpr: "state.weight * 0.85", isAmrap: false },
+        { repsExpr: "1", weightExpr: "state.weight * 0.95", isAmrap: true },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+          // Increase weight every 3 weeks
+          if (day == 9) {
+            state.weight = state.weight + ${defaultBump}
+          }
+        `),
+      state: {
+        weight: defaultWeight,
+      },
+    },
+
+    {
+      title: "Reps ladder-up",
+      description:
+        "We increase reps from 8 to 12, then increase weight and reset reps to 6. This works well for hypertrophy programs.",
+      sets: [
+        {
+          repsExpr: "state.reps",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.reps = state.reps + 1
+        }
+        if (state.reps > 12) {
+          state.reps = 8
+          state.weight = state.weight + ${defaultBump}
+        }
+      `),
+      state: {
+        reps: 8,
+        weight: defaultWeight,
+      },
+    },
+  ];
+}
 
 export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesProps): JSX.Element {
+  const examples = getExamples(props.unit);
   return (
     <section className="text-sm">
       <div className="my-2">

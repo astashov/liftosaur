@@ -291,7 +291,11 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         }}
       />
       {showModalExamples && (
-        <ModalEditProgramExerciseExamples dispatch={props.dispatch} onClose={() => setShowModalExamples(false)} />
+        <ModalEditProgramExerciseExamples
+          unit={props.settings.units}
+          dispatch={props.dispatch}
+          onClose={() => setShowModalExamples(false)}
+        />
       )}
     </div>
   );

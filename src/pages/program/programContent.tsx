@@ -385,7 +385,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         dispatch={dispatch}
         onClose={() => setShowSettingsModal(false)}
       />
-      {lbExamples && <ProgramContentModalExerciseExamples dispatch={dispatch} lbe={lbExamples!} />}
+      {lbExamples && (
+        <ProgramContentModalExerciseExamples unit={state.settings.units} dispatch={dispatch} lbe={lbExamples!} />
+      )}
     </section>
   );
 }
