@@ -7,7 +7,7 @@ import { IProgramExercise, ISettings, IHistoryRecord, IProgram, IUnit } from "..
 import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { LensBuilder, lbu, lb } from "lens-shmens";
 import { ProgramContentPlayground } from "./programContentPlayground";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "../../../components/linkButton";
 import { EditProgramVariationsEnable } from "../../../components/editProgram/editProgramVariationsEnable";
 import { EditProgramVariationsEditor } from "../../../components/editProgram/editProgramVariationsEditor";
@@ -39,6 +39,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const allProgramExercises = program.exercises;
   const areVariationsEnabled = programExercise.variations.length > 1;
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const entry = progress?.entries[0];
   const day = progress?.day ?? 1;
 
@@ -61,7 +62,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success;
 
   return (
-    <>
+    <section ref={containerRef}>
       <div className="my-2 text-sm text-grayv2-main">
         Need inspiration? Check out{" "}
         <LinkButton
@@ -228,6 +229,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               !props.isChanged ||
               confirm("Are you sure? If you cancel, all your changes in this exercise would be lost")
             ) {
+              const container = containerRef.current;
+              if (container) {
+                window.scrollBy(0, -container.clientHeight);
+              }
               props.dispatch([
                 lb<IProgramEditorState>()
                   .p("current")
@@ -243,6 +248,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         </Button>
         <Button
           onClick={() => {
+            const container = containerRef.current;
+            if (container) {
+              window.scrollBy(0, -container.clientHeight);
+            }
             const getters = {
               editExercise: lbe.get(),
             };
@@ -272,7 +281,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           Save
         </Button>
       </div>
-    </>
+    </section>
   );
 }
 

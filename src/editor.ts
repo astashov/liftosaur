@@ -44,7 +44,6 @@ export class CodeEditor {
         token: (stream: StringStream, state: IState) => {
           let peek = stream.peek();
           let token: string | null = null;
-          console.log(peek);
           if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+(lb|kg)?/)) {
             token = "number";
           } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
