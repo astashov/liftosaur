@@ -64,6 +64,7 @@ export namespace Storage {
     return {
       id: 0,
       currentProgramId: undefined,
+      reviewRequests: [],
       tempUserId: UidFactory.generateUid(10),
       stats: {
         weight: {},

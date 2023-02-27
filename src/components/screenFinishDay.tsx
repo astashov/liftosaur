@@ -15,6 +15,7 @@ import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { ILoading } from "../models/state";
 import { IScreen } from "../models/screen";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -117,7 +118,13 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             </Button>
           </div>
           <div>
-            <Button kind="orange" onClick={() => ScreenActions.setScreen(props.dispatch, "main")}>
+            <Button
+              kind="orange"
+              onClick={() => {
+                ScreenActions.setScreen(props.dispatch, "main");
+                props.dispatch(Thunk.maybeRequestReview());
+              }}
+            >
               Continue
             </Button>
           </div>

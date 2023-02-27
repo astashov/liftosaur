@@ -739,6 +739,7 @@ export const TStorage = t.type(
     currentProgramId: t.union([t.string, t.undefined]),
     version: t.string,
     programs: t.array(TProgram),
+    reviewRequests: t.array(t.number),
     helps: t.array(t.string),
     tempUserId: t.string,
     email: t.union([t.string, t.undefined]),

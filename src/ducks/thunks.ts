@@ -185,6 +185,28 @@ export namespace Thunk {
     };
   }
 
+  export function maybeRequestReview(): IThunk {
+    return async (dispatch, getState) => {
+      try {
+        const history = getState().storage.history;
+        const state = getState();
+        const now = Date.now();
+        const reviewRequests = state.storage.reviewRequests;
+        const lastReviewRequest = reviewRequests[reviewRequests.length - 1];
+        if (
+          history.length > 10 &&
+          reviewRequests.length < 3 &&
+          (!lastReviewRequest || now - lastReviewRequest > 1000 * 60 * 60 * 24 * 32)
+        ) {
+          SendMessage.toIos({ type: "requestReview" });
+          SendMessage.toAndroid({ type: "requestReview" });
+        }
+      } catch (e) {
+        Rollbar.error(e);
+      }
+    };
+  }
+
   export function cleanup(): IThunk {
     return async (dispatch, getState) => {
       const state = getState();

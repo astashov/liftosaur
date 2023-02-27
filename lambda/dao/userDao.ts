@@ -102,6 +102,7 @@ export class UserDao {
       appleId: opts.appleId,
       createdAt: Date.now(),
       storage: {
+        reviewRequests: [],
         history: [],
         programs: [],
         stats: { weight: {}, length: {} },

@@ -244,4 +244,9 @@ export const migrations = {
     };
     return storage;
   },
+  "20230121135616_add_review_requests": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.reviewRequests = storage.reviewRequests || [];
+    return storage;
+  },
 };

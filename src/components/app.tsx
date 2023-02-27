@@ -122,6 +122,13 @@ export function AppView(props: IProps): JSX.Element | null {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "universalLink") {
         ImportExporter.handleUniversalLink(dispatch, event.data.link);
+      } else if (event.data?.type === "requestedReview") {
+        updateState(dispatch, [
+          lb<IState>()
+            .p("storage")
+            .p("reviewRequests")
+            .recordModify((r) => [...r, Date.now()]),
+        ]);
       }
     });
     window._webpushrScriptReady = () => {
