@@ -55,6 +55,7 @@
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.4.2",
     "cssnano": "^4.1.10",
+    "csv": "^6.2.7",
     "cypress": "^5.1.0",
     "cypress-terminal-report": "^2.0.0",
     "eslint": "^6.8.0",
