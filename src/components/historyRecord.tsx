@@ -95,20 +95,26 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                     customExercises={props.settings.exercises}
                   />
                 </div>
-                <div data-cy="history-entry-exercise-name" className="pr-2 font-bold" style={{ width: "35%" }}>
-                  {exercise.name}
-                </div>
                 <div className="flex-1">
-                  <HistoryRecordSetsView
-                    sets={entry.sets}
-                    unit={props.settings.units}
-                    isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
-                  />
+                  <div className="flex items-center">
+                    <div data-cy="history-entry-exercise-name" className="pr-2 font-bold" style={{ width: "35%" }}>
+                      {exercise.name}
+                    </div>
+                    <div className="flex-1">
+                      <HistoryRecordSetsView
+                        sets={entry.sets}
+                        unit={props.settings.units}
+                        isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
+                      />
+                    </div>
+                  </div>
+                  {entry.notes && <p className="mt-1 text-sm text-grayv2-main">{entry.notes}</p>}
                 </div>
               </div>
             );
           })}
         </div>
+        {historyRecord.notes && <p className="mt-1 text-sm text-grayv2-main">{historyRecord.notes}</p>}
         {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
           <div className="flex items-center mt-1 text-gray-600" style={{ minHeight: "1.8em" }}>
             <div className="text-left">

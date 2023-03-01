@@ -53,7 +53,23 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
   ] = historyCollector.run();
-  const history = CollectionUtils.sort(unsortedHistory, (a, b) => {
+  let history = unsortedHistory;
+  if (
+    props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ||
+    props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes
+  ) {
+    history = history.filter((hr) => {
+      let result = true;
+      if (props.settings.exerciseStatsSettings.hideWithoutExerciseNotes) {
+        result = result && hr.entries.some((e) => e.notes);
+      }
+      if (props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes) {
+        result = result && !!hr.notes;
+      }
+      return result;
+    });
+  }
+  history = CollectionUtils.sort(history, (a, b) => {
     return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
   });
 
@@ -205,9 +221,39 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                     );
                   }}
                 />
+                <MenuItemEditable
+                  type="boolean"
+                  name="Hide entries without exercise notes"
+                  value={!!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ? "true" : "false"}
+                  onChange={() => {
+                    updateSettings(
+                      props.dispatch,
+                      lb<ISettings>()
+                        .p("exerciseStatsSettings")
+                        .p("hideWithoutExerciseNotes")
+                        .record(!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes)
+                    );
+                  }}
+                />
+                <MenuItemEditable
+                  type="boolean"
+                  name="Hide entries without workout notes"
+                  value={!!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes ? "true" : "false"}
+                  onChange={() => {
+                    updateSettings(
+                      props.dispatch,
+                      lb<ISettings>()
+                        .p("exerciseStatsSettings")
+                        .p("hideWithoutWorkoutNotes")
+                        .record(!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes)
+                    );
+                  }}
+                />
               </section>
             )}
             {history.slice(0, visibleRecords).map((historyRecord) => {
+              const exerciseEntries = historyRecord.entries.filter((e) => Exercise.eq(e.exercise, props.exercise));
+              const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
               return (
                 <MenuItemWrapper
                   onClick={() => {
@@ -224,15 +270,28 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                     </div>
                     <div className="flex">
                       <div className="flex-1">
-                        {historyRecord.entries
-                          .filter((e) => Exercise.eq(e.exercise, props.exercise))
-                          .map((entry) => {
+                        <div>
+                          {exerciseEntries.map((entry) => {
                             return (
                               <div className="pt-1">
                                 <HistoryRecordSetsView sets={entry.sets} unit={props.settings.units} isNext={false} />
                               </div>
                             );
                           })}
+                        </div>
+                        {exerciseNotes.length > 0 && (
+                          <ul>
+                            {exerciseNotes.map((n) => (
+                              <li className="text-sm text-grayv2-main">{n}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {historyRecord.notes && (
+                          <p className="text-sm text-grayv2-main">
+                            <span className="font-bold">Workout: </span>
+                            <span>{historyRecord.notes}</span>
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center py-2 pl-2">
                         <IconArrowRight style={{ color: "#a0aec0" }} />

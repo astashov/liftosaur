@@ -10,6 +10,9 @@ import { Comments } from "./comments";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IconEditSquare } from "./icons/iconEditSquare";
+import { GroupHeader } from "./groupHeader";
+import { inputClassName } from "./input";
+import { IconKebab } from "./icons/iconKebab";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -104,6 +107,32 @@ export const CardsView = memo(
             />
           );
         })}
+        <div>
+          <GroupHeader
+            name="Notes"
+            help={
+              <div>
+                Notes for the workout. You can also add notes per specific exercise in their{" "}
+                <IconKebab className="inline-block" /> menu.
+              </div>
+            }
+          />
+          <textarea
+            data-cy="workout-notes-input"
+            id="workout-notes"
+            maxLength={4095}
+            name="workout-notes"
+            placeholder="The workout went very well..."
+            value={props.progress.notes}
+            onInput={(e) => {
+              const target = e.target;
+              if (target instanceof HTMLTextAreaElement) {
+                Progress.editNotes(props.dispatch, props.progress.id, target.value);
+              }
+            }}
+            className={`${inputClassName} h-32`}
+          />
+        </div>
         {!Progress.isCurrent(props.progress) && userId && (
           <Comments
             nickname={props.nickname}

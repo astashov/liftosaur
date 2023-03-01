@@ -9,6 +9,7 @@ import { Weight } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
+import { HtmlUtils } from "../utils/html";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -132,7 +133,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                 const dispatch = props.dispatch;
                 let text: string;
                 if (weight != null && units != null && reps != null) {
-                  text = `<span>${DateUtils.format(
+                  text = `<div><div class="text-center">${DateUtils.format(
                     date
                   )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
                   if (props.isWithOneRm && onerm != null) {
@@ -143,10 +144,25 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                   }
                   text += "</span>";
                 } else if (bodyweight != null) {
-                  text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</span>`;
+                  text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</div>`;
                 } else {
                   return;
                 }
+                text += "</div>";
+                const entryNotes = historyRecord.entries.map((e) => e.notes).filter((e) => e);
+                if (historyRecord.notes || entryNotes.length > 0) {
+                  text += "<div class='text-sm text-grayv2-main'>";
+                  if (entryNotes.length > 0) {
+                    text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
+                  }
+                  if (historyRecord.notes) {
+                    text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
+                      historyRecord.notes || ""
+                    )}</span></div>`;
+                  }
+                  text += "</div>";
+                }
+                text += "</div>";
                 if (legendRef.current != null) {
                   legendRef.current.innerHTML = text;
                   selectedHistoryRecordRef.current = historyRecord;
@@ -231,7 +247,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
   return (
     <div className="relative z-0 pt-2" data-cy="graph">
       <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" className="box-content h-6 px-8 pt-8 pb-2 text-sm text-center" ref={legendRef}></div>
+      <div data-cy="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
     </div>
   );
 }

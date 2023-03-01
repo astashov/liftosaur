@@ -209,6 +209,21 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230301": {
+    title: <span>Notes</span>,
+    body: (
+      <ul>
+        <li>
+          Added ability to add notes to the overall workouts and specific exercises during workout. You can then see
+          those notes on the History screen, on the exercise details screen, and also on the Graphs.
+        </li>
+        <li>
+          You can also filter the history on the exercise details screen by whether the history record had notes for
+          that exercise.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

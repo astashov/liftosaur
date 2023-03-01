@@ -376,12 +376,17 @@ export const TSet = t.intersection(
 );
 export type ISet = t.TypeOf<typeof TSet>;
 
-export const THistoryEntry = t.type(
-  {
-    exercise: TExerciseType,
-    sets: t.array(TSet),
-    warmupSets: t.array(TSet),
-  },
+export const THistoryEntry = t.intersection(
+  [
+    t.interface({
+      exercise: TExerciseType,
+      sets: t.array(TSet),
+      warmupSets: t.array(TSet),
+    }),
+    t.partial({
+      notes: t.string,
+    }),
+  ],
   "THistoryEntry"
 );
 export type IHistoryEntry = t.TypeOf<typeof THistoryEntry>;
@@ -508,6 +513,7 @@ export const THistoryRecord = t.intersection(
       ui: TProgressUi,
       timerSince: t.number,
       timerMode: TProgressMode,
+      notes: t.string,
     }),
   ],
   "THistoryRecord"
@@ -699,8 +705,10 @@ export const TSettings = t.intersection(
         isWithOneRm: t.boolean,
         isWithProgramLines: t.boolean,
       }),
-      exerciseStatsSettings: t.type({
+      exerciseStatsSettings: t.partial({
         ascendingSort: t.boolean,
+        hideWithoutWorkoutNotes: t.boolean,
+        hideWithoutExerciseNotes: t.boolean,
       }),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,

@@ -375,6 +375,16 @@ export namespace Progress {
     ]);
   }
 
+  export function editExerciseNotes(dispatch: IDispatch, progressId: number, entryIndex: number, notes: string): void {
+    updateState(dispatch, [
+      lb<IState>().p("progress").pi(progressId).p("entries").i(entryIndex).p("notes").record(notes),
+    ]);
+  }
+
+  export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
+    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)]);
+  }
+
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
     programExercise: IProgramExercise,

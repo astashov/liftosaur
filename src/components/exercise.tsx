@@ -27,12 +27,15 @@ import { IconKebab } from "./icons/iconKebab";
 import { lb } from "lens-shmens";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
 import { Subscriptions } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
 import { ExerciseSets } from "./exerciseSets";
+import { IconDoc } from "./icons/iconDoc";
+import { GroupHeader } from "./groupHeader";
+import { inputClassName } from "./input";
 
 interface IProps {
   showHelp: boolean;
@@ -149,6 +152,8 @@ const ExerciseContentView = memo(
     isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
 
+    const [showNotes, setShowNotes] = useState(!!props.entry.notes);
+
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
         <header className="flex">
@@ -174,8 +179,11 @@ const ExerciseContentView = memo(
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
               </div>
-              {props.showKebab && (
-                <div>
+              <div style={{ marginTop: "-0.5rem" }}>
+                <button data-cy="exercise-notes-toggle" className="p-2" onClick={() => setShowNotes(!showNotes)}>
+                  <IconDoc width={12} height={16} />
+                </button>
+                {props.showKebab && (
                   <button
                     data-cy="exercise-options"
                     className="py-2 pl-2"
@@ -192,8 +200,8 @@ const ExerciseContentView = memo(
                   >
                     <IconKebab />
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
             {!props.hidePlatesCalculator && (
@@ -321,6 +329,32 @@ const ExerciseContentView = memo(
         )}
         {historicalSameEntry && <HistoricalSameEntry historicalEntries={historicalSameEntry} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
+        {showNotes && (
+          <div className="mt-2">
+            <GroupHeader
+              name="Notes"
+              help={
+                <div>
+                  Notes for the exercise. You can also add notes for the whole workout at the bottom of this screen.
+                </div>
+              }
+            />
+            <textarea
+              data-cy="exercise-notes-input"
+              name="exercise-notes"
+              placeholder="The exercise went very well..."
+              maxLength={4095}
+              value={props.entry.notes}
+              onInput={(e) => {
+                const target = e.target;
+                if (target instanceof HTMLTextAreaElement) {
+                  Progress.editExerciseNotes(props.dispatch, props.progress.id, props.index, target.value);
+                }
+              }}
+              className={`${inputClassName} h-32`}
+            />
+          </div>
+        )}
       </div>
     );
   }
