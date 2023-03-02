@@ -12,7 +12,7 @@ import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
-import { IconKebab } from "./icons/iconKebab";
+import { IconNotebook } from "./icons/iconNotebook";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -112,8 +112,8 @@ export const CardsView = memo(
             name="Notes"
             help={
               <div>
-                Notes for the workout. You can also add notes per specific exercise in their{" "}
-                <IconKebab className="inline-block" /> menu.
+                Notes for the workout. You can also add notes per specific exercise by tapping{" "}
+                <IconNotebook className="inline-block" /> for that exercise.
               </div>
             }
           />

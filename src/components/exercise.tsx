@@ -33,9 +33,9 @@ import { Subscriptions } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
 import { ExerciseSets } from "./exerciseSets";
-import { IconDoc } from "./icons/iconDoc";
 import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
+import { IconNotebook } from "./icons/iconNotebook";
 
 interface IProps {
   showHelp: boolean;
@@ -172,21 +172,26 @@ const ExerciseContentView = memo(
             </button>
           </div>
           <div className="flex-1 ml-auto">
-            <div className="flex">
+            <div className="flex items-center">
               <div className="flex-1 text-lg font-bold">
                 <button data-cy="exercise-name" onClick={() => props.onExerciseInfoClick?.(exercise)}>
                   <span className="pr-1">{exercise.name}</span>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
               </div>
-              <div style={{ marginTop: "-0.5rem" }}>
-                <button data-cy="exercise-notes-toggle" className="p-2" onClick={() => setShowNotes(!showNotes)}>
-                  <IconDoc width={12} height={16} />
+              <div>
+                <button
+                  data-cy="exercise-notes-toggle"
+                  className="p-2 leading-none align-middle"
+                  onClick={() => setShowNotes(!showNotes)}
+                >
+                  <IconNotebook size={18} />
                 </button>
                 {props.showKebab && (
                   <button
                     data-cy="exercise-options"
-                    className="py-2 pl-2"
+                    className="box-content py-2 pl-2 align-middle"
+                    style={{ width: "18px", height: "18px" }}
                     onClick={() => {
                       updateState(props.dispatch, [
                         lb<IState>()
