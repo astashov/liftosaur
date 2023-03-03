@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IPartialStorage, IExerciseType } from "../types";
+import { IProgram, IStorage, IPartialStorage, IExerciseType, ISettings } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
 import { ObjectUtils } from "../utils/object";
@@ -26,6 +26,8 @@ import { SendMessage } from "../utils/sendMessage";
 import { UidFactory } from "../utils/generator";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Progress } from "../models/progress";
+import { ImportFromLink } from "../utils/importFromLink";
+import { getLatestMigrationVersion } from "../migrations/migrations";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -515,6 +517,33 @@ export namespace Thunk {
         alert("Successfully imported");
       } else {
         alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
+      }
+    };
+  }
+
+  export function importFromLink(link: string): IThunk {
+    return async (dispatch, getState, env) => {
+      const data = await ImportFromLink.importFromLink(link, env.service.client);
+      if (data.success) {
+        dispatch(Thunk.importProgram(data.data));
+      } else {
+        alert(data.error.join("\n"));
+      }
+    };
+  }
+
+  export function generateAndCopyLink(editProgram: IProgram, settings: ISettings, cb: () => void): IThunk {
+    return async (dispatch, getState, env) => {
+      const link = await Program.exportProgramToLink(editProgram, settings, getLatestMigrationVersion());
+      try {
+        const service = new Service(env.service.client);
+        const url = await service.postShortUrl(link, "p");
+        ClipboardUtils.copy(url);
+        cb();
+      } catch (e) {
+        Rollbar.error(e);
+        ClipboardUtils.copy(link);
+        cb();
       }
     };
   }

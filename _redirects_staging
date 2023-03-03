@@ -10,4 +10,6 @@
 /programs/:programId https://api2-dev.liftosaur.com/programs/:programId  200
 /builder https://api2-dev.liftosaur.com/builder  200
 /program https://api2-dev.liftosaur.com/program  200
+/p/:id https://api2.liftosaur.com/p/:id  200
+/b/:id https://api2.liftosaur.com/b/:id  200
 /programimage/:id https://api2-dev.liftosaur.com/api/programimage/:id  200

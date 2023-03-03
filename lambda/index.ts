@@ -37,6 +37,7 @@ import { IBuilderProgram } from "../src/pages/builder/models/types";
 import { renderProgramHtml } from "./program";
 import { IExportedProgram } from "../src/models/program";
 import { ImportExporter } from "../src/lib/importexporter";
+import { UrlDao } from "./dao/urlDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -872,6 +873,81 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   };
 };
 
+const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
+const getProgramShorturlResponseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramShorturlEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di, event } = payload;
+  const id = params.id;
+  const urlString = await new UrlDao(di).get(id);
+  if (urlString) {
+    const url = new URL(urlString, "https://www.liftosaur.com");
+    const data = url.searchParams.get("data");
+    if (data) {
+      return ResponseUtils.json(200, event, { data });
+    } else {
+      return ResponseUtils.json(401, event, {});
+    }
+  }
+  return ResponseUtils.json(404, event, {});
+};
+
+const getProgramShorturlEndpoint = Endpoint.build("/p/:id");
+const getProgramShorturlHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramShorturlEndpoint
+> = async ({ payload, match: { params } }) => {
+  const di = payload.di;
+  const id = params.id;
+  return shorturlRedirect(di, id);
+};
+
+const getBuilderShorturlEndpoint = Endpoint.build("/b/:id");
+const getBuilderShorturlHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getBuilderShorturlEndpoint
+> = async ({ payload, match: { params } }) => {
+  const di = payload.di;
+  const id = params.id;
+  return shorturlRedirect(di, id);
+};
+
+async function shorturlRedirect(di: IDI, id: string): Promise<APIGatewayProxyResult> {
+  const url = await new UrlDao(di).get(id);
+  if (url) {
+    const header: Record<string, string> = { location: url, "content-type": "text/html" };
+    return {
+      statusCode: 302,
+      body: "",
+      headers: header,
+    };
+  } else {
+    const header: Record<string, string> = { "content-type": "text/html" };
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: header,
+    };
+  }
+}
+
+const postShortUrlEndpoint = Endpoint.build("/shorturl/:type", { url: "string" });
+const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postShortUrlEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const { type, url } = params;
+  const id = await new UrlDao(di).put(url);
+  const newUrl = `/${type}/${id}`;
+
+  return ResponseUtils.json(200, event, { url: newUrl });
+};
+
 // async function loadBackupHandler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 //   const json = JSON.parse(fs.readFileSync("json.json", "utf-8"));
 
@@ -942,6 +1018,10 @@ export const handler = rollbar.lambdaHandler(
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .post(timerEndpoint, timerHandler)
+      .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
+      .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
+      .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
+      .post(postShortUrlEndpoint, postShortUrlHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)
       .get(getProgramEndpoint, getProgramHandler)

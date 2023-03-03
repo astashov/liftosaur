@@ -235,6 +235,14 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/p/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/b/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
       "/programimage/*": {
         target: "https://local-api.liftosaur.com:3000/api",
         secure: false,

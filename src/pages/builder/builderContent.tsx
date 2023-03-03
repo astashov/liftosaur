@@ -83,8 +83,8 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
             Weightlifting Program Builder
           </a>
         </h1>
-        <div>
-          <BuilderCopyLink />
+        <div className="flex items-center">
+          <BuilderCopyLink type="b" client={props.client} program={state.current.program} />
           <button
             className="p-2 align-middle"
             onClick={() => dispatch([lb<IBuilderState>().p("ui").p("modalSettings").record(true)])}

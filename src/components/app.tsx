@@ -121,7 +121,7 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "universalLink") {
-        ImportExporter.handleUniversalLink(dispatch, event.data.link);
+        ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "requestedReview") {
         updateState(dispatch, [
           lb<IState>()

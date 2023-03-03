@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 export namespace StringUtils {
   export function pad(str: string, width: number, fill: string = "0"): string {
     return str.length >= width ? str : new Array(width - str.length + 1).join(fill) + str;
@@ -72,5 +73,18 @@ export namespace StringUtils {
       return name.replace(/\d+$/, (number + 1).toString());
     }
     return name + " 2";
+  }
+
+  export function hashCode(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  }
+
+  export function hashString(str: string): string {
+    return new Uint32Array([hashCode(str)])[0].toString(16);
   }
 }

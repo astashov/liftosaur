@@ -210,6 +210,29 @@ export class Service {
     return json.result;
   }
 
+  public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
+    const url = new URL(`${__API_HOST__}/shorturl/${type}`);
+    url.searchParams.set("url", urlToShorten);
+    const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
+    if (result.ok) {
+      const json: { url: string } = await result.json();
+      return new URL(json.url, window.location.href).toString();
+    } else {
+      throw new Error("Couldn't shorten url");
+    }
+  }
+
+  public async getDataFromShortUrl(id: string): Promise<string> {
+    const url = new URL(`${__API_HOST__}/api/p/${id}`);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    if (result.ok) {
+      const json: { data: string } = await result.json();
+      return json.data;
+    } else {
+      throw new Error("Couldn't parse short url");
+    }
+  }
+
   private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {
     const result = await this.client(url, {
       method: method,

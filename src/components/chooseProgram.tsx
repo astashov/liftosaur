@@ -17,7 +17,6 @@ import { HelpChooseProgram } from "./help/helpChooseProgram";
 import { Button } from "./button";
 import { Footer2View } from "./footer2";
 import { ModalImportFromLink } from "./modalImportFromLink";
-import { importFromLink } from "../utils/importFromLink";
 
 interface IProps {
   dispatch: IDispatch;
@@ -89,12 +88,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             isHidden={!showImportFromLink}
             onSubmit={async (link) => {
               if (link) {
-                const data = await importFromLink(link);
-                if (data.success) {
-                  props.dispatch(Thunk.importProgram(data.data));
-                } else {
-                  alert(data.error.join("\n"));
-                }
+                props.dispatch(Thunk.importFromLink(link));
               }
               setShowImportFromLink(false);
             }}

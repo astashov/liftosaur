@@ -156,6 +156,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const urlsTable = new dynamodb.Table(this, `LftUrls${suffix}`, {
+      tableName: `lftUrls${suffix}`,
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     const secretArns = {
       dev: {
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
@@ -253,6 +260,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     friendsTable.grantReadWriteData(lambdaFunction);
     commentsTable.grantReadWriteData(lambdaFunction);
     likesTable.grantReadWriteData(lambdaFunction);
+    urlsTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],

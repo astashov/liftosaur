@@ -132,7 +132,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               </div>
             </h1>
             <div className="flex">
-              <BuilderCopyLink msg="Copied the link with this program to the clipboard" />
+              <BuilderCopyLink
+                type="p"
+                program={program}
+                client={props.client}
+                msg="Copied the link with this program to the clipboard"
+              />
               <button title="Settings" className="p-2" onClick={() => setShowSettingsModal(true)}>
                 <IconCog2 />
               </button>

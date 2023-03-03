@@ -5,10 +5,10 @@ import { IExportedProgram } from "../models/program";
 import { Storage } from "../models/storage";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { importFromLink } from "../utils/importFromLink";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ObjectUtils } from "../utils/object";
+import { ImportFromLink } from "../utils/importFromLink";
 
 export namespace ImportExporter {
   export function exportStorage(storage: IStorage): void {
@@ -49,10 +49,10 @@ export namespace ImportExporter {
     }
   }
 
-  export async function handleUniversalLink(dispatch: IDispatch, link: string): Promise<void> {
+  export async function handleUniversalLink(dispatch: IDispatch, link: string, client: Window["fetch"]): Promise<void> {
     const url = new URL(link);
     if (url.pathname === "/program" && url.searchParams.has("data")) {
-      const data = await importFromLink(link);
+      const data = await ImportFromLink.importFromLink(link, client);
       if (data.success) {
         dispatch(Thunk.importProgram(data.data));
       } else {

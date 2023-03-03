@@ -28,8 +28,6 @@ import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
-import { getLatestMigrationVersion } from "../../migrations/migrations";
-import { ClipboardUtils } from "../../utils/clipboard";
 
 interface IProps {
   editProgram: IProgram;
@@ -96,16 +94,14 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             You can use{" "}
             <LinkButton
               onClick={async () => {
-                const link = await Program.exportProgramToLink(
-                  props.editProgram,
-                  props.settings,
-                  getLatestMigrationVersion()
+                props.dispatch(
+                  Thunk.generateAndCopyLink(props.editProgram, props.settings, () => {
+                    setIsCopied(true);
+                    setTimeout(() => {
+                      setIsCopied(false);
+                    }, 3000);
+                  })
                 );
-                ClipboardUtils.copy(link);
-                setIsCopied(true);
-                setTimeout(() => {
-                  setIsCopied(false);
-                }, 3000);
               }}
             >
               this link

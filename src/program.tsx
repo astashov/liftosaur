@@ -8,7 +8,7 @@ interface IData {
 }
 
 function main(): void {
-  HydrateUtils.hydratePage<IData>((data) => <ProgramContent {...data} client={window.fetch} />);
+  HydrateUtils.hydratePage<IData>((data) => <ProgramContent {...data} client={window.fetch.bind(window)} />);
 }
 
 main();
