@@ -124,6 +124,32 @@ export namespace CollectionUtils {
     return arrCopy;
   }
 
+  export function sortByMultiple<T extends {}, K extends keyof T>(arr: T[], keys: K[], isReverse?: boolean): T[] {
+    const arrCopy = [...arr];
+    arrCopy.sort((a, b) => {
+      for (const key of keys) {
+        const aVal = a[key] as any;
+        const bVal = b[key] as any;
+        if (aVal === bVal) {
+          continue;
+        } else {
+          if (typeof aVal === "number" && typeof bVal === "number") {
+            return isReverse ? bVal - aVal : aVal - bVal;
+          } else if (typeof aVal === "string" && typeof bVal === "string") {
+            return isReverse ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+          } else if (typeof aVal === "boolean" && typeof bVal === "boolean") {
+            return isReverse ? (bVal ? -1 : 1) : aVal ? -1 : 1;
+          } else if (aVal == null || bVal == null) {
+            return isReverse ? (bVal == null ? -1 : 1) : aVal == null ? -1 : 1;
+          }
+        }
+      }
+      return 0;
+    });
+
+    return arrCopy as any;
+  }
+
   export function sortBy<T extends {}, K extends keyof T>(arr: T[], key: K): T[K] extends number ? T[] : never {
     const arrCopy = [...arr];
     arrCopy.sort((a, b) => {

@@ -110,7 +110,7 @@ export function AppView(props: IProps): JSX.Element | null {
         const name = (button.getAttribute("class") || "").split(/\s+/).filter((c) => c.startsWith("ls-"))[0];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const st = (window as any).state as IState;
-        LogUtils.log(st.user?.id || st.storage.tempUserId, name);
+        LogUtils.log(st.user?.id || st.storage.tempUserId, name, st.storage.affiliates);
       }
     });
     window.addEventListener("message", (event) => {
@@ -139,6 +139,18 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedAppleReceipts(dispatch, service, state.storage.subscription);
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href, "https://liftosaur.com");
+      const source = url.searchParams.get("s");
+      if (source) {
+        updateState(dispatch, [
+          lb<IState>()
+            .p("storage")
+            .p("affiliates")
+            .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
+        ]);
+      }
+    }
   }, []);
 
   const currentProgram =

@@ -751,6 +751,7 @@ export const TStorage = t.type(
     helps: t.array(t.string),
     tempUserId: t.string,
     email: t.union([t.string, t.undefined]),
+    affiliates: dictionary(t.string, t.number),
     subscription: TSubscription,
     whatsNew: t.union([t.string, t.undefined]),
   },

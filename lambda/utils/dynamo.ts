@@ -1,4 +1,5 @@
 import { Request, DynamoDB, AWSError } from "aws-sdk";
+import { CollectionUtils } from "../../src/utils/collection";
 import { LogUtil } from "./log";
 
 export class DynamoUtil {
@@ -163,8 +164,12 @@ export class DynamoUtil {
   public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
     const startTime = Date.now();
     try {
-      const result = await this.dynamo.batchGet({ RequestItems: { [args.tableName]: { Keys: args.keys } } }).promise();
-      return result.Responses?.[args.tableName] as T[];
+      const result = await Promise.all(
+        CollectionUtils.inGroupsOf(95, args.keys).map((group) => {
+          return this.dynamo.batchGet({ RequestItems: { [args.tableName]: { Keys: group } } }).promise();
+        })
+      );
+      return CollectionUtils.compact(result.map((r) => r.Responses?.[args.tableName] || [])).flat() as T[];
     } catch (e) {
       this.log.log(`FAILED Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
       throw e;

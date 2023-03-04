@@ -58,6 +58,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const affiliatesTable = new dynamodb.Table(this, `LftAffiliates${suffix}`, {
+      tableName: `lftAffiliates${suffix}`,
+      partitionKey: { name: "affiliateId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
@@ -261,6 +269,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     commentsTable.grantReadWriteData(lambdaFunction);
     likesTable.grantReadWriteData(lambdaFunction);
     urlsTable.grantReadWriteData(lambdaFunction);
+    affiliatesTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],
@@ -273,4 +282,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

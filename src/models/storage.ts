@@ -7,6 +7,9 @@ import { TStorage, IStorage } from "../types";
 import { Settings } from "../models/settings";
 import { IEither } from "../utils/types";
 import RB from "rollbar";
+import { IState, updateState } from "./state";
+import { lb } from "lens-shmens";
+import { IDispatch } from "../ducks/types";
 
 declare let Rollbar: RB;
 
@@ -66,6 +69,7 @@ export namespace Storage {
       currentProgramId: undefined,
       reviewRequests: [],
       tempUserId: UidFactory.generateUid(10),
+      affiliates: {},
       stats: {
         weight: {},
         length: {},
@@ -91,6 +95,17 @@ export namespace Storage {
       return storage.data;
     } else {
       return getDefault();
+    }
+  }
+
+  export function setAffiliate(dispatch: IDispatch, source?: string): void {
+    if (source) {
+      updateState(dispatch, [
+        lb<IState>()
+          .p("storage")
+          .p("affiliates")
+          .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
+      ]);
     }
   }
 }
