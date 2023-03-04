@@ -525,7 +525,8 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const data = await ImportFromLink.importFromLink(link, env.service.client);
       if (data.success) {
-        dispatch(Thunk.importProgram(data.data));
+        Storage.setAffiliate(dispatch, data.data.source);
+        dispatch(Thunk.importProgram(data.data.decoded));
       } else {
         alert(data.error.join("\n"));
       }

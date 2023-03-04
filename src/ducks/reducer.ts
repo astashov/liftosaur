@@ -510,6 +510,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         id: newStorage.id,
         email: newStorage.email,
         reviewRequests: newStorage.reviewRequests,
+        affiliates: newStorage.affiliates,
         stats: {
           weight: {
             weight: CollectionUtils.concatBy(

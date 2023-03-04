@@ -38,6 +38,9 @@ import { renderProgramHtml } from "./program";
 import { IExportedProgram } from "../src/models/program";
 import { ImportExporter } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
+import { AffiliateDao } from "./dao/affiliateDao";
+import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
+import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -461,10 +464,10 @@ const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
 const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
-  const { user, action } = getBodyJson(event);
+  const { user, action, affiliates, platform } = getBodyJson(event);
   let data;
   if (user && action) {
-    await new LogDao(di).increment(user, action);
+    await new LogDao(di).increment(user, action, platform, affiliates);
     data = "ok";
   } else {
     data = "error";
@@ -549,6 +552,45 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     return {
       statusCode: 200,
       body: renderUsersHtml({ users: processedUsers, apiKey: match.params.key }),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+  }
+};
+
+const getDashboardsAffiliatesEndpoint = Endpoint.build("/dashboards/affiliates/:id", { key: "string" });
+const getDashboardsAffiliatesHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsAffiliatesEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  if (match.params.key === (await di.secrets.getApiKey())) {
+    const affiliateDao = new AffiliateDao(di);
+    const userIds = await affiliateDao.getUserIds(match.params.id);
+    const logRecords = await new LogDao(di).getForUsers(userIds);
+
+    const logs = CollectionUtils.groupByKey(logRecords, "userId");
+    const unsortedAffiliateData: IAffiliateData[] = Object.keys(logs).map((userId) => {
+      const userLogs = logs[userId] || [];
+      const sortedUserLogs = CollectionUtils.sortBy(userLogs, "ts");
+      const minTs = sortedUserLogs[0].ts;
+      const maxTs = sortedUserLogs[sortedUserLogs.length - 1].ts;
+      const workoutLog = userLogs.filter((log) => log.action === "ls-finish-workout")[0];
+      const numberOfWorkouts = workoutLog ? workoutLog.cnt : 0;
+      const lastWorkoutTs = workoutLog.ts;
+      const daysOfUsing = Math.floor((maxTs - minTs) / (1000 * 60 * 60 * 24));
+      const isEligible = numberOfWorkouts >= 3 && daysOfUsing >= 7;
+      const isPaid = false;
+
+      return { userId, minTs, numberOfWorkouts, lastWorkoutTs, daysOfUsing, isEligible, isPaid };
+    });
+    const affiliateData = CollectionUtils.sortByMultiple(unsortedAffiliateData, ["isPaid", "isEligible", "minTs"]);
+
+    return {
+      statusCode: 200,
+      body: renderAffiliateDashboardHtml(fetch, match.params.id, affiliateData),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -885,8 +927,9 @@ const getProgramShorturlResponseHandler: RouteHandler<
   if (urlString) {
     const url = new URL(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
+    const s = url.searchParams.get("s");
     if (data) {
-      return ResponseUtils.json(200, event, { data });
+      return ResponseUtils.json(200, event, { data, s });
     } else {
       return ResponseUtils.json(401, event, {});
     }
@@ -1021,6 +1064,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
+      .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)

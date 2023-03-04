@@ -222,12 +222,12 @@ export class Service {
     }
   }
 
-  public async getDataFromShortUrl(id: string): Promise<string> {
+  public async getDataFromShortUrl(id: string): Promise<{ data: string; s?: string }> {
     const url = new URL(`${__API_HOST__}/api/p/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
-      const json: { data: string } = await result.json();
-      return json.data;
+      const json: { data: string; s?: string } = await result.json();
+      return json;
     } else {
       throw new Error("Couldn't parse short url");
     }
