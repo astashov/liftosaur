@@ -51,7 +51,7 @@ export namespace ImportExporter {
 
   export async function handleUniversalLink(dispatch: IDispatch, link: string, client: Window["fetch"]): Promise<void> {
     const url = new URL(link);
-    if (url.pathname === "/program" && url.searchParams.has("data")) {
+    if ((url.pathname === "/program" && url.searchParams.has("data")) || url.pathname.startsWith("/p/")) {
       const data = await ImportFromLink.importFromLink(link, client);
       if (data.success) {
         dispatch(Thunk.importProgram(data.data));
