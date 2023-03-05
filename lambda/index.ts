@@ -41,6 +41,8 @@ import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";
+import { renderUsersDashboardHtml } from "./usersDashboard";
+import { HistoryRecordsDao } from "./dao/historyRecordDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -559,6 +561,26 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+const getDashboardsUsersEndpoint = Endpoint.build("/dashboards/users", { key: "string" });
+const getDashboardsUsersHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsUsersEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  if (match.params.key === (await di.secrets.getApiKey())) {
+    const historyRecords = await new HistoryRecordsDao(di).getAllAfter(Date.now() - 1000 * 60 * 60 * 24);
+    console.log(historyRecords);
+    return {
+      statusCode: 200,
+      body: renderUsersDashboardHtml(fetch, []),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+  }
+};
+
 const getDashboardsAffiliatesEndpoint = Endpoint.build("/dashboards/affiliates/:id", { key: "string" });
 const getDashboardsAffiliatesHandler: RouteHandler<
   IPayload,
@@ -1065,6 +1087,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
+      .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)

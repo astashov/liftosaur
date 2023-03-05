@@ -93,6 +93,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       sortKey: { name: "date", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     });
+    historyRecordsTable.addGlobalSecondaryIndex({
+      indexName: `lftHistoryRecordsTimestamp${suffix}`,
+      partitionKey: { name: "endTime", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const statsTable = new dynamodb.Table(this, `LftStats${suffix}`, {
       tableName: `lftStats${suffix}`,

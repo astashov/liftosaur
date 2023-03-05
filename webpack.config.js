@@ -20,6 +20,7 @@ module.exports = {
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
+    usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
   },
   output: {
@@ -233,6 +234,10 @@ module.exports = {
         secure: false,
       },
       "/dashboards/affiliates/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/dashboards/users": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
