@@ -6,9 +6,11 @@ import { AffiliateDao } from "./affiliateDao";
 const tableNames = {
   dev: {
     logs: "lftLogsDev",
+    logsTs: "lftLogsTsDev",
   },
   prod: {
     logs: "lftLogs",
+    logsTs: "lftLogsTs",
   },
 } as const;
 
@@ -19,6 +21,7 @@ export interface ILogDao {
   ts: number;
   affiliates?: Partial<Record<string, number>>;
   platforms: { name: string; version?: string }[];
+  subscriptions: ("apple" | "google")[];
 }
 
 export class LogDao {
@@ -27,6 +30,15 @@ export class LogDao {
   public async getAll(): Promise<ILogDao[]> {
     const env = Utils.getEnv();
     return this.di.dynamo.scan({ tableName: tableNames[env].logs });
+  }
+
+  public async getAllSince(ts: number): Promise<ILogDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.scan({
+      tableName: tableNames[env].logs,
+      filterExpression: "ts > :ts",
+      values: { ":ts": ts },
+    });
   }
 
   public async getForUsers(userIds: string[]): Promise<ILogDao[]> {
@@ -54,6 +66,7 @@ export class LogDao {
     userId: string,
     action: string,
     platform: { name: string; version?: string },
+    subscriptions: ("apple" | "google")[],
     maybeAffiliates?: Partial<Record<string, number>>
   ): Promise<void> {
     const env = Utils.getEnv();
@@ -79,20 +92,27 @@ export class LogDao {
       await this.di.dynamo.update({
         tableName: tableNames[env].logs,
         key: { userId, action },
-        expression: "SET ts = :timestamp, cnt = :cnt, affiliates = :affiliates, platforms = :platforms",
+        expression:
+          "SET ts = :timestamp, cnt = :cnt, affiliates = :affiliates, platforms = :platforms, subscriptions = :subscriptions",
         values: {
           ":timestamp": Date.now(),
           ":cnt": count + 1,
           ":affiliates": combinedAffiliates,
           ":platforms": platforms,
+          ":subscriptions": subscriptions,
         },
       });
     } else {
       await this.di.dynamo.update({
         tableName: tableNames[env].logs,
         key: { userId, action },
-        expression: "SET ts = :timestamp, cnt = :cnt, platforms = :platforms",
-        values: { ":timestamp": Date.now(), ":cnt": count + 1, ":platforms": platforms },
+        expression: "SET ts = :timestamp, cnt = :cnt, platforms = :platforms, subscriptions = :subscriptions",
+        values: {
+          ":timestamp": Date.now(),
+          ":cnt": count + 1,
+          ":platforms": platforms,
+          ":subscriptions": subscriptions,
+        },
       });
     }
   }

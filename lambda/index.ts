@@ -464,10 +464,10 @@ const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
 const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
-  const { user, action, affiliates, platform } = getBodyJson(event);
+  const { user, action, affiliates, platform, subscriptions } = getBodyJson(event);
   let data;
   if (user && action) {
-    await new LogDao(di).increment(user, action, platform, affiliates);
+    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates);
     data = "ok";
   } else {
     data = "error";
@@ -605,7 +605,7 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
 }) => {
   const { event, di } = payload;
   if (params.key === (await di.secrets.getApiKey())) {
-    const userLogs = await new LogDao(di).getAll();
+    const userLogs = await new LogDao(di).getAllSince(Date.now() - 1000 * 60 * 60 * 24 * 30);
     const users = await new UserDao(di).getAllLimited();
     const usersByKey = CollectionUtils.groupByKey(users, "id");
     const logPayloads = userLogs.reduce<ILogPayloads>((memo, log) => {
@@ -614,6 +614,9 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
         action: log.action,
         count: log.cnt,
         timestamp: log.ts,
+        affiliates: log.affiliates,
+        platforms: log.platforms,
+        subscriptions: log.subscriptions,
       });
       return memo;
     }, {});

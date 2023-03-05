@@ -39,6 +39,7 @@ import { Exercise } from "../models/exercise";
 import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
+import { ObjectUtils } from "../utils/object";
 
 interface IProps {
   client: Window["fetch"];
@@ -110,7 +111,14 @@ export function AppView(props: IProps): JSX.Element | null {
         const name = (button.getAttribute("class") || "").split(/\s+/).filter((c) => c.startsWith("ls-"))[0];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const st = (window as any).state as IState;
-        LogUtils.log(st.user?.id || st.storage.tempUserId, name, st.storage.affiliates);
+        LogUtils.log(
+          st.user?.id || st.storage.tempUserId,
+          name,
+          st.storage.affiliates,
+          ObjectUtils.keys(st.storage.subscription || {}).filter(
+            (s) => Object.keys(st.storage.subscription[s] || {}).length > 0
+          )
+        );
       }
     });
     window.addEventListener("message", (event) => {

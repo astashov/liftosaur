@@ -60,7 +60,7 @@ export class DynamoUtil {
   public async scan<T>(args: {
     tableName: string;
     filterExpression?: string;
-    values?: Partial<Record<string, string | string[]>>;
+    values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {

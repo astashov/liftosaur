@@ -121,6 +121,24 @@ h1 {
   font-weight: bold;
 }
 
+.logs-action-platforms {
+  color: blue;
+  font-weight: bold;
+  margin-left: 20px;
+}
+
+.logs-action-subscriptions {
+  color: red;
+  font-weight: bold;
+  margin-left: 20px;
+}
+
+.logs-action-affiliates {
+  color: darkorange;
+  font-weight: bold;
+  margin-left: 20px;
+}
+
 .logs-action-date {
   color: #986200;
   margin-left: 20px;

@@ -54,11 +54,23 @@ export function LogsContent(props: ILogsContentProps): JSX.Element {
               </td>
               <td className="logs-actions">
                 {CollectionUtils.sort(payload.logs, (a, b) => (b.count || 0) - (a.count || 0)).map((log) => {
+                  const affiliates = log.affiliates || {};
                   return (
                     <div className="logs-action">
                       <span className="logs-action-name">{log.action.replace(/^ls-/, "")}</span> -{" "}
                       <span className="logs-action-count">{log.count}</span>
                       <span className="logs-action-date">{DateUtils.formatYYYYMMDD(log.timestamp)}</span>
+                      <span className="logs-action-platforms">
+                        {(log.platforms || [])
+                          .map((p) => CollectionUtils.compact([p.name, p.version]).join(" - "))
+                          .join(", ")}
+                      </span>
+                      <span className="logs-action-subscriptions">{(log.subscriptions || []).join(", ")}</span>
+                      <span className="logs-action-affiliates">
+                        {Object.keys(affiliates)
+                          .map((af) => `${af} (${DateUtils.format(affiliates[af]!)})`)
+                          .join(", ")}
+                      </span>
                     </div>
                   );
                 })}

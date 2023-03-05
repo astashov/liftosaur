@@ -11,6 +11,9 @@ export interface ILog {
   action: string;
   count: number;
   timestamp: number;
+  affiliates?: Partial<Record<string, number>>;
+  platforms?: { name: string; version?: string }[];
+  subscriptions?: ("apple" | "google")[];
 }
 
 export interface ILogPayload {
