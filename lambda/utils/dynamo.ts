@@ -114,6 +114,7 @@ export class DynamoUtil {
     tableName: string;
     key: DynamoDB.DocumentClient.Key;
     expression: string;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, unknown>>;
   }): Promise<void> {
     const startTime = Date.now();
@@ -123,6 +124,7 @@ export class DynamoUtil {
           TableName: args.tableName,
           Key: args.key,
           UpdateExpression: args.expression,
+          ExpressionAttributeNames: args.attrs,
           ExpressionAttributeValues: args.values,
         })
         .promise();

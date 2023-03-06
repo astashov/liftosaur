@@ -3,14 +3,14 @@ import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 import { AffiliateDao } from "./affiliateDao";
 
-const tableNames = {
+export const logTableNames = {
   dev: {
     logs: "lftLogsDev",
-    logsTs: "lftLogsTsDev",
+    logsDate: "lftLogsDateDev",
   },
   prod: {
     logs: "lftLogs",
-    logsTs: "lftLogsTs",
+    logsDate: "lftLogsDate",
   },
 } as const;
 
@@ -22,6 +22,9 @@ export interface ILogDao {
   affiliates?: Partial<Record<string, number>>;
   platforms: { name: string; version?: string }[];
   subscriptions: ("apple" | "google")[];
+  year: number;
+  month: number;
+  day: number;
 }
 
 export class LogDao {
@@ -29,15 +32,34 @@ export class LogDao {
 
   public async getAll(): Promise<ILogDao[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.scan({ tableName: tableNames[env].logs });
+    return this.di.dynamo.scan({ tableName: logTableNames[env].logs });
   }
 
   public async getAllSince(ts: number): Promise<ILogDao[]> {
     const env = Utils.getEnv();
     return this.di.dynamo.scan({
-      tableName: tableNames[env].logs,
+      tableName: logTableNames[env].logs,
       filterExpression: "ts > :ts",
       values: { ":ts": ts },
+    });
+  }
+
+  public async getAllForYearAndMonth(year: number, month: number): Promise<ILogDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.query({
+      tableName: logTableNames[env].logs,
+      indexName: logTableNames[env].logsDate,
+      expression: "#month = :month AND #year = :year",
+      attrs: { "#month": "month", "#year": "year" },
+      values: { ":month": month, ":year": year },
+    });
+  }
+
+  public async getFinishWorkoutForUsers(userIds: string[]): Promise<ILogDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.batchGet<ILogDao>({
+      tableName: logTableNames[env].logs,
+      keys: userIds.map((uid) => ({ userId: uid, action: "ls-finish-workout" })),
     });
   }
 
@@ -50,7 +72,7 @@ export class LogDao {
           await Promise.all(
             group.map((userId) => {
               return this.di.dynamo.query<ILogDao>({
-                tableName: tableNames[env].logs,
+                tableName: logTableNames[env].logs,
                 expression: "userId = :userId",
                 values: { ":userId": userId },
               });
@@ -70,7 +92,7 @@ export class LogDao {
     maybeAffiliates?: Partial<Record<string, number>>
   ): Promise<void> {
     const env = Utils.getEnv();
-    const item = await this.di.dynamo.get<ILogDao>({ tableName: tableNames[env].logs, key: { userId, action } });
+    const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
     const affiliates = maybeAffiliates || {};
     const itemAffiliates = item?.affiliates || {};
     const combinedAffiliates = [...Object.keys(affiliates), ...Object.keys(itemAffiliates)].reduce<
@@ -86,32 +108,61 @@ export class LogDao {
       platforms.push(platform);
     }
     const count: number = item?.cnt || 0;
+    const year = new Date().getUTCFullYear();
+    const month = new Date().getUTCMonth();
+    const day = new Date().getUTCDate();
     if (Object.keys(combinedAffiliates).length > 0) {
       const affiliateDao = new AffiliateDao(this.di);
       await affiliateDao.put(Object.keys(combinedAffiliates).map((affiliateId) => ({ affiliateId, userId })));
       await this.di.dynamo.update({
-        tableName: tableNames[env].logs,
+        tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET ts = :timestamp, cnt = :cnt, affiliates = :affiliates, platforms = :platforms, subscriptions = :subscriptions",
+          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day",
+        attrs: {
+          "#ts": "ts",
+          "#cnt": "cnt",
+          "#affiliates": "affiliates",
+          "#platforms": "platforms",
+          "#subscriptions": "subscriptions",
+          "#year": "year",
+          "#month": "month",
+          "#day": "day",
+        },
         values: {
           ":timestamp": Date.now(),
           ":cnt": count + 1,
           ":affiliates": combinedAffiliates,
           ":platforms": platforms,
           ":subscriptions": subscriptions,
+          ":year": year,
+          ":month": month,
+          ":day": day,
         },
       });
     } else {
       await this.di.dynamo.update({
-        tableName: tableNames[env].logs,
+        tableName: logTableNames[env].logs,
         key: { userId, action },
-        expression: "SET ts = :timestamp, cnt = :cnt, platforms = :platforms, subscriptions = :subscriptions",
+        expression:
+          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day",
+        attrs: {
+          "#ts": "ts",
+          "#cnt": "cnt",
+          "#platforms": "platforms",
+          "#subscriptions": "subscriptions",
+          "#year": "year",
+          "#month": "month",
+          "#day": "day",
+        },
         values: {
           ":timestamp": Date.now(),
           ":cnt": count + 1,
           ":platforms": platforms,
           ":subscriptions": subscriptions,
+          ":year": year,
+          ":month": month,
+          ":day": day,
         },
       });
     }
