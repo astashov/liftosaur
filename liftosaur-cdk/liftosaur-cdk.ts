@@ -114,12 +114,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
       sortKey: { name: "action", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
-    // logsTable.addGlobalSecondaryIndex({
-    //   indexName: `lftLogsDate${suffix}`,
-    //   partitionKey: { name: "year", type: dynamodb.AttributeType.NUMBER },
-    //   sortKey: { name: "month", type: dynamodb.AttributeType.NUMBER },
-    //   projectionType: dynamodb.ProjectionType.ALL,
-    // });
+    logsTable.addGlobalSecondaryIndex({
+      indexName: `lftLogsDate${suffix}`,
+      partitionKey: { name: "year", type: dynamodb.AttributeType.NUMBER },
+      sortKey: { name: "month", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const userProgramsTable = new dynamodb.Table(this, `LftUserPrograms${suffix}`, {
       tableName: `lftUserPrograms${suffix}`,
