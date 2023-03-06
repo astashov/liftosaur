@@ -39,7 +39,7 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
           </tr>
         </thead>
         <tbody>
-          {props.users.slice(0, 50).map((user, i) => {
+          {props.users.slice(0, 30).map((user, i) => {
             return (
               <tr className={i % 2 === 0 ? `bg-gray-100` : ""}>
                 <td className="px-2 align-top">
