@@ -98,6 +98,18 @@ export namespace CollectionUtils {
     return set;
   }
 
+  export function collectToSetTransform<T, K extends keyof T, U>(
+    arr: T[],
+    key: K,
+    transformer: (val: T[K]) => U
+  ): Set<U> {
+    const set = new Set<U>();
+    for (const el of arr) {
+      set.add(transformer(el[key]));
+    }
+    return set;
+  }
+
   export function flat<T>(from: T[][]): T[] {
     return from.reduce((acc, val) => acc.concat(val), []);
   }
@@ -150,14 +162,18 @@ export namespace CollectionUtils {
     return arrCopy as any;
   }
 
-  export function sortBy<T extends {}, K extends keyof T>(arr: T[], key: K): T[K] extends number ? T[] : never {
+  export function sortBy<T extends {}, K extends keyof T>(
+    arr: T[],
+    key: K,
+    isReverse?: boolean
+  ): T[K] extends number ? T[] : never {
     const arrCopy = [...arr];
     arrCopy.sort((a, b) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const aVal = a[key] as any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const bVal = b[key] as any;
-      return aVal - bVal;
+      return isReverse ? bVal - aVal : aVal - bVal;
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

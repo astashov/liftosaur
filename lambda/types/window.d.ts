@@ -6,6 +6,8 @@ interface Window {
   isUndoing?: boolean;
   lftAndroidAppVersion?: string;
   lftIosAppVersion?: string;
+  lftAndroidVersion?: number;
+  lftIosVersion?: string;
   AppleID: {
     auth: {
       signIn: () => Promise<{

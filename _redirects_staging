@@ -2,6 +2,7 @@
 /recordimage id=:id user=:user https://api2-dev.liftosaur.com/api/recordimage?id=:id&user=:user  200
 /externalimages/* https://liftosaurimages.s3-us-west-2.amazonaws.com/:splat  200
 /admin/users key=:key https://api2-dev.liftosaur.com/admin/users?key=:key  200
+/dashboards/users key=:key https://api2-dev.liftosaur.com/dashboards/users?key=:key  200
 /admin/logs key=:key https://api2-dev.liftosaur.com/admin/logs?key=:key  200
 /profile/:user https://api2-dev.liftosaur.com/profile?user=:user  200
 /profileimage/:user https://api2-dev.liftosaur.com/profileimage?user=:user  200

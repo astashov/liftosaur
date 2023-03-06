@@ -16,6 +16,7 @@ export interface IProcessedUser {
   settings: ISettings;
   programs: string[];
   timestamp?: number;
+  hasSubscription?: boolean;
 }
 
 export function UsersContent(props: IUsersContentProps): JSX.Element {

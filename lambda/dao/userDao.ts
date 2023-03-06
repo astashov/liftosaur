@@ -134,6 +134,14 @@ export class UserDao {
     });
   }
 
+  public async getLimitedByIds(userIds: string[]): Promise<ILimitedUserDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.batchGet<ILimitedUserDao>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+    });
+  }
+
   public async getUserAndHistory(
     currentUserId: string,
     startDate: string,

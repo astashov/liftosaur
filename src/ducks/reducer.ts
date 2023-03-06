@@ -26,6 +26,7 @@ import {
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { LogUtils } from "../utils/log";
 
 declare let Rollbar: RB;
 const isLoggingEnabled =
@@ -97,7 +98,7 @@ export async function getInitialState(
       user: userId ? { email: userId, id: userId } : undefined,
     };
   }
-  return {
+  const newState: IState = {
     screenStack: [shouldSkipIntro ? "programs" : "first"],
     progress: {},
     programs: [basicBeginnerProgram],
@@ -110,6 +111,8 @@ export async function getInitialState(
     storage: Storage.getDefault(),
     user: userId ? { email: userId, id: userId } : undefined,
   };
+  LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, []);
+  return newState;
 }
 
 export type IChangeDate = {

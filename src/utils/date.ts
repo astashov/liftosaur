@@ -125,4 +125,9 @@ export namespace DateUtils {
       return new Date(Date.UTC(1970, 1, 1)).toISOString();
     }
   }
+
+  export function yearAndMonth(date: Date | string | number): [number, number] {
+    const d = new Date(date);
+    return [d.getUTCFullYear(), d.getUTCMonth()];
+  }
 }

@@ -41,6 +41,9 @@ import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";
+import { renderUsersDashboardHtml } from "./usersDashboard";
+import { DateUtils } from "../src/utils/date";
+import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -559,6 +562,91 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+const getDashboardsUsersEndpoint = Endpoint.build("/dashboards/users", { key: "string" });
+const getDashboardsUsersHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsUsersEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  const apiKey = await di.secrets.getApiKey();
+  if (match.params.key === apiKey) {
+    const lastThreeMonths = [
+      DateUtils.yearAndMonth(Date.now()),
+      DateUtils.yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 30),
+      DateUtils.yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 60),
+    ];
+    const last3MonthslogRecords = (
+      await Promise.all([
+        await new LogDao(di).getAllForYearAndMonth(lastThreeMonths[0][0], lastThreeMonths[0][1]),
+        await new LogDao(di).getAllForYearAndMonth(lastThreeMonths[1][0], lastThreeMonths[1][1]),
+        // await new LogDao(di).getAllForYearAndMonth(lastThreeMonths[2][0], lastThreeMonths[2][1]),
+      ])
+    ).flat();
+    const userIds = Array.from(
+      new Set(last3MonthslogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId))
+    );
+    const users = await new UserDao(di).getLimitedByIds(userIds);
+    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
+    const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
+    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
+
+    const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
+      const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
+      const lastAction = userLogRecords[0];
+      const firstAction = userLogRecords[userLogRecords.length - 1];
+      const workoutsCount = userLogRecords.filter((r) => r.action === "ls-finish-workout")[0]?.cnt || 0;
+      const platforms = Array.from(
+        userLogRecords.reduce<Set<string>>((memo, record) => {
+          for (const val of record.platforms || []) {
+            memo.add(`${val.name}${val.version ? ` - ${val.version}` : ""}`);
+          }
+          return memo;
+        }, new Set())
+      );
+      const affiliates = Array.from(
+        userLogRecords.reduce<Set<string>>((memo, record) => {
+          for (const val of Object.keys(record.affiliates || {})) {
+            memo.add(val);
+          }
+          return memo;
+        }, new Set())
+      );
+      const subscriptions = userLogRecords.reduce<Set<"apple" | "google">>((memo, record) => {
+        for (const val of record.subscriptions || []) {
+          memo.add(val);
+        }
+        return memo;
+      }, new Set());
+      if (Object.keys(usersById[userId]?.storage.subscription.apple || {}).length > 0) {
+        subscriptions.add("apple");
+      }
+      if (Object.keys(usersById[userId]?.storage.subscription.google || {}).length > 0) {
+        subscriptions.add("google");
+      }
+      return {
+        userId,
+        email: usersById[userId]?.email,
+        userTs: usersById[userId]?.createdAt,
+        firstAction: { name: firstAction.action, ts: firstAction.ts },
+        lastAction: { name: lastAction.action, ts: lastAction.ts },
+        workoutsCount,
+        platforms,
+        affiliates,
+        subscriptions: Array.from(subscriptions),
+      };
+    });
+
+    return {
+      statusCode: 200,
+      body: renderUsersDashboardHtml(fetch, apiKey, data),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+  }
+};
+
 const getDashboardsAffiliatesEndpoint = Endpoint.build("/dashboards/affiliates/:id", { key: "string" });
 const getDashboardsAffiliatesHandler: RouteHandler<
   IPayload,
@@ -566,7 +654,8 @@ const getDashboardsAffiliatesHandler: RouteHandler<
   typeof getDashboardsAffiliatesEndpoint
 > = async ({ payload, match }) => {
   const { event, di } = payload;
-  if (match.params.key === (await di.secrets.getApiKey())) {
+  const apiKey = await di.secrets.getApiKey();
+  if (match.params.key === apiKey) {
     const affiliateDao = new AffiliateDao(di);
     const userIds = await affiliateDao.getUserIds(match.params.id);
     const logRecords = await new LogDao(di).getForUsers(userIds);
@@ -1068,6 +1157,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
+      .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)
