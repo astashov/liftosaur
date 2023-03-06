@@ -113,6 +113,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "action", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
     });
     logsTable.addGlobalSecondaryIndex({
       indexName: `lftLogsDate${suffix}`,
