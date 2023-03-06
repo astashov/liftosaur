@@ -11,6 +11,7 @@ export interface IUserDashboardData {
   userId: string;
   email?: string;
   userTs?: number;
+  reviewRequests: number[];
   firstAction: { ts: number; name: string };
   lastAction: { ts: number; name: string };
   workoutsCount: number;
@@ -95,6 +96,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>Days</th>
                         <th>Platforms</th>
                         <th>Affiliates</th>
+                        <th>Review Reqs</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -157,6 +159,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>
                             <td>{item.platforms.join(", ")}</td>
                             <td>{item.affiliates.join(", ")}</td>
+                            <td>
+                              {item.reviewRequests.map((i) => (
+                                <div>{DateUtils.format(i)}</div>
+                              ))}
+                            </td>
                           </tr>
                         );
                       })}

@@ -628,6 +628,7 @@ const getDashboardsUsersHandler: RouteHandler<
         userId,
         email: usersById[userId]?.email,
         userTs: usersById[userId]?.createdAt,
+        reviewRequests: usersById[userId]?.storage?.reviewRequests || [],
         firstAction: { name: firstAction.action, ts: firstAction.ts },
         lastAction: { name: lastAction.action, ts: lastAction.ts },
         workoutsCount,
