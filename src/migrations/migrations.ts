@@ -254,4 +254,9 @@ export const migrations = {
     storage.affiliates = storage.affiliates || {};
     return storage;
   },
+  "20230306235731_add_signup_requests": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.signupRequests = storage.signupRequests || [];
+    return storage;
+  },
 };

@@ -68,6 +68,7 @@ export namespace Storage {
       id: 0,
       currentProgramId: undefined,
       reviewRequests: [],
+      signupRequests: [],
       tempUserId: UidFactory.generateUid(10),
       affiliates: {},
       stats: {

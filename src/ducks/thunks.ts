@@ -209,6 +209,28 @@ export namespace Thunk {
     };
   }
 
+  export function maybeRequestSignup(): IThunk {
+    return async (dispatch, getState) => {
+      try {
+        const history = getState().storage.history;
+        const state = getState();
+        const now = Date.now();
+        const signupRequests = state.storage.signupRequests;
+        const lastsignupRequest = signupRequests[signupRequests.length - 1];
+        if (
+          state.user?.id == null &&
+          history.length > 8 &&
+          signupRequests.length < 3 &&
+          (!lastsignupRequest || now - lastsignupRequest > 1000 * 60 * 60 * 24 * 14)
+        ) {
+          updateState(dispatch, [lb<IState>().p("showSignupRequest").record(true)]);
+        }
+      } catch (e) {
+        Rollbar.error(e);
+      }
+    };
+  }
+
   export function cleanup(): IThunk {
     return async (dispatch, getState) => {
       const state = getState();

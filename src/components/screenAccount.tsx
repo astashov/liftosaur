@@ -95,7 +95,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                       </>
                     )
                   ) : (
-                    <>Not signed in to cloud</>
+                    <span className="text-redv2-main">Not signed in to cloud</span>
                   )}
                 </div>
               }

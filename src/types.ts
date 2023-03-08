@@ -748,6 +748,7 @@ export const TStorage = t.type(
     version: t.string,
     programs: t.array(TProgram),
     reviewRequests: t.array(t.number),
+    signupRequests: t.array(t.number),
     helps: t.array(t.string),
     tempUserId: t.string,
     email: t.union([t.string, t.undefined]),

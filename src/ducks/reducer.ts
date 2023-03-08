@@ -513,6 +513,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         id: newStorage.id,
         email: newStorage.email,
         reviewRequests: newStorage.reviewRequests,
+        signupRequests: newStorage.signupRequests,
         affiliates: newStorage.affiliates,
         stats: {
           weight: {

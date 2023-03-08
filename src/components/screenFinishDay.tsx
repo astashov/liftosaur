@@ -123,6 +123,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               onClick={() => {
                 ScreenActions.setScreen(props.dispatch, "main");
                 props.dispatch(Thunk.maybeRequestReview());
+                props.dispatch(Thunk.maybeRequestSignup());
               }}
             >
               Continue

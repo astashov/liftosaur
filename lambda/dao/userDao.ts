@@ -103,6 +103,7 @@ export class UserDao {
       createdAt: Date.now(),
       storage: {
         affiliates: {},
+        signupRequests: [],
         reviewRequests: [],
         history: [],
         programs: [],

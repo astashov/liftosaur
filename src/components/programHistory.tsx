@@ -16,6 +16,8 @@ import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { useGradualList } from "../utils/useGradualList";
+import { IconUser } from "./icons/iconUser";
+import { ObjectUtils } from "../utils/object";
 
 interface IProps {
   program: IProgram;
@@ -49,12 +51,18 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   });
 
   const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
+  const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
 
   return (
     <Surface
       ref={containerRef}
       navbar={
         <NavbarView
+          rightButtons={[
+            <button data-cy="navbar-user" className="p-2" onClick={() => props.dispatch(Thunk.pushScreen("account"))}>
+              <IconUser size={22} color={props.userId ? "#38A169" : isUserLoading ? "#607284" : "#E53E3E"} />
+            </button>,
+          ]}
           loading={props.loading}
           dispatch={dispatch}
           helpContent={<HelpProgramHistory />}

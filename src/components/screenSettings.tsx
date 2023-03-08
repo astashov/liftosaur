@@ -62,9 +62,13 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItem
           name="Account"
           value={
-            props.user?.email === "noemail@example.com"
-              ? "Signed In"
-              : StringUtils.truncate(props.user?.email || "", 30)
+            props.user?.email == null ? (
+              <span className="text-redv2-main">Not signed in</span>
+            ) : props.user?.email === "noemail@example.com" ? (
+              "Signed In"
+            ) : (
+              StringUtils.truncate(props.user?.email || "", 30)
+            )
           }
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}

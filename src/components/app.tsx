@@ -40,6 +40,7 @@ import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
 import { ObjectUtils } from "../utils/object";
+import { ModalSignupRequest } from "./modalSignupRequest";
 
 interface IProps {
   client: Window["fetch"];
@@ -475,6 +476,9 @@ export function AppView(props: IProps): JSX.Element | null {
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
         <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
+      )}
+      {state.showSignupRequest && (
+        <ModalSignupRequest numberOfWorkouts={state.storage.history.length} dispatch={dispatch} />
       )}
     </Fragment>
   );
