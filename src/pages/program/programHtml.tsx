@@ -16,7 +16,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
       css={["program"]}
       js={["program"]}
       maxWidth={1020}
-      title="Liftosaur: Program Builder"
+      title="Program Builder"
       ogTitle="Liftosaur: Program Builder"
       ogDescription="The program builder for the Liftosaur app"
       ogUrl="https://www.liftosaur.com/builder"

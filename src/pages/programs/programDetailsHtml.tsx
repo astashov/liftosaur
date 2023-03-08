@@ -20,7 +20,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
     <Page
       css={["programdetails"]}
       js={["programdetails"]}
-      title={`Liftosaur: Program Details - ${program.name}`}
+      title={`Program Details - ${program.name}`}
       ogTitle={`Liftosaur: Program Details - ${program.name}`}
       ogDescription={`What days and exercises the program '${program.name}' consists of`}
       ogUrl={`https://www.liftosaur.com/programs/${program.id}`}

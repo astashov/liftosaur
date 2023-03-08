@@ -16,7 +16,7 @@ export function BuilderHtml(props: IProps): JSX.Element {
       css={["builder"]}
       js={["builder"]}
       maxWidth={920}
-      title="Liftosaur: Workout Program Builder"
+      title="Workout Program Builder"
       ogTitle="Liftosaur: Workout Program Builder"
       ogDescription="The weightlifting program builder, allowing to balance volume, time and muscles worked"
       ogUrl="https://www.liftosaur.com/builder"

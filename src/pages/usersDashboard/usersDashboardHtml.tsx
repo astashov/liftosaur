@@ -16,7 +16,7 @@ export function UsersDashboardHtml(props: IUsersDashboardHtmlProps): JSX.Element
       css={["usersdashboard"]}
       js={["usersdashboard"]}
       maxWidth={1300}
-      title="Liftosaur: Users Dashboard"
+      title="Users Dashboard"
       ogTitle="Liftosaur: Users Dashboard"
       ogDescription="The dashboard to see users' activity came from affiliate"
       ogUrl="https://www.liftosaur.com/dashboards/users"

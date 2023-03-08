@@ -17,7 +17,7 @@ export function AffiliateDashboardHtml(props: IAffiliateDashboardHtmlProps): JSX
       css={["affiliatedashboard"]}
       js={["affiliatedashboard"]}
       maxWidth={920}
-      title="Liftosaur: Affiliate Dashboard"
+      title="Affiliate Dashboard"
       ogTitle="Liftosaur: Affiliate Dashboard"
       ogDescription="The dashboard to see users' activity came from affiliate"
       ogUrl={`https://www.liftosaur.com/dashboards/affiliate/${props.affiliateId}`}
