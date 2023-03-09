@@ -988,7 +988,8 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const di = payload.di;
   const data = params.data;
   let program: IExportedProgram | undefined;
-  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] ?? "");
+  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+
   if (data) {
     try {
       const exportedProgramJson = await NodeEncoder.decode(data);

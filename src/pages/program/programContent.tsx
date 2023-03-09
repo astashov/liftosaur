@@ -14,6 +14,7 @@ import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
 import { Service } from "../../api/service";
 import { useState } from "preact/hooks";
+import { ClipboardUtils } from "../../utils/clipboard";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -144,15 +145,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   onClick={async () => {
                     const service = new Service(props.client);
                     const url = await service.postShortUrl(window.location.href, "p");
-                    navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
-                      if (result.state === "granted" || result.state === "prompt") {
-                        navigator.clipboard.writeText(url);
-                        setShowClipboardInfo(url);
-                        setTimeout(() => {
-                          setShowClipboardInfo(undefined);
-                        }, 5000);
-                      }
-                    });
+                    await ClipboardUtils.copy(url);
+                    setShowClipboardInfo(url);
+                    setTimeout(() => {
+                      setShowClipboardInfo(undefined);
+                    }, 5000);
                   }}
                 >
                   <IconLink />
