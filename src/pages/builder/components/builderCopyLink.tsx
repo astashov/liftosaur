@@ -6,6 +6,7 @@ import { useEffect } from "preact/hooks";
 
 interface IBuilerCopyLinkProps<T> {
   msg?: string;
+  rightAligned?: boolean;
   type: "p" | "b";
   program: T;
   client: Window["fetch"];
@@ -20,7 +21,7 @@ export function BuilderCopyLink<T>(props: IBuilerCopyLinkProps<T>): JSX.Element 
   }, [props.program]);
 
   return (
-    <div className="flex items-center text-right">
+    <div className={`flex items-center text-right ${props.rightAligned ? "flex-row-reverse" : ""}`}>
       {showInfo && (
         <div className="mr-2 align-middle">
           <div>{msg} </div>

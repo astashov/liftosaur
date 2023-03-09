@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { BottomSheet } from "./bottomSheet";
 import { IconEditSquare } from "./icons/iconEditSquare";
@@ -8,6 +8,7 @@ import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { IconStats } from "./icons/iconStats";
+import { IconEdit } from "./icons/iconEdit";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -31,8 +32,14 @@ export function BottomSheetEditExercise(props: IProps): JSX.Element {
           name="edit-exercise"
           title="Edit Exercise"
           isFirst={true}
-          icon={<IconEditSquare />}
-          description='Edit only for this workout, it will not change it in the program. To change it in the program, press "Edit Day" in the footer.'
+          icon={<IconEdit penColor="#607284" lineColor="#607284" size={18} />}
+          description={
+            <>
+              Edit <strong>only for this workout</strong>, it will not change it in the program. To change it in the
+              program, press <IconEditSquare className="inline-block mx-1" /> at the top of the screen to edit the
+              program, and edit exercise there.
+            </>
+          }
           onClick={() =>
             updateState(props.dispatch, [
               lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexEditMode").record(entryIndex),

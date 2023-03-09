@@ -1,8 +1,15 @@
 import { h, JSX } from "preact";
 
-export function IconEditSquare(): JSX.Element {
+export function IconEditSquare(props: { className?: string }): JSX.Element {
   return (
-    <svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="17"
+      height="18"
+      viewBox="0 0 17 18"
+      className={props.className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M8.5 1.91663H2.25C1.55965 1.91663 1 2.47627 1 3.16663V15.6666C1 16.357 1.55965 16.9166 2.25 16.9166H14.75C15.4404 16.9166 16 16.357 16 15.6666V9.41663"
         stroke="black"

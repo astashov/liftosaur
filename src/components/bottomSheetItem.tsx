@@ -5,7 +5,7 @@ interface IProps {
   name: string;
   icon: JSX.Element;
   isFirst?: boolean;
-  description: string;
+  description: string | JSX.Element;
   className?: string;
   onClick: () => void;
 }

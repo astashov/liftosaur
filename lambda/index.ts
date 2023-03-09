@@ -44,6 +44,7 @@ import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDa
 import { renderUsersDashboardHtml } from "./usersDashboard";
 import { DateUtils } from "../src/utils/date";
 import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
+import { Mobile } from "./utils/mobile";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -987,6 +988,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const di = payload.di;
   const data = params.data;
   let program: IExportedProgram | undefined;
+  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] ?? "");
   if (data) {
     try {
       const exportedProgramJson = await NodeEncoder.decode(data);
@@ -1003,7 +1005,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderProgramHtml(fetch, program),
+    body: renderProgramHtml(fetch, isMobile, program),
     headers: { "content-type": "text/html" },
   };
 };

@@ -5,6 +5,7 @@ import { ProgramContent } from "./programContent";
 
 interface IProps {
   exportedProgram?: IExportedProgram;
+  isMobile: boolean;
   client: Window["fetch"];
 }
 

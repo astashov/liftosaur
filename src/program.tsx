@@ -1,14 +1,11 @@
 import { h } from "preact";
-import { ProgramContent } from "./pages/program/programContent";
-import { IProgram } from "./types";
+import { IProgramContentProps, ProgramContent } from "./pages/program/programContent";
 import { HydrateUtils } from "./utils/hydrate";
 
-interface IData {
-  program?: IProgram;
-}
-
 function main(): void {
-  HydrateUtils.hydratePage<IData>((data) => <ProgramContent {...data} client={window.fetch.bind(window)} />);
+  HydrateUtils.hydratePage<IProgramContentProps>((data) => (
+    <ProgramContent {...data} client={window.fetch.bind(window)} />
+  ));
 }
 
 main();
