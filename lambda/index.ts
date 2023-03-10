@@ -45,6 +45,7 @@ import { renderUsersDashboardHtml } from "./usersDashboard";
 import { DateUtils } from "../src/utils/date";
 import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile } from "./utils/mobile";
+import { renderAffiliatesHtml } from "./affiliates";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1011,6 +1012,18 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   };
 };
 
+const getAffiliatesEndpoint = Endpoint.build("/affiliates");
+const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAffiliatesEndpoint> = async ({
+  payload,
+  match,
+}) => {
+  return {
+    statusCode: 200,
+    body: renderAffiliatesHtml(fetch),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 const getProgramShorturlResponseEndpoint = Endpoint.build("/api/p/:id");
 const getProgramShorturlResponseHandler: RouteHandler<
   IPayload,
@@ -1162,6 +1175,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
+      .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)

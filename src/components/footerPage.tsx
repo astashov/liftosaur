@@ -22,6 +22,7 @@ export function FooterPage(): JSX.Element {
                 ["Blog", "/blog"],
                 ["Terms & Conditions", "/terms.html"],
                 ["Privacy", "/privacy.html"],
+                ["Affiliate Program", "/affiliates"],
               ].map(([text, link]) => {
                 return (
                   <li className="inline-block mx-4 my-0 text-left">
