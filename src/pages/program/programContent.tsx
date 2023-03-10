@@ -15,6 +15,8 @@ import { IconLogo } from "../../components/icons/iconLogo";
 import { Service } from "../../api/service";
 import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
+import { ProgramContentModalSettings } from "./components/programContentModalSettings";
+import { IconCog2 } from "../../components/icons/iconCog2";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -81,6 +83,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   ]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [programUrl, setProgramUrl] = useState<string | undefined>(undefined);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     if (props.isMobile) {
@@ -146,8 +149,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   <h4 className="text-sm text-grayv2-main">{state.current.program.name}</h4>
                 </div>
               </div>
-              {programUrl && (
-                <div className="flex-1 text-right">
+              <div className="flex-1 text-right">
+                <button title="Settings" className="p-2" onClick={() => setShowSettingsModal(true)}>
+                  <IconCog2 />
+                </button>
+                {programUrl && (
                   <button
                     title="Copy link to clipboard"
                     className="p-2 align-middle"
@@ -162,8 +168,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   >
                     <IconLink />
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {showClipboardInfo && (
               <div className="text-xs text-center text-grayv2-main">
@@ -186,8 +192,19 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           </section>
         </>
       ) : (
-        <ProgramContentEditor client={props.client} state={state} dispatch={dispatch} />
+        <ProgramContentEditor
+          client={props.client}
+          state={state}
+          dispatch={dispatch}
+          onShowSettingsModal={() => setShowSettingsModal(true)}
+        />
       )}
+      <ProgramContentModalSettings
+        isHidden={!showSettingsModal}
+        settings={state.settings}
+        dispatch={dispatch}
+        onClose={() => setShowSettingsModal(false)}
+      />
     </div>
   );
 }

@@ -27,7 +27,6 @@ import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import { ProgramContentMuscles } from "./components/programContentMuscles";
 import { dequal } from "dequal";
 import { IconCog2 } from "../../components/icons/iconCog2";
-import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { EditExerciseUtil } from "./utils/editExerciseUtil";
 import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
 
@@ -35,6 +34,7 @@ export interface IProgramContentProps {
   client: Window["fetch"];
   dispatch: ILensDispatch<IProgramEditorState>;
   state: IProgramEditorState;
+  onShowSettingsModal: () => void;
 }
 
 export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
@@ -43,7 +43,6 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
   const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const program = state.current.program;
   const editExercises = state.current.editExercises;
@@ -79,7 +78,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 client={props.client}
                 msg="Copied the link with this program to the clipboard"
               />
-              <button title="Settings" className="p-2" onClick={() => setShowSettingsModal(true)}>
+              <button title="Settings" className="p-2" onClick={() => props.onShowSettingsModal()}>
                 <IconCog2 />
               </button>
               <button
@@ -324,12 +323,6 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
         isHidden={showAddExistingExerciseModal == null}
         program={program}
         settings={state.settings}
-      />
-      <ProgramContentModalSettings
-        isHidden={!showSettingsModal}
-        settings={state.settings}
-        dispatch={dispatch}
-        onClose={() => setShowSettingsModal(false)}
       />
       {lbExamples && (
         <ProgramContentModalExerciseExamples unit={state.settings.units} dispatch={dispatch} lbe={lbExamples!} />
