@@ -13,7 +13,7 @@ import { ProgramContentEditor } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
 import { Service } from "../../api/service";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 
 export interface IProgramContentProps {
@@ -80,6 +80,14 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     },
   ]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
+  const [programUrl, setProgramUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (props.isMobile) {
+      const service = new Service(props.client);
+      service.postShortUrl(window.location.href, "p").then(setProgramUrl);
+    }
+  }, []);
 
   return (
     <div>
@@ -138,23 +146,24 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                   <h4 className="text-sm text-grayv2-main">{state.current.program.name}</h4>
                 </div>
               </div>
-              <div className="flex-1 text-right">
-                <button
-                  title="Copy link to clipboard"
-                  className="p-2 align-middle"
-                  onClick={async () => {
-                    const service = new Service(props.client);
-                    const url = await service.postShortUrl(window.location.href, "p");
-                    await ClipboardUtils.copy(url);
-                    setShowClipboardInfo(url);
-                    setTimeout(() => {
-                      setShowClipboardInfo(undefined);
-                    }, 5000);
-                  }}
-                >
-                  <IconLink />
-                </button>
-              </div>
+              {programUrl && (
+                <div className="flex-1 text-right">
+                  <button
+                    title="Copy link to clipboard"
+                    className="p-2 align-middle"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      await ClipboardUtils.copy(programUrl);
+                      setShowClipboardInfo(programUrl);
+                      setTimeout(() => {
+                        setShowClipboardInfo(undefined);
+                      }, 5000);
+                    }}
+                  >
+                    <IconLink />
+                  </button>
+                </div>
+              )}
             </div>
             {showClipboardInfo && (
               <div className="text-xs text-center text-grayv2-main">
