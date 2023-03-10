@@ -97,7 +97,9 @@ export namespace Thunk {
         state.user?.id || state.storage.tempUserId,
         action,
         state.storage.affiliates,
-        ObjectUtils.keys(state.storage.subscription).filter((k) => state.storage.subscription[k])
+        ObjectUtils.keys(state.storage.subscription).filter(
+          (k) => Object.keys(state.storage.subscription[k]).length > 0
+        )
       );
     };
   }
