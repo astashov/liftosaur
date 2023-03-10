@@ -28,6 +28,7 @@ import { ClipboardUtils } from "../utils/clipboard";
 import { Progress } from "../models/progress";
 import { ImportFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
+import { LogUtils } from "../utils/log";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -86,6 +87,18 @@ export namespace Thunk {
         await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
+    };
+  }
+
+  export function log(action: string): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      LogUtils.log(
+        state.user?.id || state.storage.tempUserId,
+        action,
+        state.storage.affiliates,
+        ObjectUtils.keys(state.storage.subscription).filter((k) => state.storage.subscription[k])
+      );
     };
   }
 

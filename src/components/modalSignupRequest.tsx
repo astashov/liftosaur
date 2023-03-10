@@ -26,6 +26,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
       shouldShowClose={true}
       isFullWidth={true}
       onClose={() => {
+        props.dispatch(Thunk.log("ls-signup-request-close"));
         updateState(props.dispatch, lbSaveSignupRequestDate);
       }}
     >
@@ -61,8 +62,8 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           <Button
             type="button"
             kind="grayv2"
-            data-cy="modal-weight-cancel"
-            className="mr-3"
+            data-cy="modal-signup-request-later"
+            className="mr-3 ls-signup-request-maybe-later"
             onClick={() => {
               updateState(props.dispatch, lbSaveSignupRequestDate);
             }}
@@ -71,8 +72,8 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           </Button>
           <Button
             kind="orange"
-            data-cy="modal-weight-submit"
-            className="ls-modal-set-weight"
+            data-cy="modal-signup-request-submit"
+            className="ls-signup-request-signup"
             onClick={() => {
               updateState(props.dispatch, lbSaveSignupRequestDate);
               props.dispatch(Thunk.pushScreen("account"));
