@@ -626,11 +626,26 @@ const getDashboardsUsersHandler: RouteHandler<
       if (Object.keys(usersById[userId]?.storage.subscription.google || {}).length > 0) {
         subscriptions.add("google");
       }
+      const signupRequests = userLogRecords.reduce<[number, number, number]>(
+        (memo, r) => {
+          if (r.action === "ls-signup-request-signup") {
+            memo[0] += r.cnt;
+          } else if (r.action === "ls-signup-request-maybe-later") {
+            memo[1] += r.cnt;
+          } else if (r.action === "ls-signup-request-close") {
+            memo[2] += r.cnt;
+          }
+          return memo;
+        },
+        [0, 0, 0]
+      );
+
       return {
         userId,
         email: usersById[userId]?.email,
         userTs: usersById[userId]?.createdAt,
         reviewRequests: usersById[userId]?.storage?.reviewRequests || [],
+        signupRequests: signupRequests,
         firstAction: { name: firstAction.action, ts: firstAction.ts },
         lastAction: { name: lastAction.action, ts: lastAction.ts },
         workoutsCount,

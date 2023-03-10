@@ -12,6 +12,7 @@ export interface IUserDashboardData {
   email?: string;
   userTs?: number;
   reviewRequests: number[];
+  signupRequests: number[];
   firstAction: { ts: number; name: string };
   lastAction: { ts: number; name: string };
   workoutsCount: number;
@@ -97,6 +98,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>Platforms</th>
                         <th>Affiliates</th>
                         <th>Review Reqs</th>
+                        <th>Signup Reqs</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -164,6 +166,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                 <div>{DateUtils.format(i)}</div>
                               ))}
                             </td>
+                            <td>{item.signupRequests.join(", ")}</td>
                           </tr>
                         );
                       })}
