@@ -6,14 +6,7 @@ import { ISubscription } from "../types";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
-    let subscriptionParam: string | undefined;
-    if (typeof window !== "undefined" && window?.document?.location?.href) {
-      const url = new URL(window.document.location.href);
-      subscriptionParam = url.searchParams.get("subscription") || undefined;
-    } else {
-      subscriptionParam = undefined;
-    }
-    if (!subscriptionParam) {
+    if (subscription.key && subscription.key !== "unclaimed") {
       return true;
     }
     const hasApple = hasAppleSubscription(subscription);
@@ -21,11 +14,25 @@ export namespace Subscriptions {
     return hasApple || hasGoogle;
   }
 
-  export function hasAppleSubscription(subscription: ISubscription): boolean {
+  export function listOfSubscriptions(subscription: ISubscription): string[] {
+    const arr: string[] = [];
+    if (Object.keys(subscription.apple || []).length > 0) {
+      arr.push("apple");
+    }
+    if (Object.keys(subscription.google || []).length > 0) {
+      arr.push("google");
+    }
+    if (subscription.key) {
+      arr.push("key");
+    }
+    return arr;
+  }
+
+  function hasAppleSubscription(subscription: ISubscription): boolean {
     return Object.keys(subscription.apple).length > 0;
   }
 
-  export function hasGoogleSubscription(subscription: ISubscription): boolean {
+  function hasGoogleSubscription(subscription: ISubscription): boolean {
     return Object.keys(subscription.google).length > 0;
   }
 

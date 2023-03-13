@@ -732,10 +732,15 @@ export const TStats = t.type({
 });
 export type IStats = t.TypeOf<typeof TStats>;
 
-export const TSubscription = t.type({
-  apple: dictionary(t.string, t.null),
-  google: dictionary(t.string, t.null),
-});
+export const TSubscription = t.intersection([
+  t.interface({
+    apple: dictionary(t.string, t.null),
+    google: dictionary(t.string, t.null),
+  }),
+  t.partial({
+    key: t.union([t.string, t.undefined]),
+  }),
+]);
 export type ISubscription = t.TypeOf<typeof TSubscription>;
 
 export const TStorage = t.type(

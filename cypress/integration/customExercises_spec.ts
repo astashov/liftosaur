@@ -1,4 +1,4 @@
-import { g } from "../support/utils";
+import { disableSubscriptions, g } from "../support/utils";
 
 describe("Custom Exercises", () => {
   beforeEach(() => {
@@ -14,6 +14,7 @@ describe("Custom Exercises", () => {
     // Creating the program
 
     g("create-program").click();
+    disableSubscriptions();
 
     g("modal-create-program-input").clear().type("My Program");
     g("modal-create-program-submit").click();

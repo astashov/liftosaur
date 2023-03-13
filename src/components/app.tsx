@@ -21,7 +21,6 @@ import { IEnv, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
-import { LogUtils } from "../utils/log";
 import { ScreenStats } from "./screenStats";
 import { ScreenFriends } from "./screenFriends";
 import { ScreenFriendsAdd } from "./screenFriendsAdd";
@@ -39,7 +38,6 @@ import { Exercise } from "../models/exercise";
 import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
-import { ObjectUtils } from "../utils/object";
 import { ModalSignupRequest } from "./modalSignupRequest";
 
 interface IProps {
@@ -111,15 +109,7 @@ export function AppView(props: IProps): JSX.Element | null {
       if (button != null) {
         const name = (button.getAttribute("class") || "").split(/\s+/).filter((c) => c.startsWith("ls-"))[0];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const st = (window as any).state as IState;
-        LogUtils.log(
-          st.user?.id || st.storage.tempUserId,
-          name,
-          st.storage.affiliates,
-          ObjectUtils.keys(st.storage.subscription || {}).filter(
-            (s) => Object.keys(st.storage.subscription[s] || {}).length > 0
-          )
-        );
+        dispatch(Thunk.log(name));
       }
     });
     window.addEventListener("message", (event) => {
@@ -173,6 +163,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription
+        subscription={state.storage.subscription}
         subscriptionLoading={state.subscriptionLoading}
         dispatch={dispatch}
         loading={state.loading}

@@ -6,6 +6,7 @@ export interface IGetStorageResponse {
   email: string;
   storage: IStorage;
   user_id: string;
+  key?: string;
 }
 
 const cachePromises: Partial<Record<string, unknown>> = {};
@@ -73,15 +74,36 @@ export class Service {
     });
   }
 
-  public async getStorage(userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
+  public async postClaimKey(userid: string): Promise<{ key: string; expires: number } | undefined> {
+    const response = await this.client(`${__API_HOST__}/api/claimkey/${userid}`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const json = await response.json();
+    return json?.data?.claim;
+  }
+
+  public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
+    const url = new URL(`${__API_HOST__}/api/addfreeuser/${userid}`);
+    url.searchParams.set("key", adminKey);
+    await this.client(url.toString(), {
+      method: "POST",
+      credentials: "include",
+    });
+  }
+
+  public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
     const url = new URL(`${__API_HOST__}/api/storage`);
+    if (tempUserId) {
+      url.searchParams.set("tempuserid", tempUserId);
+    }
     if (userId != null && adminKey != null) {
       url.searchParams.set("userid", userId);
       url.searchParams.set("key", adminKey);
     }
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
-    return { email: json.email, storage: json.storage, user_id: json.user_id };
+    return { email: json.email, storage: json.storage, user_id: json.user_id, key: json.key };
   }
 
   private async cache(key: string, fn: () => Promise<unknown>): Promise<unknown> {

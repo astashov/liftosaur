@@ -97,9 +97,11 @@ export namespace Thunk {
         state.user?.id || state.storage.tempUserId,
         action,
         state.storage.affiliates,
-        ObjectUtils.keys(state.storage.subscription).filter(
-          (k) => Object.keys(state.storage.subscription[k]).length > 0
-        )
+        Subscriptions.listOfSubscriptions(state.storage.subscription),
+        () => {
+          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)]);
+        },
+        state.storage.subscription.key
       );
     };
   }
@@ -151,9 +153,10 @@ export namespace Thunk {
 
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
-      const result = await load(dispatch, "fetchStorage", () =>
-        env.service.getStorage(getState().user?.id, getState().adminKey)
-      );
+      const result = await load(dispatch, "fetchStorage", () => {
+        const state = getState();
+        return env.service.getStorage(state.storage.tempUserId, state.user?.id, state.adminKey);
+      });
       await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
     };
   }
@@ -670,6 +673,22 @@ export namespace Thunk {
     };
   }
 
+  export function claimkey(): IThunk {
+    return async (dispatch, getState, env) => {
+      const claim = await env.service.postClaimKey(getState().storage.tempUserId);
+      if (claim) {
+        updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(claim.key)]);
+        const date = DateUtils.format(claim.expires);
+        alert(`Successfully claimed the free access until ${date}`);
+        dispatch(log("ls-claim-free-user-success"));
+        dispatch(pullScreen());
+      } else {
+        alert("Failed to claim the free access");
+        dispatch(log("ls-claim-free-user-fail"));
+      }
+    };
+  }
+
   export function fetchInitial(): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().storage.whatsNew == null) {
@@ -816,6 +835,7 @@ async function handleLogin(
     const storage = await runMigrations(client, result.storage);
     storage.tempUserId = result.user_id;
     storage.email = result.email;
+    storage.subscription.key = result.key;
     if (oldUserId === result.user_id) {
       dispatch({ type: "SyncStorage", storage });
       dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -825,5 +845,7 @@ async function handleLogin(
       dispatch({ type: "ReplaceState", state: newState });
     }
     dispatch(Thunk.fetchInitial());
+  } else if (result.key) {
+    updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
   }
 }

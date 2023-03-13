@@ -16,6 +16,12 @@ export function typeCodeMirror(dataCy: string, text: string): void {
   g(dataCy).find("textarea").type(text, { force: true });
 }
 
+export function disableSubscriptions(): void {
+  cy.window().then((win) => {
+    win.eval('state.storage.subscription.key = "test"');
+  });
+}
+
 export function clearAll(): void {
   cy.clearCookies();
   cy.clearLocalStorage();

@@ -11,6 +11,7 @@ import { AudioInterface } from "./lib/audioInterface";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
 import { IndexedDBUtils } from "./utils/indexeddb";
+import { Service } from "./api/service";
 
 IndexedDBUtils.initializeForSafari();
 
@@ -33,6 +34,7 @@ async function initialize(loadedData: unknown): Promise<void> {
     initialState.adminKey = adminKey;
   }
   (window as any).state = initialState;
+  (window as any).service = new Service(window.fetch.bind(window));
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
 }
 

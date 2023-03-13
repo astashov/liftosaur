@@ -46,6 +46,7 @@ import { DateUtils } from "../src/utils/date";
 import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
+import { FreeUserDao } from "./dao/freeUserDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -153,7 +154,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
-const getStorageEndpoint = Endpoint.build("/api/storage", { key: "string?", userid: "string?" });
+const getStorageEndpoint = Endpoint.build("/api/storage", { tempuserid: "string?", key: "string?", userid: "string?" });
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
   match,
@@ -166,6 +167,11 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   } else {
     userId = await getCurrentUserId(event, di);
   }
+  let keyResult: { key: string; isClaimed: boolean } | undefined;
+  if (match.params.tempuserid) {
+    keyResult = await new FreeUserDao(di).getKey(match.params.tempuserid);
+  }
+  const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
   if (userId != null) {
     const userDao = new UserDao(di);
     const user = await userDao.getById(userId);
@@ -174,10 +180,11 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
         storage: user.storage,
         email: user.email,
         user_id: user.id,
+        key,
       });
     }
   }
-  return ResponseUtils.json(200, event, {});
+  return ResponseUtils.json(200, event, { key });
 };
 
 const saveStorageEndpoint = Endpoint.build("/api/storage");
@@ -466,16 +473,38 @@ const publishProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   }
 };
 
+const postAddFreeUserEndpoint = Endpoint.build("/api/addfreeuser/:id", { key: "string" });
+const postAddFreeUserHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAddFreeUserEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key === (await di.secrets.getApiKey())) {
+    await new FreeUserDao(di).create(params.id);
+    return ResponseUtils.json(200, event, { data: "ok" });
+  } else {
+    return ResponseUtils.json(401, event, {});
+  }
+};
+
 const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
-  const { user, action, affiliates, platform, subscriptions } = getBodyJson(event);
-  let data;
+  const env = Utils.getEnv();
+  const { user, action, affiliates, platform, subscriptions, key, enforce } = getBodyJson(event);
+  let data: { result: "ok" | "error"; clear?: boolean };
   if (user && action) {
+    let clear: boolean | undefined;
+    if (key != null && (env === "prod" || enforce)) {
+      const fetchedKey = await new FreeUserDao(di).verifyKey(user);
+      if (fetchedKey !== key) {
+        clear = true;
+      }
+    }
     await new LogDao(di).increment(user, action, platform, subscriptions, affiliates);
-    data = "ok";
+    data = { result: "ok", clear };
   } else {
-    data = "error";
+    data = { result: "error" };
   }
   return ResponseUtils.json(200, event, { data });
 };
@@ -1061,6 +1090,18 @@ const getProgramShorturlResponseHandler: RouteHandler<
   return ResponseUtils.json(404, event, {});
 };
 
+const postClaimFreeUserEndpoint = Endpoint.build("/api/claimkey/:userid");
+const postClaimFreeUserHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postClaimFreeUserEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di, event } = payload;
+  const userid = params.userid;
+  const claim = await new FreeUserDao(di).claim(userid);
+  return ResponseUtils.json(200, event, { data: { claim } });
+};
+
 const getProgramShorturlEndpoint = Endpoint.build("/p/:id");
 const getProgramShorturlHandler: RouteHandler<
   IPayload,
@@ -1192,6 +1233,8 @@ export const handler = rollbar.lambdaHandler(
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
+      .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
+      .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)
       .get(getProgramEndpoint, getProgramHandler)

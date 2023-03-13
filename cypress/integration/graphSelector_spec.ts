@@ -1,4 +1,4 @@
-import { g } from "../support/utils";
+import { g, disableSubscriptions } from "../support/utils";
 
 describe("Graphs", () => {
   beforeEach(() => {
@@ -11,6 +11,7 @@ describe("Graphs", () => {
   it("edits sets properly", () => {
     cy.visit("https://local.liftosaur.com:8080?skipintro=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
+    disableSubscriptions();
     g("clone-program").click();
     g("footer-graphs").click();
 

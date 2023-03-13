@@ -8,8 +8,15 @@ export namespace LogUtils {
     user: string,
     action: string,
     affiliates: Partial<Record<string, number>>,
-    subscriptions: ("apple" | "google")[]
+    subscriptions: string[],
+    onClear: () => void,
+    key?: string
   ): Promise<void> {
+    let enforce = false;
+    if (typeof window !== "undefined") {
+      const currentUrl = new URL(window.location.href);
+      enforce = !!currentUrl.searchParams.get("enforce");
+    }
     const platform = {
       name: window.lftAndroidVersion ? "android" : window.lftIosVersion ? "ios" : "web",
       version: window.lftAndroidAppVersion || window.lftIosAppVersion,
@@ -18,9 +25,15 @@ export namespace LogUtils {
     try {
       fetch(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ user, action, affiliates, platform, subscriptions }),
+        body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, enforce }),
         credentials: "include",
-      });
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.data.clear) {
+            onClear();
+          }
+        });
     } catch (e) {
       if (Rollbar != null) {
         Rollbar.error("Log failed");

@@ -111,7 +111,7 @@ export async function getInitialState(
     storage: Storage.getDefault(),
     user: userId ? { email: userId, id: userId } : undefined,
   };
-  LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, []);
+  LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;
 }
 

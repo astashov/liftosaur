@@ -1,4 +1,7 @@
 {
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
     "target": "es2015",
     "lib": ["esnext", "dom", "WebWorker"],

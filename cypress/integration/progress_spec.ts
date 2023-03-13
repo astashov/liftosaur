@@ -1,4 +1,4 @@
-import { g } from "../support/utils";
+import { disableSubscriptions, g } from "../support/utils";
 
 describe("Progress", () => {
   beforeEach(() => {
@@ -11,6 +11,7 @@ describe("Progress", () => {
   it("Clones a program and goes through first day", () => {
     cy.visit("https://local.liftosaur.com:8080?skipintro=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
+    disableSubscriptions();
     g("clone-program").click();
     g("start-workout").click();
 
