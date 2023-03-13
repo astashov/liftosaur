@@ -643,7 +643,7 @@ const getDashboardsUsersHandler: RouteHandler<
           return memo;
         }, new Set())
       );
-      const subscriptions = userLogRecords.reduce<Set<"apple" | "google">>((memo, record) => {
+      const subscriptions = userLogRecords.reduce<Set<"apple" | "google" | "unclaimed" | "free">>((memo, record) => {
         for (const val of record.subscriptions || []) {
           memo.add(val);
         }
@@ -654,6 +654,11 @@ const getDashboardsUsersHandler: RouteHandler<
       }
       if (Object.keys(usersById[userId]?.storage.subscription.google || {}).length > 0) {
         subscriptions.add("google");
+      }
+      if (usersById[userId]?.storage.subscription.key === "unclaimed") {
+        subscriptions.add("unclaimed");
+      } else if (usersById[userId]?.storage.subscription.key) {
+        subscriptions.add("free");
       }
       const signupRequests = userLogRecords.reduce<[number, number, number]>(
         (memo, r) => {

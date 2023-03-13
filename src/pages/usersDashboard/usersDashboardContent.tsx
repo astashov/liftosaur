@@ -18,7 +18,7 @@ export interface IUserDashboardData {
   workoutsCount: number;
   platforms: string[];
   affiliates: string[];
-  subscriptions: ("apple" | "google")[];
+  subscriptions: ("apple" | "google" | "unclaimed" | "free")[];
 }
 
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
@@ -126,6 +126,12 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                 )}
                                 {item.subscriptions.indexOf("google") !== -1 && (
                                   <span className="ml-2 font-bold text-greenv2-main">G</span>
+                                )}
+                                {item.subscriptions.indexOf("unclaimed") !== -1 && (
+                                  <span className="ml-2 font-bold text-grayv2-main">F</span>
+                                )}
+                                {item.subscriptions.indexOf("free") !== -1 && (
+                                  <span className="ml-2 font-bold text-greenv2-main">F</span>
                                 )}
                               </div>
                               {item.email && (
