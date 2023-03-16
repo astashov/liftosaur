@@ -621,7 +621,7 @@ const getDashboardsUsersHandler: RouteHandler<
     const usersById = CollectionUtils.groupByKeyUniq(users, "id");
     const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
     const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
-    const freeUsers = await new FreeUserDao(di).getAll(Object.keys(userIds));
+    const freeUsers = await new FreeUserDao(di).getAll(userIds);
     const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
 
     const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
