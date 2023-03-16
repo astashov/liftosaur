@@ -22,7 +22,9 @@ export namespace Subscriptions {
     if (Object.keys(subscription.google || []).length > 0) {
       arr.push("google");
     }
-    if (subscription.key) {
+    if (subscription.key === "unclaimed") {
+      arr.push("unclaimedkey");
+    } else if (subscription.key) {
       arr.push("key");
     }
     return arr;

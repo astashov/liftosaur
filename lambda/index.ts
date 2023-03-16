@@ -645,7 +645,7 @@ const getDashboardsUsersHandler: RouteHandler<
           return memo;
         }, new Set())
       );
-      const subscriptions = userLogRecords.reduce<Set<"apple" | "google" | "unclaimed" | "free">>((memo, record) => {
+      const subscriptions = userLogRecords.reduce<Set<"apple" | "google" | "unclaimedkey" | "key">>((memo, record) => {
         for (const val of record.subscriptions || []) {
           memo.add(val);
         }
@@ -658,9 +658,9 @@ const getDashboardsUsersHandler: RouteHandler<
         subscriptions.add("google");
       }
       if (usersById[userId]?.storage.subscription.key === "unclaimed") {
-        subscriptions.add("unclaimed");
+        subscriptions.add("unclaimedkey");
       } else if (usersById[userId]?.storage.subscription.key) {
-        subscriptions.add("free");
+        subscriptions.add("key");
       }
       const signupRequests = userLogRecords.reduce<[number, number, number]>(
         (memo, r) => {

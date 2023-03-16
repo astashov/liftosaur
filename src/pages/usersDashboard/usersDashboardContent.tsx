@@ -19,7 +19,7 @@ export interface IUserDashboardData {
   platforms: string[];
   affiliates: string[];
   freeUserExpires?: number;
-  subscriptions: ("apple" | "google" | "unclaimed" | "free")[];
+  subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
 }
 
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
@@ -129,10 +129,10 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                 {item.subscriptions.indexOf("google") !== -1 && (
                                   <span className="ml-2 font-bold text-greenv2-main">G</span>
                                 )}
-                                {item.subscriptions.indexOf("unclaimed") !== -1 && (
+                                {item.subscriptions.indexOf("unclaimedkey") !== -1 && (
                                   <span className="ml-2 font-bold text-grayv2-main">F</span>
                                 )}
-                                {item.subscriptions.indexOf("free") !== -1 && (
+                                {item.subscriptions.indexOf("key") !== -1 && (
                                   <span className="ml-2 font-bold text-greenv2-main">F</span>
                                 )}
                               </div>
