@@ -29,6 +29,14 @@ export class FreeUserDao {
     });
   }
 
+  public async getAll(ids: string[]): Promise<IFreeUserDao[]> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.batchGet<IFreeUserDao>({
+      tableName: freeUsersTableNames[env].freeUsers,
+      keys: ids.map((id) => ({ id })),
+    });
+  }
+
   public async claim(id: string): Promise<{ key: string; expires: number } | undefined> {
     const env = Utils.getEnv();
     const freeUser = await this.get(id);

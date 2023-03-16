@@ -621,6 +621,8 @@ const getDashboardsUsersHandler: RouteHandler<
     const usersById = CollectionUtils.groupByKeyUniq(users, "id");
     const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
     const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
+    const freeUsers = await new FreeUserDao(di).getAll(Object.keys(userIds));
+    const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
 
     const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
       const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
@@ -677,6 +679,7 @@ const getDashboardsUsersHandler: RouteHandler<
       return {
         userId,
         email: usersById[userId]?.email,
+        freeUserExpire: freeUsersById[userId]?.expires,
         userTs: usersById[userId]?.createdAt,
         reviewRequests: usersById[userId]?.storage?.reviewRequests || [],
         signupRequests: signupRequests,

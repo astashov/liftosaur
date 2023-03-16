@@ -18,6 +18,7 @@ export interface IUserDashboardData {
   workoutsCount: number;
   platforms: string[];
   affiliates: string[];
+  freeUserExpires?: number;
   subscriptions: ("apple" | "google" | "unclaimed" | "free")[];
 }
 
@@ -99,6 +100,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>Affiliates</th>
                         <th>Review Reqs</th>
                         <th>Signup Reqs</th>
+                        <th>Free Exp</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -173,6 +175,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                               ))}
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>
+                            <td>{item.freeUserExpires && DateUtils.format(item.freeUserExpires)}</td>
                           </tr>
                         );
                       })}
