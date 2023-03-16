@@ -835,11 +835,14 @@ async function handleLogin(
     const storage = await runMigrations(client, result.storage);
     storage.tempUserId = result.user_id;
     storage.email = result.email;
-    storage.subscription.key = result.key;
     if (oldUserId === result.user_id) {
       dispatch({ type: "SyncStorage", storage });
       dispatch({ type: "Login", email: result.email, userId: result.user_id });
+      if (storage.subscription.key !== result.key) {
+        updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
+      }
     } else {
+      storage.subscription.key = result.key;
       const newState = await getInitialState(client, { storage });
       newState.user = { id: result.user_id, email: result.email };
       dispatch({ type: "ReplaceState", state: newState });
