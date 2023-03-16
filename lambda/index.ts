@@ -679,7 +679,7 @@ const getDashboardsUsersHandler: RouteHandler<
       return {
         userId,
         email: usersById[userId]?.email,
-        freeUserExpire: freeUsersById[userId]?.expires,
+        freeUserExpires: freeUsersById[userId]?.expires,
         userTs: usersById[userId]?.createdAt,
         reviewRequests: usersById[userId]?.storage?.reviewRequests || [],
         signupRequests: signupRequests,
