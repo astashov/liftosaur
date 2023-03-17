@@ -86,6 +86,11 @@ export function ScreenAccount(props: IProps): JSX.Element {
               }
               addons={
                 <div className="text-xs text-grayv2-main">
+                  {currentAccount.name ? (
+                    <div style={{ marginTop: "-0.25rem" }}>{`id: ${currentAccount.id}`}</div>
+                  ) : (
+                    <></>
+                  )}
                   {props.email ? (
                     props.email === "noemail@example.com" ? (
                       <></>
