@@ -23,6 +23,7 @@ import { HelpSettings } from "./help/helpSettings";
 import { WebpushrButton } from "./webpushrButton";
 import { Features } from "../utils/features";
 import { StringUtils } from "../utils/string";
+import { IconDiscord } from "./icons/iconDiscord";
 
 interface IProps {
   dispatch: IDispatch;
@@ -235,6 +236,13 @@ export function ScreenSettings(props: IProps): JSX.Element {
         </div>
         <a href="mailto:info@liftosaur.com" className="block py-3 text-base text-left border-b border-gray-200">
           Contact Us
+        </a>
+        <a
+          href="https://discord.com/invite/AAh3cvdBRs"
+          target="_blank"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
+          <IconDiscord className="inline-block mr-1" /> Discord Server
         </a>
         <InternalLink href="/privacy.html" className="block py-3 text-base text-left border-b border-gray-200">
           Privacy Policy

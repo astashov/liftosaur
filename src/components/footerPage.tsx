@@ -38,6 +38,7 @@ export function FooterPage(): JSX.Element {
                 ["Facebook", "https://www.facebook.com/liftosaur", "logo-facebook"],
                 ["Twitter", "https://www.twitter.com/liftosaur", "logo-twitter"],
                 ["Reddit", "https://www.reddit.com/r/liftosaur", "logo-reddit"],
+                ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
               ].map(([text, link, img]) => {
                 return (
                   <li className="inline-block text-left align-middle list-none">

@@ -56,6 +56,7 @@ a {
 
 .logo-facebook,
 .logo-twitter,
+.logo-discord,
 .logo-reddit {
   width: 1.5em;
   height: 1.5em;
@@ -77,6 +78,10 @@ a {
 
 .logo-twitter {
   background-image: url(/images/logo-twitter.svg);
+}
+
+.logo-discord {
+  background-image: url(/images/logo-discord.svg);
 }
 
 .hero {
