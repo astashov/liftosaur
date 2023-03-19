@@ -5,6 +5,7 @@ import { DateUtils } from "../utils/date";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
+import { IconDiscord } from "../components/icons/iconDiscord";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -220,6 +221,22 @@ const whatsNew: Record<string, IWhatsNew> = {
         <li>
           You can also filter the history on the exercise details screen by whether the history record had notes for
           that exercise.
+        </li>
+      </ul>
+    ),
+  },
+  "20230319": {
+    title: <span>Discord Server</span>,
+    body: (
+      <ul>
+        <li>
+          We've got a Discord server now! You can join it here:{" "}
+          <a href="https://discord.com/invite/AAh3cvdBRs" target="_blank" className="font-bold underline text-bluev2">
+            <IconDiscord className="inline-block mr-1" /> Discord Server
+          </a>
+        </li>
+        <li>
+          Join and ask questions there, suggest features, leave feedback, or just chat with other Liftosaur users.
         </li>
       </ul>
     ),
