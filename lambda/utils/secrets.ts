@@ -16,9 +16,19 @@ interface IGoogleServiceAccountPubsub {
   client_x509_cert_url: string;
 }
 
+interface IAllSecrets {
+  apiKey: string;
+  cookieSecret: string;
+  webpushrKey: string;
+  webpushrAuthToken: string;
+  cryptoKey: string;
+  appleAppSharedSecret: string;
+  googleServiceAccountPubsub: IGoogleServiceAccountPubsub;
+}
+
 export class SecretsUtil {
   private _secrets?: SecretsManager;
-  private readonly _cache: Partial<Record<string, string>> = {};
+  private readonly _cache: Partial<IAllSecrets> = {};
 
   constructor(public readonly log: LogUtil) {}
 
@@ -29,85 +39,57 @@ export class SecretsUtil {
     return this._secrets;
   }
 
-  private async cache(name: string, cb: () => Promise<string>): Promise<string> {
+  private async cache<T extends keyof IAllSecrets>(
+    name: T,
+    cb: () => Promise<IAllSecrets[T]>
+  ): Promise<IAllSecrets[T]> {
     if (this._cache[name] == null) {
       this._cache[name] = await cb();
     }
-    return this._cache[name]!;
+    const value = this._cache[name] as IAllSecrets[T];
+    return value;
   }
 
-  private async getSecret(arns: { dev: string; prod: string }): Promise<string> {
+  private async getSecret<T extends keyof IAllSecrets>(key: T): Promise<IAllSecrets[T]> {
     const startTime = Date.now();
-    const key = arns[Utils.getEnv()];
+    const arns = {
+      dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
+      prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecrets-1Ojxkw",
+    };
     const result = await this.secrets
-      .getSecretValue({ SecretId: key })
+      .getSecretValue({ SecretId: arns[Utils.getEnv()] })
       .promise()
       .then((s) => s.SecretString!);
     this.log.log("Secret:", key, ` - ${Date.now() - startTime}ms`);
-    return result;
+    const json: IAllSecrets = JSON.parse(result);
+    return json[key];
   }
 
   public async getCookieSecret(): Promise<string> {
-    return this.cache("cookieSecret", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
-      })
-    );
+    return this.cache("cookieSecret", () => this.getSecret("cookieSecret"));
   }
 
   public async getCryptoKey(): Promise<string> {
-    return this.cache("cryptoKey", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKeyDev-qFcITJ",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKey-4Uxrea",
-      })
-    );
+    return this.cache("cryptoKey", () => this.getSecret("cryptoKey"));
   }
 
   public async getApiKey(): Promise<string> {
-    return this.cache("apiKey", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
-      })
-    );
+    return this.cache("apiKey", () => this.getSecret("apiKey"));
   }
 
   public async getWebpushrKey(): Promise<string> {
-    return this.cache("webpushrKey", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
-      })
-    );
+    return this.cache("webpushrKey", () => this.getSecret("webpushrKey"));
   }
 
   public async getWebpushrAuthToken(): Promise<string> {
-    return this.cache("webpushrAuthToken", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
-      })
-    );
+    return this.cache("webpushrAuthToken", () => this.getSecret("webpushrAuthToken"));
   }
 
   public async getAppleAppSharedSecret(): Promise<string> {
-    return this.cache("appleAppSharedSecret", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
-      })
-    );
+    return this.cache("appleAppSharedSecret", () => this.getSecret("appleAppSharedSecret"));
   }
 
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
-    const json = this.cache("googleServiceAccountPubsub", () =>
-      this.getSecret({
-        dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
-        prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
-      })
-    );
-    return json.then((s) => JSON.parse(s));
+    return this.cache("googleServiceAccountPubsub", () => this.getSecret("googleServiceAccountPubsub"));
   }
 }

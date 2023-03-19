@@ -187,6 +187,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const secretArns = {
       dev: {
+        all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
@@ -197,6 +198,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
           "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
       },
       prod: {
+        all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecrets-1Ojxkw",
         apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
         cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
         webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
@@ -208,6 +210,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     };
 
+    const allSecrets = sm.Secret.fromSecretAttributes(this, `LftAllSecrets${suffix}`, {
+      secretCompleteArn: secretArns[env].all,
+    });
     const keyCookieSecret = sm.Secret.fromSecretAttributes(this, `LftKeyCookieSecret${suffix}`, {
       secretCompleteArn: secretArns[env].cookieSecret,
     });
@@ -264,6 +269,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     restApi.root.addProxy();
 
     bucket.grantReadWrite(lambdaFunction);
+    allSecrets.grantRead(lambdaFunction);
     keyCookieSecret.grantRead(lambdaFunction);
     keyApiKey.grantRead(lambdaFunction);
     webpushrKey.grantRead(lambdaFunction);
