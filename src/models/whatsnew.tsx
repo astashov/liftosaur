@@ -241,6 +241,22 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "2023024": {
+    title: <span>Per Exercise Rest Timers</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can specify custom exercise rest timers. By default it still would use your workout timer from
+          Settings, but you can override it for some exercises. So now you can have different rest timers for Deadlift
+          and Bicep Curls!
+        </li>
+        <li>
+          You specify timer as a Liftoscript expression, similar to reps and weight, so you can define logic there too,
+          and use state variables. Progressive overload in your rest timer? Why not! :)
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

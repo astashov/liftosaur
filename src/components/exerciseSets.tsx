@@ -18,7 +18,7 @@ interface IExerciseSetsProps {
   entry: IHistoryEntry;
   friend?: IFriendUser;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
-  onChangeReps: (mode: IProgressMode) => void;
+  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
   dispatch: IDispatch;
 }
 
@@ -57,7 +57,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                           if (isEditMode && props.onStartSetChanging) {
                             props.onStartSetChanging(true, props.index, i);
                           } else {
-                            props.onChangeReps("warmup");
+                            props.onChangeReps("warmup", props.entry);
                             handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
                           }
                         }
@@ -124,7 +124,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                   if (isEditMode && props.onStartSetChanging) {
                     props.onStartSetChanging(false, props.index, i);
                   } else {
-                    props.onChangeReps("workout");
+                    props.onChangeReps("workout", props.entry);
                     handleClick(props.dispatch, props.entry.exercise, set.weight, i, "workout");
                   }
                 }

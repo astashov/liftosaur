@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
 import { IUnit, IWeight, IProgramState } from "./types";
@@ -566,12 +567,13 @@ export class ScriptRunner {
 
   public execute(type: "reps"): number;
   public execute(type: "weight"): IWeight;
+  public execute(type: "timer"): number;
   public execute(type?: undefined): number | IWeight | boolean;
-  public execute(type?: "reps" | "weight"): number | IWeight | boolean {
+  public execute(type?: "reps" | "weight" | "timer"): number | IWeight | boolean {
     const ast = this.parse();
     const evaluator = new Evaluator(this.state, this.bindings, this.fns, this.context);
     let result = evaluator.evaluate(ast);
-    if (type === "reps") {
+    if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
         throw new SyntaxError("Expected to get number as a result");
       } else if (result < 0) {

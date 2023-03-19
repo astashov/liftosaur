@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unified-signatures */
 import { Exercise } from "./exercise";
 import { Reps } from "./set";
 import { Weight } from "./weight";
@@ -99,6 +100,7 @@ export namespace Progress {
     progress: IHistoryRecord,
     timestamp: number,
     mode: IProgressMode,
+    timer: number,
     settings: ISettings,
     subscription: ISubscription
   ): IHistoryRecord {
@@ -110,6 +112,7 @@ export namespace Progress {
     return {
       ...progress,
       timerSince: timestamp,
+      timer,
       timerMode: mode,
     };
   }
@@ -518,7 +521,15 @@ export namespace Progress {
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
-    type: "reps" | "weight"
+    type: "timer"
+  ): number;
+  export function executeEntryScript(
+    expr: string,
+    day: number,
+    state: IProgramState,
+    context: IScriptContext,
+    settings: ISettings,
+    type: "reps" | "weight" | "timer"
   ): IWeight | number {
     const runner = new ScriptRunner(
       expr,
@@ -529,6 +540,8 @@ export namespace Progress {
       context
     );
     if (type === "reps") {
+      return runner.execute(type);
+    } else if (type === "timer") {
       return runner.execute(type);
     } else {
       return runner.execute(type);

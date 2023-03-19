@@ -140,9 +140,22 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
           setIsShareShown={setIsShareShown}
-          onChangeReps={(mode) => {
+          onChangeReps={(mode, entry) => {
+            let timer: number | undefined;
             if (Progress.isCurrent(progress)) {
-              props.dispatch({ type: "StartTimer", timestamp: new Date().getTime(), mode });
+              if (mode === "warmup") {
+                timer = props.settings.timers[mode] || undefined;
+              } else {
+                timer = entry.timer || props.settings.timers[mode] || undefined;
+              }
+            }
+            if (timer != null) {
+              props.dispatch({
+                type: "StartTimer",
+                timestamp: new Date().getTime(),
+                mode,
+                timer,
+              });
             }
           }}
           onStartSetChanging={(isWarmup: boolean, entryIndex: number, setIndex?: number) => {

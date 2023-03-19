@@ -55,7 +55,7 @@ interface IProps {
   dispatch: IDispatch;
   onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
-  onChangeReps: (mode: IProgressMode) => void;
+  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
 }
 
 function getColor(entry: IHistoryEntry): string {

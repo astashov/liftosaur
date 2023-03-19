@@ -384,6 +384,7 @@ export const THistoryEntry = t.intersection(
       warmupSets: t.array(TSet),
     }),
     t.partial({
+      timer: t.number,
       notes: t.string,
     }),
   ],
@@ -447,6 +448,7 @@ export const TProgramExercise = t.intersection(
       finishDayExpr: t.string,
     }),
     t.partial({
+      timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
     }),
@@ -513,6 +515,7 @@ export const THistoryRecord = t.intersection(
       ui: TProgressUi,
       timerSince: t.number,
       timerMode: TProgressMode,
+      timer: t.number,
       notes: t.string,
     }),
   ],

@@ -21,6 +21,8 @@ import { IEither } from "../../../utils/types";
 import { Button } from "../../../components/button";
 import { CollectionUtils } from "../../../utils/collection";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
+import { EditProgramTimerEnable } from "../../../components/editProgram/editProgramTimerEnable";
+import { EditProgramExerciseTimer } from "../../../components/editProgram/editProgramExerciseTimer";
 
 interface IProgramContentEditExerciseAdvancedProps {
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -59,7 +61,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
-  const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success;
+
+  const [showTimerExpr, setShowTimerExpr] = useState<boolean>(!!programExercise.timerExpr);
+  const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
+
+  const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
 
   return (
     <section ref={containerRef}>
@@ -202,6 +208,23 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               }}
             />
           </section>
+          {showTimerExpr ? (
+            <EditProgramExerciseTimer
+              day={day}
+              settings={props.settings}
+              state={programExercise.state}
+              equipment={programExercise.exerciseType.equipment}
+              timerExpr={programExercise.timerExpr}
+              onValid={(isValid) => {
+                setIsTimerValid(isValid);
+              }}
+              onChangeTimer={(expr) => {
+                props.dispatch(EditProgramLenses.setTimer(lbe, expr));
+              }}
+            />
+          ) : (
+            <EditProgramTimerEnable onClick={() => setShowTimerExpr(true)} />
+          )}
           <EditProgramFinishDayScriptEditor
             programExercise={programExercise}
             editorResult={finishEditorResult}

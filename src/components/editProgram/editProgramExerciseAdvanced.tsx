@@ -33,6 +33,8 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramVariationsEnable } from "./editProgramVariationsEnable";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
+import { EditProgramTimerEnable } from "./editProgramTimerEnable";
+import { EditProgramExerciseTimer } from "./editProgramExerciseTimer";
 
 interface IProps {
   settings: ISettings;
@@ -59,6 +61,8 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const [showVariations, setShowVariations] = useState<boolean>(programExercise.variations.length > 1);
   const [showModalExamples, setShowModalExamples] = useState<boolean>(false);
+  const [showTimerExpr, setShowTimerExpr] = useState<boolean>(!!programExercise.timerExpr);
+  const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
 
   const variationsRef = useRef<HTMLDivElement>(null);
 
@@ -94,6 +98,8 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
   ).map((e) => [e, equipmentName(e)]);
+
+  const cannotSave = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
 
   return (
     <div className="px-4">
@@ -223,6 +229,23 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               EditProgram.setDefaultWarmupSets(props.dispatch, exercise, props.settings.units);
             }}
           />
+          {showTimerExpr ? (
+            <EditProgramExerciseTimer
+              day={day}
+              settings={props.settings}
+              state={programExercise.state}
+              equipment={programExercise.exerciseType.equipment}
+              timerExpr={programExercise.timerExpr}
+              onValid={(isValid) => {
+                setIsTimerValid(isValid);
+              }}
+              onChangeTimer={(expr) => {
+                EditProgram.setTimer(props.dispatch, expr);
+              }}
+            />
+          ) : (
+            <EditProgramTimerEnable onClick={() => setShowTimerExpr(true)} />
+          )}
           <EditProgramFinishDayScriptEditor
             programExercise={programExercise}
             editorResult={finishEditorResult}
@@ -251,8 +274,12 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <div className="p-2 mb-4 text-center">
         <Button
           kind="orange"
-          disabled={!entry || !finishEditorResult.success || !variationScriptResult.success}
-          onClick={() => EditProgram.saveExercise(props.dispatch, props.programIndex)}
+          disabled={cannotSave}
+          onClick={() => {
+            if (!cannotSave) {
+              EditProgram.saveExercise(props.dispatch, props.programIndex);
+            }
+          }}
         >
           Save
         </Button>
