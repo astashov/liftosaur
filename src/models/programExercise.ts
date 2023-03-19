@@ -62,6 +62,13 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).variations;
   }
 
+  export function getTimerExpr(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): string | undefined {
+    return getProgramExercise(programExercise, allProgramExercises).timerExpr;
+  }
+
   export function getWarmupSets(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]

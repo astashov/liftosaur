@@ -221,6 +221,7 @@ export type IEditHistoryRecordAction = {
 export type IStartTimer = {
   type: "StartTimer";
   timestamp: number;
+  timer: number;
   mode: IProgressMode;
 };
 
@@ -475,6 +476,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         Progress.getProgress(state)!,
         action.timestamp,
         action.mode,
+        action.timer,
         state.storage.settings,
         state.storage.subscription
       )

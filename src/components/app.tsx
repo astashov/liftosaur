@@ -457,10 +457,9 @@ export function AppView(props: IProps): JSX.Element | null {
       {content}
       {progress && screensWithoutTimer.indexOf(Screen.current(state.screenStack)) === -1 && (
         <RestTimer
-          mode={progress.timerMode ?? "workout"}
+          timer={progress.timer}
           timerStart={progress.timerSince}
           webpushr={state.webpushr}
-          timers={state.storage.settings.timers}
           dispatch={dispatch}
         />
       )}

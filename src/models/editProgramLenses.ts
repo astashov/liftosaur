@@ -201,6 +201,10 @@ export namespace EditProgramLenses {
     return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("repsExpr").record(value);
   }
 
+  export function setTimer<T>(prefix: LensBuilder<T, IProgramExercise, {}>, value: string): ILensRecordingPayload<T> {
+    return prefix.p("timerExpr").record(value);
+  }
+
   export function setWeight<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,

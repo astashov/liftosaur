@@ -24,6 +24,7 @@ import { Subscriptions } from "../utils/subscriptions";
 import { Program } from "../models/program";
 import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
+import { Progress } from "../models/progress";
 
 export type IPreviewProgramMuscles =
   | {
@@ -176,9 +177,22 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
   const [showScripts, setShowScripts] = useState(props.shouldShowAllFormulas);
   const reusedProgramExercise = ProgramExercise.getReusedProgramExercise(programExercise, props.allProgramExercises);
   const variations = ProgramExercise.getVariations(programExercise, props.allProgramExercises);
+  const timerExpr = ProgramExercise.getTimerExpr(programExercise, props.allProgramExercises);
   const finishDayScript = ProgramExercise.getFinishDayScript(programExercise, props.allProgramExercises);
   const progression = Progression.getProgression(finishDayScript);
   const deload = Progression.getDeload(finishDayScript);
+
+  const timer = timerExpr?.trim()
+    ? Progress.executeEntryScript(
+        timerExpr,
+        props.dayIndex,
+        ProgramExercise.getState(props.programExercise, props.allProgramExercises),
+        { equipment: props.programExercise.exerciseType.equipment },
+        props.settings,
+        "timer"
+      )
+    : undefined;
+
   return (
     <li className="pb-4" id={programExercise.id} data-cy={StringUtils.dashcase(programExercise.name)}>
       <div className="flex w-full">
@@ -241,6 +255,14 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                 </div>
               );
             })}
+            {timer != null && !reusedProgramExercise ? (
+              <div data-cy="program-exercise-timer">
+                <strong>
+                  <IconWatch style={{ marginTop: "-2px" }} /> Custom Rest Timer:
+                </strong>{" "}
+                {showScripts ? timerExpr : `${timer} sec`}
+              </div>
+            ) : undefined}
             <div data-cy="program-exercise-info">
               <div>
                 {reusedProgramExercise && (

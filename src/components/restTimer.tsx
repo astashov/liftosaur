@@ -4,11 +4,9 @@ import { TimeUtils } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { IWebpushr } from "../models/state";
-import { ISettingsTimers, IProgressMode } from "../types";
 
 interface IProps {
-  timers: ISettingsTimers;
-  mode: IProgressMode;
+  timer?: number;
   timerStart?: number;
   webpushr?: IWebpushr;
   dispatch: IDispatch;
@@ -29,7 +27,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
         setTick(tick + 1);
       }, 1000);
       const timeDifference = Date.now() - props.timerStart;
-      const timer = props.timers[props.mode];
+      const timer = props.timer;
       if (timer != null && timeDifference > timer * 1000 && !sentNotification.current) {
         props.dispatch(Thunk.sendTimerPushNotification(props.webpushr?.sid));
         sentNotification.current = true;
@@ -46,7 +44,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     };
   });
 
-  const timer = props.timers[props.mode];
+  const timer = props.timer;
   if (timer != null && props.timerStart != null) {
     const timeDifference = Date.now() - props.timerStart;
     const isTimeOut = timeDifference > timer * 1000;

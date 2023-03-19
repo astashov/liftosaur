@@ -90,7 +90,8 @@ export namespace Program {
       sets,
       ProgramExercise.getState(programExercise, allProgramExercises),
       settings,
-      ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
+      ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
+      ProgramExercise.getTimerExpr(programExercise, allProgramExercises)
     );
   }
 
@@ -100,7 +101,8 @@ export namespace Program {
     programSets: IProgramSet[],
     state: IProgramState,
     settings: ISettings,
-    warmupSets?: IProgramExerciseWarmupSet[]
+    warmupSets?: IProgramExerciseWarmupSet[],
+    timerExpr?: string
   ): IHistoryEntry {
     const sets: ISet[] = programSets.map((set) => {
       const repsValue = new ScriptRunner(
@@ -125,8 +127,21 @@ export namespace Program {
         weight: Weight.roundConvertTo(weightValue, settings, exercise.equipment),
       };
     });
+
+    const timerValue = timerExpr?.trim()
+      ? new ScriptRunner(
+          timerExpr,
+          state,
+          Progress.createEmptyScriptBindings(day),
+          Progress.createScriptFunctions(settings),
+          settings.units,
+          { equipment: exercise.equipment }
+        ).execute("timer")
+      : undefined;
+
     return {
       exercise: exercise,
+      timer: timerValue,
       sets,
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };
