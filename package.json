@@ -101,6 +101,7 @@
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",
     "mock-match-media": "^0.4.2",
+    "openai": "^3.2.1",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
     "prismjs": "^1.25.0",
