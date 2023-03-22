@@ -24,6 +24,7 @@ interface IAllSecrets {
   cryptoKey: string;
   appleAppSharedSecret: string;
   googleServiceAccountPubsub: IGoogleServiceAccountPubsub;
+  openAiKey: string;
 }
 
 export class SecretsUtil {
@@ -91,5 +92,9 @@ export class SecretsUtil {
 
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
     return this.cache("googleServiceAccountPubsub", () => this.getSecret("googleServiceAccountPubsub"));
+  }
+
+  public async getOpenAiKey(): Promise<string> {
+    return this.cache("openAiKey", () => this.getSecret("openAiKey"));
   }
 }

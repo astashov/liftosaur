@@ -29,6 +29,7 @@ import { dequal } from "dequal";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { EditExerciseUtil } from "./utils/editExerciseUtil";
 import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
+import { IconInfo } from "../../components/icons/iconInfo";
 
 export interface IProgramContentProps {
   client: Window["fetch"];

@@ -122,6 +122,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const logsFreeformTable = new dynamodb.Table(this, `LftLogsFreeform${suffix}`, {
+      tableName: `lftLogsFreeform${suffix}`,
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: false,
+    });
+
     const userProgramsTable = new dynamodb.Table(this, `LftUserPrograms${suffix}`, {
       tableName: `lftUserPrograms${suffix}`,
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
@@ -285,6 +292,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     programsTable.grantReadWriteData(lambdaFunction);
     userProgramsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
+    logsFreeformTable.grantReadWriteData(lambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
     commentsTable.grantReadWriteData(lambdaFunction);
     likesTable.grantReadWriteData(lambdaFunction);

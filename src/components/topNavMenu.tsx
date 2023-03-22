@@ -25,7 +25,7 @@ export function TopNavMenu(): JSX.Element {
       <div className="flex items-center justify-center w-full sm:block sm:w-auto">
         <ul className="flex-1 inline-block align-middle list-none">
           {[
-            ["App", "/"],
+            ["About", "/about"],
             ["Docs", "/docs/docs.html"],
             ["Blog", "/blog"],
             ["Program Builder", "/program"],

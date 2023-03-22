@@ -47,6 +47,9 @@ import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardCo
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
 import { FreeUserDao } from "./dao/freeUserDao";
+import { renderFreeformHtml } from "./freeform";
+import { FreeformGenerator } from "./utils/freeformGenerator";
+import { LogFreeformDao } from "./dao/logFreeformDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1009,6 +1012,37 @@ const getProgramDetailsHandler: RouteHandler<
   }
 };
 
+const getFreeformEndpoint = Endpoint.build("/freeform");
+const getFreeformHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFreeformEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  return {
+    statusCode: 200,
+    body: renderFreeformHtml(fetch),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+const postFreeformGeneratorEndpoint = Endpoint.build("/api/freeform");
+const postFreeformGeneratorHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postFreeformGeneratorEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const freeformGenerator = new FreeformGenerator(di);
+  const result = await freeformGenerator.generate(bodyJson.prompt);
+  if (result.success) {
+    await new LogFreeformDao(di).put("data", bodyJson.prompt, result.data.response);
+    return ResponseUtils.json(200, event, { success: true, data: result.data });
+  } else {
+    await new LogFreeformDao(di).put("error", bodyJson.prompt, result.error.response);
+    return ResponseUtils.json(400, event, { success: false, error: result.error });
+  }
+};
+
 const getBuilderEndpoint = Endpoint.build("/builder", { data: "string?" });
 const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getBuilderEndpoint> = async ({
   payload,
@@ -1238,6 +1272,8 @@ export const handler = rollbar.lambdaHandler(
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
+      .get(getFreeformEndpoint, getFreeformHandler)
+      .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)

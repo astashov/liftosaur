@@ -92,6 +92,19 @@ export class Service {
     });
   }
 
+  public async postFreeformGenerator(
+    prompt: string
+  ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
+    const url = new URL(`${__API_HOST__}/api/freeform`);
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+      credentials: "include",
+    });
+    const json = await result.json();
+    return json;
+  }
+
   public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
     const url = new URL(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
