@@ -252,7 +252,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 2048,
       layers: [depsLayer],
-      timeout: cdk.Duration.seconds(isDev ? 120 : 60),
+      timeout: cdk.Duration.seconds(isDev ? 240 : 300),
       handler: "lambda/index.handler",
       environment: {
         IS_DEV: `${isDev}`,
