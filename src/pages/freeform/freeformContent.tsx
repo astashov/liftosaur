@@ -49,7 +49,7 @@ export function FreeformContent(props: IFreeformContentProps): JSX.Element {
         <br />
         It may not work, it's kinda experimental.
       </h3>
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         <div className="flex-1">
           <div>
             <label className="block font-bold">Enter freeform weightlifting program description:</label>

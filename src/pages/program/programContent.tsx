@@ -17,6 +17,7 @@ import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
+import { IconInfo } from "../../components/icons/iconInfo";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -136,7 +137,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           </div>
         </div>
       </div>
-      {/* <div className="flex items-center px-6 py-4 mx-4 mb-4 bg-blue-100 border border-blue-600 rounded-xl">
+      <div className="flex items-center px-6 py-4 mx-4 mb-4 bg-blue-100 border border-blue-600 rounded-xl">
         <div className="pr-4">
           <IconInfo />
         </div>
@@ -147,7 +148,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           </a>
           to quickly create a program!
         </div>
-      </div> */}
+      </div>
       {props.isMobile ? (
         <>
           <div className="sticky top-0 left-0 w-full px-4 py-2 bg-white border-b border-grayv2-100">

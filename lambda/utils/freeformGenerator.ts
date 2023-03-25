@@ -275,6 +275,13 @@ const TFreeformProgram = t.type(
 );
 export type IFreeformProgram = t.TypeOf<typeof TFreeformProgram>;
 
+class InvalidJsonError extends Error {}
+class InvalidSchemaError extends Error {
+  constructor(public readonly error: string[]) {
+    super();
+  }
+}
+
 export class FreeformGenerator {
   constructor(private readonly di: IDI) {}
 
@@ -282,56 +289,79 @@ export class FreeformGenerator {
     prompt: string
   ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
     const requestMessage = generateRequestMessage(prompt);
-    let message = await this.makeCall(requestMessage);
-    let json;
     let attempt = 0;
-    const response = [message?.content || ""];
-    while (message && attempt < 2) {
-      try {
-        json = JSON.parse(message.content);
-        break;
-      } catch (e) {
+    let message: ChatCompletionResponseMessage | undefined;
+    let result: IEither<IFreeformProgram, string[]> | undefined;
+    do {
+      message = await this.makeCall(requestMessage);
+      console.log("A");
+      if (message) {
+        console.log("B");
         try {
-          const splitted = message.content.split("```");
-          const rawJson = splitted[1].replace(/^[^\{]*/, "").trim();
-          console.log("raw", rawJson);
-          json = JSON.parse(rawJson);
-          break;
-        } catch (e2) {
-          requestMessage.push(message);
-          requestMessage.push({
-            role: "user",
-            content:
-              "Your response is not valid JSON. Please only return JSON that would be valid for the IProgram type",
-          });
-          message = await this.makeCall(requestMessage);
-          response.push(message?.content || "");
-          attempt += 1;
+          let json;
+          try {
+            json = JSON.parse(message.content);
+          } catch (e) {
+            try {
+              const splitted = message.content.split("```");
+              const rawJson = splitted[1].replace(/^[^\{]*/, "").trim();
+              json = JSON.parse(rawJson);
+            } catch (e2) {
+              throw new InvalidJsonError();
+            }
+          }
+
+          if (json) {
+            const decoded = TFreeformProgram.decode(json);
+            if ("left" in decoded) {
+              const error = PathReporter.report(decoded);
+              throw new InvalidSchemaError(error);
+            } else {
+              const value = decoded.right;
+              result = { success: true, data: value };
+            }
+          } else {
+            throw new InvalidJsonError();
+          }
+        } catch (e) {
+          if (e instanceof InvalidJsonError) {
+            requestMessage.push(message);
+            requestMessage.push({
+              role: "user",
+              content:
+                "Your response is not valid JSON. Please only return JSON that would be valid for the IProgram type",
+            });
+            attempt += 1;
+          } else if (e instanceof InvalidSchemaError) {
+            requestMessage.push(message);
+            requestMessage.push({
+              role: "user",
+              content: `Your response is not valid IProgram schema. Please only return JSON that would be valid for the IProgram type. Error: ${e.error}`,
+            });
+            attempt += 1;
+          }
         }
       }
+    } while (result == null && attempt < 3);
+    if (result == null) {
+      result = { success: false, error: ["Could not generate program"] };
+    }
+    if (message) {
+      requestMessage.push(message);
     }
 
-    let result: IEither<IFreeformProgram, string[]> | undefined;
-    if (json) {
-      const decoded = TFreeformProgram.decode(json);
-      if ("left" in decoded) {
-        const error = PathReporter.report(decoded);
-        result = { success: false, error };
-      } else {
-        const value = decoded.right;
-        result = { success: true, data: value };
-      }
-    }
-
-    const output = message?.content || "";
-    if (result?.success) {
+    const response = requestMessage
+      .slice(1)
+      .map((m) => m.content)
+      .join("\n\n");
+    if (result.success) {
       const program = this.freeformProgramToProgram(result.data);
-      return { success: true, data: { program, response: output } };
+      console.log("Program", program);
+      console.log("Response", response);
+      return { success: true, data: { program, response } };
     } else {
-      return {
-        success: false,
-        error: { error: ["Could not generate program", ...(result?.error || [])], response: output },
-      };
+      console.log("Error Response", response);
+      return { success: false, error: { error: ["Could not generate program"], response } };
     }
   }
 
