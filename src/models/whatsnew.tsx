@@ -241,7 +241,7 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
-  "2023024": {
+  "20230324": {
     title: <span>Per Exercise Rest Timers</span>,
     body: (
       <ul>
