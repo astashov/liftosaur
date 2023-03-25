@@ -18,6 +18,7 @@ export interface ILogFreeformDao {
   response: string;
   program?: IProgram;
   error?: string[];
+  ts: number;
 }
 
 export class LogFreeformDao {
@@ -38,6 +39,7 @@ export class LogFreeformDao {
       response,
       program: opts.program,
       error: opts.error,
+      ts: Date.now(),
     };
     await this.di.dynamo.put({ tableName: logFreeformTableNames[env].logsFreeform, item });
   }
