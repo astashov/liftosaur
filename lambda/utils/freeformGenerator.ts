@@ -288,14 +288,15 @@ export class FreeformGenerator {
   public async generate(
     prompt: string
   ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
-    const requestMessage = generateRequestMessage(prompt);
+    let requestMessage = generateRequestMessage(prompt);
     let attempt = 0;
     let message: ChatCompletionResponseMessage | undefined;
     let result: IEither<IFreeformProgram, string[]> | undefined;
     do {
-      message = await this.makeCall(requestMessage);
+      const callResult = await this.makeCall(requestMessage);
       console.log("A");
-      if (message) {
+      if (callResult.success) {
+        message = callResult.data;
         console.log("B");
         try {
           let json;
@@ -325,6 +326,7 @@ export class FreeformGenerator {
           }
         } catch (e) {
           if (e instanceof InvalidJsonError) {
+            requestMessage = generateRequestMessage(prompt);
             requestMessage.push(message);
             requestMessage.push({
               role: "user",
@@ -333,6 +335,7 @@ export class FreeformGenerator {
             });
             attempt += 1;
           } else if (e instanceof InvalidSchemaError) {
+            requestMessage = generateRequestMessage(prompt);
             requestMessage.push(message);
             requestMessage.push({
               role: "user",
@@ -341,6 +344,8 @@ export class FreeformGenerator {
             attempt += 1;
           }
         }
+      } else {
+        result = { success: false, error: [callResult.error] };
       }
     } while (result == null && attempt < 3);
     if (result == null) {
@@ -367,16 +372,24 @@ export class FreeformGenerator {
 
   private async makeCall(
     requestMessage: ChatCompletionRequestMessage[]
-  ): Promise<ChatCompletionResponseMessage | undefined> {
-    const apiKey = await this.di.secrets.getOpenAiKey();
-    const configuration = new Configuration({ apiKey });
-    const openai = new OpenAIApi(configuration);
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: requestMessage,
-      temperature: 0,
-    });
-    return response.data.choices[0]?.message;
+  ): Promise<IEither<ChatCompletionResponseMessage, string>> {
+    try {
+      const apiKey = await this.di.secrets.getOpenAiKey();
+      const configuration = new Configuration({ apiKey });
+      const openai = new OpenAIApi(configuration);
+      const response = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: requestMessage,
+        temperature: 0,
+      });
+      const msg = response.data.choices[0].message;
+      if (!msg) {
+        throw new Error("Missing message in response");
+      }
+      return { success: true, data: msg };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   }
 
   private freeformProgramToProgram(freeformProgram: IFreeformProgram): IProgram {
