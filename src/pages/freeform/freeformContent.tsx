@@ -92,10 +92,10 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
                       service.postShortUrl(url, "p").then(setLink);
                     } else {
                       dispatch(lb<IFreeformState>().p("response").record(result.error.response));
-                      alert(result.error);
+                      alert(result.error.error.join("\n\n"));
                     }
                   } catch (e) {
-                    alert(e);
+                    alert(e.message);
                   } finally {
                     setIsLoading(false);
                   }
