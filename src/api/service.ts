@@ -92,9 +92,7 @@ export class Service {
     });
   }
 
-  public async postFreeformGenerator(
-    prompt: string
-  ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
+  public async postFreeformGenerator(prompt: string): Promise<string> {
     const url = new URL(`${__API_HOST__}/api/freeform`);
     const result = await this.client(url.toString(), {
       method: "POST",
@@ -102,7 +100,41 @@ export class Service {
       credentials: "include",
     });
     const json = await result.json();
-    return json;
+    return json.id;
+  }
+
+  public async getFreeformRecord(
+    id: string,
+    timeout: number
+  ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
+    const client = this.client;
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const fetchFreeformRecord = async (): Promise<void> => {
+        const url = new URL(`${__API_HOST__}/api/freeform/${id}`);
+        const result = await client(url.toString(), {
+          method: "GET",
+          credentials: "include",
+        });
+        if (result.status === 404) {
+          if (Date.now() - start < timeout) {
+            setTimeout(() => {
+              fetchFreeformRecord();
+            }, 3000);
+          } else {
+            reject(new Error("timeout"));
+          }
+        } else {
+          const json = await result.json();
+          if (result.status === 200) {
+            resolve({ success: true, data: json });
+          } else {
+            resolve({ success: false, error: json });
+          }
+        }
+      };
+      fetchFreeformRecord();
+    });
   }
 
   public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {

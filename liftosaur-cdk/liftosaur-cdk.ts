@@ -259,6 +259,19 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
+    const freeformLambdaFunction = new lambda.Function(this, `LftFreeformLambda${suffix}`, {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      functionName: `LftFreeformLambda${suffix}`,
+      code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 512,
+      layers: [depsLayer],
+      timeout: cdk.Duration.seconds(300),
+      handler: `lambda/index.LftFreeformLambda${suffix}`,
+      environment: {
+        IS_DEV: `${isDev}`,
+      },
+    });
+
     const cert = acm.Certificate.fromCertificateArn(
       this,
       `LftEndpointCert${suffix}`,
@@ -276,7 +289,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
     restApi.root.addProxy();
 
     bucket.grantReadWrite(lambdaFunction);
+    freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
+    allSecrets.grantRead(freeformLambdaFunction);
     keyCookieSecret.grantRead(lambdaFunction);
     keyApiKey.grantRead(lambdaFunction);
     webpushrKey.grantRead(lambdaFunction);
@@ -293,6 +308,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     userProgramsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsFreeformTable.grantReadWriteData(lambdaFunction);
+    logsFreeformTable.grantReadWriteData(freeformLambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
     commentsTable.grantReadWriteData(lambdaFunction);
     likesTable.grantReadWriteData(lambdaFunction);

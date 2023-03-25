@@ -3,6 +3,7 @@ import { LogUtil } from "./log";
 import { SecretsUtil } from "./secrets";
 import { S3Util } from "./s3";
 import { SesUtil } from "./ses";
+import { LambdaUtil } from "./lambda";
 
 export interface IDI {
   dynamo: DynamoUtil;
@@ -10,6 +11,7 @@ export interface IDI {
   s3: S3Util;
   ses: SesUtil;
   secrets: SecretsUtil;
+  lambda: LambdaUtil;
 }
 
 export function buildDi(log: LogUtil): IDI {
@@ -18,6 +20,7 @@ export function buildDi(log: LogUtil): IDI {
     secrets: new SecretsUtil(log),
     s3: new S3Util(log),
     ses: new SesUtil(log),
+    lambda: new LambdaUtil(log),
     log: log,
   };
 }

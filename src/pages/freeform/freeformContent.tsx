@@ -79,7 +79,8 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
                   setIsLoading(true);
                   try {
                     const service = new Service(props.client);
-                    const result = await service.postFreeformGenerator(textareaRef.current.value);
+                    const id = await service.postFreeformGenerator(textareaRef.current.value);
+                    const result = await service.getFreeformRecord(id, 1000 * 60 * 5);
                     if (result.success) {
                       dispatch(lb<IFreeformState>().p("program").record(result.data.program));
                       dispatch(lb<IFreeformState>().p("response").record(result.data.response));

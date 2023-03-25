@@ -48,8 +48,8 @@ import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { renderFreeformHtml } from "./freeform";
-import { FreeformGenerator } from "./utils/freeformGenerator";
 import { LogFreeformDao } from "./dao/logFreeformDao";
+import { FreeformGenerator } from "./utils/freeformGenerator";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1030,16 +1030,40 @@ const postFreeformGeneratorHandler: RouteHandler<
   APIGatewayProxyResult,
   typeof postFreeformGeneratorEndpoint
 > = async ({ payload }) => {
+  const env = Utils.getEnv();
   const { event, di } = payload;
   const bodyJson = getBodyJson(event);
-  const freeformGenerator = new FreeformGenerator(di);
-  const result = await freeformGenerator.generate(bodyJson.prompt);
-  if (result.success) {
-    await new LogFreeformDao(di).put("data", bodyJson.prompt, result.data.response);
-    return ResponseUtils.json(200, event, { success: true, data: result.data });
+  const id = UidFactory.generateUid(8);
+  await di.lambda.invoke<ILftFreeformLambdaDevEvent>({
+    name: `LftFreeformLambda${env === "dev" ? "Dev" : ""}`,
+    invocationType: "Event",
+    payload: { prompt: bodyJson.prompt, id: id },
+  });
+  return ResponseUtils.json(200, event, { id: id });
+};
+
+const getFreeformRecordEndpoint = Endpoint.build("/api/freeform/:id");
+const getFreeformRecordHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getFreeformRecordEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const id = params.id;
+  const logFreeformDao = new LogFreeformDao(di);
+  const result = await logFreeformDao.get(id);
+  if (result) {
+    const program = result.program;
+    if (result.type === "data" && program) {
+      return ResponseUtils.json(200, event, { program: program, response: result.response });
+    } else {
+      return ResponseUtils.json(400, event, {
+        error: result.error,
+        response: result.response,
+      });
+    }
   } else {
-    await new LogFreeformDao(di).put("error", bodyJson.prompt, result.error.response);
-    return ResponseUtils.json(400, event, { success: false, error: result.error });
+    return ResponseUtils.json(404, event, {});
   }
 };
 
@@ -1256,6 +1280,45 @@ const rollbar = new Rollbar({
   },
 });
 
+type ILftFreeformLambdaDevEvent = { prompt: string; id: string };
+
+export const LftFreeformLambdaDev = rollbar.lambdaHandler(
+  async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(event)
+) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const LftFreeformLambda = rollbar.lambdaHandler(
+  async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(event)
+) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+async function freeformLambdaHandler(event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> {
+  const log = new LogUtil();
+  log.log("Start generating freeform program");
+  const di = buildDi(log);
+  const freeformGenerator = new FreeformGenerator(di);
+  const result = await freeformGenerator.generate(event.prompt);
+  if (result.success) {
+    await new LogFreeformDao(di).put(event.id, "data", event.prompt, result.data.response, {
+      program: result.data.program,
+    });
+    log.log("Done generating freeform program");
+    return {
+      statusCode: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: "done" }),
+    };
+  } else {
+    await new LogFreeformDao(di).put(event.id, "error", event.prompt, result.error.response, {
+      error: result.error.error,
+    });
+    log.log("Error generating freeform program");
+    return {
+      statusCode: 400,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: "error" }),
+    };
+  }
+}
+
 export const handler = rollbar.lambdaHandler(
   async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
     if (event.httpMethod === "OPTIONS") {
@@ -1273,6 +1336,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getFreeformEndpoint, getFreeformHandler)
+      .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
