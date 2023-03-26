@@ -2,7 +2,7 @@
 import { IDI } from "./di";
 import * as t from "io-ts";
 import { ChatCompletionRequestMessage, ChatCompletionResponseMessage, Configuration, OpenAIApi } from "openai";
-import { IProgramExercise, equipments, TUnit, IProgram, TProgram } from "../../src/types";
+import { IProgramExercise, equipments, TUnit, IProgram } from "../../src/types";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { IArrayElement, IEither } from "../../src/utils/types";
 import { UidFactory } from "../../src/utils/generator";
@@ -343,9 +343,7 @@ For given weightlifting program, respond with what weeks and how many days each 
       };
 
       const program = this.freeformProgramToProgram(freeformProgram);
-      console.log(inspect(program, false, null, true));
-      // const program = this.freeformProgramToProgram(result.data.value);
-      return { success: true, data: { program: undefined as any, response: responses.join("\n\n") } };
+      return { success: true, data: { program, response: responses.join("\n\n") } };
     } else {
       responses.push(result.error.response);
       return { success: false, error: { error: ["Could not generate program"], response: responses.join("\n\n") } };
