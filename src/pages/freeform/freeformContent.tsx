@@ -1,5 +1,5 @@
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Service } from "../../api/service";
 import Prism from "prismjs";
@@ -36,6 +36,7 @@ export function FreeformContent(props: IFreeformContentProps): JSX.Element {
   ]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [doneMs, setDoneMs] = useState<number | undefined>(undefined);
   const [link, setLink] = useState("");
   const [showResponse, setShowResponse] = useState(false);
   const highlightedResponse =
@@ -76,6 +77,8 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
                 kind="orange"
                 style={{ width: "8rem" }}
                 onClick={async () => {
+                  const start = Date.now();
+                  setDoneMs(undefined);
                   setIsLoading(true);
                   try {
                     const service = new Service(props.client);
@@ -97,6 +100,7 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
                   } catch (e) {
                     alert(e.message);
                   } finally {
+                    setDoneMs(Date.now() - start);
                     setIsLoading(false);
                   }
                 }}
@@ -106,6 +110,11 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
             </div>
             <div className="flex-1 ml-2 text-xs text-grayv2-main">
               {isLoading && "Please be patient, ChatGPT sometimes needs a few minutes to generate a program."}
+              {doneMs && (
+                <>
+                  Done in <strong>{(doneMs / 1000).toFixed(1)}s</strong>.
+                </>
+              )}
             </div>
           </div>
         </div>
