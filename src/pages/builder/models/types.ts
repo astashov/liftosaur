@@ -59,5 +59,5 @@ export interface IBuilderUI {
   modalExercisesByMuscle?: IBuilderModalExercisesByMuscle;
   modalSubstitute?: IBuilderModalSubstitute;
   modalSettings?: boolean;
-  selectedExercise?: ISelectedExercise;
+  selectedExercises: ISelectedExercise[];
 }

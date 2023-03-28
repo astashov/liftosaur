@@ -13,6 +13,13 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function mapValues<U, V, T extends Record<any, U>>(obj: T, fn: (x: U) => V): Record<keyof T, V> {
+    return ObjectUtils.keys(obj).reduce<Record<keyof T, V>>((memo, k) => {
+      memo[k] = fn(obj[k]);
+      return memo;
+    }, {} as Record<keyof T, V>);
+  }
+
   export function filter<T extends {}>(obj: T, cb: (key: keyof T, value: T[keyof T]) => boolean): Partial<T> {
     const filteredKeys = ObjectUtils.keys(obj).filter((key) => {
       const value = obj[key];

@@ -23,7 +23,7 @@ interface IBuilderExerciseProps {
   dayIndex: number;
   weekIndex: number;
   settings: IBuilderSettings;
-  selectedExercise?: ISelectedExercise;
+  selectedExercises: ISelectedExercise[];
   dispatch: IBuilderDispatch;
 }
 
@@ -44,11 +44,13 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
     e,
     equipmentName(e),
   ]);
-  const isSelected =
-    props.selectedExercise != null &&
-    props.selectedExercise.weekIndex === props.weekIndex &&
-    props.selectedExercise.dayIndex === props.dayIndex &&
-    props.selectedExercise.exerciseIndex === props.index;
+  const isSelected = props.selectedExercises.some((selectedExercise) => {
+    return (
+      selectedExercise.weekIndex === props.weekIndex &&
+      selectedExercise.dayIndex === props.dayIndex &&
+      selectedExercise.exerciseIndex === props.index
+    );
+  });
 
   return (
     <div
@@ -65,12 +67,45 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
         const hasActionableElement =
           e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
         if (!hasActionableElement) {
+          e.preventDefault();
           props.dispatch([
-            lb<IBuilderState>().p("ui").p("selectedExercise").record({
-              weekIndex: props.weekIndex,
-              dayIndex: props.dayIndex,
-              exerciseIndex: props.index,
-            }),
+            lb<IBuilderState>()
+              .p("ui")
+              .p("selectedExercises")
+              .recordModify((selectedExercises) => {
+                const newSelect = {
+                  weekIndex: props.weekIndex,
+                  dayIndex: props.dayIndex,
+                  exerciseIndex: props.index,
+                };
+                if (window.isPressingShiftCmdCtrl) {
+                  if (
+                    !selectedExercises.some(
+                      (selectedExercise) =>
+                        (selectedExercise.weekIndex === props.weekIndex &&
+                          selectedExercise.dayIndex === props.dayIndex &&
+                          selectedExercise.exerciseIndex === props.index) ||
+                        (selectedExercise.weekIndex === props.weekIndex &&
+                          selectedExercise.dayIndex === props.dayIndex &&
+                          selectedExercise.exerciseIndex == null) ||
+                        (selectedExercise.weekIndex === props.weekIndex &&
+                          selectedExercise.dayIndex == null &&
+                          selectedExercise.exerciseIndex == null)
+                    )
+                  ) {
+                    return [...selectedExercises, newSelect];
+                  } else {
+                    return selectedExercises.filter(
+                      (selectedExercise) =>
+                        selectedExercise.weekIndex !== props.weekIndex ||
+                        selectedExercise.dayIndex !== props.dayIndex ||
+                        selectedExercise.exerciseIndex !== props.index
+                    );
+                  }
+                } else {
+                  return [newSelect];
+                }
+              }),
           ]);
         }
       }}

@@ -12,6 +12,7 @@ interface Window {
     };
   };
   isUndoing?: boolean;
+  isPressingShiftCmdCtrl?: boolean;
   lftAndroidVersion?: number;
   lftAndroidAppVersion?: string;
   lftAndroidSafeInsetTop?: number;

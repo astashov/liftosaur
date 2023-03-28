@@ -20,7 +20,7 @@ interface IBuilderDayProps {
   numberOfDays: number;
   weekIndex: number;
   settings: IBuilderSettings;
-  selectedExercise?: ISelectedExercise;
+  selectedExercises: ISelectedExercise[];
   dispatch: IBuilderDispatch;
 }
 
@@ -31,11 +31,13 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
   const time = BuilderDayModel.approxTimeMs(day);
   const duration = TimeUtils.formatHHMM(time);
   const calories = BuilderDayModel.calories(time);
-  const isSelected =
-    props.selectedExercise != null &&
-    props.selectedExercise.weekIndex === props.weekIndex &&
-    props.selectedExercise.dayIndex === props.index &&
-    props.selectedExercise.exerciseIndex == null;
+  const isSelected = props.selectedExercises.some((selectedExercise) => {
+    return (
+      selectedExercise.weekIndex === props.weekIndex &&
+      selectedExercise.dayIndex === props.index &&
+      selectedExercise.exerciseIndex == null
+    );
+  });
 
   return (
     <section
@@ -53,10 +55,43 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
           e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
         if (!hasActionableElement) {
           props.dispatch([
-            lb<IBuilderState>().p("ui").p("selectedExercise").record({
-              weekIndex: props.weekIndex,
-              dayIndex: props.index,
-            }),
+            lb<IBuilderState>()
+              .p("ui")
+              .p("selectedExercises")
+              .recordModify((selectedExercises) => {
+                const newSelect = {
+                  weekIndex: props.weekIndex,
+                  dayIndex: props.index,
+                };
+                if (window.isPressingShiftCmdCtrl) {
+                  if (
+                    !selectedExercises.some(
+                      (selectedExercise) =>
+                        (selectedExercise.weekIndex === props.weekIndex &&
+                          selectedExercise.dayIndex === props.index &&
+                          selectedExercise.exerciseIndex == null) ||
+                        (selectedExercise.weekIndex === props.weekIndex &&
+                          selectedExercise.dayIndex == null &&
+                          selectedExercise.exerciseIndex == null)
+                    )
+                  ) {
+                    return [
+                      ...selectedExercises.filter(
+                        (s) =>
+                          !(s.weekIndex === props.weekIndex && s.dayIndex === props.index && s.exerciseIndex != null)
+                      ),
+                      newSelect,
+                    ];
+                  } else {
+                    return selectedExercises.filter(
+                      (selectedExercise) =>
+                        selectedExercise.weekIndex !== props.weekIndex || selectedExercise.dayIndex !== props.index
+                    );
+                  }
+                } else {
+                  return [newSelect];
+                }
+              }),
           ]);
         }
       }}
@@ -115,7 +150,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
         {day.exercises.map((exercise, index) => (
           <div className="relative">
             <BuilderExercise
-              selectedExercise={props.selectedExercise}
+              selectedExercises={props.selectedExercises}
               week={props.week}
               weekIndex={props.weekIndex}
               dayIndex={props.index}

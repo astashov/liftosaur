@@ -44,7 +44,9 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       past: [],
       future: [],
     },
-    ui: {},
+    ui: {
+      selectedExercises: [],
+    },
   };
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
@@ -119,7 +121,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
       {state.current.program.weeks.map((week, index) => (
         <BuilderWeek
           numberOfWeeks={state.current.program.weeks.length}
-          selectedExercise={state.ui.selectedExercise}
+          selectedExercises={state.ui.selectedExercises}
           week={week}
           index={index}
           settings={state.settings}

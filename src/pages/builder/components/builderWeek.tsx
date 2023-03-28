@@ -16,17 +16,19 @@ interface IBuilderWeekProps {
   numberOfWeeks: number;
   index: number;
   settings: IBuilderSettings;
-  selectedExercise?: ISelectedExercise;
+  selectedExercises: ISelectedExercise[];
   dispatch: IBuilderDispatch;
 }
 
 export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
   const week = props.week;
-  const isSelected =
-    props.selectedExercise != null &&
-    props.selectedExercise.weekIndex === props.index &&
-    props.selectedExercise.dayIndex == null &&
-    props.selectedExercise.exerciseIndex == null;
+  const isSelected = props.selectedExercises.some((selectedExercise) => {
+    return (
+      selectedExercise.weekIndex === props.index &&
+      selectedExercise.dayIndex == null &&
+      selectedExercise.exerciseIndex == null
+    );
+  });
 
   return (
     <section
@@ -36,9 +38,35 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
           e.target instanceof HTMLElement && HtmlUtils.selectableInParents(e.target, e.currentTarget);
         if (!hasActionableElement) {
           props.dispatch([
-            lb<IBuilderState>().p("ui").p("selectedExercise").record({
-              weekIndex: props.index,
-            }),
+            lb<IBuilderState>()
+              .p("ui")
+              .p("selectedExercises")
+              .recordModify((selectedExercises) => {
+                const newSelect = {
+                  weekIndex: props.index,
+                };
+                if (window.isPressingShiftCmdCtrl) {
+                  if (
+                    !selectedExercises.some(
+                      (selectedExercise) =>
+                        selectedExercise.weekIndex === props.index &&
+                        selectedExercise.dayIndex == null &&
+                        selectedExercise.exerciseIndex == null
+                    )
+                  ) {
+                    return [
+                      ...selectedExercises.filter(
+                        (s) => !(s.weekIndex === props.index && (s.dayIndex != null || s.exerciseIndex != null))
+                      ),
+                      newSelect,
+                    ];
+                  } else {
+                    return selectedExercises.filter((selectedExercise) => selectedExercise.weekIndex !== props.index);
+                  }
+                } else {
+                  return [newSelect];
+                }
+              }),
           ]);
         }
       }}
@@ -88,7 +116,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
             <BuilderDay
               week={week}
               numberOfDays={week.days.length}
-              selectedExercise={props.selectedExercise}
+              selectedExercises={props.selectedExercises}
               day={day}
               settings={props.settings}
               weekIndex={props.index}
