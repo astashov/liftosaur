@@ -8,6 +8,7 @@ interface Window {
   lftIosAppVersion?: string;
   lftAndroidVersion?: number;
   lftIosVersion?: string;
+  isPressingShiftCmdCtrl?: boolean;
   AppleID: {
     auth: {
       signIn: () => Promise<{
