@@ -47,9 +47,10 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
               const copypaste: ICopyPaste = JSON.parse(clipText);
               const weekIndex = selectedExercise.weekIndex;
               const week = state.current.program.weeks[weekIndex];
-              const dayIndex = selectedExercise.dayIndex || week.days.length - 1;
+              const dayIndex = selectedExercise.dayIndex != null ? selectedExercise.dayIndex : week.days.length - 1;
               const day = week.days[dayIndex];
-              const exerciseIndex = selectedExercise.exerciseIndex || day.exercises.length - 1;
+              const exerciseIndex =
+                selectedExercise.exerciseIndex != null ? selectedExercise.exerciseIndex : day.exercises.length - 1;
               switch (copypaste.type) {
                 case "week": {
                   dispatch([
