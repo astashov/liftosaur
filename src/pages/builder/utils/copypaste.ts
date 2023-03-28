@@ -6,15 +6,15 @@ import { IBuilderState, IBuilderDispatch } from "../models/builderReducer";
 import { IBuilderDay, IBuilderExercise, IBuilderWeek } from "../models/types";
 
 type ICopyPaste =
-  | { type: "week"; index: number; week: IBuilderWeek }
-  | { type: "day"; index: number; day: IBuilderDay }
-  | { type: "exercise"; index: number; exercise: IBuilderExercise };
+  | { app: "builder"; type: "week"; index: number; week: IBuilderWeek }
+  | { app: "builder"; type: "day"; index: number; day: IBuilderDay }
+  | { app: "builder"; type: "exercise"; index: number; exercise: IBuilderExercise };
 
 export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): void {
   useEffect(() => {
     function onCopy(): void {
       const selectedExercises = state.ui.selectedExercises;
-      if (selectedExercises.length > 0) {
+      if (!window.getSelection()?.toString() && selectedExercises.length > 0) {
         navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
           if (result.state === "granted" || result.state === "prompt") {
             const copypaste: ICopyPaste[] = [];
@@ -24,13 +24,13 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
                   state.current.program.weeks[selected.weekIndex].days[selected.dayIndex].exercises[
                     selected.exerciseIndex
                   ];
-                copypaste.push({ type: "exercise", index: selected.exerciseIndex, exercise });
+                copypaste.push({ app: "builder", type: "exercise", index: selected.exerciseIndex, exercise });
               } else if (selected.dayIndex != null) {
                 const day = state.current.program.weeks[selected.weekIndex].days[selected.dayIndex];
-                copypaste.push({ type: "day", index: selected.dayIndex, day });
+                copypaste.push({ app: "builder", type: "day", index: selected.dayIndex, day });
               } else {
                 const week = state.current.program.weeks[selected.weekIndex];
-                copypaste.push({ type: "week", index: selected.weekIndex, week });
+                copypaste.push({ app: "builder", type: "week", index: selected.weekIndex, week });
               }
             }
             navigator.clipboard.writeText(JSON.stringify(copypaste));
@@ -48,6 +48,9 @@ export function useCopyPaste(state: IBuilderState, dispatch: IBuilderDispatch): 
               try {
                 copypastes = JSON.parse(clipText);
               } catch (e) {
+                return;
+              }
+              if (!Array.isArray(copypastes) || copypastes.some((c) => c.app !== "builder")) {
                 return;
               }
               const selectedExercise = state.ui.selectedExercises[state.ui.selectedExercises.length - 1];
