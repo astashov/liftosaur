@@ -94,6 +94,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
+  const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
@@ -148,6 +149,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       />
       <div className="mt-8">
         <EditProgramStateVariables
+          stateMetadata={stateMetadata}
           onEditStateVariable={(stateKey, newValue) => {
             const reuseLogicId = programExercise.reuseLogic?.selected;
             if (reuseLogicId) {
@@ -286,8 +288,8 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       </div>
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
-        onDone={(newName, newType) => {
-          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined);
+        onDone={(newName, newType, newUserPrompted) => {
+          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined, newUserPrompted);
           setShouldShowAddStateVariable(false);
         }}
       />

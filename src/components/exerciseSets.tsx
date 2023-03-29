@@ -4,7 +4,16 @@ import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { Progress } from "../models/progress";
 import { IFriendUser } from "../models/state";
-import { ISet, IHistoryRecord, ISettings, IHistoryEntry, IProgressMode, IWeight, IExerciseType } from "../types";
+import {
+  ISet,
+  IHistoryRecord,
+  ISettings,
+  IHistoryEntry,
+  IProgressMode,
+  IWeight,
+  IExerciseType,
+  IProgramExercise,
+} from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 
@@ -13,6 +22,8 @@ interface IExerciseSetsProps {
   warmupSets: ISet[];
   index: number;
   progress: IHistoryRecord;
+  programExercise?: IProgramExercise;
+  allProgramExercises?: IProgramExercise[];
   showHelp: boolean;
   settings: ISettings;
   entry: IHistoryEntry;
@@ -58,7 +69,15 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                             props.onStartSetChanging(true, props.index, i);
                           } else {
                             props.onChangeReps("warmup", props.entry);
-                            handleClick(props.dispatch, props.entry.exercise, set.weight, i, "warmup");
+                            handleClick(
+                              props.dispatch,
+                              props.entry.exercise,
+                              set.weight,
+                              i,
+                              "warmup",
+                              props.programExercise,
+                              props.allProgramExercises
+                            );
                           }
                         }
                       },
@@ -125,7 +144,15 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                     props.onStartSetChanging(false, props.index, i);
                   } else {
                     props.onChangeReps("workout", props.entry);
-                    handleClick(props.dispatch, props.entry.exercise, set.weight, i, "workout");
+                    handleClick(
+                      props.dispatch,
+                      props.entry.exercise,
+                      set.weight,
+                      i,
+                      "workout",
+                      props.programExercise,
+                      props.allProgramExercises
+                    );
                   }
                 }
               }}
@@ -163,7 +190,9 @@ function handleClick(
   exercise: IExerciseType,
   weight: IWeight,
   setIndex: number,
-  mode: IProgressMode
+  mode: IProgressMode,
+  programExercise?: IProgramExercise,
+  allProgramExercises?: IProgramExercise[]
 ): void {
-  dispatch({ type: "ChangeRepsAction", exercise, setIndex, weight, mode });
+  dispatch({ type: "ChangeRepsAction", exercise, programExercise, allProgramExercises, setIndex, weight, mode });
 }

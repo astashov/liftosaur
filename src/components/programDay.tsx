@@ -5,7 +5,16 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
+import {
+  IAllComments,
+  IAllFriends,
+  IAllLikes,
+  IFriendUser,
+  ILoading,
+  IState,
+  IWebpushr,
+  updateState,
+} from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
@@ -21,6 +30,8 @@ import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { IScreen, Screen } from "../models/screen";
+import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
+import { lb } from "lens-shmens";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -103,6 +114,17 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               units={props.settings.units}
               dispatch={props.dispatch}
               weight={progress.ui?.weightModal?.weight ?? 0}
+            />
+            <ModalStateVarsUserPrompt
+              programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
+              allProgramExercises={props.program?.exercises || []}
+              isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
+              onClose={() =>
+                updateState(props.dispatch, [
+                  lb<IState>().p("progress").pi(0).pi("ui").p("stateVarsUserPromptModal").record(undefined),
+                ])
+              }
+              dispatch={props.dispatch}
             />
             <ModalDate
               isHidden={progress.ui?.dateModal == null}

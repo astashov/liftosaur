@@ -27,6 +27,9 @@ import { IndexedDBUtils } from "../utils/indexeddb";
 import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
+import { Exercise } from "../models/exercise";
+import { ProgramExercise } from "../models/programExercise";
+import { IProgramState } from "../types";
 
 declare let Rollbar: RB;
 const isLoggingEnabled =
@@ -160,9 +163,17 @@ export type IDeleteProgress = {
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
   exercise: IExerciseType;
+  programExercise?: IProgramExercise;
+  allProgramExercises?: IProgramExercise[];
   setIndex: number;
   weight: IWeight;
   mode: IProgressMode;
+};
+
+export type IConfirmUserPromptedStateVarsAction = {
+  type: "ConfirmUserPromptedStateVars";
+  programExerciseId: string;
+  userPromptedStateVars: IProgramState;
 };
 
 export type IFinishProgramDayAction = {
@@ -247,7 +258,12 @@ export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
 };
 
-export type ICardsAction = IChangeRepsAction | IChangeWeightAction | IChangeAMRAPAction | IConfirmWeightAction;
+export type ICardsAction =
+  | IChangeRepsAction
+  | IChangeWeightAction
+  | IChangeAMRAPAction
+  | IConfirmWeightAction
+  | IConfirmUserPromptedStateVarsAction;
 
 export type IAction =
   | ICardsAction
@@ -314,17 +330,34 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "ChangeRepsAction": {
-        progress = Progress.updateRepsInExercise(
+        let newProgress = Progress.updateRepsInExercise(
           progress,
           action.exercise,
           action.weight,
           action.setIndex,
           action.mode
         );
-        if (Progress.isFullyFinishedSet(progress)) {
-          progress = Progress.stopTimer(progress);
+        const oldEntry = progress.entries.filter((e) => Exercise.eq(e.exercise, action.exercise))[0];
+        const entry = newProgress.entries.filter((e) => Exercise.eq(e.exercise, action.exercise))[0];
+        if (
+          entry != null &&
+          !Progress.isFinishedSet(oldEntry) &&
+          Progress.isFinishedSet(entry) &&
+          action.programExercise &&
+          action.allProgramExercises &&
+          ProgramExercise.hasUserPromptedVars(action.programExercise, action.allProgramExercises)
+        ) {
+          newProgress.ui = {
+            ...(progress.ui || {}),
+            stateVarsUserPromptModal: {
+              programExercise: action.programExercise,
+            },
+          };
         }
-        return progress;
+        if (Progress.isFullyFinishedSet(newProgress)) {
+          newProgress = Progress.stopTimer(newProgress);
+        }
+        return newProgress;
       }
       case "ChangeAMRAPAction": {
         progress = Progress.updateAmrapRepsInExercise(progress, action.value);
@@ -338,6 +371,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
       }
       case "ConfirmWeightAction": {
         return Progress.updateWeight(progress, settings, action.weight, action.programExercise);
+      }
+      case "ConfirmUserPromptedStateVars": {
+        return Progress.updateUserPromptedStateVars(progress, action.programExerciseId, action.userPromptedStateVars);
       }
     }
   };

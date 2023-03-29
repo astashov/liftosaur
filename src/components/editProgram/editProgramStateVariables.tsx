@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { Weight } from "../../models/weight";
-import { IProgramExercise } from "../../types";
+import { IProgramExercise, IProgramStateMetadata } from "../../types";
 import { ObjectUtils } from "../../utils/object";
 import { GroupHeader } from "../groupHeader";
 import { LinkButton } from "../linkButton";
@@ -8,6 +8,7 @@ import { MenuItemEditable } from "../menuItemEditable";
 
 interface IStateProps {
   programExercise: IProgramExercise;
+  stateMetadata?: IProgramStateMetadata;
   onAddStateVariable: () => void;
   onEditStateVariable: (stateKey: string, newValue?: string) => void;
 }
@@ -36,6 +37,13 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
         return (
           <MenuItemEditable
             name={stateKey}
+            nextLine={
+              props.stateMetadata?.[stateKey]?.userPrompted ? (
+                <span style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-grayv2-main">
+                  User Prompted
+                </span>
+              ) : undefined
+            }
             isNameBold={true}
             type="number"
             value={displayValue.toString()}

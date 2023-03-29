@@ -26,9 +26,17 @@ interface I531Tms {
 }
 
 export namespace EditProgram {
-  export function addStateVariable(dispatch: IDispatch, newName?: string, newType?: IUnit): void {
+  export function addStateVariable(
+    dispatch: IDispatch,
+    newName?: string,
+    newType?: IUnit,
+    newUserPrompted?: boolean
+  ): void {
     if (newName != null && newType != null) {
-      updateState(dispatch, [EditProgramLenses.addStateVariable(lb<IState>().pi("editExercise"), newName, newType)]);
+      updateState(
+        dispatch,
+        EditProgramLenses.addStateVariable(lb<IState>().pi("editExercise"), newName, newType, newUserPrompted)
+      );
     }
   }
 

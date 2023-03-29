@@ -23,6 +23,7 @@ import { CollectionUtils } from "../../../utils/collection";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { EditProgramTimerEnable } from "../../../components/editProgram/editProgramTimerEnable";
 import { EditProgramExerciseTimer } from "../../../components/editProgram/editProgramExerciseTimer";
+import { ProgramExercise } from "../../../models/programExercise";
 
 interface IProgramContentEditExerciseAdvancedProps {
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -61,6 +62,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
+  const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
   const [showTimerExpr, setShowTimerExpr] = useState<boolean>(!!programExercise.timerExpr);
   const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
@@ -89,6 +91,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
       <div className="flex" style={{ gap: "1rem" }}>
         <div className="flex-1">
           <EditProgramStateVariables
+            stateMetadata={stateMetadata}
             onEditStateVariable={(stateKey, newValue) => {
               const reuseLogicId = programExercise.reuseLogic?.selected;
               if (reuseLogicId) {
@@ -236,9 +239,9 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
       )}
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
-        onDone={(newName, newType) => {
+        onDone={(newName, newType, newUserPrompted) => {
           if (newName != null && newType != null) {
-            props.dispatch(EditProgramLenses.addStateVariable(lbe, newName, newType as IUnit));
+            props.dispatch(EditProgramLenses.addStateVariable(lbe, newName, newType as IUnit, newUserPrompted));
           }
           setShouldShowAddStateVariable(false);
         }}

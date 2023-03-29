@@ -11,6 +11,8 @@ import {
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
+import { IProgramStateMetadata } from "../types";
+import { ObjectUtils } from "../utils/object";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -33,6 +35,14 @@ export namespace ProgramExercise {
     return programExercise.state;
   }
 
+  export function hasUserPromptedVars(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): boolean {
+    const stateMetadata = getStateMetadata(programExercise, allProgramExercises) || {};
+    return ObjectUtils.keys(stateMetadata).some((key) => stateMetadata[key]?.userPrompted);
+  }
+
   export function mergeStates(aState: IProgramState, bState: IProgramState): IProgramState {
     const newState: IProgramState = {};
     for (const key of Object.keys(bState)) {
@@ -53,6 +63,13 @@ export namespace ProgramExercise {
     allProgramExercises: IProgramExercise[]
   ): string {
     return getProgramExercise(programExercise, allProgramExercises).variationExpr;
+  }
+
+  export function getStateMetadata(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): IProgramStateMetadata | undefined {
+    return getProgramExercise(programExercise, allProgramExercises).stateMetadata;
   }
 
   export function getVariations(

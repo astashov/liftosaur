@@ -23,19 +23,28 @@ export namespace EditProgramLenses {
   export function addStateVariable<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     newName: string,
-    newType: IUnit
-  ): ILensRecordingPayload<T> {
-    return prefix.p("state").recordModify((state) => {
-      const newState = { ...state };
-      let newValue: IWeight | number;
-      if (newType === "lb" || newType === "kg") {
-        newValue = Weight.build(0, newType);
-      } else {
-        newValue = 0;
-      }
-      newState[newName] = newValue;
-      return newState;
-    });
+    newType: IUnit,
+    newUserPrompted?: boolean
+  ): ILensRecordingPayload<T>[] {
+    return [
+      prefix.p("state").recordModify((state) => {
+        const newState = { ...state };
+        let newValue: IWeight | number;
+        if (newType === "lb" || newType === "kg") {
+          newValue = Weight.build(0, newType);
+        } else {
+          newValue = 0;
+        }
+        newState[newName] = newValue;
+        return newState;
+      }),
+      prefix.p("stateMetadata").recordModify((stateMetadata) => ({
+        ...(stateMetadata || {}),
+        ...(newUserPrompted
+          ? { [newName]: { ...((stateMetadata || {})[newName] || {}), userPrompted: newUserPrompted } }
+          : {}),
+      })),
+    ];
   }
 
   export function reorderDays<T>(
@@ -435,11 +444,20 @@ export namespace EditProgramLenses {
 }
 
 function updateStateVariable(state: IProgramState, stateKey: string, newValue?: string): IProgramState {
-  const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
+  if (newValue === "") {
+    newValue = "0";
+  }
+  let v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
+  if (v != null && isNaN(v)) {
+    v = 0;
+  }
   const newState = { ...state };
   const value = state[stateKey];
+  if (Weight.is(value) && v != null && v < 0) {
+    v = 0;
+  }
   if (v != null) {
-    newState[stateKey] = Weight.is(value) ? Weight.build(v, value.unit) : v;
+    newState[stateKey] = Weight.is(value) ? Weight.build(v || 0, value.unit) : v;
   } else {
     delete newState[stateKey];
   }
