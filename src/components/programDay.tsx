@@ -21,6 +21,7 @@ import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { IScreen, Screen } from "../models/screen";
+import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -103,6 +104,12 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               units={props.settings.units}
               dispatch={props.dispatch}
               weight={progress.ui?.weightModal?.weight ?? 0}
+            />
+            <ModalStateVarsUserPrompt
+              programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
+              allProgramExercises={props.program?.exercises || []}
+              isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
+              dispatch={props.dispatch}
             />
             <ModalDate
               isHidden={progress.ui?.dateModal == null}

@@ -317,11 +317,15 @@ export namespace Program {
     allProgramExercises: IProgramExercise[],
     day: number,
     entry: IHistoryEntry,
-    settings: ISettings
+    settings: ISettings,
+    userPromptedStateVars?: IProgramState
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
-    const newState: IProgramState = { ...ProgramExercise.getState(programExercise, allProgramExercises) };
+    const newState: IProgramState = {
+      ...ProgramExercise.getState(programExercise, allProgramExercises),
+      ...userPromptedStateVars,
+    };
 
     try {
       new ScriptRunner(
@@ -375,7 +379,8 @@ export namespace Program {
               program.exercises,
               progress.day,
               progress.entries[excIndex],
-              settings
+              settings,
+              progress.userPromptedStateVars?.[e.id]
             );
             if (newStateResult.success) {
               const reuseLogicId = e.reuseLogic?.selected;

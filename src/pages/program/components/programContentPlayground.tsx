@@ -15,6 +15,7 @@ import { ModalWeight } from "../../../components/modalWeight";
 import { ExerciseSets } from "../../../components/exerciseSets";
 import { GroupHeader } from "../../../components/groupHeader";
 import { ProgressStateChanges } from "../../../components/progressStateChanges";
+import { ModalStateVarsUserPrompt } from "../../../components/modalStateVarsUserPrompt";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -106,6 +107,12 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
         units={props.settings.units}
         dispatch={dispatch}
         weight={progress.ui?.weightModal?.weight ?? 0}
+      />
+      <ModalStateVarsUserPrompt
+        programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
+        allProgramExercises={allProgramExercises}
+        isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
+        dispatch={dispatch}
       />
     </section>
   );

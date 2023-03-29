@@ -11,6 +11,7 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
+import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -89,6 +90,12 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         units={props.settings.units}
         dispatch={dispatch}
         weight={progress.ui?.weightModal?.weight ?? 0}
+      />
+      <ModalStateVarsUserPrompt
+        programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
+        allProgramExercises={allProgramExercises}
+        isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
+        dispatch={dispatch}
       />
     </Fragment>
   );

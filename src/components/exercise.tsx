@@ -116,6 +116,7 @@ export const ExerciseView = memo((props: IProps): JSX.Element => {
             settings={props.settings}
             day={props.day}
             state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
+            userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
             script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
           />
         )}
@@ -308,6 +309,8 @@ const ExerciseContentView = memo(
             warmupSets={warmupSets}
             index={props.index}
             progress={props.progress}
+            programExercise={props.programExercise}
+            allProgramExercises={props.allProgramExercises}
             showHelp={props.showHelp}
             settings={props.settings}
             entry={props.entry}

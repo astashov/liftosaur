@@ -12,13 +12,22 @@ interface IProps {
   day: number;
   state: IProgramState;
   script: string;
+  userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const { entry, settings, state, script, day } = props;
   const { units } = settings;
-  const result = Program.runExerciseFinishDayScript(entry, day, settings, state, script, entry.exercise.equipment);
+  const mergedState = { ...state, ...props.userPromptedStateVars };
+  const result = Program.runExerciseFinishDayScript(
+    entry,
+    day,
+    settings,
+    mergedState,
+    script,
+    entry.exercise.equipment
+  );
   const isFinished = Reps.isFinished(entry.sets);
 
   if ((props.forceShow || isFinished) && result.success) {

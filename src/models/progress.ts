@@ -369,6 +369,24 @@ export namespace Progress {
     }
   }
 
+  export function updateUserPromptedStateVars(
+    progress: IHistoryRecord,
+    programExerciseId: string,
+    userPromptedStateVars: IProgramState
+  ): IHistoryRecord {
+    return {
+      ...progress,
+      userPromptedStateVars: {
+        ...(progress.userPromptedStateVars || {}),
+        [programExerciseId]: userPromptedStateVars,
+      },
+      ui: {
+        ...(progress.ui || {}),
+        stateVarsUserPromptModal: undefined,
+      },
+    };
+  }
+
   export function editDayAction(dispatch: IDispatch, programId: string, dayIndex: number): void {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id: programId, dayIndex: dayIndex }),

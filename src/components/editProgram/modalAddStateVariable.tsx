@@ -7,20 +7,33 @@ import { MenuItemEditable } from "../menuItemEditable";
 import { Input } from "../input";
 
 interface IProps {
-  onDone: (newValue?: string, newType?: string) => void;
+  onDone: (newValue?: string, newType?: string, userPrompted?: boolean) => void;
   isHidden: boolean;
 }
 
 export function ModalAddStateVariable(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>();
   const [type, setType] = useState("");
+  const [userPrompted, setUserPrompted] = useState(false);
+
+  function clear(): void {
+    setUserPrompted(false);
+    setType("");
+    if (textInput.current) {
+      textInput.current.value = "";
+    }
+  }
+
   return (
     <Modal
       isFullWidth={true}
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
       shouldShowClose={true}
-      onClose={() => props.onDone()}
+      onClose={() => {
+        clear();
+        props.onDone();
+      }}
     >
       <GroupHeader size="large" topPadding={false} name="Add State Variable" />
       <form onSubmit={(e) => e.preventDefault()}>
@@ -49,8 +62,27 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           name="Variable Type"
           data-cy="modal-add-state-variable-input-type"
         />
+        <MenuItemEditable
+          type="boolean"
+          name="User prompted"
+          nextLine={
+            <span className="text-xs text-grayv2-main">
+              Ask user to enter value for this variable after finishing exercise
+            </span>
+          }
+          value={userPrompted ? "true" : "false"}
+          onChange={(v) => setUserPrompted(v === "true")}
+        />
         <div className="flex justify-between mt-4">
-          <Button data-cy="modal-add-state-variable-cancel" type="button" kind="grayv2" onClick={() => props.onDone()}>
+          <Button
+            data-cy="modal-add-state-variable-cancel"
+            type="button"
+            kind="grayv2"
+            onClick={() => {
+              clear();
+              props.onDone();
+            }}
+          >
             Cancel
           </Button>
           <Button
@@ -58,7 +90,8 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             kind="orange"
             type="submit"
             onClick={() => {
-              props.onDone(textInput.current!.value, type);
+              props.onDone(textInput.current!.value, type, userPrompted);
+              clear();
             }}
           >
             Add

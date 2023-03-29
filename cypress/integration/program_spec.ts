@@ -134,7 +134,7 @@ describe("Program", () => {
 
     g("menu-item-value-weight").clear().type("100");
 
-    cy.contains("Save").click();
+    g("save-program").click();
     g("menu-item-delete-day-2").click();
     g("menu-item-day-1").find('[data-cy="edit-day"]').click();
 

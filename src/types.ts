@@ -392,6 +392,17 @@ export const THistoryEntry = t.intersection(
 );
 export type IHistoryEntry = t.TypeOf<typeof THistoryEntry>;
 
+export const TProgramStateMetadataValue = t.partial(
+  {
+    userPrompted: t.boolean,
+  },
+  "TProgramStateMetadataValue"
+);
+export type IProgramStateMetadataValue = t.TypeOf<typeof TProgramStateMetadataValue>;
+
+export const TProgramStateMetadata = dictionary(t.string, TProgramStateMetadataValue);
+export type IProgramStateMetadata = t.TypeOf<typeof TProgramStateMetadata>;
+
 export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
 
@@ -448,6 +459,7 @@ export const TProgramExercise = t.intersection(
       finishDayExpr: t.string,
     }),
     t.partial({
+      stateMetadata: TProgramStateMetadata,
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
@@ -467,6 +479,9 @@ export const TProgressUi = t.partial(
     weightModal: t.type({
       exercise: TExerciseType,
       weight: TWeight,
+      programExercise: t.union([TProgramExercise, t.undefined]),
+    }),
+    stateVarsUserPromptModal: t.type({
       programExercise: t.union([TProgramExercise, t.undefined]),
     }),
     dateModal: t.type({
@@ -513,6 +528,7 @@ export const THistoryRecord = t.intersection(
     t.partial({
       endTime: t.number,
       ui: TProgressUi,
+      userPromptedStateVars: dictionary(t.string, TProgramState),
       timerSince: t.number,
       timerMode: TProgressMode,
       timer: t.number,

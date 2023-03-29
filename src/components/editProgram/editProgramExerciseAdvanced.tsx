@@ -94,6 +94,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
     : finishScriptResult;
 
   const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
+  const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id
@@ -148,11 +149,15 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       />
       <div className="mt-8">
         <EditProgramStateVariables
+          stateMetadata={stateMetadata}
           onEditStateVariable={(stateKey, newValue) => {
             const reuseLogicId = programExercise.reuseLogic?.selected;
             if (reuseLogicId) {
               EditProgram.editReuseLogicStateVariable(props.dispatch, reuseLogicId, stateKey, newValue);
             } else {
+              if (newValue == null) {
+                EditProgram.removeStateVariableMetadata(props.dispatch, stateKey);
+              }
               EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
             }
           }}
@@ -271,9 +276,10 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name} exercise logic is used
         </div>
       )}
-      <div className="p-2 mb-4 text-center">
+      <div className="p-2 mb-8 text-center">
         <Button
           kind="orange"
+          data-cy="save-program"
           disabled={cannotSave}
           onClick={() => {
             if (!cannotSave) {
@@ -286,8 +292,8 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       </div>
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
-        onDone={(newName, newType) => {
-          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined);
+        onDone={(newName, newType, newUserPrompted) => {
+          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined, newUserPrompted);
           setShouldShowAddStateVariable(false);
         }}
       />
