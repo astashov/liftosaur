@@ -116,6 +116,11 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
               <div>
                 <StateVars stateVars={stateVars} />
               </div>
+              {programExercise.timerExpr && (
+                <div className="text-xs">
+                  Rest Timer: <strong>{programExercise.timerExpr}</strong>
+                </div>
+              )}
               {reusedProgramExercise && (
                 <div className="text-grayv2-main">Reused logic from {reusedProgramExercise.name}</div>
               )}
