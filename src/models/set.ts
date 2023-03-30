@@ -62,6 +62,7 @@ export namespace Reps {
         if (
           last != null &&
           (!Weight.eq(last.weight, set.weight) ||
+            last.reps !== set.reps ||
             last.completedReps !== set.completedReps ||
             (isNext && last.isAmrap !== set.isAmrap))
         ) {
