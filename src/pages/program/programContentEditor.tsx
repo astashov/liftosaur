@@ -29,6 +29,7 @@ import { dequal } from "dequal";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { EditExerciseUtil } from "./utils/editExerciseUtil";
 import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
+import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -150,19 +151,38 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                           <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
                         </div>
                       </h2>
-                      {program.days.length > 1 && (
+                      <div>
                         <button
-                          title="Remove day"
-                          data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
-                          className="px-2 align-middle ls-days-list-delete-day button"
+                          title="Duplicate day"
+                          data-cy={`menu-item-duplicate-day-${StringUtils.dashcase(day.name)}`}
+                          className="px-2 align-middle ls-web-editor-duplicate-day button"
                           onClick={() => {
-                            dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
-                            setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
+                            const newName = `${day.name} Copy`;
+                            dispatch(
+                              lbProgram.p("days").recordModify((days) => {
+                                const newDays = [...days];
+                                newDays.push({ ...ObjectUtils.clone(day), name: newName });
+                                return newDays;
+                              })
+                            );
                           }}
                         >
-                          <IconTrash />
+                          <IconDuplicate2 />
                         </button>
-                      )}
+                        {program.days.length > 1 && (
+                          <button
+                            title="Remove day"
+                            data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
+                            className="px-2 align-middle ls-web-editor-delete-day button"
+                            onClick={() => {
+                              dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
+                              setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
+                            }}
+                          >
+                            <IconTrash />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {!collapsedDays[i] && (
                       <div>
