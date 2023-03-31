@@ -22,6 +22,7 @@ import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { IScreen, Screen } from "../models/screen";
 import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
+import { ModalEditMode } from "./modalEditMode";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -48,6 +49,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const friend = props.friend;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
+  const editModalProgramExercise = progress.ui?.editModal?.programExercise;
 
   if (progress != null) {
     return (
@@ -105,6 +107,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               dispatch={props.dispatch}
               weight={progress.ui?.weightModal?.weight ?? 0}
             />
+            {editModalProgramExercise && props.program && (
+              <ModalEditMode
+                program={props.program}
+                programExercise={editModalProgramExercise}
+                entryIndex={progress.ui?.editModal?.entryIndex || 0}
+                progressId={props.progress.id}
+                settings={props.settings}
+                dispatch={props.dispatch}
+              />
+            )}
             <ModalStateVarsUserPrompt
               programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
               allProgramExercises={props.program?.exercises || []}

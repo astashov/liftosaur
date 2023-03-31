@@ -23,7 +23,6 @@ import { DateUtils } from "../utils/date";
 import { IFriendUser, IState, updateState } from "../models/state";
 import { StringUtils } from "../utils/string";
 import { IconArrowRight } from "./icons/iconArrowRight";
-import { IconKebab } from "./icons/iconKebab";
 import { lb } from "lens-shmens";
 import { Progress } from "../models/progress";
 import { Button } from "./button";
@@ -36,6 +35,7 @@ import { ExerciseSets } from "./exerciseSets";
 import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
+import { IconEditSquare } from "./icons/iconEditSquare";
 
 interface IProps {
   showHelp: boolean;
@@ -47,7 +47,7 @@ interface IProps {
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
   index: number;
-  showKebab: boolean;
+  showEditButtons: boolean;
   friend?: IFriendUser;
   forceShowStateChanges?: boolean;
   subscription: ISubscription;
@@ -154,6 +154,7 @@ const ExerciseContentView = memo(
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
 
     const [showNotes, setShowNotes] = useState(!!props.entry.notes);
+    const programExercise = props.programExercise;
 
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
@@ -180,34 +181,37 @@ const ExerciseContentView = memo(
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
               </div>
-              <div>
-                <button
-                  data-cy="exercise-notes-toggle"
-                  className="p-2 leading-none align-middle"
-                  onClick={() => setShowNotes(!showNotes)}
-                >
-                  <IconNotebook size={18} />
-                </button>
-                {props.showKebab && (
+              {props.showEditButtons && (
+                <div>
+                  {programExercise && (
+                    <button
+                      data-cy="exercise-edit-mode"
+                      className="box-content p-2 align-middle"
+                      style={{ width: "18px", height: "18px" }}
+                      onClick={() => {
+                        updateState(props.dispatch, [
+                          lb<IState>()
+                            .p("progress")
+                            .pi(props.progress.id)
+                            .pi("ui")
+                            .p("editModal")
+                            .record({ programExercise, entryIndex: props.index }),
+                        ]);
+                      }}
+                    >
+                      <IconEditSquare />
+                    </button>
+                  )}
                   <button
-                    data-cy="exercise-options"
-                    className="box-content py-2 pl-2 align-middle"
-                    style={{ width: "18px", height: "18px" }}
-                    onClick={() => {
-                      updateState(props.dispatch, [
-                        lb<IState>()
-                          .p("progress")
-                          .pi(props.progress.id)
-                          .pi("ui")
-                          .p("exerciseBottomSheet")
-                          .record({ entryIndex: props.index }),
-                      ]);
-                    }}
+                    data-cy="exercise-notes-toggle"
+                    className="p-2 leading-none align-middle"
+                    style={{ marginRight: "-0.5rem" }}
+                    onClick={() => setShowNotes(!showNotes)}
                   >
-                    <IconKebab />
+                    <IconNotebook size={18} />
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
             {!props.hidePlatesCalculator && (

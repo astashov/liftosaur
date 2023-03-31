@@ -481,6 +481,10 @@ export const TProgressUi = t.partial(
       weight: TWeight,
       programExercise: t.union([TProgramExercise, t.undefined]),
     }),
+    editModal: t.type({
+      programExercise: TProgramExercise,
+      entryIndex: t.number,
+    }),
     stateVarsUserPromptModal: t.type({
       programExercise: t.union([TProgramExercise, t.undefined]),
     }),

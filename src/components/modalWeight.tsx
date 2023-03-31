@@ -25,6 +25,10 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
       onClose={() => props.dispatch({ type: "ConfirmWeightAction", weight: undefined })}
     >
       <GroupHeader size="large" name="Please enter weight" />
+      <h4 className="text-sm">
+        It changes <strong>only for this workout!</strong> If you want to change for this and future workouts, change
+        the weight in the program.
+      </h4>
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}

@@ -14,8 +14,8 @@ describe("Edit Sets", () => {
     g("clone-program").click();
     g("start-workout").click();
 
-    g("exercise-options").eq(1).click();
-    g("bottom-sheet-edit-exercise").click();
+    g("exercise-edit-mode").eq(1).click();
+    g("modal-edit-mode-this-workout").click();
     g("add-warmup-set").click();
     g("modal-edit-set-reps-input").clear().type("10");
     g("modal-edit-set-weight-input").clear().type("100");

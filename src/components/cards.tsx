@@ -51,7 +51,7 @@ export const CardsView = memo(
             <div className="text-lg font-semibold">{props.progress?.programName}</div>
             <div className="flex text-sm text-grayv2-main">
               <div className="flex-1 mr-2 align-middle">{props.progress?.dayName}</div>
-              <div className="align-middle">
+              <div className="mr-2 align-middle">
                 <button
                   className="px-2 ml-1 align-middle"
                   onClick={() =>
@@ -96,7 +96,7 @@ export const CardsView = memo(
             <ExerciseView
               history={props.history}
               showHelp={true}
-              showKebab={true}
+              showEditButtons={true}
               progress={props.progress}
               friend={friend}
               settings={props.settings}

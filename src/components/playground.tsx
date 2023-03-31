@@ -67,7 +67,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         }}
       />
       <ExerciseView
-        showKebab={false}
+        showEditButtons={false}
         history={[]}
         showHelp={false}
         entry={entry}
