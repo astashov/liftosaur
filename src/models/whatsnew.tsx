@@ -257,6 +257,21 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230330": {
+    title: <span>User entered state variables</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can make a user to provide a value for the state variable when they finish an exercise. For that,
+          there's a checkbox when you create a state variable.
+        </li>
+        <li>
+          That's useful e.g. for the programs that use RPE (Rating of Perceived Exertion) or RIR (Reps in Reserve) for
+          progressions. Or if you want to manually choose the weight for the next workout. Or something like that.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
