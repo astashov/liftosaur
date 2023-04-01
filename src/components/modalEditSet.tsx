@@ -36,6 +36,10 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
       }}
     >
       <GroupHeader size="large" name="Please enter reps and weight" />
+      <h4 className="mb-2 text-xs text-grayv2-main">
+        It changes reps and weight <strong>only for this workout!</strong> If you want to change them for this and the
+        future workouts, make changes <strong>in the program</strong>.
+      </h4>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="flex items-center">
           <div className="w-24 mr-2">
