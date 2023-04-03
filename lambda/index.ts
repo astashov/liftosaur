@@ -1034,11 +1034,15 @@ const postFreeformGeneratorHandler: RouteHandler<
   const { event, di } = payload;
   const bodyJson = getBodyJson(event);
   const id = UidFactory.generateUid(8);
-  await di.lambda.invoke<ILftFreeformLambdaDevEvent>({
-    name: `LftFreeformLambda${env === "dev" ? "Dev" : ""}`,
-    invocationType: "Event",
-    payload: { prompt: bodyJson.prompt, id: id },
-  });
+  if (process.env.LOCAL_CHATGPT === "true") {
+    freeformLambdaHandler({ prompt: bodyJson.prompt, id: id });
+  } else {
+    await di.lambda.invoke<ILftFreeformLambdaDevEvent>({
+      name: `LftFreeformLambda${env === "dev" ? "Dev" : ""}`,
+      invocationType: "Event",
+      payload: { prompt: bodyJson.prompt, id: id },
+    });
+  }
   return ResponseUtils.json(200, event, { id: id });
 };
 
