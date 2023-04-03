@@ -11,7 +11,7 @@ import {
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
-import { IProgramStateMetadata } from "../types";
+import { IProgramStateMetadata, IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";
 
 export interface IProgramExerciseExample {
@@ -20,6 +20,11 @@ export interface IProgramExerciseExample {
   sets: IProgramSet[];
   state: IProgramState;
   finishDayExpr: string;
+  rules: {
+    sets: "keep" | "replace";
+    reps: "keep" | "keep_if_has_vars" | "replace";
+    weight: "keep" | "keep_if_has_vars" | "replace";
+  };
 }
 
 export namespace ProgramExercise {
@@ -128,6 +133,14 @@ export namespace ProgramExercise {
       (memo, set) => memo + ProgramSet.approxTimeMs(set, dayIndex, programExercise, allProgramExercises, settings),
       0
     );
+  }
+
+  export function getStateVariableType(value: number | IWeight): "number" | "kg" | "lb" {
+    if (typeof value === "number") {
+      return "number";
+    } else {
+      return value.unit;
+    }
   }
 
   export function buildProgress(

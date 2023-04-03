@@ -38,6 +38,41 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
       state: {
         weight: defaultWeight,
       },
+      rules: {
+        sets: "keep",
+        reps: "keep",
+        weight: "keep_if_has_vars",
+      },
+    },
+
+    {
+      title: "Linear progression after N successes",
+      description: "We increase weight after N successful workouts. It allows to slow down the linear growth a bit.",
+      sets: [
+        {
+          repsExpr: "5",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.successes = state.successes + 1
+        }
+        if (state.successes > 2) {
+          state.successes = 0
+          state.weight = state.weight + ${defaultBump}
+        }
+      `),
+      state: {
+        weight: defaultWeight,
+        successes: 0,
+      },
+      rules: {
+        sets: "keep",
+        reps: "keep",
+        weight: "keep_if_has_vars",
+      },
     },
 
     {
@@ -65,6 +100,11 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
         weight: defaultWeight,
         failures: 0,
       },
+      rules: {
+        sets: "keep",
+        reps: "keep",
+        weight: "keep_if_has_vars",
+      },
     },
 
     {
@@ -72,11 +112,6 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
       description:
         "Similar to Linear Progression, but we only consider it failure if you lifted less than last time. I.e if you need to lift 2x12, and you lifted 12 and 6 reps, but last time you lifted 12 and 4 reps, we don't consider it a failure. We'll increase weight only when you lift 2x12 though.",
       sets: [
-        {
-          repsExpr: "12",
-          weightExpr: "state.weight",
-          isAmrap: false,
-        },
         {
           repsExpr: "12",
           weightExpr: "state.weight",
@@ -106,6 +141,11 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
         lastReps: 0,
         failures: 0,
       },
+      rules: {
+        sets: "keep",
+        reps: "keep",
+        weight: "keep_if_has_vars",
+      },
     },
 
     {
@@ -129,6 +169,11 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
         `),
       state: {
         weight: defaultWeight,
+      },
+      rules: {
+        sets: "replace",
+        reps: "replace",
+        weight: "replace",
       },
     },
 
@@ -155,6 +200,11 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
       state: {
         reps: 8,
         weight: defaultWeight,
+      },
+      rules: {
+        sets: "keep",
+        reps: "keep_if_has_vars",
+        weight: "keep_if_has_vars",
       },
     },
   ];

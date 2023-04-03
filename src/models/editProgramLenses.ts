@@ -13,6 +13,7 @@ import {
 } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { UidFactory } from "../utils/generator";
+import { ObjectUtils } from "../utils/object";
 import { StringUtils } from "../utils/string";
 import { Exercise, IExercise, warmupValues } from "./exercise";
 import { Program } from "./program";
@@ -368,12 +369,53 @@ export namespace EditProgramLenses {
     example: IProgramExerciseExample
   ): ILensRecordingPayload<T> {
     return prefix.recordModify((pe) => {
-      return {
-        ...pe,
+      const newPe = {
+        ...ObjectUtils.clone(pe),
         finishDayExpr: example.finishDayExpr,
-        state: example.state,
-        variations: [{ sets: [...example.sets] }],
       };
+      for (const key of Object.keys(example.state)) {
+        const oldValue = newPe.state[key];
+        const exampleValue = example.state[key];
+        if (oldValue == null) {
+          newPe.state[key] = exampleValue;
+        } else {
+          const oldType = ProgramExercise.getStateVariableType(oldValue);
+          const exampleType = ProgramExercise.getStateVariableType(exampleValue);
+          if (oldType !== exampleType) {
+            newPe.state[key] = exampleValue;
+          }
+        }
+      }
+      if (newPe.variations.length > 1 || example.rules.sets === "replace") {
+        newPe.variations = [{ sets: [...example.sets] }];
+      } else {
+        for (const set of newPe.variations[0].sets) {
+          if (example.rules.reps === "replace") {
+            set.repsExpr = example.sets[0].repsExpr;
+          } else if (example.rules.reps === "keep_if_has_vars") {
+            const oldVars = set.repsExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+            const exampleVarsMatch =
+              example.sets[0].repsExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+            const hasAllVars = exampleVarsMatch.every((v) => oldVars.indexOf(v) !== -1);
+            if (!hasAllVars) {
+              set.repsExpr = example.sets[0].repsExpr;
+            }
+          }
+
+          if (example.rules.weight === "replace") {
+            set.weightExpr = example.sets[0].weightExpr;
+          } else if (example.rules.weight === "keep_if_has_vars") {
+            const oldVars = set.weightExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+            const exampleVarsMatch =
+              example.sets[0].weightExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+            const hasAllVars = exampleVarsMatch.every((v) => oldVars.indexOf(v) !== -1);
+            if (!hasAllVars) {
+              set.weightExpr = example.sets[0].weightExpr;
+            }
+          }
+        }
+      }
+      return newPe;
     });
   }
 
