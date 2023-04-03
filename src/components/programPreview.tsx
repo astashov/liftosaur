@@ -279,7 +279,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                       }}
                     >
                       {reusedProgramExercise.name}
-                    </LinkButton>
+                    </LinkButton>{" "}
                     exercise
                   </>
                 )}
