@@ -707,6 +707,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       if (receipt) {
         if (await Subscriptions.verifyAppleReceipt(env.service, receipt)) {
+          dispatch(log("ls-set-apple-receipt"));
           Subscriptions.setAppleReceipt(dispatch, receipt);
           if (Screen.current(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
@@ -728,6 +729,7 @@ export namespace Thunk {
       if (productId && token) {
         const purchaseToken = JSON.stringify({ productId, token });
         if (await Subscriptions.verifyGooglePurchaseToken(env.service, purchaseToken)) {
+          dispatch(log("ls-set-google-purchase-token"));
           Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
           if (Screen.current(getState().screenStack) === "subscription") {
             dispatch(Thunk.pullScreen());
