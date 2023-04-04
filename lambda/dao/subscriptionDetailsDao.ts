@@ -34,6 +34,9 @@ export class SubscriptionDetailsDao {
 
   public async add(subscriptionDetails: ISubscriptionDetailsDao): Promise<void> {
     const env = Utils.getEnv();
-    await this.di.dynamo.put({ tableName: tableNames[env].subscriptionDetails, item: subscriptionDetails });
+    await this.di.dynamo.put({
+      tableName: tableNames[env].subscriptionDetails,
+      item: { ...subscriptionDetails, ts: Date.now() },
+    });
   }
 }
