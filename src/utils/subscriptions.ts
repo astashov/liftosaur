@@ -64,12 +64,13 @@ export namespace Subscriptions {
 
   export function cleanupOutdatedAppleReceipts(
     dispatch: IDispatch,
+    userId: string,
     service: Service,
     subscription: ISubscription
   ): Promise<void> {
     return Promise.all(
       Object.keys(subscription.apple).map<Promise<[string, boolean]>>(async (key) => {
-        return [key, await Subscriptions.verifyAppleReceipt(service, key)];
+        return [key, await Subscriptions.verifyAppleReceipt(userId, service, key)];
       })
     ).then((results) => {
       for (const [key, result] of results) {
@@ -92,12 +93,13 @@ export namespace Subscriptions {
 
   export function cleanupOutdatedGooglePurchaseTokens(
     dispatch: IDispatch,
+    userId: string,
     service: Service,
     subscription: ISubscription
   ): Promise<void> {
     return Promise.all(
       Object.keys(subscription.google).map<Promise<[string, boolean]>>(async (key) => {
-        return [key, await Subscriptions.verifyGooglePurchaseToken(service, key)];
+        return [key, await Subscriptions.verifyGooglePurchaseToken(service, userId, key)];
       })
     ).then((results) => {
       for (const [key, result] of results) {
@@ -118,17 +120,21 @@ export namespace Subscriptions {
     });
   }
 
-  export function verifyAppleReceipt(service: Service, receipt?: string): Promise<boolean> {
+  export function verifyAppleReceipt(userId: string, service: Service, receipt?: string): Promise<boolean> {
     if (receipt != null) {
-      return service.verifyAppleReceipt(receipt);
+      return service.verifyAppleReceipt(userId, receipt);
     } else {
       return Promise.resolve(false);
     }
   }
 
-  export function verifyGooglePurchaseToken(service: Service, purchaseToken?: string): Promise<boolean> {
+  export function verifyGooglePurchaseToken(
+    service: Service,
+    userId: string,
+    purchaseToken?: string
+  ): Promise<boolean> {
     if (purchaseToken != null) {
-      return service.verifyGooglePurchaseToken(purchaseToken);
+      return service.verifyGooglePurchaseToken(userId, purchaseToken);
     } else {
       return Promise.resolve(false);
     }

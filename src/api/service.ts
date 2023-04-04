@@ -158,13 +158,13 @@ export class Service {
     return cachePromises[key];
   }
 
-  public async verifyAppleReceipt(appleReceipt: string): Promise<boolean> {
-    const json = await this.cache(`verifyAppleReceipt:${appleReceipt}`, async () => {
+  public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
+    const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
         const url = new URL(`${__API_HOST__}/api/verifyapplereceipt`);
         const result = await this.client(url.toString(), {
           method: "POST",
-          body: JSON.stringify({ appleReceipt }),
+          body: JSON.stringify({ appleReceipt, userId }),
           credentials: "include",
         });
         return result.status === 200 ? result.json() : { result: true };
@@ -175,13 +175,13 @@ export class Service {
     return !!(json as { result: boolean }).result;
   }
 
-  public async verifyGooglePurchaseToken(googlePurchaseToken: string): Promise<boolean> {
-    const json = await this.cache(`verifyGooglePurchaseToken:${googlePurchaseToken}`, async () => {
+  public async verifyGooglePurchaseToken(userId: string, googlePurchaseToken: string): Promise<boolean> {
+    const json = await this.cache(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
       try {
         const url = new URL(`${__API_HOST__}/api/verifygooglepurchasetoken`);
         const result = await this.client(url.toString(), {
           method: "POST",
-          body: JSON.stringify({ googlePurchaseToken }),
+          body: JSON.stringify({ googlePurchaseToken, userId }),
           credentials: "include",
         });
         return result.status === 200 ? result.json() : { result: true };

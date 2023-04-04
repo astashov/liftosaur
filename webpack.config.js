@@ -119,10 +119,6 @@ module.exports = {
         to: `editor.html`,
       },
       {
-        from: `src/experiment.html`,
-        to: `experiment.html`,
-      },
-      {
         from: `src/about.html`,
         to: `about/index.html`,
         transform: (content) => {

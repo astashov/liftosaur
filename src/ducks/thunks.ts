@@ -706,7 +706,13 @@ export namespace Thunk {
   export function setAppleReceipt(receipt?: string): IThunk {
     return async (dispatch, getState, env) => {
       if (receipt) {
-        if (await Subscriptions.verifyAppleReceipt(env.service, receipt)) {
+        if (
+          await Subscriptions.verifyAppleReceipt(
+            getState().user?.id || getState().storage.tempUserId,
+            env.service,
+            receipt
+          )
+        ) {
           dispatch(log("ls-set-apple-receipt"));
           Subscriptions.setAppleReceipt(dispatch, receipt);
           if (Screen.current(getState().screenStack) === "subscription") {

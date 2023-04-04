@@ -50,6 +50,7 @@ import { FreeUserDao } from "./dao/freeUserDao";
 import { renderFreeformHtml } from "./freeform";
 import { LogFreeformDao } from "./dao/logFreeformDao";
 import { FreeformGenerator } from "./utils/freeformGenerator";
+import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -134,12 +135,28 @@ const postVerifyAppleReceiptHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
   typeof postVerifyAppleReceiptEndpoint
-> = async ({ payload }) => {
+> = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
   const bodyJson = getBodyJson(event);
-  const appleReceipt = bodyJson.appleReceipt;
-  const verifiedAppleReceipt = await new Subscriptions(di.log, di.secrets).verifyAppleReceipt(appleReceipt);
-  return ResponseUtils.json(200, event, { result: !!verifiedAppleReceipt });
+  const { appleReceipt, userId } = bodyJson;
+  if (appleReceipt == null) {
+    return ResponseUtils.json(200, event, { result: false });
+  }
+  const subscriptions = new Subscriptions(di.log, di.secrets);
+  const appleJson = await subscriptions.getAppleVerificationJson(appleReceipt);
+  let verifiedAppleReceipt = undefined;
+  if (appleJson) {
+    verifiedAppleReceipt = await subscriptions.verifyAppleReceiptJson(appleReceipt, appleJson);
+    if (verifiedAppleReceipt && userId) {
+      const subscriptionDetails = await subscriptions.getAppleVerificationInfo(userId, appleJson);
+      if (subscriptionDetails) {
+        await new SubscriptionDetailsDao(di).add(subscriptionDetails);
+      }
+    }
+    return ResponseUtils.json(200, event, { result: !!verifiedAppleReceipt });
+  } else {
+    return ResponseUtils.json(200, event, { result: true });
+  }
 };
 
 const postVerifyGooglePurchaseTokenEndpoint = Endpoint.build("/api/verifygooglepurchasetoken");
@@ -150,10 +167,22 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
 > = async ({ payload }) => {
   const { event, di } = payload;
   const bodyJson = getBodyJson(event);
-  const googlePurchaseToken = bodyJson.googlePurchaseToken;
-  const verifiedGooglePurchaseToken = await new Subscriptions(di.log, di.secrets).verifyGooglePurchaseToken(
-    googlePurchaseToken
-  );
+  const { googlePurchaseToken, userId } = bodyJson;
+  if (googlePurchaseToken == null) {
+    return ResponseUtils.json(200, event, { result: false });
+  }
+  const subscriptions = new Subscriptions(di.log, di.secrets);
+  const googleJson = await subscriptions.getGooglePurchaseTokenJson(googlePurchaseToken);
+  let verifiedGooglePurchaseToken = undefined;
+  if (googleJson) {
+    verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googlePurchaseToken, googleJson);
+    if (verifiedGooglePurchaseToken && userId && !("error" in googleJson)) {
+      const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(userId, googleJson);
+      if (subscriptionDetails) {
+        await new SubscriptionDetailsDao(di).add(subscriptionDetails);
+      }
+    }
+  }
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 

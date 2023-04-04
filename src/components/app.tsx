@@ -81,12 +81,14 @@ export function AppView(props: IProps): JSX.Element | null {
     },
     (action, oldState, newState) => {
       if (oldState.storage.subscription.apple !== newState.storage.subscription.apple) {
-        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, service, newState.storage.subscription);
+        const userId = newState.user?.id || newState.storage.tempUserId;
+        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, newState.storage.subscription);
       }
     },
     (action, oldState, newState) => {
       if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
-        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, service, newState.storage.subscription);
+        const userId = newState.user?.id || newState.storage.tempUserId;
+        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, newState.storage.subscription);
       }
     },
   ]);
@@ -135,8 +137,9 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch({ type: "StoreWebpushrSidAction", sid });
       });
     };
-    Subscriptions.cleanupOutdatedAppleReceipts(dispatch, service, state.storage.subscription);
-    Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, service, state.storage.subscription);
+    const userId = state.user?.id || state.storage.tempUserId;
+    Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
+    Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href, "https://liftosaur.com");

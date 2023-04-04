@@ -66,6 +66,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const subscriptionDetailsTable = new dynamodb.Table(this, `LftSubscriptionDetails${suffix}`, {
+      tableName: `lftSubscriptionDetails${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     const googleAuthKeysTable = new dynamodb.Table(this, `LftGoogleAuthKeys${suffix}`, {
       tableName: `lftGoogleAuthKeys${suffix}`,
       partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
@@ -306,6 +313,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     statsTable.grantReadWriteData(lambdaFunction);
     programsTable.grantReadWriteData(lambdaFunction);
     userProgramsTable.grantReadWriteData(lambdaFunction);
+    subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsFreeformTable.grantReadWriteData(lambdaFunction);
     logsFreeformTable.grantReadWriteData(freeformLambdaFunction);
