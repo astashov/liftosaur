@@ -654,6 +654,8 @@ const getDashboardsUsersHandler: RouteHandler<
     const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
     const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
     const freeUsers = await new FreeUserDao(di).getAll(userIds);
+    const subscriptionDetailsDaos = await new SubscriptionDetailsDao(di).getAll(userIds);
+    const subscriptionDetailsById = CollectionUtils.groupByKeyUniq(subscriptionDetailsDaos, "userId");
     const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
 
     const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
@@ -708,6 +710,27 @@ const getDashboardsUsersHandler: RouteHandler<
         [0, 0, 0]
       );
 
+      const subscriptionDetailsDao = subscriptionDetailsById[userId];
+      let subscriptionDetails = undefined;
+      if (subscriptionDetailsDao) {
+        let product: "yearly" | "montly";
+        if (subscriptionDetailsDao.product === "com.liftosaur.subscription.ios_montly") {
+          product = "montly";
+        } else if (subscriptionDetailsDao.product === "com.liftosaur.subscription.ios_yearly") {
+          product = "yearly";
+        } else {
+          product = subscriptionDetailsDao.product as "montly" | "yearly";
+        }
+        subscriptionDetails = {
+          product,
+          isTrial: subscriptionDetailsDao.isTrial,
+          isPromo: subscriptionDetailsDao.isPromo,
+          isActive: subscriptionDetailsDao.isActive,
+          expires: subscriptionDetailsDao.expires,
+          promoCode: subscriptionDetailsDao.promoCode,
+        };
+      }
+
       return {
         userId,
         email: usersById[userId]?.email,
@@ -721,6 +744,7 @@ const getDashboardsUsersHandler: RouteHandler<
         platforms,
         affiliates,
         subscriptions: Array.from(subscriptions),
+        subscriptionDetails,
       };
     });
 

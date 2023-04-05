@@ -20,6 +20,14 @@ export interface IUserDashboardData {
   affiliates: string[];
   freeUserExpires?: number;
   subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
+  subscriptionDetails?: {
+    product: "yearly" | "montly";
+    isTrial: boolean;
+    isPromo: boolean;
+    isActive: boolean;
+    expires: number;
+    promoCode?: string;
+  };
 }
 
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
@@ -135,6 +143,9 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                 {item.subscriptions.indexOf("key") !== -1 && (
                                   <span className="ml-2 font-bold text-greenv2-main">F</span>
                                 )}
+                                {item.subscriptionDetails?.isActive &&
+                                  !item.subscriptionDetails?.isPromo &&
+                                  !item.subscriptionDetails.isTrial && <span className="ml-2 font-bold">⭐</span>}
                               </div>
                               {item.email && (
                                 <div>
@@ -154,6 +165,21 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   }`}
                                 >
                                   {DateUtils.format(item.userTs)}
+                                </div>
+                              )}
+                              {item.subscriptionDetails && (
+                                <div className="text-xs text-grayv2-main">
+                                  <div>
+                                    {[
+                                      item.subscriptionDetails.isActive ? "active" : undefined,
+                                      item.subscriptionDetails.isTrial ? "trial" : undefined,
+                                      item.subscriptionDetails.isPromo ? "promo" : undefined,
+                                    ].join(", ")}
+                                  </div>
+                                  {item.subscriptionDetails.promoCode && (
+                                    <div>{item.subscriptionDetails.promoCode}</div>
+                                  )}
+                                  <div>Exp: {DateUtils.format(item.subscriptionDetails.expires)}</div>
                                 </div>
                               )}
                             </td>
