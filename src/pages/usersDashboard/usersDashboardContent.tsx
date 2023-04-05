@@ -1,4 +1,5 @@
 import { h, JSX } from "preact";
+import { CollectionUtils } from "../../utils/collection";
 import { DateUtils } from "../../utils/date";
 
 export interface IUsersDashboardContentProps {
@@ -170,11 +171,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                               {item.subscriptionDetails && (
                                 <div className="text-xs text-grayv2-main">
                                   <div>
-                                    {[
+                                    {CollectionUtils.compact([
                                       item.subscriptionDetails.isActive ? "active" : undefined,
                                       item.subscriptionDetails.isTrial ? "trial" : undefined,
                                       item.subscriptionDetails.isPromo ? "promo" : undefined,
-                                    ].join(", ")}
+                                    ]).join(", ")}
                                   </div>
                                   {item.subscriptionDetails.promoCode && (
                                     <div>{item.subscriptionDetails.promoCode}</div>
