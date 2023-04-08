@@ -36,7 +36,7 @@ if (state.failures > 2) {
 - Offline mode, it doesn't need Internet to work (still needs though if you have an account and want to save progress).
 - Plates calculator right on the progress screen. Each weight is prefixed with plates you need to use to get to that weight, it looks like: `45/25/25/10 255lb` meaning you need to add 1x45lb, 2x25lb and 1x10lb plates on each side of the olympic barbell to get `255lb`. You define your plates inventory in Settings.
 - All weights are rounded according to your available bars and plates, which you set up in Settings.
-- Rest Timers - configurable, with Web Push when the timer is expired (works only on Android though).
+- Rest Timers - configurable globally and per exercise, with a Push Notification when the timer is expired (works only on native apps though).
 - Cloud storage - if you create an account, your progress will be saved on the server.
 - Graphs - see the visual progression of your lifts, define what Graphs you need on the Graphs screen.
 - Muscle map - see what muscles get activated in your day or in the whole program relatively to each other.
@@ -50,10 +50,11 @@ if (state.failures > 2) {
 - Track bodyweight and other body measurements (biceps, chest, waist, etc)
 - Correlate bodyweight changes with lifts graphs
 - Web Editor to create programs
+- Shareable programs - you can build a program, generate a link, and import on another phone.
 
 # Implementation details
 
-It's a regular Preact/TypeScript app. State manager is custom, similar to Redux + Thunks, but with using [lens-shmens](https://github.com/astashov/lens-shmens#why) to avoid Redux-like boilerplate. It's a PWA, so there's a simple service worker, that caches the network calls. The setup is similar to what's described in [this blog post](https://www.liftosaur.com/blog/posts/offline-mode-in-liftosaur/).
+It's a regular Preact/TypeScript app. State manager is custom, similar to Redux + Thunks, but using [lens-shmens](https://github.com/astashov/lens-shmens#why) to avoid Redux-like boilerplate. It's a PWA, so there's a simple service worker, that caches the network calls. The setup is similar to what's described in [this blog post](https://www.liftosaur.com/blog/posts/offline-mode-in-liftosaur/).
 
 I try to be efficient with the JavaScript size, and avoid heavy third-party libraries. As a result, the whole app weights ~200kb, where ~100kb are various third-party libs. The major third-party libs are:
 
@@ -61,7 +62,7 @@ I try to be efficient with the JavaScript size, and avoid heavy third-party libr
 - [Preact](https://preactjs.com/) for a view layer
 - [Prism](https://prismjs.com/) for code highlighting
 - [uPlot](https://github.com/leeoniya/uPlot) for graphs
-- [Webpushr](https://www.webpushr.com/) to send notifications when Rest Timer is expired
+- [Webpushr](https://www.webpushr.com/) to send notifications on web when Rest Timer is expired
 - [Rollbar](https://rollbar.com/) for error reporting
 - [11ty](https://www.11ty.dev/) for the blog
 - [Cypress][https://www.cypress.io/] for integration tests
