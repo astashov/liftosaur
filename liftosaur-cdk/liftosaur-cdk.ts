@@ -202,51 +202,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const secretArns = {
       dev: {
         all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
-        apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKeyDev-JyFvUp",
-        cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecretDev-0eiLCe",
-        webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKeyDev-OfWaEI",
-        webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthTokenDev-Fa7AH9",
-        cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKeyDev-qFcITJ",
-        appleAppSharedSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
-        googleServiceAccountPubsub:
-          "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
       },
       prod: {
         all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecrets-1Ojxkw",
-        apiKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftKeyApiKey-rdTqST",
-        cookieSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyCookieSecret-FwRXge",
-        webpushrKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrKey-RrE8Yo",
-        webpushrAuthToken: "arn:aws:secretsmanager:us-west-2:547433167554:secret:LftKeyWebpushrAuthToken-dxAKvR",
-        cryptoKey: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftCryptoKey-4Uxrea",
-        appleAppSharedSecret: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppleAppSharedSecret-hDZrTa",
-        googleServiceAccountPubsub:
-          "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftGoogleServiceAccountPubsub-6YyK94",
       },
     };
 
     const allSecrets = sm.Secret.fromSecretAttributes(this, `LftAllSecrets${suffix}`, {
       secretCompleteArn: secretArns[env].all,
-    });
-    const keyCookieSecret = sm.Secret.fromSecretAttributes(this, `LftKeyCookieSecret${suffix}`, {
-      secretCompleteArn: secretArns[env].cookieSecret,
-    });
-    const keyApiKey = sm.Secret.fromSecretAttributes(this, `LftKeyApiKey${suffix}`, {
-      secretCompleteArn: secretArns[env].apiKey,
-    });
-    const webpushrKey = sm.Secret.fromSecretAttributes(this, `LftWebpushrKey${suffix}`, {
-      secretCompleteArn: secretArns[env].webpushrKey,
-    });
-    const webpushrAuthToken = sm.Secret.fromSecretAttributes(this, `LftWebpushrAuthToken${suffix}`, {
-      secretCompleteArn: secretArns[env].webpushrAuthToken,
-    });
-    const cryptoKeySecret = sm.Secret.fromSecretAttributes(this, `lftCryptoKey${suffix}`, {
-      secretCompleteArn: secretArns[env].cryptoKey,
-    });
-    const appleAppSharedSecret = sm.Secret.fromSecretAttributes(this, `lftAppleAppSharedSecret${suffix}`, {
-      secretCompleteArn: secretArns[env].appleAppSharedSecret,
-    });
-    const googleServiceAccountPubsub = sm.Secret.fromSecretAttributes(this, `lftGoogleServiceAccountPubsub${suffix}`, {
-      secretCompleteArn: secretArns[env].googleServiceAccountPubsub,
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
@@ -299,13 +262,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
     allSecrets.grantRead(freeformLambdaFunction);
-    keyCookieSecret.grantRead(lambdaFunction);
-    keyApiKey.grantRead(lambdaFunction);
-    webpushrKey.grantRead(lambdaFunction);
-    webpushrAuthToken.grantRead(lambdaFunction);
-    cryptoKeySecret.grantRead(lambdaFunction);
-    appleAppSharedSecret.grantRead(lambdaFunction);
-    googleServiceAccountPubsub.grantRead(lambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     appleAuthKeysTable.grantReadWriteData(lambdaFunction);
