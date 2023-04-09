@@ -183,20 +183,31 @@ const ExerciseContentView = memo(
               </div>
               {props.showEditButtons && (
                 <div>
-                  {programExercise && (
+                  {(!isCurrentProgress || programExercise) && (
                     <button
                       data-cy="exercise-edit-mode"
                       className="box-content p-2 align-middle"
                       style={{ width: "18px", height: "18px" }}
                       onClick={() => {
-                        updateState(props.dispatch, [
-                          lb<IState>()
-                            .p("progress")
-                            .pi(props.progress.id)
-                            .pi("ui")
-                            .p("editModal")
-                            .record({ programExercise, entryIndex: props.index }),
-                        ]);
+                        if (!isCurrentProgress) {
+                          updateState(props.dispatch, [
+                            lb<IState>()
+                              .p("progress")
+                              .pi(props.progress.id)
+                              .pi("ui")
+                              .p("entryIndexEditMode")
+                              .record(props.index),
+                          ]);
+                        } else if (programExercise) {
+                          updateState(props.dispatch, [
+                            lb<IState>()
+                              .p("progress")
+                              .pi(props.progress.id)
+                              .pi("ui")
+                              .p("editModal")
+                              .record({ programExercise: programExercise, entryIndex: props.index }),
+                          ]);
+                        }
                       }}
                     >
                       <IconEditSquare />

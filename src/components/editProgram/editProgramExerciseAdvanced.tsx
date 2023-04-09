@@ -151,15 +151,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         <EditProgramStateVariables
           stateMetadata={stateMetadata}
           onEditStateVariable={(stateKey, newValue) => {
-            const reuseLogicId = programExercise.reuseLogic?.selected;
-            if (reuseLogicId) {
-              EditProgram.editReuseLogicStateVariable(props.dispatch, reuseLogicId, stateKey, newValue);
-            } else {
-              if (newValue == null) {
-                EditProgram.removeStateVariableMetadata(props.dispatch, stateKey);
-              }
-              EditProgram.editStateVariable(props.dispatch, stateKey, newValue);
-            }
+            EditProgram.properlyUpdateStateVariable(props.dispatch, programExercise, stateKey, newValue);
           }}
           programExercise={programExercise}
           onAddStateVariable={() => {

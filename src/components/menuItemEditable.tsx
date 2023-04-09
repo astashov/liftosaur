@@ -26,6 +26,7 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
   nextLine?: JSX.Element;
   isNameHtml?: boolean;
   errorMessage?: string;
+  isBorderless?: boolean;
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
@@ -36,7 +37,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
     numberOfVisibleItems += 1;
   }
   return (
-    <MenuItemWrapper name={props.name}>
+    <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
       <label
         className="flex flex-col flex-1 py-1 text-base"
         onClick={(e) => {

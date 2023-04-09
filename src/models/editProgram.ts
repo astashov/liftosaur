@@ -44,6 +44,39 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.editStateVariable(lb<IState>().pi("editExercise"), stateKey, newValue)]);
   }
 
+  export function properlyUpdateStateVariableInPlace(
+    dispatch: IDispatch,
+    programId: string,
+    programExercise: IProgramExercise,
+    stateKey: string,
+    newValue?: string
+  ): void {
+    updateState(dispatch, [
+      EditProgramLenses.properlyUpdateStateVariable(
+        lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
+        programExercise,
+        stateKey,
+        newValue
+      ),
+    ]);
+  }
+
+  export function properlyUpdateStateVariable<T>(
+    dispatch: IDispatch,
+    programExercise: IProgramExercise,
+    stateKey: string,
+    newValue?: string
+  ): void {
+    return updateState(dispatch, [
+      EditProgramLenses.properlyUpdateStateVariable(
+        lb<IState>().pi("editExercise"),
+        programExercise,
+        stateKey,
+        newValue
+      ),
+    ]);
+  }
+
   export function removeStateVariableMetadata(dispatch: IDispatch, stateKey: string): void {
     updateState(dispatch, [EditProgramLenses.removeStateVariableMetadata(lb<IState>().pi("editExercise"), stateKey)]);
   }

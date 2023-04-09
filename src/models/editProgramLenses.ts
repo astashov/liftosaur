@@ -213,6 +213,24 @@ export namespace EditProgramLenses {
     });
   }
 
+  export function properlyUpdateStateVariable<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    programExercise: IProgramExercise,
+    stateKey: string,
+    newValue?: string
+  ): ILensRecordingPayload<T> {
+    const reuseLogicId = programExercise.reuseLogic?.selected;
+    if (reuseLogicId) {
+      return EditProgramLenses.editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue);
+    } else {
+      if (newValue == null) {
+        return EditProgramLenses.removeStateVariableMetadata(prefix, stateKey);
+      } else {
+        return EditProgramLenses.editStateVariable(prefix, stateKey, newValue);
+      }
+    }
+  }
+
   export function setReps<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,

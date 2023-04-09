@@ -49,7 +49,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const friend = props.friend;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const editModalProgramExercise = progress.ui?.editModal?.programExercise;
+  const editModalProgramExercise = progress.ui?.editModal?.programExercise.id;
 
   if (progress != null) {
     return (
@@ -110,7 +110,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             {editModalProgramExercise && props.program && (
               <ModalEditMode
                 program={props.program}
-                programExercise={editModalProgramExercise}
+                programExerciseId={editModalProgramExercise}
                 entryIndex={progress.ui?.editModal?.entryIndex || 0}
                 progressId={props.progress.id}
                 settings={props.settings}

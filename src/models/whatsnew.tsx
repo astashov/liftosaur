@@ -272,6 +272,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230409": {
+    title: <span>Edit state variables from workout screen</span>,
+    body: (
+      <ul>
+        <li>
+          You don't need to go to the edit exercise screen to edit the state variables anymore. Now you can do it right
+          from a modal that pops up when you tap "edit" icon on the exercise card, on the workout screen.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
