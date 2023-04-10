@@ -3,7 +3,7 @@ import { h, JSX, Fragment } from "preact";
 import { DraggableList } from "../../components/draggableList";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
-import { IProgramEditorState } from "./models/types";
+import { IProgramEditorState, IProgramEditorUiSelected } from "./models/types";
 import { IconWatch } from "../../components/icons/iconWatch";
 import { TimeUtils } from "../../utils/time";
 import { Program } from "../../models/program";
@@ -30,12 +30,40 @@ import { IconCog2 } from "../../components/icons/iconCog2";
 import { EditExerciseUtil } from "./utils/editExerciseUtil";
 import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
+import { IProgramExercise } from "../../types";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
   dispatch: ILensDispatch<IProgramEditorState>;
   state: IProgramEditorState;
+  selected: IProgramEditorUiSelected[];
   onShowSettingsModal: () => void;
+}
+
+function selectExercise(
+  dispatch: ILensDispatch<IProgramEditorState>,
+  programExercise: IProgramExercise,
+  dayIndex?: number
+): void {
+  dispatch(
+    lb<IProgramEditorState>()
+      .p("ui")
+      .p("selected")
+      .recordModify((selected) => {
+        const newSelect = { dayIndex, exerciseId: programExercise.id };
+        if (window.isPressingShiftCmdCtrl) {
+          const hasExercise = selected.some((s) => s.exerciseId === programExercise.id && s.dayIndex === dayIndex);
+          if (hasExercise) {
+            return selected.filter((s) => s.exerciseId !== programExercise.id || s.dayIndex !== dayIndex);
+          } else {
+            const newSelected = selected.filter((s) => s.exerciseId !== programExercise.id);
+            return [...newSelected, newSelect];
+          }
+        } else {
+          return [newSelect];
+        }
+      })
+  );
 }
 
 export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
@@ -210,6 +238,8 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                             } else {
                               return (
                                 <ProgramContentExercise
+                                  onSelect={() => selectExercise(dispatch, programExercise, i)}
+                                  selected={props.selected}
                                   programExercise={programExercise}
                                   dayIndex={i}
                                   handleTouchStart={handleTouchStart2}
@@ -303,6 +333,8 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 } else {
                   return (
                     <ProgramContentExercise
+                      onSelect={() => selectExercise(dispatch, programExercise)}
+                      selected={props.selected}
                       programExercise={programExercise}
                       program={program}
                       settings={state.settings}

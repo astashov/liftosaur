@@ -18,6 +18,7 @@ import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { IconInfo } from "../../components/icons/iconInfo";
+import { useCopyPaste } from "./utils/programCopypaste";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -46,7 +47,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     tags: [],
   };
   const initialState: IProgramEditorState = {
-    ui: {},
+    ui: {
+      selected: [],
+    },
     settings: initialSettings,
     current: {
       program: initialProgram,
@@ -92,6 +95,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       service.postShortUrl(window.location.href, "p").then(setProgramUrl);
     }
   }, []);
+
+  useCopyPaste(state, dispatch);
 
   return (
     <div>
@@ -207,6 +212,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       ) : (
         <ProgramContentEditor
           client={props.client}
+          selected={state.ui.selected}
           state={state}
           dispatch={dispatch}
           onShowSettingsModal={() => setShowSettingsModal(true)}

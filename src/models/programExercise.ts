@@ -113,6 +113,24 @@ export namespace ProgramExercise {
     return undefined;
   }
 
+  export function resolveProgramExercise(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): IProgramExercise {
+    const resolvedExercise = ProgramExercise.getProgramExercise(programExercise, allProgramExercises);
+    return {
+      ...programExercise,
+      reuseLogic: undefined,
+      variations: resolvedExercise.variations,
+      state: resolvedExercise.state,
+      variationExpr: resolvedExercise.variationExpr,
+      finishDayExpr: resolvedExercise.finishDayExpr,
+      stateMetadata: resolvedExercise.stateMetadata,
+      timerExpr: resolvedExercise.timerExpr,
+      warmupSets: resolvedExercise.warmupSets,
+    };
+  }
+
   export function getProgramExercise<T>(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]

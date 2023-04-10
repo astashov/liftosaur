@@ -61,6 +61,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
               className="block w-full text-left cursor-pointer"
             >
               <ProgramContentExercise
+                selected={[]}
                 programExercise={programExercise}
                 program={props.program}
                 settings={props.settings}

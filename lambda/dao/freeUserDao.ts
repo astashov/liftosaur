@@ -71,7 +71,7 @@ export class FreeUserDao {
     const env = Utils.getEnv();
     const freeUser: IFreeUserDao = {
       id,
-      expires: Date.now() + 1000 * 60 * 60 * 24 * 30,
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 365,
       isClaimed: false,
       key: `key-${UidFactory.generateUid(6)}`,
     };

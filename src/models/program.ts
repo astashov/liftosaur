@@ -53,6 +53,10 @@ export namespace Program {
     return state.storage.programs.find((p) => p.id === state.editProgram?.id);
   }
 
+  export function getProgramExercise(program: IProgram, id: string): IProgramExercise | undefined {
+    return program.exercises.find((p) => p.id === id);
+  }
+
   export function getEditingProgramIndex(state: IState): number {
     return state.storage.programs.findIndex((p) => p.id === state.editProgram?.id);
   }

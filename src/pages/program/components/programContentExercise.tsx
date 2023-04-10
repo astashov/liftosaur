@@ -12,16 +12,19 @@ import { ObjectUtils } from "../../../utils/object";
 import { TimeUtils } from "../../../utils/time";
 import { RepsAndWeight } from "../../programs/programDetails/programDetailsValues";
 import { IconTrash } from "../../../components/icons/iconTrash";
+import { IProgramEditorUiSelected } from "../models/types";
 
 interface IProgramContentExerciseProps {
   program: IProgram;
   programExercise: IProgramExercise;
+  selected: IProgramEditorUiSelected[];
   settings: ISettings;
   dayIndex?: number;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   onCopy?: () => void;
   onDelete?: () => void;
   onEdit?: () => void;
+  onSelect?: (programExerciseId: string, dayIndex?: number) => void;
 }
 
 export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX.Element {
@@ -34,6 +37,7 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
   const reusedProgramExercise = ProgramExercise.getReusedProgramExercise(programExercise, program.exercises);
   const stateVars = ProgramExercise.getState(programExercise, program.exercises);
   const variations = ProgramExercise.getVariations(programExercise, program.exercises);
+  const isSelected = props.selected.some((s) => s.dayIndex === props.dayIndex && s.exerciseId === programExercise.id);
   return (
     <div className="relative my-2">
       <div className="absolute text-xs text-grayv2-main" style={{ bottom: "0.5rem", right: "0.5rem" }}>
@@ -41,7 +45,8 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
       </div>
       <div
         className="flex items-center px-4 py-1 rounded-lg bg-purplev2-100"
-        style={{ border: "1px solid rgb(125 103 189 / 15%)" }}
+        style={{ border: isSelected ? "1px solid #8356F6" : "1px solid rgb(125 103 189 / 15%)" }}
+        onClick={() => props.onSelect?.(programExercise.id, props.dayIndex)}
       >
         {props.handleTouchStart && (
           <div className="p-2 mr-1 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
