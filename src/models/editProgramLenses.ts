@@ -93,7 +93,11 @@ export namespace EditProgramLenses {
   ): ILensRecordingPayload<T>[] {
     const newName = `${exercise.name} Copy`;
     const arr: ILensRecordingPayload<T>[] = [];
-    const newExercise: IProgramExercise = { ...exercise, name: newName, id: UidFactory.generateUid(8) };
+    const newExercise: IProgramExercise = {
+      ...ObjectUtils.clone(exercise),
+      name: newName,
+      id: UidFactory.generateUid(8),
+    };
     arr.push(prefix.p("exercises").recordModify((es) => [...es, newExercise]));
     if (dayIndex != null) {
       arr.push(toggleDayExercise(prefix, dayIndex, newExercise.id));
