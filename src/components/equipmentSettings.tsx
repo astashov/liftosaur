@@ -20,6 +20,7 @@ import { UidFactory } from "../utils/generator";
 interface IProps<T> {
   dispatch: ILensDispatch<T>;
   lensPrefix: Lens<T, ISettings>;
+  expandedEquipment?: IEquipment;
   settings: ISettings;
 }
 
@@ -38,6 +39,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           if (equipmentData) {
             return (
               <div
+                id={bar}
                 className={`${i !== 0 ? "mt-6" : ""} px-4 pt-3 pb-2 ${
                   equipmentData.name ? "border-grayv2-200 border" : "bg-purplev2-100"
                 } rounded-2xl`}
@@ -46,6 +48,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                   key={bar}
                   lensPrefix={props.lensPrefix}
                   dispatch={props.dispatch}
+                  isExpanded={props.expandedEquipment === bar}
                   equipment={bar}
                   setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
                   setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
@@ -141,6 +144,7 @@ interface IEquipmentSettingsContentProps<T> {
   dispatch: ILensDispatch<T>;
   lensPrefix: Lens<T, ISettings>;
   equipment: IEquipment;
+  isExpanded?: boolean;
   setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
   setModalNewFixedWeightEquipmentToShow: (equipment: IEquipment) => void;
   equipmentData: IEquipmentData;
@@ -150,7 +154,7 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   return (
     <div>
-      <GroupHeader size="large" name={equipmentName(props.equipment, props.settings)}>
+      <GroupHeader size="large" name={equipmentName(props.equipment, props.settings)} isExpanded={props.isExpanded}>
         {props.equipmentData.name && (
           <MenuItemEditable
             name="Name"

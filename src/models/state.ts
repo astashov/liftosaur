@@ -4,7 +4,16 @@ import { IScreen } from "./screen";
 import { IDispatch } from "../ducks/types";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
-import { IStorage, IProgram, IHistoryRecord, IProgramExercise, IProgramDay, ISettings, IExerciseType } from "../types";
+import {
+  IStorage,
+  IProgram,
+  IHistoryRecord,
+  IProgramExercise,
+  IProgramDay,
+  ISettings,
+  IExerciseType,
+  IEquipment,
+} from "../types";
 
 export type IEnv = {
   service: Service;
@@ -98,6 +107,7 @@ export interface IState {
   screenStack: IScreen[];
   currentHistoryRecord?: number;
   loading: ILoading;
+  defaultEquipmentExpanded?: IEquipment;
   currentHistoryRecordUserId?: string;
   subscriptionLoading?: ISubscriptionLoading;
   progress: Partial<Record<number, IHistoryRecord>>;

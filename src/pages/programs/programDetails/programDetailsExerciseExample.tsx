@@ -6,6 +6,7 @@ import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { Program } from "../../../models/program";
+import { Reps } from "../../../models/set";
 import { IProgram, IProgramExercise, ISettings, IWeight, IProgramState } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
@@ -105,9 +106,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView
                             noWrap={true}
-                            sets={week.entry.sets}
+                            sets={Reps.roundSets(week.entry.sets, props.settings, week.entry.exercise.equipment)}
                             isNext={true}
-                            unit={props.settings.units}
+                            settings={props.settings}
                           />
                         </div>
                       </div>

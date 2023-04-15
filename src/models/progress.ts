@@ -707,7 +707,6 @@ export namespace Progress {
             settings,
             "weight"
           );
-          const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
           newSets.push({
             ...progressSet,
             reps: executeEntryScript(
@@ -718,7 +717,7 @@ export namespace Progress {
               settings,
               "reps"
             ),
-            weight: roundedWeight,
+            weight,
             isAmrap: programSet.isAmrap,
             label: programSet.label,
           });
@@ -751,7 +750,6 @@ export namespace Progress {
             settings,
             "weight"
           );
-          const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
           return {
             reps: executeEntryScript(
               set.repsExpr,
@@ -761,7 +759,7 @@ export namespace Progress {
               settings,
               "reps"
             ),
-            weight: roundedWeight,
+            weight,
             rpe: set.rpeExpr
               ? executeEntryScript(
                   set.rpeExpr,

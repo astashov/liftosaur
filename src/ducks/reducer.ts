@@ -444,7 +444,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
       const program = state.storage.programs[programIndex];
       Progress.stopTimer(progress);
-      const historyRecord = History.finishProgramDay(program, progress);
+      const historyRecord = History.finishProgramDay(program, progress, state.storage.settings);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
         newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));

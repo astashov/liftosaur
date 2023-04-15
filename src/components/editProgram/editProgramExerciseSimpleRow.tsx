@@ -4,6 +4,7 @@ import { Program } from "../../models/program";
 import { ProgramExercise } from "../../models/programExercise";
 import { IProgramExercise, ISettings, IProgramSet } from "../../types";
 import { SendMessage } from "../../utils/sendMessage";
+import { Weight } from "../../models/weight";
 import { Input } from "../input";
 
 interface IEditProgramExerciseSimpleRowProps {
@@ -15,6 +16,7 @@ interface IEditProgramExerciseSimpleRowProps {
 
 export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRowProps): JSX.Element {
   const { programExercise, allProgramExercises, settings } = props;
+  const state = ProgramExercise.getState(programExercise, allProgramExercises);
   const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[0].sets;
   const firstSet: IProgramSet | undefined = sets[0];
   const reps = Program.runScript(programExercise, allProgramExercises, firstSet?.repsExpr || "", 1, settings, "reps");
@@ -119,7 +121,7 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
           }}
         />
       </div>
-      <span className="pt-5 pl-1">{settings.units}</span>
+      <span className="pt-5 pl-1">{Weight.is(state.weight) ? state.weight.unit : settings.units}</span>
     </section>
   );
 }

@@ -31,6 +31,7 @@ interface ICardsViewProps {
   userId?: string;
   friends: IAllFriends;
   nickname?: string;
+  helps: string[];
   comments: IAllComments;
   likes: IAllLikes;
   isTimerShown: boolean;
@@ -101,6 +102,7 @@ export const CardsView = memo(
           return (
             <ExerciseView
               history={props.history}
+              helps={props.helps}
               showHelp={true}
               showEditButtons={true}
               progress={props.progress}

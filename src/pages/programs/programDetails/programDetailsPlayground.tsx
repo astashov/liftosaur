@@ -88,6 +88,7 @@ export const Playground = memo(
         <ExerciseView
           history={historyRef.current}
           showHelp={false}
+          helps={[]}
           entry={entry}
           day={props.day}
           subscription={props.subscription}

@@ -73,7 +73,7 @@ export const RepsAndWeight = memo(
       <div>
         {(areEqual || (forceShowFormula == null ? !isDisplayingFormula : !forceShowFormula)) && (
           <>
-            <HistoryRecordSetsView sets={sets} isNext={true} unit={props.settings.units} />
+            <HistoryRecordSetsView sets={sets} isNext={true} settings={props.settings} />
             {!areEqual && forceShowFormula == null && (
               <div className="whitespace-no-wrap">
                 <button

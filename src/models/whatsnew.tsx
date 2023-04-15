@@ -583,6 +583,31 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230822": {
+    title: <span>Added visual cues when rounding weights</span>,
+    body: (
+      <ul>
+        <li>
+          It's currently very confusing when and why we round the weights, especially for the new users of the app. It
+          looks like a bug in the app because it's unexpected, but it just tries to round the weights to your available
+          equipment.
+        </li>
+        <li>
+          So, from now on, it'll show strikethrough original weights, and the weight it was rounded to. Also, will show
+          a little help message, explaining where you can adjust the equipment.
+        </li>
+        <li>
+          The rounding logic is slightly different now - we round the weights only at the very end, during the workouts.
+          State variable changes are not rounded at all.
+        </li>
+        <li>
+          If this change somehow breaks the rounding logic in your program, please contact in Discord or by{" "}
+          <a href="mailto:info@liftosaur.com">info@liftosaur.com</a>. It shouldn't break anything, but I could miss some
+          edge cases...
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
