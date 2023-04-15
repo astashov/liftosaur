@@ -279,7 +279,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                             const volume = Reps.volume(entry.sets);
                             return (
                               <div className="pt-1">
-                                <HistoryRecordSetsView sets={entry.sets} unit={props.settings.units} isNext={false} />
+                                <HistoryRecordSetsView sets={entry.sets} settings={props.settings} isNext={false} />
                                 {volume.value > 0 && (
                                   <div className="mb-1 text-xs leading-none text-left text-grayv2-main">
                                     Volume: <strong>{Weight.print(volume)}</strong>

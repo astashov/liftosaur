@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Page } from "@playwright/test";
+import { Locator, Page } from "@playwright/test";
 
 export class PlaywrightUtils {
   public static clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {
@@ -30,5 +30,17 @@ export class PlaywrightUtils {
       },
       [dataCy, text, index]
     );
+  }
+
+  public static disableSubscriptions(page: Page): Promise<void> {
+    return page.evaluate(() => {
+      (window as any).state.storage.subscription.key = "test";
+    }, []);
+  }
+
+  public static async clickAll(locator: Locator): Promise<void> {
+    for (const el of await locator.elementHandles()) {
+      await el.click();
+    }
   }
 }

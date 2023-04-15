@@ -52,6 +52,7 @@ interface IProps {
   settings: ISettings;
   friends: IAllFriends;
   userId?: string;
+  helps: string[];
   dispatch: IDispatch;
   loading: ILoading;
   subscription: ISubscription;
@@ -219,6 +220,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           subscription={props.subscription}
           nickname={props.nickname}
           history={props.history}
+          helps={props.helps}
           settings={props.settings}
           program={props.program}
           friend={props.friend}

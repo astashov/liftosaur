@@ -13,6 +13,7 @@ import {
   IWeight,
   ISettings,
   IProgram,
+  IEquipment,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
 import { IScreenMuscle, screenMuscles } from "./muscle";
@@ -53,12 +54,24 @@ export namespace History {
     };
   }
 
-  export function finishProgramDay(program: IProgram, progress: IHistoryRecord): IHistoryRecord {
+  export function roundSetsInEntry(entry: IHistoryEntry, settings: ISettings, equipment?: IEquipment): IHistoryEntry {
+    return { ...entry, sets: Reps.roundSets(entry.sets, settings, equipment) };
+  }
+
+  export function finishProgramDay(program: IProgram, progress: IHistoryRecord, settings: ISettings): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
         const programExercise = program.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
+        if (Progress.isCurrent(progress)) {
+          entry = {
+            ...entry,
+            sets: entry.sets.map((set) => {
+              return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment) };
+            }),
+          };
+        }
         if (programExercise != null) {
           const reuseLogicId = programExercise.reuseLogic?.selected;
           const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;

@@ -251,6 +251,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramDayView
           friends={state.allFriends}
           loading={state.loading}
+          helps={state.storage.helps}
           subscription={state.storage.subscription}
           likes={state.likes}
           comments={state.comments}
@@ -273,6 +274,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramDayView
           friends={state.allFriends}
           nickname={state.storage.settings.nickname}
+          helps={state.storage.helps}
           loading={state.loading}
           history={state.storage.history}
           subscription={state.storage.subscription}
@@ -401,6 +403,7 @@ export function AppView(props: IProps): JSX.Element | null {
     content = (
       <ScreenPlates
         screenStack={state.screenStack}
+        expandedEquipment={state.defaultEquipmentExpanded}
         loading={state.loading}
         dispatch={dispatch}
         settings={state.storage.settings}

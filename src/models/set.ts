@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry, IWeight } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IEquipment, ISettings } from "../types";
 
 export type IProgramReps = number;
 
@@ -52,6 +52,12 @@ export namespace Reps {
 
   export function isFinished(sets: ISet[]): boolean {
     return sets.every((s) => s.completedReps != null);
+  }
+
+  export function roundSets(sets: ISet[], settings: ISettings, equipment?: IEquipment): ISet[] {
+    return sets.map((set) => {
+      return { ...set, weight: Weight.roundConvertTo(set.weight, settings, equipment) };
+    });
   }
 
   export function group(sets: ISet[], isNext?: boolean): ISet[][] {

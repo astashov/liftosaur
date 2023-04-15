@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { ProgramSet } from "../models/programSet";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
-import { IProgramSet, ISet, IUnit } from "../types";
+import { IProgramSet, ISet, ISettings } from "../types";
 
 interface IDisplaySet {
   reps: string;
@@ -15,10 +15,10 @@ interface IDisplaySet {
 export function HistoryRecordSetsView(props: {
   sets: ISet[];
   isNext: boolean;
-  unit: IUnit;
   noWrap?: boolean;
+  settings: ISettings;
 }): JSX.Element {
-  const { sets, isNext, unit } = props;
+  const { sets, isNext, settings } = props;
   const groups = Reps.group(sets, isNext);
   const displayGroups = groups.map((g) => {
     return g.map((set) => {
@@ -26,7 +26,7 @@ export function HistoryRecordSetsView(props: {
         reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
         rpe: set.rpe?.toString(),
         completedRpe: set.completedRpe?.toString(),
-        weight: Weight.display(Weight.convertTo(set.weight, unit), false),
+        weight: Weight.display(Weight.convertTo(set.weight, settings.units), false),
         isCompleted: Reps.isCompletedSet(set),
       };
     });

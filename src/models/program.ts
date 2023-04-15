@@ -180,7 +180,7 @@ export namespace Program {
         reps: repsValue,
         rpe: rpeValue,
         logRpe: set.logRpe,
-        weight: Weight.roundConvertTo(weightValue, settings, exercise.equipment),
+        weight: weightValue,
       };
     });
 

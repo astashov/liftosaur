@@ -15,6 +15,7 @@ import { IconWatch } from "./icons/iconWatch";
 import { IconProfile } from "./icons/iconProfile";
 import { ExerciseImage } from "./exerciseImage";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { Weight } from "../models/weight";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -82,6 +83,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         <div className="flex flex-col mt-2" data-cy="history-entry">
           {entries.map((entry) => {
             const exercise = Exercise.get(entry.exercise, props.settings.exercises);
+            const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
             return (
               <div
                 data-cy="history-entry-exercise"
@@ -97,9 +99,14 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                     </div>
                     <div className="flex-1">
                       <HistoryRecordSetsView
-                        sets={entry.sets}
-                        unit={props.settings.units}
-                        isNext={Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)}
+                        sets={entry.sets.map((set) => ({
+                          ...set,
+                          weight: isNext
+                            ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise.equipment)
+                            : set.weight,
+                        }))}
+                        settings={props.settings}
+                        isNext={isNext}
                       />
                     </div>
                   </div>

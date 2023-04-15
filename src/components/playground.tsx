@@ -81,6 +81,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
       <ExerciseView
         showEditButtons={false}
         history={[]}
+        helps={[]}
         showHelp={false}
         entry={entry}
         day={props.day}
