@@ -140,9 +140,9 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             isBorderless={i === Object.keys(state).length - 1}
             nextLine={
               props.stateMetadata?.[stateKey]?.userPrompted ? (
-                <span style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-grayv2-main">
+                <div style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-grayv2-main">
                   User Prompted
-                </span>
+                </div>
               ) : undefined
             }
             isNameBold={true}

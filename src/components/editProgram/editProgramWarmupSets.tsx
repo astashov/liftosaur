@@ -54,7 +54,7 @@ export function EditProgramWarmupSets(props: IEditProgramWarmupSetsProps): JSX.E
           />
         );
       })}
-      <div className="p-1">
+      <div>
         <LinkButton
           data-cy="edit-warmup-set-add"
           onClick={() => {

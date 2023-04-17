@@ -1,10 +1,9 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { Progress } from "../../models/progress";
 import { ScriptRunner } from "../../parser";
 import { IEquipment, IProgramState, ISettings } from "../../types";
 import { IEither } from "../../utils/types";
-import { GroupHeader } from "../groupHeader";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 
 interface IProps {
@@ -51,13 +50,6 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
 
   return (
     <div>
-      <GroupHeader
-        name="Timer Expression"
-        topPadding={true}
-        help={
-          <>Liftoscript expression for this exercise's timer. If empty, will use default global timer from Settings.</>
-        }
-      />
       <OneLineTextEditor
         label="Timer, seconds"
         name="timer"

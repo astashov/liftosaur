@@ -66,9 +66,9 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           type="boolean"
           name="User prompted"
           nextLine={
-            <span className="text-xs text-grayv2-main">
+            <div className="text-xs text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
               Ask user to enter value for this variable after finishing exercise
-            </span>
+            </div>
           }
           value={userPrompted ? "true" : "false"}
           onChange={(v) => setUserPrompted(v === "true")}
@@ -90,8 +90,10 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             kind="orange"
             type="submit"
             onClick={() => {
-              props.onDone(textInput.current!.value, type, userPrompted);
-              clear();
+              if (textInput.current?.value) {
+                props.onDone(textInput.current!.value, type, userPrompted);
+                clear();
+              }
             }}
           >
             Add

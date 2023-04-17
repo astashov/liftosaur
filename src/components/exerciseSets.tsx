@@ -176,7 +176,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
         <button
           data-cy="add-set"
           onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
-          className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add is-edit-mode"
+          className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add"
         >
           +
         </button>

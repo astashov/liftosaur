@@ -26,7 +26,7 @@ describe("Program", () => {
 
     g("tab-advanced").click();
 
-    cy.get("button").contains("Enable Sets Variations").click();
+    g("menu-item-name-enable-set-variations").click();
     cy.contains("Add New Variation").click();
 
     g("tab-simple").click();

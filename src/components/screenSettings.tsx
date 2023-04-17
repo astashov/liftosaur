@@ -79,7 +79,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
             type="text"
             name="Nickname"
             value={props.settings.nickname || ""}
-            nextLine={<div className="text-xs text-grayv2-main">Used for profile page</div>}
+            nextLine={
+              <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-grayv2-main">
+                Used for profile page
+              </div>
+            }
             onChange={(newValue) => {
               props.dispatch({
                 type: "UpdateSettings",
@@ -97,7 +101,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             value={props.settings.isPublicProfile ? "true" : "false"}
             nextLine={
               props.user?.id && props.settings.isPublicProfile ? (
-                <div>
+                <div style={{ marginTop: "-0.5rem" }} className="pb-1">
                   <div className="flex">
                     <button
                       className="mr-auto text-xs text-left text-blue-700 underline"

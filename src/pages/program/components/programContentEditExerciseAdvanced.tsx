@@ -9,7 +9,6 @@ import { LensBuilder, lbu, lb } from "lens-shmens";
 import { ProgramContentPlayground } from "./programContentPlayground";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "../../../components/linkButton";
-import { EditProgramVariationsEnable } from "../../../components/editProgram/editProgramVariationsEnable";
 import { EditProgramVariationsEditor } from "../../../components/editProgram/editProgramVariationsEditor";
 import { EditProgramWarmupSets } from "../../../components/editProgram/editProgramWarmupSets";
 import { EditProgramSets } from "../../../components/editProgram/editProgramSets";
@@ -21,8 +20,7 @@ import { IEither } from "../../../utils/types";
 import { Button } from "../../../components/button";
 import { CollectionUtils } from "../../../utils/collection";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
-import { EditProgramTimerEnable } from "../../../components/editProgram/editProgramTimerEnable";
-import { EditProgramExerciseTimer } from "../../../components/editProgram/editProgramExerciseTimer";
+import { EditProgramExtraFeatures } from "../../../components/editProgram/editProgramExtraFeatures";
 import { ProgramExercise } from "../../../models/programExercise";
 
 interface IProgramContentEditExerciseAdvancedProps {
@@ -64,10 +62,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
-  const [showTimerExpr, setShowTimerExpr] = useState<boolean>(!!programExercise.timerExpr);
-  const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
+  const [areExtraFeatuersValid, setAreExtraFeaturesValid] = useState<boolean>(true);
 
-  const isSaveDisabled = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
+  const isSaveDisabled =
+    !entry || !finishEditorResult.success || !variationScriptResult.success || !areExtraFeatuersValid;
 
   return (
     <section ref={containerRef}>
@@ -173,16 +171,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               />
             );
           })}
-          {areVariationsEnabled ? (
+          {areVariationsEnabled && (
             <LinkButton className="my-4" onClick={() => props.dispatch(EditProgramLenses.addVariation(lbe))}>
               Add Variation
             </LinkButton>
-          ) : (
-            <EditProgramVariationsEnable
-              onClick={() => {
-                props.dispatch(EditProgramLenses.addVariation(lbe));
-              }}
-            />
           )}
           {areVariationsEnabled && (
             <EditProgramVariationsEditor
@@ -193,7 +185,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               }}
             />
           )}
-          <section className="px-4 py-2 mt-4 bg-purple-100 rounded-2xl">
+          <div className="pt-8">
             <EditProgramWarmupSets
               programExercise={programExercise}
               settings={props.settings}
@@ -213,24 +205,22 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 );
               }}
             />
-          </section>
-          {showTimerExpr ? (
-            <EditProgramExerciseTimer
-              day={day}
-              settings={props.settings}
-              state={programExercise.state}
-              equipment={programExercise.exerciseType.equipment}
-              timerExpr={programExercise.timerExpr}
-              onValid={(isValid) => {
-                setIsTimerValid(isValid);
-              }}
-              onChangeTimer={(expr) => {
-                props.dispatch(EditProgramLenses.setTimer(lbe, expr));
-              }}
-            />
-          ) : (
-            <EditProgramTimerEnable onClick={() => setShowTimerExpr(true)} />
-          )}
+          </div>
+          <EditProgramExtraFeatures
+            day={day}
+            settings={props.settings}
+            programExercise={programExercise}
+            onValid={(isValid) => {
+              setAreExtraFeaturesValid(isValid);
+            }}
+            areVariationsEnabled={areVariationsEnabled}
+            onEnableVariations={() => {
+              props.dispatch(EditProgramLenses.addVariation(lbe));
+            }}
+            onChangeTimer={(expr) => {
+              props.dispatch(EditProgramLenses.setTimer(lbe, expr));
+            }}
+          />
           <EditProgramFinishDayScriptEditor
             programExercise={programExercise}
             editorResult={finishEditorResult}

@@ -86,8 +86,8 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             {props.errorMessage || props.patternMessage}
           </div>
         )}
-        {props.nextLine}
       </label>
+      {props.nextLine}
       {props.type === "select" && (
         <div className="text-base">
           <ScrollBarrell

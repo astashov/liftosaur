@@ -30,11 +30,9 @@ import { EditProgramWarmupSets } from "./editProgramWarmupSets";
 import { EditProgramFinishDayScriptEditor } from "./editProgramFinishDayScriptEditor";
 import { EditProgramStateVariables } from "./editProgramStateVariables";
 import { EditCustomExercise } from "../../models/editCustomExercise";
-import { EditProgramVariationsEnable } from "./editProgramVariationsEnable";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
-import { EditProgramTimerEnable } from "./editProgramTimerEnable";
-import { EditProgramExerciseTimer } from "./editProgramExerciseTimer";
+import { EditProgramExtraFeatures } from "./editProgramExtraFeatures";
 
 interface IProps {
   settings: ISettings;
@@ -61,7 +59,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const [showVariations, setShowVariations] = useState<boolean>(programExercise.variations.length > 1);
   const [showModalExamples, setShowModalExamples] = useState<boolean>(false);
-  const [showTimerExpr, setShowTimerExpr] = useState<boolean>(!!programExercise.timerExpr);
   const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
 
   const variationsRef = useRef<HTMLDivElement>(null);
@@ -202,47 +199,40 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               EditProgram.addSet(props.dispatch, variation);
             }}
           />
-          {!showVariations && (
-            <EditProgramVariationsEnable
-              onClick={() => {
-                setShowVariations(true);
-                variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          <div className="pt-8">
+            <EditProgramWarmupSets
+              programExercise={programExercise}
+              settings={props.settings}
+              onAddWarmupSet={(warmupSets) => {
+                EditProgram.addWarmupSet(props.dispatch, warmupSets);
+              }}
+              onRemoveWarmupSet={(warmupSets, index) => {
+                EditProgram.removeWarmupSet(props.dispatch, warmupSets, index);
+              }}
+              onUpdateWarmupSet={(warmupSets, index, newWarmupSet) => {
+                EditProgram.updateWarmupSet(props.dispatch, warmupSets, index, newWarmupSet);
+              }}
+              onSetDefaultWarmupSets={(exercise) => {
+                EditProgram.setDefaultWarmupSets(props.dispatch, exercise, props.settings.units);
               }}
             />
-          )}
-          <EditProgramWarmupSets
-            programExercise={programExercise}
+          </div>
+          <EditProgramExtraFeatures
+            day={day}
             settings={props.settings}
-            onAddWarmupSet={(warmupSets) => {
-              EditProgram.addWarmupSet(props.dispatch, warmupSets);
+            programExercise={programExercise}
+            onValid={(isValid) => {
+              setIsTimerValid(isValid);
             }}
-            onRemoveWarmupSet={(warmupSets, index) => {
-              EditProgram.removeWarmupSet(props.dispatch, warmupSets, index);
+            areVariationsEnabled={showVariations}
+            onEnableVariations={() => {
+              setShowVariations(true);
+              variationsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
             }}
-            onUpdateWarmupSet={(warmupSets, index, newWarmupSet) => {
-              EditProgram.updateWarmupSet(props.dispatch, warmupSets, index, newWarmupSet);
-            }}
-            onSetDefaultWarmupSets={(exercise) => {
-              EditProgram.setDefaultWarmupSets(props.dispatch, exercise, props.settings.units);
+            onChangeTimer={(expr) => {
+              EditProgram.setTimer(props.dispatch, expr);
             }}
           />
-          {showTimerExpr ? (
-            <EditProgramExerciseTimer
-              day={day}
-              settings={props.settings}
-              state={programExercise.state}
-              equipment={programExercise.exerciseType.equipment}
-              timerExpr={programExercise.timerExpr}
-              onValid={(isValid) => {
-                setIsTimerValid(isValid);
-              }}
-              onChangeTimer={(expr) => {
-                EditProgram.setTimer(props.dispatch, expr);
-              }}
-            />
-          ) : (
-            <EditProgramTimerEnable onClick={() => setShowTimerExpr(true)} />
-          )}
           <EditProgramFinishDayScriptEditor
             programExercise={programExercise}
             editorResult={finishEditorResult}

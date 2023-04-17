@@ -38,7 +38,7 @@ describe("Program", () => {
 
     cy.contains("Add New Set").click();
 
-    cy.get("button").contains("Enable Sets Variations").click();
+    g("menu-item-name-enable-set-variations").click();
     cy.contains("Add New Variation").click();
     clearCodeMirror("multiline-editor-variation");
     typeCodeMirror("multiline-editor-variation", "(state.weight > 100lb) ? 2 : 1");

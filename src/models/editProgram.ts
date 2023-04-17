@@ -51,14 +51,15 @@ export namespace EditProgram {
     stateKey: string,
     newValue?: string
   ): void {
-    updateState(dispatch, [
+    updateState(
+      dispatch,
       EditProgramLenses.properlyUpdateStateVariable(
         lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
         programExercise,
         stateKey,
         newValue
-      ),
-    ]);
+      )
+    );
   }
 
   export function properlyUpdateStateVariable<T>(
@@ -67,14 +68,15 @@ export namespace EditProgram {
     stateKey: string,
     newValue?: string
   ): void {
-    return updateState(dispatch, [
+    return updateState(
+      dispatch,
       EditProgramLenses.properlyUpdateStateVariable(
         lb<IState>().pi("editExercise"),
         programExercise,
         stateKey,
         newValue
-      ),
-    ]);
+      )
+    );
   }
 
   export function removeStateVariableMetadata(dispatch: IDispatch, stateKey: string): void {

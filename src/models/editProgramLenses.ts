@@ -222,15 +222,18 @@ export namespace EditProgramLenses {
     programExercise: IProgramExercise,
     stateKey: string,
     newValue?: string
-  ): ILensRecordingPayload<T> {
+  ): ILensRecordingPayload<T>[] {
     const reuseLogicId = programExercise.reuseLogic?.selected;
     if (reuseLogicId) {
-      return EditProgramLenses.editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue);
+      return [EditProgramLenses.editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue)];
     } else {
       if (newValue == null) {
-        return EditProgramLenses.removeStateVariableMetadata(prefix, stateKey);
+        return [
+          EditProgramLenses.removeStateVariableMetadata(prefix, stateKey),
+          EditProgramLenses.editStateVariable(prefix, stateKey, newValue),
+        ];
       } else {
-        return EditProgramLenses.editStateVariable(prefix, stateKey, newValue);
+        return [EditProgramLenses.editStateVariable(prefix, stateKey, newValue)];
       }
     }
   }
