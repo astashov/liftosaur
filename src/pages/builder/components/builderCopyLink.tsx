@@ -3,6 +3,7 @@ import { IconLink } from "../../../components/icons/iconLink";
 import { useState } from "preact/compat";
 import { Service } from "../../../api/service";
 import { useEffect } from "preact/hooks";
+import { ClipboardUtils } from "../../../utils/clipboard";
 
 interface IBuilerCopyLinkProps<T> {
   msg?: string;
@@ -36,12 +37,8 @@ export function BuilderCopyLink<T>(props: IBuilerCopyLinkProps<T>): JSX.Element 
         onClick={async () => {
           const service = new Service(props.client);
           const url = await service.postShortUrl(window.location.href, props.type);
-          navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
-            if (result.state === "granted" || result.state === "prompt") {
-              navigator.clipboard.writeText(url);
-              setShowInfo(url);
-            }
-          });
+          ClipboardUtils.copy(url);
+          setShowInfo(url);
         }}
       >
         <IconLink />
