@@ -283,6 +283,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230419": {
+    title: <span>Program Exercise Descriptions</span>,
+    body: (
+      <ul>
+        <li>
+          You can now add exercise descriptions when you edit a program exercise. You can add any tips how to do it,
+          reminders, or some notes, that'll persist between workouts. You can use markdown for formatting.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
