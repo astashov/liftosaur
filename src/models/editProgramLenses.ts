@@ -86,6 +86,13 @@ export namespace EditProgramLenses {
     return prefix.p("exercises").recordModify((es) => es.filter((e) => e.id !== exerciseId));
   }
 
+  export function setDescription<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string
+  ): ILensRecordingPayload<T> {
+    return prefix.p("description").record(value);
+  }
+
   export function copyProgramExercise<T>(
     prefix: LensBuilder<T, IProgram, {}>,
     exercise: IProgramExercise,

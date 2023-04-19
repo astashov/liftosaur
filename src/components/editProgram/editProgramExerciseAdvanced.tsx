@@ -33,6 +33,7 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
 import { EditProgramExtraFeatures } from "./editProgramExtraFeatures";
+import { Input } from "../input";
 
 interface IProps {
   settings: ISettings;
@@ -133,6 +134,29 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
         }}
       />
+      <div className="mt-2">
+        <Input
+          label="Description"
+          value={props.programExercise.description}
+          multiline={4}
+          data-cy="exercise-description"
+          name="exercise-description"
+          placeholder="Place the feet shoulder width apart..."
+          maxLength={4095}
+          onInput={(e) => {
+            const target = e.target;
+            if (target instanceof HTMLTextAreaElement) {
+              EditProgram.setDescription(props.dispatch, target.value);
+            }
+          }}
+        />
+        <div className="text-xs italic leading-none text-right text-grayv2-main">
+          <a className="underline text-bluev2" href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+            Markdown
+          </a>{" "}
+          supported
+        </div>
+      </div>
       <ExerciseImage
         key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
         exerciseType={programExercise.exerciseType}

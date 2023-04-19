@@ -100,6 +100,8 @@
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",
+    "micromark": "^2.11.4",
+    "micromark-extension-gfm": "^0.3.3",
     "mock-match-media": "^0.4.2",
     "openai": "^3.2.1",
     "preact": "^10.5.13",

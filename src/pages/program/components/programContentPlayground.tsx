@@ -16,6 +16,7 @@ import { ExerciseSets } from "../../../components/exerciseSets";
 import { GroupHeader } from "../../../components/groupHeader";
 import { ProgressStateChanges } from "../../../components/progressStateChanges";
 import { ModalStateVarsUserPrompt } from "../../../components/modalStateVarsUserPrompt";
+import { Markdown } from "../../../components/markdown";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -40,6 +41,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
     const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
     props.onProgressChange(newProgress);
   };
+  const description = props.programExercise.description;
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
@@ -78,6 +80,11 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
               );
             })}
           </select>
+        </div>
+      )}
+      {description && (
+        <div className="mt-2">
+          <Markdown value={description} />
         </div>
       )}
       <section className="flex flex-wrap items-end py-2 pt-4">

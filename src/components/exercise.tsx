@@ -36,6 +36,7 @@ import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
 import { IconEditSquare } from "./icons/iconEditSquare";
+import { Markdown } from "./markdown";
 
 interface IProps {
   showHelp: boolean;
@@ -155,6 +156,7 @@ const ExerciseContentView = memo(
 
     const [showNotes, setShowNotes] = useState(!!props.entry.notes);
     const programExercise = props.programExercise;
+    const description = programExercise?.description;
 
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
@@ -225,6 +227,11 @@ const ExerciseContentView = memo(
               )}
             </div>
             {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
+            {description && (
+              <div className="mt-2">
+                <Markdown value={description} />
+              </div>
+            )}
             {!props.hidePlatesCalculator && (
               <div
                 className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}

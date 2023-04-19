@@ -113,6 +113,10 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.changeExerciseEquipment(lb<IState>().pi("editExercise"), newEquipment)]);
   }
 
+  export function setDescription(dispatch: IDispatch, value: string): void {
+    updateState(dispatch, [EditProgramLenses.setDescription(lb<IState>().pi("editExercise"), value)]);
+  }
+
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setReps(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),

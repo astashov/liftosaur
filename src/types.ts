@@ -459,6 +459,7 @@ export const TProgramExercise = t.intersection(
       finishDayExpr: t.string,
     }),
     t.partial({
+      description: t.string,
       stateMetadata: TProgramStateMetadata,
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,

@@ -183,6 +183,58 @@ input[type="checkbox"].checkbox:disabled {
   margin-bottom: 0.5rem;
 }
 
+.markdown p {
+  margin-bottom: 0.25rem;
+}
+
+.markdown a {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #28839f;
+}
+
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown li {
+  margin-left: 1rem;
+}
+
+.markdown ul {
+  padding-left: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.markdown blockquote {
+  padding-left: 0.5rem;
+  border-left: 1px solid #8b9bab;
+  color: #607284;
+}
+
+.markdown h1 {
+  font-weight: bold;
+  font-size: 2rem;
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.markdown h2 {
+  font-weight: bold;
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+
+.markdown h3 {
+  font-weight: bold;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
 @keyframes shiny-border {
   0%,
   100% {

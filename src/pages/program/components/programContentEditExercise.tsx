@@ -20,6 +20,7 @@ import { Tabs2 } from "../../../components/tabs2";
 import { Program } from "../../../models/program";
 import { ProgramContentEditExerciseSimple } from "./programContentEditExerciseSimple";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
+import { inputClassName } from "../../../components/input";
 
 interface IProps {
   settings: ISettings;
@@ -41,6 +42,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
+  const [showDescription, setShowDescription] = useState<boolean>(!!programExercise.description);
   const isEligibleForSimple = Program.isEligibleForSimpleExercise(props.programExercise).success;
   const initialTab = isEligibleForSimple ? 0 : 1;
 
@@ -106,9 +108,41 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
                 })}
               </select>
             </div>
-            <div>
+            <div className="inline-block ml-2">
               <LinkButton onClick={() => setShowModalSubstitute(true)}>Substitute</LinkButton>
             </div>
+          </div>
+          <div className="relative flex mb-4">
+            <div className="mr-2">Description:</div>
+            {showDescription ? (
+              <div className="flex-1 mt-2">
+                <textarea
+                  data-cy="exercise-description"
+                  maxLength={4095}
+                  name="exercise-description"
+                  placeholder="Place the feet shoulder width apart..."
+                  value={props.programExercise.description}
+                  onInput={(e) => {
+                    const target = e.target;
+                    if (target instanceof HTMLTextAreaElement) {
+                      props.dispatch(EditProgramLenses.setDescription(lbe, target.value));
+                    }
+                  }}
+                  className={`${inputClassName} h-24 w-full`}
+                />
+                <div
+                  className="text-xs italic leading-none text-right text-grayv2-main"
+                  style={{ marginTop: "-0.25rem" }}
+                >
+                  <a className="underline text-bluev2" href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                    Markdown
+                  </a>{" "}
+                  supported
+                </div>
+              </div>
+            ) : (
+              <LinkButton onClick={() => setShowDescription(true)}>Add</LinkButton>
+            )}
           </div>
         </div>
       </div>
