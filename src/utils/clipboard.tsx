@@ -6,8 +6,12 @@ export namespace ClipboardUtils {
       if (!navigator.clipboard) {
         fallbackCopyTextToClipboard(text);
       } else {
-        await copyTextToClipboard(text);
-        fallbackCopyTextToClipboard(text);
+        try {
+          await copyTextToClipboard(text);
+          fallbackCopyTextToClipboard(text);
+        } catch (e) {
+          fallbackCopyTextToClipboard(text);
+        }
       }
     }
   }
