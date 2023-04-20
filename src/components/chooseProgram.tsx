@@ -97,10 +97,21 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       }
     >
       <div className="pb-2 text-center">
-        <Button className="mr-2" data-cy="create-program" kind="purple" onClick={() => setShouldCreateProgram(true)}>
+        <Button
+          buttonSize="md"
+          className="mr-2"
+          data-cy="create-program"
+          kind="purple"
+          onClick={() => setShouldCreateProgram(true)}
+        >
           Create new program
         </Button>
-        <Button data-cy="import-program-from-link" kind="orange" onClick={() => setShowImportFromLink(true)}>
+        <Button
+          buttonSize="md"
+          data-cy="import-program-from-link"
+          kind="orange"
+          onClick={() => setShowImportFromLink(true)}
+        >
           Import from link
         </Button>
       </div>

@@ -11,6 +11,11 @@ export interface IHistoricalEntries {
   max: { entry: IHistoryEntry; time: number };
 }
 
+export interface IHistoryRecordAndEntry {
+  record: IHistoryRecord;
+  entry: IHistoryEntry;
+}
+
 export namespace History {
   export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {
     return {
@@ -249,30 +254,21 @@ export namespace History {
     return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
   }
 
-  export function getHistoricalSameEntry(
+  export function getHistoricalSameDay(
     history: IHistoryRecord[],
+    progress: IHistoryRecord,
     currentEntry: IHistoryEntry
-  ): IHistoricalEntries | undefined {
-    let last: { entry: IHistoryEntry; time: number } | undefined;
-    let max: { entry: IHistoryEntry; time: number } | undefined;
+  ): IHistoryRecordAndEntry | undefined {
     for (const record of history) {
-      for (const entry of record.entries) {
-        if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
-          const allSetsSame = entry.sets.every(
-            (set, i) => set.reps === currentEntry.sets[i]?.reps && Weight.eq(set.weight, currentEntry.sets[i]?.weight)
-          );
-          if (allSetsSame) {
-            if (last == null) {
-              last = { entry, time: record.startTime };
-            }
-            if (max == null || totalEntryReps(entry) > totalEntryReps(max.entry)) {
-              max = { entry, time: record.startTime };
-            }
+      if (record.programId === progress.programId && record.day === progress.day) {
+        for (const entry of record.entries) {
+          if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
+            return { record, entry };
           }
         }
       }
     }
-    return last != null && max != null ? { last, max } : undefined;
+    return undefined;
   }
 
   export function getHistoricalAmrapSets(

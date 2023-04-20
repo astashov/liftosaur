@@ -1,9 +1,8 @@
 - Push notif for the forgotten session
 - AMRAP as an expression
-- Add ability to add instructions for the exercises in program exercise
-- Add a way to enable adding sets by one click in program exercise
-- Pass number of sets to finish day script
 - Dynamic sets!
+- Back gesture working on iphone/android
+- Hard: Make parser find errors in non-visited branches of code
 
 - Programs
   - 5/3/1s

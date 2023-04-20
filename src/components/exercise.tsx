@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { Exercise } from "../models/exercise";
-import { History, IHistoricalEntries } from "../models/history";
+import { History, IHistoryRecordAndEntry } from "../models/history";
 import { IDispatch } from "../ducks/types";
 import { Weight } from "../models/weight";
 import { Reps } from "../models/set";
@@ -37,6 +37,7 @@ import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { Markdown } from "./markdown";
+import { HistoryRecordSetsView } from "./historyRecordSets";
 
 interface IProps {
   showHelp: boolean;
@@ -65,6 +66,9 @@ interface IProps {
 }
 
 function getColor(entry: IHistoryEntry): string {
+  if (entry.sets.length === 0) {
+    return "purple";
+  }
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
       return "green";
@@ -141,8 +145,8 @@ const ExerciseContentView = memo(
     const historicalAmrapSets = isCurrentProgress
       ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
       : undefined;
-    const historicalSameEntry = isCurrentProgress
-      ? History.getHistoricalSameEntry(props.history, props.entry)
+    const historicalSameDay = isCurrentProgress
+      ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
       : undefined;
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, equipment)),
@@ -362,7 +366,7 @@ const ExerciseContentView = memo(
             </Button>
           </div>
         )}
-        {historicalSameEntry && <HistoricalSameEntry historicalEntries={historicalSameEntry} />}
+        {historicalSameDay && <HistoricalSameDay historyRecordAndEntry={historicalSameDay} settings={props.settings} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
         {showNotes && (
           <div className="mt-2">
@@ -408,45 +412,18 @@ function NextSet(props: { nextSet: ISet }): JSX.Element {
   );
 }
 
-function HistoricalSameEntry(props: { historicalEntries: IHistoricalEntries }): JSX.Element {
-  const { max, last } = props.historicalEntries;
-  const isDiffMax = History.totalEntryReps(max.entry) > History.totalEntryReps(last.entry);
+function HistoricalSameDay(props: { historyRecordAndEntry: IHistoryRecordAndEntry; settings: ISettings }): JSX.Element {
+  const { record, entry } = props.historyRecordAndEntry;
+  const unit = entry.sets[0].weight.unit || props.settings.units;
   return (
     <div className="text-xs italic">
       <div>
-        <div>Last similar entry you did:</div>
-        <HistoricalReps sets={last.entry.sets} />{" "}
-        <span>
-          on <strong>{DateUtils.format(last.time)}</strong>.
-        </span>
-      </div>
-      {isDiffMax ? (
         <div>
-          <div>Max similar entry you did:</div>
-          <HistoricalReps sets={max.entry.sets} />{" "}
-          <span>
-            on <strong>{DateUtils.format(max.time)}</strong>.
-          </span>
+          Same day last time, <strong>{DateUtils.format(record.startTime)}</strong>:
         </div>
-      ) : (
-        "It was your max too."
-      )}
+        <HistoryRecordSetsView sets={entry.sets} isNext={false} unit={unit} />
+      </div>
     </div>
-  );
-}
-
-function HistoricalReps(props: { sets: ISet[] }): JSX.Element {
-  return (
-    <Fragment>
-      {props.sets.map((set, i) => (
-        <Fragment>
-          {i !== 0 && <span className="text-grayv2-600">/</span>}
-          <span className={(set.completedReps || 0) >= set.reps ? `text-greenv2-600` : `text-redv2-600`}>
-            {set.completedReps || 0}
-          </span>
-        </Fragment>
-      ))}
-    </Fragment>
   );
 }
 

@@ -45,7 +45,7 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
       </div>
       <div
         className="flex items-center px-4 py-1 rounded-lg bg-purplev2-100"
-        style={{ border: isSelected ? "1px solid #8356F6" : "1px solid rgb(125 103 189 / 15%)" }}
+        style={{ border: isSelected ? "1px solid #8356F6" : "1px solid rgb(125 103 189 / 15%)", minHeight: "5rem" }}
         onClick={() => props.onSelect?.(programExercise.id, props.dayIndex)}
       >
         {props.handleTouchStart && (
