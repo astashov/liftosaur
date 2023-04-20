@@ -245,6 +245,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             day={day}
             settings={props.settings}
             programExercise={programExercise}
+            onChangeQuickAddSets={(quickAddSets) => {
+              EditProgram.setQuickAddSets(props.dispatch, quickAddSets);
+            }}
             onValid={(isValid) => {
               setIsTimerValid(isValid);
             }}

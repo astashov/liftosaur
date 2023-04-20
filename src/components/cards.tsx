@@ -37,7 +37,12 @@ interface ICardsViewProps {
   settings: ISettings;
   dispatch: IDispatch;
   onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
-  onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
+  onStartSetChanging?: (
+    isWarmup: boolean,
+    entryIndex: number,
+    setIndex?: number,
+    programExercise?: IProgramExercise
+  ) => void;
   setIsShareShown: (isShown: boolean) => void;
 }
 

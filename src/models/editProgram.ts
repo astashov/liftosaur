@@ -127,6 +127,10 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.setTimer(lb<IState>().pi("editExercise"), value)]);
   }
 
+  export function setQuickAddSets(dispatch: IDispatch, value: boolean): void {
+    updateState(dispatch, [EditProgramLenses.setQuickAddSets(lb<IState>().pi("editExercise"), value)]);
+  }
+
   export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setWeight(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),

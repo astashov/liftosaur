@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
-import { ISet } from "../types";
+import { IProgramExercise, ISet } from "../types";
 
 export namespace EditProgressEntry {
   export function showEditSetModal(
@@ -9,12 +9,14 @@ export namespace EditProgressEntry {
     progressId: number,
     isWarmup: boolean,
     entryIndex: number,
-    setIndex?: number
+    setIndex?: number,
+    programExercise?: IProgramExercise
   ): void {
     dispatch({
       type: "UpdateState",
       lensRecording: [
         lb<IState>().p("progress").pi(progressId).pi("ui").p("editSetModal").record({
+          programExercise,
           isWarmup,
           entryIndex,
           setIndex,

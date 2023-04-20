@@ -25,6 +25,7 @@ import {
   IEquipment,
   IProgramExercise,
   ISubscription,
+  ISet,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -38,6 +39,8 @@ export interface IScriptBindings {
   w: IWeight[];
   r: number[];
   cr: number[];
+  ns: number;
+  numberOfSets: number;
 }
 
 export interface IScriptContext {
@@ -59,6 +62,8 @@ export namespace Progress {
       w: [],
       r: [],
       cr: [],
+      numberOfSets: 0,
+      ns: 0,
     };
   }
 
@@ -72,6 +77,8 @@ export namespace Progress {
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
     bindings.cr = bindings.completedReps;
+    bindings.ns = entry.sets.length;
+    bindings.numberOfSets = entry.sets.length;
     return bindings;
   }
 
@@ -432,7 +439,40 @@ export namespace Progress {
           )
         : undefined;
 
-    if (progressEntry != null && sets.length === progressEntry.sets.length) {
+    if (progressEntry != null) {
+      const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
+      const newSets: ISet[] = [];
+      for (let i = 0; i < newSetsNum; i++) {
+        const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
+        const programSet = sets[i];
+        if (programSet != null) {
+          const weight = executeEntryScript(
+            programSet.weightExpr,
+            day,
+            state,
+            { equipment: programExercise.exerciseType.equipment },
+            settings,
+            "weight"
+          );
+          const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
+          newSets.push({
+            ...progressSet,
+            reps: executeEntryScript(
+              programSet.repsExpr,
+              day,
+              state,
+              { equipment: programExercise.exerciseType.equipment },
+              settings,
+              "reps"
+            ),
+            weight: roundedWeight,
+            isAmrap: programSet.isAmrap,
+          });
+        } else if (progressSet != null) {
+          newSets.push(progressSet);
+        }
+      }
+
       return {
         ...progressEntry,
         exercise: programExercise.exerciseType,
@@ -441,30 +481,7 @@ export namespace Progress {
             ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
             : []
           : progressEntry.warmupSets,
-        sets: progressEntry.sets.map((set, i) => {
-          const weight = executeEntryScript(
-            sets[i].weightExpr,
-            day,
-            state,
-            { equipment: programExercise.exerciseType.equipment },
-            settings,
-            "weight"
-          );
-          const roundedWeight = Weight.roundConvertTo(weight, settings, programExercise.exerciseType.equipment);
-          return {
-            ...set,
-            reps: executeEntryScript(
-              sets[i].repsExpr,
-              day,
-              state,
-              { equipment: programExercise.exerciseType.equipment },
-              settings,
-              "reps"
-            ),
-            weight: roundedWeight,
-            isAmrap: sets[i].isAmrap,
-          };
-        }),
+        sets: newSets,
       };
     } else {
       return {

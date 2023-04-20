@@ -508,10 +508,14 @@ export namespace Program {
     }
     const variation = programExercise.variations[0];
     const sets = variation.sets;
-    if (!/^\d*$/.test(sets[0].repsExpr.trim())) {
+    const firstSet: IProgramSet | undefined = sets[0];
+    if (!firstSet) {
+      errors.push("Should have at least one set");
+    }
+    if (!/^\d*$/.test((firstSet?.repsExpr || "").trim())) {
       errors.push("The reps can't be a Liftoscript expression");
     }
-    if (sets.some((s) => sets[0].repsExpr !== s.repsExpr)) {
+    if (sets.some((s) => firstSet?.repsExpr !== s.repsExpr)) {
       errors.push("All sets should have the same reps");
     }
     if (sets.some((s) => s.weightExpr !== "state.weight")) {

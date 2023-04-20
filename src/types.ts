@@ -460,6 +460,7 @@ export const TProgramExercise = t.intersection(
     }),
     t.partial({
       description: t.string,
+      quickAddSets: t.boolean,
       stateMetadata: TProgramStateMetadata,
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
@@ -495,6 +496,7 @@ export const TProgressUi = t.partial(
     editSetModal: t.type({
       isWarmup: t.boolean,
       entryIndex: t.number,
+      programExercise: t.union([TProgramExercise, t.undefined]),
       setIndex: t.union([t.number, t.undefined]),
     }),
     exerciseBottomSheet: t.type({

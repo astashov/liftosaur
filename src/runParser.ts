@@ -29,6 +29,8 @@ const bindings: IScriptBindings = {
   ],
   r: [12, 12, 12],
   cr: [12, 12, 12],
+  ns: 3,
+  numberOfSets: 3,
 };
 
 const fns = Progress.createScriptFunctions(Settings.build());

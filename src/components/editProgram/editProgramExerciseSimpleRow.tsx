@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 import { Program } from "../../models/program";
 import { ProgramExercise } from "../../models/programExercise";
-import { IProgramExercise, ISettings } from "../../types";
+import { IProgramExercise, ISettings, IProgramSet } from "../../types";
 import { Input } from "../input";
 
 interface IEditProgramExerciseSimpleRowProps {
@@ -15,8 +15,16 @@ interface IEditProgramExerciseSimpleRowProps {
 export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRowProps): JSX.Element {
   const { programExercise, allProgramExercises, settings } = props;
   const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[0].sets;
-  const reps = Program.runScript(programExercise, allProgramExercises, sets[0].repsExpr, 1, settings, "reps");
-  const weight = Program.runScript(programExercise, allProgramExercises, sets[0].weightExpr, 1, settings, "weight");
+  const firstSet: IProgramSet | undefined = sets[0];
+  const reps = Program.runScript(programExercise, allProgramExercises, firstSet?.repsExpr || "", 1, settings, "reps");
+  const weight = Program.runScript(
+    programExercise,
+    allProgramExercises,
+    firstSet?.weightExpr || "",
+    1,
+    settings,
+    "weight"
+  );
 
   const setsRef = useRef<HTMLInputElement>();
   const repsRef = useRef<HTMLInputElement>();

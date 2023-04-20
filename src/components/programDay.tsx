@@ -10,7 +10,7 @@ import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
-import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, IProgressMode, ISet, ISubscription, IProgramExercise } from "../types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -133,6 +133,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               progressId={progress.id}
               dispatch={props.dispatch}
               units={props.settings.units}
+              programExercise={progress.ui?.editSetModal?.programExercise}
               set={getEditSetData(props.progress)}
               isWarmup={progress.ui?.editSetModal?.isWarmup || false}
               entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
@@ -177,8 +178,20 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               });
             }
           }}
-          onStartSetChanging={(isWarmup: boolean, entryIndex: number, setIndex?: number) => {
-            EditProgressEntry.showEditSetModal(props.dispatch, progress.id, isWarmup, entryIndex, setIndex);
+          onStartSetChanging={(
+            isWarmup: boolean,
+            entryIndex: number,
+            setIndex?: number,
+            programExercise?: IProgramExercise
+          ) => {
+            EditProgressEntry.showEditSetModal(
+              props.dispatch,
+              progress.id,
+              isWarmup,
+              entryIndex,
+              setIndex,
+              programExercise
+            );
           }}
         />
       </Surface>

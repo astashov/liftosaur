@@ -28,7 +28,12 @@ interface IExerciseSetsProps {
   settings: ISettings;
   entry: IHistoryEntry;
   friend?: IFriendUser;
-  onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
+  onStartSetChanging?: (
+    isWarmup: boolean,
+    entryIndex: number,
+    setIndex?: number,
+    programExercise?: IProgramExercise
+  ) => void;
   onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
   dispatch: IDispatch;
 }
@@ -172,10 +177,17 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
           </div>
         );
       })}
-      {isEditMode && props.onStartSetChanging && (
+      {(isEditMode || props.programExercise?.quickAddSets) && props.onStartSetChanging && (
         <button
           data-cy="add-set"
-          onClick={() => props.onStartSetChanging!(false, props.index, undefined)}
+          onClick={() =>
+            props.onStartSetChanging!(
+              false,
+              props.index,
+              undefined,
+              props.programExercise?.quickAddSets ? props.programExercise : undefined
+            )
+          }
           className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add"
         >
           +

@@ -79,7 +79,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               state={programExercise.state}
               variationIndex={variationIndex}
               setIndex={setIndex}
-              isDeleteEnabled={variation.sets.length > 1}
+              isDeleteEnabled={programExercise.quickAddSets || variation.sets.length > 1}
               onChangeAmrap={props.onChangeAmrap}
               onChangeReps={props.onChangeReps}
               onChangeWeight={props.onChangeWeight}

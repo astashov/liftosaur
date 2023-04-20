@@ -7,7 +7,7 @@ import { Weight } from "../models/weight";
 import { inputClassName } from "./input";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
-import { IUnit, ISet } from "../types";
+import { IUnit, ISet, IProgramExercise } from "../types";
 import { GroupHeader } from "./groupHeader";
 
 interface IModalWeightProps {
@@ -15,6 +15,7 @@ interface IModalWeightProps {
   units: IUnit;
   isWarmup: boolean;
   progressId: number;
+  programExercise?: IProgramExercise;
   entryIndex: number;
   setIndex?: number;
   set?: ISet;
@@ -106,7 +107,13 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                 const weight = parseFloat(weightInput.current.value);
                 const isAmrap = !!(isAmrapInput.current?.checked || false);
                 if (!isNaN(reps) && !isNaN(weight)) {
-                  const newSet: ISet = { reps, weight: Weight.build(weight, props.units), isAmrap };
+                  const newSet: ISet = {
+                    reps,
+                    weight: Weight.build(weight, props.units),
+                    isAmrap,
+                    completedReps:
+                      props.programExercise != null && props.programExercise.quickAddSets ? reps : undefined,
+                  };
                   EditProgressEntry.editSet(
                     props.dispatch,
                     props.progressId,

@@ -54,7 +54,12 @@ interface IProps {
   subscription: ISubscription;
   hidePlatesCalculator?: boolean;
   dispatch: IDispatch;
-  onStartSetChanging?: (isWarmup: boolean, entryIndex: number, setIndex?: number) => void;
+  onStartSetChanging?: (
+    isWarmup: boolean,
+    entryIndex: number,
+    setIndex?: number,
+    programExercise?: IProgramExercise
+  ) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
   onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
 }

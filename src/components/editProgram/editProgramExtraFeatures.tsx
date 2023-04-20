@@ -8,6 +8,7 @@ import { EditProgramExerciseTimer } from "./editProgramExerciseTimer";
 
 interface IProps {
   onChangeTimer: (value: string) => void;
+  onChangeQuickAddSets: (value: boolean) => void;
   onValid: (isValid: boolean) => void;
   areVariationsEnabled: boolean;
   onEnableVariations: (value: boolean) => void;
@@ -76,6 +77,14 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
             </div>
           ) : undefined
         }
+      />
+      <MenuItemEditable
+        type="boolean"
+        name="Enable Quick Add Sets"
+        value={programExercise.quickAddSets ? "true" : "false"}
+        onChange={(v) => {
+          props.onChangeQuickAddSets(v === "true");
+        }}
       />
     </div>
   );

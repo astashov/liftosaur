@@ -130,6 +130,8 @@ export class CodeEditor {
                     "cr",
                     "completedReps",
                     "day",
+                    "ns",
+                    "numberOfSets",
                     "roundWeight",
                     "calculateTrainingMax",
                   ];

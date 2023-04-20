@@ -258,6 +258,13 @@ export namespace EditProgramLenses {
     return prefix.p("timerExpr").record(value);
   }
 
+  export function setQuickAddSets<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: boolean
+  ): ILensRecordingPayload<T> {
+    return prefix.p("quickAddSets").record(value);
+  }
+
   export function setWeight<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,
@@ -312,7 +319,12 @@ export namespace EditProgramLenses {
       .i(variationIndex)
       .p("sets")
       .recordModify((sets) => {
-        const set = { ...sets[sets.length - 1] };
+        const lastSet = sets[sets.length - 1] || {
+          repsExpr: "5",
+          weightExpr: "0",
+          isAmrap: false,
+        };
+        const set = { ...lastSet };
         return [...sets, set];
       });
   }
@@ -423,26 +435,26 @@ export namespace EditProgramLenses {
       } else {
         for (const set of newPe.variations[0].sets) {
           if (example.rules.reps === "replace") {
-            set.repsExpr = example.sets[0].repsExpr;
+            set.repsExpr = example.sets[0]?.repsExpr;
           } else if (example.rules.reps === "keep_if_has_vars") {
             const oldVars = set.repsExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
             const exampleVarsMatch =
-              example.sets[0].repsExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+              example.sets[0]?.repsExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
             const hasAllVars = exampleVarsMatch.every((v) => oldVars.indexOf(v) !== -1);
             if (!hasAllVars) {
-              set.repsExpr = example.sets[0].repsExpr;
+              set.repsExpr = example.sets[0]?.repsExpr;
             }
           }
 
           if (example.rules.weight === "replace") {
-            set.weightExpr = example.sets[0].weightExpr;
+            set.weightExpr = example.sets[0]?.weightExpr;
           } else if (example.rules.weight === "keep_if_has_vars") {
             const oldVars = set.weightExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
             const exampleVarsMatch =
-              example.sets[0].weightExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
+              example.sets[0]?.weightExpr.match(/state\.(\w+)/g)?.map((r) => r.replace("state.", "")) || [];
             const hasAllVars = exampleVarsMatch.every((v) => oldVars.indexOf(v) !== -1);
             if (!hasAllVars) {
-              set.weightExpr = example.sets[0].weightExpr;
+              set.weightExpr = example.sets[0]?.weightExpr;
             }
           }
         }
