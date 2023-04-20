@@ -56,7 +56,7 @@ function tokenize(text: string): IToken[] {
         tokens.push({ type: "if", value: "if", pos });
       } else if ((match = /^(else)\W/.exec(line))) {
         tokens.push({ type: "if", value: "else", pos });
-      } else if ((match = /^([a-zA-Z][a-zA-Z0-9\.\[\]]*)/.exec(line))) {
+      } else if ((match = /^([a-zA-Z][a-zA-Z0-9\.]*)/.exec(line))) {
         tokens.push({ type: "keyword", value: match[0] as ITokenKeyword["value"], pos });
       } else {
         throw SyntaxError(`Unexpected token at line ${pos.line}:${pos.offset}, ${line}`);
@@ -221,9 +221,16 @@ const allRules = {
   },
   keyword: (parser: Parser): IExpr => {
     const keyword = parser.get({ type: "keyword" });
+    const field = parser.maybeGet({ type: "paren", value: "[" });
+    let fieldExpr: IExpr | undefined;
+    if (field != null) {
+      fieldExpr = parser.match("expression");
+      parser.get({ type: "paren", value: "]" });
+    }
     return {
       type: "keyword",
       value: keyword.value as string,
+      field: fieldExpr,
     };
   },
 } as const;
@@ -232,7 +239,7 @@ type IRules = typeof allRules;
 type IIfCondition = { if: IExpr; then: IExpr };
 type IExprNumber = { type: "number"; sign: "+" | "-"; value: number | IWeight };
 type IExprBlock = { type: "block"; exprs: IExpr[] };
-type IExprKeyword = { type: "keyword"; value: string };
+type IExprKeyword = { type: "keyword"; value: string; field?: IExpr };
 type IExprExpression = { type: "expression"; operator: ITokenOperator; left: IExpr; right: IExpr };
 type IExprCond = { type: "cond"; condition: IExpr; then: IExpr; or: IExpr };
 type IExprIf = { type: "if"; conditions: IIfCondition[]; or?: IExpr };
@@ -494,13 +501,16 @@ class Evaluator {
         } else {
           throw new SyntaxError(`Unknown state variable '${stateKey}'`);
         }
-      } else if ((match = /^(weights|reps|completedReps|w|r|cr)\[([a-zA-Z0-9\.]+)\]/.exec(value))) {
+      } else if ((match = /^(weights|reps|completedReps|w|r|cr)$/.exec(value)) && !!expr.field) {
         const key = match[1] as "w" | "r" | "cr" | "weights" | "reps" | "completedReps";
-        const setIndex = parseInt(match[2], 10) - 1;
-        if (this.bindings[key][setIndex] == null) {
-          throw new SyntaxError(`${value} - There's no set ${setIndex + 1} in the exercise`);
+        const field = this.evaluate(expr.field);
+        if (typeof field !== "number") {
+          throw new SyntaxError(`${value} - Expecting to have a number in [] of ${match[1]}`);
+        }
+        if (this.bindings[key][field - 1] == null) {
+          throw new SyntaxError(`${value} - There's no set ${field} in the exercise`);
         } else {
-          return this.bindings[key][setIndex];
+          return this.bindings[key][field - 1];
         }
       } else if (Object.keys(this.bindings).indexOf(expr.value) !== -1) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

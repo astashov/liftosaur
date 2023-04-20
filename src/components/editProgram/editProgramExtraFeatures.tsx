@@ -35,6 +35,11 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
             <div>
               <strong>Set Variations: </strong> Enable if you want different number of set schemes based on a condition.
             </div>
+            <div>
+              <strong>Quick Add Sets: </strong> There will be + button next to last set on the workout screen, so you
+              can quickly add a set. Useful for set-based programs, where you progress based on how many sets you can
+              do. based on
+            </div>
           </>
         }
       />
