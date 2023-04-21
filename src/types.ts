@@ -496,6 +496,7 @@ export const TProgressUi = t.partial(
     editSetModal: t.type({
       isWarmup: t.boolean,
       entryIndex: t.number,
+      equipment: t.union([TEquipment, t.undefined]),
       programExercise: t.union([TProgramExercise, t.undefined]),
       setIndex: t.union([t.number, t.undefined]),
     }),

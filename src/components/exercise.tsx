@@ -18,6 +18,7 @@ import {
   IHistoryRecord,
   ISet,
   ISubscription,
+  IEquipment,
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IFriendUser, IState, updateState } from "../models/state";
@@ -59,7 +60,8 @@ interface IProps {
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
-    programExercise?: IProgramExercise
+    programExercise?: IProgramExercise,
+    equipment?: IEquipment
   ) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
   onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;

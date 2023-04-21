@@ -12,6 +12,7 @@ import {
   IProgramExercise,
   ISubscription,
   IHistoryEntry,
+  IEquipment,
 } from "../types";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
@@ -41,7 +42,8 @@ interface ICardsViewProps {
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
-    programExercise?: IProgramExercise
+    programExercise?: IProgramExercise,
+    equipment?: IEquipment
   ) => void;
   setIsShareShown: (isShown: boolean) => void;
 }

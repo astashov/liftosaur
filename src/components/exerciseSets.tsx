@@ -13,6 +13,7 @@ import {
   IWeight,
   IExerciseType,
   IProgramExercise,
+  IEquipment,
 } from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
@@ -32,7 +33,8 @@ interface IExerciseSetsProps {
     isWarmup: boolean,
     entryIndex: number,
     setIndex?: number,
-    programExercise?: IProgramExercise
+    programExercise?: IProgramExercise,
+    equipment?: IEquipment
   ) => void;
   onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
   dispatch: IDispatch;
@@ -71,7 +73,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                         if (!friend) {
                           event.preventDefault();
                           if (isEditMode && props.onStartSetChanging) {
-                            props.onStartSetChanging(true, props.index, i);
+                            props.onStartSetChanging(true, props.index, i, undefined, props.entry.exercise.equipment);
                           } else {
                             props.onChangeReps("warmup", props.entry);
                             handleClick(
@@ -116,7 +118,9 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               </div>
               <button
                 data-cy="add-warmup-set"
-                onClick={() => props.onStartSetChanging!(true, props.index, undefined)}
+                onClick={() =>
+                  props.onStartSetChanging!(true, props.index, undefined, undefined, props.entry.exercise.equipment)
+                }
                 className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup is-edit-mode"
               >
                 +
@@ -146,7 +150,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 if (!friend) {
                   event.preventDefault();
                   if (isEditMode && props.onStartSetChanging) {
-                    props.onStartSetChanging(false, props.index, i);
+                    props.onStartSetChanging(false, props.index, i, undefined, props.entry.exercise.equipment);
                   } else {
                     props.onChangeReps("workout", props.entry);
                     handleClick(
@@ -185,7 +189,8 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               false,
               props.index,
               undefined,
-              props.programExercise?.quickAddSets ? props.programExercise : undefined
+              props.programExercise?.quickAddSets ? props.programExercise : undefined,
+              props.entry.exercise.equipment
             )
           }
           className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add"
