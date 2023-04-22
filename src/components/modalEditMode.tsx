@@ -10,6 +10,7 @@ import { EditProgram } from "../models/editProgram";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
+import { EditProgramConvertStateVariables } from "./editProgram/editProgramConvertStateVariables";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -37,8 +38,18 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
           <>
             <h2 className="mb-2 text-lg text-center">Edit state variables only</h2>
             <ProgramStateVariables
+              settings={props.settings}
               programExercise={programExercise}
               stateMetadata={programExercise.stateMetadata}
+              onChangeStateVariableUnit={() => {
+                EditProgram.switchStateVariablesToUnitInPlace(
+                  props.dispatch,
+                  props.program.id,
+                  programExercise,
+                  props.settings
+                );
+                props.dispatch({ type: "ApplyProgramChangesToProgress" });
+              }}
               onEditStateVariable={(stateKey, newValue) => {
                 EditProgram.properlyUpdateStateVariableInPlace(
                   props.dispatch,
@@ -121,6 +132,8 @@ interface IStateProps {
   programExercise: IProgramExercise;
   stateMetadata?: IProgramStateMetadata;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
+  settings: ISettings;
+  onChangeStateVariableUnit: () => void;
 }
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
@@ -130,6 +143,11 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
+      <EditProgramConvertStateVariables
+        settings={props.settings}
+        programExercise={programExercise}
+        onConvert={props.onChangeStateVariableUnit}
+      />
       {ObjectUtils.keys(state).map((stateKey, i) => {
         const value = state[stateKey];
         const displayValue = Weight.is(value) ? value.value : value;

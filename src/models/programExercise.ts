@@ -7,12 +7,14 @@ import {
   IHistoryRecord,
   IHistoryEntry,
   IProgramSet,
+  IUnit,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
 import { IProgramStateMetadata, IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";
+import { Weight } from "./weight";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -185,5 +187,14 @@ export namespace ProgramExercise {
       entry = undefined;
     }
     return entry != null ? History.buildFromEntry(entry, day) : undefined;
+  }
+
+  export function hasDifferentUnitStateVariables(programExercise: IProgramExercise, unit: IUnit): boolean {
+    const reuseLogicId = programExercise.reuseLogic?.selected;
+    const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
+    return Object.keys(state).some((key) => {
+      const value = state[key];
+      return Weight.is(value) && value.unit !== unit;
+    });
   }
 }

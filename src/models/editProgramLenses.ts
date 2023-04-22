@@ -245,6 +245,44 @@ export namespace EditProgramLenses {
     }
   }
 
+  export function switchStateVariablesToUnit<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    settings: ISettings
+  ): ILensRecordingPayload<T>[] {
+    const unit = settings.units;
+    return [
+      prefix.p("state").recordModify((state) => {
+        const newState = { ...state };
+        for (const key of Object.keys(newState)) {
+          const value = newState[key];
+          if (Weight.is(value) && value.unit !== unit) {
+            newState[key] = Weight.roundConvertTo(value, settings);
+          }
+        }
+        return newState;
+      }),
+      prefix.p("reuseLogic").recordModify((rl) => {
+        if (rl == null) {
+          return undefined;
+        }
+        return {
+          ...rl,
+          states: Object.keys(rl.states).reduce<Record<string, IProgramState>>((memo, k) => {
+            const newState = { ...rl.states[k] };
+            for (const key of Object.keys(newState)) {
+              const value = newState[key];
+              if (Weight.is(value)) {
+                newState[key] = Weight.roundConvertTo(value, settings);
+              }
+            }
+            memo[k] = newState;
+            return memo;
+          }, {}),
+        };
+      }),
+    ];
+  }
+
   export function setReps<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,

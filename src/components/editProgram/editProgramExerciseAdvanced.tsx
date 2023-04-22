@@ -171,12 +171,16 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <div className="mt-8">
         <EditProgramStateVariables
           stateMetadata={stateMetadata}
+          settings={props.settings}
+          programExercise={programExercise}
           onEditStateVariable={(stateKey, newValue) => {
             EditProgram.properlyUpdateStateVariable(props.dispatch, programExercise, stateKey, newValue);
           }}
-          programExercise={programExercise}
           onAddStateVariable={() => {
             setShouldShowAddStateVariable(true);
+          }}
+          onChangeStateVariableUnit={() => {
+            EditProgram.switchStateVariablesToUnit(props.dispatch, props.settings);
           }}
         />
       </div>

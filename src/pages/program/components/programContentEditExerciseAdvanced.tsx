@@ -90,6 +90,8 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         <div className="flex-1">
           <EditProgramStateVariables
             stateMetadata={stateMetadata}
+            programExercise={programExercise}
+            settings={props.settings}
             onEditStateVariable={(stateKey, newValue) => {
               const reuseLogicId = programExercise.reuseLogic?.selected;
               if (reuseLogicId) {
@@ -101,9 +103,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 props.dispatch(EditProgramLenses.editStateVariable(lbe, stateKey, newValue));
               }
             }}
-            programExercise={programExercise}
             onAddStateVariable={() => {
               setShouldShowAddStateVariable(true);
+            }}
+            onChangeStateVariableUnit={() => {
+              props.dispatch(EditProgramLenses.switchStateVariablesToUnit(lbe, props.settings));
             }}
           />
         </div>

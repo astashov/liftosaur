@@ -62,6 +62,25 @@ export namespace EditProgram {
     );
   }
 
+  export function switchStateVariablesToUnit(dispatch: IDispatch, settings: ISettings): void {
+    updateState(dispatch, EditProgramLenses.switchStateVariablesToUnit(lb<IState>().pi("editExercise"), settings));
+  }
+
+  export function switchStateVariablesToUnitInPlace(
+    dispatch: IDispatch,
+    programId: string,
+    programExercise: IProgramExercise,
+    settings: ISettings
+  ): void {
+    updateState(
+      dispatch,
+      EditProgramLenses.switchStateVariablesToUnit(
+        lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
+        settings
+      )
+    );
+  }
+
   export function properlyUpdateStateVariable<T>(
     dispatch: IDispatch,
     programExercise: IProgramExercise,

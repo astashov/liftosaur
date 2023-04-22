@@ -1,16 +1,19 @@
 import { h, JSX } from "preact";
 import { Weight } from "../../models/weight";
-import { IProgramExercise, IProgramStateMetadata } from "../../types";
+import { IProgramExercise, IProgramStateMetadata, ISettings } from "../../types";
 import { ObjectUtils } from "../../utils/object";
 import { GroupHeader } from "../groupHeader";
 import { LinkButton } from "../linkButton";
 import { MenuItemEditable } from "../menuItemEditable";
+import { EditProgramConvertStateVariables } from "./editProgramConvertStateVariables";
 
 interface IStateProps {
   programExercise: IProgramExercise;
+  settings: ISettings;
   stateMetadata?: IProgramStateMetadata;
   onAddStateVariable: () => void;
   onEditStateVariable: (stateKey: string, newValue?: string) => void;
+  onChangeStateVariableUnit: () => void;
 }
 
 export function EditProgramStateVariables(props: IStateProps): JSX.Element {
@@ -29,6 +32,11 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
             workouts, allowing to use them for progressive overload, for tracking failures, or for anything really.
           </span>
         }
+      />
+      <EditProgramConvertStateVariables
+        settings={props.settings}
+        programExercise={programExercise}
+        onConvert={props.onChangeStateVariableUnit}
       />
       {ObjectUtils.keys(state).map((stateKey) => {
         const value = state[stateKey];
