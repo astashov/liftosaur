@@ -65,7 +65,7 @@ I try to be efficient with the JavaScript size, and avoid heavy third-party libr
 - [Webpushr](https://www.webpushr.com/) to send notifications on web when Rest Timer is expired
 - [Rollbar](https://rollbar.com/) for error reporting
 - [11ty](https://www.11ty.dev/) for the blog
-- [Cypress][https://www.cypress.io/] for integration tests
+- [Cypress](https://www.cypress.io/) for integration tests
 - [Tailwind CSS](https://tailwindcss.com/) for CSS
 - [Jimp](https://github.com/oliver-moran/jimp) for generating dynamic `og:image` images (like [this](https://www.liftosaur.com/profileimage/tiolnbjbleke)) for social media
 
