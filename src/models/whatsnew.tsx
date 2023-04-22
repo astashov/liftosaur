@@ -294,6 +294,27 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230422": {
+    title: <span>Quick add sets</span>,
+    body: (
+      <ul>
+        <li>
+          Add a way to enable "quick add sets" feature for a program exercise. When enabled, there'll be a button on the
+          workout screen after last set, that allows to add another set. On press, there'll be a modal, where you
+          specify required sets and weight. It also is marked as completed automatically.
+        </li>
+        <li>
+          Also, there're 2 new variables available in Finish Day Script - <strong>numberOfSets</strong>, and an alias
+          for it - <strong>ns</strong>. They contain the number of sets for the exercise at the end of the workout.
+        </li>
+        <li>
+          You can use this to create set-based programs. E.g. increase weight if you did more than 5 sets with 4 reps
+          each, or if you did at least 5 sets, and last set reps were more than 8. To access last set weight or reps,
+          you can use <strong>weights[numberOfSets]</strong> or <strong>reps[numberOfSets]</strong>.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

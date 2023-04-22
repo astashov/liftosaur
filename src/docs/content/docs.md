@@ -96,6 +96,7 @@ The list of available variables you can use in your Finish Day Scripts:
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `day` - current day number, starting from 1.
+- `numberOfSets` or `ns` - how many sets were in the exercise.
 
 You can also write it as:
 
@@ -212,6 +213,7 @@ You cannot assign values to them, but you can use theirs values. There're:
 - `reps[x]` or `r[x]` - number of reps for an X set.
 - `completedReps[x]` or `cr[x]` - number of completed reps for an X set.
 - `day` - current day number, starting from 1.
+- `numberOfSets` or `ns` - how many sets were in the exercise.
 
 ### State variables
 
