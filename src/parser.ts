@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
+import { LiftoscriptEvaluator } from "./liftoscriptEvaluator";
+import { parser as LiftoscriptParser } from "./liftoscript";
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
 import { IUnit, IWeight, IProgramState } from "./types";
+import RB from "rollbar";
+import { dequal } from "dequal";
+
+declare let Rollbar: RB;
 
 type IPos = { readonly line: number; readonly offset: number };
 
@@ -452,7 +458,7 @@ class Evaluator {
       if (expr.or != null) {
         return this.evaluate(expr.or);
       } else {
-        return false;
+        return 0;
       }
     } else if (expr.type === "assign") {
       const variable = expr.variable;
@@ -474,7 +480,7 @@ class Evaluator {
         throw new SyntaxError(`Can only assign to 'state' fields, but got ${variable} instead`);
       }
     } else if (expr.type === "block") {
-      let result: number | boolean | IWeight = false;
+      let result: number | boolean | IWeight = 0;
       for (const e of expr.exprs) {
         result = this.evaluate(e);
       }
@@ -546,6 +552,8 @@ class Evaluator {
   }
 }
 
+let lastRollbarSent: number = 0;
+
 export class ScriptRunner {
   private readonly script: string;
   private readonly state: IProgramState;
@@ -580,9 +588,105 @@ export class ScriptRunner {
   public execute(type: "timer"): number;
   public execute(type?: undefined): number | IWeight | boolean;
   public execute(type?: "reps" | "weight" | "timer"): number | IWeight | boolean {
-    const ast = this.parse();
-    const evaluator = new Evaluator(this.state, this.bindings, this.fns, this.context);
-    let result = evaluator.evaluate(ast);
+    let liftoscriptOutput: number | IWeight | boolean | undefined;
+    let liftoscriptError: { error: string; type: string } | undefined;
+    const stateCopy = { ...this.state };
+    try {
+      const liftoscriptTree = LiftoscriptParser.parse(this.script);
+      const liftoscriptEvaluator = new LiftoscriptEvaluator(
+        this.script,
+        stateCopy,
+        this.bindings,
+        this.fns,
+        this.context
+      );
+      liftoscriptEvaluator.parse(liftoscriptTree.topNode);
+      const rawResult = liftoscriptEvaluator.evaluate(liftoscriptTree.topNode);
+      const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+      liftoscriptOutput = this.convertResult(type, result);
+    } catch (e) {
+      liftoscriptError = { error: e.message, type: e.name };
+    }
+
+    let output: number | IWeight | boolean;
+    try {
+      const ast = this.parse();
+      const evaluator = new Evaluator(this.state, this.bindings, this.fns, this.context);
+      const result = evaluator.evaluate(ast);
+      output = this.convertResult(type, result);
+    } catch (e) {
+      if (e.name === "SyntaxError" && liftoscriptError == null) {
+        this.reportInconsistensyError("Parser thrown an error, but Liftoscript didn't", {
+          output: undefined,
+          liftoscriptOutput,
+          error: e,
+          liftoscriptError,
+        });
+      }
+      throw e;
+    }
+
+    if (liftoscriptError != null) {
+      this.reportInconsistensyError("Liftoscript thrown an error, but Parser didn't", {
+        output,
+        liftoscriptOutput,
+        error: undefined,
+        liftoscriptError,
+      });
+    } else {
+      if (liftoscriptOutput !== output) {
+        this.reportInconsistensyError("Liftoscript returned a different result than Parser", {
+          output,
+          liftoscriptOutput,
+          error: undefined,
+          liftoscriptError,
+        });
+      }
+      if (!dequal(this.state, stateCopy)) {
+        this.reportInconsistensyError("Liftoscript and Parser changed states differently", {
+          output,
+          liftoscriptOutput,
+          error: undefined,
+          liftoscriptError,
+        });
+      }
+    }
+    return output;
+  }
+
+  private reportInconsistensyError(
+    msg: string,
+    args: {
+      output?: number | IWeight | boolean;
+      liftoscriptOutput?: number | IWeight | boolean;
+      error?: Error;
+      liftoscriptError?: { error: string; type: string };
+    }
+  ): void {
+    const { output, liftoscriptOutput, error, liftoscriptError } = args;
+    const payload = {
+      script: this.script,
+      bindings: JSON.stringify(this.bindings),
+      units: this.units,
+      state: JSON.stringify(this.state),
+      output: JSON.stringify(output),
+      liftoscriptOutput: JSON.stringify(liftoscriptOutput),
+      error: error ? JSON.stringify({ message: error.message, name: error.name }) : undefined,
+      liftoscriptError: JSON.stringify(liftoscriptError),
+    };
+    if (lastRollbarSent < Date.now() - 1000 * 5) {
+      if (typeof Rollbar !== "undefined") {
+        Rollbar.error(msg, payload);
+      }
+      console.error(msg, payload);
+      lastRollbarSent = Date.now();
+    }
+  }
+
+  private convertResult(
+    type: "reps" | "weight" | "timer" | undefined,
+    result: number | IWeight | boolean
+  ): number | IWeight | boolean {
     if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
         throw new SyntaxError("Expected to get number as a result");

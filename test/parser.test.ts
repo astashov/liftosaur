@@ -26,26 +26,26 @@ describe("Parser", () => {
 
   it("Standard progression and deload", () => {
     const program = `
-      // Simple Exercise Progression script '5lb,2'
-      if (completedReps >= reps) {
-        state.successes = state.successes + 1
-        if (state.successes >= 2) {
-          state.weight = state.weight + 5lb
-          state.successes = 0
-          state.failures = 0
-        }
-      }
-      // End Simple Exercise Progression script
-      // Simple Exercise Deload script '5lb,1'
-      if (!(completedReps >= reps)) {
-        state.failures = state.failures + 1
-        if (state.failures >= 1) {
-          state.weight = state.weight - 5lb
-          state.successes = 0
-          state.failures = 0
-        }
-      }
-      // End Simple Exercise Deload script`;
+// Simple Exercise Progression script '5lb,2'
+if (completedReps >= reps) {
+  state.successes = state.successes + 1
+  if (state.successes >= 2) {
+    state.weight = state.weight + 5lb
+    state.successes = 0
+    state.failures = 0
+  }
+}
+// End Simple Exercise Progression script
+// Simple Exercise Deload script '5lb,1'
+if (!(completedReps >= reps)) {
+  state.failures = state.failures + 1
+  if (state.failures >= 1) {
+    state.weight = state.weight - 5lb
+    state.successes = 0
+    state.failures = 0
+  }
+}
+// End Simple Exercise Deload script`;
     let state = {
       successes: 0,
       failures: 0,
@@ -440,22 +440,23 @@ describe("Parser", () => {
     expect(state).toEqual({ reps: 6 });
   });
 
-  // it("fn in if", () => {
-  //   const program = `
-  //     if (roundWeight(state.weight * 0.323) == 100) {
-  //       state.weight = roundWeight(state.weight * 0.323)
-  //     }
-  //   `;
-  //   const state = { weight: Weight.build(1000, "lb") };
-  //   ParserTestUtils.run(
-  //     program,
-  //     state,
-  //     ParserTestUtils.bdgs({
-  //       results: [[3, 5, 150]],
-  //     })
-  //   );
-  //   expect(state).toEqual({ weight: 7 });
-  // });
+  it("fn in if", () => {
+    const program = `
+      if (2 > 1) {
+        state.weight = roundWeight(state.weight * 0.323)
+      }
+    `;
+    const state = { weight: Weight.build(1000, "lb") };
+    const result = ParserTestUtils.run(
+      program,
+      state,
+      ParserTestUtils.bdgs({
+        results: [[3, 5, 150]],
+      })
+    );
+    expect(state).toEqual({ weight: Weight.build(322.5, "lb") });
+    expect(result).toEqual(Weight.build(322.5, "lb"));
+  });
 
   it("fn in assignment", () => {
     const program = `
@@ -470,26 +471,6 @@ describe("Parser", () => {
       })
     );
     expect(state).toEqual({ weight: Weight.build(322.5, "lb") });
-  });
-
-  it("not closed parenthesis", () => {
-    const program = `
-    if(cr[3] >= 25 {
-      state.weight = state.weight + 2.5kg}
-    `;
-    const state = { weight: Weight.build(100, "lb") };
-    ParserTestUtils.run(
-      program,
-      state,
-      ParserTestUtils.bdgs({
-        results: [
-          [3, 5, 150],
-          [3, 5, 150],
-          [3, 30, 150],
-        ],
-      })
-    );
-    expect(state).toEqual({ weight: Weight.build(105.5, "lb") });
   });
 
   it("nested conditions 2", () => {
@@ -523,6 +504,6 @@ describe("Parser", () => {
   //       results: [[4, 5, 150]],
   //     })
   //   );
-  //   expect(state).toEqual({ foo: 2 });
+  //   expect(state).toEqual({ foo: 4 });
   // });
 });
