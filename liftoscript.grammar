@@ -1,0 +1,88 @@
+@top Program { expression* }
+
+@precedence {
+  unary
+  fncall @left
+  arrindex @left
+  times @left
+  plus @left
+  cmp @left
+  andor @left
+  ternary @right
+  assign @right
+}
+
+expression {
+  BinaryExpression |
+  NumberExpression |
+  WeightExpression | 
+  ParenthesisExpression |
+  BlockExpression |
+  Ternary |
+  IfExpression |
+  AssignmentExpression |
+  FunctionExpression |
+  ArrayVariableExpression |
+  BindingVariable |
+  StateVariable |
+  UnaryExpression
+}
+
+ParenthesisExpression { "(" expression ")" }
+BlockExpression { "{" expression* "}" }
+IfExpression { If ParenthesisExpression BlockExpression (Else BlockExpression)? }
+AssignmentExpression { StateVariable !assign "=" expression }
+ArrayVariableExpression { ArrayVariable (!arrindex "[" expression "]")? }
+FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
+Ternary { expression !ternary "?" expression ":" expression }
+NumberExpression { !unary Plus? Number }
+WeightExpression { NumberExpression Unit }
+
+BinaryExpression {
+  expression !plus Plus expression |
+  expression !times Times expression |
+  expression !cmp Cmp expression |
+  expression !andor AndOr expression
+}
+
+UnaryExpression {
+  !unary Not expression
+}
+
+@skip { spaces | newline | LineComment | ";" }
+
+@tokens {
+  spaces { $[\u0009 \u000b\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000\ufeff]+ }
+  newline { $[\r\n\u2028\u2029] }
+  LineComment { "//" ![\n]* }
+  @precedence { LineComment, Times }
+
+  Keyword { @asciiLetter (@asciiLetter | @digit)* }
+  StateVariable { "state." Keyword }
+  BindingVariable { (
+    "day" |
+    "ns" |
+    "numberOfSets"
+  ) }
+  ArrayVariable { (
+    "weights" |
+    "reps" |
+    "completedReps" |
+    "w" |
+    "r" |
+    "cr"
+  ) }
+  If { "if" }
+  Else { "else" }
+  Unit { "lb" | "kg" }
+  @precedence { If, Else, StateVariable, ArrayVariable, BindingVariable, Unit, Keyword }
+
+  Number { @digit+ ("." @digit+)* }
+  Plus { ("+" | "-") }
+  @precedence { Number, Plus }
+
+  Times { ("*" | "/" | "%") }
+  Cmp { ( ">" "="? | "==" | "!=" | "<" "="? ) }
+  AndOr { ( "&&" | "||" ) }
+  Not { "!" }
+}

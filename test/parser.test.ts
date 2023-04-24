@@ -26,26 +26,26 @@ describe("Parser", () => {
 
   it("Standard progression and deload", () => {
     const program = `
-      // Simple Exercise Progression script '5lb,2'
-      if (completedReps >= reps) {
-        state.successes = state.successes + 1
-        if (state.successes >= 2) {
-          state.weight = state.weight + 5lb
-          state.successes = 0
-          state.failures = 0
-        }
-      }
-      // End Simple Exercise Progression script
-      // Simple Exercise Deload script '5lb,1'
-      if (!(completedReps >= reps)) {
-        state.failures = state.failures + 1
-        if (state.failures >= 1) {
-          state.weight = state.weight - 5lb
-          state.successes = 0
-          state.failures = 0
-        }
-      }
-      // End Simple Exercise Deload script`;
+// Simple Exercise Progression script '5lb,2'
+if (completedReps >= reps) {
+  state.successes = state.successes + 1
+  if (state.successes >= 2) {
+    state.weight = state.weight + 5lb
+    state.successes = 0
+    state.failures = 0
+  }
+}
+// End Simple Exercise Progression script
+// Simple Exercise Deload script '5lb,1'
+if (!(completedReps >= reps)) {
+  state.failures = state.failures + 1
+  if (state.failures >= 1) {
+    state.weight = state.weight - 5lb
+    state.successes = 0
+    state.failures = 0
+  }
+}
+// End Simple Exercise Deload script`;
     let state = {
       successes: 0,
       failures: 0,
