@@ -100,6 +100,7 @@ export namespace Weight {
     const units = settings.units;
     const equipmentType = equipment ? settings.equipment[equipment] : undefined;
     if (!equipmentType) {
+      allWeight = Weight.build(parseFloat(allWeight.value.toFixed(2)), allWeight.unit);
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
     if (equipmentType.isFixed) {
