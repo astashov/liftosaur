@@ -6,6 +6,7 @@ import { Weight } from "./models/weight";
 import { IUnit, IWeight, IProgramState } from "./types";
 import RB from "rollbar";
 import { dequal } from "dequal";
+import { IState } from "./models/state";
 
 declare let Rollbar: RB;
 
@@ -673,6 +674,8 @@ export class ScriptRunner {
       liftoscriptOutput: JSON.stringify(liftoscriptOutput),
       error: error ? JSON.stringify({ message: error.message, name: error.name }) : undefined,
       liftoscriptError: JSON.stringify(liftoscriptError),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      screen: JSON.stringify(((window as any)?.state as IState)?.screenStack),
     };
     if (lastRollbarSent < Date.now() - 1000 * 5) {
       if (typeof Rollbar !== "undefined") {
