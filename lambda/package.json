@@ -6,6 +6,7 @@
   "author": "Anton Astashov",
   "license": "MIT",
   "dependencies": {
+    "@lezer/lr": "^1.3.4",
     "cookie": "^0.4.1",
     "deepmerge": "^4.2.2",
     "dequal": "^2.0.3",
