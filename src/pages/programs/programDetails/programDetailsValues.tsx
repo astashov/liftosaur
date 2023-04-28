@@ -10,7 +10,7 @@ function getRepsValues(props: IRepsWeightsProps): number[] {
   return props.sets.map((set) => {
     return Progress.executeEntryScript(
       set.repsExpr,
-      props.dayIndex,
+      props.dayIndex + 1,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
       props.settings,
