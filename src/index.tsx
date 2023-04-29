@@ -33,6 +33,8 @@ async function initialize(loadedData: unknown): Promise<void> {
   if (adminKey) {
     initialState.adminKey = adminKey;
   }
+  const uid = initialState.user?.id || initialState.storage.tempUserId;
+  Rollbar.configure({ payload: { environment: __ENV__, person: { id: uid } } });
   (window as any).state = initialState;
   (window as any).service = new Service(window.fetch.bind(window));
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
