@@ -25,5 +25,4 @@
 
 * Bug:
   Assign lb to state var of type number
-  Buttons on choose a program
-  Narrow selector if only one option in Chrome
+  Custom timer on just added exercise is ignored

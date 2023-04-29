@@ -39,6 +39,7 @@
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "@lezer/generator": "^1.2.3",
     "@types/aws-lambda": "^8.10.72",
     "@types/codemirror": "^0.0.96",
     "@types/cookie": "^0.3.3",

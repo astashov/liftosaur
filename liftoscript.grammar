@@ -64,13 +64,7 @@ UnaryExpression {
   Unit { "lb" | "kg" }
   @precedence { StateVariable, Unit, Keyword }
 
-  identifierChar { @asciiLetter | $[_$\u{a1}-\u{10ffff}] }
-
-  word { identifierChar (identifierChar | @digit)* }
-
-  identifier { word }
-
-  Number { @digit+ ("." @digit+)* }
+  Number { (@digit+ ("." @digit+)*) | "." @digit+ | @digit+ "." }
   Plus { ("+" | "-") }
   @precedence { Number, Plus }
 
