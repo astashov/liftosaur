@@ -315,6 +315,23 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230430": {
+    title: <span>New Liftoscript Engine</span>,
+    body: (
+      <ul>
+        <li>
+          The internals of Liftoscript are fully rewrote to a new engine. It's more strict, and it will better find
+          syntax errors, missing variables, and it's generally more correct. Also, it will be way easier to add features
+          to it now.
+        </li>
+        <li>
+          ⚠️ But because it's stricter, it may consider your previously valid scripts invalid now.{" "}
+          <strong>If you get an error - please go to edit exercise screen, and fix the errors!</strong>. Otherwise, it
+          may not calculate your reps/weights properly when you finish exercise.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
