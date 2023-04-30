@@ -31,6 +31,7 @@ import { EditExerciseUtil } from "./utils/editExerciseUtil";
 import { ProgramContentModalExerciseExamples } from "./components/programContentModalExerciseExamples";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 import { IProgramExercise } from "../../types";
+import { UidFactory } from "../../utils/generator";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -96,9 +97,13 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                   }}
                 />
               </div>
-              <div className="text-xs font-normal text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+              <button
+                className="text-xs font-normal text-grayv2-main"
+                style={{ marginTop: "-0.5rem" }}
+                onClick={() => props.dispatch(lbProgram.p("id").record(UidFactory.generateUid(8)))}
+              >
                 id: {program.id}
-              </div>
+              </button>
             </h1>
             <div className="flex">
               <BuilderCopyLink
