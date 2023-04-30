@@ -95,7 +95,8 @@ export namespace Program {
       ProgramExercise.getState(programExercise, allProgramExercises),
       settings,
       ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
-      ProgramExercise.getTimerExpr(programExercise, allProgramExercises)
+      ProgramExercise.getTimerExpr(programExercise, allProgramExercises),
+      true
     );
   }
 
@@ -106,25 +107,44 @@ export namespace Program {
     state: IProgramState,
     settings: ISettings,
     warmupSets?: IProgramExerciseWarmupSet[],
-    timerExpr?: string
+    timerExpr?: string,
+    shouldFallback?: boolean
   ): IHistoryEntry {
     const sets: ISet[] = programSets.map((set) => {
-      const repsValue = new ScriptRunner(
-        set.repsExpr,
-        state,
-        Progress.createEmptyScriptBindings(day),
-        Progress.createScriptFunctions(settings),
-        settings.units,
-        { equipment: exercise.equipment }
-      ).execute("reps");
-      const weightValue = new ScriptRunner(
-        set.weightExpr,
-        state,
-        Progress.createEmptyScriptBindings(day),
-        Progress.createScriptFunctions(settings),
-        settings.units,
-        { equipment: exercise.equipment }
-      ).execute("weight");
+      const repsValue = ScriptRunner.safe(
+        () => {
+          return new ScriptRunner(
+            set.repsExpr,
+            state,
+            Progress.createEmptyScriptBindings(day),
+            Progress.createScriptFunctions(settings),
+            settings.units,
+            { equipment: exercise.equipment }
+          ).execute("reps");
+        },
+        (e) => {
+          return `There's an error while calculating reps for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 5 reps. Please fix the program's reps script.`;
+        },
+        5,
+        !shouldFallback
+      );
+      const weightValue = ScriptRunner.safe(
+        () => {
+          return new ScriptRunner(
+            set.weightExpr,
+            state,
+            Progress.createEmptyScriptBindings(day),
+            Progress.createScriptFunctions(settings),
+            settings.units,
+            { equipment: exercise.equipment }
+          ).execute("weight");
+        },
+        (e) => {
+          return `There's an error while calculating weight for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's weight script.`;
+        },
+        Weight.build(100, settings.units),
+        !shouldFallback
+      );
       return {
         isAmrap: set.isAmrap,
         reps: repsValue,
@@ -132,16 +152,25 @@ export namespace Program {
       };
     });
 
-    const timerValue = timerExpr?.trim()
-      ? new ScriptRunner(
-          timerExpr,
-          state,
-          Progress.createEmptyScriptBindings(day),
-          Progress.createScriptFunctions(settings),
-          settings.units,
-          { equipment: exercise.equipment }
-        ).execute("timer")
-      : undefined;
+    const timerValue = ScriptRunner.safe(
+      () => {
+        return timerExpr?.trim()
+          ? new ScriptRunner(
+              timerExpr,
+              state,
+              Progress.createEmptyScriptBindings(day),
+              Progress.createScriptFunctions(settings),
+              settings.units,
+              { equipment: exercise.equipment }
+            ).execute("timer")
+          : undefined;
+      },
+      (e) => {
+        return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
+      },
+      undefined,
+      !shouldFallback
+    );
 
     return {
       exercise: exercise,

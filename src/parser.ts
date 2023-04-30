@@ -555,6 +555,8 @@ class Evaluator {
 
 let lastRollbarSent: number = 0;
 
+const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
+
 export class ScriptRunner {
   private readonly script: string;
   private readonly state: IProgramState;
@@ -582,6 +584,26 @@ export class ScriptRunner {
   public parse(): IExpr {
     const tokens = tokenize(this.script);
     return new Parser(tokens, allRules).parse();
+  }
+
+  public static safe<T>(cb: () => T, errorMsg: (e: Error) => string, defaultValue: T, disabled?: boolean): T {
+    let value: T;
+    try {
+      value = cb();
+    } catch (e) {
+      if (!disabled && e instanceof SyntaxError) {
+        const lastAlertTs = lastAlertDisplayedTs[e.message];
+        console.error(e);
+        if (lastAlertTs == null || lastAlertTs < Date.now() - 1000 * 60 * 1) {
+          alert(errorMsg(e));
+          lastAlertDisplayedTs[e.message] = Date.now();
+        }
+        value = defaultValue;
+      } else {
+        throw e;
+      }
+    }
+    return value;
   }
 
   public execute(type: "reps"): number;

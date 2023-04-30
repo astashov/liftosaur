@@ -565,7 +565,7 @@ export namespace Progress {
     context: IScriptContext,
     settings: ISettings,
     type: "reps" | "weight" | "timer"
-  ): IWeight | number {
+  ): IWeight | number | undefined {
     const runner = new ScriptRunner(
       expr,
       state,
@@ -575,11 +575,26 @@ export namespace Progress {
       context
     );
     if (type === "reps") {
-      return runner.execute(type);
+      return ScriptRunner.safe(
+        () => runner.execute(type),
+        (e) =>
+          `There's an error while calculating reps via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default reps 5. Please fix the exercise's reps script.`,
+        5
+      );
     } else if (type === "timer") {
-      return runner.execute(type);
+      return ScriptRunner.safe(
+        () => runner.execute(type),
+        (e) =>
+          `There's an error while calculating timer script via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default timer. Please fix the exercise's timer script.`,
+        undefined
+      );
     } else {
-      return runner.execute(type);
+      return ScriptRunner.safe(
+        () => runner.execute(type),
+        (e) =>
+          `There's an error while executing script ${expr}:\n\n${e.message}.\n\nWe fallback to 100. Please fix the exercise's script.`,
+        Weight.build(100, settings.units)
+      );
     }
   }
 }
