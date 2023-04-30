@@ -48,7 +48,7 @@ export namespace Screen {
   }
 
   export function pull(stack: IScreen[]): IScreen[] {
-    return [...stack].slice(0, stack.length - 1);
+    return stack.length > 1 ? [...stack].slice(0, stack.length - 1) : stack;
   }
 
   export function previous(stack: IScreen[]): IScreen | undefined {
