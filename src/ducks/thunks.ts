@@ -29,6 +29,7 @@ import { Progress } from "../models/progress";
 import { ImportFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils } from "../utils/log";
+import { RollbarUtils } from "../utils/rollbar";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -839,7 +840,7 @@ async function handleLogin(
   oldUserId?: string
 ): Promise<void> {
   if (result.email != null) {
-    Rollbar.configure({ payload: { environment: __ENV__, person: { email: result.email, id: result.user_id } } });
+    Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     const storage = await runMigrations(client, result.storage);
     storage.tempUserId = result.user_id;
     storage.email = result.email;

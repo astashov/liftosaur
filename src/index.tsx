@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { h, render } from "preact";
 import RB from "rollbar";
+import { RollbarUtils } from "./utils/rollbar";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
-Rollbar.configure({ payload: { environment: __ENV__ } });
+Rollbar.configure(RollbarUtils.config());
 
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
@@ -34,7 +35,7 @@ async function initialize(loadedData: unknown): Promise<void> {
     initialState.adminKey = adminKey;
   }
   const uid = initialState.user?.id || initialState.storage.tempUserId;
-  Rollbar.configure({ payload: { environment: __ENV__, person: { id: uid } } });
+  Rollbar.configure(RollbarUtils.config({ person: { id: uid } }));
   (window as any).state = initialState;
   (window as any).service = new Service(window.fetch.bind(window));
   render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);

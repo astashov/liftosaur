@@ -1,12 +1,13 @@
 import RB from "rollbar";
 import { hydrate, JSX } from "preact";
+import { RollbarUtils } from "./rollbar";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
 
 export namespace HydrateUtils {
   export function hydratePage<T>(cb: (data: T) => JSX.Element): void {
-    Rollbar.configure({ payload: { environment: __ENV__ } });
+    Rollbar.configure(RollbarUtils.config());
 
     const escapedRawData = document.querySelector("#data")?.innerHTML || "{}";
     const parser = new DOMParser();
