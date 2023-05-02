@@ -21,7 +21,7 @@ export namespace RollbarUtils {
           "play() failed because the user",
         ];
         const firstArg = args[0];
-        if (isUncaught && firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) === 0)) {
+        if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) === 0)) {
           return true;
         }
         return false;
