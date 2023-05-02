@@ -23,6 +23,7 @@ enum NodeName {
   If = "If",
   Else = "Else",
   AssignmentExpression = "AssignmentExpression",
+  IncAssignmentExpression = "IncAssignmentExpression",
   StateVariable = "StateVariable",
   FunctionExpression = "FunctionExpression",
   Keyword = "Keyword",
@@ -210,6 +211,8 @@ export class LiftoscriptEvaluator {
             return this.multiply(evalLeft, evalRight);
           } else if (op === "/") {
             return this.divide(evalLeft, evalRight);
+          } else if (op === "%") {
+            return this.modulo(evalLeft, evalRight);
           } else {
             this.error(`Unknown operator ${op} between ${evalLeft} and ${evalRight}`, operator);
           }
@@ -262,6 +265,38 @@ export class LiftoscriptEvaluator {
           this.state[stateKey] = value;
         } else {
           this.state[stateKey] = value ? 1 : 0;
+        }
+        return this.state[stateKey];
+      } else {
+        this.error(`There's no state variable '${stateKey}'`, stateVar);
+      }
+    } else if (expr.type.name === NodeName.IncAssignmentExpression) {
+      const [stateVar, incAssignmentExpr, expression] = getChildren(expr);
+      if (
+        stateVar == null ||
+        stateVar.type.name !== NodeName.StateVariable ||
+        expression == null ||
+        incAssignmentExpr == null
+      ) {
+        assert(NodeName.IncAssignmentExpression);
+      }
+      const stateKey = this.getValue(stateVar).replace("state.", "");
+      if (stateKey in this.state) {
+        let value = this.evaluate(expression);
+        if (!(Weight.is(value) || typeof value === "number")) {
+          value = value ? 1 : 0;
+        }
+        const op = this.getValue(incAssignmentExpr);
+        if (op === "+=") {
+          this.state[stateKey] = this.add(this.state[stateKey], value);
+        } else if (op === "-=") {
+          this.state[stateKey] = this.subtract(this.state[stateKey], value);
+        } else if (op === "*=") {
+          this.state[stateKey] = this.multiply(this.state[stateKey], value);
+        } else if (op === "/=") {
+          this.state[stateKey] = this.divide(this.state[stateKey], value);
+        } else {
+          throw new SyntaxError(`Unknown operator ${op} after state.${stateKey}`);
         }
         return this.state[stateKey];
       } else {
@@ -355,6 +390,9 @@ export class LiftoscriptEvaluator {
 
   private divide(one: IWeight | number, two: IWeight | number): IWeight | number {
     return this.operation(one, two, (a, b) => a / b);
+  }
+  private modulo(one: IWeight | number, two: IWeight | number): IWeight | number {
+    return this.operation(one, two, (a, b) => a % b);
   }
 
   private operation(a: IWeight | number, b: IWeight | number, op: (x: number, y: number) => number): IWeight | number {

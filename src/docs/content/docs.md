@@ -167,7 +167,7 @@ Using lb/kg is recommended for when you deal with weights, because they will be 
 
 The following operators are available:
 
-Math: +, -, /, \*
+Math: +, -, /, \*, %
 Boolean: >, <, <=, >=, ==, &&, ||
 Ternary operator: for example `3 > 4 ? 1 : 2`
 
@@ -237,3 +237,30 @@ state.nextWeight = calculateTrainingMax(150lb, 5);
 ```
 
 It would assign `155lb` to `state.nextWeight`. First argument is the weight you used for a lift, and the second argument is the number of reps you were able to do with that weight.
+
+#### `floor`
+
+It rounds the number down to the nearest integer.
+
+```javascript
+state.nextWeight = floor(152.4lb);
+state.reps = floor(2.7);
+```
+
+#### `ceil`
+
+It rounds the number up to the nearest integer.
+
+```javascript
+state.nextWeight = ceil(152.4lb);
+state.reps = ceil(2.7);
+```
+
+#### `round`
+
+It rounds the number to the nearest integer.
+
+```javascript
+state.nextWeight = round(152.4lb);
+state.reps = round(2.7);
+```

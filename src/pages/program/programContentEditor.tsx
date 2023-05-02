@@ -32,6 +32,7 @@ import { ProgramContentModalExerciseExamples } from "./components/programContent
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 import { IProgramExercise } from "../../types";
 import { UidFactory } from "../../utils/generator";
+import { HtmlUtils } from "../../utils/html";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -94,6 +95,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                   value={program.name}
                   onInputString={(v) => {
                     dispatch(lbProgram.p("name").record(v));
+                    document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
                   }}
                 />
               </div>

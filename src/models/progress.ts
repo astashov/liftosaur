@@ -50,6 +50,30 @@ export interface IScriptContext {
 export interface IScriptFunctions {
   roundWeight: (num: IWeight, context: IScriptContext) => IWeight;
   calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
+  floor(num: number): number;
+  floor(num: IWeight): IWeight;
+  ceil(num: number): number;
+  ceil(num: IWeight): IWeight;
+  round(num: number): number;
+  round(num: IWeight): IWeight;
+}
+
+function floor(num: number): number;
+function floor(num: IWeight): IWeight;
+function floor(num: IWeight | number): IWeight | number {
+  return typeof num === "number" ? Math.floor(num) : Weight.build(Math.floor(num.value), num.unit);
+}
+
+function ceil(num: number): number;
+function ceil(num: IWeight): IWeight;
+function ceil(num: IWeight | number): IWeight | number {
+  return typeof num === "number" ? Math.ceil(num) : Weight.build(Math.ceil(num.value), num.unit);
+}
+
+function round(num: number): number;
+function round(num: IWeight): IWeight;
+function round(num: IWeight | number): IWeight | number {
+  return typeof num === "number" ? Math.round(num) : Weight.build(Math.round(num.value), num.unit);
 }
 
 export namespace Progress {
@@ -96,6 +120,9 @@ export namespace Progress {
         }
         return Weight.getTrainingMax(weight, reps || 0, settings, "barbell");
       },
+      floor,
+      ceil,
+      round,
     };
   }
 

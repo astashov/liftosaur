@@ -332,6 +332,26 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230501": {
+    title: <span>More Liftoscript features</span>,
+    body: (
+      <ul>
+        <li>
+          Added modulo operator <strong>%</strong> to Liftoscript. I.e. <strong>7 % 2 == 1</strong>, or{" "}
+          <strong>5 % 5 == 0</strong>. It's useful for creating programs with repeating patterns.
+        </li>
+        <li>
+          Then, added functions <strong>floor</strong>, <strong>ceil</strong> and <strong>round</strong>. You use them
+          like <strong>state.foo = floor(23.4)</strong>. Use them if you need rounding.
+        </li>
+        <li>
+          Also, finally added increment assignment operators, like <strong>+=</strong>, <strong>-=</strong>,{" "}
+          <strong>*=</strong> and <strong>/=</strong>. Use them like <strong>state.foo += 5lb</strong> - that'd increase
+          `foo` variable by 5lb.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
