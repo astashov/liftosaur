@@ -20,6 +20,7 @@ export namespace RollbarUtils {
           "FetchEvent.respondWith received an error",
           "play() failed because the user",
           "The request is not allowed by the user agent or the platform",
+          "Load failed",
         ];
         const firstArg = args[0];
         if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) === 0)) {
