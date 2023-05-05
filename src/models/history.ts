@@ -3,7 +3,17 @@ import { Progress } from "./progress";
 import { CollectionUtils } from "../utils/collection";
 
 import { Weight } from "./weight";
-import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType, IExerciseId, IUnit, IWeight, ISettings } from "../types";
+import {
+  IHistoryEntry,
+  IHistoryRecord,
+  ISet,
+  IExerciseType,
+  IExerciseId,
+  IUnit,
+  IWeight,
+  ISettings,
+  IProgram,
+} from "../types";
 import { ICollectorFn } from "../utils/collector";
 
 export interface IHistoricalEntries {
@@ -30,14 +40,25 @@ export namespace History {
     };
   }
 
-  export function finishProgramDay(progress: IHistoryRecord): IHistoryRecord {
+  export function finishProgramDay(program: IProgram, progress: IHistoryRecord): IHistoryRecord {
+    const { deletedProgramExercises, ui, ...historyRecord } = progress;
     return {
-      ...progress,
+      ...historyRecord,
+      entries: historyRecord.entries.map((entry) => {
+        const programExercise = program.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
+        if (programExercise != null) {
+          return {
+            ...entry,
+            state: { ...programExercise.state },
+          };
+        } else {
+          return entry;
+        }
+      }),
       id: Progress.isCurrent(progress) ? Date.now() : progress.id,
       timerSince: undefined,
       timerMode: undefined,
       endTime: Date.now(),
-      ui: undefined,
     };
   }
 

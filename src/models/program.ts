@@ -89,6 +89,7 @@ export namespace Program {
     const variationIndex = nextVariationIndex(programExercise, allProgramExercises, day, settings);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
     return nextHistoryEntry(
+      programExercise.id,
       programExercise.exerciseType,
       day,
       sets,
@@ -101,6 +102,7 @@ export namespace Program {
   }
 
   export function nextHistoryEntry(
+    programExerciseId: string,
     exercise: IExerciseType,
     day: number,
     programSets: IProgramSet[],
@@ -175,6 +177,7 @@ export namespace Program {
     return {
       exercise: exercise,
       timer: timerValue,
+      programExerciseId,
       sets,
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };

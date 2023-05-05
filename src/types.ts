@@ -376,6 +376,9 @@ export const TSet = t.intersection(
 );
 export type ISet = t.TypeOf<typeof TSet>;
 
+export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
+export type IProgramState = t.TypeOf<typeof TProgramState>;
+
 export const THistoryEntry = t.intersection(
   [
     t.interface({
@@ -384,6 +387,8 @@ export const THistoryEntry = t.intersection(
       warmupSets: t.array(TSet),
     }),
     t.partial({
+      programExerciseId: t.string,
+      state: TProgramState,
       timer: t.number,
       notes: t.string,
     }),
@@ -402,9 +407,6 @@ export type IProgramStateMetadataValue = t.TypeOf<typeof TProgramStateMetadataVa
 
 export const TProgramStateMetadata = dictionary(t.string, TProgramStateMetadataValue);
 export type IProgramStateMetadata = t.TypeOf<typeof TProgramStateMetadata>;
-
-export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
-export type IProgramState = t.TypeOf<typeof TProgramState>;
 
 export const TProgramSet = t.intersection(
   [
@@ -536,6 +538,7 @@ export const THistoryRecord = t.intersection(
     t.partial({
       endTime: t.number,
       ui: TProgressUi,
+      deletedProgramExercises: dictionary(t.string, t.boolean),
       userPromptedStateVars: dictionary(t.string, TProgramState),
       timerSince: t.number,
       timerMode: TProgressMode,

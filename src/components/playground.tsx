@@ -56,6 +56,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           const newDay = parseInt(newValue || "1", 10);
           const nextVariationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, newDay, settings);
           const newEntry = Program.nextHistoryEntry(
+            programExercise.id,
             programExercise.exerciseType,
             newDay,
             ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,

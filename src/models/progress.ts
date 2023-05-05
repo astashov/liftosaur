@@ -555,7 +555,7 @@ export namespace Progress {
       ...progress,
       entries: programDay.exercises.map((dayEntry) => {
         const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
-        const progressEntry = progress.entries.find((e) => programExercise.exerciseType.id === e.exercise.id);
+        const progressEntry = progress.entries.find((e) => programExercise.id === e.programExerciseId);
         return applyProgramExercise(progressEntry, programExercise, program.exercises, day, settings);
       }),
     };

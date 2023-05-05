@@ -430,15 +430,15 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress == null) {
       throw new StateError("FinishProgramDayAction: no progress");
     } else {
-      const historyRecord = History.finishProgramDay(progress);
+      const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
+      const program = state.storage.programs[programIndex];
+      const historyRecord = History.finishProgramDay(program, progress);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
         newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
-      const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
-      const program = state.storage.programs[programIndex];
       const newProgram =
         Progress.isCurrent(progress) && program != null
           ? Program.runAllFinishDayScripts(program, progress, settings)

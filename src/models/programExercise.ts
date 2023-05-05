@@ -176,6 +176,7 @@ export namespace ProgramExercise {
     } catch (_) {}
     try {
       entry = Program.nextHistoryEntry(
+        programExercise.id,
         programExercise.exerciseType,
         day,
         ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,

@@ -62,6 +62,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
                 settings
               );
               const newEntry = Program.nextHistoryEntry(
+                programExercise.id,
                 programExercise.exerciseType,
                 newDay,
                 ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
