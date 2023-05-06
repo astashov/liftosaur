@@ -18,7 +18,6 @@ interface IEditProgramSets {
   day: number;
   variationIndex: number;
   settings: ISettings;
-  inOneLine?: boolean;
   onDeleteVariation?: (variationIndex: number) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
@@ -73,7 +72,6 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               equipment={programExercise.exerciseType.equipment}
               settings={settings}
               handleTouchStart={handleTouchStart}
-              inOneLine={props.inOneLine}
               day={day}
               set={set}
               state={programExercise.state}
@@ -105,7 +103,6 @@ interface ISetFieldsProps {
   day: number;
   settings: ISettings;
   variationIndex: number;
-  inOneLine?: boolean;
   setIndex: number;
   equipment?: IEquipment;
   isDeleteEnabled: boolean;
@@ -160,12 +157,9 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 
   return (
     <li className="relative pb-2">
-      <div className={`flex p-1 ${props.inOneLine ? "pt-2" : ""} select-none bg-purplev2-100 rounded-2xl`}>
-        <div
-          className={`flex ${props.inOneLine ? "flex-row-reverse mr-2" : "flex-col pt-2"} items-center`}
-          style={{ marginTop: props.inOneLine ? "-1.25rem" : "0" }}
-        >
-          <div className={`${props.inOneLine ? "py-2" : ""}`}>
+      <div className={`flex p-1  select-none bg-purplev2-100 rounded-2xl`}>
+        <div className={`flex flex-col pt-2 items-center`}>
+          <div>
             <SetNumber setIndex={props.setIndex} />
           </div>
           <Handle handleTouchStart={props.handleTouchStart} />
@@ -182,18 +176,6 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 onChangeReps={props.onChangeReps}
               />
             </div>
-            {props.inOneLine && (
-              <div className="flex-1 min-w-0 ml-2">
-                <WeightInput
-                  weightResult={weightResult}
-                  variationIndex={propsRef.current.variationIndex}
-                  setIndex={propsRef.current.setIndex}
-                  state={state}
-                  set={set}
-                  onChangeWeight={props.onChangeWeight}
-                />
-              </div>
-            )}
             <div className="px-4 pt-2">
               <Amrap
                 onChangeAmrap={props.onChangeAmrap}
@@ -203,18 +185,16 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               />
             </div>
           </div>
-          {!props.inOneLine && (
-            <div className="mt-2">
-              <WeightInput
-                weightResult={weightResult}
-                variationIndex={propsRef.current.variationIndex}
-                setIndex={propsRef.current.setIndex}
-                state={state}
-                set={set}
-                onChangeWeight={props.onChangeWeight}
-              />
-            </div>
-          )}
+          <div className="mt-2">
+            <WeightInput
+              weightResult={weightResult}
+              variationIndex={propsRef.current.variationIndex}
+              setIndex={propsRef.current.setIndex}
+              state={state}
+              set={set}
+              onChangeWeight={props.onChangeWeight}
+            />
+          </div>
         </div>
         {props.isDeleteEnabled && (
           <div>

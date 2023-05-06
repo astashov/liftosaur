@@ -67,7 +67,7 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   }
 
   return (
-    <div className="relative">
+    <div className="relative one-line-text-editor">
       {props.label && (
         <label className="absolute z-20 text-xs text-grayv2-main" style={{ top: "4px", left: "0.75rem" }}>
           {props.label}

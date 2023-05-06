@@ -142,7 +142,6 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           {programExercise.variations.map((_, variationIndex) => {
             return (
               <EditProgramSets
-                inOneLine={true}
                 variationIndex={variationIndex}
                 settings={props.settings}
                 day={day}

@@ -36,6 +36,10 @@ body {
   font-size: 16px;
 }
 
+.one-line-text-editor .CodeMirror {
+  height: auto;
+}
+
 .CodeMirror-hints {
   z-index: 100;
 }

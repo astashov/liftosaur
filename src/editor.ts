@@ -81,7 +81,11 @@ export class CodeEditor {
       };
     });
 
-    const codemirror = CodeMirror(container, { mode: "liftosaur", value: this.args.value || "" });
+    const codemirror = CodeMirror(container, {
+      mode: "liftosaur",
+      value: this.args.value || "",
+      viewportMargin: Infinity,
+    });
     this.codeMirror = codemirror;
 
     codemirror.on("keyup", (e, s) => {
@@ -171,20 +175,8 @@ export class CodeEditor {
       }
     });
 
-    codemirror.setSize(
-      null,
-      (this.args.multiLine ? this.args.height ?? 16 : 1) * codemirror.defaultTextHeight() + 2 * 4
-    );
-
-    if (!this.args.multiLine) {
-      // now disallow adding newlines in the following simple way
-      codemirror.on("beforeChange", (instance, change) => {
-        const newtext = change.text.join("").replace(/\n/g, ""); // remove ALL \n !
-        if (change.update != null) {
-          change.update(change.from, change.to, [newtext]);
-        }
-        return true;
-      });
+    if (this.args.multiLine) {
+      codemirror.setSize(null, (this.args.height ?? 16) * codemirror.defaultTextHeight() + 2 * 4);
     }
   }
 }
