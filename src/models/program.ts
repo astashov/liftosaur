@@ -403,18 +403,17 @@ export namespace Program {
   }
 
   export function runAllFinishDayScripts(program: IProgram, progress: IHistoryRecord, settings: ISettings): IProgram {
-    const programDay = program.days[progress.day - 1];
     const newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
         es.map((e) => {
-          const excIndex = programDay.exercises.findIndex((exc) => exc.id === e.id);
-          if (excIndex !== -1) {
+          const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
+          if (entry != null) {
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
               progress.day,
-              progress.entries[excIndex],
+              entry,
               settings,
               progress.userPromptedStateVars?.[e.id]
             );

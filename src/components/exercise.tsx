@@ -466,7 +466,7 @@ function NextSet(props: { nextSet: ISet }): JSX.Element {
 
 function HistoricalSameDay(props: { historyRecordAndEntry: IHistoryRecordAndEntry; settings: ISettings }): JSX.Element {
   const { record, entry } = props.historyRecordAndEntry;
-  const unit = entry.sets[0].weight.unit || props.settings.units;
+  const unit = entry.sets[0]?.weight.unit || props.settings.units;
   return (
     <div className="text-xs italic">
       <div>
