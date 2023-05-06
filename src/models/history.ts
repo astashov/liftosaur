@@ -294,7 +294,7 @@ export namespace History {
     for (const record of history) {
       if (record.programId === progress.programId && record.day === progress.day) {
         for (const entry of record.entries) {
-          if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
+          if (Exercise.eq(currentEntry.exercise, entry.exercise) && entry.sets.length > 0) {
             return { record, entry };
           }
         }
