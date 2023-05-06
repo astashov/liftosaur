@@ -388,7 +388,7 @@ const ExerciseContentView = memo(
               kind="red"
               className="mr-1"
               onClick={() => {
-                if (confirm("Are you sure?")) {
+                if (confirm("Are you sure? It only deletes it from this workout, not from a program.")) {
                   const lbp = lb<IState>().p("progress").pi(props.progress.id);
                   updateState(props.dispatch, [
                     lbp
