@@ -40,6 +40,17 @@ export namespace History {
     };
   }
 
+  export function createCustomEntry(exerciseId: IExerciseId, settings: ISettings): IHistoryEntry {
+    const equipment = Exercise.defaultEquipment(exerciseId, settings.exercises);
+    const exerciseType: IExerciseType = { id: exerciseId, equipment };
+
+    return {
+      exercise: exerciseType,
+      sets: [],
+      warmupSets: [],
+    };
+  }
+
   export function finishProgramDay(program: IProgram, progress: IHistoryRecord): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     return {

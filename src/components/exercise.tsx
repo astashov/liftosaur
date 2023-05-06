@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Exercise } from "../models/exercise";
+import { equipmentName, Exercise } from "../models/exercise";
 import { History, IHistoryRecordAndEntry } from "../models/history";
 import { IDispatch } from "../ducks/types";
 import { Weight } from "../models/weight";
@@ -196,36 +196,34 @@ const ExerciseContentView = memo(
               </div>
               {props.showEditButtons && (
                 <div>
-                  {(!isCurrentProgress || programExercise) && (
-                    <button
-                      data-cy="exercise-edit-mode"
-                      className="box-content p-2 align-middle"
-                      style={{ width: "18px", height: "18px" }}
-                      onClick={() => {
-                        if (!isCurrentProgress) {
-                          updateState(props.dispatch, [
-                            lb<IState>()
-                              .p("progress")
-                              .pi(props.progress.id)
-                              .pi("ui")
-                              .p("entryIndexEditMode")
-                              .record(props.index),
-                          ]);
-                        } else if (programExercise) {
-                          updateState(props.dispatch, [
-                            lb<IState>()
-                              .p("progress")
-                              .pi(props.progress.id)
-                              .pi("ui")
-                              .p("editModal")
-                              .record({ programExercise: programExercise, entryIndex: props.index }),
-                          ]);
-                        }
-                      }}
-                    >
-                      <IconEditSquare />
-                    </button>
-                  )}
+                  <button
+                    data-cy="exercise-edit-mode"
+                    className="box-content p-2 align-middle"
+                    style={{ width: "18px", height: "18px" }}
+                    onClick={() => {
+                      if (!isCurrentProgress || !programExercise) {
+                        updateState(props.dispatch, [
+                          lb<IState>()
+                            .p("progress")
+                            .pi(props.progress.id)
+                            .pi("ui")
+                            .p("entryIndexEditMode")
+                            .record(props.index),
+                        ]);
+                      } else {
+                        updateState(props.dispatch, [
+                          lb<IState>()
+                            .p("progress")
+                            .pi(props.progress.id)
+                            .pi("ui")
+                            .p("editModal")
+                            .record({ programExercise: programExercise, entryIndex: props.index }),
+                        ]);
+                      }
+                    }}
+                  >
+                    <IconEditSquare />
+                  </button>
                   <button
                     data-cy="exercise-notes-toggle"
                     className="p-2 leading-none align-middle"
@@ -237,7 +235,37 @@ const ExerciseContentView = memo(
                 </div>
               )}
             </div>
-            {equipment && <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>}
+            {equipment &&
+              (programExercise ? (
+                <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>
+              ) : (
+                <div className="text-sm text-grayv2-600">
+                  <select
+                    className="border rounded border-grayv2-main"
+                    value={props.entry.exercise.equipment}
+                    data-cy="change-exercise-equipment"
+                    onChange={(e) => {
+                      const target = e.target;
+                      if (target instanceof HTMLSelectElement) {
+                        Progress.changeEquipment(
+                          props.dispatch,
+                          props.progress.id,
+                          props.index,
+                          target.value as IEquipment
+                        );
+                      }
+                    }}
+                  >
+                    {Exercise.sortedEquipments(props.entry.exercise.id).map((eq) => {
+                      return (
+                        <option value={eq} selected={eq === props.entry.exercise.equipment}>
+                          {equipmentName(eq)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              ))}
             {description && (
               <div className="mt-2">
                 <Markdown value={description} />
@@ -356,8 +384,30 @@ const ExerciseContentView = memo(
         {isEditModeRef.current && (
           <div className="text-center">
             <Button
+              data-cy="delete-edit-exercise"
+              kind="red"
+              className="mr-1"
+              onClick={() => {
+                if (confirm("Are you sure?")) {
+                  const lbp = lb<IState>().p("progress").pi(props.progress.id);
+                  updateState(props.dispatch, [
+                    lbp
+                      .p("deletedProgramExercises")
+                      .recordModify((dpe) => (programExercise ? { ...dpe, [programExercise.id]: true } : dpe)),
+                    lbp.pi("ui").p("entryIndexEditMode").record(undefined),
+                    lbp.p("entries").recordModify((entries) => {
+                      return CollectionUtils.removeAt(entries, props.index);
+                    }),
+                  ]);
+                }
+              }}
+            >
+              Delete
+            </Button>
+            <Button
               data-cy="done-edit-exercise"
               kind="orange"
+              className="ml-1"
               onClick={() =>
                 updateState(props.dispatch, [
                   lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("entryIndexEditMode").record(undefined),

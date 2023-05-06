@@ -181,23 +181,26 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
           </div>
         );
       })}
-      {(isEditMode || props.programExercise?.quickAddSets) && props.onStartSetChanging && (
-        <button
-          data-cy="add-set"
-          onClick={() =>
-            props.onStartSetChanging!(
-              false,
-              props.index,
-              undefined,
-              props.programExercise?.quickAddSets ? props.programExercise : undefined,
-              props.entry.exercise.equipment
-            )
-          }
-          className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add"
-        >
-          +
-        </button>
-      )}
+      {(isEditMode ||
+        (Progress.isCurrent(props.progress) && !props.programExercise) ||
+        props.programExercise?.quickAddSets) &&
+        props.onStartSetChanging && (
+          <button
+            data-cy="add-set"
+            onClick={() =>
+              props.onStartSetChanging!(
+                false,
+                props.index,
+                undefined,
+                props.programExercise?.quickAddSets ? props.programExercise : undefined,
+                props.entry.exercise.equipment
+              )
+            }
+            className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-dashed rounded-lg bg-grayv2-100 border-grayv2-400 ls-edit-set-open-modal-add"
+          >
+            +
+          </button>
+        )}
     </>
   );
 }

@@ -53,5 +53,34 @@ describe("Edit Sets", () => {
     cy.get(setsSelector).eq(3).find("[data-cy=reps-value]").should("have.text", "20+");
     cy.get(setsSelector).eq(3).find("[data-cy=weight-value]").should("have.text", "200");
     cy.get(setsSelector).eq(3).should("have.data", "cy", "set-amrap-nonstarted");
+
+    // Adding and deleting exercises
+
+    g("entry-bent-over-row").find("[data-cy=exercise-edit-mode]").click();
+    g("modal-edit-mode-this-workout").click();
+    g("delete-edit-exercise").click();
+    g("entry-bent-over-row").should("not.exist");
+
+    g("add-exercise-button").click();
+    g("menu-item-arnold-press").click();
+    g("change-exercise-equipment").select("kettlebell");
+
+    g("add-set").click();
+    g("modal-edit-set-reps-input").clear().type("8");
+    g("modal-edit-set-weight-input").clear().type("250");
+    g("modal-edit-set-submit").click();
+
+    const arnoldPressSelector = "[data-cy^=exercise-]:contains('Arnold Press') [data-cy^=set-]";
+    cy.get(arnoldPressSelector).eq(0).find("[data-cy=reps-value]").should("have.text", "8");
+    cy.get(arnoldPressSelector).eq(0).find("[data-cy=weight-value]").should("have.text", "40");
+    cy.get(arnoldPressSelector).eq(0).should("have.data", "cy", "set-nonstarted");
+
+    g("entry-squat").find("[data-cy=exercise-edit-mode]").click();
+    g("menu-item-value-weight").clear().type("70");
+    g("modal-edit-mode-save-statvars").click();
+
+    g("entry-bent-over-row").should("not.exist");
+    g("entry-arnold-press").should("exist");
+    cy.get(arnoldPressSelector).eq(0).find("[data-cy=reps-value]").should("have.text", "8");
   });
 });

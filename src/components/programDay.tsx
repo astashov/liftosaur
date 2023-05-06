@@ -5,7 +5,16 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IWebpushr } from "../models/state";
+import {
+  IAllComments,
+  IAllFriends,
+  IAllLikes,
+  IFriendUser,
+  ILoading,
+  IState,
+  IWebpushr,
+  updateState,
+} from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
@@ -32,6 +41,10 @@ import { TimeUtils } from "../utils/time";
 import { IScreen, Screen } from "../models/screen";
 import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
 import { ModalEditMode } from "./modalEditMode";
+import { ModalExercise } from "./modalExercise";
+import { EditCustomExercise } from "../models/editCustomExercise";
+import { IExerciseId } from "../types";
+import { lb } from "lens-shmens";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -136,6 +149,29 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               isHidden={progress.ui?.dateModal == null}
               dispatch={props.dispatch}
               date={progress.ui?.dateModal?.date ?? ""}
+            />
+            <ModalExercise
+              isHidden={progress.ui?.addExerciseModal == null}
+              settings={props.settings}
+              onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, exercise) => {
+                EditCustomExercise.createOrUpdate(
+                  props.dispatch,
+                  name,
+                  equipment,
+                  targetMuscles,
+                  synergistMuscles,
+                  exercise
+                );
+              }}
+              onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
+              onChange={(id?: IExerciseId) => {
+                if (id != null) {
+                  Progress.addExercise(props.dispatch, props.progress.id, id, props.settings);
+                }
+                updateState(props.dispatch, [
+                  lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("addExerciseModal").record(undefined),
+                ]);
+              }}
             />
             <ModalEditSet
               isHidden={progress.ui?.editSetModal == null}

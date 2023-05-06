@@ -22,6 +22,7 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
+import { LinkButton } from "./linkButton";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -95,8 +96,7 @@ export const CardsView = memo(
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;
           if (props.program) {
-            const exerciseId = props.program.days[props.progress.day - 1].exercises[index].id;
-            programExercise = props.program.exercises.find((e) => e.id === exerciseId);
+            programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId);
           }
 
           return (
@@ -122,6 +122,16 @@ export const CardsView = memo(
             />
           );
         })}
+        <div style={{ marginTop: "-0.25rem" }} className="text-xs">
+          <LinkButton
+            data-cy="add-exercise-button"
+            onClick={() => {
+              Progress.showAddExerciseModal(props.dispatch, props.progress.id);
+            }}
+          >
+            Add exercise (only to this workout)
+          </LinkButton>
+        </div>
         <div>
           <GroupHeader
             name="Notes"

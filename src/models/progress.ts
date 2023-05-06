@@ -30,6 +30,8 @@ import {
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
+import { IExerciseId } from "../types";
+import { History } from "./history";
 
 export interface IScriptBindings {
   day: number;
@@ -436,6 +438,47 @@ export namespace Progress {
     ]);
   }
 
+  export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
+    updateState(dispatch, [
+      lb<IState>().p("progress").pi(progressId).pi("ui").p("addExerciseModal").record({ isShown: true }),
+    ]);
+  }
+
+  export function addExercise(
+    dispatch: IDispatch,
+    progressId: number,
+    exerciseId: IExerciseId,
+    settings: ISettings
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("progress")
+        .pi(progressId)
+        .p("entries")
+        .recordModify((entries) => {
+          return [...entries, History.createCustomEntry(exerciseId, settings)];
+        }),
+    ]);
+  }
+
+  export function changeEquipment(
+    dispatch: IDispatch,
+    progressId: number,
+    entryIndex: number,
+    equipment: IEquipment
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("progress")
+        .pi(progressId)
+        .p("entries")
+        .i(entryIndex)
+        .p("exercise")
+        .p("equipment")
+        .record(equipment),
+    ]);
+  }
+
   export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
     updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)]);
   }
@@ -551,13 +594,17 @@ export namespace Progress {
     settings: ISettings
   ): IHistoryRecord {
     const day = progress.day;
+    const existingProgramlessEntries = progress.entries.filter((e) => e.programExerciseId == null);
     return {
       ...progress,
-      entries: programDay.exercises.map((dayEntry) => {
-        const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
-        const progressEntry = progress.entries.find((e) => programExercise.id === e.programExerciseId);
-        return applyProgramExercise(progressEntry, programExercise, program.exercises, day, settings);
-      }),
+      entries: programDay.exercises
+        .filter((e) => !(progress.deletedProgramExercises || {})[e.id])
+        .map((dayEntry) => {
+          const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
+          const progressEntry = progress.entries.find((e) => programExercise.id === e.programExerciseId);
+          return applyProgramExercise(progressEntry, programExercise, program.exercises, day, settings);
+        })
+        .concat(existingProgramlessEntries),
     };
   }
 
