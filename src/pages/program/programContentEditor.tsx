@@ -74,6 +74,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
   const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
+  const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
 
   const program = state.current.program;
   const editExercises = state.current.editExercises;
@@ -112,7 +113,8 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 type="p"
                 program={program}
                 client={props.client}
-                msg="Copied the link with this program to the clipboard"
+                suppressShowInfo={true}
+                onShowInfo={setShowClipboardInfo}
               />
               <button title="Settings" className="p-2" onClick={() => props.onShowSettingsModal()}>
                 <IconCog2 />
@@ -137,6 +139,14 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </button>
             </div>
           </div>
+          {showClipboardInfo && (
+            <div className="text-xs text-right text-grayv2-main">
+              Copied to clipboard:{" "}
+              <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+                {showClipboardInfo}
+              </a>
+            </div>
+          )}
           <DraggableList
             hideBorders={true}
             items={program.days}

@@ -17,7 +17,6 @@ import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
-import { IconInfo } from "../../components/icons/iconInfo";
 import { useCopyPaste } from "./utils/programCopypaste";
 
 export interface IProgramContentProps {
@@ -140,18 +139,6 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               />
             </a>
           </div>
-        </div>
-      </div>
-      <div className="flex items-center px-6 py-4 mx-4 mb-4 bg-blue-100 border border-blue-600 rounded-xl">
-        <div className="pr-4">
-          <IconInfo />
-        </div>
-        <div className="flex-1">
-          Try our
-          <a className="mx-1 font-bold underline text-bluev2" href="/freeform" target="_blank">
-            new experimental ChatGPT-powered FREEFORM program generator
-          </a>
-          to quickly create a program!
         </div>
       </div>
       {props.isMobile ? (

@@ -8,6 +8,8 @@ import { ClipboardUtils } from "../../../utils/clipboard";
 interface IBuilerCopyLinkProps<T> {
   msg?: string;
   rightAligned?: boolean;
+  suppressShowInfo?: boolean;
+  onShowInfo?: (url: string) => void;
   type: "p" | "b";
   program: T;
   client: Window["fetch"];
@@ -23,7 +25,7 @@ export function BuilderCopyLink<T>(props: IBuilerCopyLinkProps<T>): JSX.Element 
 
   return (
     <div className={`flex items-center text-right ${props.rightAligned ? "flex-row-reverse" : ""}`}>
-      {showInfo && (
+      {showInfo && !props.suppressShowInfo && (
         <div className="mr-2 align-middle">
           <div>{msg} </div>
           <a className="font-bold underline text-bluev2" href={showInfo}>
@@ -38,6 +40,9 @@ export function BuilderCopyLink<T>(props: IBuilerCopyLinkProps<T>): JSX.Element 
           const service = new Service(props.client);
           const url = await service.postShortUrl(window.location.href, props.type);
           ClipboardUtils.copy(url);
+          if (props.onShowInfo) {
+            props.onShowInfo(url);
+          }
           setShowInfo(url);
         }}
       >
