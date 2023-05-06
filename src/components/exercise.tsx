@@ -39,6 +39,8 @@ import { IconNotebook } from "./icons/iconNotebook";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { Markdown } from "./markdown";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { IconPreview } from "./icons/iconPreview";
+import { WorkoutStateVariables } from "./workoutStateVariables";
 
 interface IProps {
   showHelp: boolean;
@@ -166,6 +168,8 @@ const ExerciseContentView = memo(
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
 
     const [showNotes, setShowNotes] = useState(!!props.entry.notes);
+    const [showStateVariables, setShowStateVariables] = useState(false);
+
     const programExercise = props.programExercise;
     const description = programExercise?.description;
 
@@ -196,6 +200,15 @@ const ExerciseContentView = memo(
               </div>
               {props.showEditButtons && (
                 <div>
+                  {!isCurrentProgress && (
+                    <button
+                      data-cy="exercise-notes-toggle"
+                      className="p-2 leading-none align-middle"
+                      onClick={() => setShowStateVariables(!showStateVariables)}
+                    >
+                      <IconPreview size={18} />
+                    </button>
+                  )}
                   <button
                     data-cy="exercise-edit-mode"
                     className="box-content p-2 align-middle"
@@ -271,6 +284,7 @@ const ExerciseContentView = memo(
                 <Markdown value={description} />
               </div>
             )}
+            {showStateVariables && <WorkoutStateVariables settings={props.settings} entry={props.entry} />}
             {!props.hidePlatesCalculator && (
               <div
                 className={`p-2 mt-2 ${getBgColor200(props.entry)} rounded-2xl`}

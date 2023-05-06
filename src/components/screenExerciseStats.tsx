@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
@@ -26,6 +26,7 @@ import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { StringUtils } from "../utils/string";
 import { useGradualList } from "../utils/useGradualList";
+import { ObjectUtils } from "../utils/object";
 
 interface IProps {
   exercise: IExercise;
@@ -272,9 +273,26 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                       <div className="flex-1">
                         <div>
                           {exerciseEntries.map((entry) => {
+                            const state = entry.state || {};
                             return (
                               <div className="pt-1">
                                 <HistoryRecordSetsView sets={entry.sets} unit={props.settings.units} isNext={false} />
+                                {Object.keys(state).length > 0 && (
+                                  <div className="text-xs text-grayv2-main">
+                                    {ObjectUtils.keys(state).map((stateKey, i) => {
+                                      const value = state[stateKey];
+                                      const displayValue = Weight.is(value) ? Weight.display(value) : value;
+                                      return (
+                                        <>
+                                          {i !== 0 && ", "}
+                                          <span>
+                                            {stateKey} - <strong>{displayValue}</strong>
+                                          </span>
+                                        </>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}

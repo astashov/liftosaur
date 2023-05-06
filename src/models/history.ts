@@ -57,10 +57,12 @@ export namespace History {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
         const programExercise = program.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
+        const reuseLogicId = programExercise.reuseLogic?.selected;
+        const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
         if (programExercise != null) {
           return {
             ...entry,
-            state: { ...programExercise.state },
+            state: { ...state },
           };
         } else {
           return entry;
