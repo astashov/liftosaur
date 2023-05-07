@@ -542,6 +542,7 @@ export namespace Progress {
           newSets.push(progressSet);
         }
       }
+      forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
 
       return {
         ...progressEntry,
