@@ -82,5 +82,8 @@ describe("Edit Sets", () => {
     g("entry-bent-over-row").should("not.exist");
     g("entry-arnold-press").should("exist");
     cy.get(arnoldPressSelector).eq(0).find("[data-cy=reps-value]").should("have.text", "8");
+
+    cy.contains("Finish the workout").click();
+    cy.contains("Continue").click();
   });
 });
