@@ -138,6 +138,9 @@ export class CodeEditor {
                     "numberOfSets",
                     "roundWeight",
                     "calculateTrainingMax",
+                    "floor",
+                    "round",
+                    "ceil",
                   ];
                   list = keywords.filter((k) => {
                     const keyword = lineContent.slice(start, end);
