@@ -86,7 +86,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
   const isPercent = typeof warmupSet.value === "number";
   const weightValue = typeof warmupSet.value === "number" ? warmupSet.value : warmupSet.value.value;
   const unit = typeof warmupSet.value !== "number" ? warmupSet.value.unit : props.settings.units;
-  const threshold = Weight.roundConvertTo(warmupSet.threshold, props.settings, props.exercise.equipment);
+  const threshold = warmupSet.threshold;
 
   const repsRef = useRef<HTMLInputElement>();
   const valueRef = useRef<HTMLInputElement>();
