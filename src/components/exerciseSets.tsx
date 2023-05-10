@@ -4,17 +4,7 @@ import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { Progress } from "../models/progress";
 import { IFriendUser } from "../models/state";
-import {
-  ISet,
-  IHistoryRecord,
-  ISettings,
-  IHistoryEntry,
-  IProgressMode,
-  IWeight,
-  IExerciseType,
-  IProgramExercise,
-  IEquipment,
-} from "../types";
+import { ISet, IHistoryRecord, ISettings, IHistoryEntry, IProgressMode, IProgramExercise, IEquipment } from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 
@@ -36,7 +26,7 @@ interface IExerciseSetsProps {
     programExercise?: IProgramExercise,
     equipment?: IEquipment
   ) => void;
-  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
+  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry, set: ISet, entryIndex: number) => void;
   dispatch: IDispatch;
 }
 
@@ -75,16 +65,15 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                           if (isEditMode && props.onStartSetChanging) {
                             props.onStartSetChanging(true, props.index, i, undefined, props.entry.exercise.equipment);
                           } else {
-                            props.onChangeReps("warmup", props.entry);
                             handleClick(
                               props.dispatch,
-                              props.entry.exercise,
-                              set.weight,
+                              props.index,
                               i,
                               "warmup",
                               props.programExercise,
                               props.allProgramExercises
                             );
+                            props.onChangeReps("warmup", props.entry, set, props.index);
                           }
                         }
                       },
@@ -152,16 +141,15 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                   if (isEditMode && props.onStartSetChanging) {
                     props.onStartSetChanging(false, props.index, i, undefined, props.entry.exercise.equipment);
                   } else {
-                    props.onChangeReps("workout", props.entry);
                     handleClick(
                       props.dispatch,
-                      props.entry.exercise,
-                      set.weight,
+                      props.index,
                       i,
                       "workout",
                       props.programExercise,
                       props.allProgramExercises
                     );
+                    props.onChangeReps("workout", props.entry, set, props.index);
                   }
                 }
               }}
@@ -207,12 +195,11 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
 
 function handleClick(
   dispatch: IDispatch,
-  exercise: IExerciseType,
-  weight: IWeight,
+  entryIndex: number,
   setIndex: number,
   mode: IProgressMode,
   programExercise?: IProgramExercise,
   allProgramExercises?: IProgramExercise[]
 ): void {
-  dispatch({ type: "ChangeRepsAction", exercise, programExercise, allProgramExercises, setIndex, weight, mode });
+  dispatch({ type: "ChangeRepsAction", entryIndex, setIndex, programExercise, allProgramExercises, mode });
 }

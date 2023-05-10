@@ -8,17 +8,25 @@ import { GroupHeader } from "./groupHeader";
 interface IModalAmrapProps {
   isHidden: boolean;
   dispatch: IDispatch;
+  onDone?: () => void;
 }
 
 export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
+
+  function onDone(value?: number): void {
+    props.dispatch({ type: "ChangeAMRAPAction", value });
+    if (props.onDone != null) {
+      props.onDone();
+    }
+  }
 
   return (
     <Modal
       isHidden={props.isHidden}
       autofocusInputRef={textInput}
       shouldShowClose={true}
-      onClose={() => props.dispatch({ type: "ChangeAMRAPAction", value: undefined })}
+      onClose={() => onDone(undefined)}
     >
       <GroupHeader size="large" name="Please enter number of AMRAP reps" />
       <form onSubmit={(e) => e.preventDefault()}>
@@ -37,7 +45,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             type="button"
             kind="grayv2"
             className="mr-3"
-            onClick={() => props.dispatch({ type: "ChangeAMRAPAction", value: undefined })}
+            onClick={() => onDone(undefined)}
           >
             Clear
           </Button>
@@ -49,10 +57,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             onClick={() => {
               const value = textInput.current?.value;
               const numValue = value != null ? parseInt(value, 10) : undefined;
-              props.dispatch({
-                type: "ChangeAMRAPAction",
-                value: numValue != null && !isNaN(numValue) ? numValue : undefined,
-              });
+              onDone(numValue != null && !isNaN(numValue) ? numValue : undefined);
             }}
           >
             Done

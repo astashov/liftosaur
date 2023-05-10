@@ -476,9 +476,8 @@ export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
 export const TProgressUi = t.partial(
   {
     amrapModal: t.type({
-      exercise: TExerciseType,
+      entryIndex: t.number,
       setIndex: t.number,
-      weight: TWeight,
     }),
     weightModal: t.type({
       exercise: TExerciseType,

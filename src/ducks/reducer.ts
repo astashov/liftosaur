@@ -8,7 +8,6 @@ import { Screen, IScreen } from "../models/screen";
 import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { ILensRecordingPayload, lf } from "lens-shmens";
-import RB from "rollbar";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { ILocalStorage, INotification, IState } from "../models/state";
 import { UidFactory } from "../utils/generator";
@@ -27,11 +26,10 @@ import { IndexedDBUtils } from "../utils/indexeddb";
 import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
-import { Exercise } from "../models/exercise";
 import { ProgramExercise } from "../models/programExercise";
 import { IProgramState } from "../types";
+import { Reps } from "../models/set";
 
-declare let Rollbar: RB;
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
 const shouldSkipIntro =
@@ -162,11 +160,10 @@ export type IDeleteProgress = {
 
 export type IChangeRepsAction = {
   type: "ChangeRepsAction";
-  exercise: IExerciseType;
+  entryIndex: number;
+  setIndex: number;
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
-  setIndex: number;
-  weight: IWeight;
   mode: IProgressMode;
 };
 
@@ -234,6 +231,7 @@ export type IStartTimer = {
   timestamp: number;
   timer: number;
   mode: IProgressMode;
+  entryIndex: number;
 };
 
 export type IStopTimer = {
@@ -330,15 +328,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "ChangeRepsAction": {
-        let newProgress = Progress.updateRepsInExercise(
-          progress,
-          action.exercise,
-          action.weight,
-          action.setIndex,
-          action.mode
-        );
-        const oldEntry = progress.entries.filter((e) => Exercise.eq(e.exercise, action.exercise))[0];
-        const entry = newProgress.entries.filter((e) => Exercise.eq(e.exercise, action.exercise))[0];
+        let newProgress = Progress.updateRepsInExercise(progress, action.entryIndex, action.setIndex, action.mode);
+        const oldEntry = progress.entries[action.entryIndex];
+        const entry = newProgress.entries[action.entryIndex];
         if (
           entry != null &&
           !Progress.isFinishedSet(oldEntry) &&
@@ -508,15 +500,18 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "Logout") {
     return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
   } else if (action.type === "StartTimer") {
+    const progress = Progress.getProgress(state)!;
+    const nextEntryAndSet = Reps.findNextEntryAndSet(progress, action.entryIndex);
     return Progress.setProgress(
       state,
       Progress.startTimer(
-        Progress.getProgress(state)!,
+        progress,
         action.timestamp,
         action.mode,
         action.timer,
+        state.storage.subscription,
         state.storage.settings,
-        state.storage.subscription
+        nextEntryAndSet
       )
     );
   } else if (action.type === "StopTimer") {

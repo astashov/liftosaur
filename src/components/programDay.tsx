@@ -121,7 +121,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               isHidden={progress.ui?.exerciseBottomSheet == null}
               dispatch={props.dispatch}
             />
-            <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={props.dispatch} />
+            <ModalAmrap
+              isHidden={progress.ui?.amrapModal == null}
+              dispatch={props.dispatch}
+              onDone={() => {
+                const amrapModal = progress.ui?.amrapModal;
+                if (amrapModal != null) {
+                  maybeStartTimer(progress, "workout", amrapModal.entryIndex, false, props.settings, dispatch);
+                }
+              }}
+            />
             <ModalWeight
               programExercise={progress.ui?.weightModal?.programExercise}
               isHidden={progress.ui?.weightModal == null}
@@ -208,23 +217,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
           setIsShareShown={setIsShareShown}
-          onChangeReps={(mode, entry) => {
-            let timer: number | undefined;
-            if (Progress.isCurrent(progress)) {
-              if (mode === "warmup") {
-                timer = props.settings.timers[mode] || undefined;
-              } else {
-                timer = entry.timer || props.settings.timers[mode] || undefined;
-              }
-            }
-            if (timer != null) {
-              props.dispatch({
-                type: "StartTimer",
-                timestamp: new Date().getTime(),
-                mode,
-                timer,
-              });
-            }
+          onChangeReps={(mode, entry, set, entryIndex) => {
+            maybeStartTimer(progress, mode, entryIndex, !!set.isAmrap, props.settings, dispatch);
           }}
           onStartSetChanging={(
             isWarmup: boolean,
@@ -248,6 +242,34 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
     );
   } else {
     return null;
+  }
+}
+
+function maybeStartTimer(
+  progress: IHistoryRecord,
+  mode: "warmup" | "workout",
+  entryIndex: number,
+  isAmrapSet: boolean,
+  settings: ISettings,
+  dispatch: IDispatch
+): void {
+  let timer: number | undefined;
+  if (Progress.isCurrent(progress)) {
+    if (mode === "warmup") {
+      timer = settings.timers[mode] || undefined;
+    } else {
+      const entry = progress.entries[entryIndex];
+      timer = entry.timer || settings.timers[mode] || undefined;
+    }
+  }
+  if (timer != null && !isAmrapSet) {
+    dispatch({
+      type: "StartTimer",
+      timestamp: new Date().getTime(),
+      mode,
+      timer,
+      entryIndex,
+    });
   }
 }
 

@@ -66,7 +66,7 @@ interface IProps {
     equipment?: IEquipment
   ) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
-  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry) => void;
+  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry, set: ISet, entryIndex: number) => void;
 }
 
 function getColor(entry: IHistoryEntry): string {

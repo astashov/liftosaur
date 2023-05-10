@@ -137,13 +137,28 @@ export namespace Progress {
     timestamp: number,
     mode: IProgressMode,
     timer: number,
+    subscription: ISubscription,
     settings: ISettings,
-    subscription: ISubscription
+    nextSetAndEntry?: { entry: IHistoryEntry; set: ISet }
   ): IHistoryRecord {
-    const duration = settings.timers[mode];
-    if (duration != null && Subscriptions.hasSubscription(subscription)) {
-      SendMessage.toIos({ type: "startTimer", duration: duration.toString(), mode });
-      SendMessage.toAndroid({ type: "startTimer", duration: duration.toString(), mode });
+    if (timer != null && Subscriptions.hasSubscription(subscription)) {
+      const title = "It's time for the next set!";
+      let subtitle = "";
+      let body = "";
+      if (nextSetAndEntry != null) {
+        const { entry, set } = nextSetAndEntry;
+        const exercise = Exercise.get(entry.exercise, settings.exercises);
+        if (exercise) {
+          const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
+          subtitle = `Next Set: ${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(
+            set.weight
+          )}`;
+          const formattedPlates = plates.length > 0 ? Weight.formatOneSide(plates, exercise.equipment) : "None";
+          body = `Plates per side: ${formattedPlates}`;
+        }
+      }
+      SendMessage.toIos({ type: "startTimer", duration: timer.toString(), mode, title, subtitle, body });
+      SendMessage.toAndroid({ type: "startTimer", duration: timer.toString(), mode, title, subtitle, body });
     }
     return {
       ...progress,
@@ -257,30 +272,29 @@ export namespace Progress {
 
   export function updateRepsInExercise(
     progress: IHistoryRecord,
-    exercise: IExerciseType,
-    weight: IWeight,
+    entryIndex: number,
     setIndex: number,
     mode: IProgressMode
   ): IHistoryRecord {
+    const entry = progress.entries[entryIndex];
     if (mode === "warmup") {
-      const firstWeight = progress.entries.find((e) => e.exercise === exercise)?.sets[0]?.weight;
+      const firstWeight = entry?.sets[0]?.weight;
       if (firstWeight != null) {
         return {
           ...progress,
-          entries: progress.entries.map((progressEntry) => {
-            if (progressEntry.exercise === exercise) {
+          entries: progress.entries.map((progressEntry, i) => {
+            if (i === entryIndex) {
               const progressSets = progressEntry.warmupSets;
               const progressSet = progressSets[setIndex];
               if (progressSet?.completedReps == null) {
-                progressSets[setIndex] = { ...progressSet, completedReps: progressSet.reps as number, weight };
+                progressSets[setIndex] = { ...progressSet, completedReps: progressSet.reps as number };
               } else if (progressSet.completedReps > 0) {
                 progressSets[setIndex] = {
                   ...progressSet,
                   completedReps: progressSet.completedReps - 1,
-                  weight,
                 };
               } else {
-                progressSets[setIndex] = { ...progressSet, completedReps: undefined, weight };
+                progressSets[setIndex] = { ...progressSet, completedReps: undefined };
               }
               return { ...progressEntry, warmupSets: progressSets };
             } else {
@@ -292,9 +306,8 @@ export namespace Progress {
         return progress;
       }
     } else {
-      const entry = progress.entries.find((e) => e.exercise === exercise)!;
       if (entry.sets[setIndex].isAmrap) {
-        const amrapUi: IProgressUi = { amrapModal: { exercise, setIndex, weight } };
+        const amrapUi: IProgressUi = { amrapModal: { entryIndex, setIndex } };
         return {
           ...progress,
           ui: {
@@ -305,26 +318,24 @@ export namespace Progress {
       } else {
         return {
           ...progress,
-          entries: progress.entries.map((progressEntry) => {
-            if (progressEntry.exercise === exercise) {
+          entries: progress.entries.map((progressEntry, i) => {
+            if (i === entryIndex) {
               const sets = [...progressEntry.sets];
               const set = sets[setIndex];
               if (set.completedReps == null) {
                 sets[setIndex] = {
                   ...set,
                   completedReps: set.reps as number,
-                  weight,
                   timestamp: set.timestamp ?? Date.now(),
                 };
               } else if (set.completedReps > 0) {
                 sets[setIndex] = {
                   ...set,
                   completedReps: set.completedReps - 1,
-                  weight,
                   timestamp: set.timestamp ?? Date.now(),
                 };
               } else {
-                sets[setIndex] = { ...set, completedReps: undefined, weight, timestamp: set.timestamp ?? Date.now() };
+                sets[setIndex] = { ...set, completedReps: undefined, timestamp: set.timestamp ?? Date.now() };
               }
               return { ...progressEntry, sets: sets };
             } else {
@@ -338,18 +349,18 @@ export namespace Progress {
 
   export function updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
-      const { exercise, setIndex, weight } = progress.ui.amrapModal;
+      const { entryIndex, setIndex } = progress.ui.amrapModal;
       return {
         ...progress,
         ui: { ...progress.ui, amrapModal: undefined },
-        entries: progress.entries.map((progressEntry) => {
-          if (progressEntry.exercise === exercise) {
+        entries: progress.entries.map((progressEntry, i) => {
+          if (i === entryIndex) {
             const sets = [...progressEntry.sets];
             const set = sets[setIndex];
             if (value == null) {
-              sets[setIndex] = { ...set, completedReps: undefined, weight };
+              sets[setIndex] = { ...set, completedReps: undefined };
             } else {
-              sets[setIndex] = { ...set, completedReps: value, weight };
+              sets[setIndex] = { ...set, completedReps: value };
             }
             return { ...progressEntry, sets: sets };
           } else {

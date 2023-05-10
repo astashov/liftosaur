@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
-import { ISet } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry } from "../types";
 
 export type IProgramReps = number;
 
@@ -74,5 +74,39 @@ export namespace Reps {
       },
       [[]]
     );
+  }
+
+  export function findNextSet(entry: IHistoryEntry): ISet | undefined {
+    return [...entry.warmupSets, ...entry.sets].filter((s) => s.completedReps == null)[0];
+  }
+
+  export function findNextEntryAndSet(
+    historyRecord: IHistoryRecord,
+    entryIndex: number
+  ):
+    | {
+        entry: IHistoryEntry;
+        set: ISet;
+      }
+    | undefined {
+    const entry = historyRecord.entries[entryIndex];
+    if (entry == null) {
+      return undefined;
+    }
+
+    let nextSet = findNextSet(entry);
+    if (nextSet != null) {
+      return { entry, set: nextSet };
+    }
+
+    const nextEntry = historyRecord.entries.filter((e) => !Reps.isFinished(e.sets))[0];
+    if (nextEntry != null) {
+      nextSet = findNextSet(nextEntry);
+      if (nextSet) {
+        return { entry: nextEntry, set: nextSet };
+      }
+    }
+
+    return undefined;
   }
 }
