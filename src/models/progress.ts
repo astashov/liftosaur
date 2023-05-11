@@ -145,20 +145,40 @@ export namespace Progress {
       const title = "It's time for the next set!";
       let subtitle = "";
       let body = "";
+      let subtitleHeader = "";
+      let bodyHeader = "";
       if (nextSetAndEntry != null) {
         const { entry, set } = nextSetAndEntry;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
           const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
-          subtitle = `Next Set: ${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(
-            set.weight
-          )}`;
+          subtitleHeader = "Next Set";
+          subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
           const formattedPlates = plates.length > 0 ? Weight.formatOneSide(plates, exercise.equipment) : "None";
-          body = `Plates per side: ${formattedPlates}`;
+          bodyHeader = "Plates per side";
+          body = formattedPlates;
         }
       }
-      SendMessage.toIos({ type: "startTimer", duration: timer.toString(), mode, title, subtitle, body });
-      SendMessage.toAndroid({ type: "startTimer", duration: timer.toString(), mode, title, subtitle, body });
+      SendMessage.toIos({
+        type: "startTimer",
+        duration: timer.toString(),
+        mode,
+        title,
+        subtitleHeader,
+        subtitle,
+        bodyHeader,
+        body,
+      });
+      SendMessage.toAndroid({
+        type: "startTimer",
+        duration: timer.toString(),
+        mode,
+        title,
+        subtitleHeader,
+        subtitle,
+        bodyHeader,
+        body,
+      });
     }
     return {
       ...progress,
