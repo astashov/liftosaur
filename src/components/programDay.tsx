@@ -127,7 +127,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               onDone={() => {
                 const amrapModal = progress.ui?.amrapModal;
                 if (amrapModal != null) {
-                  maybeStartTimer(progress, "workout", amrapModal.entryIndex, false, props.settings, dispatch);
+                  maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
                 }
               }}
             />
@@ -217,8 +217,11 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}
           setIsShareShown={setIsShareShown}
-          onChangeReps={(mode, entry, set, entryIndex) => {
-            maybeStartTimer(progress, mode, entryIndex, !!set.isAmrap, props.settings, dispatch);
+          onChangeReps={(mode, entryIndex, setIndex) => {
+            const isAmrapSet = !!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap;
+            if (!isAmrapSet) {
+              maybeStartTimer(mode, entryIndex, setIndex, dispatch);
+            }
           }}
           onStartSetChanging={(
             isWarmup: boolean,
@@ -245,32 +248,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   }
 }
 
-function maybeStartTimer(
-  progress: IHistoryRecord,
-  mode: "warmup" | "workout",
-  entryIndex: number,
-  isAmrapSet: boolean,
-  settings: ISettings,
-  dispatch: IDispatch
-): void {
-  let timer: number | undefined;
-  if (Progress.isCurrent(progress)) {
-    if (mode === "warmup") {
-      timer = settings.timers[mode] || undefined;
-    } else {
-      const entry = progress.entries[entryIndex];
-      timer = entry.timer || settings.timers[mode] || undefined;
-    }
-  }
-  if (timer != null && !isAmrapSet) {
-    dispatch({
-      type: "StartTimer",
-      timestamp: new Date().getTime(),
-      mode,
-      timer,
-      entryIndex,
-    });
-  }
+function maybeStartTimer(mode: "warmup" | "workout", entryIndex: number, setIndex: number, dispatch: IDispatch): void {
+  dispatch({
+    type: "StartTimer",
+    timestamp: new Date().getTime(),
+    mode,
+    entryIndex,
+    setIndex,
+  });
 }
 
 function getEditSetData(progress: IHistoryRecord): ISet | undefined {

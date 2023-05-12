@@ -389,7 +389,6 @@ export const THistoryEntry = t.intersection(
     t.partial({
       programExerciseId: t.string,
       state: TProgramState,
-      timer: t.number,
       notes: t.string,
     }),
   ],

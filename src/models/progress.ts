@@ -43,6 +43,7 @@ export interface IScriptBindings {
   cr: number[];
   ns: number;
   numberOfSets: number;
+  setIndex: number;
 }
 
 export interface IScriptContext {
@@ -90,10 +91,11 @@ export namespace Progress {
       cr: [],
       numberOfSets: 0,
       ns: 0,
+      setIndex: 1,
     };
   }
 
-  export function createScriptBindings(day: number, entry: IHistoryEntry): IScriptBindings {
+  export function createScriptBindings(day: number, entry: IHistoryEntry, setIndex?: number): IScriptBindings {
     const bindings = createEmptyScriptBindings(day);
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
@@ -105,6 +107,7 @@ export namespace Progress {
     bindings.cr = bindings.completedReps;
     bindings.ns = entry.sets.length;
     bindings.numberOfSets = entry.sets.length;
+    bindings.setIndex = setIndex ?? 1;
     return bindings;
   }
 
@@ -132,23 +135,65 @@ export namespace Progress {
     return progress.id === 0;
   }
 
+  export function getCustomWorkoutTimerValue(
+    progress: IHistoryRecord,
+    program: IProgram,
+    entryIndex: number,
+    setIndex: number,
+    settings: ISettings
+  ): number | undefined {
+    let timer: number | undefined;
+    const entry = progress.entries[entryIndex];
+    const programExercise =
+      entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
+    if (programExercise != null && program != null) {
+      const exercise = programExercise.exerciseType;
+      const timerExpr = ProgramExercise.getTimerExpr(programExercise, program.exercises);
+      const state = ProgramExercise.getState(programExercise, program.exercises);
+      const bindings = Progress.createScriptBindings(progress.day, entry, setIndex + 1);
+      if (timerExpr?.trim() && state) {
+        timer = ScriptRunner.safe(
+          () =>
+            new ScriptRunner(timerExpr, state, bindings, Progress.createScriptFunctions(settings), settings.units, {
+              equipment: exercise.equipment,
+            }).execute("timer"),
+          (e) => {
+            return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
+          },
+          undefined,
+          false
+        );
+      }
+    }
+    return timer;
+  }
+
   export function startTimer(
     progress: IHistoryRecord,
+    program: IProgram,
     timestamp: number,
     mode: IProgressMode,
-    timer: number,
+    entryIndex: number,
+    setIndex: number,
     subscription: ISubscription,
-    settings: ISettings,
-    nextSetAndEntry?: { entry: IHistoryEntry; set: ISet }
+    settings: ISettings
   ): IHistoryRecord {
+    let timer: number | undefined;
+    if (Progress.isCurrent(progress) && mode === "workout") {
+      timer = getCustomWorkoutTimerValue(progress, program, entryIndex, setIndex, settings);
+    }
+    if (timer == null) {
+      timer = settings.timers[mode] || undefined;
+    }
     if (timer != null && Subscriptions.hasSubscription(subscription)) {
       const title = "It's time for the next set!";
       let subtitle = "";
       let body = "";
       let subtitleHeader = "";
       let bodyHeader = "";
-      if (nextSetAndEntry != null) {
-        const { entry, set } = nextSetAndEntry;
+      const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex);
+      if (nextEntryAndSet != null) {
+        const { entry, set } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
           const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
@@ -588,6 +633,7 @@ export namespace Progress {
     } else {
       return {
         exercise: programExercise.exerciseType,
+        programExerciseId: programExercise.id,
         sets: sets.map((set) => {
           const weight = executeEntryScript(
             set.weightExpr,

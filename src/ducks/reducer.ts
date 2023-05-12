@@ -28,7 +28,6 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
 import { IProgramState } from "../types";
-import { Reps } from "../models/set";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -229,9 +228,9 @@ export type IEditHistoryRecordAction = {
 export type IStartTimer = {
   type: "StartTimer";
   timestamp: number;
-  timer: number;
   mode: IProgressMode;
   entryIndex: number;
+  setIndex: number;
 };
 
 export type IStopTimer = {
@@ -500,20 +499,25 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "Logout") {
     return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
   } else if (action.type === "StartTimer") {
-    const progress = Progress.getProgress(state)!;
-    const nextEntryAndSet = Reps.findNextEntryAndSet(progress, action.entryIndex);
-    return Progress.setProgress(
-      state,
-      Progress.startTimer(
-        progress,
-        action.timestamp,
-        action.mode,
-        action.timer,
-        state.storage.subscription,
-        state.storage.settings,
-        nextEntryAndSet
-      )
-    );
+    const progress = Progress.getProgress(state);
+    const program = progress ? Program.getProgram(state, progress.programId) : undefined;
+    if (progress && program) {
+      return Progress.setProgress(
+        state,
+        Progress.startTimer(
+          progress,
+          program,
+          action.timestamp,
+          action.mode,
+          action.entryIndex,
+          action.setIndex,
+          state.storage.subscription,
+          state.storage.settings
+        )
+      );
+    } else {
+      return state;
+    }
   } else if (action.type === "StopTimer") {
     return Progress.setProgress(state, Progress.stopTimer(Progress.getProgress(state)!));
   } else if (action.type === "UpdateSettings") {

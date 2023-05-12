@@ -213,6 +213,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             day={day}
             settings={props.settings}
             programExercise={programExercise}
+            entry={entry}
             onChangeQuickAddSets={(value) => {
               props.dispatch(EditProgramLenses.setQuickAddSets(lbe, value));
             }}

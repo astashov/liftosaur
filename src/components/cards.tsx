@@ -11,9 +11,7 @@ import {
   IProgressMode,
   IProgramExercise,
   ISubscription,
-  IHistoryEntry,
   IEquipment,
-  ISet,
 } from "../types";
 import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
 import { Comments } from "./comments";
@@ -39,7 +37,7 @@ interface ICardsViewProps {
   subscription: ISubscription;
   settings: ISettings;
   dispatch: IDispatch;
-  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry, set: ISet, entryIndex: number) => void;
+  onChangeReps: (mode: IProgressMode, entryIndex: number, setIndex: number) => void;
   onStartSetChanging?: (
     isWarmup: boolean,
     entryIndex: number,

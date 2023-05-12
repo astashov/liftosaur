@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { IProgramExercise, ISettings } from "../../types";
+import { IHistoryEntry, IProgramExercise, ISettings } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { MenuItemWrapper } from "../menuItem";
 import { MenuItemEditable } from "../menuItemEditable";
@@ -15,6 +15,7 @@ interface IProps {
   day: number;
   settings: ISettings;
   programExercise: IProgramExercise;
+  entry?: IHistoryEntry;
 }
 
 export function EditProgramExtraFeatures(props: IProps): JSX.Element {
@@ -78,6 +79,7 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
                 timerExpr={programExercise.timerExpr}
                 onValid={props.onValid}
                 onChangeTimer={props.onChangeTimer}
+                entry={props.entry}
               />
             </div>
           ) : undefined

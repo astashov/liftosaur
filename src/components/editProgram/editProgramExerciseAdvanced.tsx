@@ -249,6 +249,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             day={day}
             settings={props.settings}
             programExercise={programExercise}
+            entry={entry}
             onChangeQuickAddSets={(quickAddSets) => {
               EditProgram.setQuickAddSets(props.dispatch, quickAddSets);
             }}

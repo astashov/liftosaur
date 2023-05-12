@@ -24,6 +24,7 @@ export namespace ParserTestUtils {
     cr: [1, 2, 3],
     ns: 3,
     numberOfSets: 3,
+    setIndex: 1,
   };
 
   export function bdgs(args: { day?: number; results: [number, number, number][]; unit?: IUnit }): IScriptBindings {
@@ -40,6 +41,7 @@ export namespace ParserTestUtils {
       cr: completedReps,
       ns: args.results.length,
       numberOfSets: args.results.length,
+      setIndex: 1,
     };
   }
 

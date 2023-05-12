@@ -26,7 +26,7 @@ interface IExerciseSetsProps {
     programExercise?: IProgramExercise,
     equipment?: IEquipment
   ) => void;
-  onChangeReps: (mode: IProgressMode, entry: IHistoryEntry, set: ISet, entryIndex: number) => void;
+  onChangeReps: (mode: IProgressMode, entryIndex: number, setIndex: number) => void;
   dispatch: IDispatch;
 }
 
@@ -73,7 +73,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                               props.programExercise,
                               props.allProgramExercises
                             );
-                            props.onChangeReps("warmup", props.entry, set, props.index);
+                            props.onChangeReps("warmup", props.index, i);
                           }
                         }
                       },
@@ -149,7 +149,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                       props.programExercise,
                       props.allProgramExercises
                     );
-                    props.onChangeReps("workout", props.entry, set, props.index);
+                    props.onChangeReps("workout", props.index, i);
                   }
                 }
               }}

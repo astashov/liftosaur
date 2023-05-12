@@ -154,29 +154,8 @@ export namespace Program {
       };
     });
 
-    const timerValue = ScriptRunner.safe(
-      () => {
-        return timerExpr?.trim()
-          ? new ScriptRunner(
-              timerExpr,
-              state,
-              Progress.createEmptyScriptBindings(day),
-              Progress.createScriptFunctions(settings),
-              settings.units,
-              { equipment: exercise.equipment }
-            ).execute("timer")
-          : undefined;
-      },
-      (e) => {
-        return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
-      },
-      undefined,
-      !shouldFallback
-    );
-
     return {
       exercise: exercise,
-      timer: timerValue,
       programExerciseId,
       sets,
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
