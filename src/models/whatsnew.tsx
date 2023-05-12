@@ -352,6 +352,22 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230511": {
+    title: <span>Improved program exercise timer expressions</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can use not only state variables there, but also the workout variables. Like,{" "}
+          <code>completedReps</code>, <code>weights</code>, <code>numberOfSets</code>, etc.
+        </li>
+        <li>
+          Also, added new variable specifically for the timer expression - <code>setIndex</code>. It contains the index
+          of the just completed set. You can use it to change timer based on the set number. Or to set a timer between
+          exercises (<code>setIndex == numberOfSets ? 90 : 180</code>).
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

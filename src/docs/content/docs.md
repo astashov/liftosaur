@@ -214,6 +214,7 @@ You cannot assign values to them, but you can use theirs values. There're:
 - `completedReps[x]` or `cr[x]` - number of completed reps for an X set.
 - `day` - current day number, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
+- `setIndex` - available only in **Timer Expressions**. Index of the just completed set.
 
 ### State variables
 
