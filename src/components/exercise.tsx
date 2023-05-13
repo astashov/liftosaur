@@ -186,7 +186,7 @@ const ExerciseContentView = memo(
               <ExerciseImage className="w-full" exerciseType={exercise} size="small" />
             </button>
           </div>
-          <div className="flex-1 ml-auto">
+          <div className="flex-1 min-w-0 ml-auto">
             <div className="flex items-center">
               <div className="flex-1 text-lg font-bold">
                 <button data-cy="exercise-name" onClick={() => props.onExerciseInfoClick?.(exercise)}>

@@ -187,6 +187,10 @@ input[type="checkbox"].checkbox:disabled {
   margin-bottom: 0.5rem;
 }
 
+.markdown {
+  overflow-x: auto;
+}
+
 .markdown p {
   margin-bottom: 0.25rem;
 }
