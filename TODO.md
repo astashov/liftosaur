@@ -25,4 +25,3 @@
   Assign lb to state var of type number
   Long links screw horizontal scrolling in description
   Underscores are not supported
-  Non-loaded images look broken on Android

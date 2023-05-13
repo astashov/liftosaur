@@ -68,12 +68,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
     <div className="relative p-2 bg-white border rounded-lg border-purplev2-400">
       <div className="flex">
         <div>
-          <ExerciseImage
-            className="w-12 mr-3"
-            exerciseType={programExercise.exerciseType}
-            size="small"
-            customExercises={props.settings.exercises}
-          />
+          <ExerciseImage className="w-12 mr-3" exerciseType={programExercise.exerciseType} size="small" />
         </div>
         <div className="flex-1">
           <div>

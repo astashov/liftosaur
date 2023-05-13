@@ -166,12 +166,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                 handleTouchStart={handleTouchStart}
                 name={day.name}
                 addons={exerciseTypes.map((e) => (
-                  <ExerciseImage
-                    exerciseType={e}
-                    size="small"
-                    customExercises={props.settings.exercises}
-                    className="w-6 mr-1"
-                  />
+                  <ExerciseImage exerciseType={e} size="small" className="w-6 mr-1" />
                 ))}
                 value={
                   <Fragment>
@@ -250,12 +245,9 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           return (
             <MenuItem
               prefix={
-                <ExerciseImage
-                  className="w-6 mr-3"
-                  exerciseType={exercise.exerciseType}
-                  size="small"
-                  customExercises={props.settings.exercises}
-                />
+                <div style={{ marginTop: "-1px" }}>
+                  <ExerciseImage className="w-6 mr-3" exerciseType={exercise.exerciseType} size="small" />
+                </div>
               }
               name={exercise.name}
               value={

@@ -2,12 +2,13 @@ import { h, JSX } from "preact";
 
 interface IProps {
   size?: number;
+  className?: string;
 }
 
 export function IconDefaultExercise(props: IProps = {}): JSX.Element {
   const size = props.size ?? 24;
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+    <svg width={size} height={size} className={props.className} viewBox="0 0 64 64" fill="none">
       <rect width="64" height="64" rx="16" fill="#D9D9D9" />
       <path
         fill-rule="evenodd"

@@ -13,9 +13,7 @@ interface IModalDateProps {
 export function ModalExerciseInfo(props: IModalDateProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth={true}>
-      {props.exerciseType && (
-        <ExerciseImage exerciseType={props.exerciseType} customExercises={props.settings.exercises} size="large" />
-      )}
+      {props.exerciseType && <ExerciseImage exerciseType={props.exerciseType} size="large" />}
     </Modal>
   );
 }

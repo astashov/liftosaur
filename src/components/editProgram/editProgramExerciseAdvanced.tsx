@@ -160,7 +160,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ExerciseImage
         key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
         exerciseType={programExercise.exerciseType}
-        customExercises={props.settings.exercises}
         size="large"
       />
       <ReuseLogic

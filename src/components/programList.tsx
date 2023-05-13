@@ -194,12 +194,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         <h4 className="text-sm text-grayv2-main">{program.shortDescription}</h4>
         <div className="py-3">
           {exercises.map((e) => (
-            <ExerciseImage
-              exerciseType={e}
-              size="small"
-              customExercises={props.settings.exercises}
-              className="w-6 mr-1"
-            />
+            <ExerciseImage exerciseType={e} size="small" className="w-6 mr-1" />
           ))}
         </div>
         <div className="text-xs">

@@ -201,11 +201,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
           onClick={() => props.onExerciseTypeClick(programExercise.exerciseType)}
           style={{ minWidth: "6.5em", width: "6.5em" }}
         >
-          <ExerciseImage
-            exerciseType={programExercise.exerciseType}
-            customExercises={props.settings.exercises}
-            size="small"
-          />
+          <ExerciseImage exerciseType={programExercise.exerciseType} size="small" className="w-full" />
         </div>
         <div className="flex flex-1">
           <div className="flex-1">

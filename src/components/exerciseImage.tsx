@@ -1,19 +1,18 @@
 import { JSX, h, ComponentChildren, Fragment } from "preact";
-import { Exercise } from "../models/exercise";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "./icons/iconSpinner";
-import { IAllCustomExercises, IExerciseType } from "../types";
+import { IExerciseType } from "../types";
+import { IconDefaultExercise } from "./icons/iconDefaultExercise";
+import { ExerciseImageUtils } from "../models/exerciseImage";
 
 interface IProps {
   exerciseType: IExerciseType;
-  customExercises: IAllCustomExercises;
   size: "large" | "small";
   className?: string;
 }
 
 export function ExerciseImage(props: IProps): JSX.Element | null {
-  const { exerciseType, customExercises, size } = props;
-  const targetMuscles = Exercise.targetMuscles(exerciseType, customExercises);
+  const { exerciseType, size } = props;
   const imgRef = useRef<HTMLImageElement>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
@@ -31,24 +30,40 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       }
     }
   }, []);
-  let className = `inline ${props.className}`;
+  let className = `inline ${props.className} `;
   if (isLoading || isError) {
-    className = "invisible h-0";
+    className += "invisible h-0";
   }
-  const id = exerciseType.id.toLowerCase();
-  const equipment = (exerciseType.equipment || "bodyweight").toLowerCase();
-  const src =
-    size === "large"
-      ? `https://www.liftosaur.com/externalimages/exercises/full/large/${id}_${equipment}_full_large.png`
-      : `https://www.liftosaur.com/externalimages/exercises/single/small/${id}_${equipment}_single_small.png`;
-  return targetMuscles.length > 0 ? (
-    <Fragment>
-      <img ref={imgRef} className={className} src={src} />
-      {props.size === "large" && <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />}
-    </Fragment>
-  ) : (
-    <ExerciseNoImage size={props.size}>No exercise image</ExerciseNoImage>
-  );
+  const src = ExerciseImageUtils.url(exerciseType, size);
+  const doesExist = ExerciseImageUtils.exists(exerciseType, size);
+
+  if (size === "small") {
+    return (
+      <>
+        {!isError && doesExist && <img ref={imgRef} className={className} src={src} />}
+        {isError ||
+          (!doesExist && (
+            <div className={`h-0 inline-block ${props.className}`}>
+              <div
+                className="relative inline-block w-full h-full overflow-hidden align-middle"
+                style={{ paddingBottom: "100%" }}
+              >
+                <IconDefaultExercise className={`absolute top-0 left-0 w-full h-full`} />
+              </div>
+            </div>
+          ))}
+      </>
+    );
+  } else {
+    return doesExist ? (
+      <>
+        <img ref={imgRef} className={className} src={src} />
+        <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
+      </>
+    ) : (
+      <ExerciseNoImage size={props.size}>No exercise image</ExerciseNoImage>
+    );
+  }
 }
 
 function ExerciseImageAuxiliary(props: {
@@ -81,11 +96,8 @@ interface INoImageProps {
 }
 
 function ExerciseNoImage(props: INoImageProps): JSX.Element | null {
-  if (props.size === "small") {
-    return null;
-  }
   return (
-    <div className="px-4 py-10 text-xs leading-normal text-center bg-gray-200 border border-gray-400 border-dotted rounded-lg">
+    <div className="px-4 py-10 my-4 text-xs leading-normal text-center bg-gray-200 border border-gray-400 border-dotted rounded-lg">
       {props.children}
     </div>
   );

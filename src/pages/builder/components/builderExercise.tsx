@@ -113,12 +113,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
       <div className="pr-4 border-r border-grayv2-100" style={{ flex: 3 }}>
         <div className="flex">
           <div>
-            <ExerciseImage
-              className="w-12 mr-3"
-              exerciseType={props.exercise.exerciseType}
-              size="small"
-              customExercises={{}}
-            />
+            <ExerciseImage className="w-12 mr-3" exerciseType={props.exercise.exerciseType} size="small" />
           </div>
           <div className="flex-1">
             <div>

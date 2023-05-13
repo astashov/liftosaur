@@ -41,6 +41,7 @@ import { Markdown } from "./markdown";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { IconPreview } from "./icons/iconPreview";
 import { WorkoutStateVariables } from "./workoutStateVariables";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IProps {
   showHelp: boolean;
@@ -178,16 +179,11 @@ const ExerciseContentView = memo(
         <header className="flex">
           <div style={{ width: "62px" }}>
             <button
-              className="px-2"
+              className="w-full px-2"
               style={{ marginLeft: "-0.5rem" }}
               onClick={() => props.onExerciseInfoClick?.(exercise)}
             >
-              {equipment && (
-                <img
-                  src={`https://www.liftosaur.com/externalimages/exercises/single/small/${exercise.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
-                  alt={`${exercise.name} image`}
-                />
-              )}
+              <ExerciseImage className="w-full" exerciseType={exercise} size="small" />
             </button>
           </div>
           <div className="flex-1 ml-auto">

@@ -46,8 +46,8 @@ export const ProgramDetailsExercise = memo(
           <div className="pt-2 pr-2 text-4xl text-gray-400 program-details-exercise-number">
             {programExerciseIndex + 1}
           </div>
-          <div className="pr-4 program-details-exercise-image" style={{ maxWidth: "6.5em" }}>
-            <ExerciseImage exerciseType={programExercise.exerciseType} customExercises={{}} size="small" />
+          <div className="pr-4 program-details-exercise-image" style={{ width: "6.5em" }}>
+            <ExerciseImage exerciseType={programExercise.exerciseType} className="w-full" size="small" />
           </div>
           <div className="flex-1">
             <div className="text-right program-details-exercise-switch">
