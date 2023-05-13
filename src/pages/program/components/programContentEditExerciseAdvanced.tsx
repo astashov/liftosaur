@@ -171,6 +171,13 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                       }
                     : undefined
                 }
+                onDuplicateVariation={
+                  areVariationsEnabled
+                    ? (variation: number) => {
+                        props.dispatch(EditProgramLenses.duplicateVariation(lbe, variation));
+                      }
+                    : undefined
+                }
               />
             );
           })}

@@ -348,6 +348,19 @@ export namespace EditProgramLenses {
     return prefix.p("variations").recordModify((v) => v.filter((_, i) => i !== variationIndex));
   }
 
+  export function duplicateVariation<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    variationIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("variations").recordModify((v) => {
+      const variation = v[variationIndex];
+      const newVariation = ObjectUtils.clone(variation);
+      const newVariations = [...v];
+      newVariations.splice(variationIndex + 1, 0, newVariation);
+      return newVariations;
+    });
+  }
+
   export function addSet<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     variationIndex: number

@@ -12,6 +12,7 @@ import { IconHelp } from "../icons/iconHelp";
 import { IconTrash } from "../icons/iconTrash";
 import { LinkButton } from "../linkButton";
 import { OneLineTextEditor } from "./oneLineTextEditor";
+import { IconDuplicate2 } from "../icons/iconDuplicate2";
 
 interface IEditProgramSets {
   programExercise: IProgramExercise;
@@ -19,6 +20,7 @@ interface IEditProgramSets {
   variationIndex: number;
   settings: ISettings;
   onDeleteVariation?: (variationIndex: number) => void;
+  onDuplicateVariation?: (variationIndex: number) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
@@ -32,21 +34,33 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
   const variation = programExercise.variations[variationIndex];
   const [resetCounter, setResetCounter] = useState(0);
   const onDeleteVariation = props.onDeleteVariation;
+  const onDuplicateVariation = props.onDuplicateVariation;
   return (
     <Fragment>
       <GroupHeader
         topPadding={true}
         name={programExercise.variations.length > 1 ? `Sets of Variation ${variationIndex + 1}` : "Sets"}
         rightAddOn={
-          onDeleteVariation ? (
-            <button
-              style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
-              className="p-2"
-              onClick={() => onDeleteVariation(variationIndex)}
-            >
-              <IconTrash />
-            </button>
-          ) : undefined
+          <>
+            {onDuplicateVariation ? (
+              <button
+                style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
+                className="p-2"
+                onClick={() => onDuplicateVariation(variationIndex)}
+              >
+                <IconDuplicate2 />
+              </button>
+            ) : undefined}
+            {onDeleteVariation ? (
+              <button
+                style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
+                className="p-2"
+                onClick={() => onDeleteVariation(variationIndex)}
+              >
+                <IconTrash />
+              </button>
+            ) : undefined}
+          </>
         }
         help={
           <span>

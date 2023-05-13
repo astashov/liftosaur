@@ -1,6 +1,8 @@
 - Push notif for the forgotten session
 - AMRAP as an expression
 - Dynamic sets!
+- Moving average on graphs
+- Use state vars for warmups
 
 - Programs
   - 5/3/1s
@@ -19,6 +21,8 @@
 - Widget on iOS lock screen
 - Add time spent on each exercise
 
-* Bug:
+- Bug:
   Assign lb to state var of type number
-  Custom timer on just added exercise is ignored
+  Long links screw horizontal scrolling in description
+  Underscores are not supported
+  Non-loaded images look broken on Android
