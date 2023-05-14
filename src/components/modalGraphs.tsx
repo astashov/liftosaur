@@ -15,6 +15,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IModalGraphsProps {
   isHidden: boolean;
@@ -176,16 +177,10 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
 
 function ExercisePreview(props: { exercise: IExerciseId; settings: ISettings }): JSX.Element {
   const e = Exercise.getById(props.exercise, props.settings.exercises);
-  const equipment = Exercise.defaultEquipment(e.id, props.settings.exercises);
   return (
     <Fragment>
-      <div className="w-12 pr-4">
-        {equipment && (
-          <img
-            src={`https://www.liftosaur.com/externalimages/exercises/single/small/${e.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
-            alt={`${e.name} image`}
-          />
-        )}
+      <div className="w-12 pr-4" style={{ minHeight: "2rem" }}>
+        <ExerciseImage className="w-full" exerciseType={e} size="small" />
       </div>
       <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
     </Fragment>

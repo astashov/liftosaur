@@ -15,6 +15,7 @@ import { Multiselect } from "./multiselect";
 import { equipmentName, Exercise } from "../models/exercise";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -155,7 +156,6 @@ const ExercisesList = forwardRef(
         </LinkButton>
         <GroupHeader topPadding={true} name="Built-in exercises" />
         {exercises.map((e) => {
-          const equipment = Exercise.defaultEquipment(e.id, customExercises);
           return (
             <section
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
@@ -165,13 +165,8 @@ const ExercisesList = forwardRef(
               }}
             >
               <section className="flex items-center">
-                <div className="w-12 pr-2">
-                  {equipment && (
-                    <img
-                      src={`https://www.liftosaur.com/externalimages/exercises/single/small/${e.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
-                      alt={`${e.name} image`}
-                    />
-                  )}
+                <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+                  <ExerciseImage className="w-full" exerciseType={e} size="small" />
                 </div>
                 <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
               </section>

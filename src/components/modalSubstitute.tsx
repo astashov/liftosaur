@@ -5,6 +5,7 @@ import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
 import { IExerciseType, IExerciseId, IAllCustomExercises, IMuscle } from "../types";
+import { ExerciseImage } from "./exerciseImage";
 
 interface IModalSubstituteProps {
   exerciseType: IExerciseType;
@@ -84,19 +85,13 @@ function ExerciseView(props: IExerciseViewProps): JSX.Element {
   const e = props.exercise;
   const tms = props.currentTargetMuscles;
   const sms = props.currentSynergistMuscles;
-  const equipment = Exercise.defaultEquipment(e.id, props.customExercises);
   const targetMuscles = Exercise.targetMuscles(e, props.customExercises);
   const synergistMuscles = Exercise.synergistMuscles(e, props.customExercises);
   return (
     <div>
       <section className="flex items-center">
-        <div className="w-12 pr-2">
-          {equipment && (
-            <img
-              src={`https://www.liftosaur.com/externalimages/exercises/single/small/${e.id.toLowerCase()}_${equipment.toLowerCase()}_single_small.png`}
-              alt={`${e.name} image`}
-            />
-          )}
+        <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+          <ExerciseImage className="w-full" exerciseType={e} size="small" />
         </div>
         <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
       </section>
