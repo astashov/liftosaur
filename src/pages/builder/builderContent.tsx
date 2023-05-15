@@ -23,6 +23,13 @@ import { IconCog2 } from "../../components/icons/iconCog2";
 import { useState } from "preact/hooks";
 import { IconHelp } from "../../components/icons/iconHelp";
 import { BuilderHelpOverlay } from "./components/builderHelpOverlay";
+import { Button } from "../../components/button";
+import { IExportedProgram, Program } from "../../models/program";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { Service } from "../../api/service";
+import { ClipboardUtils } from "../../utils/clipboard";
+
+declare let __HOST__: string;
 
 export interface IBuilderContentProps {
   client: Window["fetch"];
@@ -71,6 +78,8 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   useCopyPaste(state, dispatch);
   useUndoRedo(state, dispatch);
   const [showOnboarding, setShowOnboarding] = useState<number>(0);
+  const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
+  const [showConvertedProgramUrl, setShowConvertedProgramUrl] = useState<string | undefined>(undefined);
 
   const modalExerciseUi = state.ui.modalExercise;
   const modalSubstituteUi = state.ui.modalSubstitute;
@@ -78,15 +87,17 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const modalSettings = state.ui.modalSettings;
 
   return (
-    <section className="py-16">
+    <section>
       <div className="flex items-center">
-        <h1 className="flex-1 text-2xl font-bold">
-          <a className="font-bold underline text-bluev2 " href="/builder">
-            Weightlifting Program Builder
-          </a>
-        </h1>
+        <h1 className="flex-1 text-2xl font-bold">Weightlifting Program Planner</h1>
         <div className="flex items-center">
-          <BuilderCopyLink type="b" client={props.client} program={state.current.program} />
+          <BuilderCopyLink
+            type="b"
+            client={props.client}
+            program={state.current.program}
+            suppressShowInfo={true}
+            onShowInfo={setShowClipboardInfo}
+          />
           <button
             className="p-2 align-middle"
             onClick={() => dispatch([lb<IBuilderState>().p("ui").p("modalSettings").record(true)])}
@@ -104,11 +115,47 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
           >
             <IconHelp />
           </button>
+          <Button
+            kind="purple"
+            onClick={async () => {
+              const program = Program.planToProgram(state.current.program);
+              const exportedProgram: IExportedProgram = {
+                program,
+                customExercises: {},
+                version: getLatestMigrationVersion(),
+                settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
+              };
+              const programBuilderUrl = new URL("/program", __HOST__);
+              const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), programBuilderUrl.toString());
+              const service = new Service(props.client);
+              const shortUrl = await service.postShortUrl(url.toString(), "p");
+              ClipboardUtils.copy(shortUrl);
+              setShowConvertedProgramUrl(shortUrl);
+            }}
+          >
+            Convert to Liftosaur program
+          </Button>
         </div>
       </div>
+      {showClipboardInfo && (
+        <div className="text-xs text-right text-grayv2-main">
+          Copied to clipboard:{" "}
+          <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+            {showClipboardInfo}
+          </a>
+        </div>
+      )}
+      {showConvertedProgramUrl && (
+        <div className="text-xs text-right text-grayv2-main">
+          Converted to Liftosaur program and copied clipboard:{" "}
+          <a target="_blank" className="font-bold underline text-bluev2" href={showConvertedProgramUrl}>
+            {showConvertedProgramUrl}
+          </a>
+        </div>
+      )}
       <p className="pb-2">
-        This is a tool to build your weightlifting programs. It allows to make sure you have enough volume for each
-        muscle group, and balance it with the time you spent in the gym.
+        This is a tool to plan your weightlifting programs. It allows to make sure you have enough volume for each
+        muscle group, and balance it with the time you spent in the gym. You can convert it to a Liftosaur program then.
       </p>
       <h2 className="pb-3 mt-8 text-xl font-bold">
         <BuilderLinkInlineInput

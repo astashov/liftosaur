@@ -235,6 +235,10 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/planner": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
       "/dashboards/affiliates/*": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,

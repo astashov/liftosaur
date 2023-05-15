@@ -304,58 +304,12 @@ function volumeSplitKeyToName(key: keyof IVolumeSplit): string {
 }
 
 function volumeSplitValue(key: keyof IVolumeSplit, value: number): JSX.Element {
-  let color = "";
-  switch (key) {
-    case "rmLess60":
-      if (value > 100) {
-        color = "text-greenv2-main";
-      } else if (value > 75) {
-        color = "text-yellowv2";
-      } else {
-        color = "text-redv2-main";
-      }
-      break;
-    case "rm60":
-      if (value > 50) {
-        color = "text-greenv2-main";
-      } else if (value > 25) {
-        color = "text-yellowv2";
-      } else {
-        color = "text-redv2-main";
-      }
-      break;
-    case "rm75":
-      if (value > 25) {
-        color = "text-greenv2-main";
-      } else if (value > 15) {
-        color = "text-yellowv2";
-      } else {
-        color = "text-redv2-main";
-      }
-      break;
-    case "rm85":
-      if (value > 15) {
-        color = "text-greenv2-main";
-      } else if (value > 5) {
-        color = "text-yellowv2";
-      } else {
-        color = "text-redv2-main";
-      }
-      break;
-  }
-
+  const color = "text-yellowv2";
   return <span className={color}>{value}</span>;
 }
 
 function musclePointValue(value: number): JSX.Element {
-  let color = "";
-  if (value >= 20) {
-    color = "text-greenv2-main";
-  } else if (value >= 10) {
-    color = "text-yellowv2";
-  } else {
-    color = "text-redv2-main";
-  }
+  const color = "text-yellowv2";
 
   return (
     <span>

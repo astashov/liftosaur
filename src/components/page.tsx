@@ -52,7 +52,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
       </head>
       <body>
         <div class="content">
-          {!props.skipTopNavMenu && <TopNavMenu />}
+          {!props.skipTopNavMenu && <TopNavMenu maxWidth={props.maxWidth || 800} />}
           <div id="app" style={{ maxWidth: props.maxWidth || 800, margin: "0 auto", width: "100%" }}>
             {props.children}
           </div>

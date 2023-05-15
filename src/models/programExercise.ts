@@ -15,6 +15,8 @@ import { ProgramSet } from "./programSet";
 import { IProgramStateMetadata, IWeight } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
+import { IBuilderExercise } from "../pages/builder/models/types";
+import { Exercise } from "./exercise";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -197,5 +199,71 @@ export namespace ProgramExercise {
       const value = state[key];
       return Weight.is(value) && value.unit !== unit;
     });
+  }
+
+  export function planExercisesToProgramExercise(
+    id: string,
+    planExercises: { day: number; exercise: IBuilderExercise }[]
+  ): IProgramExercise {
+    const maxReps = Math.max(...planExercises.flatMap((pe) => pe.exercise.sets.map((s) => s.reps)));
+    const variations = planExercises.reduce<Record<string, number[]>>((memo, pe) => {
+      const key = pe.exercise.sets.map((s) => `${s.reps}/${s.weightPercentage}`).join("|");
+      memo[key] = memo[key] || [];
+      memo[key].push(pe.day);
+      return memo;
+    }, {});
+
+    const timers = planExercises.reduce<Record<number, number[]>>((memo, pe) => {
+      memo[pe.exercise.restTimer] = memo[pe.exercise.restTimer] || [];
+      memo[pe.exercise.restTimer].push(pe.day);
+      return memo;
+    }, {});
+
+    const variationExpr =
+      ObjectUtils.keys(variations).length === 1
+        ? "1"
+        : ObjectUtils.keys(variations)
+            .map((k, i) => {
+              const days = variations[k];
+              return `if (${days.map((d) => `day == ${d + 1}`).join(" || ")}) { ${i + 1} }`;
+            })
+            .join("\nelse ");
+
+    const timerExpr =
+      ObjectUtils.keys(timers).length === 1
+        ? Object.keys(timers)[0]
+        : ObjectUtils.keys(timers)
+            .map((k) => {
+              const days = timers[k];
+              return `if (${days.map((d) => `day == ${d + 1}`).join(" || ")}) { ${k} }`;
+            })
+            .join("\nelse ");
+
+    const onerm = planExercises[0].exercise.onerm;
+
+    const exerciseType = planExercises[0].exercise.exerciseType;
+    const exercise = Exercise.get(exerciseType, {});
+    return {
+      id,
+      exerciseType: exerciseType,
+      timerExpr: timerExpr,
+      state: {
+        reps: maxReps,
+        weight: onerm,
+      },
+      finishDayExpr: "",
+      name: exercise.name,
+      variationExpr,
+      variations: Object.keys(variations).map((variation) => {
+        const sets = variation.split("|").map((set) => set.split("/").map(Number));
+        return {
+          sets: sets.map((set) => ({
+            repsExpr: `state.reps - ${maxReps - set[0]}`,
+            weightExpr: `state.weight * (${set[1]} / 100)`,
+            isAmrap: false,
+          })),
+        };
+      }),
+    };
   }
 }

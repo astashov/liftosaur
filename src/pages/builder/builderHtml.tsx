@@ -15,14 +15,12 @@ export function BuilderHtml(props: IProps): JSX.Element {
     <Page
       css={["builder"]}
       js={["builder"]}
-      maxWidth={920}
-      title="Workout Program Builder"
+      maxWidth={1020}
+      title="Workout Program Planner"
       ogTitle="Liftosaur: Workout Program Builder"
       ogDescription="The weightlifting program builder, allowing to balance volume, time and muscles worked"
-      ogUrl="https://www.liftosaur.com/builder"
+      ogUrl="https://www.liftosaur.com/planner"
       data={data}
-      skipFooter={true}
-      skipTopNavMenu={true}
     >
       <BuilderContent client={client} {...data} />
     </Page>

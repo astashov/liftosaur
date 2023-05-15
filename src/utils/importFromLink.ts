@@ -15,9 +15,9 @@ export namespace ImportFromLink {
       decoded = await getDecodedData(base64);
     } else {
       const [type, id] = url.pathname.split("/").filter((p) => p);
-      if (type === "p" && id) {
+      if ((type === "p" || type === "b") && id) {
         const service = new Service(client);
-        const result = await service.getDataFromShortUrl(id);
+        const result = await service.getDataFromShortUrl(type, id);
         base64 = result.data;
         source = source || result.s;
         if (base64) {

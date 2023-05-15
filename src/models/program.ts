@@ -34,6 +34,7 @@ import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder } from "../utils/encoder";
+import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 
 declare let __HOST__: string;
 
@@ -569,6 +570,47 @@ export namespace Program {
       program,
       version: version || getLatestMigrationVersion(),
       settings: ObjectUtils.pick(settings, ["units", "timers"]),
+    };
+  }
+
+  export function planToProgram(plan: IBuilderProgram): IProgram {
+    const builderExercises: Record<string, { day: number; exercise: IBuilderExercise }[]> = {};
+    let dayIndex = 0;
+    for (let weekIndex = 0; weekIndex < plan.weeks.length; weekIndex += 1) {
+      for (let dayInWeekIndex = 0; dayInWeekIndex < plan.weeks[weekIndex].days.length; dayInWeekIndex += 1) {
+        const day = plan.weeks[weekIndex].days[dayInWeekIndex];
+        for (const planExercise of day.exercises) {
+          const id = `plan_${planExercise.exerciseType.id}_${planExercise.exerciseType.equipment}`;
+          builderExercises[id] = builderExercises[id] || [];
+          builderExercises[id].push({ day: dayIndex, exercise: planExercise });
+        }
+        dayIndex += 1;
+      }
+    }
+
+    const exercises = Object.keys(builderExercises).map((id) => {
+      const ex = builderExercises[id];
+      return ProgramExercise.planExercisesToProgramExercise(id, ex);
+    });
+
+    return {
+      exercises: exercises,
+      id: UidFactory.generateUid(8),
+      name: plan.name,
+      description: "Generated from a Workout Planner",
+      url: "",
+      author: "",
+      nextDay: 1,
+      days: plan.weeks.flatMap((week) => {
+        return week.days.map((day) => {
+          const name = `${week.name} - ${day.name}`;
+          return {
+            name,
+            exercises: day.exercises.map((e) => ({ id: `plan_${e.exerciseType.id}_${e.exerciseType.equipment}` })),
+          };
+        });
+      }),
+      tags: [],
     };
   }
 }

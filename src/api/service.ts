@@ -289,8 +289,8 @@ export class Service {
     }
   }
 
-  public async getDataFromShortUrl(id: string): Promise<{ data: string; s?: string }> {
-    const url = new URL(`${__API_HOST__}/api/p/${id}`);
+  public async getDataFromShortUrl(type: "p" | "b", id: string): Promise<{ data: string; s?: string }> {
+    const url = new URL(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
       const json: { data: string; s?: string } = await result.json();

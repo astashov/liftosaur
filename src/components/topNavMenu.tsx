@@ -1,12 +1,12 @@
 import { h, JSX } from "preact";
 
-export function TopNavMenu(): JSX.Element {
+export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
   return (
     <nav
       class="w-full flex items-center mx-auto my-0 px-3 py-6 flex-col md:px-6 md:py-12 sm:flex-row"
-      style={{ maxWidth: "800px" }}
+      style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}
     >
-      <div class="flex-1 flex items-center mb-4 sm:mb-0 cursor-pointer">
+      <div class="flex-1 flex items-center mb-4 sm:mb-0 cursor-pointer" style={{ minWidth: "14rem" }}>
         <a href="/" class="text-gray-900 no-underline">
           <img
             className="inline align-middle"

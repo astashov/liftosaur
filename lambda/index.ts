@@ -1129,8 +1129,18 @@ const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   payload,
   match: { params },
 }) => {
-  const di = payload.di;
-  const data = params.data;
+  return _getBuilderHandler(payload.di, params.data);
+};
+
+const getPlannerEndpoint = Endpoint.build("/planner", { data: "string?" });
+const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getPlannerEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  return _getBuilderHandler(payload.di, params.data);
+};
+
+async function _getBuilderHandler(di: IDI, data: string | undefined): Promise<APIGatewayProxyResult> {
   let program: IBuilderProgram | undefined;
   if (data) {
     try {
@@ -1146,7 +1156,7 @@ const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     body: renderBuilderHtml(fetch, program),
     headers: { "content-type": "text/html" },
   };
-};
+}
 
 const getProgramEndpoint = Endpoint.build("/program", { data: "string?" });
 const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramEndpoint> = async ({
@@ -1197,8 +1207,23 @@ const getProgramShorturlResponseHandler: RouteHandler<
   APIGatewayProxyResult,
   typeof getProgramShorturlEndpoint
 > = async ({ payload, match: { params } }) => {
-  const { di, event } = payload;
-  const id = params.id;
+  return _getProgramShorturlResponseHandler(payload.di, payload.event, params.id);
+};
+
+const getPlanShorturlResponseEndpoint = Endpoint.build("/api/b/:id");
+const getPlanShorturlResponseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getPlanShorturlResponseEndpoint
+> = async ({ payload, match: { params } }) => {
+  return _getProgramShorturlResponseHandler(payload.di, payload.event, params.id);
+};
+
+async function _getProgramShorturlResponseHandler(
+  di: IDI,
+  event: APIGatewayProxyEvent,
+  id: string
+): Promise<APIGatewayProxyResult> {
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
     const url = new URL(urlString, "https://www.liftosaur.com");
@@ -1211,7 +1236,7 @@ const getProgramShorturlResponseHandler: RouteHandler<
     }
   }
   return ResponseUtils.json(404, event, {});
-};
+}
 
 const postClaimFreeUserEndpoint = Endpoint.build("/api/claimkey/:userid");
 const postClaimFreeUserHandler: RouteHandler<
@@ -1390,6 +1415,7 @@ export const handler = rollbar.lambdaHandler(
       .post(timerEndpoint, timerHandler)
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
+      .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getFreeformEndpoint, getFreeformHandler)
@@ -1402,6 +1428,7 @@ export const handler = rollbar.lambdaHandler(
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getBuilderEndpoint, getBuilderHandler)
+      .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
