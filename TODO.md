@@ -2,6 +2,7 @@
 - AMRAP as an expression
 - Dynamic sets!
 - Moving average on graphs
+- Volume on graphs
 - Use state vars for warmups
 
 - Programs

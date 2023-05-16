@@ -13,7 +13,7 @@ export function AffiliatesHtml(props: IAffiliatesHtmlProps): JSX.Element {
     <Page
       css={["affiliates"]}
       js={["affiliates"]}
-      maxWidth={740}
+      maxWidth={1020}
       title="Affiliate Program"
       ogTitle="Liftosaur: Affiliate Program"
       ogDescription="Liftosaur's affiliate program"

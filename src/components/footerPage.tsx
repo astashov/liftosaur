@@ -1,6 +1,11 @@
 import { JSX, h } from "preact";
 
-export function FooterPage(): JSX.Element {
+interface IProps {
+  maxWidth?: number;
+}
+
+export function FooterPage(props: IProps): JSX.Element {
+  const maxWidth = props.maxWidth != null ? `${props.maxWidth}px` : "800px";
   return (
     <footer>
       <div
@@ -12,27 +17,42 @@ export function FooterPage(): JSX.Element {
         }}
       ></div>
       <div style={{ backgroundColor: "#fafafa" }}>
-        <div className="flex flex-col px-6 py-0 mx-auto my-0 md:flex-row" style={{ maxWidth: "800px" }}>
-          <nav className="flex items-center flex-1 px-0 py-6 leading-loose text-left md:text-right md:py-12 md:px-3">
-            <ul className="flex-1 md:pr-6">
-              {[
-                ["App", "/"],
-                ["Docs", "/docs/docs.html"],
-                ["Program Builder", "/program"],
-                ["Blog", "/blog"],
-                ["Terms & Conditions", "/terms.html"],
-                ["Privacy", "/privacy.html"],
-                ["Affiliate Program", "/affiliates"],
-              ].map(([text, link]) => {
-                return (
-                  <li className="inline-block mx-4 my-0 text-left">
-                    <a className="text-blue-700 underline cursor-pointer" href={link}>
-                      {text}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
+        <div className="flex flex-col px-6 py-0 mx-auto my-0 text-sm font-bold md:flex-row" style={{ maxWidth }}>
+          <nav className="flex items-center flex-1 w-full px-0 py-6 leading-loose text-left md:text-right md:py-12 md:px-3">
+            <div className="flex flex-1 md:pr-6">
+              <ul className="flex-1">
+                {[
+                  ["App", "/"],
+                  ["Docs", "/docs/docs.html"],
+                  ["Program Builder", "/program"],
+                  ["Program Planner", "/planner"],
+                ].map(([text, link]) => {
+                  return (
+                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
+                      <a className="text-blue-700 underline cursor-pointer" href={link}>
+                        {text}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+              <ul className="flex-1">
+                {[
+                  ["Blog", "/blog"],
+                  ["Terms & Conditions", "/terms.html"],
+                  ["Privacy", "/privacy.html"],
+                  ["Affiliate Program", "/affiliates"],
+                ].map(([text, link]) => {
+                  return (
+                    <li className="block mx-4 my-0 mb-2 leading-5 text-left">
+                      <a className="text-blue-700 underline cursor-pointer" href={link}>
+                        {text}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
             <ul className="inline-block align-middle list-none">
               {[
                 ["Facebook", "https://www.facebook.com/liftosaur", "logo-facebook"],

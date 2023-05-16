@@ -3,7 +3,7 @@ import { h, JSX } from "preact";
 export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
   return (
     <nav
-      class="w-full flex items-center mx-auto my-0 px-3 py-6 flex-col md:px-6 md:py-12 sm:flex-row"
+      class="w-full flex items-center mx-auto my-0 px-2 py-6 flex-col md:px-2 md:py-12 sm:flex-row"
       style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}
     >
       <div class="flex-1 flex items-center mb-4 sm:mb-0 cursor-pointer" style={{ minWidth: "14rem" }}>
@@ -23,15 +23,16 @@ export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
         </a>
       </div>
       <div className="flex items-center justify-center w-full sm:block sm:w-auto">
-        <ul className="flex-1 inline-block align-middle list-none">
+        <ul className="flex-1 inline-block text-sm font-bold align-middle list-none">
           {[
             ["About", "/about"],
             ["Docs", "/docs/docs.html"],
             ["Blog", "/blog"],
             ["Program Builder", "/program"],
+            ["Program Planner", "/planner"],
           ].map(([text, link]) => {
             return (
-              <li className="inline-block mx-4 my-0 leading-normal align-middle list-none">
+              <li className="inline-block mx-3 mb-2 leading-normal leading-5 align-middle list-none">
                 <a className="text-blue-700 underline cursor-pointer" href={link}>
                   {text}
                 </a>

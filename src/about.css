@@ -25,6 +25,8 @@ a {
 .top-nav-menu {
   flex: 1;
   padding-right: 1.5em;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 .top-nav-menu,
@@ -569,6 +571,7 @@ a.hero-title {
 .footer-left {
   align-items: center;
   display: flex;
+  padding-right: 5rem;
 }
 
 a.footer-logo {
@@ -605,21 +608,28 @@ footer nav {
 }
 
 .footer-menu {
+  display: flex;
   flex: 1;
+  gap: 1rem;
   padding-right: 1.5em;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
-footer nav ul,
-footer nav li {
-  display: inline-block;
+footer nav ul {
+  flex: 1;
 }
 
 footer nav li {
-  margin: 0 16px;
+  display: block;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
 }
 
 .footer-social,
 .footer-social li {
+  text-align: right;
   display: inline-block;
   vertical-align: middle;
   list-style: none;

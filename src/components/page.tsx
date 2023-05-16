@@ -56,7 +56,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           <div id="app" style={{ maxWidth: props.maxWidth || 800, margin: "0 auto", width: "100%" }}>
             {props.children}
           </div>
-          {!props.skipFooter && <FooterPage />}
+          {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} />}
         </div>
         <div id="data" style={{ display: "none" }}>
           {JSON.stringify(props.data)}
