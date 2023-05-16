@@ -10,6 +10,7 @@
 /acceptfriendinvitation hash=:hash https://api2-dev.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
 /programs/:programId https://api2-dev.liftosaur.com/programs/:programId  200
 /builder https://api2-dev.liftosaur.com/builder  200
+/planner https://api2-dev.liftosaur.com/planner  200
 /affiliates https://api2-dev.liftosaur.com/affiliates  200
 /freeform https://api2-dev.liftosaur.com/freeform  200
 /program https://api2-dev.liftosaur.com/program  200
