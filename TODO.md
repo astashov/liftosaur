@@ -4,6 +4,9 @@
 - Moving average on graphs
 - Volume on graphs
 - Use state vars for warmups
+- Add negative indexing (-1)
+- Add min()/max()
+- Remove warmups from logic reuse
 
 - Programs
   - 5/3/1s

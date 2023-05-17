@@ -158,7 +158,24 @@ export namespace Settings {
             lb: Weight.build(0, "lb"),
             kg: Weight.build(0, "kg"),
           },
-          plates: [{ weight: Weight.build(10, "lb"), num: 20 }],
+          plates: [
+            {
+              weight: Weight.build(10, "lb"),
+              num: 20,
+            },
+            {
+              weight: Weight.build(5, "lb"),
+              num: 10,
+            },
+            {
+              weight: Weight.build(5, "kg"),
+              num: 20,
+            },
+            {
+              weight: Weight.build(2.5, "kg"),
+              num: 10,
+            },
+          ],
           fixed: [],
           isFixed: false,
         },
