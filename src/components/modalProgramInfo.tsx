@@ -26,16 +26,16 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
         {props.hasCustomPrograms ? "Clone" : "Start"} <Link href={program.url}>{program.name}</Link>
       </h2>
       <div className="text-sm text-grayv2-700">by {program.author}</div>
-      <div className="flex items-center pb-1">
-        <div className="pr-1">
-          <IconWatch />
-        </div>
-        {formattedTime && (
+      {formattedTime && (
+        <div className="flex items-center pb-1">
+          <div className="pr-1">
+            <IconWatch />
+          </div>
           <div className="flex-1" style={{ paddingTop: "2px" }}>
             Average time of a workout: <strong>{formattedTime}</strong>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <div dangerouslySetInnerHTML={{ __html: program.description }} className="mt-4 program-description" />
       <p className="mt-6 text-center">
         <Button data-cy="preview-program" type="button" kind="purple" className="mr-3" onClick={props.onPreview}>
