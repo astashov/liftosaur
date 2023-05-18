@@ -191,7 +191,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           {formattedTime && (
             <div>
               <IconWatch className="mb-1 align-middle" />
-              <span className="pl-1 align-middle">{time}h</span>
+              <span className="pl-1 align-middle">{formattedTime}h</span>
             </div>
           )}
         </div>
