@@ -189,7 +189,11 @@ const ExerciseContentView = memo(
           <div className="flex-1 min-w-0 ml-auto">
             <div className="flex items-center">
               <div className="flex-1 text-lg font-bold">
-                <button data-cy="exercise-name" onClick={() => props.onExerciseInfoClick?.(exercise)}>
+                <button
+                  className="text-left"
+                  data-cy="exercise-name"
+                  onClick={() => props.onExerciseInfoClick?.(exercise)}
+                >
                   <span className="pr-1">{exercise.name}</span>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
