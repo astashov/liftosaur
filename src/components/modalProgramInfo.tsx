@@ -18,6 +18,8 @@ interface IProps {
 
 export function ModalProgramInfo(props: IProps): JSX.Element {
   const { program } = props;
+  const time = Program.dayAverageTimeMs(program, props.settings);
+  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h2 className="pr-6 text-lg font-bold">
@@ -28,10 +30,11 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
         <div className="pr-1">
           <IconWatch />
         </div>
-        <div className="flex-1" style={{ paddingTop: "2px" }}>
-          Average time of a workout:{" "}
-          <strong>{TimeUtils.formatHHMM(Program.dayAverageTimeMs(program, props.settings))}</strong>
-        </div>
+        {formattedTime && (
+          <div className="flex-1" style={{ paddingTop: "2px" }}>
+            Average time of a workout: <strong>{formattedTime}</strong>
+          </div>
+        )}
       </div>
       <div dangerouslySetInnerHTML={{ __html: program.description }} className="mt-4 program-description" />
       <p className="mt-6 text-center">
