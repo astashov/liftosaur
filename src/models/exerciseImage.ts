@@ -1,4 +1,5 @@
 import { IExerciseType } from "../types";
+import { IState } from "./state";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -608,6 +609,17 @@ export namespace ExerciseImageUtils {
   }
 
   export function exists(type: IExerciseType, size: "small" | "large"): boolean {
+    // Ugly ugly hack...
+    const isDrSwoleUlLowVolumeProgram =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((window as any).state as IState).storage.currentProgramId === "drswoleullowvolume";
+    if (
+      isDrSwoleUlLowVolumeProgram &&
+      ((type.id === "bicepCurl" && type.equipment === "cable") ||
+        (type.id === "lateralRaise" && type.equipment === "cable"))
+    ) {
+      return false;
+    }
     return size === "small" ? availableSmallImages.has(id(type)) : availableLargeImages.has(id(type));
   }
 
