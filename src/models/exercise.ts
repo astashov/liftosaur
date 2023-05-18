@@ -183,6 +183,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
+  chestSupportedRow: {
+    id: "chestSupportedRow",
+    name: "Chest-Supported Row",
+    defaultWarmup: 10,
+    defaultEquipment: "barbell",
+  },
   chinUp: {
     id: "chinUp",
     name: "Chin Up",
@@ -495,6 +501,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
+  legCurl: {
+    id: "legCurl",
+    name: "Leg Curl",
+    defaultWarmup: 10,
+    defaultEquipment: "leverageMachine",
+  },
   legExtension: {
     id: "legExtension",
     name: "Leg Extension",
@@ -512,6 +524,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Lunge",
     defaultWarmup: 45,
     defaultEquipment: "barbell",
+  },
+  lyingBicepCurl: {
+    id: "lyingBicepCurl",
+    name: "Lying Bicep Curl",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
   },
   lyingLegCurl: {
     id: "lyingLegCurl",
@@ -651,6 +669,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
+  reverseLatPulldown: {
+    id: "reverseLatPulldown",
+    name: "Reverse Lat Pulldown",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
   romanianDeadlift: {
     id: "romanianDeadlift",
     name: "Romanian Deadlift",
@@ -764,6 +788,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Single Leg Bridge",
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
+  },
+  singleLegCalfRaise: {
+    id: "singleLegCalfRaise",
+    name: "Single Leg Calf Raise",
+    defaultWarmup: 10,
+    defaultEquipment: "barbell",
   },
   singleLegDeadlift: {
     id: "singleLegDeadlift",
@@ -1379,6 +1409,32 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Pectoralis Major Sternal Head"],
       synergistMuscles: ["Biceps Brachii", "Deltoid Lateral", "Pectoralis Major Clavicular Head"],
       bodyParts: ["Chest"],
+    },
+  },
+  chestSupportedRow: {
+    barbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Minor",
+        "Tibialis Anterior",
+        "Trapezius Middle Fibers",
+        "Trapezius Upper Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
+    },
+    dumbbell: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
     },
   },
   chinUp: {
@@ -2043,6 +2099,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Shoulders"],
     },
   },
+  legCurl: {
+    leverageMachine: {
+      targetMuscles: ["Hamstrings"],
+      synergistMuscles: ["Gastrocnemius", "Sartorius"],
+      bodyParts: ["Thighs"],
+    },
+  },
   legExtension: {
     leverageMachine: {
       targetMuscles: ["Quadriceps"],
@@ -2087,6 +2150,38 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Gluteus Maximus", "Quadriceps"],
       synergistMuscles: [],
       bodyParts: ["Thighs"],
+    },
+  },
+  lyingBicepCurl: {
+    barbell: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    dumbbell: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    band: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Brachialis"],
+      synergistMuscles: ["Biceps Brachii"],
+      bodyParts: ["Upper Arms"],
+    },
+    cable: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
+    },
+    ezbar: {
+      targetMuscles: ["Biceps Brachii"],
+      synergistMuscles: ["Brachialis", "Brachioradialis"],
+      bodyParts: ["Upper Arms"],
     },
   },
   lyingLegCurl: {
@@ -2396,6 +2491,22 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
     },
   },
   reverseGripConcentrationCurl: {},
+  reverseLatPulldown: {
+    cable: {
+      targetMuscles: ["Latissimus Dorsi"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Posterior",
+        "Obliques",
+        "Pectoralis Major Sternal Head",
+        "Teres Major",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Back"],
+    },
+  },
   reversePlank: {},
   romanianDeadlift: {
     barbell: {
@@ -2665,6 +2776,33 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Gluteus Maximus", "Rectus Abdominis"],
       synergistMuscles: ["Deltoid Anterior", "Hamstrings", "Obliques", "Serratus Anterior", "Tensor Fasciae Latae"],
       bodyParts: ["Hips"],
+    },
+  },
+  singleLegCalfRaise: {
+    barbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    dumbbell: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    leverageMachine: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    bodyweight: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
+    },
+    cable: {
+      targetMuscles: ["Gastrocnemius"],
+      synergistMuscles: ["Soleus"],
+      bodyParts: ["Calves"],
     },
   },
   singleLegDeadlift: {
