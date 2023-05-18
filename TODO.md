@@ -7,6 +7,7 @@
 - Add negative indexing (-1)
 - Add min()/max()
 - Remove warmups from logic reuse
+- Add always-on screen display option
 
 - Programs
   - 5/3/1s

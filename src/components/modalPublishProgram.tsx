@@ -28,22 +28,27 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
       <form>
         <GroupHeader name="Publish Program" topPadding={false} />
         <div className="mb-2">
-          <Input ref={idRef} label="Id" value={program.id} type="text" />
+          <Input ref={idRef} label="Id" defaultValue={program.id} type="text" />
         </div>
         <div className="mb-2">
-          <Input ref={nameRef} label="Name" value={program.name} type="text" />
+          <Input ref={nameRef} label="Name" defaultValue={program.name} type="text" />
         </div>
         <div className="mb-2">
-          <Input ref={shortDescriptionRef} label="Short Description" value={program.shortDescription} type="text" />
+          <Input
+            ref={shortDescriptionRef}
+            label="Short Description"
+            defaultValue={program.shortDescription}
+            type="text"
+          />
         </div>
         <div className="mb-2">
-          <Input ref={descriptionRef} label="Description" value={program.description} multiline={4} />
+          <Input ref={descriptionRef} label="Description" defaultValue={program.description} multiline={4} />
         </div>
         <div className="mb-2">
-          <Input ref={urlRef} label="Url" value={program.url} type="text" />
+          <Input ref={urlRef} label="Url" defaultValue={program.url} type="text" />
         </div>
         <div className="mb-2">
-          <Input ref={authorRef} label="Author" value={program.author} type="text" />
+          <Input ref={authorRef} label="Author" defaultValue={program.author} type="text" />
         </div>
         <div className="mt-4 text-center">
           <Button
