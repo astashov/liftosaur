@@ -18,6 +18,7 @@ import { ObjectUtils } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
 import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
+import { ExerciseImageUtils } from "../models/exerciseImage";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -175,7 +176,8 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   }
   const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
   const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
-  const time = TimeUtils.formatHHMM(Program.dayAverageTimeMs(program, props.settings));
+  const time = Program.dayAverageTimeMs(program, props.settings);
+  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
 
   return (
     <button
@@ -186,16 +188,20 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
       <div className="flex-1">
         <div className="flex items-center">
           <h3 className="flex-1 mr-2 text-lg font-bold">{program.name}</h3>
-          <div>
-            <IconWatch className="mb-1 align-middle" />
-            <span className="pl-1 align-middle">{time}h</span>
-          </div>
+          {formattedTime && (
+            <div>
+              <IconWatch className="mb-1 align-middle" />
+              <span className="pl-1 align-middle">{time}h</span>
+            </div>
+          )}
         </div>
         <h4 className="text-sm text-grayv2-main">{program.shortDescription}</h4>
         <div className="py-3">
-          {exercises.map((e) => (
-            <ExerciseImage exerciseType={e} size="small" className="w-6 mr-1" />
-          ))}
+          {exercises
+            .filter((e) => ExerciseImageUtils.exists(e, "small"))
+            .map((e) => (
+              <ExerciseImage exerciseType={e} size="small" className="w-6 mr-1" />
+            ))}
         </div>
         <div className="text-xs">
           <span>Equipment: </span>

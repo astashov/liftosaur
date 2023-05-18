@@ -27,6 +27,7 @@ export class ProgramDao {
     const programs: IProgramPayload[] = await this.di.dynamo.scan({ tableName: tableNames[env].programs });
     return CollectionUtils.sortInOrder(programs, "id", [
       "basicBeginner",
+      "drswoleullowvolume",
       "the5314b",
       "gzclp",
       "dbPpl",
