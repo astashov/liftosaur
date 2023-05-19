@@ -611,6 +611,7 @@ export namespace ExerciseImageUtils {
   export function exists(type: IExerciseType, size: "small" | "large"): boolean {
     // Ugly ugly hack...
     const isDrSwoleUlLowVolumeProgram =
+      typeof window !== "undefined" &&
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ((window as any).state as IState).storage.currentProgramId === "drswoleullowvolume";
     if (
