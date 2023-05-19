@@ -613,7 +613,7 @@ export namespace ExerciseImageUtils {
     const isDrSwoleUlLowVolumeProgram =
       typeof window !== "undefined" &&
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((window as any).state as IState).storage.currentProgramId === "drswoleullowvolume";
+      ((window as any).state as IState)?.storage?.currentProgramId === "drswoleullowvolume";
     if (
       isDrSwoleUlLowVolumeProgram &&
       ((type.id === "bicepCurl" && type.equipment === "cable") ||
