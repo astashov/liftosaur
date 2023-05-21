@@ -74,12 +74,12 @@ export namespace Weight {
     );
   }
 
-  export function formatOneSide(platesArr: IPlate[], equipment?: IEquipment): string {
-    const bar = equipmentToBarKey(equipment);
+  export function formatOneSide(settings: ISettings, platesArr: IPlate[], equipment?: IEquipment): string {
+    const equipmentSettings = equipment ? settings.equipment[equipment] : undefined;
     const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
     plates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const arr: number[] = [];
-    const multiplier = bar != null ? 2 : 1;
+    const multiplier = equipmentSettings?.multiplier ?? 1;
     while (true) {
       const plate = plates.find((p) => p.num >= multiplier);
       if (plate != null) {

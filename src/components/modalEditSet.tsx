@@ -34,7 +34,7 @@ function getPlatesStr(
   if (Subscriptions.hasSubscription(subscription)) {
     const value = Weight.build(weight, settings.units);
     const plates = Weight.calculatePlates(value, settings, equipment);
-    const oneside = Weight.formatOneSide(plates.plates, equipment);
+    const oneside = Weight.formatOneSide(settings, plates.plates, equipment);
     return oneside;
   } else {
     return undefined;
@@ -94,7 +94,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                 if (Subscriptions.hasSubscription(props.subscription) && target instanceof HTMLInputElement) {
                   const value = Weight.build(parseFloat(target.value), props.settings.units);
                   const plates = Weight.calculatePlates(value, props.settings, props.equipment);
-                  const oneside = Weight.formatOneSide(plates.plates, props.equipment);
+                  const oneside = Weight.formatOneSide(props.settings, plates.plates, props.equipment);
                   setPlatesStr(oneside);
                 }
               }}

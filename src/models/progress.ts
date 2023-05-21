@@ -199,7 +199,8 @@ export namespace Progress {
           const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
           subtitleHeader = "Next Set";
           subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
-          const formattedPlates = plates.length > 0 ? Weight.formatOneSide(plates, exercise.equipment) : "None";
+          const formattedPlates =
+            plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise.equipment) : "None";
           bodyHeader = "Plates per side";
           body = formattedPlates;
         }

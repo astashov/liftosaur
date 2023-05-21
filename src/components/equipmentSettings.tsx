@@ -14,6 +14,7 @@ import { useState } from "preact/hooks";
 import { ILensDispatchSimple } from "../utils/useLensReducer";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
+import { equipmentName } from "../models/exercise";
 
 interface IProps<T> {
   dispatch: ILensDispatchSimple<T>;
@@ -107,7 +108,7 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   return (
     <div>
-      <GroupHeader size="large" name={StringUtils.capitalize(props.equipment)}>
+      <GroupHeader size="large" name={equipmentName(props.equipment)}>
         <MenuItemEditable
           name="Is Fixed Weight"
           type="boolean"
@@ -222,7 +223,22 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           }
         }}
       />
-      <GroupHeader topPadding={true} name={`Number of ${props.name} plates available`} />
+      <MenuItemEditable
+        name="Sides"
+        type="number"
+        value={equipmentData.multiplier.toString()}
+        onChange={(newValue?: string) => {
+          let v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
+          if (v != null) {
+            v = Math.min(Math.max(1, v), 2);
+            const lensRecording = props.lensPrefix
+              .then(lb<ISettings>().p("equipment").pi(props.name).p("multiplier").get())
+              .record(v);
+            props.dispatch(lensRecording);
+          }
+        }}
+      />
+      <GroupHeader topPadding={true} name={`Number of ${equipmentName(props.name)} plates available`} />
       {plates.map((plate) => {
         return (
           <MenuItemEditable

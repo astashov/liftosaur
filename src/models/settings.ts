@@ -72,6 +72,29 @@ export namespace Settings {
           fixed: [],
           isFixed: false,
         },
+        leverageMachine: {
+          multiplier: 1,
+          bar: {
+            lb: Weight.build(0, "lb"),
+            kg: Weight.build(0, "kg"),
+          },
+          plates: [
+            { weight: Weight.build(45, "lb"), num: 4 },
+            { weight: Weight.build(25, "lb"), num: 4 },
+            { weight: Weight.build(10, "lb"), num: 4 },
+            { weight: Weight.build(5, "lb"), num: 4 },
+            { weight: Weight.build(2.5, "lb"), num: 4 },
+            { weight: Weight.build(1.25, "lb"), num: 2 },
+            { weight: Weight.build(20, "kg"), num: 4 },
+            { weight: Weight.build(10, "kg"), num: 4 },
+            { weight: Weight.build(5, "kg"), num: 4 },
+            { weight: Weight.build(2.5, "kg"), num: 4 },
+            { weight: Weight.build(1.25, "kg"), num: 4 },
+            { weight: Weight.build(0.5, "kg"), num: 2 },
+          ],
+          fixed: [],
+          isFixed: false,
+        },
         smith: {
           multiplier: 2,
           bar: {

@@ -62,7 +62,7 @@ describe("Weight", () => {
         { weight: Weight.build(10, "lb"), num: 6 },
         { weight: Weight.build(5, "lb"), num: 2 },
       ];
-      expect(Weight.formatOneSide(plates, "barbell")).toEqual("45/45/25/10/10/10/5");
+      expect(Weight.formatOneSide(buildSettings(plates), plates, "barbell")).toEqual("45/45/25/10/10/10/5");
     });
   });
 });

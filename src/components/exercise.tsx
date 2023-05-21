@@ -250,7 +250,7 @@ const ExerciseContentView = memo(
             </div>
             {equipment &&
               (programExercise ? (
-                <div className="text-sm text-grayv2-600">{StringUtils.capitalize(equipment)}</div>
+                <div className="text-sm text-grayv2-600">{equipmentName(equipment)}</div>
               ) : (
                 <div className="text-sm text-grayv2-600">
                   <select
@@ -530,7 +530,7 @@ const WeightView = memo(
         <span className="px-1">-</span>
         <span className="break-all">
           <span className={className}>
-            {plates.length > 0 ? Weight.formatOneSide(plates, props.exercise.equipment) : "None"}
+            {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exercise.equipment) : "None"}
           </span>
         </span>
       </>
