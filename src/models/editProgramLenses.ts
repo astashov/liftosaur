@@ -160,7 +160,6 @@ export namespace EditProgramLenses {
       prefix.p("exerciseType").p("id").record(exercise.id),
       prefix.p("exerciseType").p("equipment").record(exercise.defaultEquipment),
       prefix.p("name").record(exercise.name),
-      prefix.p("warmupSets").record(undefined),
     ];
   }
 

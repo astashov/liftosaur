@@ -62,11 +62,10 @@ describe("Program", () => {
 
     g("start-workout").click();
 
-    g("set-nonstarted").should("have.length", 5);
-    g("set-nonstarted").should("have.length", 5);
-    g("set-nonstarted").eq(0).find("[data-cy=reps-value]").should("have.text", 3);
-    g("set-nonstarted").eq(0).find("[data-cy=weight-value]").should("have.text", 80);
-    g("set-nonstarted").eq(4).find("[data-cy=reps-value]").should("have.text", 3);
-    g("set-nonstarted").eq(4).find("[data-cy=weight-value]").should("have.text", 80);
+    g("set-nonstarted").should("have.length", 6);
+    g("set-nonstarted").eq(1).find("[data-cy=reps-value]").should("have.text", 3);
+    g("set-nonstarted").eq(1).find("[data-cy=weight-value]").should("have.text", 80);
+    g("set-nonstarted").eq(5).find("[data-cy=reps-value]").should("have.text", 3);
+    g("set-nonstarted").eq(5).find("[data-cy=weight-value]").should("have.text", 80);
   });
 });

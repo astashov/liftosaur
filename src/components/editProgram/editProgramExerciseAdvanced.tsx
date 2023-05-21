@@ -285,9 +285,29 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           )}
         </div>
       ) : (
-        <div className="p-8 text-2xl font-bold text-center text-gray-600">
-          {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name} exercise logic is used
-        </div>
+        <>
+          <div className="p-8 text-2xl font-bold text-center text-gray-600">
+            {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name} exercise logic is used
+          </div>
+          <div>
+            <EditProgramWarmupSets
+              programExercise={programExercise}
+              settings={props.settings}
+              onAddWarmupSet={(warmupSets) => {
+                EditProgram.addWarmupSet(props.dispatch, warmupSets);
+              }}
+              onRemoveWarmupSet={(warmupSets, index) => {
+                EditProgram.removeWarmupSet(props.dispatch, warmupSets, index);
+              }}
+              onUpdateWarmupSet={(warmupSets, index, newWarmupSet) => {
+                EditProgram.updateWarmupSet(props.dispatch, warmupSets, index, newWarmupSet);
+              }}
+              onSetDefaultWarmupSets={(exercise) => {
+                EditProgram.setDefaultWarmupSets(props.dispatch, exercise, props.settings.units);
+              }}
+            />
+          </div>
+        </>
       )}
       <div className="p-2 mb-8 text-center">
         <Button

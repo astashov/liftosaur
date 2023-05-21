@@ -137,7 +137,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         />
       </div>
 
-      {!programExercise.reuseLogic?.selected && (
+      {!programExercise.reuseLogic?.selected ? (
         <>
           {programExercise.variations.map((_, variationIndex) => {
             return (
@@ -243,6 +243,26 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             }}
           />
         </>
+      ) : (
+        <EditProgramWarmupSets
+          programExercise={programExercise}
+          settings={props.settings}
+          onAddWarmupSet={(warmupSets) => {
+            props.dispatch(EditProgramLenses.addWarmupSet(lbe, warmupSets));
+          }}
+          onRemoveWarmupSet={(warmupSets, index) => {
+            props.dispatch(EditProgramLenses.removeWarmupSet(lbe, warmupSets, index));
+          }}
+          onUpdateWarmupSet={(warmupSets, index, newWarmupSet) => {
+            props.dispatch(EditProgramLenses.updateWarmupSet(lbe, warmupSets, index, newWarmupSet));
+          }}
+          onSetDefaultWarmupSets={(ex) => {
+            props.dispatch(
+              EditProgramLenses.setDefaultWarmupSets(lbe, ex, props.settings.units),
+              "setDefaultWarmupSets"
+            );
+          }}
+        />
       )}
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}

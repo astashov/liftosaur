@@ -99,7 +99,7 @@ export namespace ProgramExercise {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
   ): IProgramExerciseWarmupSet[] | undefined {
-    return getProgramExercise(programExercise, allProgramExercises).warmupSets;
+    return programExercise.warmupSets;
   }
 
   export function getReusedProgramExercise<T>(
