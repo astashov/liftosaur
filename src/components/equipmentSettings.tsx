@@ -5,7 +5,6 @@ import { ISettings, IEquipmentData, IEquipment } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
-import { StringUtils } from "../utils/string";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { ModalPlates } from "./modalPlates";

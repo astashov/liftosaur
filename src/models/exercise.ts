@@ -52,6 +52,11 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Battle Ropes",
     defaultEquipment: "bodyweight",
   },
+  behindTheNeckPress: {
+    id: "behindTheNeckPress",
+    name: "Behind The Neck Press",
+    defaultEquipment: "barbell",
+  },
   benchDip: {
     id: "benchDip",
     name: "Bench Dip",
@@ -1063,6 +1068,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
         "Trapezius Lower Fibers",
         "Trapezius Middle Fibers",
       ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  behindTheNeckPress: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior", "Deltoid Lateral", "Deltoid Posterior"],
+      synergistMuscles: ["Triceps Brachii"],
       bodyParts: ["Shoulders"],
     },
   },

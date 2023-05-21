@@ -1,6 +1,5 @@
 import { CollectionUtils } from "../utils/collection";
 
-import { equipmentToBarKey } from "./exercise";
 import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
