@@ -735,7 +735,9 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       if (productId && token) {
         const purchaseToken = JSON.stringify({ productId, token });
-        if (await Subscriptions.verifyGooglePurchaseToken(env.service, purchaseToken)) {
+        const state = getState();
+        const userId = state.user?.id || state.storage.tempUserId;
+        if (await Subscriptions.verifyGooglePurchaseToken(env.service, userId, purchaseToken)) {
           dispatch(log("ls-set-google-purchase-token"));
           Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
           if (Screen.current(getState().screenStack) === "subscription") {
