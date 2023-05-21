@@ -386,6 +386,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
   },
+  inclineBenchPressWideGrip: {
+    id: "inclineBenchPressWideGrip",
+    name: "Incline Bench Press Wide Grip",
+    defaultWarmup: 45,
+    defaultEquipment: "barbell",
+  },
   inclineChestFly: {
     id: "inclineChestFly",
     name: "Incline Chest Fly",
@@ -505,6 +511,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Lateral Raise",
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
+  },
+  legsUpBenchPress: {
+    id: "legsUpBenchPress",
+    name: "Legs Up Bench Press",
+    defaultWarmup: 45,
+    defaultEquipment: "barbell",
   },
   legCurl: {
     id: "legCurl",
@@ -704,6 +716,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
   },
+  safetySquatBarSquat: {
+    id: "safetySquatBarSquat",
+    name: "Safety Squat Bar Squat",
+    defaultWarmup: 45,
+    defaultEquipment: "barbell",
+  },
   seatedCalfRaise: {
     id: "seatedCalfRaise",
     name: "Seated Calf Raise",
@@ -841,6 +859,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Skullcrusher",
     defaultWarmup: 10,
     defaultEquipment: "ezbar",
+  },
+  slingShotBenchPress: {
+    id: "slingShotBenchPress",
+    name: "Sling Shot Bench Press",
+    defaultWarmup: 45,
+    defaultEquipment: "barbell",
   },
   snatch: {
     id: "snatch",
@@ -1909,6 +1933,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Chest"],
     },
   },
+  inclineBenchPressWideGrip: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Clavicular Head"],
+      synergistMuscles: ["Deltoid Anterior", "Triceps Brachii"],
+      bodyParts: ["Chest"],
+    },
+  },
   inclineChestFly: {
     cable: {
       targetMuscles: ["Pectoralis Major Clavicular Head"],
@@ -2109,6 +2140,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Deltoid Lateral"],
       synergistMuscles: ["Deltoid Anterior", "Serratus Anterior"],
       bodyParts: ["Shoulders"],
+    },
+  },
+  legsUpBenchPress: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Deltoid Anterior", "Pectoralis Major Clavicular Head", "Triceps Brachii"],
+      bodyParts: ["Chest"],
     },
   },
   legCurl: {
@@ -2562,6 +2600,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Waist"],
     },
   },
+  safetySquatBarSquat: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+      synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
   seatedCalfRaise: {
     barbell: {
       targetMuscles: ["Gastrocnemius"],
@@ -2883,6 +2928,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Rectus Abdominis"],
       synergistMuscles: ["Obliques"],
       bodyParts: ["Waist"],
+    },
+  },
+  slingShotBenchPress: {
+    barbell: {
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Triceps Brachii"],
+      bodyParts: ["Chest"],
     },
   },
   skullcrusher: {
