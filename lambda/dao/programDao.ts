@@ -28,8 +28,11 @@ export class ProgramDao {
     return CollectionUtils.sortInOrder(programs, "id", [
       "basicBeginner",
       "drswoleullowvolume",
-      "the5314b",
       "gzclp",
+      "jackedtan2",
+      "therippler",
+      "gzcluhf9",
+      "the5314b",
       "dbPpl",
       "ss1",
       "ss2",
