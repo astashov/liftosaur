@@ -188,7 +188,7 @@ export namespace Progress {
     if (timer != null && Subscriptions.hasSubscription(subscription)) {
       const title = "It's time for the next set!";
       let subtitle = "";
-      let body = "";
+      let body = "The rest is over, time to lift!";
       let subtitleHeader = "";
       let bodyHeader = "";
       const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex);
