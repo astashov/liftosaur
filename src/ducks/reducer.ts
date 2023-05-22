@@ -233,10 +233,6 @@ export type IStartTimer = {
   setIndex: number;
 };
 
-export type IStopTimer = {
-  type: "StopTimer";
-};
-
 export type ICreateProgramAction = {
   type: "CreateProgramAction";
   name: string;
@@ -277,7 +273,6 @@ export type IAction =
   | ILoginAction
   | ILogoutAction
   | IStartTimer
-  | IStopTimer
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
@@ -423,6 +418,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     } else {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
       const program = state.storage.programs[programIndex];
+      Progress.stopTimer(progress);
       const historyRecord = History.finishProgramDay(program, progress);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
@@ -518,8 +514,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     } else {
       return state;
     }
-  } else if (action.type === "StopTimer") {
-    return Progress.setProgress(state, Progress.stopTimer(Progress.getProgress(state)!));
   } else if (action.type === "UpdateSettings") {
     return {
       ...state,

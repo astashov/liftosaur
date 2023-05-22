@@ -165,6 +165,15 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     props.entryIndex,
                     props.setIndex
                   );
+                  if (props.programExercise?.quickAddSets && !props.isWarmup) {
+                    props.dispatch({
+                      type: "StartTimer",
+                      timestamp: new Date().getTime(),
+                      mode: "workout",
+                      entryIndex: props.entryIndex,
+                      setIndex: props.setIndex || 0,
+                    });
+                  }
                 } else {
                   EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
                 }
