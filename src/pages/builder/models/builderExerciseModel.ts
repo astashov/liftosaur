@@ -35,7 +35,9 @@ export class BuilderExerciseModel {
 
     for (const set of exercise.sets) {
       let completedRepsForWeight;
-      if (set.weightPercentage > 95) {
+      if (set.weightPercentage > 98) {
+        completedRepsForWeight = 100 - set.weightPercentage + 4; // 95/15,99/3
+      } else if (set.weightPercentage > 95) {
         completedRepsForWeight = 300 - 3 * set.weightPercentage; // 95/15,99/3
       } else if (set.weightPercentage > 85) {
         completedRepsForWeight = 442 - 4.5 * set.weightPercentage; // 85/60,95/15

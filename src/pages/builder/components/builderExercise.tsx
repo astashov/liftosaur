@@ -165,6 +165,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
               data-help-offset-y="-30"
             >
               <BuilderExerciseSets
+                onerm={props.exercise.onerm}
                 exerciseIndex={props.index}
                 dayIndex={props.dayIndex}
                 weekIndex={props.weekIndex}

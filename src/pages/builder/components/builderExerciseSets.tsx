@@ -6,8 +6,12 @@ import { IconTrash } from "../../../components/icons/iconTrash";
 import { lb, LensBuilder } from "lens-shmens";
 import { CollectionUtils } from "../../../utils/collection";
 import { BuilderInlineInput } from "./builderInlineInput";
+import { Weight } from "../../../models/weight";
+import { IWeight } from "../../../types";
+import { Settings } from "../../../models/settings";
 
 interface IBuilderExerciseSetsProps {
+  onerm: IWeight;
   sets: IBuilderSet[];
   exerciseIndex: number;
   dayIndex: number;
@@ -29,7 +33,7 @@ export function BuilderExerciseSets(props: IBuilderExerciseSetsProps): JSX.Eleme
     <div className="flex flex-wrap">
       {props.sets.map((set, index) => (
         <div className="relative pb-8">
-          <BuilderExerciseSet index={index} lbe={lbe} set={set} dispatch={props.dispatch} />
+          <BuilderExerciseSet onerm={props.onerm} index={index} lbe={lbe} set={set} dispatch={props.dispatch} />
           {props.sets.length > 1 && (
             <button
               className="absolute bottom-0 p-2"
@@ -68,6 +72,7 @@ export function BuilderExerciseSets(props: IBuilderExerciseSetsProps): JSX.Eleme
 }
 
 interface IBuilderExerciseSetProps {
+  onerm: IWeight;
   set: IBuilderSet;
   index: number;
   lbe: LensBuilder<IBuilderState, IBuilderExercise, {}>;
@@ -93,11 +98,17 @@ function BuilderExerciseSet(props: IBuilderExerciseSetProps): JSX.Element {
             }}
           />
         </div>
-        <div className="pt-2">
+        <div className="relative pt-2">
+          <div
+            className="absolute w-full text-center text-grayv2-400"
+            style={{ top: "3px", left: 0, fontSize: "0.65rem" }}
+          >
+            {Weight.roundConvertTo(Weight.multiply(props.onerm, set.weightPercentage / 100), Settings.build()).value}
+          </div>
           <BuilderInlineInput
             type="tel"
             value={set.weightPercentage}
-            className="text-sm font-bold text-center text-grayv2-main"
+            className="mt-1 text-sm font-bold text-center text-grayv2-main"
             maxLength={4}
             minWidth={1}
             onInputFloat={(weightPercentage) => {
