@@ -39,6 +39,7 @@ import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   client: Window["fetch"];
@@ -93,6 +94,12 @@ export function AppView(props: IProps): JSX.Element | null {
     },
   ]);
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
+
+  useEffect(() => {
+    SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
+    SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
+    console.log("always on", !!state.storage.settings.alwaysOnDisplay);
+  }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
     dispatch(Thunk.fetchStorage());

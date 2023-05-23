@@ -750,6 +750,7 @@ export const TSettings = t.intersection(
     t.partial({
       isPublicProfile: t.boolean,
       nickname: t.string,
+      alwaysOnDisplay: t.boolean,
     }),
   ],
   "TSettings"

@@ -24,6 +24,7 @@ import { WebpushrButton } from "./webpushrButton";
 import { Features } from "../utils/features";
 import { StringUtils } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   dispatch: IDispatch;
@@ -187,6 +188,22 @@ export function ScreenSettings(props: IProps): JSX.Element {
           }}
         />
         <WebpushrButton />
+        {(SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
+          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13 && (
+            <MenuItemEditable
+              type="boolean"
+              name="Always On Display"
+              value={props.settings.alwaysOnDisplay ? "true" : "false"}
+              onChange={(newValue) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("alwaysOnDisplay")
+                    .record(newValue === "true"),
+                });
+              }}
+            />
+          ))}
         {props.user && Features.areFriendsEnabled() && (
           <>
             <GroupHeader topPadding={true} name="Friends" />
