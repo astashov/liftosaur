@@ -188,22 +188,22 @@ export function ScreenSettings(props: IProps): JSX.Element {
           }}
         />
         <WebpushrButton />
-        {(SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
-          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13 && (
-            <MenuItemEditable
-              type="boolean"
-              name="Always On Display"
-              value={props.settings.alwaysOnDisplay ? "true" : "false"}
-              onChange={(newValue) => {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>()
-                    .p("alwaysOnDisplay")
-                    .record(newValue === "true"),
-                });
-              }}
-            />
-          ))}
+        {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
+          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13)) && (
+          <MenuItemEditable
+            type="boolean"
+            name="Always On Display"
+            value={props.settings.alwaysOnDisplay ? "true" : "false"}
+            onChange={(newValue) => {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>()
+                  .p("alwaysOnDisplay")
+                  .record(newValue === "true"),
+              });
+            }}
+          />
+        )}
         {props.user && Features.areFriendsEnabled() && (
           <>
             <GroupHeader topPadding={true} name="Friends" />
