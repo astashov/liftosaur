@@ -368,6 +368,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230524": {
+    title: <span>Added "Always On Display" in Settings</span>,
+    body: (
+      <ul>
+        <li>
+          If you want to keep your screen always on during the workouts, you can enable it in Settings. You need to
+          update the app for that though.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
