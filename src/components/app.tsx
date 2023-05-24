@@ -98,7 +98,6 @@ export function AppView(props: IProps): JSX.Element | null {
   useEffect(() => {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
-    console.log("always on", !!state.storage.settings.alwaysOnDisplay);
   }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
