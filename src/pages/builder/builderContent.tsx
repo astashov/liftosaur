@@ -87,7 +87,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
   const modalSettings = state.ui.modalSettings;
 
   return (
-    <section>
+    <section className="px-4">
       <div className="flex items-center">
         <h1 className="flex-1 text-2xl font-bold">Weightlifting Program Planner</h1>
         <div className="flex items-center">
