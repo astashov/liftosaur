@@ -2489,6 +2489,11 @@
   dependencies:
     "@types/estree" "*"
 
+"@types/upng-js@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@types/upng-js/-/upng-js-2.1.2.tgz#4680f700c3003eaf958b92418c6e19521bb1e034"
+  integrity sha512-sxCnLDEmGFDcnrdSMml3/mDSbfSAvt86Ld32J6Ac75Og7GzzmwHbUnJNTue74tfQC/3PPD/W0jG2dQuF9v6UOg==
+
 "@types/ws@^8.5.1":
   version "8.5.4"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.4.tgz#bb10e36116d6e570dd943735f86c933c1587b8a5"
@@ -11583,6 +11588,13 @@ uplot@^1.6.23:
   version "1.6.23"
   resolved "https://registry.yarnpkg.com/uplot/-/uplot-1.6.23.tgz#3fdc341d9806cc15e95618a8d0f4ddfffa9c4ce7"
   integrity sha512-zERH8HUbHE6kYyAqfP58SYuESp9M5jphSrMjsyckAM0DJ8C39SEI19YrpVvTCTLZB5joFUBPOwueRnJCdV2OdQ==
+
+upng-js@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/upng-js/-/upng-js-2.1.0.tgz#7176e73973db361ca95d0fa14f958385db6b9dd2"
+  integrity sha512-d3xzZzpMP64YkjP5pr8gNyvBt7dLk/uGI67EctzDuVp4lCZyVMo0aJO6l/VDlgbInJYDY6cnClLoBp29eKWI6g==
+  dependencies:
+    pako "^1.0.5"
 
 uri-js@^4.2.2:
   version "4.2.2"

@@ -13,6 +13,27 @@ export class S3Util {
     return this._s3;
   }
 
+  public async listObjects(args: { bucket: string; prefix: string }): Promise<string[] | undefined> {
+    const startTime = Date.now();
+    let result: string[] = [];
+    let nextPageAvailable = true;
+    let nextMarker: AWS.S3.Marker | undefined = undefined;
+    while (nextPageAvailable) {
+      const response: AWS.S3.ListObjectsOutput = await this.s3
+        .listObjects({ Bucket: args.bucket, Prefix: args.prefix, Marker: nextMarker })
+        .promise();
+      result = result.concat(response.Contents?.map((c) => c.Key!) ?? []);
+      nextMarker = response.NextMarker;
+      nextPageAvailable = !!response.NextMarker ?? false;
+    }
+    this.log.log(
+      "S3 list objects:",
+      `${args.bucket}/${args.prefix} - ${result.length}`,
+      ` - ${Date.now() - startTime}ms`
+    );
+    return result;
+  }
+
   public async getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined> {
     const startTime = Date.now();
     let result: AWS.S3.GetObjectOutput["Body"] | undefined;
@@ -29,9 +50,25 @@ export class S3Util {
     return result;
   }
 
-  public async putObject(args: { bucket: string; key: string; body: AWS.S3.PutObjectRequest["Body"] }): Promise<void> {
+  public async putObject(args: {
+    bucket: string;
+    key: string;
+    body: AWS.S3.PutObjectRequest["Body"];
+    opts?: {
+      acl?: AWS.S3.ObjectCannedACL;
+      contentType?: AWS.S3.ContentType;
+    };
+  }): Promise<void> {
     const startTime = Date.now();
-    await this.s3.putObject({ Bucket: args.bucket, Key: args.key, Body: args.body }).promise();
+    await this.s3
+      .putObject({
+        Bucket: args.bucket,
+        Key: args.key,
+        Body: args.body,
+        ACL: args.opts?.acl,
+        ContentType: args.opts?.contentType,
+      })
+      .promise();
     this.log.log("S3 put:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
   }
 }
