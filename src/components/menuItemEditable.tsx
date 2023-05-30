@@ -4,6 +4,7 @@ import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
+import { SendMessage } from "../utils/sendMessage";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
 
@@ -182,7 +183,7 @@ export function MenuItemValue(
           data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
           key={props.value}
           onBlur={handleChange(props.onChange, props.setPatternError)}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           step="0.01"
           onFocus={(e) => {
             const target = e.target;
