@@ -2,6 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { useCallback } from "preact/hooks";
 import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
+import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
 import { IFriendUser } from "../models/state";
 import { ISet, IHistoryRecord, ISettings, IHistoryEntry, IProgressMode, IProgramExercise, IEquipment } from "../types";
@@ -33,6 +34,9 @@ interface IExerciseSetsProps {
 export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
   const { isEditMode, warmupSets, friend } = props;
   const isCurrentProgress = Progress.isCurrent(props.progress);
+  const quickAddSets = props.programExercise
+    ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
+    : false;
 
   return (
     <>
@@ -169,9 +173,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
           </div>
         );
       })}
-      {(isEditMode ||
-        (Progress.isCurrent(props.progress) && !props.programExercise) ||
-        props.programExercise?.quickAddSets) &&
+      {(isEditMode || (Progress.isCurrent(props.progress) && !props.programExercise) || quickAddSets) &&
         props.onStartSetChanging && (
           <button
             data-cy="add-set"
@@ -180,7 +182,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 false,
                 props.index,
                 undefined,
-                props.programExercise?.quickAddSets ? props.programExercise : undefined,
+                quickAddSets ? props.programExercise : undefined,
                 props.entry.exercise.equipment
               )
             }

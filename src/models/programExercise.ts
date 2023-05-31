@@ -95,6 +95,10 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).timerExpr;
   }
 
+  export function getQuickAddSets(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): boolean {
+    return !!getProgramExercise(programExercise, allProgramExercises).quickAddSets;
+  }
+
   export function getWarmupSets(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]

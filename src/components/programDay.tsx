@@ -191,6 +191,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               settings={props.settings}
               equipment={progress.ui?.editSetModal?.equipment}
               programExercise={progress.ui?.editSetModal?.programExercise}
+              allProgramExercises={props.program?.exercises}
               set={getEditSetData(props.progress)}
               isWarmup={progress.ui?.editSetModal?.isWarmup || false}
               entryIndex={progress.ui?.editSetModal?.entryIndex || 0}

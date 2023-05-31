@@ -10,6 +10,7 @@ import { IconQuestion } from "./icons/iconQuestion";
 import { ISet, IProgramExercise, ISubscription, IEquipment, ISettings } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
+import { ProgramExercise } from "../models/programExercise";
 
 interface IModalWeightProps {
   subscription: ISubscription;
@@ -19,6 +20,7 @@ interface IModalWeightProps {
   progressId: number;
   equipment?: IEquipment;
   programExercise?: IProgramExercise;
+  allProgramExercises?: IProgramExercise[];
   entryIndex: number;
   setIndex?: number;
   set?: ISet;
@@ -47,6 +49,9 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const weightInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
   const initialWeight = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
+  const quickAddSets = props.programExercise
+    ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
+    : false;
 
   const [platesStr, setPlatesStr] = useState<string | undefined>(
     props.set ? getPlatesStr(props.subscription, initialWeight || 0, props.settings, props.equipment) : undefined
@@ -61,7 +66,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
       }}
     >
       <GroupHeader size="large" name="Please enter reps and weight" />
-      {!props.programExercise?.quickAddSets && (
+      {!quickAddSets && (
         <h4 className="mb-2 text-xs text-grayv2-main">
           It changes reps and weight <strong>only for this workout!</strong> If you want to change them for this and the
           future workouts, make changes <strong>in the program</strong>.
@@ -154,8 +159,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     reps,
                     weight: Weight.build(w, props.settings.units),
                     isAmrap,
-                    completedReps:
-                      props.programExercise != null && props.programExercise.quickAddSets ? reps : undefined,
+                    completedReps: props.programExercise != null && quickAddSets ? reps : undefined,
                   };
                   EditProgressEntry.editSet(
                     props.dispatch,
@@ -165,7 +169,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     props.entryIndex,
                     props.setIndex
                   );
-                  if (props.programExercise?.quickAddSets && !props.isWarmup) {
+                  if (quickAddSets && !props.isWarmup) {
                     props.dispatch({
                       type: "StartTimer",
                       timestamp: new Date().getTime(),
