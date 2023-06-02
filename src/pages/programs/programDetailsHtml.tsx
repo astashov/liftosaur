@@ -25,6 +25,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       ogDescription={`What days and exercises the program '${program.name}' consists of`}
       ogUrl={`https://www.liftosaur.com/programs/${program.id}`}
       ogImage={`https://www.liftosaur.com/programimage/${program.id}`}
+      maxWidth={1020}
       data={data}
       postHead={
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />

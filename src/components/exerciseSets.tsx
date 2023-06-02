@@ -13,6 +13,7 @@ interface IExerciseSetsProps {
   isEditMode: boolean;
   warmupSets: ISet[];
   index: number;
+  size?: "small" | "medium";
   progress: IHistoryRecord;
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
@@ -44,11 +45,20 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
         <Fragment>
           {warmupSets.map((set, i) => {
             return (
-              <div data-cy="warmup-set">
+              <div
+                data-cy="warmup-set"
+                style={{
+                  marginTop: "-0.7rem",
+                  marginBottom: "-0.7rem",
+                }}
+              >
                 <div
                   data-cy="warmup-set-title"
-                  className="text-grayv2-main"
-                  style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
+                  className="leading-none text-grayv2-main"
+                  style={{
+                    fontSize: props.size === "small" ? "9px" : "10px",
+                    marginBottom: "2px",
+                  }}
                 >
                   Warmup
                 </div>
@@ -59,6 +69,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                     }
                     settings={props.settings}
                     exercise={props.entry.exercise}
+                    size={props.size}
                     isCurrent={!!isCurrentProgress}
                     set={set}
                     isEditMode={isEditMode}
@@ -81,7 +92,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                           }
                         }
                       },
-                      [!!friend, isEditMode, props.index, props.entry]
+                      [!!friend, isEditMode, props.index, props.entry, props.dispatch]
                     )}
                   />
                   {isEditMode && (
@@ -120,7 +131,10 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               </button>
             </div>
           )}
-          <div style={{ width: "1px" }} className="h-12 my-2 mr-3 bg-grayv2-400"></div>
+          <div
+            style={{ width: "1px" }}
+            className={`${props.size === "small" ? "h-8 mt-1 mr-1" : "h-12 my-2 mr-3"} bg-grayv2-400`}
+          ></div>
         </Fragment>
       )}
       {props.entry.sets.map((set, i) => {
@@ -134,6 +148,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 i === 0 &&
                 Progress.isFullyEmptySet(props.progress)
               }
+              size={props.size}
               exercise={props.entry.exercise}
               settings={props.settings}
               set={set}

@@ -251,12 +251,18 @@ export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
 };
 
+export type IUpdateProgressAction = {
+  type: "UpdateProgress";
+  lensRecordings: ILensRecordingPayload<IHistoryRecord>[];
+};
+
 export type ICardsAction =
   | IChangeRepsAction
   | IChangeWeightAction
   | IChangeAMRAPAction
   | IConfirmWeightAction
-  | IConfirmUserPromptedStateVarsAction;
+  | IConfirmUserPromptedStateVarsAction
+  | IUpdateProgressAction;
 
 export type IAction =
   | ICardsAction
@@ -360,6 +366,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
       }
       case "ConfirmUserPromptedStateVars": {
         return Progress.updateUserPromptedStateVars(progress, action.programExerciseId, action.userPromptedStateVars);
+      }
+      case "UpdateProgress": {
+        return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
       }
     }
   };

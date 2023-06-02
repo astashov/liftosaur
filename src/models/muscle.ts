@@ -194,48 +194,40 @@ export namespace Muscle {
     const historyEntry = Program.programExerciseToHistoryEntry(programExercise, allProgramExercises, day, settings);
     const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
     const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
+    const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
+    const screenSynergistMuscles = Array.from(
+      new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
+    );
     for (const set of historyEntry.sets) {
       if (set.reps >= 8) {
-        for (const targetMuscle of targetMuscles) {
-          const muscles = muscleToScreenMuscleMapping[targetMuscle] || [];
-          for (const muscle of muscles) {
-            screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
-            screenMusclePoints.hypertrophy[muscle]! += 100;
-            exercisePoints.hypertrophy[id] = exercisePoints.hypertrophy[id] || {};
-            exercisePoints.hypertrophy[id]![muscle] = exercisePoints.hypertrophy[id]![muscle] || 0;
-            exercisePoints.hypertrophy[id]![muscle]! += 100;
-          }
+        for (const muscle of screenTargetMuscles) {
+          screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
+          screenMusclePoints.hypertrophy[muscle]! += 100;
+          exercisePoints.hypertrophy[id] = exercisePoints.hypertrophy[id] || {};
+          exercisePoints.hypertrophy[id]![muscle] = exercisePoints.hypertrophy[id]![muscle] || 0;
+          exercisePoints.hypertrophy[id]![muscle]! += 100;
         }
-        for (const synergistMuscle of synergistMuscles) {
-          const muscles = muscleToScreenMuscleMapping[synergistMuscle] || [];
-          for (const muscle of muscles) {
-            screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
-            screenMusclePoints.hypertrophy[muscle]! += 30;
-            exercisePoints.hypertrophy[id] = exercisePoints.hypertrophy[id] || {};
-            exercisePoints.hypertrophy[id]![muscle] = exercisePoints.hypertrophy[id]![muscle] || 0;
-            exercisePoints.hypertrophy[id]![muscle]! += 30;
-          }
+        for (const muscle of screenSynergistMuscles) {
+          screenMusclePoints.hypertrophy[muscle] = screenMusclePoints.hypertrophy[muscle] || 0;
+          screenMusclePoints.hypertrophy[muscle]! += 30;
+          exercisePoints.hypertrophy[id] = exercisePoints.hypertrophy[id] || {};
+          exercisePoints.hypertrophy[id]![muscle] = exercisePoints.hypertrophy[id]![muscle] || 0;
+          exercisePoints.hypertrophy[id]![muscle]! += 30;
         }
       } else {
-        for (const targetMuscle of targetMuscles) {
-          const muscles = muscleToScreenMuscleMapping[targetMuscle] || [];
-          for (const muscle of muscles) {
-            screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
-            screenMusclePoints.strength[muscle]! += 100;
-            exercisePoints.strength[id] = exercisePoints.strength[id] || {};
-            exercisePoints.strength[id]![muscle] = exercisePoints.strength[id]![muscle] || 0;
-            exercisePoints.strength[id]![muscle]! += 100;
-          }
+        for (const muscle of screenTargetMuscles) {
+          screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
+          screenMusclePoints.strength[muscle]! += 100;
+          exercisePoints.strength[id] = exercisePoints.strength[id] || {};
+          exercisePoints.strength[id]![muscle] = exercisePoints.strength[id]![muscle] || 0;
+          exercisePoints.strength[id]![muscle]! += 100;
         }
-        for (const synergistMuscle of synergistMuscles) {
-          const muscles = muscleToScreenMuscleMapping[synergistMuscle] || [];
-          for (const muscle of muscles) {
-            screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
-            screenMusclePoints.strength[muscle]! += 30;
-            exercisePoints.strength[id] = exercisePoints.strength[id] || {};
-            exercisePoints.strength[id]![muscle] = exercisePoints.strength[id]![muscle] || 0;
-            exercisePoints.strength[id]![muscle]! += 30;
-          }
+        for (const muscle of screenSynergistMuscles) {
+          screenMusclePoints.strength[muscle] = screenMusclePoints.strength[muscle] || 0;
+          screenMusclePoints.strength[muscle]! += 30;
+          exercisePoints.strength[id] = exercisePoints.strength[id] || {};
+          exercisePoints.strength[id]![muscle] = exercisePoints.strength[id]![muscle] || 0;
+          exercisePoints.strength[id]![muscle]! += 30;
         }
       }
     }

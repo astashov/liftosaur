@@ -7,7 +7,6 @@ import { Reps } from "../models/set";
 import { CollectionUtils } from "../utils/collection";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { memo } from "preact/compat";
-import { ComparerUtils } from "../utils/comparer";
 import {
   IHistoryEntry,
   ISettings,
@@ -107,38 +106,40 @@ function getBgColor200(entry: IHistoryEntry): string {
   }
 }
 
-export const ExerciseView = memo((props: IProps): JSX.Element => {
-  const { entry } = props;
-  const color = getColor(entry);
-  const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
-  let dataCy;
-  if (color === "green") {
-    dataCy = "exercise-completed";
-  } else if (color === "red") {
-    dataCy = "exercise-finished";
-  } else {
-    dataCy = "exercise-progress";
-  }
+export const ExerciseView = memo(
+  (props: IProps): JSX.Element => {
+    const { entry } = props;
+    const color = getColor(entry);
+    const className = `px-4 pt-4 pb-2 mb-2 rounded-lg ${getBgColor100(entry)}`;
+    let dataCy;
+    if (color === "green") {
+      dataCy = "exercise-completed";
+    } else if (color === "red") {
+      dataCy = "exercise-finished";
+    } else {
+      dataCy = "exercise-progress";
+    }
 
-  return (
-    <Fragment>
-      <section data-cy={dataCy} className={className}>
-        <ExerciseContentView {...props} />
-        {props.programExercise && props.allProgramExercises && (
-          <ProgressStateChanges
-            entry={props.entry}
-            forceShow={props.forceShowStateChanges}
-            settings={props.settings}
-            day={props.day}
-            state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
-            userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
-            script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
-          />
-        )}
-      </section>
-    </Fragment>
-  );
-}, ComparerUtils.noFns);
+    return (
+      <Fragment>
+        <section data-cy={dataCy} className={className}>
+          <ExerciseContentView {...props} />
+          {props.programExercise && props.allProgramExercises && (
+            <ProgressStateChanges
+              entry={props.entry}
+              forceShow={props.forceShowStateChanges}
+              settings={props.settings}
+              day={props.day}
+              state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
+              userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
+              script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
+            />
+          )}
+        </section>
+      </Fragment>
+    );
+  }
+);
 
 const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {

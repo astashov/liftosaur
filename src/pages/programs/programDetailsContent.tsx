@@ -11,6 +11,7 @@ import { ProgramDetails } from "./programDetails/programDetails";
 import { IProgramDetailsState } from "./programDetails/types";
 import { ProgramDetailsSettings } from "./programDetails/programDetailsSettings";
 import { ProgramDetailsMusclesModal } from "./programDetails/programDetailsMusclesModal";
+import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGoldenSix";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -31,6 +32,18 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   };
   const [state, dispatch] = useLensReducer(initialState, { audio: props.audio, service });
   const program = state.programs.filter((p) => p.id === state.selectedProgramId)[0] || state.programs[0];
+
+  if (props.selectedProgramId === "arnoldgoldensix") {
+    return (
+      <ProgramDetailsArnoldGoldenSix
+        program={program}
+        client={props.client}
+        audio={props.audio}
+        settings={initialState.settings}
+      />
+    );
+  }
+
   if (typeof window !== "undefined" && window.history) {
     window.history.replaceState({}, `Liftosaur: Program Details - ${program.name}`, `/programs/${program.id}`);
   }
