@@ -7,6 +7,7 @@ import { LinkButton } from "../linkButton";
 import { Weight } from "../../models/weight";
 import { inputClassName, selectInputOnFocus } from "../input";
 import { IconTrash } from "../icons/iconTrash";
+import { SendMessage } from "../../utils/sendMessage";
 
 interface IEditProgramWarmupSetsProps {
   programExercise: IProgramExercise;
@@ -130,7 +131,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
           ref={valueRef}
           onFocus={selectInputOnFocus}
           className={inputClassName.replace(" px-4 ", " px-2 ")}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           value={isPercent ? weightValue * 100 : weightValue}
           onBlur={onUpdate}
@@ -155,7 +156,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
           onBlur={onUpdate}
           ref={thresholdRef}
           className={inputClassName.replace(" px-4 ", " px-2 ")}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           value={threshold.value}
         />
       </div>

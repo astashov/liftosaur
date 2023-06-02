@@ -18,6 +18,7 @@ import { Footer2View } from "./footer2";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   dispatch: IDispatch;
@@ -328,7 +329,7 @@ const StatInput = memo(
           defaultValue={props.value}
           ref={ref}
           className="w-full"
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           placeholder="e.g. 10"
           min="0"
           step="0.01"

@@ -5,6 +5,7 @@ import { Modal } from "./modal";
 import { IEquipment, IUnit } from "../types";
 import { StringUtils } from "../utils/string";
 import { GroupHeader } from "./groupHeader";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   units: IUnit;
@@ -27,7 +28,7 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
         <input
           ref={textInput}
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           placeholder={`${StringUtils.capitalize(props.equipment)} weight in ${props.units}`}
         />

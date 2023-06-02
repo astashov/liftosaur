@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { IDeload, IProgression, Progression } from "../../models/progression";
 import { ISettings, IUnit } from "../../types";
 import { ReactUtils } from "../../utils/react";
+import { SendMessage } from "../../utils/sendMessage";
 import { IconArrowUpCircle } from "../icons/iconArrowUpCircle";
 import { selectInputOnFocus } from "../input";
 import { MenuItemWrapper } from "../menuItem";
@@ -62,7 +63,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
               ref={progressionIncrementRef}
               className={inputClassName}
               onFocus={selectInputOnFocus}
-              type="tel"
+              type={SendMessage.isIos() ? "number" : "tel"}
               value={progression.increment}
               onBlur={() => {
                 let value: number | undefined = parseFloat(progressionIncrementRef.current.value);
@@ -127,7 +128,7 @@ export function EditProgramExerciseSimpleProgression(props: IEditProgramExercise
             <input
               ref={deloadDecrementsRef}
               className={inputClassName}
-              type="tel"
+              type={SendMessage.isIos() ? "number" : "tel"}
               onFocus={selectInputOnFocus}
               value={deload.decrement}
               onBlur={() => {

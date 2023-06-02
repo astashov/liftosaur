@@ -9,6 +9,7 @@ import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { Input } from "./input";
 import { ProgramExercise } from "../models/programExercise";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IModalStateVarsUserPromptProps {
   dispatch: IDispatch;
@@ -74,7 +75,7 @@ export function ModalStateVarsUserPrompt(props: IModalStateVarsUserPromptProps):
                   label={label}
                   ref={textInput}
                   defaultValue={num}
-                  type="tel"
+                  type={SendMessage.isIos() ? "number" : "tel"}
                   autofocus={i === 0}
                 />
               </div>

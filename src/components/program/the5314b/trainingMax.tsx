@@ -11,6 +11,7 @@ import { Input } from "../../input";
 import { LinkButton } from "../../linkButton";
 import { StringUtils } from "../../../utils/string";
 import { ProgramExercise } from "../../../models/programExercise";
+import { SendMessage } from "../../../utils/sendMessage";
 
 interface IProps {
   program: IProgram;
@@ -157,7 +158,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
             data-cy="input-weight"
             ref={weightInput}
             className="w-full"
-            type="tel"
+            type={SendMessage.isIos() ? "number" : "tel"}
             min="0"
             onInput={() => calculate()}
             placeholder="0 lbs"

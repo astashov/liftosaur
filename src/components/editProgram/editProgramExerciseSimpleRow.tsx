@@ -3,6 +3,7 @@ import { useRef } from "preact/hooks";
 import { Program } from "../../models/program";
 import { ProgramExercise } from "../../models/programExercise";
 import { IProgramExercise, ISettings, IProgramSet } from "../../types";
+import { SendMessage } from "../../utils/sendMessage";
 import { Input } from "../input";
 
 interface IEditProgramExerciseSimpleRowProps {
@@ -109,7 +110,7 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
           data-cy="weight-input"
           max={2000}
           min={0}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           ref={weightRef}
           placeholder="0"
           value={weight.success ? weight.data.value : ""}

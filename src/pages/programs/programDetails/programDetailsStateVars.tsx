@@ -4,6 +4,7 @@ import { inputClassName } from "../../../components/input";
 import { Weight } from "../../../models/weight";
 import { IProgramState, ISettings, IWeight } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
+import { SendMessage } from "../../../utils/sendMessage";
 
 interface IStateVarsProps {
   id: string;
@@ -31,7 +32,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
           id={name}
           data-cy={`state-var-${key}-input`}
           name={name}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           value={val}
           onInput={(e) => {
             const newValStr = (e.target as HTMLInputElement).value;

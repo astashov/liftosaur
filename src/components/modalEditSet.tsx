@@ -11,6 +11,7 @@ import { ISet, IProgramExercise, ISubscription, IEquipment, ISettings } from "..
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
 import { ProgramExercise } from "../models/programExercise";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IModalWeightProps {
   subscription: ISubscription;
@@ -106,7 +107,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               // @ts-ignore
               defaultValue={initialWeight}
               required
-              type="tel"
+              type={SendMessage.isIos() ? "number" : "tel"}
               step="0.05"
               min="0"
               placeholder="Weight"
