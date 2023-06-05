@@ -12,6 +12,7 @@ import { IProgramDetailsState } from "./programDetails/types";
 import { ProgramDetailsSettings } from "./programDetails/programDetailsSettings";
 import { ProgramDetailsMusclesModal } from "./programDetails/programDetailsMusclesModal";
 import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGoldenSix";
+import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -36,6 +37,15 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   if (props.selectedProgramId === "arnoldgoldensix") {
     return (
       <ProgramDetailsArnoldGoldenSix
+        program={program}
+        client={props.client}
+        audio={props.audio}
+        settings={initialState.settings}
+      />
+    );
+  } else if (props.selectedProgramId === "gzcl-the-rippler") {
+    return (
+      <ProgramDetailsTheRippler
         program={program}
         client={props.client}
         audio={props.audio}

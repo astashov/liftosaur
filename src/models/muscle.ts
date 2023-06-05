@@ -122,6 +122,22 @@ export namespace Muscle {
     };
   }
 
+  export function combinePoints(points: IPoints): IPoints {
+    return {
+      screenMusclePoints: {
+        strength: ObjectUtils.keys(points.screenMusclePoints.strength).reduce<IScreenMusclePointsColl>((memo, key) => {
+          memo[key] = (memo[key] || 0) + points.screenMusclePoints.strength[key]!;
+          return memo;
+        }, {}),
+        hypertrophy: {},
+      },
+      exercisePoints: {
+        strength: {},
+        hypertrophy: {},
+      },
+    };
+  }
+
   export function getScreenMusclesFromMuscle(muscle: IMuscle): IScreenMuscle[] {
     return muscleToScreenMuscleMapping[muscle];
   }

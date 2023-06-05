@@ -4,7 +4,7 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { ExerciseSets } from "../../../components/exerciseSets";
 import { Markdown } from "../../../components/markdown";
 import { equipmentName, Exercise } from "../../../models/exercise";
-import { IHistoryEntry, IHistoryRecord, IProgramExercise, ISettings } from "../../../types";
+import { IHistoryEntry, IHistoryRecord, IProgramExercise, IProgramState, ISettings } from "../../../types";
 import { ComparerUtils } from "../../../utils/comparer";
 import { IDispatch } from "../../../ducks/types";
 import { Reps } from "../../../models/set";
@@ -20,7 +20,9 @@ interface IProps {
   allProgramExercises?: IProgramExercise[];
   settings: ISettings;
   progress: IHistoryRecord;
+  dayIndex: number;
   index: number;
+  staticState?: IProgramState;
   dispatch: IDispatch;
 }
 
@@ -141,10 +143,11 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
           entry={props.entry}
           forceShow={false}
           settings={props.settings}
-          day={1}
+          day={props.dayIndex}
           state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
           userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
           script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
+          staticState={props.staticState}
         />
       )}
     </div>

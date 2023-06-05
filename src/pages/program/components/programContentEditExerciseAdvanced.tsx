@@ -43,6 +43,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const containerRef = useRef<HTMLDivElement>(null);
   const entry = progress?.entries[0];
   const day = progress?.day ?? 1;
+  const state = ProgramExercise.getState(programExercise, allProgramExercises);
 
   const finishScriptResult =
     entry != null
@@ -50,16 +51,22 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           entry,
           day,
           props.settings,
-          programExercise.state,
+          state,
           programExercise.finishDayExpr,
           entry?.exercise?.equipment
         )
-      : Program.parseExerciseFinishDayScript(day, props.settings, programExercise.state, programExercise.finishDayExpr);
+      : Program.parseExerciseFinishDayScript(day, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }
     : finishScriptResult;
 
-  const variationScriptResult = Program.runVariationScript(programExercise, allProgramExercises, day, props.settings);
+  const variationScriptResult = Program.runVariationScript(
+    programExercise,
+    allProgramExercises,
+    state,
+    day,
+    props.settings
+  );
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
   const [areExtraFeatuersValid, setAreExtraFeaturesValid] = useState<boolean>(true);

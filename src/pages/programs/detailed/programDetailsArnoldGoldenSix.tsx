@@ -119,7 +119,7 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
         </div>
       </div>
       <div className="w-32 h-px mx-auto my-8 b bg-grayv2-200" />
-      <h3 className="mb-4 text-xl font-bold leading-8">Try it out!</h3>
+      <h3 className="mb-4 text-xl font-bold leading-8">Try it out in interactive playground!</h3>
       <p className="mb-4">
         Tap on squares to finish sets. Tap multiple times to reduce completed reps. Finish workout and see what the next
         time the workout would look like (with possibly updated weights, reps and sets).

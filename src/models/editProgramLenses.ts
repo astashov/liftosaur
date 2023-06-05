@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, LensBuilder, lb, lf } from "lens-shmens";
 import {
   IEquipment,
   IExerciseId,
@@ -248,36 +248,9 @@ export namespace EditProgramLenses {
     prefix: LensBuilder<T, IProgramExercise, {}>,
     settings: ISettings
   ): ILensRecordingPayload<T>[] {
-    const unit = settings.units;
     return [
-      prefix.p("state").recordModify((state) => {
-        const newState = { ...state };
-        for (const key of Object.keys(newState)) {
-          const value = newState[key];
-          if (Weight.is(value) && value.unit !== unit) {
-            newState[key] = Weight.roundConvertTo(value, settings);
-          }
-        }
-        return newState;
-      }),
-      prefix.p("reuseLogic").recordModify((rl) => {
-        if (rl == null) {
-          return undefined;
-        }
-        return {
-          ...rl,
-          states: Object.keys(rl.states).reduce<Record<string, IProgramState>>((memo, k) => {
-            const newState = { ...rl.states[k] };
-            for (const key of Object.keys(newState)) {
-              const value = newState[key];
-              if (Weight.is(value)) {
-                newState[key] = Weight.roundConvertTo(value, settings);
-              }
-            }
-            memo[k] = newState;
-            return memo;
-          }, {}),
-        };
+      prefix.recordModify((programExercise) => {
+        return ProgramExercise.switchToUnit(programExercise, settings);
       }),
     ];
   }

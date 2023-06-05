@@ -30,7 +30,7 @@ export class ProgramDao {
       "drswoleullowvolume",
       "gzclp",
       "jackedtan2",
-      "therippler",
+      "gzcl-the-rippler",
       "gzcluhf9",
       "the5314b",
       "dbPpl",

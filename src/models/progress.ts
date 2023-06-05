@@ -566,11 +566,12 @@ export namespace Progress {
     allProgramExercises: IProgramExercise[],
     day: number,
     settings: ISettings,
-    forceWarmupSets?: boolean
+    forceWarmupSets?: boolean,
+    staticState?: IProgramState
   ): IHistoryEntry {
-    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, day, settings);
+    const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
+    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
-    const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const programExerciseWarmupSets = ProgramExercise.getWarmupSets(programExercise, allProgramExercises);
 
     const firstWeightExpr = sets[0]?.weightExpr;
@@ -670,7 +671,8 @@ export namespace Progress {
     progress: IHistoryRecord,
     program: IProgram,
     programDay: IProgramDay,
-    settings: ISettings
+    settings: ISettings,
+    staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
     const day = progress.day;
     const existingProgramlessEntries = progress.entries.filter((e) => e.programExerciseId == null);
@@ -681,7 +683,16 @@ export namespace Progress {
         .map((dayEntry) => {
           const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
           const progressEntry = progress.entries.find((e) => programExercise.id === e.programExerciseId);
-          return applyProgramExercise(progressEntry, programExercise, program.exercises, day, settings);
+          const staticState = staticStates?.[programExercise.id];
+          return applyProgramExercise(
+            progressEntry,
+            programExercise,
+            program.exercises,
+            day,
+            settings,
+            false,
+            staticState
+          );
         })
         .concat(existingProgramlessEntries),
     };

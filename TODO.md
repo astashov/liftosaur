@@ -1,3 +1,4 @@
+- Add a way to disable sound
 - Push notif for the forgotten session
 - AMRAP as an expression
 - Dynamic sets!
@@ -28,5 +29,6 @@
 
 - Bug:
   Assign lb to state var of type number
-  Long links screw horizontal scrolling in description
   Underscores are not supported
+  Fix warmup sets in lb on /program with kg in settings
+  Fix position of the warmup sets in the /program

@@ -55,9 +55,11 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
             onChange={(e) => {
               const newValue = (e.target as HTMLSelectElement).value;
               const newDay = parseInt(newValue || "1", 10);
+              const state = ProgramExercise.getState(programExercise, allProgramExercises);
               const nextVariationIndex = Program.nextVariationIndex(
                 programExercise,
                 allProgramExercises,
+                state,
                 newDay,
                 settings
               );
@@ -66,7 +68,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
                 programExercise.exerciseType,
                 newDay,
                 ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
-                ProgramExercise.getState(programExercise, allProgramExercises),
+                state,
                 settings,
                 ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
               );
