@@ -8,6 +8,7 @@ import {
   IHistoryEntry,
   IProgramSet,
   IUnit,
+  IProgramExerciseReuseLogic,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
@@ -17,6 +18,9 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { IBuilderExercise } from "../pages/builder/models/types";
 import { Exercise } from "./exercise";
+import { IScreenMuscle, IScreenMusclePointsColl, Muscle } from "./muscle";
+import { ScriptRunner } from "../parser";
+import { Progress } from "./progress";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -153,7 +157,14 @@ export namespace ProgramExercise {
     settings: ISettings
   ): number {
     const programExerciseVariations = getVariations(programExercise, allProgramExercises);
-    const nextVariationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, dayIndex, settings);
+    const state = getState(programExercise, allProgramExercises);
+    const nextVariationIndex = Program.nextVariationIndex(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayIndex,
+      settings
+    );
     const variation = programExerciseVariations[nextVariationIndex];
     return variation.sets.reduce(
       (memo, set) => memo + ProgramSet.approxTimeMs(set, dayIndex, programExercise, allProgramExercises, settings),
@@ -177,8 +188,9 @@ export namespace ProgramExercise {
   ): IHistoryRecord | undefined {
     let entry: IHistoryEntry | undefined;
     let variationIndex = 0;
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
     try {
-      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, day, settings);
+      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
     } catch (_) {}
     try {
       entry = Program.nextHistoryEntry(
@@ -186,7 +198,7 @@ export namespace ProgramExercise {
         programExercise.exerciseType,
         day,
         ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
-        ProgramExercise.getState(programExercise, allProgramExercises),
+        state,
         settings,
         ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
       );
@@ -268,6 +280,41 @@ export namespace ProgramExercise {
           })),
         };
       }),
+    };
+  }
+
+  export function switchToUnit(programExercise: IProgramExercise, settings: ISettings): IProgramExercise {
+    const unit = settings.units;
+    const newState = { ...programExercise.state };
+    for (const key of Object.keys(newState)) {
+      const value = newState[key];
+      if (Weight.is(value) && value.unit !== unit) {
+        newState[key] = Weight.roundConvertTo(value, settings);
+      }
+    }
+
+    const reuseLogic = programExercise.reuseLogic;
+    let newReuseLogic: IProgramExerciseReuseLogic | undefined = reuseLogic;
+    if (reuseLogic != null) {
+      newReuseLogic = {
+        ...reuseLogic,
+        states: Object.keys(reuseLogic.states).reduce<Record<string, IProgramState>>((memo, k) => {
+          const newReuseState = { ...reuseLogic.states[k] };
+          for (const key of Object.keys(newReuseState)) {
+            const value = newReuseState[key];
+            if (Weight.is(value)) {
+              newReuseState[key] = Weight.roundConvertTo(value, settings);
+            }
+          }
+          memo[k] = newReuseState;
+          return memo;
+        }, {}),
+      };
+    }
+    return {
+      ...programExercise,
+      state: newState,
+      reuseLogic: newReuseLogic,
     };
   }
 }

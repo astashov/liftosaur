@@ -85,16 +85,19 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     day: number,
-    settings: ISettings
+    settings: ISettings,
+    staticState?: IProgramState
   ): IHistoryEntry {
-    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, day, settings);
+    const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
+    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
+
     return nextHistoryEntry(
       programExercise.id,
       programExercise.exerciseType,
       day,
       sets,
-      ProgramExercise.getState(programExercise, allProgramExercises),
+      state,
       settings,
       ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
       ProgramExercise.getTimerExpr(programExercise, allProgramExercises),
@@ -167,7 +170,12 @@ export namespace Program {
     return program.exercises.find((e) => e.id === id);
   }
 
-  export function nextProgramRecord(program: IProgram, settings: ISettings, dayIndex?: number): IHistoryRecord {
+  export function nextProgramRecord(
+    program: IProgram,
+    settings: ISettings,
+    dayIndex?: number,
+    staticStates?: Partial<Record<string, IProgramState>>
+  ): IHistoryRecord {
     const day = Math.min(program.days.length, Math.max(1, dayIndex || program.nextDay));
     const programDay = program.days[day - 1];
     return {
@@ -180,7 +188,8 @@ export namespace Program {
       startTime: Date.now(),
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
-        return programExerciseToHistoryEntry(programExercise, program.exercises, day, settings);
+        const staticState = staticStates?.[id];
+        return programExerciseToHistoryEntry(programExercise, program.exercises, day, settings, staticState);
       }),
     };
   }
@@ -188,10 +197,11 @@ export namespace Program {
   export function nextVariationIndex(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
+    state: IProgramState,
     day: number,
     settings: ISettings
   ): number {
-    const variationIndexResult = runVariationScript(programExercise, allProgramExercises, day, settings);
+    const variationIndexResult = runVariationScript(programExercise, allProgramExercises, state, day, settings);
     if (!variationIndexResult.success) {
       throw new Error(variationIndexResult.error);
     }
@@ -232,11 +242,12 @@ export namespace Program {
     settings: ISettings,
     state: IProgramState,
     script: string,
-    equipment?: IEquipment
+    equipment?: IEquipment,
+    staticState?: IProgramState
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
-    const newState: IProgramState = { ...state };
+    const newState = { ...state, ...staticState };
 
     try {
       new ScriptRunner(script, newState, bindings, fns, settings.units, { equipment }).execute();
@@ -247,6 +258,9 @@ export namespace Program {
         throw e;
       }
     }
+    for (const key of ObjectUtils.keys(staticState || {})) {
+      newState[key] = state[key];
+    }
 
     return { success: true, data: newState };
   }
@@ -254,6 +268,7 @@ export namespace Program {
   export function runVariationScript(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
+    state: IProgramState,
     day: number,
     settings: ISettings
   ): IEither<number, string> {
@@ -262,7 +277,7 @@ export namespace Program {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
           script,
-          ProgramExercise.getState(programExercise, allProgramExercises),
+          state,
           Progress.createEmptyScriptBindings(day),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -334,13 +349,18 @@ export namespace Program {
     day: number,
     entry: IHistoryEntry,
     settings: ISettings,
-    userPromptedStateVars?: IProgramState
+    userPromptedStateVars?: IProgramState,
+    staticState?: IProgramState
   ): IEither<IProgramState, string> {
     const bindings = Progress.createScriptBindings(day, entry);
     const fns = Progress.createScriptFunctions(settings);
+
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
+
     const newState: IProgramState = {
-      ...ProgramExercise.getState(programExercise, allProgramExercises),
+      ...state,
       ...userPromptedStateVars,
+      ...staticState,
     };
 
     try {
@@ -362,6 +382,11 @@ export namespace Program {
       }
     }
 
+    for (const key of ObjectUtils.keys(staticState || {})) {
+      newState[key] = (staticState || {})[key];
+    }
+    console.log("New state now", newState);
+
     return { success: true, data: newState };
   }
 
@@ -382,20 +407,27 @@ export namespace Program {
     }, 0);
   }
 
-  export function runAllFinishDayScripts(program: IProgram, progress: IHistoryRecord, settings: ISettings): IProgram {
+  export function runAllFinishDayScripts(
+    program: IProgram,
+    progress: IHistoryRecord,
+    settings: ISettings,
+    staticStates?: Partial<Record<string, IProgramState>>
+  ): IProgram {
     const newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
         es.map((e) => {
           const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
           if (entry != null) {
+            const staticState = (staticStates || {})[e.id];
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
               progress.day,
               entry,
               settings,
-              progress.userPromptedStateVars?.[e.id]
+              progress.userPromptedStateVars?.[e.id],
+              staticState
             );
             if (newStateResult.success) {
               const reuseLogicId = e.reuseLogic?.selected;
@@ -612,5 +644,9 @@ export namespace Program {
       }),
       tags: [],
     };
+  }
+
+  export function switchToUnit(program: IProgram, settings: ISettings): IProgram {
+    return { ...program, exercises: program.exercises.map((ex) => ProgramExercise.switchToUnit(ex, settings)) };
   }
 }

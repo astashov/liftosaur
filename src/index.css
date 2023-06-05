@@ -68,6 +68,36 @@ body {
   }
 }
 
+.program-details-description p {
+  margin-bottom: 1rem;
+}
+
+.program-details-description a {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #28839f;
+}
+
+.program-details-description ul {
+  list-style: disc;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+.program-details-description h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  line-height: 2rem;
+  margin-bottom: 1rem;
+}
+
+.program-details-description h3 {
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
 .muscle {
   width: 100%;
 }

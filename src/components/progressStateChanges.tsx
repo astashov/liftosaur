@@ -14,6 +14,7 @@ interface IProps {
   script: string;
   userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
+  staticState?: IProgramState;
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
@@ -26,7 +27,8 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     settings,
     mergedState,
     script,
-    entry.exercise.equipment
+    entry.exercise.equipment,
+    props.staticState
   );
   const isFinished = Reps.isFinished(entry.sets);
 

@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useCallback } from "preact/hooks";
 import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
-import { IHistoryRecord, IProgram, ISettings } from "../../../types";
+import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../../types";
 import { IDispatch } from "../../../ducks/types";
 import { ProgramDetailsWorkoutExercisePlayground } from "./programDetailsWorkoutExercisePlayground";
 import { ModalAmrap } from "../../../components/modalAmrap";
@@ -15,8 +15,11 @@ import { Button } from "../../../components/button";
 
 interface IProgramDetailsPlaygroundDayProps {
   program: IProgram;
+  weekName?: string;
+  dayIndex: number;
   settings: ISettings;
   progress: IHistoryRecord;
+  staticStates: Partial<Record<string, IProgramState>>;
   onProgressChange: (newProgress: IHistoryRecord) => void;
   onProgramChange: (newProgram: IProgram) => void;
   onFinish: () => void;
@@ -36,12 +39,19 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
 
     return (
       <div>
+        <h3 className="mb-1 text-lg font-bold">
+          {props.weekName ? `${props.weekName} - ` : ""}
+          {props.program.days[props.dayIndex - 1].name}
+        </h3>
         {props.progress.entries.map((entry, index) => {
           const programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId)!;
+          const staticState = props.staticStates[programExercise.id];
           return (
             <ProgramDetailsWorkoutExercisePlayground
               entry={entry}
+              dayIndex={props.dayIndex}
               progress={props.progress}
+              staticState={staticState}
               programExercise={programExercise}
               allProgramExercises={props.program.exercises}
               index={index}
@@ -52,7 +62,7 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
         })}
         <div className="text-center">
           <Button kind="orange" onClick={props.onFinish}>
-            Finish
+            Finish this day
           </Button>
         </div>
         <ModalAmrap isHidden={props.progress.ui?.amrapModal == null} dispatch={dispatch} />

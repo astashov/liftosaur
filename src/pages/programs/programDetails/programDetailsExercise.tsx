@@ -32,7 +32,14 @@ type IProgramDetailsExerciseMode = "details" | "playground";
 export const ProgramDetailsExercise = memo(
   (props: IProgramDetailsExerciseProps): JSX.Element => {
     const { programExercise, dayIndex, settings, programExerciseIndex, allProgramExercises } = props;
-    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, dayIndex + 1, settings);
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const variationIndex = Program.nextVariationIndex(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayIndex + 1,
+      settings
+    );
     const variation = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex];
     const finishDayScript = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const progression = Progression.getProgression(finishDayScript);
