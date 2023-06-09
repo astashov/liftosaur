@@ -59,6 +59,12 @@ export interface IScriptFunctions {
   ceil(num: IWeight): IWeight;
   round(num: number): number;
   round(num: IWeight): IWeight;
+  sum(vals: number[]): number;
+  sum(vals: IWeight[]): IWeight;
+  min(vals: number[]): number;
+  min(vals: IWeight[]): IWeight;
+  max(vals: number[]): number;
+  max(vals: IWeight[]): IWeight;
 }
 
 function floor(num: number): number;
@@ -77,6 +83,50 @@ function round(num: number): number;
 function round(num: IWeight): IWeight;
 function round(num: IWeight | number): IWeight | number {
   return typeof num === "number" ? Math.round(num) : Weight.build(Math.round(num.value), num.unit);
+}
+
+function sum(vals: number[]): number;
+function sum(vals: IWeight[]): IWeight;
+function sum(vals: IWeight[] | number[]): IWeight | number {
+  const firstElement = vals[0];
+  if (firstElement == null) {
+    return 0;
+  }
+  if (typeof firstElement === "number") {
+    return (vals as number[]).reduce((acc, a) => acc + a, 0);
+  } else {
+    return (vals as IWeight[]).reduce((acc, a) => Weight.add(acc, a), Weight.build(0, firstElement.unit));
+  }
+}
+
+function min(vals: number[]): number;
+function min(vals: IWeight[]): IWeight;
+function min(vals: IWeight[] | number[]): IWeight | number {
+  const firstElement = vals[0];
+  if (firstElement == null) {
+    return 0;
+  }
+  if (typeof firstElement === "number") {
+    return Math.min(...(vals as number[]));
+  } else {
+    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(a, b));
+    return sortedWeights[0];
+  }
+}
+
+function max(vals: number[]): number;
+function max(vals: IWeight[]): IWeight;
+function max(vals: IWeight[] | number[]): IWeight | number {
+  const firstElement = vals[0];
+  if (firstElement == null) {
+    return 0;
+  }
+  if (typeof firstElement === "number") {
+    return Math.max(...(vals as number[]));
+  } else {
+    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(b, a));
+    return sortedWeights[0];
+  }
 }
 
 export namespace Progress {
@@ -128,6 +178,9 @@ export namespace Progress {
       floor,
       ceil,
       round,
+      sum,
+      min,
+      max,
     };
   }
 

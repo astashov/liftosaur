@@ -142,6 +142,9 @@ export class CodeEditor {
                     "floor",
                     "round",
                     "ceil",
+                    "sum",
+                    "min",
+                    "max",
                   ];
                   list = keywords.filter((k) => {
                     const keyword = lineContent.slice(start, end);

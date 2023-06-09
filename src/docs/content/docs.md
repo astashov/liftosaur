@@ -265,3 +265,29 @@ It rounds the number to the nearest integer.
 state.nextWeight = round(152.4lb);
 state.reps = round(2.7);
 ```
+
+#### `sum`
+
+It sums all the numbers or weights. Use it with `completedReps`, `weights` or `reps` variables.
+
+```javascript
+if (sum(completedReps) >= 15) {
+  state.weight += 5lb;
+};
+```
+
+#### `min`
+
+Finds the minimum number or weight in an array. Use it with `completedReps`, `weights` or `reps` variables.
+
+```javascript
+state.minWeight = min(weights);
+```
+
+#### `max`
+
+Finds the maximum number or weight in an array. Use it with `completedReps`, `weights` or `reps` variables.
+
+```javascript
+state.maxCompletedReps = max(completedReps);
+```
