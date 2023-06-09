@@ -1437,8 +1437,8 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
   },
   chestPress: {
     leverageMachine: {
-      targetMuscles: ["Gluteus Maximus"],
-      synergistMuscles: ["Hamstrings"],
+      targetMuscles: ["Pectoralis Major Sternal Head"],
+      synergistMuscles: ["Biceps Brachii", "Deltoid Lateral", "Pectoralis Major Clavicular Head"],
       bodyParts: ["Chest"],
     },
     band: {
