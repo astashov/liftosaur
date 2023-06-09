@@ -379,6 +379,20 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230609": {
+    title: <span>Added new functions - sum, min and max</span>,
+    body: (
+      <ul>
+        <li>
+          You can use them in your scripts to find e.g. min or max completed reps, or sum of all reps. They work on
+          variables that are arrays, like <code>reps</code>, <code>weights</code> and <code>completedReps</code>.
+        </li>
+        <li>
+          Like this: <code>state.allCompletedReps = sum(completedReps)</code>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
