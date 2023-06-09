@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram, IProgramState, ISettings, IUnit } from "../../../types";
+import { IProgram, IProgramState, ISettings } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";

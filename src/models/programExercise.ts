@@ -18,9 +18,6 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { IBuilderExercise } from "../pages/builder/models/types";
 import { Exercise } from "./exercise";
-import { IScreenMuscle, IScreenMusclePointsColl, Muscle } from "./muscle";
-import { ScriptRunner } from "../parser";
-import { Progress } from "./progress";
 
 export interface IProgramExerciseExample {
   title: string;
