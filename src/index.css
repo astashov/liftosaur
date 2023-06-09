@@ -68,8 +68,13 @@ body {
   }
 }
 
+.program-details-description {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 .program-details-description p {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .program-details-description a {
@@ -81,6 +86,10 @@ body {
 .program-details-description ul {
   list-style: disc;
   margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+.program-details-description li {
   margin-bottom: 1rem;
 }
 
