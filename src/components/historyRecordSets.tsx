@@ -10,7 +10,12 @@ interface IDisplaySet {
   isCompleted?: boolean;
 }
 
-export function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean; unit: IUnit }): JSX.Element {
+export function HistoryRecordSetsView(props: {
+  sets: ISet[];
+  isNext: boolean;
+  unit: IUnit;
+  noWrap?: boolean;
+}): JSX.Element {
   const { sets, isNext, unit } = props;
   const groups = Reps.group(sets, isNext);
   const displayGroups = groups.map((g) => {
@@ -23,7 +28,7 @@ export function HistoryRecordSetsView(props: { sets: ISet[]; isNext: boolean; un
     });
   });
   return (
-    <div className="flex flex-wrap">
+    <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>
       {displayGroups.map((g) => (
         <HistoryRecordSet sets={g} isNext={props.isNext} />
       ))}

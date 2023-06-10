@@ -61,7 +61,7 @@ export const ProgramDetailsWorkoutPlayground = memo(
 
     return (
       <div>
-        <div>
+        <div className="mb-2">
           <label>
             <span className="mx-2 font-bold">Units:</span>
             <MenuItemValue

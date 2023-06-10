@@ -34,6 +34,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
     }
   }
   const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
+  const t1Pct = [85, 90, 87.5, 92.5, 90, 95, 92.5, 97.5, 95, 100, 90];
+  const t2Pct = [80, 85, 90, 82.5, 87.5, 92.5, 85, 90, 95, 100];
 
   return (
     <section className="px-4">
@@ -168,7 +170,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <p>
             For <strong>T1 exercises</strong>, we increase the weight for 2 weeks, then slightly decrease it, and
             increase it even more in week 4. This pattern repeats through 4-week blocks. We'll have three 4-week blocks.
-            We use 2 rep max (2RM) as a base weight for T1 exercises.
+            We use 2 rep max (2RM) as a base weight for T1 exercises. So, for first 4 weeks we do 85%, 87.5%, 90%, 92.5%
+            of 2RM weight.
           </p>
           <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
@@ -176,14 +179,15 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               program={props.program}
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
               settings={props.settings}
-              weekSetup={weekSetup}
+              weekSetup={weekSetup.slice(0, 11).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
               weightInputs={[{ key: "rm2", label: "Enter your 2RM weight" }]}
             />
           </div>
           <p>
             For <strong>T2 exercises</strong>, we gradually increase the weights over 3 weeks (e.g., 80%, 85%, 90%),
             then reset to 82.5%, and increase again (82.5%, 87.5%, 92.5%). We repeat this pattern over four 3-week
-            blocks, creating a wave-like pattern. We use 5 rep max (5RM) as a base weight for T2 exercises.
+            blocks, creating a wave-like pattern. We use 5 rep max (5RM) as a base weight for T2 exercises. We skip T2
+            exercises completely on weeks 11 and 12.
           </p>
           <h3>Example of a T2 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
@@ -191,7 +195,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               program={props.program}
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
               settings={props.settings}
-              weekSetup={weekSetup}
+              weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
               weightInputs={[{ key: "rm5", label: "Enter your 5RM weight" }]}
             />
           </div>

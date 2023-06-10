@@ -23,7 +23,7 @@ export function ProgramDetailsWorkoutExerciseEditModal(
   }
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
-      <div style={{ minWidth: "20rem" }}>
+      <div style={{ minWidth: "15rem" }}>
         <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
         <ProgramStateVariables
           settings={props.settings}
