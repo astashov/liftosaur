@@ -4,6 +4,7 @@ import { Button } from "./button";
 import { Modal } from "./modal";
 import { IUnit } from "../types";
 import { GroupHeader } from "./groupHeader";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IProps {
   units: IUnit;
@@ -25,7 +26,7 @@ export function ModalPlates(props: IProps): JSX.Element {
         <input
           ref={textInput}
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           placeholder={`Plate weight in ${props.units}`}
         />
