@@ -1,11 +1,11 @@
-import * as cdk from "@aws-cdk/core";
-import * as dynamodb from "@aws-cdk/aws-dynamodb";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as apigw from "@aws-cdk/aws-apigateway";
-import * as sm from "@aws-cdk/aws-secretsmanager";
-import * as s3 from "@aws-cdk/aws-s3";
-import * as acm from "@aws-cdk/aws-certificatemanager";
-import * as iam from "@aws-cdk/aws-iam";
+import * as cdk from "aws-cdk-lib";
+import { aws_dynamodb as dynamodb } from "aws-cdk-lib";
+import { aws_lambda as lambda } from "aws-cdk-lib";
+import { aws_apigateway as apigw } from "aws-cdk-lib";
+import { aws_secretsmanager as sm } from "aws-cdk-lib";
+import { aws_s3 as s3 } from "aws-cdk-lib";
+import { aws_certificatemanager as acm } from "aws-cdk-lib";
+import { aws_iam as iam } from "aws-cdk-lib";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -17,7 +17,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const depsLayer = new lambda.LayerVersion(this, `LftNodeDependencies${suffix}`, {
       code: lambda.Code.fromAsset("dist-lambda", {
         bundling: {
-          image: lambda.Runtime.NODEJS_16_X.bundlingDockerImage,
+          image: lambda.Runtime.NODEJS_16_X.bundlingImage,
           command: [
             "bash",
             "-c",
