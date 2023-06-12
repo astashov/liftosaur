@@ -393,6 +393,21 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230611": {
+    title: <span>Added a way to add labels to sets</span>,
+    body: (
+      <ul>
+        <li>
+          Similar like there's a label "Warmup" for the warmup sets, you can add short labels to workout sets as well.
+          You can use it to mark sets as <strong>"Drop set"</strong>, or <strong>"RPE 7"</strong>, or{" "}
+          <strong>"TM 70%"</strong>, or something like that. The space is limited, so the label is 8 characters max.
+        </li>
+        <li>
+          You can specify labels on the "Edit Program Exercise" screen, where you specify reps, weights and AMRAP.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
