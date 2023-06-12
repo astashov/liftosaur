@@ -121,16 +121,13 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
   const set = props.set;
   const size = props.size || "medium";
   const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  const marginClassNames = size === "small" ? "mb-1 mr-1" : "my-2 mr-3";
   const button = (
     <button
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy="set-nonstarted"
-      className={`ls-progress ${sizeClassNames} ${
-        props.showHelp ? "" : marginClassNames
-      } leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
+      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -142,21 +139,20 @@ function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element 
       </div>
     </button>
   );
-  return props.showHelp ? <div className={`${marginClassNames} shiny-border`}>{button}</div> : button;
+  return props.showHelp ? <div className="shiny-border">{button}</div> : button;
 }
 
 function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   const set = props.set;
   const size = props.size || "medium";
   const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  const marginClassNames = size === "small" ? "mb-1 mr-1" : "my-2 mr-3";
   return (
     <button
       data-cy="set-completed"
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`ls-progress ${sizeClassNames} ${marginClassNames} leading-7 text-center bg-greenv2-300 border border-greenv2-400 rounded-lg`}
+      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-greenv2-300 border border-greenv2-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none" }}
     >
@@ -174,14 +170,13 @@ function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
   const set = props.set;
   const size = props.size || "medium";
   const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  const marginClassNames = size === "small" ? "mb-1 mr-1" : "my-2 mr-3";
   return (
     <button
       data-cy="set-incompleted"
       data-help-id={props.showHelp ? "progress-set" : undefined}
       data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
       data-help-width={200}
-      className={`ls-progress ${sizeClassNames} ${marginClassNames} leading-7 text-center bg-redv2-300 border border-redv2-400 rounded-lg`}
+      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-redv2-300 border border-redv2-400 rounded-lg`}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
@@ -201,15 +196,14 @@ function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
   const set = props.set;
   const size = props.size || "medium";
   const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  const marginClassNames = size === "small" ? "mb-1 mr-1" : "my-2 mr-3";
   if (set.completedReps == null) {
-    className = `relative ${sizeClassNames} ${marginClassNames} leading-7 text-center border rounded-lg bg-grayv2-50 border-grayv2-200`;
+    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-grayv2-50 border-grayv2-200`;
     cy = "set-amrap-nonstarted";
   } else if (set.completedReps < set.reps) {
-    className = `relative ${sizeClassNames} ${marginClassNames} leading-7 text-center border rounded-lg bg-redv2-300 border-redv2-400`;
+    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-redv2-300 border-redv2-400`;
     cy = "set-amrap-incompleted";
   } else {
-    className = `relative ${sizeClassNames} ${marginClassNames} leading-7 text-center border rounded-lg bg-greenv2-300 border-greenv2-400`;
+    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-greenv2-300 border-greenv2-400`;
     cy = "set-amrap-completed";
   }
   return (

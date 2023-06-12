@@ -370,6 +370,7 @@ export const TSet = t.intersection(
       completedReps: t.number,
       timestamp: t.number,
       isAmrap: t.boolean,
+      label: t.string,
     }),
   ],
   "TSet"
@@ -415,6 +416,7 @@ export const TProgramSet = t.intersection(
     }),
     t.partial({
       isAmrap: t.boolean,
+      label: t.string,
     }),
   ],
   "TProgramSet"

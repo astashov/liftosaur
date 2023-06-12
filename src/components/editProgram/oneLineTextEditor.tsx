@@ -61,9 +61,9 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
     className += " py-2";
   }
   if (props.result != null && !props.result.success) {
-    className += " border-red-300";
+    className += " border-redv2-200";
   } else {
-    className += " border-gray-300";
+    className += " border-grayv2-200";
   }
 
   return (

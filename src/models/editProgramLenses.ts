@@ -264,6 +264,15 @@ export namespace EditProgramLenses {
     return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("repsExpr").record(value);
   }
 
+  export function setLabel<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string,
+    variationIndex: number,
+    setIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("label").record(value.slice(0, 8));
+  }
+
   export function setTimer<T>(prefix: LensBuilder<T, IProgramExercise, {}>, value: string): ILensRecordingPayload<T> {
     return prefix.p("timerExpr").record(value);
   }

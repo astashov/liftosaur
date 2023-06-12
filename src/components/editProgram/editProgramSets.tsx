@@ -13,6 +13,7 @@ import { IconTrash } from "../icons/iconTrash";
 import { LinkButton } from "../linkButton";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
+import { Input } from "../input";
 
 interface IEditProgramSets {
   programExercise: IProgramExercise;
@@ -26,6 +27,7 @@ interface IEditProgramSets {
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
   onRemoveSet: (variationIndex: number, setIndex: number) => void;
   onReorderSets: (variationIndex: number, startIndex: number, endIndex: number) => void;
+  onChangeLabel: (variationIndex: number, setIndex: number, value: string) => void;
   onAddSet: (variationIndex: number) => void;
 }
 
@@ -96,6 +98,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               onChangeReps={props.onChangeReps}
               onChangeWeight={props.onChangeWeight}
               onRemoveSet={props.onRemoveSet}
+              onChangeLabel={props.onChangeLabel}
             />
           )}
           onDragEnd={(startIndex, endIndex) => {
@@ -125,6 +128,7 @@ interface ISetFieldsProps {
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
   onRemoveSet: (variationIndex: number, setIndex: number) => void;
+  onChangeLabel: (variationIndex: number, setIndex: number, value: string) => void;
 }
 
 function SetFields(props: ISetFieldsProps): JSX.Element {
@@ -190,7 +194,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 onChangeReps={props.onChangeReps}
               />
             </div>
-            <div className="px-4 pt-2">
+            <div className="pt-2 pl-2 pr-1">
               <Amrap
                 onChangeAmrap={props.onChangeAmrap}
                 set={set}
@@ -198,27 +202,42 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
                 setIndex={propsRef.current.setIndex}
               />
             </div>
+            {props.isDeleteEnabled && (
+              <div>
+                <DeleteBtn
+                  onRemoveSet={props.onRemoveSet}
+                  variationIndex={propsRef.current.variationIndex}
+                  setIndex={propsRef.current.setIndex}
+                />
+              </div>
+            )}
           </div>
-          <div className="mt-2">
-            <WeightInput
-              weightResult={weightResult}
-              variationIndex={propsRef.current.variationIndex}
-              setIndex={propsRef.current.setIndex}
-              state={state}
-              set={set}
-              onChangeWeight={props.onChangeWeight}
-            />
+          <div className="flex mt-2">
+            <div className="flex-1 min-w-0">
+              <WeightInput
+                weightResult={weightResult}
+                variationIndex={propsRef.current.variationIndex}
+                setIndex={propsRef.current.setIndex}
+                state={state}
+                set={set}
+                onChangeWeight={props.onChangeWeight}
+              />
+            </div>
+            <div style={{ width: "7rem" }} className="px-2">
+              <Input
+                changeHandler={(r) => {
+                  if (r.success) {
+                    props.onChangeLabel(propsRef.current.variationIndex, propsRef.current.setIndex, r.data);
+                  }
+                }}
+                maxLength={8}
+                labelSize="xs"
+                label="Label"
+                value={set.label}
+              />
+            </div>
           </div>
         </div>
-        {props.isDeleteEnabled && (
-          <div>
-            <DeleteBtn
-              onRemoveSet={props.onRemoveSet}
-              variationIndex={propsRef.current.variationIndex}
-              setIndex={propsRef.current.setIndex}
-            />
-          </div>
-        )}
       </div>
     </li>
   );

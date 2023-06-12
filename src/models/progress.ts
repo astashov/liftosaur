@@ -668,6 +668,7 @@ export namespace Progress {
             ),
             weight: roundedWeight,
             isAmrap: programSet.isAmrap,
+            label: programSet.label,
           });
         } else if (progressSet != null) {
           newSets.push(progressSet);
@@ -710,6 +711,7 @@ export namespace Progress {
             ),
             weight: roundedWeight,
             isAmrap: set.isAmrap,
+            label: set.label,
           };
         }),
         warmupSets:

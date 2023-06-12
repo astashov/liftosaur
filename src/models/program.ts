@@ -153,6 +153,7 @@ export namespace Program {
       );
       return {
         isAmrap: set.isAmrap,
+        label: set.label,
         reps: repsValue,
         weight: Weight.roundConvertTo(weightValue, settings, exercise.equipment),
       };

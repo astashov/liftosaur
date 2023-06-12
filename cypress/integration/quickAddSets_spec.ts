@@ -48,14 +48,14 @@ describe("Program", () => {
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });
     g("state-changes-value-lastrep").should("have.text", "0 -> 5");
 
-    g("add-set").click();
+    g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("6");
     g("modal-edit-set-weight-input").clear().type("100");
     g("modal-edit-set-submit").click();
     g("state-changes-value-lastrep").should("have.text", "0 -> 6");
     g("state-changes-value-weight").should("not.be.visible");
 
-    g("add-set").click();
+    g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("7");
     g("modal-edit-set-weight-input").clear().type("120");
     g("modal-edit-set-submit").click();

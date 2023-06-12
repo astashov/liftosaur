@@ -90,7 +90,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           <Markdown value={description} />
         </div>
       )}
-      <section className="flex flex-wrap items-end py-2 pt-4">
+      <section className="flex flex-wrap py-2">
         <ExerciseSets
           isEditMode={false}
           progress={progress}

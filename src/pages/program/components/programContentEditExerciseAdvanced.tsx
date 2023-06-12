@@ -153,6 +153,9 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 settings={props.settings}
                 day={day}
                 programExercise={programExercise}
+                onChangeLabel={(variation: number, setIndex: number, label: string) => {
+                  props.dispatch(EditProgramLenses.setLabel(lbe, label, variation, setIndex));
+                }}
                 onChangeReps={(reps: string, variation: number, setIndex: number) => {
                   props.dispatch(EditProgramLenses.setReps(lbe, reps, variation, setIndex));
                 }}

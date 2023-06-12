@@ -142,6 +142,12 @@ export namespace EditProgram {
     ]);
   }
 
+  export function setLabel(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
+    updateState(dispatch, [
+      EditProgramLenses.setLabel(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
+    ]);
+  }
+
   export function setTimer(dispatch: IDispatch, value: string): void {
     updateState(dispatch, [EditProgramLenses.setTimer(lb<IState>().pi("editExercise"), value)]);
   }

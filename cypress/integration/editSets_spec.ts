@@ -21,7 +21,7 @@ describe("Edit Sets", () => {
     g("modal-edit-set-weight-input").clear().type("100");
     g("modal-edit-set-submit").click();
 
-    g("add-set").click();
+    g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("20");
     g("modal-edit-set-weight-input").clear().type("200");
     g("modal-edit-set-amrap-input").click();
@@ -65,7 +65,7 @@ describe("Edit Sets", () => {
     g("menu-item-arnold-press").click();
     g("change-exercise-equipment").select("kettlebell");
 
-    g("add-set").click();
+    g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("8");
     g("modal-edit-set-weight-input").clear().type("250");
     g("modal-edit-set-submit").click();

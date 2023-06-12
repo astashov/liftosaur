@@ -214,6 +214,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             settings={props.settings}
             day={day}
             programExercise={programExercise}
+            onChangeLabel={(variation: number, setIndex: number, label: string) => {
+              EditProgram.setLabel(props.dispatch, label, variation, setIndex);
+            }}
             onChangeReps={(reps: string, variation: number, setIndex: number) => {
               EditProgram.setReps(props.dispatch, reps, variation, setIndex);
             }}

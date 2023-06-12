@@ -80,17 +80,17 @@ export const Input = forwardRef(
       }
     }
 
-    let containerClassName = "inline-block bg-white";
+    let containerClassName = "inline-block bg-white rounded-lg";
     if (className.indexOf("w-full") !== -1) {
       containerClassName += " w-full";
     }
     const labelSize = props.labelSize || "sm";
     return (
       <div className={containerClassName}>
-        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "3.5rem" }}>
+        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "50px" }}>
           <div className="relative mx-4 my-1">
             <div
-              className={`relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+              className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
               style={{ top: "2px", left: "0" }}
             >
               {props.label}
