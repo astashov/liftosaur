@@ -210,7 +210,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               programExercise={programExercise}
               settings={props.settings}
               onAddWarmupSet={(warmupSets) => {
-                props.dispatch(EditProgramLenses.addWarmupSet(lbe, warmupSets));
+                props.dispatch(EditProgramLenses.addWarmupSet(lbe, warmupSets, props.settings.units));
               }}
               onRemoveWarmupSet={(warmupSets, index) => {
                 props.dispatch(EditProgramLenses.removeWarmupSet(lbe, warmupSets, index));
@@ -258,7 +258,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           programExercise={programExercise}
           settings={props.settings}
           onAddWarmupSet={(warmupSets) => {
-            props.dispatch(EditProgramLenses.addWarmupSet(lbe, warmupSets));
+            props.dispatch(EditProgramLenses.addWarmupSet(lbe, warmupSets, props.settings.units));
           }}
           onRemoveWarmupSet={(warmupSets, index) => {
             props.dispatch(EditProgramLenses.removeWarmupSet(lbe, warmupSets, index));

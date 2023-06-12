@@ -406,8 +406,8 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.setDefaultWarmupSets(lb<IState>().pi("editExercise"), exercise, unit)]);
   }
 
-  export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[]): void {
-    updateState(dispatch, [EditProgramLenses.addWarmupSet(lb<IState>().pi("editExercise"), ws)]);
+  export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[], unit: IUnit): void {
+    updateState(dispatch, [EditProgramLenses.addWarmupSet(lb<IState>().pi("editExercise"), ws, unit)]);
   }
 
   export function removeWarmupSet(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[], index: number): void {

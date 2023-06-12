@@ -402,7 +402,8 @@ export namespace EditProgramLenses {
 
   export function addWarmupSet<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
-    ws: IProgramExerciseWarmupSet[]
+    ws: IProgramExerciseWarmupSet[],
+    unit: IUnit
   ): ILensRecordingPayload<T> {
     const warmupSets = [...ws];
     const lastWarmupSet = warmupSets[warmupSets.length - 1];
@@ -415,7 +416,7 @@ export namespace EditProgramLenses {
     } else {
       warmupSets.push({
         reps: 5,
-        threshold: Weight.build(45, "lb"),
+        threshold: unit === "kg" ? Weight.build(20, "kg") : Weight.build(45, "lb"),
         value: 0.8,
       });
     }

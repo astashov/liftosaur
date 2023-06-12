@@ -214,6 +214,15 @@ export namespace ProgramExercise {
     });
   }
 
+  export function hasDifferentWarmupUnits(programExercise: IProgramExercise, unit: IUnit): boolean {
+    return (programExercise.warmupSets || []).some((warmupSet) => {
+      return (
+        (Weight.is(warmupSet.value) && warmupSet.value.unit !== unit) ||
+        (Weight.is(warmupSet.threshold) && warmupSet.threshold.unit !== unit)
+      );
+    });
+  }
+
   export function planExercisesToProgramExercise(
     id: string,
     planExercises: { day: number; exercise: IBuilderExercise }[]
@@ -308,10 +317,18 @@ export namespace ProgramExercise {
         }, {}),
       };
     }
+
+    const newWarmupSets = (programExercise.warmupSets || []).map((w) => ({
+      ...w,
+      value: Weight.is(w.value) ? Weight.roundConvertTo(w.value, settings) : w.value,
+      threshold: Weight.is(w.threshold) ? Weight.roundConvertTo(w.threshold, settings) : w.threshold,
+    }));
+
     return {
       ...programExercise,
       state: newState,
       reuseLogic: newReuseLogic,
+      warmupSets: newWarmupSets,
     };
   }
 }

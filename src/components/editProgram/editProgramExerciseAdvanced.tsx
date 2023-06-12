@@ -241,7 +241,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               programExercise={programExercise}
               settings={props.settings}
               onAddWarmupSet={(warmupSets) => {
-                EditProgram.addWarmupSet(props.dispatch, warmupSets);
+                EditProgram.addWarmupSet(props.dispatch, warmupSets, props.settings.units);
               }}
               onRemoveWarmupSet={(warmupSets, index) => {
                 EditProgram.removeWarmupSet(props.dispatch, warmupSets, index);
@@ -304,7 +304,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
               programExercise={programExercise}
               settings={props.settings}
               onAddWarmupSet={(warmupSets) => {
-                EditProgram.addWarmupSet(props.dispatch, warmupSets);
+                EditProgram.addWarmupSet(props.dispatch, warmupSets, props.settings.units);
               }}
               onRemoveWarmupSet={(warmupSets, index) => {
                 EditProgram.removeWarmupSet(props.dispatch, warmupSets, index);

@@ -13,8 +13,11 @@ interface IEditProgramConvertStateVariablesProps {
 export function EditProgramConvertStateVariables(props: IEditProgramConvertStateVariablesProps): JSX.Element | null {
   const programExercise = props.programExercise;
   const unit = props.settings.units;
-  const hasDifferentUnitStateVariables = ProgramExercise.hasDifferentUnitStateVariables(programExercise, unit);
-  if (!hasDifferentUnitStateVariables) {
+  const hasDifferentUnits =
+    ProgramExercise.hasDifferentUnitStateVariables(programExercise, unit) ||
+    ProgramExercise.hasDifferentWarmupUnits(programExercise, unit);
+
+  if (!hasDifferentUnits) {
     return null;
   }
 
@@ -26,8 +29,8 @@ export function EditProgramConvertStateVariables(props: IEditProgramConvertState
         <IconInfo />
       </div>
       <div className="flex-1">
-        Some state variables of this exercise use <strong>{oppositeUnit}</strong>, but you set <strong>{unit}</strong>{" "}
-        in settings.
+        Some state variables or warmups of this exercise use <strong>{oppositeUnit}</strong>, but you set{" "}
+        <strong>{unit}</strong> in settings.
         <br />
         <LinkButton onClick={props.onConvert}>Change them to {unit}</LinkButton>
       </div>
