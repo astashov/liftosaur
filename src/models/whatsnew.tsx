@@ -408,6 +408,18 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230613": {
+    title: <span>Added sound controls to iOS / Android apps</span>,
+    body: (
+      <ul>
+        <li>
+          If the sound of the rest timer is too loud or too quiet, you can now adjust it in the app. There's a Volume
+          slider now, as well as a toggle to enable vibration when rest timer ends.
+        </li>
+        <li>You need to get the new version of the app from App Store / Google Play to get this feature.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
