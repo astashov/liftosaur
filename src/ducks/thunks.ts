@@ -165,7 +165,8 @@ export namespace Thunk {
   export function sendTimerPushNotification(sid?: number): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().adminKey == null) {
-        env.audio.play();
+        const settings = getState().storage.settings;
+        env.audio.play(settings.volume, !!settings.vibration);
         if (sid != null) {
           env.service.sendTimerPushNotification(sid);
         }

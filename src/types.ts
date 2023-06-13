@@ -748,11 +748,13 @@ export const TSettings = t.intersection(
       units: TUnit,
       lengthUnits: TLengthUnit,
       shouldShowFriendsHistory: t.boolean,
+      volume: t.number,
     }),
     t.partial({
       isPublicProfile: t.boolean,
       nickname: t.string,
       alwaysOnDisplay: t.boolean,
+      vibration: t.boolean,
     }),
   ],
   "TSettings"

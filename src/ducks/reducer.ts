@@ -646,6 +646,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           isPublicProfile: newStorage.settings.isPublicProfile,
           shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
           nickname: newStorage.settings.nickname,
+          volume: newStorage.settings.volume,
         },
         subscription: {
           apple: { ...oldStorage.subscription.apple, ...newStorage.subscription.apple },

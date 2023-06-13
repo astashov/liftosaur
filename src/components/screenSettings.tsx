@@ -25,6 +25,7 @@ import { Features } from "../utils/features";
 import { StringUtils } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
 import { SendMessage } from "../utils/sendMessage";
+import { IconSpeaker } from "./icons/iconSpeaker";
 
 interface IProps {
   dispatch: IDispatch;
@@ -203,6 +204,51 @@ export function ScreenSettings(props: IProps): JSX.Element {
               });
             }}
           />
+        )}
+        {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 7) ||
+          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 14)) && (
+          <div>
+            <GroupHeader name="Sound" topPadding={true} />
+            <MenuItemEditable
+              type="boolean"
+              name="Vibration"
+              value={props.settings.vibration ? "true" : "false"}
+              onChange={(newValue) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("vibration")
+                    .record(newValue === "true"),
+                });
+              }}
+            />
+            <MenuItemWrapper name="volume">
+              <div className="flex items-center py-2">
+                <div className="mr-2">
+                  <IconSpeaker />
+                </div>
+                <div className="flex flex-1 leading-none">
+                  <input
+                    type="range"
+                    className="w-full"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={props.settings.volume}
+                    onChange={(e) => {
+                      const value = parseFloat(e.currentTarget.value);
+                      if (value && !isNaN(value)) {
+                        props.dispatch({
+                          type: "UpdateSettings",
+                          lensRecording: lb<ISettings>().p("volume").record(value),
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </MenuItemWrapper>
+          </div>
         )}
         {props.user && Features.areFriendsEnabled() && (
           <>

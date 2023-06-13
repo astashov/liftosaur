@@ -23,6 +23,8 @@ export namespace Settings {
       exerciseStatsSettings: {
         ascendingSort: false,
       },
+      volume: 1.0,
+      vibration: false,
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {} },
       equipment: {

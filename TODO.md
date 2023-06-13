@@ -6,9 +6,7 @@
 - Volume on graphs
 - Use state vars for warmups
 - Add negative indexing (-1)
-- Add min()/max()
-- Remove warmups from logic reuse
-- Add always-on screen display option
+- Names for variation sets
 
 - Programs
   - 5/3/1s

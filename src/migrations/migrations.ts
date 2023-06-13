@@ -289,4 +289,9 @@ export const migrations = {
     };
     return storage;
   },
+  "20230612190339_add_volume_to_settings": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.volume = storage.settings.volume == null ? 1 : storage.settings.volume;
+    return storage;
+  },
 };
