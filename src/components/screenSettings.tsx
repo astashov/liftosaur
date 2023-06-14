@@ -236,8 +236,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
                     step="0.01"
                     value={props.settings.volume}
                     onChange={(e) => {
-                      const value = parseFloat(e.currentTarget.value);
-                      if (value && !isNaN(value)) {
+                      const valueStr = e.currentTarget.value;
+                      const value = valueStr != null ? parseFloat(valueStr) : undefined;
+                      if (value != null && !isNaN(value)) {
                         props.dispatch({
                           type: "UpdateSettings",
                           lensRecording: lb<ISettings>().p("volume").record(value),
