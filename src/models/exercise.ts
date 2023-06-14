@@ -920,6 +920,36 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
+  standingRow: {
+    id: "standingRow",
+    name: "Standing Row",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
+  standingRowCloseGrip: {
+    id: "standingRowCloseGrip",
+    name: "Standing Row Close Grip",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
+  standingRowRearDeltWithRope: {
+    id: "standingRowRearDeltWithRope",
+    name: "Standing Row Rear Delt With Rope",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
+  standingRowRearHorizontalDeltWithRope: {
+    id: "standingRowRearHorizontalDeltWithRope",
+    name: "Standing Row Rear Delt, Horizontal, With Rope",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
+  standingRowVBar: {
+    id: "standingRowVBar",
+    name: "Standing Row V-Bar",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+  },
   stepUp: {
     id: "stepUp",
     name: "Step up",
@@ -3103,6 +3133,70 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Gastrocnemius"],
       synergistMuscles: ["Soleus"],
       bodyParts: ["Calves"],
+    },
+  },
+  standingRow: {
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+  },
+  standingRowCloseGrip: {
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Upper Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior"],
+      bodyParts: ["Back"],
+    },
+  },
+  standingRowRearDeltWithRope: {
+    cable: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: [
+        "Brachialis",
+        "Brachioradialis",
+        "Deltoid Lateral",
+        "Infraspinatus",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  standingRowRearHorizontalDeltWithRope: {
+    cable: {
+      targetMuscles: ["Deltoid Posterior"],
+      synergistMuscles: ["Infraspinatus", "Teres Minor", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  standingRowVBar: {
+    cable: {
+      targetMuscles: [
+        "Infraspinatus",
+        "Latissimus Dorsi",
+        "Teres Major",
+        "Teres Minor",
+        "Trapezius Lower Fibers",
+        "Trapezius Middle Fibers",
+      ],
+      synergistMuscles: ["Brachialis", "Brachioradialis", "Deltoid Posterior", "Pectoralis Major Sternal Head"],
+      bodyParts: ["Back"],
     },
   },
   stepUp: {
