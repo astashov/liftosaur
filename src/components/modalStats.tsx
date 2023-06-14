@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
-import { ISettings, IStatsLength, IStatsWeight } from "../types";
+import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
 import { EditStats } from "../models/editStats";
 import { GroupHeader } from "./groupHeader";
 
@@ -28,6 +28,12 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
     };
   }
 
+  function savePercentage(name: keyof IStatsPercentage): (v?: string) => void {
+    return function (v?: string) {
+      EditStats.togglePercentageStats(props.dispatch, name, v === "true");
+    };
+  }
+
   return (
     <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
       <GroupHeader name="Enabled measurement types" />
@@ -37,6 +43,12 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
           name="Weight"
           type="boolean"
           value={`${statsEnabled.weight.weight}`}
+        />
+        <MenuItemEditable
+          onChange={savePercentage("bodyfat")}
+          name="Bodyweight"
+          type="boolean"
+          value={`${statsEnabled.percentage.bodyfat}`}
         />
         <MenuItemEditable
           onChange={saveLength("neck")}

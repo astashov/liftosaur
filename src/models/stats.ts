@@ -31,6 +31,8 @@ export namespace Stats {
         return "Waist";
       case "weight":
         return "Bodyweight";
+      case "bodyfat":
+        return "Bodyfat";
     }
   }
 }

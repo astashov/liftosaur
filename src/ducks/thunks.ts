@@ -343,7 +343,7 @@ export namespace Thunk {
         const migratedStorage = await runMigrations(env.service.client, {
           ...friend.storage,
           programs: [],
-          stats: { length: {}, weight: {} },
+          stats: { length: {}, weight: {}, percentage: {} },
         });
         friend.storage = migratedStorage;
       }

@@ -74,6 +74,7 @@ export namespace Storage {
       stats: {
         weight: {},
         length: {},
+        percentage: {},
       },
       settings: Settings.build(),
       history: [],

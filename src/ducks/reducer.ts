@@ -632,6 +632,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
               (el) => `${el.timestamp}`
             ),
           },
+          percentage: {
+            bodyfat: CollectionUtils.concatBy(
+              oldStorage.stats.percentage.bodyfat || [],
+              newStorage.stats.percentage.bodyfat || [],
+              (el) => `${el.timestamp}`
+            ),
+          },
         },
         settings: {
           equipment: Equipment.mergeEquipment(oldStorage.settings.equipment, newStorage.settings.equipment),
