@@ -728,6 +728,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
   },
+  seatedFrontRaise: {
+    id: "seatedFrontRaise",
+    name: "Seated Front Raise",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+  },
   seatedLegCurl: {
     id: "seatedLegCurl",
     name: "Seated Leg Curl",
@@ -767,6 +773,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
   shoulderPress: {
     id: "shoulderPress",
     name: "Shoulder Press",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+  },
+  shoulderPressParallelGrip: {
+    id: "shoulderPressParallelGrip",
+    name: "Shoulder Press Parallel Grip",
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
   },
@@ -845,6 +857,12 @@ export const exercises: Record<IExerciseId, IExercise> = {
   singleLegHipThrust: {
     id: "singleLegHipThrust",
     name: "Single Leg Hip Thrust",
+    defaultWarmup: 45,
+    defaultEquipment: "bodyweight",
+  },
+  sissySquat: {
+    id: "sissySquat",
+    name: "Sissy Squat",
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
   },
@@ -1629,7 +1647,18 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
     },
   },
   declineCrunch: {},
-  deficitDeadlift: {},
+  deficitDeadlift: {
+    barbell: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+    trapbar: {
+      targetMuscles: ["Gluteus Maximus"],
+      synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings", "Quadriceps", "Soleus"],
+      bodyParts: ["Hips"],
+    },
+  },
   ellipticalMachine: {
     leverageMachine: {
       targetMuscles: [
@@ -2624,6 +2653,18 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Calves"],
     },
   },
+  seatedFrontRaise: {
+    barbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+    dumbbell: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior"],
+      bodyParts: ["Shoulders"],
+    },
+  },
   seatedLegCurl: {
     leverageMachine: {
       targetMuscles: ["Hamstrings"],
@@ -2726,6 +2767,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       bodyParts: ["Shoulders"],
     },
     smith: {
+      targetMuscles: ["Deltoid Anterior"],
+      synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
+      bodyParts: ["Shoulders"],
+    },
+  },
+  shoulderPressParallelGrip: {
+    dumbbell: {
       targetMuscles: ["Deltoid Anterior"],
       synergistMuscles: ["Deltoid Lateral", "Pectoralis Major Clavicular Head", "Serratus Anterior", "Triceps Brachii"],
       bodyParts: ["Shoulders"],
@@ -2916,6 +2964,13 @@ const metadata: Record<IExerciseId, Partial<Record<IEquipment, IMetaExercises>>>
       targetMuscles: ["Gluteus Maximus"],
       synergistMuscles: ["Hamstrings", "Quadriceps"],
       bodyParts: ["Hips"],
+    },
+  },
+  sissySquat: {
+    bodyweight: {
+      targetMuscles: ["Quadriceps"],
+      synergistMuscles: ["Adductor Magnus"],
+      bodyParts: ["Thighs"],
     },
   },
   sitUp: {
