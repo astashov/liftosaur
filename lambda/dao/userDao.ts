@@ -107,7 +107,7 @@ export class UserDao {
         reviewRequests: [],
         history: [],
         programs: [],
-        stats: { weight: {}, length: {} },
+        stats: { weight: {}, length: {}, percentage: {} },
         id: 1,
         currentProgramId: undefined,
         version: "0",
@@ -216,7 +216,7 @@ export class UserDao {
 
   public async saveStorage(user: ILimitedUserDao, storage: IPartialStorage): Promise<void> {
     const { history, programs, stats, ...userStorage } = storage;
-    const statsObj = stats || { length: {}, weight: {} };
+    const statsObj = stats || { length: {}, weight: {}, percentage: {} };
     const env = Utils.getEnv();
     const updatedUser: ILimitedUserDao = { ...user, storage: userStorage };
 
@@ -361,7 +361,7 @@ export class UserDao {
           ...user.storage,
           history: allHistory.filter((r) => r.userId === user.id),
           programs: allPrograms.filter((r) => r.userId === user.id),
-          stats: statsDb ? convertStatsFromDb(statsDb) : { weight: {}, length: {} },
+          stats: statsDb ? convertStatsFromDb(statsDb) : { weight: {}, length: {}, percentage: {} },
         },
       };
     });
@@ -372,6 +372,7 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
   return statsDb.reduce<{
     weight: Partial<Record<string, unknown[]>>;
     length: Partial<Record<string, unknown[]>>;
+    percentage: Partial<Record<string, unknown[]>>;
   }>(
     (memo, statDb) => {
       const type = statDb.type;
@@ -380,6 +381,6 @@ function convertStatsFromDb(statsDb: IStatDb[]): IStats {
       memo[type][name]!.push({ timestamp: statDb.timestamp, value: statDb.value });
       return memo;
     },
-    { weight: {}, length: {} }
+    { weight: {}, length: {}, percentage: {} }
   );
 }

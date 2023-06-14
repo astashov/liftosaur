@@ -1,6 +1,6 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
-import { ILength, ISettings, IStatsLength, IStatsWeight, IWeight } from "../types";
+import { ILength, IPercentage, ISettings, IStatsLength, IStatsPercentage, IStatsWeight, IWeight } from "../types";
 import { IState } from "./state";
 import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
@@ -17,6 +17,13 @@ export namespace EditStats {
     dispatch({
       type: "UpdateSettings",
       lensRecording: lb<ISettings>().p("statsEnabled").p("length").p(name).record(value),
+    });
+  }
+
+  export function togglePercentageStats(dispatch: IDispatch, name: keyof IStatsPercentage, value: boolean): void {
+    dispatch({
+      type: "UpdateSettings",
+      lensRecording: lb<ISettings>().p("statsEnabled").p("percentage").p(name).record(value),
     });
   }
 
@@ -49,6 +56,30 @@ export namespace EditStats {
           .p("storage")
           .p("stats")
           .p("length")
+          .recordModify((st) => {
+            return ObjectUtils.keys(payload).reduce(
+              (memo, key) => {
+                memo[key] = [{ value: payload[key]!, timestamp: Date.now() }, ...(memo[key] || [])];
+                return memo;
+              },
+              { ...st }
+            );
+          }),
+      ],
+    });
+  }
+
+  export function addPercentageStats(
+    dispatch: IDispatch,
+    payload: Partial<Record<keyof IStatsPercentage, IPercentage>>
+  ): void {
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("percentage")
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
@@ -95,6 +126,26 @@ export namespace EditStats {
           .p("storage")
           .p("stats")
           .p("length")
+          .p(key)
+          .i(index)
+          .recordModify((v) => ({ ...v, value })),
+      ],
+    });
+  }
+
+  export function changeStatPercentageValue(
+    dispatch: IDispatch,
+    key: keyof IStatsPercentage,
+    index: number,
+    value: IPercentage
+  ): void {
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("percentage")
           .p(key)
           .i(index)
           .recordModify((v) => ({ ...v, value })),
@@ -150,6 +201,30 @@ export namespace EditStats {
     });
   }
 
+  export function changeStatPercentageTimestamp(
+    dispatch: IDispatch,
+    key: keyof IStatsPercentage,
+    index: number,
+    timestamp: number
+  ): void {
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("percentage")
+          .p(key)
+          .recordModify((coll) => {
+            return CollectionUtils.sort(
+              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp } : v)),
+              (a, b) => b.timestamp - a.timestamp
+            );
+          }),
+      ],
+    });
+  }
+
   export function deleteWeightStat(dispatch: IDispatch, key: keyof IStatsWeight, index: number): void {
     dispatch({
       type: "UpdateState",
@@ -172,6 +247,20 @@ export namespace EditStats {
           .p("storage")
           .p("stats")
           .p("length")
+          .p(key)
+          .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+      ],
+    });
+  }
+
+  export function deletePercentageStat(dispatch: IDispatch, key: keyof IStatsPercentage, index: number): void {
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("percentage")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
       ],

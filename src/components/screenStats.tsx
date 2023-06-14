@@ -1,7 +1,19 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { ISettings, IUnit, ILengthUnit, IStats, IWeight, ILength, IStatsWeight, IStatsLength } from "../types";
+import {
+  ISettings,
+  IUnit,
+  ILengthUnit,
+  IStats,
+  IWeight,
+  ILength,
+  IStatsWeight,
+  IStatsLength,
+  IStatsPercentage,
+  IPercentage,
+  IPercentageUnit,
+} from "../types";
 import { Button } from "./button";
 import { forwardRef, Ref, useRef, useState, memo } from "preact/compat";
 import { ObjectUtils } from "../utils/object";
@@ -50,10 +62,20 @@ export function ScreenStats(props: IProps): JSX.Element {
     },
     {}
   );
+  const lastPercentageStats = ObjectUtils.keys(props.stats.percentage).reduce<
+    Partial<Record<keyof IStatsPercentage, IPercentage>>
+  >((acc, key) => {
+    const value = (props.stats.percentage[key] || [])[0]?.value;
+    if (value != null) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const refs = {
     weight: useRef<HTMLInputElement>(),
+    bodyfat: useRef<HTMLInputElement>(),
     neck: useRef<HTMLInputElement>(),
     shoulders: useRef<HTMLInputElement>(),
     bicepLeft: useRef<HTMLInputElement>(),
@@ -109,9 +131,29 @@ export function ScreenStats(props: IProps): JSX.Element {
     EditStats.addLengthStats(props.dispatch, payload);
   }
 
+  function savePercentage(): void {
+    const payload = ObjectUtils.keys(statsEnabled.percentage).reduce<
+      Partial<Record<keyof IStatsPercentage, IPercentage>>
+    >((acc, key) => {
+      const isEnabled = statsEnabled.percentage[key];
+      if (isEnabled) {
+        const stringValue = refs[key]?.current.value;
+        if (stringValue) {
+          const value = parseFloat(stringValue);
+          if (!isNaN(value)) {
+            acc[key] = { value, unit: "%" };
+          }
+        }
+      }
+      return acc;
+    }, {});
+    EditStats.addPercentageStats(props.dispatch, payload);
+  }
+
   function save(): void {
     saveWeight();
     saveLength();
+    savePercentage();
     props.dispatch(Thunk.pullScreen());
   }
 
@@ -153,6 +195,11 @@ export function ScreenStats(props: IProps): JSX.Element {
         {statsEnabled.weight && (
           <SingleLine>
             <StatInput ref={refs.weight} label="Bodyweight" value={lastWeightStats.weight?.value} unit={units} />
+          </SingleLine>
+        )}
+        {statsEnabled.percentage.bodyfat && (
+          <SingleLine>
+            <StatInput ref={refs.bodyfat} label="Bodyfat" value={lastPercentageStats.bodyfat?.value} unit="%" />
           </SingleLine>
         )}
         {statsEnabled.length.shoulders && (
@@ -289,7 +336,7 @@ export function ScreenStats(props: IProps): JSX.Element {
 interface IInputProps {
   label: string;
   value?: number | string;
-  unit: IUnit | ILengthUnit;
+  unit: IUnit | ILengthUnit | IPercentageUnit;
 }
 
 interface ISingleLineProps {

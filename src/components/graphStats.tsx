@@ -3,7 +3,15 @@ import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "../models/weight";
-import { ILengthUnit, ISettings, IStatsKey, IStatsLengthValue, IStatsWeightValue, IUnit } from "../types";
+import {
+  ILengthUnit,
+  ISettings,
+  IStatsKey,
+  IStatsLengthValue,
+  IStatsPercentageValue,
+  IStatsWeightValue,
+  IUnit,
+} from "../types";
 import { Length } from "../models/length";
 import { Stats } from "../models/stats";
 import { DateUtils } from "../utils/date";
@@ -31,6 +39,13 @@ export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISett
   const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
     return [i.timestamp / 1000, Length.convertTo(i.value, settings.lengthUnits).value];
+  });
+}
+
+export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setttings: ISettings): [number, number][] {
+  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  return sortedCollection.map((i) => {
+    return [i.timestamp / 1000, i.value.value];
   });
 }
 

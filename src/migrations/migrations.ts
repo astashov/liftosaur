@@ -80,12 +80,15 @@ export const migrations = {
         thighLeft: true,
         thighRight: true,
       },
+      percentage: {
+        bodyfat: true,
+      },
     };
     storage.settings.lengthUnits = storage.settings.lengthUnits || "in";
     storage.settings.graphs = storage.settings.graphs.map((g: any) =>
       typeof g === "string" ? { type: "exercise", id: g } : g
     );
-    (storage as any).stats = storage.stats || { weight: {}, length: {} };
+    (storage as any).stats = storage.stats || { weight: {}, length: {}, percentage: {} };
     return storage;
   },
   "20210626192422_add_settings_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {

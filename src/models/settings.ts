@@ -26,7 +26,7 @@ export namespace Settings {
       volume: 1.0,
       vibration: false,
       lengthUnits: "in",
-      statsEnabled: { weight: { weight: true }, length: {} },
+      statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
       equipment: {
         barbell: {
           multiplier: 2,

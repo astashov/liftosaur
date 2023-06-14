@@ -629,14 +629,22 @@ export const TLengthUnit = t.keyof(
 );
 export type ILengthUnit = t.TypeOf<typeof TLengthUnit>;
 
-export const TLength = t.type(
-  {
-    value: t.number,
-    unit: TLengthUnit,
-  },
-  "TLength"
-);
+export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength");
 export type ILength = t.TypeOf<typeof TLength>;
+
+export const percentageUnits = ["%"] as const;
+
+export const TPercentageUnit = t.keyof(
+  percentageUnits.reduce<Record<IArrayElement<typeof percentageUnits>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof percentageUnits>, null>),
+  "TUnit"
+);
+export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
+
+export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
+export type IPercentage = t.TypeOf<typeof TPercentage>;
 
 export const TStatsWeightValue = t.type({ value: TWeight, timestamp: t.number }, "TStatsWeightValue");
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
@@ -668,7 +676,16 @@ export const statsLengthDef = {
 export const TStatsLength = t.partial(statsLengthDef, "TStatsLength");
 export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
-export type IStatsKey = keyof IStatsLength | keyof IStatsWeight;
+export const TStatsPercentageValue = t.type({ value: TPercentage, timestamp: t.number }, "TStatsPercentageValue");
+export type IStatsPercentageValue = t.TypeOf<typeof TStatsPercentageValue>;
+
+export const statsPercentageDef = {
+  bodyfat: t.array(TStatsPercentageValue),
+};
+export const TStatsPercentage = t.partial(statsPercentageDef, "TStatsPercentage");
+export type IStatsPercentage = t.TypeOf<typeof TStatsPercentage>;
+
+export type IStatsKey = keyof IStatsLength | keyof IStatsWeight | keyof IStatsPercentage;
 
 export const TStatsWeightEnabled = t.partial(
   ObjectUtils.keys(statsWeightDef).reduce<Record<keyof IStatsWeight, t.BooleanC>>((memo, key) => {
@@ -688,10 +705,19 @@ export const TStatsLengthEnabled = t.partial(
 );
 export type IStatsLengthEnabled = t.TypeOf<typeof TStatsLengthEnabled>;
 
+export const TStatsPercentageEnabled = t.partial(
+  ObjectUtils.keys(statsPercentageDef).reduce<Record<keyof IStatsPercentage, t.BooleanC>>((memo, key) => {
+    memo[key] = t.boolean;
+    return memo;
+  }, {} as Record<keyof IStatsPercentage, t.BooleanC>),
+  "TStatsPercentageEnabled"
+);
+
 export const TStatsEnabled = t.type(
   {
     weight: TStatsWeightEnabled,
     length: TStatsLengthEnabled,
+    percentage: TStatsPercentageEnabled,
   },
   "TStatsEnabled"
 );
@@ -767,6 +793,7 @@ export type ISettings = t.TypeOf<typeof TSettings>;
 export const TStats = t.type({
   weight: TStatsWeight,
   length: TStatsLength,
+  percentage: TStatsPercentage,
 });
 export type IStats = t.TypeOf<typeof TStats>;
 
