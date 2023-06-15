@@ -41,7 +41,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
     const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
     props.onProgressChange(newProgress);
   };
-  const description = props.programExercise.description;
+  const description = ProgramExercise.getDescription(programExercise, allProgramExercises, props.day, props.settings);
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">

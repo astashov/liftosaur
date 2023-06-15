@@ -57,7 +57,13 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
   const warmupSets = props.entry.warmupSets;
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
-  const description = programExercise?.description;
+  const description = ProgramExercise.getDescription(
+    programExercise,
+    props.allProgramExercises || [],
+    props.dayIndex,
+    props.settings,
+    props.staticState
+  );
 
   return (
     <div className={`px-2 pt-2 pb-2 mb-2 rounded-lg ${getBgColor100(props.entry)} relative`}>

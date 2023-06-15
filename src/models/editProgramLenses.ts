@@ -88,9 +88,14 @@ export namespace EditProgramLenses {
 
   export function setDescription<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
-    value: string
+    value: string,
+    index: number
   ): ILensRecordingPayload<T> {
-    return prefix.p("description").record(value);
+    return prefix.p("descriptions").recordModify((descriptions) => {
+      const newDescriptions = [...descriptions];
+      newDescriptions[index] = value;
+      return newDescriptions;
+    });
   }
 
   export function copyProgramExercise<T>(
@@ -494,6 +499,42 @@ export namespace EditProgramLenses {
       }
       return newPe;
     });
+  }
+
+  export function addDescription<T>(prefix: LensBuilder<T, IProgramExercise, {}>): ILensRecordingPayload<T> {
+    return prefix.p("descriptions").recordModify((descriptions) => [...descriptions, ""]);
+  }
+
+  export function removeDescription<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    index: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("descriptions").recordModify((descriptions) => CollectionUtils.removeAt(descriptions, index));
+  }
+
+  export function changeDescription<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string,
+    index: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("descriptions").recordModify((descriptions) => CollectionUtils.setAt(descriptions, index, value));
+  }
+
+  export function changeDescriptionExpr<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string
+  ): ILensRecordingPayload<T> {
+    return prefix.p("descriptionExpr").record(value);
+  }
+
+  export function reorderDescriptions<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    startIndex: number,
+    endIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("descriptions")
+      .recordModify((descriptions) => CollectionUtils.reorder(descriptions, startIndex, endIndex));
   }
 
   export function updateSimpleExercise<T>(

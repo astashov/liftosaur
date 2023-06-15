@@ -132,8 +132,8 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.changeExerciseEquipment(lb<IState>().pi("editExercise"), newEquipment)]);
   }
 
-  export function setDescription(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [EditProgramLenses.setDescription(lb<IState>().pi("editExercise"), value)]);
+  export function setDescription(dispatch: IDispatch, value: string, index: number): void {
+    updateState(dispatch, [EditProgramLenses.setDescription(lb<IState>().pi("editExercise"), value, index)]);
   }
 
   export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
@@ -145,6 +145,28 @@ export namespace EditProgram {
   export function setLabel(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setLabel(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
+    ]);
+  }
+
+  export function addDescription<T>(dispatch: IDispatch): void {
+    updateState(dispatch, [EditProgramLenses.addDescription(lb<IState>().pi("editExercise"))]);
+  }
+
+  export function removeDescription<T>(dispatch: IDispatch, index: number): void {
+    updateState(dispatch, [EditProgramLenses.removeDescription(lb<IState>().pi("editExercise"), index)]);
+  }
+
+  export function changeDescription<T>(dispatch: IDispatch, value: string, index: number): void {
+    updateState(dispatch, [EditProgramLenses.changeDescription(lb<IState>().pi("editExercise"), value, index)]);
+  }
+
+  export function changeDescriptionExpr<T>(dispatch: IDispatch, value: string): void {
+    updateState(dispatch, [EditProgramLenses.changeDescriptionExpr(lb<IState>().pi("editExercise"), value)]);
+  }
+
+  export function reorderDescriptions<T>(dispatch: IDispatch, startIndex: number, endIndex: number): void {
+    updateState(dispatch, [
+      EditProgramLenses.reorderDescriptions(lb<IState>().pi("editExercise"), startIndex, endIndex),
     ]);
   }
 
