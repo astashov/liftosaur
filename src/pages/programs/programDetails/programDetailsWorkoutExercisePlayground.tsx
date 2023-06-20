@@ -66,11 +66,11 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
   );
 
   return (
-    <div className={`px-2 pt-2 pb-2 mb-2 rounded-lg ${getBgColor100(props.entry)} relative`}>
+    <div className={`px-2 pt-2 pb-2 mb-3 rounded-lg ${getBgColor100(props.entry)} relative`}>
       <div className="flex items-center">
         <div
           className="absolute z-0 px-2 py-1 leading-none rounded-full bg-grayv2-100"
-          style={{ right: -12, top: -14 }}
+          style={{ right: -12, top: -18 }}
         >
           <button
             className="inline-block mr-2"

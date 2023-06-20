@@ -14,7 +14,6 @@ import { EditProgramExerciseSimpleErrors } from "../../../components/editProgram
 import { Button } from "../../../components/button";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { CollectionUtils } from "../../../utils/collection";
-import { Input } from "../../../components/input";
 import { EditProgramExerciseSimpleDescription } from "../../../components/editProgram/editProgramExerciseDescription";
 
 interface IProgramContentEditExerciseSimpleProps {

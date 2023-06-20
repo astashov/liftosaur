@@ -61,6 +61,17 @@ export namespace Weight {
     }
   }
 
+  export function getNRepMax(oneRepMax: IWeight, reps: number, settings: ISettings, bar?: IEquipment): IWeight {
+    if (reps === 0) {
+      return Weight.build(0, oneRepMax.unit);
+    } else if (reps === 1) {
+      return oneRepMax;
+    } else {
+      // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
+      return Weight.round(Weight.divide(oneRepMax, 1 + reps / 30), settings, bar);
+    }
+  }
+
   export function getTrainingMax(weight: IWeight, reps: number, settings: ISettings, bar: IBarKey): IWeight {
     return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps, settings, bar), 0.9), settings, bar);
   }

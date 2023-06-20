@@ -6,7 +6,7 @@ import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { Program } from "../../../models/program";
-import { IProgram, IProgramExercise, ISettings, IWeight } from "../../../types";
+import { IProgram, IProgramExercise, ISettings, IWeight, IProgramState } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
 import { IPlaygroundDetailsWeekSetup } from "./programDetailsWeekSetup";
@@ -16,6 +16,7 @@ export interface IProgramDetailsExerciseExampleProps {
   program: IProgram;
   programExercise: IProgramExercise;
   weekSetup: IPlaygroundDetailsWeekSetup[];
+  staticStateBuilder?: (week: number, day: number, state: IProgramState) => IProgramState;
   weightInputs: { label: string; key: string }[];
 }
 
@@ -38,8 +39,12 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     .map((s) => s.value)
     .join("-");
 
-  const weeks = props.weekSetup.map((week, i) => {
-    const staticState = week.days[day].states[props.programExercise.id];
+  const weeks = props.weekSetup.map((week, weekIndex) => {
+    const staticState = {
+      ...week.days[day].states[props.programExercise.id],
+      ...props.staticStateBuilder?.(weekIndex + 1, day + 1, programExercise.state),
+    };
+
     return {
       label: week.name,
       entry: Program.programExerciseToHistoryEntry(

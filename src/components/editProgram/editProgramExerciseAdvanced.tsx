@@ -33,7 +33,6 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
 import { EditProgramExtraFeatures } from "./editProgramExtraFeatures";
-import { Input } from "../input";
 import { EditProgramExerciseAdvancedDescriptions } from "./editProgramExerciseDescription";
 
 interface IProps {

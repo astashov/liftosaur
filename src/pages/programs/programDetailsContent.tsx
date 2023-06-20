@@ -13,6 +13,7 @@ import { ProgramDetailsSettings } from "./programDetails/programDetailsSettings"
 import { ProgramDetailsMusclesModal } from "./programDetails/programDetailsMusclesModal";
 import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGoldenSix";
 import { ProgramDetailsGzclp } from "./detailed/programDetailsGzclp";
+import { ProgramDetailsJackedAndTan } from "./detailed/programDetailsJackedAndTan";
 import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
 
 export interface IProgramDetailsContentProps {
@@ -56,6 +57,15 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzclp") {
     return (
       <ProgramDetailsGzclp
+        program={program}
+        client={props.client}
+        audio={props.audio}
+        settings={initialState.settings}
+      />
+    );
+  } else if (props.selectedProgramId === "gzcl-jacked-and-tan-2") {
+    return (
+      <ProgramDetailsJackedAndTan
         program={program}
         client={props.client}
         audio={props.audio}

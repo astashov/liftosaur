@@ -17,7 +17,6 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramExerciseSimpleRow } from "./editProgramExerciseSimpleRow";
 import { EditProgramExerciseSimpleErrors } from "./editProgramExerciseSimpleErrors";
 import { EditProgramExerciseSimpleProgression } from "./editProgramExerciseSimpleProgression";
-import { Input } from "../input";
 import { EditProgramExerciseSimpleDescription } from "./editProgramExerciseDescription";
 
 interface IProps {

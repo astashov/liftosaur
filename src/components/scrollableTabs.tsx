@@ -17,7 +17,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
       {tabs.length > 1 && (
         <div className="sticky top-0 left-0 z-10 bg-white" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
           <Scroller arrowYOffsetPct={-20}>
-            <div className="flex w-full pb-2">
+            <div className="flex w-full py-2">
               {tabs.map(([name, content], index) => {
                 const nameClass = `tab-${StringUtils.dashcase(name.toLowerCase())}`;
 

@@ -1,4 +1,3 @@
-- Add a way to disable sound
 - Push notif for the forgotten session
 - AMRAP as an expression
 - Dynamic sets!
@@ -7,6 +6,8 @@
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets
+- Long press on sets
+- Volume for each exercise, and in exercise stats
 
 - Programs
   - 5/3/1s
@@ -28,5 +29,3 @@
 - Bug:
   Assign lb to state var of type number
   Underscores are not supported
-  Fix warmup sets in lb on /program with kg in settings
-  Fix position of the warmup sets in the /program
