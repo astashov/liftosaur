@@ -39,14 +39,27 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
 
   return (
     <section className="px-4">
-      <h1 className="mb-4 text-2xl font-bold leading-8 text-center">GZCL: Jacked And Tan 2.0 program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: Jacked And Tan 2.0 program explained</h1>
+      <div className="mb-4 text-sm font-bold text-center">
+        <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
+          By Cody Lefever
+        </a>
+      </div>
       <div className="flex flex-col sm:flex-row program-details-description" style={{ gap: "1rem" }}>
         <div className="flex-1 min-w-0">
           <p>
-            The Jacked & Tan 2.0 program is a 12-week weightlifting program, following GZCL principles, and offering
-            quite a lot of volume. It's both for hypertrophy and strength. It starts with lower intensity / higher
-            volume, and progresses to higher intensity / lower volume. It's a fun program to run, offering somewhat
-            unusual and interesting rep schemes, with testing for different RMs each workout.
+            Jacked &amp; Tan 2.0 is a weightlifting program based on the <strong>GZCL principle</strong>, created by{" "}
+            <a href="https://www.gainzfever.com/" target="_blank">
+              Cody Lefever
+            </a>
+            . The GZCL name comes from his Reddit username -{" "}
+            <a href="https://www.reddit.com/u/gzcl" target="_blank">
+              u/gzcl
+            </a>
+            . It's a 12-week weightlifting program, following GZCL principles, and offering quite a lot of volume. It's
+            both for hypertrophy and strength. It starts with lower intensity / higher volume, and progresses to higher
+            intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes,
+            with testing for different RMs each workout.
           </p>
           <p>
             It's an intermediate program, so you gonna find it most useful after your newbie gains are over. There's

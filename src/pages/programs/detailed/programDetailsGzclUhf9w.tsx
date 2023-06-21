@@ -6,40 +6,37 @@ import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetail
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { Program } from "../../../models/program";
-import { ProgramExercise } from "../../../models/programExercise";
-import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
 import { IPlaygroundDetailsWeekSetup } from "../programDetails/programDetailsWeekSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
+import { ProgramExercise } from "../../../models/programExercise";
+import { Program } from "../../../models/program";
+import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
+import { Weight } from "../../../models/weight";
 
-export interface IProgramDetailsTheRipplerProps {
+export interface IProgramDetailsGzclUhf9wProps {
   settings: ISettings;
   program: IProgram;
   client: Window["fetch"];
   audio: IAudioInterface;
 }
 
-export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps): JSX.Element {
+export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
   const weekSetup = buildWeekSetup(props.settings, program);
   const programForMuscles = ObjectUtils.clone(program);
-  const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
-  for (const exercise of t3Exercises) {
-    for (const variation of exercise.variations) {
-      for (const sets of variation.sets) {
-        sets.repsExpr = "10";
-      }
-    }
-  }
   const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
-  const t1Pct = [85, 90, 87.5, 92.5, 90, 95, 92.5, 97.5, 95, 100, 90];
-  const t2Pct = [80, 85, 90, 82.5, 87.5, 92.5, 85, 90, 95, 100];
+
+  const t1Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "squat")!;
+  const t2Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!;
+  const t3Exercise = props.program.exercises.find((pe) => pe.exerciseType.id === "bicepCurl")!;
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: The Rippler program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">
+        GZCL: UHF (Ultra High Frequency) 9 weeks program explained
+      </h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
           By Cody Lefever
@@ -48,7 +45,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
       <div className="flex flex-col sm:flex-row program-details-description" style={{ gap: "1rem" }}>
         <div className="flex-1 min-w-0">
           <p>
-            The Rippler is a weightlifting program based on the <strong>GZCL principle</strong>, created by{" "}
+            GZCL: UHF (Ultra High Frequency) is a weightlifting program based on the <strong>GZCL principle</strong>,
+            created by{" "}
             <a href="https://www.gainzfever.com/" target="_blank">
               Cody Lefever
             </a>
@@ -56,67 +54,104 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
             <a href="https://www.reddit.com/u/gzcl" target="_blank">
               u/gzcl
             </a>
-            . This program is an excellent next step following the beginner{" "}
-            <a href="/programs/gzclp" target="_blank">
-              GZCLP
+            . It's a program, that combines together GZCL principles and Daily Undulated Periodization (DUP) principle.
+            It's somewhat similar to{" "}
+            <a href="/programs/gzcl-the-rippler" target="_blank">
+              GZCL: The Rippler
             </a>{" "}
-            program, particularly when your newbie gains have plateaued and you can't increase your weights as quickly.
+            , but The Rippler used week to week undulating, and UFH sticks closer to the DUP principle, and changes
+            volume and intensity daily.
           </p>
+          <p>
+            Another difference is that The Rippler sticks to Upper/Lower days, while in UHF every day is pretty much
+            full body (if T1 is Upper, T2 is Lower, and vice versa).
+          </p>
+          <p>Volume is also significantly higher, which makes it more like an advanced program.</p>
           <ProgramDetailsGzclPrinciple />
-          <h2>Application of the GZCL Principle to The Rippler Program</h2>
+          <h2>Application of the GZCL Principle to the UHF program</h2>
+          <h3>T1 Exercise</h3>
           <p>
-            In The Rippler program, we use the 2 rep max (2RM) weight as a basis. This is a <strong>12-week</strong>{" "}
-            program, where the weight for T1 and T2 exercises changes each week according to a specific pattern.
+            In UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a <strong>9-week</strong>{" "}
+            program, and each week we use different 2RM% weight and reps for various T1 exercises. E.g. for week 1, we
+            use 85% of 2RM weight for Squat, 75% for Deadlift, 90% for Sling Shot Bench Press, etc.
           </p>
           <p>
-            For <strong>T1 exercises</strong>, we increase the weight for 2 weeks, then slightly decrease it, and
-            increase it even more in week 4. This pattern repeats through 4-week blocks. We'll have three 4-week blocks.
-            We use 2 rep max (2RM) as a base weight for T1 exercises. So, for first 4 weeks we do 85%, 87.5%, 90%, 92.5%
-            of 2RM weight.
+            Like in any Linear Periodization program, the weight generally goes up, while volume goes down. The weight
+            goes up non-linearly though, but in the wave form, where each wave is 3 weeks.
           </p>
-          <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
               program={props.program}
-              programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
+              programExercise={t1Exercise}
               settings={props.settings}
-              weekSetup={weekSetup.slice(0, 11).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
-              weightInputs={[{ key: "rm2", label: "Enter your 2RM weight" }]}
+              weekSetup={weekSetup}
+              weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
             />
           </div>
+          <h3>T2 Exercise</h3>
           <p>
-            For <strong>T2 exercises</strong>, we gradually increase the weights over 3 weeks (e.g., 80%, 85%, 90%),
-            then reset to 82.5%, and increase again (82.5%, 87.5%, 92.5%). We repeat this pattern over four 3-week
-            blocks, creating a wave-like pattern. We use 5 rep max (5RM) as a base weight for T2 exercises. We skip T2
-            exercises completely on weeks 11 and 12.
+            Same as T1, we use 2RM weight for the TM. various T1 exercises. But unlike T1, we use linear increase of
+            weight (non-wavy), and sorta wavy decrease of volume. The tops of the waves are mostly due to AMRAP (As Many
+            Reps As Possible).
           </p>
-          <h3>Example of a T2 exercise sets/reps/weight week over week</h3>
+          <p>
+            For T2, We use "opposite" side for the exercise selection - if T1 is Upper, T2 is Lower, and vice versa. It
+            sorta makes the UHF program technically a full body program.
+          </p>
+          <p>Week 9 is a deload week, so skip T2 exercise completely.</p>
+          <p></p>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
               program={props.program}
-              programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
+              programExercise={t2Exercise}
               settings={props.settings}
-              weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
-              weightInputs={[{ key: "rm5", label: "Enter your 5RM weight" }]}
+              weekSetup={weekSetup}
+              weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
             />
           </div>
+          <h3>T3 Exercise</h3>
           <p>
-            For <strong>T3 exercises</strong>, we don't vary the weight, but aim to do the maximum reps each time. Start
-            with a weight you can lift for 10 reps, then do as many reps as you can, leaving 1-2 reps in reserve. It's
-            better to err on the side of lighter weights. If the weight you choose is too light, the Liftosaur app will
-            automatically adjust and increase the weight as needed in weeks 3, 6, and 9.
+            For T3, the first set is a Rep Max set, where you have to work up to your Rep Max. For the first week it's
+            15RM, for the second - 12RM, etc. So, to work up your 15RM, you need to guess your approximate 15RM weight,
+            and then do "warmup" sets (3-4 of them), that are not fatiguing, slowly increasing the weight. Like, let's
+            say you guessed your 15RM for EZBar Bicep Curl is 50lb. So, you do:
+          </p>
+          <ul>
+            <li>5 reps with empty bar</li>
+            <li>5 reps with 30lb</li>
+            <li>3 reps with 40lb</li>
+            <li>15 reps with 50lb</li>
+          </ul>
+          <p>
+            If you missed, and chose the weight that is too heavy, and let's say you only could do 8 reps. Or too light,
+            and you did 12 reps. That's okay! You'll get better at this later on, just record your weight/reps, and move
+            to the Max Rep Sets.
           </p>
           <p>
-            Feel free to substitute exercises if you don't have the necessary equipment or if you wish to target
-            specific muscles, particularly for the T3 exercises. If you use the Liftosaur app, there's a handy
-            "Substitute" exercise feature where you can select similar exercises that require different equipment.
+            For Max Reps Sets, simply, try to do as many reps as possible with the same weight as you did for the first
+            set (50lb in our case). For the 2nd, 3rd, etc Max Reps Set you likely will be able to do less and less reps,
+            but that's okay and expected, as you're accumulating fatigue.
           </p>
-          <h2>1RM test</h2>
-          <p>
-            Starting from week 11, you'll begin preparing for the 1RM test. You won't do T2 and T3 exercises at all
-            during this period. On week 11, you will do heavy 2RMs of T1, and on week 12, you'll test your 1RM, and
-            enjoy your new PRs!
-          </p>
+          <div className="mb-4">
+            <ProgramDetailsExerciseExample
+              program={props.program}
+              programExercise={t3Exercise}
+              settings={props.settings}
+              weekSetup={weekSetup}
+              staticStateBuilder={(week, day, state) => {
+                const weeksToRm = [15, 15, 12, 12, 10, 10, 8, 8, 0];
+                return {
+                  rm: Weight.getNRepMax(
+                    Weight.build(60, props.settings.units),
+                    weeksToRm[week - 1],
+                    props.settings,
+                    t3Exercise.exerciseType.equipment
+                  ),
+                };
+              }}
+              weightInputs={[]}
+            />
+          </div>
           <p>
             Again, this is just a short description, and for full information and details, please read the{" "}
             <a href="http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html" target="_blank">
@@ -129,11 +164,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
             like for each week. You can edit the 2RM, 5RM, etc weights for each exercise, and see how the weight
             changes.
           </p>
-          <p>
-            You can run GZCL: The Rippler program in the Liftosaur app. You only would need to set initial RM weights
-            for each exercise, and the app will automatically calculate the weights, change the sets, autobalance the T3
-            weights, and do all the math for you.
-          </p>
+          <p>You can run GZCL: UHF 9 weeks program in the Liftosaur app.</p>
         </div>
         <div className="w-64 mx-auto">
           <h3 className="text-lg font-bold leading-8 text-center">Muscle Balance</h3>
@@ -167,9 +198,9 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
 
 function buildWeekSetup(settings: ISettings, program: IProgram): IPlaygroundDetailsWeekSetup[] {
   const weekSetup: IPlaygroundDetailsWeekSetup[] = [];
-  for (let week = 1; week <= 12; week++) {
+  for (let week = 1; week <= 9; week++) {
     const days = [];
-    for (let day = 1; day <= 4; day++) {
+    for (let day = 1; day <= 5; day++) {
       days.push({ dayIndex: day, states: buildStaticStates(settings, program, day, week) });
     }
     weekSetup.push({ name: `Week ${week}`, days });

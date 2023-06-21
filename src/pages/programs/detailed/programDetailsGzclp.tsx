@@ -26,14 +26,27 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
 
   return (
     <section className="px-4">
-      <h1 className="mb-4 text-2xl font-bold leading-8 text-center">GZCLP program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCLP program explained</h1>
+      <div className="mb-4 text-sm font-bold text-center">
+        <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
+          By Cody Lefever
+        </a>
+      </div>
       <div className="flex flex-col sm:flex-row program-details-description" style={{ gap: "1rem" }}>
         <div className="flex-1 min-w-0">
           <p>
-            GZCLP is a weightlifting program that's great for beginners. You do it three times a week and it's based on
-            something called the GZCL principle. It's a good next step after doing 3-6 months of a Basic Beginner
-            Routine or Starting Strength. It's also good for getting a lot of practice with exercises, because you do
-            more reps than most other beginner programs.
+            GZCLP is a weightlifting program based on the <strong>GZCL principle</strong>, created by{" "}
+            <a href="https://www.gainzfever.com/" target="_blank">
+              Cody Lefever
+            </a>
+            . The GZCL name comes from his Reddit username -{" "}
+            <a href="https://www.reddit.com/u/gzcl" target="_blank">
+              u/gzcl
+            </a>
+            It's a great beginner program. You do it three times a week and it's based on something called the GZCL
+            principle. It's a good next step after doing 3-6 months of a Basic Beginner Routine or Starting Strength.
+            It's also good for getting a lot of practice with exercises, because you do more reps than most other
+            beginner programs.
           </p>
           <ProgramDetailsGzclPrinciple />
           <h2>Application of the GZCL Principle to GZCLP program</h2>

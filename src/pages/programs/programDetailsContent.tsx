@@ -15,6 +15,7 @@ import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGo
 import { ProgramDetailsGzclp } from "./detailed/programDetailsGzclp";
 import { ProgramDetailsJackedAndTan } from "./detailed/programDetailsJackedAndTan";
 import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
+import { ProgramDetailsGzclUhf9w } from "./detailed/programDetailsGzclUhf9w";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -66,6 +67,15 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-jacked-and-tan-2") {
     return (
       <ProgramDetailsJackedAndTan
+        program={program}
+        client={props.client}
+        audio={props.audio}
+        settings={initialState.settings}
+      />
+    );
+  } else if (props.selectedProgramId === "gzcl-uhf-9-weeks") {
+    return (
+      <ProgramDetailsGzclUhf9w
         program={program}
         client={props.client}
         audio={props.audio}
