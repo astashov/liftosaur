@@ -56,7 +56,7 @@ export namespace ProgramExercise {
   export function mergeStates(aState: IProgramState, bState: IProgramState): IProgramState {
     const newState: IProgramState = {};
     for (const key of Object.keys(bState)) {
-      newState[key] = aState[key] || bState[key];
+      newState[key] = aState[key] ?? bState[key];
     }
     return newState;
   }
