@@ -219,7 +219,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           setIsShareShown={setIsShareShown}
           onChangeReps={(mode, entryIndex, setIndex) => {
-            const isAmrapSet = !!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap;
+            const isAmrapSet = mode === "workout" && !!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap;
             if (!isAmrapSet) {
               maybeStartTimer(mode, entryIndex, setIndex, dispatch);
             }
