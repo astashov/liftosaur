@@ -42,7 +42,7 @@ export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISett
   });
 }
 
-export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setttings: ISettings): [number, number][] {
+export function getPercentageDataForGraph(coll: IStatsPercentageValue[], settings: ISettings): [number, number][] {
   const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
     return [i.timestamp / 1000, i.value.value];
