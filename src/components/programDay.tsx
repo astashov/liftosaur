@@ -24,7 +24,6 @@ import {
   IProgram,
   ISettings,
   IProgressMode,
-  ISet,
   ISubscription,
   IProgramExercise,
   IEquipment,
@@ -192,7 +191,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               equipment={progress.ui?.editSetModal?.equipment}
               programExercise={progress.ui?.editSetModal?.programExercise}
               allProgramExercises={props.program?.exercises}
-              set={getEditSetData(props.progress)}
+              set={EditProgressEntry.getEditSetData(props.progress)}
               isWarmup={progress.ui?.editSetModal?.isWarmup || false}
               entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
               setIndex={progress.ui?.editSetModal?.setIndex}
@@ -233,7 +232,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           ) => {
             EditProgressEntry.showEditSetModal(
               props.dispatch,
-              progress.id,
               isWarmup,
               entryIndex,
               setIndex,
@@ -257,16 +255,4 @@ function maybeStartTimer(mode: "warmup" | "workout", entryIndex: number, setInde
     entryIndex,
     setIndex,
   });
-}
-
-function getEditSetData(progress: IHistoryRecord): ISet | undefined {
-  const uiData = progress.ui?.editSetModal;
-  if (uiData != null && uiData.setIndex != null) {
-    const entry = progress.entries[uiData.entryIndex];
-    if (entry != null) {
-      const set = uiData.isWarmup ? entry.warmupSets[uiData.setIndex] : entry.sets[uiData.setIndex];
-      return set;
-    }
-  }
-  return undefined;
 }

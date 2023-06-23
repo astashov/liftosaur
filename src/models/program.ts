@@ -568,6 +568,9 @@ export namespace Program {
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
     const errors = [];
+    if (programExercise.quickAddSets) {
+      errors.push("Must not have Quick Add Sets enabled");
+    }
     if (programExercise.reuseLogic?.selected != null) {
       errors.push("Must not reuse another experiment logic");
     }

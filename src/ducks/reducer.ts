@@ -385,6 +385,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "ConfirmUserPromptedStateVars") {
     return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+  } else if (action.type === "UpdateProgress") {
+    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "StartProgramDayAction") {
     const progress = state.progress[0];
     if (progress != null) {

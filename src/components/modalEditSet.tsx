@@ -25,6 +25,7 @@ interface IModalWeightProps {
   entryIndex: number;
   setIndex?: number;
   set?: ISet;
+  isTimerDisabled?: boolean;
   isHidden: boolean;
 }
 
@@ -63,7 +64,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
       autofocusInputRef={repsInput}
       shouldShowClose={true}
       onClose={() => {
-        EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
+        EditProgressEntry.hideEditSetModal(props.dispatch);
       }}
     >
       <GroupHeader size="large" name="Please enter reps and weight" />
@@ -140,7 +141,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             data-cy="modal-edit-set-cancel"
             className="mr-3"
             onClick={() => {
-              EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
+              EditProgressEntry.hideEditSetModal(props.dispatch);
             }}
           >
             Cancel
@@ -162,15 +163,8 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     isAmrap,
                     completedReps: props.programExercise != null && quickAddSets ? reps : undefined,
                   };
-                  EditProgressEntry.editSet(
-                    props.dispatch,
-                    props.progressId,
-                    props.isWarmup,
-                    newSet,
-                    props.entryIndex,
-                    props.setIndex
-                  );
-                  if (quickAddSets && !props.isWarmup) {
+                  EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
+                  if (!props.isTimerDisabled && quickAddSets && !props.isWarmup) {
                     props.dispatch({
                       type: "StartTimer",
                       timestamp: new Date().getTime(),
@@ -180,7 +174,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     });
                   }
                 } else {
-                  EditProgressEntry.hideEditSetModal(props.dispatch, props.progressId);
+                  EditProgressEntry.hideEditSetModal(props.dispatch);
                 }
               }
             }}
