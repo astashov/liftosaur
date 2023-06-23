@@ -34,7 +34,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
     props.settings.exercises
   );
   const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
-    if (g.type === "statsWeight" || g.type === "statsLength") {
+    if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
       memo.add(g.id);
     }
     return memo;
@@ -43,6 +43,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const hasBodyweight = settings.graphs.some((g) => g.id === "weight");
   const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter((k) => !usedStats.has(k));
   const statsLengthKeys = ObjectUtils.keys(props.stats.length).filter((k) => !usedStats.has(k));
+  const statsPercentageKeys = ObjectUtils.keys(props.stats.percentage).filter((k) => !usedStats.has(k));
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <GroupHeader name="Settings" isExpanded={true}>
@@ -159,6 +160,14 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             <MenuItem
               name={Stats.name(statsKey)}
               onClick={() => EditGraphs.addStatsWeightGraph(props.dispatch, statsKey)}
+            />
+          );
+        })}
+        {statsPercentageKeys.map((statsKey) => {
+          return (
+            <MenuItem
+              name={Stats.name(statsKey)}
+              onClick={() => EditGraphs.addStatsPercentageGraph(props.dispatch, statsKey)}
             />
           );
         })}

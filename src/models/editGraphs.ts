@@ -2,7 +2,7 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
 import { IExercise } from "./exercise";
-import { IGraph, ISettings, IStatsLength, IStatsWeight } from "../types";
+import { IGraph, ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
 
 export namespace EditGraphs {
   export function removeGraph(dispatch: IDispatch, graph: IGraph): void {
@@ -71,6 +71,17 @@ export namespace EditGraphs {
         .p("graphs")
         .recordModify((ex) => {
           return Array.from(new Set([...ex, { type: "statsLength", id: statsKey }]));
+        }),
+    });
+  }
+
+  export function addStatsPercentageGraph(dispatch: IDispatch, statsKey: keyof IStatsPercentage): void {
+    dispatch({
+      type: "UpdateSettings",
+      lensRecording: lb<ISettings>()
+        .p("graphs")
+        .recordModify((ex) => {
+          return Array.from(new Set([...ex, { type: "statsPercentage", id: statsKey }]));
         }),
     });
   }
