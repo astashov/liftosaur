@@ -6,7 +6,7 @@ import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
 import { ISettings, IHistoryRecord, IExerciseId, IEquipment, IStats } from "../types";
-import { getLengthDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
+import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -147,8 +147,24 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                   />
                 </div>
               );
-            } else {
+            } else if (graph.type === "statsLength") {
               const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
+              return (
+                <div className="mb-2">
+                  <GraphStats
+                    isSameXAxis={isSameXAxis}
+                    minX={minX}
+                    maxX={maxX}
+                    units={props.settings.lengthUnits}
+                    key={graph.id}
+                    settings={props.settings}
+                    collection={collection}
+                    statsKey={graph.id}
+                  />
+                </div>
+              );
+            } else {
+              const collection = getPercentageDataForGraph(props.stats.percentage[graph.id] || [], props.settings);
               return (
                 <div className="mb-2">
                   <GraphStats
