@@ -89,6 +89,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               onClick={() => {
                 props.onStartSetChanging!(true, props.index, undefined, undefined, props.entry.exercise.equipment);
               }}
+              size={props.size || "medium"}
               label="Warmup"
               mode="warmup"
             />
@@ -149,6 +150,8 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
       {(isEditMode || (Progress.isCurrent(props.progress) && !props.programExercise) || quickAddSets) &&
         props.onStartSetChanging && (
           <AddSetButton
+            size={props.size || "medium"}
+            quickAddSets={!isEditMode && quickAddSets}
             onClick={() =>
               props.onStartSetChanging!(
                 false,
@@ -215,7 +218,7 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
         {isEditMode && (
           <button
             data-cy="set-edit-mode-remove"
-            style={{ top: "-4px", left: "-13px" }}
+            style={{ top: "-12px", left: "-13px" }}
             className="absolute z-10 p-1 ls-edit-set-remove"
             onClick={() => {
               EditProgressEntry.removeSet(
@@ -239,22 +242,31 @@ interface IAddSetButtonProps {
   label?: string;
   mode: "workout" | "warmup";
   onClick: () => void;
+  size: "small" | "medium";
+  quickAddSets?: boolean;
 }
 
 function AddSetButton(props: IAddSetButtonProps): JSX.Element {
+  const sizeClassNames = props.size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
   return (
-    <div>
+    <div className="mb-2 mr-2">
       <div
         data-cy={`${props.mode}-set-title`}
-        className="text-xs text-grayv2-main"
-        style={{ fontSize: "10px", marginTop: "-0.75em", marginBottom: "-0.75em" }}
+        className="leading-none text-center text-grayv2-main"
+        style={{
+          fontSize: props.size === "small" ? "9px" : "10px",
+          marginBottom: "3px",
+          minHeight: props.size === "small" ? "9px" : "10px",
+        }}
       >
-        {props.label}
+        {props.label ?? " "}
       </div>
       <button
         data-cy={`add-${props.mode}-set`}
         onClick={props.onClick}
-        className="w-12 h-12 my-2 mr-3 leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup is-edit-mode"
+        className={`${sizeClassNames} leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup ${
+          props.quickAddSets ? "" : "is-edit-mode"
+        }`}
       >
         +
       </button>
