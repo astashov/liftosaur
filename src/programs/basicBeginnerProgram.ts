@@ -3,6 +3,7 @@ import { IProgram } from "../types";
 export const basicBeginnerProgram: IProgram = {
   exercises: [
     {
+      descriptions: [""],
       variationExpr: "1",
       variations: [
         {
@@ -71,6 +72,7 @@ export const basicBeginnerProgram: IProgram = {
       ],
     },
     {
+      descriptions: [""],
       variationExpr: "1",
       variations: [
         {
@@ -151,6 +153,7 @@ export const basicBeginnerProgram: IProgram = {
     },
     {
       variationExpr: "1",
+      descriptions: [""],
       variations: [
         {
           sets: [
@@ -229,6 +232,7 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
+      descriptions: [""],
       variationExpr: "1",
       variations: [
         {
@@ -302,6 +306,7 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
+      descriptions: [""],
       variationExpr: "1",
       variations: [
         {
@@ -381,6 +386,7 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
+      descriptions: [""],
       variationExpr: "1",
       variations: [
         {

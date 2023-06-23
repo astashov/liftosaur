@@ -386,6 +386,7 @@ For given weightlifting program, respond with what weeks and how many days each 
           id: UidFactory.generateUid(8),
           name: exercise.name,
           variationExpr: "1",
+          descriptions: [""],
           variations: [
             {
               sets: exercise.sets.map((set) => {

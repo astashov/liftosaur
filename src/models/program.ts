@@ -266,6 +266,36 @@ export namespace Program {
     return { success: true, data: newState };
   }
 
+  export function runDescriptionScript(
+    script: string,
+    equipment: IEquipment | undefined,
+    state: IProgramState,
+    day: number,
+    settings: ISettings
+  ): IEither<number, string> {
+    try {
+      if (script) {
+        const scriptRunnerResult = new ScriptRunner(
+          script,
+          state,
+          Progress.createEmptyScriptBindings(day),
+          Progress.createScriptFunctions(settings),
+          settings.units,
+          { equipment }
+        );
+        return { success: true, data: scriptRunnerResult.execute("reps") };
+      } else {
+        return { success: false, error: "Empty expression" };
+      }
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return { success: false, error: e.message };
+      } else {
+        throw e;
+      }
+    }
+  }
+
   export function runVariationScript(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
@@ -386,7 +416,6 @@ export namespace Program {
     for (const key of ObjectUtils.keys(staticState || {})) {
       newState[key] = (staticState || {})[key];
     }
-    console.log("New state now", newState);
 
     return { success: true, data: newState };
   }
@@ -477,6 +506,7 @@ export namespace Program {
       warmupSets: defaultWarmup,
       finishDayExpr: "",
       variationExpr: "1",
+      descriptions: [""],
     };
   }
 
@@ -538,8 +568,14 @@ export namespace Program {
 
   export function isEligibleForSimpleExercise(programExercise: IProgramExercise): IEither<true, string[]> {
     const errors = [];
+    if (programExercise.quickAddSets) {
+      errors.push("Must not have Quick Add Sets enabled");
+    }
     if (programExercise.reuseLogic?.selected != null) {
       errors.push("Must not reuse another experiment logic");
+    }
+    if (programExercise.descriptions.length > 1) {
+      errors.push("Must not use multiple descriptions");
     }
     if (programExercise.state.weight == null) {
       const keys = Object.keys(programExercise.state)

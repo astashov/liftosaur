@@ -3,7 +3,7 @@ import { buildCardsReducer, ICardsAction } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
-import { IHistoryRecord, IProgramDay, IProgramExercise, ISettings, ISubscription } from "../types";
+import { IEquipment, IHistoryRecord, IProgramDay, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ExerciseView } from "./exercise";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -12,6 +12,9 @@ import { ModalWeight } from "./modalWeight";
 import { useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
 import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
+import { ModalEditSet } from "./modalEditSet";
+import { EditProgressEntry } from "../models/editProgressEntry";
+import { LinkButton } from "./linkButton";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -89,8 +92,43 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         settings={props.settings}
         dispatch={dispatch}
         onChangeReps={() => undefined}
+        onStartSetChanging={(
+          isWarmup: boolean,
+          entryIndex: number,
+          setIndex?: number,
+          pe?: IProgramExercise,
+          equipment?: IEquipment
+        ) => {
+          EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, equipment);
+        }}
         progress={props.progress}
       />
+      <div className="text-xs" style={{ marginTop: "-0.5rem" }}>
+        <LinkButton
+          onClick={() => {
+            const state = ProgramExercise.getState(programExercise, allProgramExercises);
+            const nextVariationIndex = Program.nextVariationIndex(
+              programExercise,
+              allProgramExercises,
+              state,
+              props.day,
+              settings
+            );
+            const newEntry = Program.nextHistoryEntry(
+              programExercise.id,
+              programExercise.exerciseType,
+              props.day,
+              ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
+              state,
+              settings,
+              ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
+            );
+            props.onProgressChange(History.buildFromEntry(newEntry, props.day));
+          }}
+        >
+          Reset Playground
+        </LinkButton>
+      </div>
       <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
       <ModalWeight
         programExercise={progress.ui?.weightModal?.programExercise}
@@ -104,6 +142,22 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         allProgramExercises={allProgramExercises}
         isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
         dispatch={dispatch}
+      />
+      <ModalEditSet
+        isHidden={progress.ui?.editSetModal == null}
+        key={progress.ui?.editSetModal?.setIndex}
+        subscription={props.subscription}
+        progressId={progress.id}
+        dispatch={dispatch}
+        settings={props.settings}
+        equipment={progress.ui?.editSetModal?.equipment}
+        programExercise={progress.ui?.editSetModal?.programExercise}
+        allProgramExercises={props.allProgramExercises}
+        isTimerDisabled={true}
+        set={EditProgressEntry.getEditSetData(props.progress)}
+        isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+        entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+        setIndex={progress.ui?.editSetModal?.setIndex}
       />
     </Fragment>
   );

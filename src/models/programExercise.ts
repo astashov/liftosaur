@@ -56,7 +56,7 @@ export namespace ProgramExercise {
   export function mergeStates(aState: IProgramState, bState: IProgramState): IProgramState {
     const newState: IProgramState = {};
     for (const key of Object.keys(bState)) {
-      newState[key] = aState[key] || bState[key];
+      newState[key] = aState[key] ?? bState[key];
     }
     return newState;
   }
@@ -87,6 +87,39 @@ export namespace ProgramExercise {
     allProgramExercises: IProgramExercise[]
   ): IProgramExerciseVariation[] {
     return getProgramExercise(programExercise, allProgramExercises).variations;
+  }
+
+  export function getDescription(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    day: number,
+    settings: ISettings,
+    staticState?: IProgramState
+  ): string {
+    let reusedProgramExercise: IProgramExercise;
+    if (isDescriptionReused(programExercise)) {
+      reusedProgramExercise = getProgramExercise(programExercise, allProgramExercises);
+    } else {
+      reusedProgramExercise = programExercise;
+    }
+    const state = { ...getState(programExercise, allProgramExercises), ...staticState };
+    if (reusedProgramExercise.descriptions.length < 2) {
+      return reusedProgramExercise.descriptions[0] || "";
+    } else {
+      const script = reusedProgramExercise.descriptionExpr || "1";
+      const resultIndex = Program.runDescriptionScript(
+        script,
+        programExercise.exerciseType.equipment,
+        state,
+        day,
+        settings
+      );
+      if (resultIndex.success) {
+        return reusedProgramExercise.descriptions[resultIndex.data - 1] || "";
+      } else {
+        return "";
+      }
+    }
   }
 
   export function getTimerExpr(
@@ -120,6 +153,10 @@ export namespace ProgramExercise {
     }
 
     return undefined;
+  }
+
+  export function isDescriptionReused(programExercise: IProgramExercise): boolean {
+    return !!(programExercise.reuseLogic?.selected && !programExercise.descriptions.some((d) => !!d));
   }
 
   export function resolveProgramExercise(
@@ -269,6 +306,7 @@ export namespace ProgramExercise {
       id,
       exerciseType: exerciseType,
       timerExpr: timerExpr,
+      descriptions: [""],
       state: {
         reps: maxReps,
         weight: onerm,

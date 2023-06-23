@@ -294,6 +294,19 @@ export const migrations = {
     storage.settings.volume = storage.settings.volume == null ? 1 : storage.settings.volume;
     return storage;
   },
+  "20230613211015_migrate_to_descriptions": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      for (const exercise of program.exercises) {
+        if (exercise.description) {
+          exercise.descriptions = exercise.descriptions || [exercise.description];
+        } else {
+          exercise.descriptions = exercise.descriptions || [""];
+        }
+      }
+    }
+    return storage;
+  },
   "20230623155732_add_bodyfat_percentage": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.statsEnabled.percentage = storage.settings.statsEnabled.percentage || { bodyfat: false };

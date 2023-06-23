@@ -17,7 +17,7 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramExerciseSimpleRow } from "./editProgramExerciseSimpleRow";
 import { EditProgramExerciseSimpleErrors } from "./editProgramExerciseSimpleErrors";
 import { EditProgramExerciseSimpleProgression } from "./editProgramExerciseSimpleProgression";
-import { Input } from "../input";
+import { EditProgramExerciseSimpleDescription } from "./editProgramExerciseDescription";
 
 interface IProps {
   settings: ISettings;
@@ -71,27 +71,10 @@ function Edit(props: IProps): JSX.Element {
         }}
       />
       <div className="mt-2">
-        <Input
-          label="Description"
-          value={props.programExercise.description}
-          multiline={4}
-          data-cy="exercise-description"
-          name="exercise-description"
-          placeholder="Place the feet shoulder width apart..."
-          maxLength={4095}
-          onInput={(e) => {
-            const target = e.target;
-            if (target instanceof HTMLTextAreaElement) {
-              EditProgram.setDescription(props.dispatch, target.value);
-            }
-          }}
+        <EditProgramExerciseSimpleDescription
+          programExercise={props.programExercise}
+          onChange={(value, index) => EditProgram.setDescription(props.dispatch, value, index)}
         />
-        <div className="text-xs italic leading-none text-right text-grayv2-main">
-          <a className="underline text-bluev2" href="https://www.markdownguide.org/cheat-sheet" target="_blank">
-            Markdown
-          </a>{" "}
-          supported
-        </div>
       </div>
       <MenuItemWrapper name="exercise-image">
         <div className="mx-8">

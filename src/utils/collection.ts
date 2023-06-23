@@ -120,6 +120,13 @@ export namespace CollectionUtils {
     return arrCopy;
   }
 
+  export function reorder<T>(arr: T[], start: number, end: number): T[] {
+    const newDays = [...arr];
+    const [daysToMove] = newDays.splice(start, 1);
+    newDays.splice(end, 0, daysToMove);
+    return newDays;
+  }
+
   export function sortInOrder<T extends {}, K extends keyof T>(arr: T[], key: K, order: T[K][]): T[] {
     const arrCopy = [...arr];
     arrCopy.sort((a, b) => {

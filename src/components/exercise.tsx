@@ -173,7 +173,15 @@ const ExerciseContentView = memo(
     const [showStateVariables, setShowStateVariables] = useState(false);
 
     const programExercise = props.programExercise;
-    const description = programExercise?.description;
+    let description: string | undefined;
+    if (programExercise != null && props.allProgramExercises != null) {
+      description = ProgramExercise.getDescription(
+        programExercise,
+        props.allProgramExercises,
+        props.day,
+        props.settings
+      );
+    }
 
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>

@@ -33,7 +33,7 @@ import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
 import { EditProgramExtraFeatures } from "./editProgramExtraFeatures";
-import { Input } from "../input";
+import { EditProgramExerciseAdvancedDescriptions } from "./editProgramExerciseDescription";
 
 interface IProps {
   settings: ISettings;
@@ -106,6 +106,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   ).map((e) => [e, equipmentName(e)]);
 
   const cannotSave = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
+  const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);
 
   return (
     <div className="px-4">
@@ -142,27 +143,22 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         }}
       />
       <div className="mt-2">
-        <Input
-          label="Description"
-          value={props.programExercise.description}
-          multiline={4}
-          data-cy="exercise-description"
-          name="exercise-description"
-          placeholder="Place the feet shoulder width apart..."
-          maxLength={4095}
-          onInput={(e) => {
-            const target = e.target;
-            if (target instanceof HTMLTextAreaElement) {
-              EditProgram.setDescription(props.dispatch, target.value);
-            }
-          }}
+        {isReusingDescription && (
+          <div className="text-sm font-bold text-grayv2-main">
+            Reusing description from {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name}
+          </div>
+        )}
+        <EditProgramExerciseAdvancedDescriptions
+          programExercise={programExercise}
+          allProgramExercises={allProgramExercises}
+          day={day}
+          settings={props.settings}
+          onAdd={() => EditProgram.addDescription(props.dispatch)}
+          onRemove={(index) => EditProgram.removeDescription(props.dispatch, index)}
+          onChange={(value, index) => EditProgram.changeDescription(props.dispatch, value, index)}
+          onChangeExpr={(value) => EditProgram.changeDescriptionExpr(props.dispatch, value)}
+          onReorder={(startIndex, endIndex) => EditProgram.reorderDescriptions(props.dispatch, startIndex, endIndex)}
         />
-        <div className="text-xs italic leading-none text-right text-grayv2-main">
-          <a className="underline text-bluev2" href="https://www.markdownguide.org/cheat-sheet" target="_blank">
-            Markdown
-          </a>{" "}
-          supported
-        </div>
       </div>
       <ExerciseImage
         key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}

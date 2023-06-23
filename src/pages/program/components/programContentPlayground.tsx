@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { h, JSX } from "preact";
-import { IHistoryRecord, IProgramDay, IProgramExercise, ISettings } from "../../../types";
+import { IEquipment, IHistoryRecord, IProgramDay, IProgramExercise, ISettings } from "../../../types";
 import { useRef } from "preact/hooks";
 import { IDispatch } from "../../../ducks/types";
 import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
@@ -17,6 +17,9 @@ import { GroupHeader } from "../../../components/groupHeader";
 import { ProgressStateChanges } from "../../../components/progressStateChanges";
 import { ModalStateVarsUserPrompt } from "../../../components/modalStateVarsUserPrompt";
 import { Markdown } from "../../../components/markdown";
+import { LinkButton } from "../../../components/linkButton";
+import { ModalEditSet } from "../../../components/modalEditSet";
+import { EditProgressEntry } from "../../../models/editProgressEntry";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -41,7 +44,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
     const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
     props.onProgressChange(newProgress);
   };
-  const description = props.programExercise.description;
+  const description = ProgramExercise.getDescription(programExercise, allProgramExercises, props.day, props.settings);
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
@@ -98,8 +101,19 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           index={0}
           showHelp={false}
           settings={props.settings}
+          programExercise={programExercise}
+          allProgramExercises={allProgramExercises}
           entry={entry}
           dispatch={dispatch}
+          onStartSetChanging={(
+            isWarmup: boolean,
+            entryIndex: number,
+            setIndex?: number,
+            pe?: IProgramExercise,
+            equipment?: IEquipment
+          ) => {
+            EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, equipment);
+          }}
           onChangeReps={() => undefined}
         />
       </section>
@@ -110,6 +124,32 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
         state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
         script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
       />
+      <div className="text-xs">
+        <LinkButton
+          onClick={() => {
+            const state = ProgramExercise.getState(programExercise, allProgramExercises);
+            const nextVariationIndex = Program.nextVariationIndex(
+              programExercise,
+              allProgramExercises,
+              state,
+              props.day,
+              settings
+            );
+            const newEntry = Program.nextHistoryEntry(
+              programExercise.id,
+              programExercise.exerciseType,
+              props.day,
+              ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
+              state,
+              settings,
+              ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
+            );
+            props.onProgressChange(History.buildFromEntry(newEntry, props.day));
+          }}
+        >
+          Reset
+        </LinkButton>
+      </div>
       <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
       <ModalWeight
         programExercise={progress.ui?.weightModal?.programExercise}
@@ -123,6 +163,22 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
         allProgramExercises={allProgramExercises}
         isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
         dispatch={dispatch}
+      />
+      <ModalEditSet
+        isHidden={progress.ui?.editSetModal == null}
+        key={progress.ui?.editSetModal?.setIndex}
+        subscription={{ google: { fake: null }, apple: {} }}
+        progressId={progress.id}
+        dispatch={dispatch}
+        settings={props.settings}
+        equipment={progress.ui?.editSetModal?.equipment}
+        programExercise={progress.ui?.editSetModal?.programExercise}
+        allProgramExercises={props.allProgramExercises}
+        isTimerDisabled={true}
+        set={EditProgressEntry.getEditSetData(props.progress)}
+        isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+        entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+        setIndex={progress.ui?.editSetModal?.setIndex}
       />
     </section>
   );

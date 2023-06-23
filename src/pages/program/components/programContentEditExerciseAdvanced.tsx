@@ -22,6 +22,7 @@ import { CollectionUtils } from "../../../utils/collection";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { EditProgramExtraFeatures } from "../../../components/editProgram/editProgramExtraFeatures";
 import { ProgramExercise } from "../../../models/programExercise";
+import { EditProgramExerciseAdvancedDescriptions } from "../../../components/editProgram/editProgramExerciseDescription";
 
 interface IProgramContentEditExerciseAdvancedProps {
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -74,6 +75,8 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const isSaveDisabled =
     !entry || !finishEditorResult.success || !variationScriptResult.success || !areExtraFeatuersValid;
 
+  const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);
+
   return (
     <section ref={containerRef}>
       <div className="my-2 text-sm text-grayv2-main">
@@ -93,6 +96,24 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         </LinkButton>{" "}
         of different exercise logic
       </div>
+      {isReusingDescription && (
+        <div className="text-sm font-bold text-grayv2-main">
+          Reusing description from {ProgramExercise.getProgramExercise(programExercise, allProgramExercises).name}
+        </div>
+      )}
+      <EditProgramExerciseAdvancedDescriptions
+        programExercise={programExercise}
+        allProgramExercises={allProgramExercises}
+        day={day}
+        settings={props.settings}
+        onAdd={() => props.dispatch(EditProgramLenses.addDescription(lbe))}
+        onRemove={(index) => props.dispatch(EditProgramLenses.removeDescription(lbe, index))}
+        onChange={(value, index) => props.dispatch(EditProgramLenses.changeDescription(lbe, value, index))}
+        onChangeExpr={(value) => props.dispatch(EditProgramLenses.changeDescriptionExpr(lbe, value))}
+        onReorder={(startIndex, endIndex) =>
+          props.dispatch(EditProgramLenses.reorderDescriptions(lbe, startIndex, endIndex))
+        }
+      />
       <div className="flex" style={{ gap: "1rem" }}>
         <div className="flex-1">
           <EditProgramStateVariables

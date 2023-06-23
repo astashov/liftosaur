@@ -14,6 +14,7 @@ import { EditProgramExerciseSimpleErrors } from "../../../components/editProgram
 import { Button } from "../../../components/button";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { CollectionUtils } from "../../../utils/collection";
+import { EditProgramExerciseSimpleDescription } from "../../../components/editProgram/editProgramExerciseDescription";
 
 interface IProgramContentEditExerciseSimpleProps {
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -35,12 +36,21 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
   if (!isEligibleForSimple.success) {
     return <EditProgramExerciseSimpleErrors errors={isEligibleForSimple.error} />;
   }
+  console.log(programExercise);
 
   return (
     <div>
+      <div className="mt-2">
+        <EditProgramExerciseSimpleDescription
+          programExercise={programExercise}
+          onChange={(value, index) => {
+            props.dispatch(EditProgramLenses.setDescription(lbe, value, index));
+          }}
+        />
+      </div>
       <div className="flex" style={{ gap: "0.5rem" }}>
         <div className="flex-1 min-w-0">
-          <section className="px-4 py-2 mt-8 bg-purple-100 rounded-2xl">
+          <section className="px-4 py-2 mt-4 bg-purple-100 rounded-2xl">
             <EditProgramExerciseSimpleRow
               programExercise={programExercise}
               allProgramExercises={allProgramExercises}
@@ -60,7 +70,7 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
             />
           </section>
         </div>
-        <div className="flex-1 mt-8">
+        <div className="flex-1 mt-4">
           {progress && entry && (
             <ProgramContentPlayground
               hideDay={true}
