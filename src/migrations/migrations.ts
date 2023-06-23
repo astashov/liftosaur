@@ -80,9 +80,6 @@ export const migrations = {
         thighLeft: true,
         thighRight: true,
       },
-      percentage: {
-        bodyfat: true,
-      },
     };
     storage.settings.lengthUnits = storage.settings.lengthUnits || "in";
     storage.settings.graphs = storage.settings.graphs.map((g: any) =>
@@ -296,5 +293,10 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.volume = storage.settings.volume == null ? 1 : storage.settings.volume;
     return storage;
+  },
+  "20230623155732_add_bodyfat_percentage": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.statsEnabled.percentage = storage.settings.statsEnabled.percentage || { bodyfat: false };
+    storage.stats.percentage = storage.stats.percentage || {};
   },
 };
