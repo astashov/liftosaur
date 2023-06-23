@@ -143,18 +143,25 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
           onDragEnd={(startIndex, endIndex) => EditGraphs.reorderGraphs(props.dispatch, startIndex, endIndex)}
         />
         <GroupHeader name="Available Exercise Graphs" />
-        {exercises.map((e) => {
-          return (
-            <section
-              data-cy={`item-graph-${StringUtils.dashcase(e.name)}`}
-              className="flex w-full px-2 py-1 text-left border-b border-gray-200"
-              onClick={() => EditGraphs.addExerciseGraph(props.dispatch, e)}
-            >
-              <ExercisePreview exercise={e.id} settings={props.settings} />
-            </section>
-          );
-        })}
+        {exercises.length === 0 ? (
+          <div className="text-gray-500 italic pt-1 pb-2">You haven't completed any workouts yet.</div>
+        ) : (
+          exercises.map((e) => {
+            return (
+              <section
+                data-cy={`item-graph-${StringUtils.dashcase(e.name)}`}
+                className="flex w-full px-2 py-1 text-left border-b border-gray-200"
+                onClick={() => EditGraphs.addExerciseGraph(props.dispatch, e)}
+              >
+                <ExercisePreview exercise={e.id} settings={props.settings} />
+              </section>
+            );
+          })
+        )}
         <GroupHeader name="Available Stats Graphs" />
+        {statsLengthKeys.length === 0 && statsWeightKeys.length === 0 && statsPercentageKeys.length === 0 && (
+          <div className="text-gray-500 italic pt-1 pb-2">You haven't added any measurements yet.</div>
+        )}
         {statsWeightKeys.map((statsKey) => {
           return (
             <MenuItem

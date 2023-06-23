@@ -102,11 +102,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         />
       }
     >
-      {exerciseIds.length < 1 ? (
-        <div className="p-8 text-2xl font-bold text-center text-gray-600">
-          Finish at least one workout to see the graphs.
-        </div>
-      ) : props.settings.graphs.length === 0 ? (
+      {props.settings.graphs.length === 0 ? (
         <div className="p-8 text-2xl font-bold text-center text-gray-600">
           Select graphs you want to display by tapping <IconFilter /> icon at right top corner.
         </div>
