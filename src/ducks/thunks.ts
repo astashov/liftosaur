@@ -196,12 +196,12 @@ export namespace Thunk {
           return;
         }
       }
-      if (
-        ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
-        !Subscriptions.hasSubscription(getState().storage.subscription)
-      ) {
-        screen = "subscription";
-      }
+      // if (
+      //   ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
+      //   !Subscriptions.hasSubscription(getState().storage.subscription)
+      // ) {
+      //   screen = "subscription";
+      // }
       dispatch({ type: "PushScreen", screen });
       window.scroll(0, 0);
     };
