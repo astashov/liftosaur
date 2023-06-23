@@ -46,7 +46,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
         />
         <MenuItemEditable
           onChange={savePercentage("bodyfat")}
-          name="Bodyweight"
+          name="Bodyfat"
           type="boolean"
           value={`${statsEnabled.percentage.bodyfat}`}
         />
