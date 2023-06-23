@@ -298,5 +298,6 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.statsEnabled.percentage = storage.settings.statsEnabled.percentage || { bodyfat: false };
     storage.stats.percentage = storage.stats.percentage || {};
+    return storage;
   },
 };
