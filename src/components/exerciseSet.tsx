@@ -163,6 +163,7 @@ function useLongPress(
   const timerRef = useRef<number | undefined>();
   const onDown = useCallback(
     (e: MouseEvent | TouchEvent) => {
+      e.returnValue = false;
       wasLongPress.current = false;
       if (timerRef.current != null) {
         return;
@@ -190,6 +191,7 @@ function useLongPress(
   );
 
   const onMove = useCallback((e: MouseEvent | TouchEvent) => {
+    e.returnValue = false;
     const pos =
       e instanceof MouseEvent ? { x: e.clientX, y: e.clientY } : { x: e.touches[0].clientX, y: e.touches[0].clientY };
     currentPos.current = pos;
@@ -197,6 +199,7 @@ function useLongPress(
 
   const onUp = useCallback(
     (e: MouseEvent | TouchEvent) => {
+      e.returnValue = false;
       if (timerRef.current != null) {
         clearTimeout(timerRef.current);
         timerRef.current = undefined;
