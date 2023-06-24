@@ -41,6 +41,8 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
 
+  const onStartSetChanging = props.onStartSetChanging;
+
   return (
     <>
       {(isEditMode || warmupSets?.length > 0) && (
@@ -63,10 +65,14 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 friend={friend}
                 set={set}
                 isCurrentProgress={!!isCurrentProgress}
+                onLongPress={
+                  onStartSetChanging &&
+                  (() => onStartSetChanging(true, props.index, setIndex, undefined, props.entry.exercise.equipment))
+                }
                 onClick={useCallback(() => {
                   if (!friend) {
-                    if (isEditMode && props.onStartSetChanging) {
-                      props.onStartSetChanging(true, props.index, setIndex, undefined, props.entry.exercise.equipment);
+                    if (isEditMode && onStartSetChanging) {
+                      onStartSetChanging(true, props.index, setIndex, undefined, props.entry.exercise.equipment);
                     } else {
                       handleClick(
                         props.dispatch,
@@ -84,10 +90,10 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               />
             );
           })}
-          {isEditMode && props.onStartSetChanging && (
+          {isEditMode && onStartSetChanging && (
             <AddSetButton
               onClick={() => {
-                props.onStartSetChanging!(true, props.index, undefined, undefined, props.entry.exercise.equipment);
+                onStartSetChanging!(true, props.index, undefined, undefined, props.entry.exercise.equipment);
               }}
               size={props.size || "medium"}
               label="Warmup"
@@ -126,10 +132,14 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
             friend={friend}
             set={set}
             isCurrentProgress={!!isCurrentProgress}
+            onLongPress={
+              onStartSetChanging &&
+              (() => onStartSetChanging(false, props.index, setIndex, undefined, props.entry.exercise.equipment))
+            }
             onClick={useCallback(() => {
               if (!friend) {
-                if (isEditMode && props.onStartSetChanging) {
-                  props.onStartSetChanging(false, props.index, setIndex, undefined, props.entry.exercise.equipment);
+                if (isEditMode && onStartSetChanging) {
+                  onStartSetChanging(false, props.index, setIndex, undefined, props.entry.exercise.equipment);
                 } else {
                   handleClick(
                     props.dispatch,
@@ -148,12 +158,12 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
         );
       })}
       {(isEditMode || (Progress.isCurrent(props.progress) && !props.programExercise) || quickAddSets) &&
-        props.onStartSetChanging && (
+        onStartSetChanging && (
           <AddSetButton
             size={props.size || "medium"}
             quickAddSets={!isEditMode && quickAddSets}
             onClick={() =>
-              props.onStartSetChanging!(
+              onStartSetChanging!(
                 false,
                 props.index,
                 undefined,
@@ -183,6 +193,7 @@ interface IExerciseSetContainerProps {
   set: ISet;
   isCurrentProgress: boolean;
   onClick: () => void;
+  onLongPress?: () => void;
   dispatch: IDispatch;
 }
 
@@ -210,6 +221,7 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
           isCurrent={!!isCurrentProgress}
           set={set}
           isEditMode={isEditMode}
+          onLongPress={props.onLongPress}
           onClick={(e) => {
             e.preventDefault();
             props.onClick();

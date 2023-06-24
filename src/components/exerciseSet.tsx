@@ -3,6 +3,7 @@ import { memo } from "preact/compat";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IExerciseType, ISettings, ISet, IWeight } from "../types";
+import { useCallback, useRef } from "preact/hooks";
 
 interface IProps {
   exercise: IExerciseType;
@@ -12,6 +13,7 @@ interface IProps {
   set: ISet;
   isEditMode: boolean;
   size?: "small" | "medium";
+  onLongPress?: () => void;
   onClick: (e: Event) => void;
 }
 
@@ -63,6 +65,7 @@ export const ExerciseSetView = memo(
         superstring={superstring}
         shinyBorder={shinyBorder}
         size={props.size}
+        onLongPress={props.onLongPress}
         color={color}
       />
     );
@@ -87,6 +90,7 @@ interface IExerciseSetBaseProps {
   shinyBorder?: boolean;
   size?: "small" | "medium";
   onClick: (e: Event) => void;
+  onLongPress?: () => void;
 }
 
 function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
@@ -101,6 +105,8 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
     className += ` bg-grayv2-50 border-grayv2-200`;
   }
 
+  const { onUp, onMove, onDown, onClick } = useLongPress(1000, props.onLongPress, props.onClick);
+
   const button = (
     <button
       key={props.cy}
@@ -108,8 +114,14 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
       data-help={`Press here to record completed ${props.title} reps, press again to lower completed reps.`}
       data-help-width={200}
       data-cy={props.cy}
+      onTouchStart={onDown}
+      onTouchMove={onMove}
+      onTouchEnd={onUp}
+      onMouseDown={onDown}
+      onMouseMove={onMove}
+      onMouseUp={onUp}
       className={className}
-      onClick={props.onClick}
+      onClick={onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
       {props.superstring != null && (
@@ -130,4 +142,79 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
     </button>
   );
   return props.shinyBorder && props.showHelp ? <div className="shiny-border">{button}</div> : button;
+}
+
+function useLongPress(
+  ms: number,
+  onLongPress?: () => void,
+  onClick?: (e: Event) => void
+): {
+  onDown?: (e: MouseEvent | TouchEvent) => void;
+  onMove?: (e: MouseEvent | TouchEvent) => void;
+  onUp?: (e: MouseEvent | TouchEvent) => void;
+  onClick?: (e: Event) => void;
+} {
+  if (onLongPress == null) {
+    return { onDown: undefined, onUp: undefined, onClick };
+  }
+  const startPos = useRef<{ x: number; y: number; time: number } | undefined>(undefined);
+  const currentPos = useRef<{ x: number; y: number } | undefined>(undefined);
+  const wasLongPress = useRef<boolean>(false);
+  const timerRef = useRef<number | undefined>();
+  const onDown = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      wasLongPress.current = false;
+      if (timerRef.current != null) {
+        return;
+      }
+      const pos =
+        e instanceof MouseEvent
+          ? { x: e.clientX, y: e.clientY, time: Date.now() }
+          : { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
+      startPos.current = pos;
+      currentPos.current = pos;
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = undefined;
+        if (startPos.current != null && currentPos.current != null) {
+          const { x, y } = currentPos.current;
+          const dx = x - startPos.current.x;
+          const dy = y - startPos.current.y;
+          if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+            onLongPress();
+            wasLongPress.current = true;
+          }
+        }
+      }, ms);
+    },
+    [onLongPress]
+  );
+
+  const onMove = useCallback((e: MouseEvent | TouchEvent) => {
+    const pos =
+      e instanceof MouseEvent ? { x: e.clientX, y: e.clientY } : { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    currentPos.current = pos;
+  }, []);
+
+  const onUp = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (timerRef.current != null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = undefined;
+      }
+    },
+    [timerRef.current]
+  );
+  const wrappedOnClick = onClick
+    ? useCallback(
+        (e: Event) => {
+          if (!wasLongPress.current) {
+            onClick(e);
+          }
+          wasLongPress.current = false;
+        },
+        [onClick, wasLongPress.current]
+      )
+    : undefined;
+
+  return { onUp, onMove, onDown, onClick: wrappedOnClick };
 }
