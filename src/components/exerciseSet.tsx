@@ -3,7 +3,7 @@ import { memo } from "preact/compat";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IExerciseType, ISettings, ISet, IWeight } from "../types";
-import { useCallback, useRef } from "preact/hooks";
+import { useCallback, useRef, useEffect } from "preact/hooks";
 
 interface IProps {
   exercise: IExerciseType;
@@ -161,9 +161,10 @@ function useLongPress(
   const currentPos = useRef<{ x: number; y: number } | undefined>(undefined);
   const wasLongPress = useRef<boolean>(false);
   const timerRef = useRef<number | undefined>();
+
   const onDown = useCallback(
     (e: MouseEvent | TouchEvent) => {
-      e.returnValue = false;
+      document.body.classList.add("no-select");
       wasLongPress.current = false;
       if (timerRef.current != null) {
         return;
@@ -191,7 +192,6 @@ function useLongPress(
   );
 
   const onMove = useCallback((e: MouseEvent | TouchEvent) => {
-    e.returnValue = false;
     const pos =
       e instanceof MouseEvent ? { x: e.clientX, y: e.clientY } : { x: e.touches[0].clientX, y: e.touches[0].clientY };
     currentPos.current = pos;
@@ -199,7 +199,9 @@ function useLongPress(
 
   const onUp = useCallback(
     (e: MouseEvent | TouchEvent) => {
-      e.returnValue = false;
+      setTimeout(() => {
+        document.body.classList.remove("no-select");
+      }, 200);
       if (timerRef.current != null) {
         clearTimeout(timerRef.current);
         timerRef.current = undefined;
