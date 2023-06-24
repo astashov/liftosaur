@@ -8,6 +8,7 @@
 - Names for variation sets
 - Long press on sets
 - Volume for each exercise, and in exercise stats
+- Show last time separately if not on the same day
 
 - Programs
   - 5/3/1s

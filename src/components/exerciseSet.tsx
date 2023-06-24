@@ -15,97 +15,57 @@ interface IProps {
   onClick: (e: Event) => void;
 }
 
-interface IAmrapExerciseSetProps {
-  exercise: IExerciseType;
-  showHelp?: boolean;
-  isCurrent: boolean;
-  settings: ISettings;
-  set: ISet;
-  isEditMode: boolean;
-  size?: "small" | "medium";
-  onClick: (e: Event) => void;
-}
-
-interface IStartedExerciseSetProps {
-  exercise: IExerciseType;
-  showHelp?: boolean;
-  settings: ISettings;
-  isCurrent: boolean;
-  set: ISet;
-  isEditMode: boolean;
-  size?: "small" | "medium";
-  onClick: (e: Event) => void;
-}
-
-interface INotStartedExerciseSetProps {
-  exercise: IExerciseType;
-  showHelp?: boolean;
-  isCurrent: boolean;
-  settings: ISettings;
-  set: ISet;
-  isEditMode: boolean;
-  size?: "small" | "medium";
-  onClick: (e: Event) => void;
-}
-
 export const ExerciseSetView = memo(
   (props: IProps): JSX.Element => {
     const set = props.set;
+    const subtitle = convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value;
+
+    let cy: string;
+    let color: "red" | "green" | "gray";
+    let title;
+    let superstring;
+    let shinyBorder;
     if (set.isAmrap) {
-      return (
-        <AmrapExerciseSet
-          isCurrent={props.isCurrent}
-          isEditMode={props.isEditMode}
-          showHelp={props.showHelp}
-          exercise={props.exercise}
-          size={props.size}
-          set={set}
-          settings={props.settings}
-          onClick={props.onClick}
-        />
-      );
-    } else if (set.completedReps == null) {
-      return (
-        <NotStartedExerciseSet
-          isCurrent={props.isCurrent}
-          isEditMode={props.isEditMode}
-          showHelp={props.showHelp}
-          size={props.size}
-          exercise={props.exercise}
-          set={set}
-          settings={props.settings}
-          onClick={props.onClick}
-        />
-      );
-    } else {
-      if (set.completedReps >= set.reps) {
-        return (
-          <CompleteExerciseSet
-            isCurrent={props.isCurrent}
-            isEditMode={props.isEditMode}
-            size={props.size}
-            showHelp={props.showHelp}
-            exercise={props.exercise}
-            set={set}
-            settings={props.settings}
-            onClick={props.onClick}
-          />
-        );
+      title = set.completedReps == null ? `${set.reps}+` : set.completedReps;
+      superstring = set.completedReps != null ? `${set.reps}+` : undefined;
+      if (set.completedReps == null) {
+        cy = "set-amrap-nonstarted";
+        color = "gray";
+      } else if (set.completedReps < set.reps) {
+        cy = "set-amrap-incompleted";
+        color = "red";
       } else {
-        return (
-          <IncompleteExerciseSet
-            showHelp={props.showHelp}
-            isEditMode={props.isEditMode}
-            size={props.size}
-            isCurrent={props.isCurrent}
-            exercise={props.exercise}
-            set={set}
-            settings={props.settings}
-            onClick={props.onClick}
-          />
-        );
+        cy = "set-amrap-completed";
+        color = "green";
+      }
+    } else if (set.completedReps == null) {
+      title = Reps.displayReps(set);
+      cy = "set-nonstarted";
+      color = "gray";
+      shinyBorder = true;
+    } else {
+      title = Reps.displayCompletedReps(set);
+      if (set.completedReps >= set.reps) {
+        cy = "set-completed";
+        color = "green";
+      } else {
+        cy = "set-incompleted";
+        color = "red";
       }
     }
+    return (
+      <ExerciseSetBase
+        cy={cy}
+        showHelp={props.showHelp}
+        onClick={props.onClick}
+        title={title}
+        subtitle={subtitle}
+        superstring={superstring}
+        shinyBorder={shinyBorder}
+        size={props.size}
+        color={color}
+      />
+    );
   }
 );
 
@@ -117,121 +77,57 @@ function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExer
   }
 }
 
-function NotStartedExerciseSet(props: INotStartedExerciseSetProps): JSX.Element {
-  const set = props.set;
+interface IExerciseSetBaseProps {
+  cy: string;
+  showHelp?: boolean;
+  title: string | number;
+  subtitle: string | number;
+  superstring?: string;
+  color: "gray" | "red" | "green";
+  shinyBorder?: boolean;
+  size?: "small" | "medium";
+  onClick: (e: Event) => void;
+}
+
+function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
   const size = props.size || "medium";
   const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
+  let className = `ls-progress ${sizeClassNames} relative leading-7 text-center border rounded-lg`;
+  if (props.color === "green") {
+    className += ` bg-greenv2-300 border-greenv2-400`;
+  } else if (props.color === "red") {
+    className += ` bg-redv2-300 border-redv2-400`;
+  } else {
+    className += ` bg-grayv2-50 border-grayv2-200`;
+  }
+
   const button = (
     <button
+      key={props.cy}
       data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
+      data-help={`Press here to record completed ${props.title} reps, press again to lower completed reps.`}
       data-help-width={200}
-      data-cy="set-nonstarted"
-      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-grayv2-50 border border-grayv2-200 rounded-lg`}
+      data-cy={props.cy}
+      className={className}
       onClick={props.onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      <div data-cy="reps-value" className="font-bold leading-none">
-        {Reps.displayReps(set)}
-      </div>
-      <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
-      </div>
-    </button>
-  );
-  return props.showHelp ? <div className="shiny-border">{button}</div> : button;
-}
-
-function CompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
-  const set = props.set;
-  const size = props.size || "medium";
-  const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  return (
-    <button
-      data-cy="set-completed"
-      data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
-      data-help-width={200}
-      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-greenv2-300 border border-greenv2-400 rounded-lg`}
-      onClick={props.onClick}
-      style={{ userSelect: "none" }}
-    >
-      <div data-cy="reps-value" className="font-bold leading-none">
-        {Reps.displayCompletedReps(set)}
-      </div>
-      <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
-      </div>
-    </button>
-  );
-}
-
-function IncompleteExerciseSet(props: IStartedExerciseSetProps): JSX.Element {
-  const set = props.set;
-  const size = props.size || "medium";
-  const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  return (
-    <button
-      data-cy="set-incompleted"
-      data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
-      data-help-width={200}
-      className={`ls-progress ${sizeClassNames} leading-7 text-center bg-redv2-300 border border-redv2-400 rounded-lg`}
-      onClick={props.onClick}
-      style={{ userSelect: "none", touchAction: "manipulation" }}
-    >
-      <div data-cy="reps-value" className="font-bold leading-none">
-        {Reps.displayCompletedReps(set)}
-      </div>
-      <div data-cy="weight-value" style={{ paddingTop: "2px" }} className="text-xs leading-none text-gray-600">
-        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
-      </div>
-    </button>
-  );
-}
-
-function AmrapExerciseSet(props: IAmrapExerciseSetProps): JSX.Element {
-  let className: string;
-  let cy: string;
-  const set = props.set;
-  const size = props.size || "medium";
-  const sizeClassNames = size === "small" ? "w-10 h-10 text-xs" : "w-12 h-12";
-  if (set.completedReps == null) {
-    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-grayv2-50 border-grayv2-200`;
-    cy = "set-amrap-nonstarted";
-  } else if (set.completedReps < set.reps) {
-    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-redv2-300 border-redv2-400`;
-    cy = "set-amrap-incompleted";
-  } else {
-    className = `relative ${sizeClassNames} leading-7 text-center border rounded-lg bg-greenv2-300 border-greenv2-400`;
-    cy = "set-amrap-completed";
-  }
-  return (
-    <button
-      key={cy}
-      data-help-id={props.showHelp ? "progress-set" : undefined}
-      data-help={`Press here to record completed ${props.set.reps} reps, press again to lower completed reps.`}
-      data-help-width={200}
-      data-cy={cy}
-      className={`ls-progress ${className}`}
-      onClick={props.onClick}
-      style={{ userSelect: "none" }}
-    >
-      {set.completedReps != null && (
+      {props.superstring != null && (
         <div
           data-cy="reps-completed-amrap"
           style={{ top: "-0.5rem", right: "-0.5rem" }}
           className="absolute p-1 text-xs leading-none text-right text-white rounded-full bg-purplev2-600 border-purplev2-800"
         >
-          {set.reps}+
+          {props.superstring}
         </div>
       )}
       <div className="font-bold leading-none" data-cy="reps-value">
-        {set.completedReps == null ? `${set.reps}+` : set.completedReps}
+        {props.title}
       </div>
       <div style={{ paddingTop: "2px" }} data-cy="weight-value" className="text-xs leading-none text-grayv2-600">
-        {convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value}
+        {props.subtitle}
       </div>
     </button>
   );
+  return props.shinyBorder && props.showHelp ? <div className="shiny-border">{button}</div> : button;
 }
