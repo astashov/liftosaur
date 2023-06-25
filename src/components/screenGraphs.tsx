@@ -167,7 +167,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     isSameXAxis={isSameXAxis}
                     minX={minX}
                     maxX={maxX}
-                    units={props.settings.lengthUnits}
+                    units="%"
                     key={graph.id}
                     settings={props.settings}
                     collection={collection}

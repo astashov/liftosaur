@@ -82,6 +82,9 @@ export function StatsList(props: IProps): JSX.Element {
       ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
       : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
 
+  const graphUnit =
+    selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
+
   return (
     <div className="px-4" data-cy={`stats-list-${selectedKey}`}>
       <div className="pb-2 text-center">
@@ -107,7 +110,7 @@ export function StatsList(props: IProps): JSX.Element {
             isSameXAxis={false}
             minX={graphPoints[0][0]}
             maxX={graphPoints[graphPoints.length - 1][0]}
-            units={props.settings.units}
+            units={graphUnit}
             key={selectedKey}
             settings={props.settings}
             collection={graphPoints}

@@ -16,10 +16,11 @@ import { Length } from "../models/length";
 import { Stats } from "../models/stats";
 import { DateUtils } from "../utils/date";
 import { GraphsPlugins } from "../utils/graphsPlugins";
+import { IPercentageUnit } from "../types";
 
 interface IGraphStatsProps {
   collection: [number, number][];
-  units: IUnit | ILengthUnit;
+  units: IUnit | ILengthUnit | IPercentageUnit;
   statsKey: IStatsKey;
   settings: ISettings;
   title?: string | null;
@@ -101,7 +102,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       series: [
         {},
         {
-          label: props.statsKey === "weight" ? "Weight" : "Size",
+          label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
           value: (self, rawValue) => `${rawValue} ${props.units}`,
           stroke: "red",
           width: 1,

@@ -85,7 +85,7 @@ export const migrations = {
     storage.settings.graphs = storage.settings.graphs.map((g: any) =>
       typeof g === "string" ? { type: "exercise", id: g } : g
     );
-    (storage as any).stats = storage.stats || { weight: {}, length: {}, percentage: {} };
+    (storage as any).stats = storage.stats || { weight: {}, length: {} };
     return storage;
   },
   "20210626192422_add_settings_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
