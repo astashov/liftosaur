@@ -12,6 +12,8 @@ import { ProgramDetailsWorkoutExerciseEditModal } from "./programDetailsWorkoutE
 import { lb } from "lens-shmens";
 import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { Button } from "../../../components/button";
+import { ModalEditSet } from "../../../components/modalEditSet";
+import { EditProgressEntry } from "../../../models/editProgressEntry";
 
 interface IProgramDetailsPlaygroundDayProps {
   program: IProgram;
@@ -78,6 +80,22 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           allProgramExercises={props.program.exercises}
           isHidden={props.progress.ui?.stateVarsUserPromptModal?.programExercise == null}
           dispatch={dispatch}
+        />
+        <ModalEditSet
+          isHidden={props.progress.ui?.editSetModal == null}
+          key={props.progress.ui?.editSetModal?.setIndex}
+          subscription={{ google: { fake: null }, apple: {} }}
+          progressId={props.progress.id}
+          dispatch={dispatch}
+          settings={props.settings}
+          equipment={props.progress.ui?.editSetModal?.equipment}
+          programExercise={props.progress.ui?.editSetModal?.programExercise}
+          allProgramExercises={props.program.exercises}
+          isTimerDisabled={true}
+          set={EditProgressEntry.getEditSetData(props.progress)}
+          isWarmup={props.progress.ui?.editSetModal?.isWarmup || false}
+          entryIndex={props.progress.ui?.editSetModal?.entryIndex || 0}
+          setIndex={props.progress.ui?.editSetModal?.setIndex}
         />
         {editModalProgramExercise && (
           <ProgramDetailsWorkoutExerciseEditModal

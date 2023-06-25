@@ -33,6 +33,7 @@ export class ProgramDao {
       "gzcl-jacked-and-tan-2",
       "gzcl-uhf-9-weeks",
       "gzcl-vdip",
+      "gzcl-general-gainz",
       "the5314b",
       "dbPpl",
       "ss1",

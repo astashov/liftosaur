@@ -4,7 +4,7 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { ExerciseSets } from "../../../components/exerciseSets";
 import { Markdown } from "../../../components/markdown";
 import { equipmentName, Exercise } from "../../../models/exercise";
-import { IHistoryEntry, IHistoryRecord, IProgramExercise, IProgramState, ISettings } from "../../../types";
+import { IEquipment, IHistoryEntry, IHistoryRecord, IProgramExercise, IProgramState, ISettings } from "../../../types";
 import { ComparerUtils } from "../../../utils/comparer";
 import { IDispatch } from "../../../ducks/types";
 import { Reps } from "../../../models/set";
@@ -13,6 +13,7 @@ import { ProgramExercise } from "../../../models/programExercise";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { lb } from "lens-shmens";
+import { EditProgressEntry } from "../../../models/editProgressEntry";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -133,7 +134,15 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
             size="small"
             entry={props.entry}
             friend={undefined}
-            onStartSetChanging={() => undefined}
+            onStartSetChanging={(
+              isWarmup: boolean,
+              entryIndex: number,
+              setIndex?: number,
+              pe?: IProgramExercise,
+              eq?: IEquipment
+            ) => {
+              EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex, pe, eq);
+            }}
             onChangeReps={() => undefined}
             dispatch={props.dispatch}
           />

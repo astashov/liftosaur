@@ -3,7 +3,7 @@ import { memo } from "preact/compat";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IExerciseType, ISettings, ISet, IWeight } from "../types";
-import { useCallback, useRef, useEffect } from "preact/hooks";
+import { useCallback, useRef } from "preact/hooks";
 
 interface IProps {
   exercise: IExerciseType;
