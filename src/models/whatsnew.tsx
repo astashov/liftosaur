@@ -420,6 +420,34 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230624": {
+    title: <span>Made "Quick Add Set" supported in playgrounds</span>,
+    body: (
+      <ul>
+        <li>So it's easier to test your program exercise logic when you have "Quick Add Set" feature enabled.</li>
+      </ul>
+    ),
+  },
+  "20230625": {
+    title: <span>Added Long Press to edit the quickly edit the sets in current workout</span>,
+    body: (
+      <ul>
+        <li>
+          Now, you can do long press on a set square (for 1 second), and it'll open the edit set modal - the same one
+          that you get if you press on the Edit icon, choose "Only in this workout", and then tap on a set.
+        </li>
+        <li>
+          That works both on the workout screen, and also in playgrounds on the edit program exercise screen. But on the
+          playground, it won't change the program! It's just to simulate the logic if you change the sets only in
+          current running workout.
+        </li>
+        <li>
+          Hopefully that'll make it easier to handle the cases when you want to deviate from a program for some reason
+          only for that workout (change the weight for some set, or number of required reps, etc).
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
