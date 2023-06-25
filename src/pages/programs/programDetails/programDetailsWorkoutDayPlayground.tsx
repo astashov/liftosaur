@@ -83,6 +83,7 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
         />
         <ModalEditSet
           isHidden={props.progress.ui?.editSetModal == null}
+          setsLength={props.progress.entries[props.progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
           key={props.progress.ui?.editSetModal?.setIndex}
           subscription={{ google: { fake: null }, apple: {} }}
           progressId={props.progress.id}

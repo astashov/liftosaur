@@ -167,6 +167,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <ModalEditSet
         isHidden={progress.ui?.editSetModal == null}
         key={progress.ui?.editSetModal?.setIndex}
+        setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
         subscription={{ google: { fake: null }, apple: {} }}
         progressId={progress.id}
         dispatch={dispatch}

@@ -24,6 +24,7 @@ interface IModalWeightProps {
   allProgramExercises?: IProgramExercise[];
   entryIndex: number;
   setIndex?: number;
+  setsLength: number;
   set?: ISet;
   isTimerDisabled?: boolean;
   isHidden: boolean;
@@ -170,7 +171,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                       timestamp: new Date().getTime(),
                       mode: "workout",
                       entryIndex: props.entryIndex,
-                      setIndex: props.setIndex || 0,
+                      setIndex: props.setIndex ?? props.setsLength,
                     });
                   }
                 } else {
