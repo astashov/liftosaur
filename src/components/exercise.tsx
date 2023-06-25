@@ -154,6 +154,12 @@ const ExerciseContentView = memo(
     const historicalSameDay = isCurrentProgress
       ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
       : undefined;
+    const historicalLastDay = isCurrentProgress
+      ? History.getHistoricalLastDay(props.history, props.progress, props.entry)
+      : undefined;
+    const showLastDay =
+      historicalLastDay != null &&
+      (historicalSameDay == null || historicalSameDay.record.startTime < historicalLastDay.record.startTime);
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => Weight.roundConvertTo(s.weight, props.settings, equipment)),
       (w) => w.value.toString()
@@ -441,6 +447,9 @@ const ExerciseContentView = memo(
             </Button>
           </div>
         )}
+        {showLastDay && historicalLastDay && (
+          <HistoricalLastDay historyRecordAndEntry={historicalLastDay} settings={props.settings} />
+        )}
         {historicalSameDay && <HistoricalSameDay historyRecordAndEntry={historicalSameDay} settings={props.settings} />}
         {historicalAmrapSets && <HistoricalAmrapSets historicalAmrapSets={historicalAmrapSets} />}
         {showNotes && (
@@ -495,6 +504,21 @@ function HistoricalSameDay(props: { historyRecordAndEntry: IHistoryRecordAndEntr
       <div>
         <div>
           Same day last time, <strong>{DateUtils.format(record.startTime)}</strong>:
+        </div>
+        <HistoryRecordSetsView sets={entry.sets} isNext={false} unit={unit} />
+      </div>
+    </div>
+  );
+}
+
+function HistoricalLastDay(props: { historyRecordAndEntry: IHistoryRecordAndEntry; settings: ISettings }): JSX.Element {
+  const { record, entry } = props.historyRecordAndEntry;
+  const unit = entry.sets[0]?.weight.unit || props.settings.units;
+  return (
+    <div className="text-xs italic">
+      <div>
+        <div>
+          Last time, <strong>{DateUtils.format(record.startTime)}</strong>:
         </div>
         <HistoryRecordSetsView sets={entry.sets} isNext={false} unit={unit} />
       </div>

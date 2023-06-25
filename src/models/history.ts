@@ -305,6 +305,23 @@ export namespace History {
     return undefined;
   }
 
+  export function getHistoricalLastDay(
+    history: IHistoryRecord[],
+    progress: IHistoryRecord,
+    currentEntry: IHistoryEntry
+  ): IHistoryRecordAndEntry | undefined {
+    for (const record of history) {
+      if (record.programId === progress.programId) {
+        for (const entry of record.entries) {
+          if (Exercise.eq(currentEntry.exercise, entry.exercise) && entry.sets.length > 0) {
+            return { record, entry };
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
   export function getHistoricalAmrapSets(
     history: IHistoryRecord[],
     currentEntry: IHistoryEntry,
