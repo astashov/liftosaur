@@ -103,19 +103,21 @@ export function StatsList(props: IProps): JSX.Element {
         }}
       />
       <div className="relative">
-        <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
         {graphPoints.length > 2 && (
-          <GraphStats
-            title={null}
-            isSameXAxis={false}
-            minX={graphPoints[0][0]}
-            maxX={graphPoints[graphPoints.length - 1][0]}
-            units={graphUnit}
-            key={selectedKey}
-            settings={props.settings}
-            collection={graphPoints}
-            statsKey={selectedKey}
-          />
+          <>
+            <GraphStats
+              title={null}
+              isSameXAxis={false}
+              minX={graphPoints[0][0]}
+              maxX={graphPoints[graphPoints.length - 1][0]}
+              units={graphUnit}
+              key={selectedKey}
+              settings={props.settings}
+              collection={graphPoints}
+              statsKey={selectedKey}
+            />
+            <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+          </>
         )}
       </div>
       {values.length === 0 ? (
