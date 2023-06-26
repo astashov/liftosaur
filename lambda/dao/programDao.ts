@@ -32,6 +32,7 @@ export class ProgramDao {
       "gzcl-the-rippler",
       "gzcl-jacked-and-tan-2",
       "gzcl-uhf-9-weeks",
+      "gzcl-uhf-5-weeks",
       "gzcl-vdip",
       "gzcl-general-gainz",
       "the5314b",

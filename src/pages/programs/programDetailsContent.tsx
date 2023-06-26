@@ -18,6 +18,7 @@ import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
 import { ProgramDetailsGzclUhf9w } from "./detailed/programDetailsGzclUhf9w";
 import { ProgramDetailsGzclVdip } from "./detailed/programDetailsGzclVdip";
 import { ProgramDetailsGzclGeneralGainz } from "./detailed/programDetailsGzclGeneralGainz";
+import { ProgramDetailsGzclUhf5w } from "./detailed/programDetailsGzclUhf5w";
 
 export interface IProgramDetailsContentProps {
   selectedProgramId: string;
@@ -78,6 +79,15 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
   } else if (props.selectedProgramId === "gzcl-uhf-9-weeks") {
     return (
       <ProgramDetailsGzclUhf9w
+        program={program}
+        client={props.client}
+        audio={props.audio}
+        settings={initialState.settings}
+      />
+    );
+  } else if (props.selectedProgramId === "gzcl-uhf-5-weeks") {
+    return (
+      <ProgramDetailsGzclUhf5w
         program={program}
         client={props.client}
         audio={props.audio}
