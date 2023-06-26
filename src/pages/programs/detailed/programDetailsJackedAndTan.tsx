@@ -68,11 +68,11 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           </p>
           <p>
             You can run it after beginner{" "}
-            <a href="/program/gzclp" target="_blank">
+            <a href="/programs/gzclp" target="_blank">
               GZCLP
             </a>{" "}
             program, or after beginner/intermediate{" "}
-            <a href="/program/gzcl-the-rippler" target="_blank">
+            <a href="/programs/gzcl-the-rippler" target="_blank">
               GZCL: The Rippler
             </a>{" "}
             program.
