@@ -713,13 +713,15 @@ const getDashboardsUsersHandler: RouteHandler<
       const subscriptionDetailsDao = subscriptionDetailsById[userId];
       let subscriptionDetails = undefined;
       if (subscriptionDetailsDao) {
-        let product: "yearly" | "montly";
+        let product: "yearly" | "montly" | "lifetime";
         if (subscriptionDetailsDao.product === "com.liftosaur.subscription.ios_montly") {
           product = "montly";
         } else if (subscriptionDetailsDao.product === "com.liftosaur.subscription.ios_yearly") {
           product = "yearly";
+        } else if (subscriptionDetailsDao.product === "com.liftosaur.subscription.ios_lifetime") {
+          product = "lifetime";
         } else {
-          product = subscriptionDetailsDao.product as "montly" | "yearly";
+          product = subscriptionDetailsDao.product as "montly" | "yearly" | "lifetime";
         }
         subscriptionDetails = {
           product,

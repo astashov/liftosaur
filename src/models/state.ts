@@ -83,6 +83,7 @@ export interface IComment {
 export interface ISubscriptionLoading {
   monthly?: boolean;
   yearly?: boolean;
+  lifetime?: boolean;
 }
 
 export interface IState {

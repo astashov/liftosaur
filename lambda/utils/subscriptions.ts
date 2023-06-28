@@ -7,6 +7,18 @@ import { ILimitedUserDao } from "../dao/userDao";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 
+interface IVerifyGoogleProductTokenSuccess {
+  purchaseTimeMillis: number;
+  purchaseState: number;
+  consumptionState: number;
+  developerPayload: string;
+  orderId: string;
+  purchaseType: number;
+  acknowledgementState: number;
+  kind: "androidpublisher#productPurchase";
+  regionCode: string;
+}
+
 interface IVerifyGoogleSubscriptionTokenSuccess {
   startTimeMillis: string;
   expiryTimeMillis: string;
@@ -22,7 +34,7 @@ interface IVerifyGoogleSubscriptionTokenSuccess {
   promotionType?: number;
   promotionCode?: string;
   acknowledgementState: number;
-  kind: string;
+  kind: "androidpublisher#subscriptionPurchase";
 }
 
 interface IVerifyGoogleSubscriptionTokenError {
@@ -102,9 +114,15 @@ export class Subscriptions {
     json: IVerifyAppleReceiptResponse
   ): Promise<string | undefined | null> {
     try {
-      const products = ["com.liftosaur.subscription.ios_montly", "com.liftosaur.subscription.ios_yearly"];
+      const products = [
+        "com.liftosaur.subscription.ios_montly",
+        "com.liftosaur.subscription.ios_yearly",
+        "com.liftosaur.subscription.ios_lifetime",
+      ];
       const inAppPurchases = json.receipt?.in_app?.filter((purchase) => products.indexOf(purchase.product_id) !== -1);
-      const hasNonExpired = !!inAppPurchases?.some((p) => parseInt(p.expires_date_ms, 10) > Date.now());
+      const hasNonExpired =
+        !!inAppPurchases?.some((p) => p.product_id.indexOf("lifetime") !== -1) ||
+        !!inAppPurchases?.some((p) => parseInt(p.expires_date_ms, 10) > Date.now());
       this.log.log("Apple Receipt success status: ", json.status);
       this.log.log("Apple Receipt has non-expired subscription: ", hasNonExpired);
       console.log("-------- Receipt is verifying!", `${JSON.stringify(appleReceipt)}`.slice(0, 15));
@@ -160,15 +178,20 @@ export class Subscriptions {
         return undefined;
       }
 
+      const expires =
+        latestReceipt.product_id.indexOf("lifetime") !== -1
+          ? 4105144800000
+          : Number(latestReceipt.expires_date_ms || "0");
+
       return {
         userId,
         type: "apple",
         product: latestReceipt.product_id,
-        expires: Number(latestReceipt.expires_date_ms || "0"),
+        expires,
         isTrial: latestReceipt.is_trial_period === "true",
         isPromo: latestReceipt.offer_code_ref_name != null,
         promoCode: latestReceipt.offer_code_ref_name,
-        isActive: Number(latestReceipt.expires_date_ms || "0") > Date.now(),
+        isActive: expires > Date.now(),
       };
     } catch (error) {
       this.log.log("Getting Apple Receipt info error: ", error);
@@ -178,19 +201,32 @@ export class Subscriptions {
 
   public async getGoogleVerificationInfo(
     userId: string,
-    json: IVerifyGoogleSubscriptionTokenSuccess
+    json: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess
   ): Promise<ISubscriptionDetailsDao | undefined> {
     try {
-      return {
-        userId,
-        type: "google",
-        product: Number(json.priceAmountMicros || "0") > 100000000 ? "yearly" : "montly",
-        expires: Number(json.expiryTimeMillis || "0"),
-        isTrial: json.paymentState === 2,
-        isPromo: json.promotionType === 0 || json.promotionType === 1,
-        promoCode: json.promotionCode,
-        isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
-      };
+      if (json.kind === "androidpublisher#productPurchase") {
+        return {
+          userId,
+          type: "google",
+          product: "lifetime",
+          expires: 4105144800000,
+          isTrial: false,
+          isPromo: false,
+          promoCode: "",
+          isActive: json.purchaseState === 0 && json.acknowledgementState === 1,
+        };
+      } else {
+        return {
+          userId,
+          type: "google",
+          product: Number(json.priceAmountMicros || "0") > 100000000 ? "yearly" : "montly",
+          expires: Number(json.expiryTimeMillis || "0"),
+          isTrial: json.paymentState === 2,
+          isPromo: json.promotionType === 0 || json.promotionType === 1,
+          promoCode: json.promotionCode,
+          isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
+        };
+      }
     } catch (error) {
       this.log.log("Getting Google Token info error: ", error);
       return undefined;
@@ -214,7 +250,11 @@ export class Subscriptions {
     googlePurchaseToken: string
   ): Promise<IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleSubscriptionTokenError | undefined> {
     const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
-    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptions/${productId}/tokens/${token}`;
+    console.log(googlePurchaseToken, token, productId);
+    const url =
+      productId.indexOf("lifetime") !== -1
+        ? `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/products/${productId}/tokens/${token}`
+        : `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptions/${productId}/tokens/${token}`;
     const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
 
     const jwttoken = JWT.sign(
@@ -242,12 +282,21 @@ export class Subscriptions {
 
   public async verifyGooglePurchaseTokenJson(
     googlePurchaseToken: string,
-    response: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleSubscriptionTokenError
+    response:
+      | IVerifyGoogleSubscriptionTokenSuccess
+      | IVerifyGoogleProductTokenSuccess
+      | IVerifyGoogleSubscriptionTokenError
   ): Promise<string | undefined> {
     if ("error" in response) {
       return undefined;
     }
-    if (Date.now() < parseInt(response.expiryTimeMillis, 10)) {
+    if (response.kind === "androidpublisher#productPurchase") {
+      if (response.purchaseState === 0 && response.acknowledgementState === 1) {
+        return googlePurchaseToken;
+      } else {
+        return undefined;
+      }
+    } else if (Date.now() < parseInt(response.expiryTimeMillis, 10)) {
       console.log("Google subscription is valid");
       return googlePurchaseToken;
     } else {

@@ -167,8 +167,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             {props.subscription.key === "unclaimed" ? (
               <div className="flex items-center px-2">
                 <div className="text-xs text-grayv2-main">
-                  You started to use Liftosaur before we added subscriptions, so you can get it{" "}
-                  <strong>for free</strong>.
+                  You were granted the <strong>free access</strong> to Liftosaur!
                 </div>
                 <div>
                   <Button
@@ -183,55 +182,85 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-row">
-                <div className="flex-1 px-2 text-center">
-                  <Button
-                    onClick={() => {
-                      if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                        SendMessage.toIos({ type: "subscribeMontly" });
-                        SendMessage.toAndroid({ type: "subscribeMontly" });
-                        updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ monthly: true })]);
-                      } else {
-                        webAlert();
-                      }
-                    }}
-                    className="w-full"
-                    kind="orange"
-                    data-cy="button-subscription-monthly"
-                  >
-                    {!props.subscriptionLoading?.monthly ? (
-                      "$4.99/month"
-                    ) : (
-                      <IconSpinner color="white" width={18} height={18} />
-                    )}
-                  </Button>
+              <div>
+                <div className="flex flex-row">
+                  <div className="flex-1 px-2 text-center">
+                    <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
+                    <Button
+                      onClick={() => {
+                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          SendMessage.toIos({ type: "subscribeMontly" });
+                          SendMessage.toAndroid({ type: "subscribeMontly" });
+                          updateState(props.dispatch, [
+                            lb<IState>().p("subscriptionLoading").record({ monthly: true }),
+                          ]);
+                        } else {
+                          webAlert();
+                        }
+                      }}
+                      className="w-full"
+                      kind="orange"
+                      data-cy="button-subscription-monthly"
+                    >
+                      {!props.subscriptionLoading?.monthly ? (
+                        "$4.99/month"
+                      ) : (
+                        <IconSpinner color="white" width={18} height={18} />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="flex-1 px-2 text-center">
+                    <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
+                    <Button
+                      onClick={() => {
+                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          SendMessage.toIos({ type: "subscribeYearly" });
+                          SendMessage.toAndroid({ type: "subscribeYearly" });
+                          updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })]);
+                        } else {
+                          webAlert();
+                        }
+                      }}
+                      className="w-full"
+                      kind="purple"
+                      data-cy="button-subscription-yearly"
+                    >
+                      {!props.subscriptionLoading?.yearly ? (
+                        "$39.99/year"
+                      ) : (
+                        <IconSpinner color="white" width={18} height={18} />
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex-1 px-2 text-center">
-                  <Button
-                    onClick={() => {
-                      if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                        SendMessage.toIos({ type: "subscribeYearly" });
-                        SendMessage.toAndroid({ type: "subscribeYearly" });
-                        updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })]);
-                      } else {
-                        webAlert();
-                      }
-                    }}
-                    className="w-full"
-                    kind="purple"
-                    data-cy="button-subscription-yearly"
-                  >
-                    {!props.subscriptionLoading?.yearly ? (
-                      "$49.99/year"
-                    ) : (
-                      <IconSpinner color="white" width={18} height={18} />
-                    )}
-                  </Button>
-                </div>
+                {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 8) ||
+                  (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 15)) && (
+                  <div className="px-2 pt-2 text-center">
+                    <Button
+                      onClick={() => {
+                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          SendMessage.toIos({ type: "subscribeLifetime" });
+                          SendMessage.toAndroid({ type: "subscribeLifetime" });
+                          updateState(props.dispatch, [
+                            lb<IState>().p("subscriptionLoading").record({ lifetime: true }),
+                          ]);
+                        } else {
+                          webAlert();
+                        }
+                      }}
+                      className="w-full"
+                      kind="red"
+                      data-cy="button-subscription-lifetime"
+                    >
+                      {!props.subscriptionLoading?.lifetime ? (
+                        "Lifetime - $69.99"
+                      ) : (
+                        <IconSpinner color="white" width={18} height={18} />
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
-            {props.subscription.key !== "unclaimed" && (
-              <div className="pt-2 font-bold text-center">Includes free trial for 14 days!</div>
             )}
             <div className="flex flex-row">
               {(SendMessage.isAndroid() ||

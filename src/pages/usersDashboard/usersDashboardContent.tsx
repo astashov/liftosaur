@@ -22,7 +22,7 @@ export interface IUserDashboardData {
   freeUserExpires?: number;
   subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
   subscriptionDetails?: {
-    product: "yearly" | "montly";
+    product: "yearly" | "montly" | "lifetime";
     isTrial: boolean;
     isPromo: boolean;
     isActive: boolean;
