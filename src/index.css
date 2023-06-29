@@ -4,8 +4,6 @@
 @tailwind base;
 @tailwind components;
 
-@import "~codemirror/lib/codemirror.css";
-@import "~codemirror/addon/hint/show-hint.css";
 @import "~prismjs/themes/prism.css";
 @import "fonts.css";
 
@@ -36,11 +34,11 @@ body {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
-.CodeMirror {
+.cm-editor {
   font-size: 16px;
 }
 
-.one-line-text-editor .CodeMirror {
+.one-line-text-editor .cm-editor {
   height: auto;
 }
 
@@ -53,9 +51,12 @@ body {
 }
 
 .code.block,
-.CodeMirror pre.CodeMirror-line,
-.CodeMirror pre.CodeMirror-line-like {
+.cm-editor .cm-content {
   font-family: "Iosevka Web" !important;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
 }
 
 .program-description a {

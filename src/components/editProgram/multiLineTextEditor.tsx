@@ -44,12 +44,6 @@ export function MultiLineTextEditor(props: IProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (codeEditor.current) {
-      codeEditor.current.updateState(props.state);
-    }
-  });
-
-  useEffect(() => {
     if (window.isUndoing) {
       const ce = codeEditor.current;
       if (ce && props.value != null) {

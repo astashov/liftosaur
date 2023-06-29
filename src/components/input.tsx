@@ -87,7 +87,7 @@ export const Input = forwardRef(
     const labelSize = props.labelSize || "sm";
     return (
       <div className={containerClassName}>
-        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "50px" }}>
+        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "48px" }}>
           <div className="relative mx-4 my-1">
             <div
               className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
