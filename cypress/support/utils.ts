@@ -8,12 +8,24 @@ export function s(...dataCys): string {
 
 export function clearCodeMirror(dataCy: string): void {
   cy.window().then((win) => {
-    (win.document.querySelector(`[data-cy=${dataCy}] .CodeMirror`) as any).CodeMirror.setValue("");
+    const cmContent = win.document.querySelector(`[data-cy=${dataCy}] .cm-content`) as any;
+    cmContent.cmView.view.update([
+      cmContent.cmView.view.state.update({
+        changes: { from: 0, to: cmContent.cmView.view.state.doc.length, insert: "" },
+      }),
+    ]);
   });
 }
 
 export function typeCodeMirror(dataCy: string, text: string): void {
-  g(dataCy).find("textarea").type(text, { force: true });
+  cy.window().then((win) => {
+    const cmContent = win.document.querySelector(`[data-cy=${dataCy}] .cm-content`) as any;
+    cmContent.cmView.view.update([
+      cmContent.cmView.view.state.update({
+        changes: { from: 0, to: cmContent.cmView.view.state.doc.length, insert: text },
+      }),
+    ]);
+  });
 }
 
 export function disableSubscriptions(): void {

@@ -34,7 +34,7 @@ describe("Program", () => {
     clearCodeMirror("oneline-editor-weight");
     typeCodeMirror("oneline-editor-weight", "state.weight");
 
-    g("menu-item-value-weight").clear().type("100");
+    g("menu-item-value-weight").clear().type("100").blur();
 
     cy.contains("Add New Set").click();
 

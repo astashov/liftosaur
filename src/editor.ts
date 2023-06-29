@@ -1,9 +1,34 @@
-import CodeMirror, { StringStream } from "codemirror";
-import "codemirror/mode/diff/diff";
-import "codemirror/addon/hint/show-hint";
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { insertTab, defaultKeymap, history, historyKeymap, indentLess } from "@codemirror/commands";
+import { HighlightStyle, indentOnInput, syntaxHighlighting } from "@codemirror/language";
+import { EditorState, Extension } from "@codemirror/state";
+import { drawSelection, EditorView, keymap } from "@codemirror/view";
+import { highlightSelectionMatches } from "@codemirror/search";
 import { IProgramState } from "./types";
+import { tags } from "@lezer/highlight";
+import { buildLiftoscriptLanguageSupport } from "./liftoscriptCodemirror";
 
-type IState = Record<string, string | null>;
+const highlightStyle = HighlightStyle.define([
+  { tag: tags.keyword, color: "#708" },
+  { tag: [tags.literal, tags.inserted], color: "#164" },
+  { tag: tags.variableName, color: "#00f" },
+  { tag: tags.comment, color: "#940" },
+]);
+
+const editorSetup: Extension[] = [
+  history(),
+  drawSelection(),
+  indentOnInput(),
+  autocompletion(),
+  syntaxHighlighting(highlightStyle),
+  highlightSelectionMatches(),
+  keymap.of([
+    ...defaultKeymap,
+    ...historyKeymap,
+    ...completionKeymap,
+    { key: "Tab", run: insertTab, shift: indentLess },
+  ]),
+];
 
 interface IArgs {
   onChange?: (newValue: string) => void;
@@ -16,174 +41,50 @@ interface IArgs {
 
 export class CodeEditor {
   private readonly args: IArgs;
-  private state: IProgramState;
-  private codeMirror?: CodeMirror.Editor;
+  private codeMirror?: EditorView;
+  private _state?: IProgramState;
+
+  public get state(): IProgramState {
+    return this._state || {};
+  }
 
   constructor(args: IArgs = {}) {
     this.args = args;
-    this.state = args.state || {};
-  }
-
-  public updateState(newState: IProgramState): void {
-    this.state = newState;
+    this._state = args.state;
   }
 
   public setValue(value: string): void {
     if (this.codeMirror) {
-      this.codeMirror.setValue(value);
+      this.codeMirror.state.update({ changes: { from: 0, to: this.codeMirror.state.doc.length, insert: value } });
     }
   }
 
-  public attach(container: HTMLElement): void {
-    CodeMirror.defineMode<IState>("liftosaur", (config, modeOptions) => {
-      const keywords = [...Object.keys(this.state), "day", "completedReps", "reps", "weights", "cr", "r", "w"];
-      const stateKeywords = ["state"];
+  public updateState(newState: IProgramState): void {
+    this._state = newState;
+  }
 
-      return {
-        startState: () => ({}),
-        token: (stream: StringStream, state: IState) => {
-          let peek = stream.peek();
-          let token: string | null = null;
-          if ((stream.sol() || /\W/.test(state.current || "")) && stream.match(/\d+(lb|kg)?/)) {
-            token = "number";
-          } else if ((stream.sol() || /\W/.test(state.current || "")) && keywords.some((k) => stream.match(k))) {
-            if (/\W/.test(stream.peek() || "")) {
-              token = "keyword";
-            }
-          } else if (stateKeywords.some((k) => stream.match(k))) {
-            token = "state";
-          } else if (peek != null && ["[", "]", "(", ")", "{", "}"].indexOf(peek) !== -1) {
-            stream.next();
-            token = "bracket";
-          } else if (peek != null && ["/"].indexOf(peek) !== -1) {
-            stream.next();
-            peek = stream.peek();
-            if (peek != null && ["/"].indexOf(peek) !== -1) {
-              token = "comment";
-              stream.skipToEnd();
-            } else {
-              stream.next();
-              token = "atom";
-            }
-          } else if (peek != null && ["+", "-", "*", "=", ">", "<", "/", "^"].indexOf(peek) !== -1) {
-            stream.next();
-            token = "atom";
-          } else if (peek != null && ["."].indexOf(peek) !== -1) {
-            stream.next();
-            token = "dot";
-          } else {
-            stream.next();
-            token = null;
-          }
-          state.current = peek;
-          return token;
-        },
-      };
+  public attach(container: HTMLElement): void {
+    const updateFacet = EditorView.updateListener.of((update) => {
+      if (this.args.onChange) {
+        this.args.onChange(update.state.doc.toString());
+      }
     });
 
-    const codemirror = CodeMirror(container, {
-      mode: "liftosaur",
-      value: this.args.value || "",
-      viewportMargin: Infinity,
+    const liftoscriptLanguage = buildLiftoscriptLanguageSupport(this);
+
+    const editorState = EditorState.create({
+      doc: this.args.value || "",
+      extensions: [keymap.of(defaultKeymap), editorSetup, updateFacet, liftoscriptLanguage],
+    });
+
+    const codemirror = new EditorView({
+      state: editorState,
+      parent: container,
     });
     this.codeMirror = codemirror;
 
-    codemirror.on("keyup", (e, s) => {
-      if (s.type === "keyup" && (e.state.completionActive == null || e.state.completionActive.data.list.length === 0)) {
-        codemirror.showHint({
-          hint: (cm: CodeMirror.Editor): CodeMirror.Hints => {
-            const cursor = cm.getCursor();
-            const end = cursor.ch;
-            let start = end;
-            let list: string[] = [];
-            if (start > 1) {
-              const lineContent = cm.getLine(cursor.line);
-              let previousChar = lineContent.slice(start - 1, start)[0];
-              let isFoundStateVar = false;
-              let isFoundKeyword = false;
-              if (
-                /[a-zA-Z]/.test(previousChar) &&
-                (lineContent.slice(start)[0] == null || /\s/.test(lineContent.slice(start)[0]))
-              ) {
-                while (start > 0) {
-                  if (previousChar === ".") {
-                    isFoundStateVar = true;
-                    break;
-                  } else if (/[^a-zA-Z]/.test(previousChar)) {
-                    isFoundKeyword = true;
-                    break;
-                  }
-                  start -= 1;
-                  previousChar = lineContent.slice(start - 1)[0];
-                }
-                if (isFoundStateVar) {
-                  if (cm.getTokenTypeAt({ ch: start - 1, line: cursor.line }) === "state") {
-                    list = Object.keys(this.state || {}).filter((k) => {
-                      const keyword = lineContent.slice(start, end);
-                      return k !== keyword && k.startsWith(keyword);
-                    });
-                  }
-                }
-                if (isFoundKeyword) {
-                  const keywords = [
-                    "state",
-                    "w",
-                    "weights",
-                    "r",
-                    "reps",
-                    "cr",
-                    "completedReps",
-                    "day",
-                    "ns",
-                    "setIndex",
-                    "numberOfSets",
-                    "roundWeight",
-                    "calculateTrainingMax",
-                    "floor",
-                    "round",
-                    "ceil",
-                    "sum",
-                    "min",
-                    "max",
-                  ];
-                  list = keywords.filter((k) => {
-                    const keyword = lineContent.slice(start, end);
-                    return k !== keyword && k.startsWith(keyword);
-                  });
-                }
-              } else if (
-                previousChar === "." &&
-                (lineContent.slice(start)[0] == null || /\s/.test(lineContent.slice(start)[0])) &&
-                cm.getTokenTypeAt({ ch: start - 2, line: cursor.line }) === "state"
-              ) {
-                list = Object.keys(this.state || {});
-              }
-            }
-            return {
-              from: { ch: start, line: cursor.line },
-              to: cursor,
-              list: list,
-            };
-          },
-          completeSingle: false,
-        });
-      }
-    });
-
-    codemirror.on("change", () => {
-      if (this.args.onChange != null) {
-        this.args.onChange(codemirror.getValue());
-      }
-    });
-
-    codemirror.on("blur", () => {
-      if (this.args.onBlur != null) {
-        this.args.onBlur(codemirror.getValue());
-      }
-    });
-
     if (this.args.multiLine) {
-      codemirror.setSize(null, (this.args.height ?? 16) * codemirror.defaultTextHeight() + 2 * 4);
+      codemirror.scrollDOM.style.height = `${(this.args.height ?? 16) * codemirror.defaultLineHeight + 2 * 4}px`;
     }
   }
 }

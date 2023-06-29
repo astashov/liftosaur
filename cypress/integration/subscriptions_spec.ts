@@ -24,7 +24,7 @@ describe("Subscriptions", () => {
     cy.wait(2000);
     cy.visit("https://local.liftosaur.com:8080?skipintro=1&enforce=1");
     g("footer-graphs").click();
-    g("screen").should("contain.text", "Finish at least one workout to see the graphs");
+    g("screen").should("contain.text", "Select graphs you want to display");
     g("footer-settings").click();
     g("menu-item-changelog").click();
     g("modal-close").filter(":visible").click();
@@ -41,6 +41,6 @@ describe("Subscriptions", () => {
     g("footer-graphs").click();
     g("button-subscription-free").click();
     g("footer-graphs").click();
-    g("screen").should("contain.text", "Finish at least one workout to see the graphs");
+    g("screen").should("contain.text", "Select graphs you want to display");
   });
 });

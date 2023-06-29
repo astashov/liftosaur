@@ -28,6 +28,12 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   };
 
   useEffect(() => {
+    if (codeEditor.current) {
+      codeEditor.current.updateState(props.state);
+    }
+  }, [props.state]);
+
+  useEffect(() => {
     if (editorImport == null) {
       editorImport = import("../../editor");
     }

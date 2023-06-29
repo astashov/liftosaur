@@ -15,7 +15,10 @@ describe("Graphs", () => {
     g("clone-program").click();
     g("footer-graphs").click();
 
-    g("screen").should("contain.text", "Finish at least one workout to see the graphs");
+    g("screen").should("contain.text", "Select graphs you want to display");
+    g("graphs-modify").click();
+    g("modal-graphs").should("contain.text", "You haven't tracked any workouts or measurements yet.");
+    g("modal-close").filter(":visible").click();
 
     g("navbar-back").click();
 
