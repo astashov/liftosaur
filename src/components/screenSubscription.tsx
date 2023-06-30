@@ -226,7 +226,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-yearly"
                     >
                       {!props.subscriptionLoading?.yearly ? (
-                        "$49.99/year"
+                        "$39.99/year"
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}
