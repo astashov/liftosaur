@@ -448,6 +448,26 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230630": {
+    title: <span>Bodyfat tracking</span>,
+    body: (
+      <ul>
+        <li>
+          Liftosaur is{" "}
+          <a href="https://github.com/astashov/liftosaur" target="_blank" className="font-bold underline text-bluev2">
+            open-source
+          </a>
+          , so anyone can see the code, and potentially add features. Amazing{" "}
+          <a href="https://github.com/codymurdoc" target="_blank" className="font-bold underline text-bluev2">
+            @codymurdoc
+          </a>{" "}
+          went ahead and added bodyfat tracking support to Liftosaur! This is so cool, thank you so much! It's really
+          impressing you were able to figure out how to do that in pretty large codebase, and add it in a clean and nice
+          way, it's a pretty big feature. I'm really impressed!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
