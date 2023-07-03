@@ -281,12 +281,17 @@ export type IEquipment = t.TypeOf<typeof TEquipment>;
 export const TExerciseId = t.string;
 export type IExerciseId = t.TypeOf<typeof TExerciseId>;
 
-export const TMetaExercises = t.type(
-  {
-    bodyParts: t.array(TBodyPart),
-    targetMuscles: t.array(TMuscle),
-    synergistMuscles: t.array(TMuscle),
-  },
+export const TMetaExercises = t.intersection(
+  [
+    t.interface({
+      bodyParts: t.array(TBodyPart),
+      targetMuscles: t.array(TMuscle),
+      synergistMuscles: t.array(TMuscle),
+    }),
+    t.partial({
+      sortedEquipment: t.array(TEquipment),
+    }),
+  ],
   "TMetaExercises"
 );
 export type IMetaExercises = t.TypeOf<typeof TMetaExercises>;

@@ -51,6 +51,7 @@ export namespace EditCustomExerciseLenses {
               targetMuscles,
               synergistMuscles,
               bodyParts: [],
+              sortedEquipment: [equipment],
             },
           };
           return { ...exercises, [id]: newExercise };
