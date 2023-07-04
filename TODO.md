@@ -6,7 +6,6 @@
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets
-- Long press on sets
 - Volume for each exercise, and in exercise stats
 - Show last time separately if not on the same day
 

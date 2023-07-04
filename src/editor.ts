@@ -55,7 +55,9 @@ export class CodeEditor {
 
   public setValue(value: string): void {
     if (this.codeMirror) {
-      this.codeMirror.state.update({ changes: { from: 0, to: this.codeMirror.state.doc.length, insert: value } });
+      this.codeMirror.update([
+        this.codeMirror.state.update({ changes: { from: 0, to: this.codeMirror.state.doc.length, insert: value } }),
+      ]);
     }
   }
 
