@@ -108,6 +108,37 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
     },
 
     {
+      title: "Double progression",
+      description:
+        "We increase reps from 8 to 12, then increase weight and reset reps to 8. This works well for isolation exercises.",
+      sets: [
+        {
+          repsExpr: "state.reps",
+          weightExpr: "state.weight",
+          isAmrap: false,
+        },
+      ],
+      finishDayExpr: StringUtils.unindent(`
+        if (completedReps >= reps) {
+          state.reps = state.reps + 1
+        }
+        if (state.reps > 12) {
+          state.reps = 8
+          state.weight = state.weight + ${defaultBump}
+        }
+      `),
+      state: {
+        reps: 8,
+        weight: defaultWeight,
+      },
+      rules: {
+        sets: "keep",
+        reps: "keep_if_has_vars",
+        weight: "keep_if_has_vars",
+      },
+    },
+
+    {
       title: "At least one more rep",
       description:
         "Similar to Linear Progression, but we only consider it failure if you lifted less than last time. I.e if you need to lift 2x12, and you lifted 12 and 6 reps, but last time you lifted 12 and 4 reps, we don't consider it a failure. We'll increase weight only when you lift 2x12 though.",
@@ -174,37 +205,6 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
         sets: "replace",
         reps: "replace",
         weight: "replace",
-      },
-    },
-
-    {
-      title: "Reps ladder-up",
-      description:
-        "We increase reps from 8 to 12, then increase weight and reset reps to 6. This works well for hypertrophy programs.",
-      sets: [
-        {
-          repsExpr: "state.reps",
-          weightExpr: "state.weight",
-          isAmrap: false,
-        },
-      ],
-      finishDayExpr: StringUtils.unindent(`
-        if (completedReps >= reps) {
-          state.reps = state.reps + 1
-        }
-        if (state.reps > 12) {
-          state.reps = 8
-          state.weight = state.weight + ${defaultBump}
-        }
-      `),
-      state: {
-        reps: 8,
-        weight: defaultWeight,
-      },
-      rules: {
-        sets: "keep",
-        reps: "keep_if_has_vars",
-        weight: "keep_if_has_vars",
       },
     },
   ];
