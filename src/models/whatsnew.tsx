@@ -468,6 +468,15 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230704": {
+    title: <span>Switched "reps x sets" to "sets x reps" on the history screen</span>,
+    body: (
+      <ul>
+        <li>It was kinda confusing since widely used format is "sets x reps".</li>
+        <li>So now it's "sets x reps"</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
