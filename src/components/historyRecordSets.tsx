@@ -78,8 +78,8 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean }
           }
           className="pb-1 font-bold border-b border-grayv2-200"
         >
+          {length > 1 && <span className="text-sm text-purplev2-main">{length}x</span>}
           <span className={`${color} text-lg`}>{set.reps}</span>
-          {length > 1 && <span className="text-sm text-purplev2-main">x{length}</span>}
         </div>
         <div data-cy="history-entry-weight" className="pt-2 text-sm font-bold text-grayv2-main">
           {set.weight}
