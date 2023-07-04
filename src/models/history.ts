@@ -296,7 +296,11 @@ export namespace History {
     for (const record of history) {
       if (record.programId === progress.programId && record.day === progress.day) {
         for (const entry of record.entries) {
-          if (Exercise.eq(currentEntry.exercise, entry.exercise) && entry.sets.length > 0) {
+          if (
+            Exercise.eq(currentEntry.exercise, entry.exercise) &&
+            currentEntry.programExerciseId === entry.programExerciseId &&
+            entry.sets.length > 0
+          ) {
             return { record, entry };
           }
         }
@@ -313,7 +317,11 @@ export namespace History {
     for (const record of history) {
       if (record.programId === progress.programId) {
         for (const entry of record.entries) {
-          if (Exercise.eq(currentEntry.exercise, entry.exercise) && entry.sets.length > 0) {
+          if (
+            Exercise.eq(currentEntry.exercise, entry.exercise) &&
+            entry.programExerciseId === currentEntry.programExerciseId &&
+            entry.sets.length > 0
+          ) {
             return { record, entry };
           }
         }
