@@ -9,6 +9,8 @@ export interface IGetStorageResponse {
   key?: string;
 }
 
+type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
+
 const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
@@ -101,6 +103,27 @@ export class Service {
     });
     const json = await result.json();
     return json.id;
+  }
+
+  public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
+    const url = new URL(`${__API_HOST__}/api/coupon/claim/${code}`);
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      credentials: "include",
+    });
+    const json = await result.json();
+    if (result.status === 200) {
+      const { key, expires } = json.data || {};
+      if (key && expires) {
+        return { success: true, data: { key, expires } };
+      }
+    } else if ("error" in json) {
+      const error = json.error as IRedeemCouponError;
+      if (error === "not_authorized" || error === "coupon_not_found" || error === "coupon_already_claimed") {
+        return { success: false, error };
+      }
+    }
+    return { success: false, error: "unknown" };
   }
 
   public async getFreeformRecord(

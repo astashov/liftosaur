@@ -42,7 +42,7 @@ export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
         </ul>
         <ul className="inline-block align-middle list-none">
           {[
-            ["Facebook", "https://www.facebook.com/liftosaur", "logo-facebook"],
+            ["Instagram", "https://www.instagram.com/liftosaurapp", "logo-instagram"],
             ["Twitter", "https://www.twitter.com/liftosaur", "logo-twitter"],
             ["Reddit", "https://www.reddit.com/r/liftosaur", "logo-reddit"],
             ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],

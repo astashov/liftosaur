@@ -51,6 +51,7 @@ import { renderFreeformHtml } from "./freeform";
 import { LogFreeformDao } from "./dao/logFreeformDao";
 import { FreeformGenerator } from "./utils/freeformGenerator";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
+import { CouponDao } from "./dao/couponDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -512,11 +513,52 @@ const postAddFreeUserHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 }) => {
   const { event, di } = payload;
   if (params.key === (await di.secrets.getApiKey())) {
-    await new FreeUserDao(di).create(params.id);
+    await new FreeUserDao(di).create(params.id, Date.now() + 1000 * 60 * 60 * 24 * 365, false);
     return ResponseUtils.json(200, event, { data: "ok" });
   } else {
     return ResponseUtils.json(401, event, {});
   }
+};
+
+const postCreateCouponEndpoint = Endpoint.build("/api/coupon/:ttl", { key: "string", info: "string?" });
+const postCreateCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postCreateCouponEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const ttlMs = parseInt(params.ttl, 10);
+  if (!isNaN(ttlMs) && params.key === (await di.secrets.getApiKey())) {
+    const coupon = await new CouponDao(di).create(ttlMs, params.info);
+    return ResponseUtils.json(200, event, { data: coupon });
+  } else {
+    return ResponseUtils.json(401, event, {});
+  }
+};
+
+const postClaimCouponEndpoint = Endpoint.build("/api/coupon/claim/:code");
+const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postClaimCouponEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const couponDao = new CouponDao(di);
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId == null) {
+    return ResponseUtils.json(401, event, { error: "not_authorized" });
+  }
+
+  const coupon = await couponDao.get(params.code);
+  if (!coupon) {
+    return ResponseUtils.json(404, event, { error: "coupon_not_found" });
+  }
+
+  if (coupon.isClaimed) {
+    return ResponseUtils.json(400, event, { error: "coupon_already_claimed" });
+  }
+
+  await couponDao.claim(coupon);
+  const freeuser = await new FreeUserDao(di).create(currentUserId, Date.now() + coupon.ttlMs, true, coupon.code);
+  return ResponseUtils.json(200, event, { data: { key: freeuser.key, expires: freeuser.expires } });
 };
 
 const logEndpoint = Endpoint.build("/api/log");
@@ -1459,7 +1501,9 @@ export const handler = rollbar.lambdaHandler(
       .get(getLikesEndpoint, getLikesHandler)
       .post(toggleLikeEndpoint, toggleLikeHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
-      .get(getProgramImageEndpoint, getProgramImageHandler);
+      .get(getProgramImageEndpoint, getProgramImageHandler)
+      .post(postCreateCouponEndpoint, postCreateCouponHandler)
+      .post(postClaimCouponEndpoint, postClaimCouponHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

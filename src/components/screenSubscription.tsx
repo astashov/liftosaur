@@ -18,6 +18,8 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { InternalLink } from "../internalLink";
 import { ISubscription } from "../types";
 import { Thunk } from "../ducks/thunks";
+import { Input } from "./input";
+import { ModalCoupon } from "./modalCoupon";
 
 interface IProps {
   loading: ILoading;
@@ -32,6 +34,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const [isGraphsShown, setIsGraphsShown] = useState<boolean>(false);
   const [isMusclesShown, setIsMusclesShown] = useState<boolean>(false);
   const [isNotifsShown, setIsNotifsShown] = useState<boolean>(false);
+  const [isRedeemShown, setIsRedeemShown] = useState<boolean>(false);
 
   return (
     <Surface
@@ -125,6 +128,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             />
           </div>
         </Modal>,
+        <ModalCoupon isHidden={!isRedeemShown} dispatch={props.dispatch} onClose={() => setIsRedeemShown(false)} />,
       ]}
     >
       <section className="flex flex-col flex-1 px-4">
@@ -263,26 +267,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               </div>
             )}
             <div className="flex flex-row">
-              {(SendMessage.isAndroid() ||
-                (SendMessage.isIos() && parseFloat(window.lftIosVersion || "0.0") >= 14.0)) && (
-                <div className="flex-1 text-center">
-                  <LinkButton
-                    onClick={() => {
-                      if (SendMessage.isIos() || SendMessage.isAndroid()) {
-                        SendMessage.toIos({ type: "redeemCoupon" });
-                        SendMessage.toAndroid({ type: "redeemCoupon" });
-                      } else {
-                        alert(
-                          "You can only redeem the coupon from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, and try it there!"
-                        );
-                      }
-                    }}
-                    className="pt-2 font-bold text-center"
-                  >
-                    Redeem coupon
-                  </LinkButton>
-                </div>
-              )}
+              <div className="flex-1 text-center">
+                <LinkButton onClick={() => setIsRedeemShown(true)} className="pt-2 font-bold text-center">
+                  Redeem coupon
+                </LinkButton>
+              </div>
               <div className="flex-1 pt-2 text-center">
                 <InternalLink href="/terms.html" className="font-bold underline border-none text-bluev2">
                   Terms of use

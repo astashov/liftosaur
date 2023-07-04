@@ -57,6 +57,7 @@ a {
 }
 
 .logo-facebook,
+.logo-instagram,
 .logo-twitter,
 .logo-discord,
 .logo-reddit {
@@ -72,6 +73,10 @@ a {
 
 .logo-facebook {
   background-image: url(/images/logo-facebook.svg);
+}
+
+.logo-instagram {
+  background-image: url(/images/logo-instagram.svg);
 }
 
 .logo-reddit {

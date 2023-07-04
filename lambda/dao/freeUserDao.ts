@@ -16,6 +16,7 @@ export interface IFreeUserDao {
   key: string;
   isClaimed: boolean;
   expires: number;
+  coupon?: string;
 }
 
 export class FreeUserDao {
@@ -67,13 +68,14 @@ export class FreeUserDao {
     return undefined;
   }
 
-  public async create(id: string): Promise<IFreeUserDao> {
+  public async create(id: string, expires: number, isClaimed: boolean, coupon?: string): Promise<IFreeUserDao> {
     const env = Utils.getEnv();
     const freeUser: IFreeUserDao = {
       id,
-      expires: Date.now() + 1000 * 60 * 60 * 24 * 365,
-      isClaimed: false,
+      expires,
+      isClaimed,
       key: `key-${UidFactory.generateUid(6)}`,
+      coupon,
     };
     await this.di.dynamo.put({
       tableName: freeUsersTableNames[env].freeUsers,

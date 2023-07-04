@@ -679,16 +679,20 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const claim = await env.service.postClaimKey(getState().storage.tempUserId);
       if (claim) {
-        updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(claim.key)]);
-        const date = DateUtils.format(claim.expires);
-        alert(`Successfully claimed the free access until ${date}`);
-        dispatch(log("ls-claim-free-user-success"));
-        dispatch(pullScreen());
+        finishFreeAccess(dispatch, claim.key, claim.expires);
       } else {
         alert("Failed to claim the free access");
         dispatch(log("ls-claim-free-user-fail"));
       }
     };
+  }
+
+  function finishFreeAccess(dispatch: IDispatch, key: string, expires: number): void {
+    updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(key)]);
+    const date = DateUtils.format(expires);
+    alert(`Successfully claimed the free access until ${date}`);
+    dispatch(log("ls-claim-free-user-success"));
+    dispatch(pullScreen());
   }
 
   export function fetchInitial(): IThunk {
@@ -702,6 +706,36 @@ export namespace Thunk {
       }
       SendMessage.toIos({ type: "restoreSubscriptions" });
       SendMessage.toAndroid({ type: "restoreSubscriptions" });
+    };
+  }
+
+  export function redeemCoupon(code: string): IThunk {
+    return async (dispatch, getState, env) => {
+      const result = await load(dispatch, "claimCoupon", () => env.service.postClaimCoupon(code));
+      if (result.success) {
+        const { key, expires } = result.data;
+        finishFreeAccess(dispatch, key, expires);
+      } else {
+        switch (result.error) {
+          case "not_authorized": {
+            alert("You need to sign in first to claim the coupon.");
+            break;
+          }
+          case "coupon_not_found": {
+            alert("Couldn't find the coupon with that code.");
+            break;
+          }
+          case "coupon_already_claimed": {
+            alert("This coupon is already claimed.");
+            break;
+          }
+          default: {
+            alert("Failed to claim the coupon.");
+            break;
+          }
+        }
+        dispatch(log("ls-claim-coupon-fail"));
+      }
     };
   }
 
