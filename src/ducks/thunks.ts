@@ -119,6 +119,14 @@ export namespace Thunk {
     };
   }
 
+  export function postDebug(): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      const userid = state.user?.id || state.storage.tempUserId;
+      await load(dispatch, "debug", async () => env.service.postDebug(userid, JSON.stringify(state)));
+    };
+  }
+
   export function sync(args: { withHistory: boolean; withStats: boolean; withPrograms: boolean }): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().adminKey == null && getState().user != null) {

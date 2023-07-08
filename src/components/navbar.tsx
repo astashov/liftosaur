@@ -161,7 +161,9 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           </p>
         </Modal>
       )}
-      {showDebug > 4 && <ModalDebug onClose={() => setShowDebug(0)} loading={props.loading} />}
+      {showDebug > 4 && (
+        <ModalDebug onClose={() => setShowDebug(0)} loading={props.loading} dispatch={props.dispatch} />
+      )}
     </>
   );
 };

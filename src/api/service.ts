@@ -76,6 +76,14 @@ export class Service {
     });
   }
 
+  public async postDebug(id: string, state: string): Promise<void> {
+    await this.client(`${__API_HOST__}/api/debug`, {
+      method: "POST",
+      body: JSON.stringify({ id, state }),
+      credentials: "include",
+    });
+  }
+
   public async postClaimKey(userid: string): Promise<{ key: string; expires: number } | undefined> {
     const response = await this.client(`${__API_HOST__}/api/claimkey/${userid}`, {
       method: "POST",

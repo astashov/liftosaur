@@ -32,7 +32,7 @@ export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
             ["Program Planner", "/planner"],
           ].map(([text, link]) => {
             return (
-              <li className="inline-block mx-3 mb-2 leading-normal leading-5 align-middle list-none">
+              <li className="inline-block mx-3 mb-2 leading-5 align-middle list-none">
                 <a className="text-blue-700 underline cursor-pointer" href={link}>
                   {text}
                 </a>

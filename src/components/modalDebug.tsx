@@ -1,13 +1,17 @@
 import { h, JSX, Fragment } from "preact";
+import { Thunk } from "../ducks/thunks";
+import { IDispatch } from "../ducks/types";
 import { ILoading } from "../models/state";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
 import { ObjectUtils } from "../utils/object";
+import { Button } from "./button";
 import { Modal } from "./modal";
 
 interface IModalDebugProps {
   onClose: () => void;
   loading: ILoading;
+  dispatch: IDispatch;
 }
 
 export function ModalDebug(props: IModalDebugProps): JSX.Element {
@@ -41,6 +45,11 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
           );
         })}
       </ul>
+      <div className="mt-4 text-center">
+        <Button kind="orange" onClick={() => props.dispatch(Thunk.postDebug())}>
+          Send Debug Info
+        </Button>
+      </div>
     </Modal>
   );
 }

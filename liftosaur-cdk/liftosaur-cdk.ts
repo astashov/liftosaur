@@ -206,6 +206,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const debugTable = new dynamodb.Table(this, `LftDebug${suffix}`, {
+      tableName: `lftDebug${suffix}`,
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     const secretArns = {
       dev: {
         all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
@@ -287,6 +294,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     affiliatesTable.grantReadWriteData(lambdaFunction);
     freeUsersTable.grantReadWriteData(lambdaFunction);
     couponsTable.grantReadWriteData(lambdaFunction);
+    debugTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],

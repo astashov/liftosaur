@@ -52,6 +52,7 @@ import { LogFreeformDao } from "./dao/logFreeformDao";
 import { FreeformGenerator } from "./utils/freeformGenerator";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
+import { DebugDao } from "./dao/debugDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -233,6 +234,17 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
 
     await userDao.saveStorage(user, storage);
   }
+  return ResponseUtils.json(200, event, {});
+};
+
+const saveDebugEndpoint = Endpoint.build("/api/debug");
+const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const { id, state } = getBodyJson(event);
+  const debugDao = new DebugDao(di);
+  await debugDao.store(id, state);
   return ResponseUtils.json(200, event, {});
 };
 
@@ -1503,7 +1515,8 @@ export const handler = rollbar.lambdaHandler(
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
-      .post(postClaimCouponEndpoint, postClaimCouponHandler);
+      .post(postClaimCouponEndpoint, postClaimCouponHandler)
+      .post(saveDebugEndpoint, saveDebugHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = new URL(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
