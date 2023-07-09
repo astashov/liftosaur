@@ -1,8 +1,8 @@
 ---
-title: Workout planner inspired by the software development industry
+title: Workout planner inspired by the software development tools
 date: "2023-07-09"
-og_title: Workout planner inspired by the software development industry
-og_description: "Thoughts about building a weightlifting workout planner, which is inspired by the ideas from the software development world"
+og_title: Workout planner inspired by the software development tools
+og_description: "Thoughts about building a weightlifting workout planner, which is inspired by the ideas from the software development tools"
 og_image: /images/workout-planner-hero.png
 tags: ["tech", "weightlifting"]
 ---
@@ -24,7 +24,7 @@ If you're just starting to get into weightlifting programming, it's a lot to kee
 
 It's not an easy problem to solve though. Need to think through UI and UX of such tool, so that it'd be easy to use, and you'd have all the information in front of you, and you could easily tweak it. Would be also cool to be able store the programs you build too, and adjust them when you progress or when your goals change.
 
-## Getting inspiration from software development industry
+## Getting inspiration from software development tools
 
 The software development industry has decades of experience in developing tools for writing programs. A weighlifting program shares some similarities with a software program. For example, we have pretty formalized hierarchy - a weightlifting program consists of weeks, a week consists of workouts, a workout consists of exercises. Each exercise consists of:
 
