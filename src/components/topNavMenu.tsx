@@ -29,7 +29,6 @@ export function TopNavMenu(props: { maxWidth?: number }): JSX.Element {
             ["Docs", "/docs/docs.html"],
             ["Blog", "/blog"],
             ["Program Builder", "/program"],
-            ["Program Planner", "/planner"],
           ].map(([text, link]) => {
             return (
               <li className="inline-block mx-3 mb-2 leading-5 align-middle list-none">

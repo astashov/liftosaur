@@ -25,7 +25,6 @@ export function FooterPage(props: IProps): JSX.Element {
                   ["App", "/"],
                   ["Docs", "/docs/docs.html"],
                   ["Program Builder", "/program"],
-                  ["Program Planner", "/planner"],
                 ].map(([text, link]) => {
                   return (
                     <li className="block mx-4 my-0 mb-2 leading-5 text-left">
