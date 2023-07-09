@@ -11,6 +11,8 @@ interface Window {
       init: (args: { clientId: string; scope: string; redirectURI: string; usePopup: boolean }) => void;
     };
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceState: (state: any) => void;
   isUndoing?: boolean;
   isPressingShiftCmdCtrl?: boolean;
   lftAndroidVersion?: number;

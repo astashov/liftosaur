@@ -160,6 +160,10 @@ export function AppView(props: IProps): JSX.Element | null {
             .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
         ]);
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.replaceState = (newState: any) => {
+        dispatch({ type: "ReplaceState", state: newState });
+      };
     }
   }, []);
 

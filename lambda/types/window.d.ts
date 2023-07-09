@@ -3,6 +3,8 @@ interface Window {
   _webpushrScriptReady: () => void;
   webpushr: (name: "fetch_id", fn: (sid: number) => void) => void;
   handleGapiLoad: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceState: (state: any) => void;
   isUndoing?: boolean;
   lftAndroidAppVersion?: string;
   lftIosAppVersion?: string;
