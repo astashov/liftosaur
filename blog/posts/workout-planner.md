@@ -5,6 +5,7 @@ og_title: Workout planner inspired by the software development tools
 og_description: "Thoughts about building a weightlifting workout planner, which is inspired by the ideas from the software development tools"
 og_image: /images/workout-planner-hero.png
 tags: ["tech", "weightlifting"]
+reddit: https://www.reddit.com/r/liftosaur/comments/14v27sq/workout_planner_inspired_by_software_development/
 ---
 
 ![Workout Planner Hero image](../../images/workout-planner-hero.png)
