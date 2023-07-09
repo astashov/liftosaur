@@ -1,12 +1,12 @@
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 
-const tableNames = {
+const bucketNames = {
   dev: {
-    debug: "lftDebugDev",
+    debug: "liftosaurdebugsdev",
   },
   prod: {
-    debug: "lftDebug",
+    debug: "liftosaurdebugs",
   },
 } as const;
 
@@ -20,7 +20,11 @@ export class DebugDao {
 
   public async store(id: string, state: string): Promise<void> {
     const env = Utils.getEnv();
-    const item: IDebugDao = { id, state };
-    await this.di.dynamo.put({ tableName: tableNames[env].debug, item });
+    await this.di.s3.putObject({
+      bucket: bucketNames[env].debug,
+      key: `debuginfo/${id}`,
+      body: state,
+      opts: { contentType: "text/plain" },
+    });
   }
 }
