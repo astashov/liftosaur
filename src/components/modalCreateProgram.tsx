@@ -21,6 +21,8 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
         ref={textInput}
         type="text"
         placeholder="My Awesome Routine"
+        required={true}
+        requiredMessage="Please enter a name for your program"
       />
       <p className="mt-4 text-center">
         <Button
@@ -37,7 +39,11 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           type="button"
           kind="orange"
           className="ls-modal-create-program"
-          onClick={() => props.onSelect(textInput.current.value)}
+          onClick={() => {
+            if (textInput.current.value) {
+              props.onSelect(textInput.current.value);
+            }
+          }}
         >
           Create
         </Button>

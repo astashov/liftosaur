@@ -313,4 +313,16 @@ export const migrations = {
     storage.stats.percentage = storage.stats.percentage || {};
     return storage;
   },
+  "20230709112106_fix_empty_program_ids": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      if (program.id === "") {
+        program.id = UidFactory.generateUid(8);
+      }
+    }
+    if (storage.programs.length > 0 && storage.currentProgramId === "") {
+      storage.currentProgramId = storage.programs[0].id;
+    }
+    return storage;
+  },
 };

@@ -124,7 +124,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           name="Name:"
           value={props.editProgram.name}
           onChange={(newValue) => {
-            if (newValue != null) {
+            if (newValue) {
               EditProgram.setName(props.dispatch, props.editProgram, newValue);
             }
           }}
