@@ -16,6 +16,20 @@ export type IScreenMuscle =
   | "calves"
   | "forearms";
 
+export const screenMuscles: IScreenMuscle[] = [
+  "shoulders",
+  "triceps",
+  "back",
+  "abs",
+  "glutes",
+  "hamstrings",
+  "quadriceps",
+  "chest",
+  "biceps",
+  "calves",
+  "forearms",
+];
+
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 
 export interface IScreenMusclePoints {

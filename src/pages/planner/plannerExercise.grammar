@@ -1,0 +1,26 @@
+@top Program { expression* }
+
+expression { ExerciseExpression | EmptyExpression }
+
+ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection)* linebreakOrEof }
+EmptyExpression { linebreak }
+
+ExerciseName { Word+ }
+ExerciseSection { ExerciseSet ("," ExerciseSet)* }
+ExerciseSet { (Rpe | Timer | SetPart)+ }
+
+@skip { space | LineComment }
+
+@tokens {
+  @precedence { Rpe, Timer, SetPart }
+  @precedence { LineComment, SectionSeparator }
+  LineComment { "//" ![\n]* linebreak }
+  space { $[ \t]+ }
+  SectionSeparator { "/" }
+  linebreakOrEof { linebreak | @eof }
+  linebreak { "\n" | "\r" | "\r\n" }
+  Word { @asciiLetter+ }
+  Rpe { "@" @digit }
+  Timer { @digit+ "s" }
+  SetPart { $[0-9\-x]+ }
+}

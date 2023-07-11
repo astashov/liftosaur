@@ -16,6 +16,7 @@ import {
   IUnit,
 } from "../types";
 import { IScreenMuscle, Muscle } from "./muscle";
+import { StringUtils } from "../utils/string";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -1240,6 +1241,11 @@ export const exercises: Record<IExerciseId, IExercise> = {
     types: ["lower", "legs"],
   },
 };
+
+const nameToIdMapping = ObjectUtils.keys(exercises).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
+  acc[exercises[key].name] = exercises[key].id;
+  return acc;
+}, {});
 
 export const metadata: Record<IExerciseId, IMetaExercises> = {
   abWheel: {
@@ -2938,13 +2944,15 @@ function getMetadata(id: IExerciseId): IMetaExercises {
   return metadata[id] || {};
 }
 
+export type IExerciseKind = "core" | "pull" | "push" | "legs" | "upper" | "lower";
+
 export type IExercise = {
   id: IExerciseId;
   name: string;
   defaultWarmup?: number;
   equipment?: IEquipment;
   defaultEquipment?: IEquipment;
-  types: ("core" | "pull" | "push" | "legs" | "upper" | "lower")[];
+  types: IExerciseKind[];
   onerm?: number;
 };
 
@@ -3061,8 +3069,16 @@ export namespace Exercise {
     return !!exercise;
   }
 
+  export function search(query: string, customExercises: IAllCustomExercises): IExercise[] {
+    return ObjectUtils.values(exercises).filter((exercise) => StringUtils.fuzzySearch(query, exercise.name));
+  }
+
   export function findById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
     return maybeGetExercise(id, customExercises);
+  }
+
+  export function findIdByName(name: string): IExerciseId | undefined {
+    return nameToIdMapping[name];
   }
 
   export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
@@ -3078,6 +3094,17 @@ export namespace Exercise {
   export function getById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
     const exercise = getExercise(id, customExercises);
     return { ...exercise, equipment: exercise.defaultEquipment };
+  }
+
+  export function findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
+    const exerciseId = findIdByName(name);
+    if (exerciseId != null) {
+      const exercise = findById(exerciseId, customExercises);
+      if (exercise != null) {
+        return { ...exercise, equipment: exercise.defaultEquipment };
+      }
+    }
+    return undefined;
   }
 
   export function getByIds(ids: IExerciseId[], customExercises: IAllCustomExercises): IExercise[] {
@@ -3144,6 +3171,18 @@ export namespace Exercise {
     }
   }
 
+  export function targetMusclesGroups(type: IExerciseType, customExercises: IAllCustomExercises): IScreenMuscle[] {
+    const muscles = targetMuscles(type, customExercises);
+    const allMuscleGroups = new Set<IScreenMuscle>();
+    for (const muscle of muscles) {
+      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
+      for (const muscleGroup of muscleGroups) {
+        allMuscleGroups.add(muscleGroup);
+      }
+    }
+    return Array.from(allMuscleGroups);
+  }
+
   export function synergistMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
     const customExercise = customExercises[type.id];
     if (customExercise) {
@@ -3152,6 +3191,18 @@ export namespace Exercise {
       const meta = getMetadata(type.id);
       return meta?.synergistMuscles != null ? meta.synergistMuscles : [];
     }
+  }
+
+  export function synergistMusclesGroups(type: IExerciseType, customExercises: IAllCustomExercises): IScreenMuscle[] {
+    const muscles = synergistMuscles(type, customExercises);
+    const allMuscleGroups = new Set<IScreenMuscle>();
+    for (const muscle of muscles) {
+      const muscleGroups = Muscle.getScreenMusclesFromMuscle(muscle);
+      for (const muscleGroup of muscleGroups) {
+        allMuscleGroups.add(muscleGroup);
+      }
+    }
+    return Array.from(allMuscleGroups);
   }
 
   export function toKey(type: IExerciseType): string {

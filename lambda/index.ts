@@ -53,6 +53,8 @@ import { FreeformGenerator } from "./utils/freeformGenerator";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
+import { renderPlannerHtml } from "./planner";
+import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1193,7 +1195,23 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   payload,
   match: { params },
 }) => {
-  return _getBuilderHandler(payload.di, params.data);
+  const { di } = payload;
+  let initialProgram: IExportedPlannerProgram | undefined;
+  const data = params.data;
+  if (data) {
+    try {
+      const initialProgramJson = await NodeEncoder.decode(data);
+      initialProgram = JSON.parse(initialProgramJson);
+    } catch (e) {
+      di.log.log(e);
+    }
+  }
+
+  return {
+    statusCode: 200,
+    body: renderPlannerHtml(fetch, initialProgram),
+    headers: { "content-type": "text/html" },
+  };
 };
 
 async function _getBuilderHandler(di: IDI, data: string | undefined): Promise<APIGatewayProxyResult> {
