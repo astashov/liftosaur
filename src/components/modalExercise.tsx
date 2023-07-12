@@ -84,10 +84,13 @@ const ExercisesList = forwardRef(
     const { textInput, setFilter, filter } = props;
 
     let exercises = Exercise.all({});
+    let customExercises = props.settings.exercises;
     if (filter) {
       exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter, e.name.toLowerCase()));
+      customExercises = ObjectUtils.filter(customExercises, (e, v) =>
+        v ? StringUtils.fuzzySearch(filter, v.name.toLowerCase()) : true
+      );
     }
-    const customExercises = props.settings.exercises;
 
     return (
       <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
