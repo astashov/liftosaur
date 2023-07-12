@@ -6,7 +6,6 @@ import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";
-import { hasDifferentUnitStateVariables } from "./programExercise";
 
 export interface IWhatsNew {
   title: JSX.Element;
