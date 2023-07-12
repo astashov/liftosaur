@@ -185,7 +185,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
           );
         })}
         {!hasAvailableStats && exercises.length === 0 && graphs.length === 0 && (
-          <div className="text-gray-500 italic mt-3 text-base">
+          <div className="mt-3 text-base italic text-gray-500">
             You haven't tracked any workouts or measurements yet.
           </div>
         )}
@@ -199,7 +199,7 @@ function ExercisePreview(props: { exercise: IExerciseId; settings: ISettings }):
   return (
     <Fragment>
       <div className="w-12 pr-4" style={{ minHeight: "2rem" }}>
-        <ExerciseImage className="w-full" exerciseType={e} size="small" />
+        <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
       </div>
       <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
     </Fragment>

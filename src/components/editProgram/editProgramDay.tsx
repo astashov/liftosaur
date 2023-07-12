@@ -100,7 +100,12 @@ export function EditProgramDay(props: IProps): JSX.Element {
                 <MenuItem
                   prefix={
                     <div style={{ marginTop: "-1px" }}>
-                      <ExerciseImage className="w-6 mr-3" exerciseType={exercise.exerciseType} size="small" />
+                      <ExerciseImage
+                        settings={props.settings}
+                        className="w-6 mr-3"
+                        exerciseType={exercise.exerciseType}
+                        size="small"
+                      />
                     </div>
                   }
                   handleTouchStart={handleTouchStart}
@@ -143,7 +148,12 @@ export function EditProgramDay(props: IProps): JSX.Element {
             <MenuItem
               prefix={
                 <div style={{ marginTop: "-1px" }}>
-                  <ExerciseImage className="w-6 mr-3" exerciseType={exercise.exerciseType} size="small" />
+                  <ExerciseImage
+                    settings={props.settings}
+                    className="w-6 mr-3"
+                    exerciseType={exercise.exerciseType}
+                    size="small"
+                  />
                 </div>
               }
               name={exercise.name}

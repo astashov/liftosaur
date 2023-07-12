@@ -1,13 +1,14 @@
 import { JSX, h, ComponentChildren, Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "./icons/iconSpinner";
-import { IExerciseType } from "../types";
+import { IExerciseType, ISettings } from "../types";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 
 interface IProps {
   exerciseType: IExerciseType;
   size: "large" | "small";
+  settings?: ISettings;
   className?: string;
 }
 
@@ -34,13 +35,13 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   if (isLoading || isError) {
     className += "invisible h-0";
   }
-  const src = ExerciseImageUtils.url(exerciseType, size);
-  const doesExist = ExerciseImageUtils.exists(exerciseType, size);
+  const src = ExerciseImageUtils.url(exerciseType, size, props.settings);
+  const doesExist = ExerciseImageUtils.exists(exerciseType, size, props.settings);
 
   if (size === "small") {
     return (
       <>
-        {!isError && doesExist && <img ref={imgRef} className={className} src={src} />}
+        {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} />}
         {isError ||
           (!doesExist && (
             <div className={`h-0 inline-block ${props.className}`}>
@@ -57,7 +58,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   } else {
     return doesExist ? (
       <>
-        <img ref={imgRef} className={className} src={src} />
+        <img ref={imgRef} data-cy="exercise-image-large" className={className} src={src} />
         <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
       </>
     ) : (

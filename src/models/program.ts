@@ -25,6 +25,7 @@ import {
   IEquipment,
   IProgramExerciseWarmupSet,
   IUnit,
+  IEquipmentData,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -41,6 +42,7 @@ declare let __HOST__: string;
 export interface IExportedProgram {
   program: IProgram;
   customExercises: Partial<Record<string, ICustomExercise>>;
+  customEquipment?: Partial<Record<string, IEquipmentData>>;
   version: string;
   settings: IProgramContentSettings;
 }
@@ -633,9 +635,14 @@ export namespace Program {
       return memo;
     }, []);
 
+    const customEquipment = ObjectUtils.pick(
+      settings.equipment,
+      Object.keys(settings.equipment).filter((e) => settings.equipment[e]?.name)
+    );
     const customExercises = ObjectUtils.pick(settings.exercises, customExerciseIds);
     return {
       customExercises,
+      customEquipment,
       program,
       version: version || getLatestMigrationVersion(),
       settings: ObjectUtils.pick(settings, ["units", "timers"]),

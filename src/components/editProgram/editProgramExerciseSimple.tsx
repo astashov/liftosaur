@@ -46,8 +46,9 @@ function Edit(props: IProps): JSX.Element {
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id
-  ).map((e) => [e, equipmentName(e)]);
+    programExercise.exerciseType.id,
+    props.settings
+  ).map((e) => [e, equipmentName(e, props.settings)]);
 
   const [trigger, setTrigger] = useState<boolean>(false);
 
@@ -80,6 +81,7 @@ function Edit(props: IProps): JSX.Element {
         <div className="mx-8">
           <ExerciseImage
             key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
+            settings={props.settings}
             exerciseType={programExercise.exerciseType}
             size="large"
           />

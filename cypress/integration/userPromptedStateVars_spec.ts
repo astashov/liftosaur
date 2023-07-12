@@ -38,8 +38,6 @@ describe("User Prompted State Vars", () => {
     g("menu-item-squat").click();
 
     g("footer-workout").click();
-    g("menu-item-a-program").click();
-
     g("start-workout").click();
 
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });

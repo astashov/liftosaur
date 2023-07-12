@@ -113,13 +113,13 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
           </button>
         </div>
         <div style={{ width: "40px" }} className="mr-1">
-          <ExerciseImage className="w-full" exerciseType={exercise} size="small" />
+          <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
         </div>
         <div className="flex-1 ml-auto" style={{ minWidth: "6rem" }}>
           <div className="flex items-center">
             <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
           </div>
-          {equipment && <div className="text-sm text-grayv2-600">{equipmentName(equipment)}</div>}
+          {equipment && <div className="text-sm text-grayv2-600">{equipmentName(equipment, props.settings)}</div>}
         </div>
         <section className="flex flex-wrap mt-1 ml-1">
           <ExerciseSets

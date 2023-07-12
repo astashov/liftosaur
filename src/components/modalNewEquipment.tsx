@@ -2,17 +2,15 @@ import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IUnit } from "../types";
 import { GroupHeader } from "./groupHeader";
-import { SendMessage } from "../utils/sendMessage";
+import { Input } from "./input";
 
 interface IProps {
-  units: IUnit;
-  onInput: (value?: number) => void;
+  onInput: (value?: string) => void;
   isHidden: boolean;
 }
 
-export function ModalPlates(props: IProps): JSX.Element {
+export function ModalNewEquipment(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
     <Modal
@@ -21,15 +19,15 @@ export function ModalPlates(props: IProps): JSX.Element {
       shouldShowClose={true}
       onClose={() => props.onInput(undefined)}
     >
-      <GroupHeader size="large" name="Enter new plate weight" />
+      <GroupHeader size="large" name="Enter new equipment name" />
       <form onSubmit={(e) => e.preventDefault()}>
-        <input
+        <Input
+          label="Equipment name"
           ref={textInput}
-          data-cy="plate-input"
-          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type={SendMessage.isIos() ? "number" : "tel"}
-          min="0"
-          placeholder={`Plate weight in ${props.units}`}
+          required={true}
+          requiredMessage="Please enter a name for the equipment"
+          type="text"
+          placeholder="Tummy Tormentor 3000"
         />
         <div className="mt-4 text-right">
           <Button type="button" kind="grayv2" className="mr-3" onClick={() => props.onInput(undefined)}>
@@ -38,12 +36,12 @@ export function ModalPlates(props: IProps): JSX.Element {
           <Button
             kind="orange"
             type="submit"
-            data-cy="add-plate"
-            className="ls-add-plate"
+            className="ls-add-equipment"
             onClick={() => {
               const value = textInput.current?.value;
-              const numValue = value != null ? parseFloat(value) : undefined;
-              props.onInput(numValue != null && !isNaN(numValue) ? numValue : undefined);
+              if (value) {
+                props.onInput(value);
+              }
             }}
           >
             Add

@@ -269,13 +269,7 @@ export const TBodyPart = t.keyof(
 );
 export type IBodyPart = t.TypeOf<typeof TBodyPart>;
 
-export const TEquipment = t.keyof(
-  equipments.reduce<Record<IArrayElement<typeof equipments>, null>>((memo, barKey) => {
-    memo[barKey] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof equipments>, null>),
-  "TEquipment"
-);
+export const TEquipment = t.string;
 export type IEquipment = t.TypeOf<typeof TEquipment>;
 
 export const TExerciseId = t.string;
@@ -745,17 +739,24 @@ export const TGraph = t.union([
 ]);
 export type IGraph = t.TypeOf<typeof TGraph>;
 
-export const TEquipmentData = t.type(
-  {
-    bar: t.type({
-      lb: TWeight,
-      kg: TWeight,
+export const TEquipmentData = t.intersection(
+  [
+    t.interface({
+      bar: t.type({
+        lb: TWeight,
+        kg: TWeight,
+      }),
+      multiplier: t.number,
+      plates: t.array(t.type({ weight: TWeight, num: t.number })),
+      fixed: t.array(TWeight),
+      isFixed: t.boolean,
     }),
-    multiplier: t.number,
-    plates: t.array(t.type({ weight: TWeight, num: t.number })),
-    fixed: t.array(TWeight),
-    isFixed: t.boolean,
-  },
+    t.partial({
+      name: t.string,
+      similarTo: t.string,
+      isDeleted: t.boolean,
+    }),
+  ],
   "TEquipmentData"
 );
 export type IEquipmentData = t.TypeOf<typeof TEquipmentData>;

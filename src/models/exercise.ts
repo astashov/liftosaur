@@ -2895,7 +2895,11 @@ export function equipmentToBarKey(equipment?: IEquipment): IBarKey | undefined {
   }
 }
 
-export function equipmentName(equipment?: IEquipment): string {
+export function equipmentName(equipment: IEquipment | undefined, settings?: ISettings): string {
+  const equipmentData = equipment && settings ? settings.equipment[equipment] : undefined;
+  if (equipmentData?.name) {
+    return equipmentData.name;
+  }
   switch (equipment) {
     case "barbell":
       return "Barbell";
@@ -2922,6 +2926,12 @@ export function equipmentName(equipment?: IEquipment): string {
     default:
       return "Bodyweight";
   }
+}
+
+function getCustomEquipment(settings: ISettings): string[] {
+  return Object.keys(settings.equipment).filter(
+    (e) => settings.equipment[e]?.name && !settings.equipment[e]?.isDeleted
+  );
 }
 
 function getMetadata(id: IExerciseId): IMetaExercises {
@@ -3109,8 +3119,8 @@ export namespace Exercise {
     }
   }
 
-  export function sortedEquipments(id: IExerciseId): IEquipment[] {
-    const sorted = [...equipments];
+  export function sortedEquipments(id: IExerciseId, settings?: ISettings): IEquipment[] {
+    const sorted = [...equipments, ...(settings ? getCustomEquipment(settings) : [])];
     sorted.sort((a, b) => {
       const eqs = getMetadata(id).sortedEquipment || [];
       if (eqs.indexOf(a) !== -1 && eqs.indexOf(b) === -1) {

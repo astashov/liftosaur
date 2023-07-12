@@ -23,5 +23,14 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "server/**/*", "lambda/**/*", "liftosaur-cdk/**/*", "test/**/*", "devserver.ts"]
+  "include": [
+    "src/**/*",
+    "server/**/*",
+    "lambda/**/*",
+    "liftosaur-cdk/**/*",
+    "test/**/*",
+    "tests/**/*",
+    "devserver.ts",
+    "playwright.config.ts"
+  ]
 }

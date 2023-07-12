@@ -18,6 +18,8 @@ import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { useCopyPaste } from "./utils/programCopypaste";
+import { ProgramContentModalEquipment } from "./components/programContentModalEquipment";
+import { lb } from "lens-shmens";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -32,6 +34,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     ...defaultSettings,
     ...programContentSettings,
     exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
+    equipment: { ...defaultSettings.equipment, ...(props.exportedProgram?.customEquipment || {}) },
   };
   const initialProgram = props.exportedProgram?.program || {
     id: UidFactory.generateUid(8),
@@ -65,6 +68,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         const exportedProgram: IExportedProgram = {
           program: newState.current.program,
           customExercises: newState.settings.exercises,
+          customEquipment: newState.settings.equipment,
           version: getLatestMigrationVersion(),
           settings: ObjectUtils.pick(newState.settings, ["timers", "units"]),
         };
@@ -87,6 +91,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [programUrl, setProgramUrl] = useState<string | undefined>(undefined);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
 
   useEffect(() => {
     if (props.isMobile) {
@@ -206,10 +211,21 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         />
       )}
       <ProgramContentModalSettings
+        onShowEquipment={() => {
+          setShowSettingsModal(false);
+          setShowEquipmentModal(true);
+        }}
         isHidden={!showSettingsModal}
         settings={state.settings}
         dispatch={dispatch}
         onClose={() => setShowSettingsModal(false)}
+      />
+      <ProgramContentModalEquipment
+        lensPrefix={lb<IProgramEditorState>().p("settings").get()}
+        isHidden={!showEquipmentModal}
+        settings={state.settings}
+        dispatch={dispatch}
+        onClose={() => setShowEquipmentModal(false)}
       />
     </div>
   );

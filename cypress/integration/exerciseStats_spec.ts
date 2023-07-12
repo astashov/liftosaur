@@ -48,7 +48,7 @@ describe("Exercise Stats", () => {
     g("exercise-stats-image").should("be.visible");
     g("max-weight-value").should("have.text", "65 lb");
     g("one-rm-value").should("have.text", "75 lb (5 x 65 lb)");
-    g("history-entry-sets-completed").should("have.text", "5x3");
+    g("history-entry-sets-completed").should("have.text", "3x5");
     g("graph-data").should("not.be.visible");
 
     g("navbar-back").click();

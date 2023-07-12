@@ -603,7 +603,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram);
       if (result.success) {
-        const { program, customExercises } = result.data;
+        const { program, customExercises, customEquipment } = result.data;
         if (!confirm(`Do you want to import program ${program.name}?`)) {
           return;
         }
@@ -619,6 +619,11 @@ export namespace Thunk {
               .p("settings")
               .p("exercises")
               .recordModify((e) => ({ ...e, ...customExercises })),
+            lb<IState>()
+              .p("storage")
+              .p("settings")
+              .p("equipment")
+              .recordModify((e) => ({ ...e, ...customEquipment })),
             lb<IState>()
               .p("storage")
               .p("programs")

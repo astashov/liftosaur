@@ -58,13 +58,30 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
           <p>
             For <strong>T1 exercises</strong>, we use main lifts:
             <strong>
-              <ExerciseImage className="w-6" exerciseType={{ id: "squat", equipment: "barbell" }} size="small" /> Squat,{" "}
-              <ExerciseImage className="w-6" exerciseType={{ id: "deadlift", equipment: "barbell" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "squat", equipment: "barbell" }}
+                size="small"
+              />{" "}
+              Squat,{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "deadlift", equipment: "barbell" }}
+                size="small"
+              />{" "}
               Deadlift,{" "}
-              <ExerciseImage className="w-6" exerciseType={{ id: "benchPress", equipment: "barbell" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "benchPress", equipment: "barbell" }}
+                size="small"
+              />{" "}
               Bench Press,{" "}
               <ExerciseImage
                 className="w-6"
+                settings={props.settings}
                 exerciseType={{ id: "overheadPress", equipment: "barbell" }}
                 size="small"
               />{" "}
@@ -99,12 +116,29 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
           <p>
             For <strong>T2 exercises</strong>, we also do the same main lifts as in T1:
             <strong>
-              <ExerciseImage className="w-6" exerciseType={{ id: "squat", equipment: "barbell" }} size="small" /> Squat,{" "}
-              <ExerciseImage className="w-6" exerciseType={{ id: "deadlift", equipment: "barbell" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "squat", equipment: "barbell" }}
+                size="small"
+              />{" "}
+              Squat,{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "deadlift", equipment: "barbell" }}
+                size="small"
+              />{" "}
               Deadlift,{" "}
-              <ExerciseImage className="w-6" exerciseType={{ id: "benchPress", equipment: "barbell" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "benchPress", equipment: "barbell" }}
+                size="small"
+              />{" "}
               Bench Press,{" "}
               <ExerciseImage
+                settings={props.settings}
                 className="w-6"
                 exerciseType={{ id: "overheadPress", equipment: "barbell" }}
                 size="small"
@@ -136,9 +170,19 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
           <p>
             For the <strong>T3 exercises</strong>, we use
             <strong>
-              <ExerciseImage className="w-6" exerciseType={{ id: "latPulldown", equipment: "cable" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "latPulldown", equipment: "cable" }}
+                size="small"
+              />{" "}
               Lat Pulldown, and{" "}
-              <ExerciseImage className="w-6" exerciseType={{ id: "bentOverRow", equipment: "dumbbell" }} size="small" />{" "}
+              <ExerciseImage
+                settings={props.settings}
+                className="w-6"
+                exerciseType={{ id: "bentOverRow", equipment: "dumbbell" }}
+                size="small"
+              />{" "}
               Dumbbell Bent Over Row
             </strong>
           </p>
