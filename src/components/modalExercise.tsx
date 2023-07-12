@@ -166,7 +166,7 @@ const ExercisesList = forwardRef(
             >
               <section className="flex items-center">
                 <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
-                  <ExerciseImage className="w-full" exerciseType={e} size="small" />
+                  <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
                 </div>
                 <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
               </section>
@@ -193,7 +193,10 @@ interface IEditCustomExerciseProps {
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const customExercises = props.settings.exercises;
-  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments("squat").map((e) => [e, equipmentName(e)]);
+  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments("squat", props.settings).map((e) => [
+    e,
+    equipmentName(e, props.settings),
+  ]);
   const [name, setName] = useState<string>(props.exercise?.name || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
   const [equipment, setEquipment] = useState<IEquipment>(props.exercise?.defaultEquipment || "barbell");

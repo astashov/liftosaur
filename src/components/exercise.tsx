@@ -198,7 +198,7 @@ const ExerciseContentView = memo(
               style={{ marginLeft: "-0.5rem" }}
               onClick={() => props.onExerciseInfoClick?.(exercise)}
             >
-              <ExerciseImage className="w-full" exerciseType={exercise} size="small" />
+              <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
             </button>
           </div>
           <div className="flex-1 min-w-0 ml-auto">
@@ -265,7 +265,9 @@ const ExerciseContentView = memo(
             </div>
             {equipment &&
               (programExercise ? (
-                <div className="text-sm text-grayv2-600">{equipmentName(equipment)}</div>
+                <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
+                  {equipmentName(equipment, props.settings)}
+                </div>
               ) : (
                 <div className="text-sm text-grayv2-600">
                   <select
@@ -284,10 +286,10 @@ const ExerciseContentView = memo(
                       }
                     }}
                   >
-                    {Exercise.sortedEquipments(props.entry.exercise.id).map((eq) => {
+                    {Exercise.sortedEquipments(props.entry.exercise.id, props.settings).map((eq) => {
                       return (
                         <option value={eq} selected={eq === props.entry.exercise.equipment}>
-                          {equipmentName(eq)}
+                          {equipmentName(eq, props.settings)}
                         </option>
                       );
                     })}

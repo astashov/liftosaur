@@ -129,6 +129,7 @@ export function MenuItemValue(
       <div
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         className="flex-1 py-2 pl-2 text-right text-bluev2"
+        style={{ minHeight: "2.5rem" }}
       >
         {keyValue && keyValue[1]}
       </div>

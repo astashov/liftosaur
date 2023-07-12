@@ -58,7 +58,12 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
         <div className="flex-1">
           <div className="flex items-center flex-1">
             <div className="mr-3">
-              <ExerciseImage className="w-8" exerciseType={programExercise.exerciseType} size="small" />
+              <ExerciseImage
+                settings={props.settings}
+                className="w-8"
+                exerciseType={programExercise.exerciseType}
+                size="small"
+              />
             </div>
             <div className="flex-1 mr-2">{programExercise!!.name}</div>
             <div className="flex self-start" style={{ marginRight: "-0.5rem" }}>

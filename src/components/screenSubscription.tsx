@@ -18,7 +18,6 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { InternalLink } from "../internalLink";
 import { ISubscription } from "../types";
 import { Thunk } from "../ducks/thunks";
-import { Input } from "./input";
 import { ModalCoupon } from "./modalCoupon";
 
 interface IProps {

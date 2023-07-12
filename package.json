@@ -40,6 +40,7 @@
     "@babel/preset-env": "^7.20.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@lezer/generator": "^1.2.3",
+    "@playwright/test": "^1.36.0",
     "@types/aws-lambda": "^8.10.72",
     "@types/cookie": "^0.3.3",
     "@types/deepmerge": "^2.2.0",

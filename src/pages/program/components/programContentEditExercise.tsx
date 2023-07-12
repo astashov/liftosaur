@@ -55,8 +55,9 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id
-  ).map((e) => [e, equipmentName(e)]);
+    programExercise.exerciseType.id,
+    props.settings
+  ).map((e) => [e, equipmentName(e, props.settings)]);
   const lbe = lb<IProgramEditorState>()
     .p("current")
     .p("editExercises")
@@ -66,7 +67,12 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
     <div className="relative p-2 bg-white border rounded-lg border-purplev2-400">
       <div className="flex">
         <div>
-          <ExerciseImage className="w-12 mr-3" exerciseType={programExercise.exerciseType} size="small" />
+          <ExerciseImage
+            settings={props.settings}
+            className="w-12 mr-3"
+            exerciseType={programExercise.exerciseType}
+            size="small"
+          />
         </div>
         <div className="flex-1">
           <div>

@@ -158,7 +158,7 @@ describe("Program", () => {
     );
     cy.get("[data-cy=history-entry-exercise]:contains('Deadlift') [data-cy=history-entry-sets-next]").should(
       "have.text",
-      "8x2"
+      "2x8"
     );
 
     g("start-workout").click();

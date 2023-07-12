@@ -6,11 +6,13 @@ import { IProgramEditorState } from "../models/types";
 import { ISettings, IUnit } from "../../../types";
 import { lb } from "lens-shmens";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
+import { LinkButton } from "../../../components/linkButton";
 
 interface IProgramContentModalSettingsProps {
   isHidden: boolean;
   dispatch: ILensDispatch<IProgramEditorState>;
   settings: ISettings;
+  onShowEquipment: () => void;
   onClose: () => void;
 }
 
@@ -63,6 +65,9 @@ export function ProgramContentModalSettings(props: IProgramContentModalSettingsP
           />
           <span className="ml-1 font-bold">sec</span>
         </label>
+      </div>
+      <div className="mb-2 text-center">
+        <LinkButton onClick={props.onShowEquipment}>Edit Equipment</LinkButton>
       </div>
     </Modal>
   );

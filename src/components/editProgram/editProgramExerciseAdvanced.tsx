@@ -102,8 +102,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id
-  ).map((e) => [e, equipmentName(e)]);
+    programExercise.exerciseType.id,
+    props.settings
+  ).map((e) => [e, equipmentName(e, props.settings)]);
 
   const cannotSave = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
   const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);
@@ -161,6 +162,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         />
       </div>
       <ExerciseImage
+        settings={props.settings}
         key={`${programExercise.exerciseType.id}_${programExercise.exerciseType.equipment}`}
         exerciseType={programExercise.exerciseType}
         size="large"

@@ -1,6 +1,6 @@
 import { g, s } from "../support/utils";
 
-describe("Basic Beginner Program", () => {
+describe("Program Preview", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -20,7 +20,7 @@ describe("Basic Beginner Program", () => {
     cy.contains("Muscles for day 'Workout A'");
     g("modal-close").click();
 
-    g("day-1").find(s("bent-over-row")).find(s("history-entry-sets-next")).filter(":eq(0)").should("have.text", "5x2");
+    g("day-1").find(s("bent-over-row")).find(s("history-entry-sets-next")).filter(":eq(0)").should("have.text", "2x5");
     g("day-1").find(s("bent-over-row")).find(s("history-entry-weight")).filter(":eq(0)").should("have.text", "65");
     g("day-1").find(s("bent-over-row")).find(s("finish-day-script")).should("not.be.visible");
     g("day-1").find(s("bent-over-row")).find(s("program-exercise-show-fx")).click();

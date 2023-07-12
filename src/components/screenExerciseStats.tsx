@@ -117,7 +117,12 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           />
         )}
         <div data-cy="exercise-stats-image">
-          <ExerciseImage key={Exercise.toKey(props.exercise)} exerciseType={props.exercise} size="large" />
+          <ExerciseImage
+            settings={props.settings}
+            key={Exercise.toKey(props.exercise)}
+            exerciseType={props.exercise}
+            size="large"
+          />
         </div>
         {history.length > 1 && (
           <div data-cy="exercise-stats-graph" className="relative">

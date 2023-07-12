@@ -42,6 +42,7 @@ export namespace ImportExporter {
           units,
         },
         customExercises: {},
+        customEquipment: {},
       };
     } else {
       exportedProgram = parsedMaybeProgram;
@@ -49,17 +50,20 @@ export namespace ImportExporter {
     const payload = Storage.getDefault();
     payload.settings = { ...payload.settings, ...exportedProgram.settings };
     payload.settings.exercises = { ...payload.settings.exercises, ...exportedProgram.customExercises };
+    payload.settings.equipment = { ...payload.settings.equipment, ...exportedProgram.customEquipment };
     payload.programs.push(exportedProgram.program);
     payload.version = exportedProgram.version;
     const result = await Storage.get(client, payload, false);
     if (result.success) {
       const storage = result.data;
       const customExercises = storage.settings.exercises;
+      const customEquipment = storage.settings.equipment;
       const program = storage.programs.filter((p) => p.id === exportedProgram.program.id)[0];
       return {
         success: true,
         data: {
           customExercises,
+          customEquipment,
           program,
           version: getLatestMigrationVersion(),
           settings: ObjectUtils.pick(payload.settings, ["timers", "units"]),

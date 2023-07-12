@@ -200,7 +200,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           {exercises
             .filter((e) => ExerciseImageUtils.exists(e, "small"))
             .map((e) => (
-              <ExerciseImage exerciseType={e} size="small" className="w-6 mr-1" />
+              <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
             ))}
         </div>
         <div className="text-xs">

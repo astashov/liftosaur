@@ -4,7 +4,7 @@ import { ISettings } from "../types";
 import { ILoading, IState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { ILensRecordingPayload, lb } from "lens-shmens";
-import { ILensDispatchSimple } from "../utils/useLensReducer";
+import { ILensDispatch } from "../utils/useLensReducer";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
@@ -18,9 +18,12 @@ interface IProps {
   screenStack: IScreen[];
 }
 
-function dispatch(originalDispatch: IDispatch): ILensDispatchSimple<IState> {
-  return (lensRecording: ILensRecordingPayload<IState>) => {
-    originalDispatch({ type: "UpdateState", lensRecording: [lensRecording] });
+function dispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
+  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>) => {
+    originalDispatch({
+      type: "UpdateState",
+      lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
+    });
   };
 }
 

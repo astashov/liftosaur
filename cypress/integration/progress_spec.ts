@@ -107,7 +107,7 @@ describe("Progress", () => {
     cy.get("@history-entry").find("[data-cy=history-entry-weight]").eq(2).should("have.text", "200");
     cy.get("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-sets-completed]").should(
       "have.text",
-      "5x3"
+      "3x5"
     );
     cy.get("[data-cy=history-entry-exercise]:contains('Squat') [data-cy=history-entry-weight]").should(
       "have.text",

@@ -83,14 +83,14 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
           <div className="items-start block sm:flex sm:items-center">
             <div className="flex pt-2" style={{ minWidth: "6rem", maxWidth: "16rem" }}>
               <div style={{ width: "40px" }} className="box-content px-2 mr-1">
-                <ExerciseImage className="w-full" exerciseType={exerciseType} size="small" />
+                <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
               </div>
               <div className="flex-1 ml-auto">
                 <div className="flex items-center">
                   <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
                 </div>
                 {exercise.equipment && (
-                  <div className="text-sm text-grayv2-600">{equipmentName(exercise.equipment)}</div>
+                  <div className="text-sm text-grayv2-600">{equipmentName(exercise.equipment, props.settings)}</div>
                 )}
               </div>
             </div>

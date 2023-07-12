@@ -1,5 +1,4 @@
-import { IExerciseType } from "../types";
-import { IState } from "./state";
+import { IExerciseType, ISettings } from "../types";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -627,31 +626,24 @@ const availableLargeImages = new Set([
 ]);
 
 export namespace ExerciseImageUtils {
-  export function id(type: IExerciseType): string {
-    return `${type.id.toLowerCase()}_${(type.equipment || "bodyweight").toLowerCase()}`;
+  export function id(type: IExerciseType, settings?: ISettings): string {
+    const equipmentData = settings?.equipment[type.equipment || "bodyweight"];
+    const equipment =
+      equipmentData && equipmentData.similarTo ? equipmentData.similarTo : type.equipment || "bodyweight";
+    return `${type.id.toLowerCase()}_${(equipment || "bodyweight").toLowerCase()}`;
   }
 
-  export function exists(type: IExerciseType, size: "small" | "large"): boolean {
-    // Ugly ugly hack...
-    const isDrSwoleUlLowVolumeProgram =
-      typeof window !== "undefined" &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((window as any).state as IState)?.storage?.currentProgramId === "drswoleullowvolume";
-    if (
-      isDrSwoleUlLowVolumeProgram &&
-      ((type.id === "bicepCurl" && type.equipment === "cable") ||
-        (type.id === "lateralRaise" && type.equipment === "cable"))
-    ) {
-      return false;
-    }
-    return size === "small" ? availableSmallImages.has(id(type)) : availableLargeImages.has(id(type));
+  export function exists(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
+    return size === "small"
+      ? availableSmallImages.has(id(type, settings))
+      : availableLargeImages.has(id(type, settings));
   }
 
-  export function url(type: IExerciseType, size: "small" | "large"): string | undefined {
+  export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
     const src =
       size === "large"
-        ? `https://www.liftosaur.com/externalimages/exercises/full/large/${id(type)}_full_large.png`
-        : `https://www.liftosaur.com/externalimages/exercises/single/small/${id(type)}_single_small.png`;
+        ? `https://www.liftosaur.com/externalimages/exercises/full/large/${id(type, settings)}_full_large.png`
+        : `https://www.liftosaur.com/externalimages/exercises/single/small/${id(type, settings)}_single_small.png`;
     return src;
   }
 }
