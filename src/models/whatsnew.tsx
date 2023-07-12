@@ -6,6 +6,7 @@ import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";
+import { hasDifferentUnitStateVariables } from "./programExercise";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -474,6 +475,34 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>It was kinda confusing since widely used format is "sets x reps".</li>
         <li>So now it's "sets x reps"</li>
+      </ul>
+    ),
+  },
+  "20230712": {
+    title: <span>Add Custom Equipment</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can create your own <strong>custom equipment</strong> (in Settings -&gt; Available Equipment).
+        </li>
+        <li>
+          It could be useful if you have multiple Cable machines with different plate weights for different exercises,
+          or you want to create some custom equipment like "Safety Squat Bar", where the bar weights more than regular
+          olympic bar.
+        </li>
+        <li>
+          Custom Equipment has all the same properties as built-in equipment (fixed/non-fixed, plates configuration),
+          but also additionally you can specify the name, and "Similar To" field.
+        </li>
+        <li>
+          "Similar To" for now only used for the exercise images, so if you create new equipment "Cable 2", with
+          different plates, you can set "Similar To" to "Cable", and it'll use cable exercise image.
+        </li>
+        <li>
+          You now also can edit equipment in the Web Editor's Settings modal. You can create new equipment there (e.g.
+          Safety Squat Bar), and assign to your exercises there. Custom equipment is properly exported into a link when
+          you create a link of a program to share.
+        </li>
       </ul>
     ),
   },
