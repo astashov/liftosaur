@@ -47,7 +47,7 @@ test("custom equipment", async ({ page }) => {
   await page.getByTestId("edit-exercise").click();
 
   await page.getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-boom").click();
+  await page.getByTestId("menu-item-equipment").getByRole("button", { name: "Boom" }).click();
   await page.getByRole("button", { name: "Save" }).click();
 
   await expect(page.getByTestId("navbar")).toHaveText("Edit Program");
@@ -82,4 +82,9 @@ test("custom equipment", async ({ page }) => {
     "src",
     /bicepcurl_cable_single_small/
   );
+
+  await page.getByTestId("footer-program").click();
+  await page.getByTestId("edit-exercise").click();
+  await page.getByTestId("menu-item-value-equipment").click();
+  await expect(page.getByTestId("menu-item-equipment").getByRole("button", { name: "Boom" })).toHaveCount(0);
 });

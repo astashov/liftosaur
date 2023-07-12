@@ -15,7 +15,7 @@ import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { equipmentName } from "../models/exercise";
 import { ModalNewEquipment } from "./modalNewEquipment";
-import { StringUtils } from "../utils/string";
+import { UidFactory } from "../utils/generator";
 
 interface IProps<T> {
   dispatch: ILensDispatch<T>;
@@ -68,7 +68,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
             const lensRecording = props.lensPrefix
               .then(lb<ISettings>().p("equipment").get())
               .recordModify((oldEquipment) => {
-                const id = StringUtils.dashcase(name);
+                const id = `equipment-${UidFactory.generateUid(8)}`;
                 return {
                   ...oldEquipment,
                   [id]: {

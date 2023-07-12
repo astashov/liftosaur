@@ -15,6 +15,7 @@
 /lambda/scripts
 /template.yaml
 /playwright-report
+/test-results
 
 # CDK asset staging directory
 .cdk.staging
