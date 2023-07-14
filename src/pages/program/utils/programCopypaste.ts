@@ -2,11 +2,17 @@ import { lb } from "lens-shmens";
 import { useEffect } from "preact/hooks";
 import { IProgramEditorState, IProgramEditorUiSelected } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IProgramExercise } from "../../../types";
+import { ICustomExercise, IEquipmentData, IProgramExercise } from "../../../types";
 import { Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 
-type ICopyPaste = { app: "program"; type: "exercise"; exercise: IProgramExercise };
+type ICopyPaste = {
+  app: "program";
+  type: "exercise";
+  exercise: IProgramExercise;
+  customExercise?: ICustomExercise;
+  customEquipment?: { id: string; data: IEquipmentData };
+};
 
 export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch<IProgramEditorState>): void {
   useEffect(() => {
@@ -24,7 +30,19 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
                   programExercise,
                   program.exercises
                 );
-                copypaste.push({ app: "program", type: "exercise", exercise: resolvedProgramExercise });
+                const customExercise: ICustomExercise | undefined =
+                  state.settings.exercises[programExercise.exerciseType.id];
+                const exerciseEquipment = programExercise.exerciseType.equipment;
+                const equipment = exerciseEquipment ? state.settings.equipment[exerciseEquipment] : undefined;
+                const customEquipment = equipment?.name ? { id: exerciseEquipment!, data: equipment! } : undefined;
+
+                copypaste.push({
+                  app: "program",
+                  type: "exercise",
+                  exercise: resolvedProgramExercise,
+                  customExercise,
+                  customEquipment,
+                });
               }
             }
             navigator.clipboard.writeText(JSON.stringify(copypaste));
@@ -58,6 +76,38 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
               const newSelection: IProgramEditorUiSelected[] = [];
               for (const copypaste of copypastes || []) {
                 const id = copypaste.exercise.id;
+
+                const customExercise = copypaste.customExercise;
+                if (customExercise) {
+                  const existingCustomExercise = state.settings.exercises[customExercise.id];
+                  if (!existingCustomExercise) {
+                    dispatch(
+                      lb<IProgramEditorState>()
+                        .p("settings")
+                        .p("exercises")
+                        .recordModify((exercises) => ({
+                          ...exercises,
+                          [customExercise.id]: customExercise,
+                        }))
+                    );
+                  }
+                }
+                const customEquipment = copypaste.customEquipment;
+                if (customEquipment) {
+                  const existingCustomEquipment = state.settings.equipment[customEquipment.id];
+                  if (!existingCustomEquipment) {
+                    dispatch(
+                      lb<IProgramEditorState>()
+                        .p("settings")
+                        .p("equipment")
+                        .recordModify((equipment) => ({
+                          ...equipment,
+                          [customEquipment.id]: customEquipment.data,
+                        }))
+                    );
+                  }
+                }
+
                 const existingExercise = Program.getProgramExercise(state.current.program, id);
                 if (!existingExercise) {
                   dispatch(
