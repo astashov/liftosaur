@@ -3140,7 +3140,7 @@ export namespace Exercise {
       return customExercise.meta.targetMuscles;
     } else {
       const meta = getMetadata(type.id);
-      return meta != null ? meta.targetMuscles : [];
+      return meta?.targetMuscles != null ? meta.targetMuscles : [];
     }
   }
 
@@ -3150,7 +3150,7 @@ export namespace Exercise {
       return customExercise.meta.synergistMuscles;
     } else {
       const meta = getMetadata(type.id);
-      return meta != null ? meta.synergistMuscles : [];
+      return meta?.synergistMuscles != null ? meta.synergistMuscles : [];
     }
   }
 
