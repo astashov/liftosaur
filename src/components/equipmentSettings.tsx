@@ -320,12 +320,23 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         type="number"
         value={equipmentData.multiplier.toString()}
         onChange={(newValue?: string) => {
-          let v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
+          const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
           if (v != null) {
-            v = Math.min(Math.max(1, v), 2);
-            const lensRecording = props.lensPrefix
-              .then(lb<ISettings>().p("equipment").pi(props.name).p("multiplier").get())
-              .record(v);
+            const value = Math.min(Math.max(1, v), 2);
+            const lensRecording = [
+              props.lensPrefix.then(lb<ISettings>().p("equipment").pi(props.name).p("multiplier").get()).record(value),
+              props.lensPrefix
+                .then(lb<ISettings>().p("equipment").pi(props.name).p("plates").get())
+                .recordModify((pl) => {
+                  const newPlates = pl.map((plate) => {
+                    return {
+                      ...plate,
+                      num: Math.floor(plate.num / value) * value,
+                    };
+                  });
+                  return newPlates;
+                }),
+            ];
             props.dispatch(lensRecording);
           }
         }}
@@ -345,7 +356,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
                 .recordModify((pl) => {
                   let newPlates;
                   if (v != null) {
-                    const num = Math.floor(v / 2) * 2;
+                    const num = Math.floor(v / equipmentData.multiplier) * equipmentData.multiplier;
                     newPlates = pl.map((p) => (Weight.eqeq(p.weight, plate.weight) ? { ...p, num } : p));
                   } else {
                     newPlates = pl.filter((p) => !Weight.eqeq(p.weight, plate.weight));
