@@ -505,6 +505,22 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230716": {
+    title: <span>Improve exercise selection modal</span>,
+    body: (
+      <ul>
+        <li>
+          Now listing target, synergetic muscle groups, and also the "type" of the exercise (pull, push, upper, lower,
+          etc) for each exercise.
+        </li>
+        <li>
+          Also, now you can filter by the "type" and by muscle groups. E.g. you can list all the pull exercises with the
+          chest muscle group, or something like that.
+        </li>
+        <li>You can assign the "type" to your custom exercises now too.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
