@@ -58,28 +58,29 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
       autofocusInputRef={textInput}
       shouldShowClose={true}
       onClose={() => props.onChange()}
-      isFullWidth={true}
     >
-      {isCustomExerciseDisplayed ? (
-        <CustomExerciseForm
-          exercise={editingExercise}
-          setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
-          settings={props.settings}
-          onCreateOrUpdate={props.onCreateOrUpdate}
-        />
-      ) : (
-        <ExercisesList
-          filter={filter}
-          initialFilterTypes={props.initialFilterTypes}
-          setFilter={setFilter}
-          setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
-          setEditingExercise={setEditingExercise}
-          textInput={textInput}
-          onChange={props.onChange}
-          onDelete={props.onDelete}
-          settings={props.settings}
-        />
-      )}
+      <div style={{ maxWidth: "600px", minWidth: "260px" }}>
+        {isCustomExerciseDisplayed ? (
+          <CustomExerciseForm
+            exercise={editingExercise}
+            setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
+            settings={props.settings}
+            onCreateOrUpdate={props.onCreateOrUpdate}
+          />
+        ) : (
+          <ExercisesList
+            filter={filter}
+            initialFilterTypes={props.initialFilterTypes}
+            setFilter={setFilter}
+            setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
+            setEditingExercise={setEditingExercise}
+            textInput={textInput}
+            onChange={props.onChange}
+            onDelete={props.onDelete}
+            settings={props.settings}
+          />
+        )}
+      </div>
     </Modal>
   );
 }
