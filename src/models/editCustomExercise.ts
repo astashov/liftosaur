@@ -1,7 +1,7 @@
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { updateState, IState } from "./state";
-import { IEquipment, ICustomExercise, IMuscle } from "../types";
+import { IEquipment, ICustomExercise, IMuscle, IExerciseKind } from "../types";
 import { EditCustomExerciseLenses } from "./editCustomExerciseLenses";
 
 export namespace EditCustomExercise {
@@ -11,6 +11,7 @@ export namespace EditCustomExercise {
     equipment: IEquipment,
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
+    types: IExerciseKind[],
     exercise?: ICustomExercise
   ): void {
     updateState(dispatch, [
@@ -20,6 +21,7 @@ export namespace EditCustomExercise {
         equipment,
         targetMuscles,
         synergistMuscles,
+        types,
         exercise
       ),
     ]);

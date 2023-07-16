@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
-import { ICustomExercise, IEquipment, IMuscle, ISettings } from "../types";
+import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, ISettings } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 
@@ -12,6 +12,7 @@ export namespace EditCustomExerciseLenses {
     equipment: IEquipment,
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
+    types: IExerciseKind[],
     exercise?: ICustomExercise
   ): ILensRecordingPayload<T> {
     return prefix.p("exercises").recordModify((exercises) => {
@@ -20,6 +21,7 @@ export namespace EditCustomExerciseLenses {
           ...exercise,
           name,
           defaultEquipment: equipment,
+          types,
           meta: { ...exercise.meta, targetMuscles, synergistMuscles },
         };
         return { ...exercises, [newExercise.id]: newExercise };
@@ -37,6 +39,7 @@ export namespace EditCustomExerciseLenses {
               defaultEquipment: equipment,
               targetMuscles,
               synergistMuscles,
+              types,
               isDeleted: false,
             },
           };
@@ -47,6 +50,7 @@ export namespace EditCustomExerciseLenses {
             name,
             defaultEquipment: equipment,
             isDeleted: false,
+            types,
             meta: {
               targetMuscles,
               synergistMuscles,

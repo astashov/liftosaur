@@ -7,6 +7,7 @@ interface IMultiselectProps {
   readonly label: string;
   readonly id: string;
   readonly initialSelectedValues?: Set<string>;
+  readonly placeholder?: string;
   onChange: (values: Set<string>) => void;
 }
 
@@ -16,15 +17,18 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
 
   return (
     <div>
-      <div>
-        <label for={props.id} className="block text-sm font-bold">
-          {props.label}
-        </label>
-      </div>
+      {props.label && (
+        <div>
+          <label for={props.id} className="block text-sm font-bold">
+            {props.label}
+          </label>
+        </div>
+      )}
       <input
         className={inputClassName}
         data-cy={`multiselect-${props.id}`}
         list={props.id}
+        placeholder={props.placeholder}
         name={props.id}
         onInput={(e) => {
           const value = e.currentTarget.value;
@@ -43,7 +47,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
       </datalist>
       <div className="mt-1">
         {Array.from(selectedValues).map((sm) => (
-          <div className=" inline-block px-2 mb-1 mr-1 text-xs bg-gray-300 rounded-full">
+          <div className="inline-block px-2 mb-1 mr-1 text-xs bg-gray-300 rounded-full ">
             <span className="py-1 pl-1">{sm} </span>
             <button
               className="p-1"
@@ -52,6 +56,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
                 const set = new Set(selectedValues);
                 set.delete(sm);
                 setSelectedValues(set);
+                props.onChange(set);
               }}
             >
               <span className="inline-block" style="transform: rotate(45deg)">

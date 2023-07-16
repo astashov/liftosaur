@@ -260,6 +260,16 @@ export const availableBodyParts = [
   "Waist",
 ];
 
+export const exerciseKinds = ["core", "pull", "push", "legs", "upper", "lower"] as const;
+export const TExerciseKind = t.keyof(
+  exerciseKinds.reduce<Record<IArrayElement<typeof exerciseKinds>, null>>((memo, kind) => {
+    memo[kind] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof exerciseKinds>, null>),
+  "TExerciseKind"
+);
+export type IExerciseKind = t.TypeOf<typeof TExerciseKind>;
+
 export const TBodyPart = t.keyof(
   availableBodyParts.reduce<Record<IArrayElement<typeof availableBodyParts>, null>>((memo, muscle) => {
     memo[muscle] = null;
@@ -303,14 +313,19 @@ export const TExerciseType = t.intersection(
 );
 export type IExerciseType = t.TypeOf<typeof TExerciseType>;
 
-export const TCustomExercise = t.type(
-  {
-    id: TExerciseId,
-    name: t.string,
-    defaultEquipment: TEquipment,
-    isDeleted: t.boolean,
-    meta: TMetaExercises,
-  },
+export const TCustomExercise = t.intersection(
+  [
+    t.interface({
+      id: TExerciseId,
+      name: t.string,
+      defaultEquipment: TEquipment,
+      isDeleted: t.boolean,
+      meta: TMetaExercises,
+    }),
+    t.partial({
+      types: t.array(TExerciseKind),
+    }),
+  ],
   "TCustomExercise"
 );
 export type ICustomExercise = t.TypeOf<typeof TCustomExercise>;
