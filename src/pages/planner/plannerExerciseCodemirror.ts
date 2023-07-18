@@ -3,6 +3,7 @@ import { LRLanguage, LanguageSupport } from "@codemirror/language";
 import { styleTags, tags as t } from "@lezer/highlight";
 import { CompletionContext } from "@codemirror/autocomplete";
 import { Exercise } from "../../models/exercise";
+import { PlannerEditor } from "./plannerEditor";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [
@@ -22,15 +23,15 @@ const language = LRLanguage.define({
   parser: parserWithMetadata,
 });
 
-export function buildPlannerExerciseLanguageSupport(): LanguageSupport {
+export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor): LanguageSupport {
   const completion = language.data.of({
     autocomplete: (context: CompletionContext) => {
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
       if (exerciseMatch) {
-        const exercises = Exercise.search(exerciseMatch.text, {});
+        const exerciseNames = Exercise.searchNames(exerciseMatch.text, plannerEditor.args.customExercises || {});
         const result = {
           from: exerciseMatch.from,
-          options: exercises.map((ex) => ({ label: ex.name, type: "keyword" })),
+          options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
           validFor: /.*/,
         };
         return result;

@@ -37,6 +37,23 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
               }}
             />
           </div>
+          <div className="flex-1">
+            <Input
+              label="Synergist multiplier"
+              min={0}
+              type="number"
+              value={props.settings.synergistMultiplier}
+              changeHandler={(e) => {
+                if (e.success) {
+                  const value = parseFloat(e.data);
+                  if (!isNaN(value)) {
+                    const clampedValue = Math.max(0, value);
+                    props.dispatch(lb<IPlannerState>().p("settings").p("synergistMultiplier").record(clampedValue));
+                  }
+                }
+              }}
+            />
+          </div>
         </div>
         <div className="mt-4 mb-1">
           <label>

@@ -4,6 +4,7 @@ import { Exercise } from "../../models/exercise";
 import { CollectionUtils } from "../../utils/collection";
 import { IEither } from "../../utils/types";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, IPlannerProgramExerciseSet } from "./models/types";
+import { IAllCustomExercises } from "../../types";
 
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -51,9 +52,11 @@ function assert(name: string): never {
 
 export class PlannerExerciseEvaluator {
   private readonly script: string;
+  private readonly customExercises: IAllCustomExercises;
 
-  constructor(script: string) {
+  constructor(script: string, customExercises: IAllCustomExercises) {
     this.script = script;
+    this.customExercises = customExercises;
   }
 
   private getValue(node: SyntaxNode): string {
@@ -145,7 +148,7 @@ export class PlannerExerciseEvaluator {
         assert("ExerciseName");
       }
       const name = this.getValue(nameNode);
-      const exerciseId = Exercise.findIdByName(name);
+      const exerciseId = Exercise.findIdByName(name, this.customExercises);
       if (exerciseId == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }
@@ -165,7 +168,6 @@ export class PlannerExerciseEvaluator {
       const sets = allSets.filter((set) => set.repRange != null);
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
-      console.log(expr.type.name, this.getLineAndOffset(expr));
       const [line] = this.getLineAndOffset(expr);
       return {
         name,

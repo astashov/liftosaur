@@ -90,4 +90,8 @@ body {
   margin: 0 0.5rem;
 }
 
+.planner-exercise-graph .u-legend {
+  margin-top: -30px;
+}
+
 /* purgecss end ignore */

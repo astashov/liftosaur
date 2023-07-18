@@ -25,6 +25,11 @@ import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
 import { Settings } from "../../models/settings";
+import { StringUtils } from "../../utils/string";
+import { Exercise } from "../../models/exercise";
+import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
+import { BuilderCopyLink } from "../builder/components/builderCopyLink";
+import { ICustomExercise, IEquipment, IExerciseKind, IMuscle } from "../../types";
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
@@ -76,6 +81,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       calves: 2,
       forearms: 2,
     },
+    synergistMultiplier: 0.5,
+    customExercises: {},
     restTimer: 180,
   };
 
@@ -100,8 +107,22 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }
     },
+    async (action, oldState, newState) => {
+      if (
+        !("type" in action && action.type === "Update" && action.desc === "undo") &&
+        oldState.current.program !== newState.current.program
+      ) {
+        undoRedoMiddleware(dispatch, oldState);
+      }
+    },
+    async (action, oldState, newState) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).state = newState;
+    },
   ]);
+  useUndoRedo(state, dispatch);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const program = state.current.program;
@@ -110,11 +131,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     return state.current.program.weeks.map((week) => {
       return week.days.map((day) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, state.settings.customExercises);
         return evaluator.evaluate(tree.topNode);
       });
     });
-  }, [state.current.program]);
+  }, [state.current.program, state.settings.customExercises]);
+
+  const modalExerciseUi = state.ui.modalExercise;
 
   return (
     <section className="px-4">
@@ -129,12 +152,29 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             }}
           />
         </h2>
-        <div>
-          <button onClick={() => setIsSettingsModalOpen(true)} className="p-2">
-            <IconCog2 />
-          </button>
+        <div className="flex items-center">
+          <BuilderCopyLink
+            suppressShowInfo={true}
+            onShowInfo={setShowClipboardInfo}
+            type="n"
+            program={program}
+            client={props.client}
+          />
+          <div>
+            <button onClick={() => setIsSettingsModalOpen(true)} className="p-2">
+              <IconCog2 />
+            </button>
+          </div>
         </div>
       </div>
+      {showClipboardInfo && (
+        <div className="text-xs text-right text-grayv2-main">
+          Copied to clipboard:{" "}
+          <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+            {showClipboardInfo}
+          </a>
+        </div>
+      )}
       <div>
         <ScrollableTabs
           tabs={program.weeks.map((week, weekIndex) => {
@@ -154,9 +194,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     <span className="mr-2">
                       <LinkButton
                         onClick={() => {
-                          dispatch(
-                            lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
-                          );
+                          if (confirm("Are you sure you want to delete this week?")) {
+                            dispatch(
+                              lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
+                            );
+                          }
                         }}
                       >
                         Delete Week
@@ -236,13 +278,58 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onClose={() => setIsSettingsModalOpen(false)}
         />
       )}
-      {state.ui.modalExercise && (
+      {modalExerciseUi && (
         <ModalExercise
-          isHidden={!state.ui.modalExercise}
-          onChange={() => undefined}
-          onCreateOrUpdate={() => undefined}
-          onDelete={() => undefined}
-          settings={Settings.build()}
+          isHidden={!modalExerciseUi}
+          onChange={(exerciseId) => {
+            dispatch([
+              lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
+              lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
+              lbProgram
+                .p("weeks")
+                .i(modalExerciseUi.focusedExercise.weekIndex)
+                .p("days")
+                .i(modalExerciseUi.focusedExercise.dayIndex)
+                .p("exerciseText")
+                .recordModify((exerciseText) => {
+                  if (!exerciseId) {
+                    return exerciseText;
+                  }
+                  const exercise = Exercise.getById(exerciseId, {});
+                  return exerciseText + `\n${exercise.name}`;
+                }),
+            ]);
+          }}
+          onCreateOrUpdate={(
+            name: string,
+            equipment: IEquipment,
+            targetMuscles: IMuscle[],
+            synergistMuscles: IMuscle[],
+            types: IExerciseKind[],
+            exercise?: ICustomExercise
+          ) => {
+            const exercises = Exercise.createOrUpdateCustomExercise(
+              state.settings.customExercises,
+              name,
+              equipment,
+              targetMuscles,
+              synergistMuscles,
+              types,
+              exercise
+            );
+            dispatch(lb<IPlannerState>().p("settings").p("customExercises").record(exercises));
+          }}
+          onDelete={(id) => {
+            dispatch(
+              lb<IPlannerState>()
+                .p("settings")
+                .p("customExercises")
+                .recordModify((exercises) => ObjectUtils.omit(exercises, [id]))
+            );
+          }}
+          settings={{ ...Settings.build(), exercises: state.settings.customExercises }}
+          customExerciseName={modalExerciseUi.customExerciseName}
+          initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
         />
       )}
     </section>

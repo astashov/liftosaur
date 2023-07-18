@@ -1284,6 +1284,15 @@ const getProgramShorturlResponseHandler: RouteHandler<
   return _getProgramShorturlResponseHandler(payload.di, payload.event, params.id);
 };
 
+const getPlannerShorturlResponseEndpoint = Endpoint.build("/api/n/:id");
+const getPlannerShorturlResponseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getPlannerShorturlResponseEndpoint
+> = async ({ payload, match: { params } }) => {
+  return _getProgramShorturlResponseHandler(payload.di, payload.event, params.id);
+};
+
 const getPlanShorturlResponseEndpoint = Endpoint.build("/api/b/:id");
 const getPlanShorturlResponseHandler: RouteHandler<
   IPayload,
@@ -1322,6 +1331,17 @@ const postClaimFreeUserHandler: RouteHandler<
   const userid = params.userid;
   const claim = await new FreeUserDao(di).claim(userid);
   return ResponseUtils.json(200, event, { data: { claim } });
+};
+
+const getPlannerShorturlEndpoint = Endpoint.build("/n/:id");
+const getPlannerShorturlHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getPlannerShorturlEndpoint
+> = async ({ payload, match: { params } }) => {
+  const di = payload.di;
+  const id = params.id;
+  return shorturlRedirect(di, id);
 };
 
 const getProgramShorturlEndpoint = Endpoint.build("/p/:id");
@@ -1488,7 +1508,9 @@ export const handler = rollbar.lambdaHandler(
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .post(timerEndpoint, timerHandler)
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
+      .get(getPlannerShorturlEndpoint, getPlannerShorturlHandler)
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
+      .get(getPlannerShorturlResponseEndpoint, getPlannerShorturlResponseHandler)
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)

@@ -2,8 +2,7 @@
 
 import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, ISettings } from "../types";
-import { UidFactory } from "../utils/generator";
-import { ObjectUtils } from "../utils/object";
+import { Exercise } from "./exercise";
 
 export namespace EditCustomExerciseLenses {
   export function createOrUpdate<T>(
@@ -16,51 +15,15 @@ export namespace EditCustomExerciseLenses {
     exercise?: ICustomExercise
   ): ILensRecordingPayload<T> {
     return prefix.p("exercises").recordModify((exercises) => {
-      if (exercise != null) {
-        const newExercise: ICustomExercise = {
-          ...exercise,
-          name,
-          defaultEquipment: equipment,
-          types,
-          meta: { ...exercise.meta, targetMuscles, synergistMuscles },
-        };
-        return { ...exercises, [newExercise.id]: newExercise };
-      } else {
-        const deletedExerciseKey = ObjectUtils.keys(exercises).filter(
-          (k) => exercises[k]?.isDeleted && exercises[k]?.name === name
-        )[0];
-        const deletedExercise = deletedExerciseKey != null ? exercises[deletedExerciseKey] : undefined;
-        if (deletedExercise) {
-          return {
-            ...exercises,
-            [deletedExercise.id]: {
-              ...deletedExercise,
-              name,
-              defaultEquipment: equipment,
-              targetMuscles,
-              synergistMuscles,
-              types,
-              isDeleted: false,
-            },
-          };
-        } else {
-          const id = UidFactory.generateUid(8);
-          const newExercise: ICustomExercise = {
-            id,
-            name,
-            defaultEquipment: equipment,
-            isDeleted: false,
-            types,
-            meta: {
-              targetMuscles,
-              synergistMuscles,
-              bodyParts: [],
-              sortedEquipment: [equipment],
-            },
-          };
-          return { ...exercises, [id]: newExercise };
-        }
-      }
+      return Exercise.createOrUpdateCustomExercise(
+        exercises,
+        name,
+        equipment,
+        targetMuscles,
+        synergistMuscles,
+        types,
+        exercise
+      );
     });
   }
 

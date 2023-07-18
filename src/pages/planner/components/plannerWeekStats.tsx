@@ -15,10 +15,14 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { settings } = props;
 
   const evaluatedDays = props.evaluatedDays;
-  const setResults = PlannerStatsUtils.calculateSetResults(evaluatedDays);
+  const setResults = PlannerStatsUtils.calculateSetResults(
+    evaluatedDays,
+    settings.customExercises,
+    settings.synergistMultiplier
+  );
 
   return (
-    <div>
+    <div className="sticky" style={{ top: "3rem" }}>
       <h3 className="mb-2 text-xl font-bold">Week Stats</h3>
       <PlannerStats
         dispatch={props.dispatch}

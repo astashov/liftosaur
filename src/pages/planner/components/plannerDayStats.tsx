@@ -19,7 +19,11 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
   if (!evaluatedDay.success) {
     return <></>;
   }
-  const setResults = PlannerStatsUtils.calculateSetResults([evaluatedDay]);
+  const setResults = PlannerStatsUtils.calculateSetResults(
+    [evaluatedDay],
+    settings.customExercises,
+    settings.synergistMultiplier
+  );
 
   return (
     <div>

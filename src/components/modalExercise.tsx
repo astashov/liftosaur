@@ -43,13 +43,14 @@ interface IModalExerciseProps {
     types: IExerciseKind[],
     exercise?: ICustomExercise
   ) => void;
+  customExerciseName?: string;
   onDelete: (id: string) => void;
 }
 
 export function ModalExercise(props: IModalExerciseProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>(props.initialFilter || "");
-  const [isCustomExerciseDisplayed, setIsCustomExerciseDisplayed] = useState<boolean>(false);
+  const [isCustomExerciseDisplayed, setIsCustomExerciseDisplayed] = useState<boolean>(!!props.customExerciseName);
   const [editingExercise, setEditingExercise] = useState<ICustomExercise | undefined>(undefined);
 
   return (
@@ -63,6 +64,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
             exercise={editingExercise}
+            customExerciseName={props.customExerciseName}
             setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
             settings={props.settings}
             onCreateOrUpdate={props.onCreateOrUpdate}
@@ -272,6 +274,7 @@ interface IEditCustomExerciseProps {
     types: IExerciseKind[],
     exercise?: ICustomExercise
   ) => void;
+  customExerciseName?: string;
 }
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
@@ -280,7 +283,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
     e,
     equipmentName(e, props.settings),
   ]);
-  const [name, setName] = useState<string>(props.exercise?.name || "");
+  const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
   const [equipment, setEquipment] = useState<IEquipment>(props.exercise?.defaultEquipment || "barbell");
   const [targetMuscles, setTargetMuscles] = useState<IMuscle[]>([]);

@@ -1,4 +1,4 @@
-import { lb } from "lens-shmens";
+import { lb, lbu } from "lens-shmens";
 import { useEffect } from "preact/hooks";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 
@@ -6,16 +6,23 @@ export interface IUndoRedoState<T> {
   history: {
     past: T[];
     future: T[];
+    lastHistoryTs?: number;
   };
   current: T;
 }
 
 export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>, oldState: S): void {
+  const lastHistoryTsGetter = { lastHistoryTs: lb<S>().p("history").p("lastHistoryTs").get() };
   dispatch([
-    lb<S>()
+    lbu<S, typeof lastHistoryTsGetter>(lastHistoryTsGetter)
       .p("history")
-      .recordModify((history) => {
-        return { ...history, past: [...history.past, oldState.current], future: [] };
+      .recordModify((history, getters) => {
+        console.log("lts", getters);
+        if (getters.lastHistoryTs && getters.lastHistoryTs < Date.now() - 500) {
+          return history;
+        } else {
+          return { ...history, past: [...history.past, oldState.current], future: [], lastHistoryTs: Date.now() };
+        }
       }),
   ]);
 }

@@ -1,12 +1,44 @@
 import { Exercise } from "../../../models/exercise";
 import { IScreenMuscle } from "../../../models/muscle";
-import { IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseRepRange,
+  ISetResults,
+  ISetSplit,
+  IPlannerSettings,
+} from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
+import { IAllCustomExercises } from "../../../types";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup">;
 
 export class PlannerStatsUtils {
-  public static calculateSetResults(evaluatedDays: IPlannerEvalResult[]): ISetResults {
+  public static dayApproxTimeMs(exercises: IPlannerProgramExercise[], settings: IPlannerSettings): number {
+    return exercises.reduce((acc, e) => {
+      return (
+        acc +
+        e.sets.reduce((acc2, set) => {
+          const repRange = set.repRange;
+          if (!repRange) {
+            return acc2;
+          }
+          const reps = repRange.maxrep;
+          const secondsPerRep = 7;
+          const prepareTime = 20;
+          const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
+          const timeToRest = (settings.restTimer || 0) * 1000;
+          const totalTime = timeToRep + timeToRest;
+          return repRange.numberOfSets * totalTime;
+        }, 0)
+      );
+    }, 0);
+  }
+
+  public static calculateSetResults(
+    evaluatedDays: IPlannerEvalResult[],
+    customExercises: IAllCustomExercises,
+    synergistMultiplier: number
+  ): ISetResults {
     const results: ISetResults = {
       total: 0,
       strength: 0,
@@ -38,7 +70,7 @@ export class PlannerStatsUtils {
         continue;
       }
       for (const plannerExercise of day.data) {
-        const exercise = Exercise.findByName(plannerExercise.name, {});
+        const exercise = Exercise.findByName(plannerExercise.name, customExercises);
         if (exercise == null) {
           continue;
         }
@@ -69,13 +101,13 @@ export class PlannerStatsUtils {
             if (exercise.types.indexOf("lower") !== -1) {
               add(results, "lower", repRange, dayIndex);
             }
-            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, {});
+            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises);
             for (const muscle of targetMuscleGroups) {
-              addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, true);
+              addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, true, synergistMultiplier);
             }
-            for (const muscle of Exercise.synergistMusclesGroups(exercise, {})) {
+            for (const muscle of Exercise.synergistMusclesGroups(exercise, customExercises)) {
               if (targetMuscleGroups.indexOf(muscle) === -1) {
-                addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, false);
+                addMuscleGroup(results.muscleGroup, muscle, repRange, dayIndex, false, synergistMultiplier);
               }
             }
           }
@@ -105,12 +137,13 @@ function addMuscleGroup(
   key: IScreenMuscle,
   repRange: IPlannerProgramExerciseRepRange,
   dayIndex: number,
-  isTarget: boolean
+  isTarget: boolean,
+  synergistMultiplier: number
 ): void {
   if (repRange.maxrep < 8) {
-    results[key].strength += isTarget ? repRange.numberOfSets : repRange.numberOfSets / 2;
+    results[key].strength += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
   } else {
-    results[key].hypertrophy += isTarget ? repRange.numberOfSets : repRange.numberOfSets / 2;
+    results[key].hypertrophy += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
   }
   results[key].frequency[dayIndex] = true;
 }

@@ -50,27 +50,27 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       </div>
       <div>
         {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
-        {formatSetSplit(setResults.upper, settings, true)}
+        {formatSetSplit(setResults.upper, settings, props.frequency)}
       </div>
       <div>
-        <span className="text-grayv2-main">Lower Sets: </span>
-        {formatSetSplit(setResults.lower, settings, true)}
+        {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
+        {formatSetSplit(setResults.lower, settings, frequency)}
       </div>
       <div>
-        <span className="text-grayv2-main">Core Sets: </span>
-        {formatSetSplit(setResults.core, settings, true)}
+        {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
+        {formatSetSplit(setResults.core, settings, frequency)}
       </div>
       <div>
-        <span className="text-grayv2-main">Push Sets: </span>
-        {formatSetSplit(setResults.push, settings, true)}
+        {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
+        {formatSetSplit(setResults.push, settings, frequency)}
       </div>
       <div>
-        <span className="text-grayv2-main">Pull Sets: </span>
-        {formatSetSplit(setResults.pull, settings, true)}
+        {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
+        {formatSetSplit(setResults.pull, settings, frequency)}
       </div>
       <div className="mb-4">
-        <span className="text-grayv2-main">Legs Sets: </span>
-        {formatSetSplit(setResults.legs, settings, true)}
+        {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
+        {formatSetSplit(setResults.legs, settings, frequency)}
       </div>
 
       {props.frequency && (
@@ -82,11 +82,11 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
           <div>
-            <span className="text-grayv2-main">{StringUtils.capitalize(muscleGroup)}: </span>
+            {labelSet(StringUtils.capitalize(muscleGroup), showLink, [], [muscleGroup], dispatch, focusedExercise)}{" "}
             {formatSetSplit(
               setResults.muscleGroup[muscleGroup],
               settings,
-              true,
+              frequency,
               props.colorize ? muscleGroup : undefined
             )}
           </div>
@@ -107,6 +107,7 @@ function labelSet(
   if (showLink && focusedExercise) {
     return (
       <LinkButton
+        className="font-normal"
         onClick={() => {
           dispatch(
             lb<IPlannerState>().p("ui").p("modalExercise").record({
