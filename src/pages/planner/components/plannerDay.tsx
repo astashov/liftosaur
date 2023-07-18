@@ -14,6 +14,9 @@ import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ExerciseImageUtils } from "../../../models/exerciseImage";
 import { Exercise } from "../../../models/exercise";
 import { HtmlUtils } from "../../../utils/html";
+import { TimeUtils } from "../../../utils/time";
+import { PlannerStatsUtils } from "../models/plannerStatsUtils";
+import { IconWatch } from "../../../components/icons/iconWatch";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -29,10 +32,12 @@ interface IPlannerDayProps {
 
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
+  const { customExercises } = props.settings;
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
   const exerciseImageUrls = [];
+  let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
     for (const plannerExercise of evaluatedDay.data) {
       const exercise = Exercise.findByName(plannerExercise.name, {});
@@ -44,6 +49,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         exerciseImageUrls[plannerExercise.line - 1] = imageUrl;
       }
     }
+    approxDayTime = TimeUtils.formatHHMM(PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings));
   }
   for (let i = 0; i < exerciseImageUrls.length; i++) {
     if (!exerciseImageUrls[i]) {
@@ -54,14 +60,22 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   return (
     <div className="flex">
       <div className="flex-1">
-        <h3 className="pb-4 mr-2 text-xl font-bold">
-          <BuilderLinkInlineInput
-            value={day.name}
-            onInputString={(v) => {
-              dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v));
-            }}
-          />
-        </h3>
+        <div className="flex items-center pb-4">
+          <h3 className="mr-2 text-xl font-bold">
+            <BuilderLinkInlineInput
+              value={day.name}
+              onInputString={(v) => {
+                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v));
+              }}
+            />
+          </h3>
+          {approxDayTime && (
+            <div className="text-grayv2-main">
+              <IconWatch className="mb-1 align-middle" />
+              <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
+            </div>
+          )}
+        </div>
         <div className="flex">
           <div className="w-10">
             <ul className="pt-2">
@@ -86,12 +100,43 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           <div className="flex-1">
             <PlannerEditorView
               name="Exercises"
+              customExercises={customExercises}
               result={evaluatedDay}
               value={day.exerciseText}
+              onCustomErrorCta={(err) => {
+                const match = err.match(/Unknown exercise ([^\(]+)/);
+                if (match) {
+                  const customExerciseName = match[1].trim();
+                  return (
+                    <LinkButton
+                      onClick={() => {
+                        dispatch(
+                          lb<IPlannerState>()
+                            .p("ui")
+                            .p("modalExercise")
+                            .record({
+                              focusedExercise: {
+                                weekIndex,
+                                dayIndex,
+                                exerciseLine: 0,
+                              },
+                              types: [],
+                              muscleGroups: [],
+                              customExerciseName,
+                            })
+                        );
+                      }}
+                    >
+                      Add custom exercise
+                    </LinkButton>
+                  );
+                }
+                return undefined;
+              }}
               onChange={(e) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
               }}
-              onBlur={(e) => {
+              onBlur={(e, text) => {
                 const relatedTarget = e.relatedTarget as HTMLElement;
                 if (!relatedTarget || !HtmlUtils.someInParents(relatedTarget, (el) => el.tagName === "BUTTON")) {
                   dispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined));
@@ -125,13 +170,15 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         <div className="mb-6">
           <LinkButton
             onClick={() => {
-              dispatch(
-                lbProgram
-                  .p("weeks")
-                  .i(weekIndex)
-                  .p("days")
-                  .recordModify((days) => CollectionUtils.removeAt(days, dayIndex))
-              );
+              if (confirm("Are you sure you want to delete this day?")) {
+                dispatch(
+                  lbProgram
+                    .p("weeks")
+                    .i(weekIndex)
+                    .p("days")
+                    .recordModify((days) => CollectionUtils.removeAt(days, dayIndex))
+                );
+              }
             }}
           >
             Delete Day

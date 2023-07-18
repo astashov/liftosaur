@@ -14,9 +14,11 @@ import {
   IMetaExercises,
   IProgramExerciseWarmupSet,
   IUnit,
+  ICustomExercise,
 } from "../types";
 import { IScreenMuscle, Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
+import { UidFactory } from "../utils/generator";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -1599,8 +1601,21 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight"],
   },
   deadlift: {
-    targetMuscles: ["Gluteus Maximus"],
-    synergistMuscles: ["Adductor Magnus", "Erector Spinae", "Hamstrings", "Quadriceps", "Soleus"],
+    targetMuscles: ["Gluteus Maximus", "Erector Spinae", "Hamstrings"],
+    synergistMuscles: [
+      "Adductor Magnus",
+      "Erector Spinae",
+      "Hamstrings",
+      "Quadriceps",
+      "Soleus",
+      "Latissimus Dorsi",
+      "Obliques",
+      "Rectus Abdominis",
+      "Gastrocnemius",
+      "Brachialis",
+      "Brachioradialis",
+      "Soleus",
+    ],
     bodyParts: ["Hips"],
     sortedEquipment: ["barbell", "cable", "dumbbell", "leverageMachine", "smith", "band", "kettlebell", "bodyweight"],
   },
@@ -2646,7 +2661,16 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
   },
   squat: {
     targetMuscles: ["Gluteus Maximus", "Quadriceps"],
-    synergistMuscles: ["Adductor Magnus", "Soleus"],
+    synergistMuscles: [
+      "Adductor Magnus",
+      "Soleus",
+      "Hamstrings",
+      "Erector Spinae",
+      "Obliques",
+      "Rectus Abdominis",
+      "Gluteus Medius",
+      "Gastrocnemius",
+    ],
     bodyParts: ["Thighs"],
     sortedEquipment: ["barbell", "dumbbell", "bodyweight", "smith", "leverageMachine"],
   },
@@ -2748,8 +2772,16 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "dumbbell", "band", "kettlebell"],
   },
   sumoDeadlift: {
-    targetMuscles: ["Gluteus Maximus", "Quadriceps"],
-    synergistMuscles: ["Adductor Magnus", "Soleus", "Tensor Fasciae Latae"],
+    targetMuscles: ["Gluteus Maximus", "Quadriceps", "Adductor Magnus", "Erector Spinae"],
+    synergistMuscles: [
+      "Hamstrings",
+      "Latissimus Dorsi",
+      "Obliques",
+      "Rectus Abdominis",
+      "Trapezius Lower Fibers",
+      "Brachialis",
+      "Brachioradialis",
+    ],
     bodyParts: ["Hips"],
     sortedEquipment: ["barbell"],
   },
@@ -3050,7 +3082,7 @@ function warmupEmpty(weight: IWeight): ISet[] {
 
 function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
   const custom = customExercises[id];
-  return custom != null ? { ...custom, defaultWarmup: 45, types: [] } : exercises[id];
+  return custom != null ? { ...custom, defaultWarmup: 45, types: custom.types || [] } : exercises[id];
 }
 
 function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {
@@ -3069,16 +3101,24 @@ export namespace Exercise {
     return !!exercise;
   }
 
-  export function search(query: string, customExercises: IAllCustomExercises): IExercise[] {
-    return ObjectUtils.values(exercises).filter((exercise) => StringUtils.fuzzySearch(query, exercise.name));
+  export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
+    const exerciseNames = ObjectUtils.values(exercises)
+      .filter((exercise) => StringUtils.fuzzySearch(query, exercise.name))
+      .map((e) => e.name);
+    const customExerciseNames = ObjectUtils.values(customExercises)
+      .filter((ce) => (ce ? StringUtils.fuzzySearch(query, ce.name) : false))
+      .map((e) => e!.name);
+    const names = [...exerciseNames, ...customExerciseNames];
+    names.sort();
+    return names;
   }
 
   export function findById(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
     return maybeGetExercise(id, customExercises);
   }
 
-  export function findIdByName(name: string): IExerciseId | undefined {
-    return nameToIdMapping[name];
+  export function findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
+    return ObjectUtils.values(customExercises).find((ce) => ce?.name === name)?.id || nameToIdMapping[name];
   }
 
   export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
@@ -3097,7 +3137,7 @@ export namespace Exercise {
   }
 
   export function findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
-    const exerciseId = findIdByName(name);
+    const exerciseId = findIdByName(name, customExercises);
     if (exerciseId != null) {
       const exercise = findById(exerciseId, customExercises);
       if (exercise != null) {
@@ -3315,5 +3355,64 @@ export namespace Exercise {
     });
     rated.sort((a, b) => b[1] - a[1]);
     return rated.filter(([, r]) => r > 0);
+  }
+
+  export function createOrUpdateCustomExercise<T>(
+    allExercises: IAllCustomExercises,
+    name: string,
+    equipment: IEquipment,
+    tMuscles: IMuscle[],
+    sMuscles: IMuscle[],
+    types: IExerciseKind[],
+    exercise?: ICustomExercise
+  ): IAllCustomExercises {
+    if (exercise != null) {
+      const newExercise: ICustomExercise = {
+        ...exercise,
+        name,
+        defaultEquipment: equipment,
+        types,
+        meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
+      };
+      return { ...allExercises, [newExercise.id]: newExercise };
+    } else {
+      const deletedExerciseKey = ObjectUtils.keys(allExercises).filter(
+        (k) => allExercises[k]?.isDeleted && allExercises[k]?.name === name
+      )[0];
+      const deletedExercise = deletedExerciseKey != null ? allExercises[deletedExerciseKey] : undefined;
+      if (deletedExercise) {
+        return {
+          ...allExercises,
+          [deletedExercise.id]: {
+            ...deletedExercise,
+            name,
+            defaultEquipment: equipment,
+            types,
+            isDeleted: false,
+            meta: {
+              targetMuscles: tMuscles,
+              bodyParts: [],
+              synergistMuscles: sMuscles,
+            },
+          },
+        };
+      } else {
+        const id = UidFactory.generateUid(8);
+        const newExercise: ICustomExercise = {
+          id,
+          name,
+          defaultEquipment: equipment,
+          isDeleted: false,
+          types,
+          meta: {
+            targetMuscles: tMuscles,
+            synergistMuscles: sMuscles,
+            bodyParts: [],
+            sortedEquipment: [equipment],
+          },
+        };
+        return { ...allExercises, [id]: newExercise };
+      }
+    }
   }
 }

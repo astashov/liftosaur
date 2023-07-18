@@ -1,6 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
+import { IAllCustomExercises } from "../../../types";
 
 export interface IPlannerProgram {
   name: string;
@@ -21,11 +22,13 @@ export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number]
 export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
 
 export interface IPlannerSettings {
+  synergistMultiplier: number;
   strengthSetsPct: number;
   hypertrophySetsPct: number;
   weeklyRangeSets: IPlannerWeeklyRangeSets;
   weeklyFrequency: IPlannerWeeklyFrequency;
   restTimer: number;
+  customExercises: IAllCustomExercises;
 }
 
 export interface IPlannerProgramExercise {
@@ -62,6 +65,7 @@ export interface IPlannerUi {
     focusedExercise: IPlannerUiFocusedExercise;
     types: IExerciseKind[];
     muscleGroups: IScreenMuscle[];
+    customExerciseName?: string;
   };
 }
 
@@ -93,5 +97,10 @@ export interface ISetResults {
 export interface ISetSplit {
   strength: number;
   hypertrophy: number;
+  exercises: {
+    dayIndex: number;
+    exerciseName: string;
+    isSynergist: boolean;
+  }[];
   frequency: Partial<Record<number, true>>;
 }

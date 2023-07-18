@@ -258,4 +258,34 @@ export namespace Weight {
       throw new Error("Weight.operation should never work with numbers only");
     }
   }
+
+  export function rpeMultiplier(reps: number, rpe: number): number {
+    const rpe10Reps = [
+      1,
+      0.955,
+      0.922,
+      0.892,
+      0.863,
+      0.837,
+      0.811,
+      0.786,
+      0.762,
+      0.707,
+      0.68,
+      0.653,
+      0.626,
+      0.599,
+      0.634,
+      0.618,
+      0.602,
+      0.586,
+      0.57,
+      0.554,
+      0.538,
+      0.522,
+      0.506,
+      0.5,
+    ];
+    return rpe10Reps[reps + (10 - rpe) - 1];
+  }
 }

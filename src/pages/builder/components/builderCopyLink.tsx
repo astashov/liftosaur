@@ -10,7 +10,7 @@ interface IBuilerCopyLinkProps<T> {
   rightAligned?: boolean;
   suppressShowInfo?: boolean;
   onShowInfo?: (url: string) => void;
-  type: "p" | "b";
+  type: "p" | "b" | "n";
   program: T;
   client: Window["fetch"];
 }

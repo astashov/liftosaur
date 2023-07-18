@@ -8,6 +8,8 @@ import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
 import { lb } from "lens-shmens";
+import { useState } from "preact/hooks";
+import { CollectionUtils } from "../../../utils/collection";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -50,27 +52,27 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       </div>
       <div>
         {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
-        {formatSetSplit(setResults.upper, settings, true)}
+        <PlannerSetSplit split={setResults.upper} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
       <div>
-        <span className="text-grayv2-main">Lower Sets: </span>
-        {formatSetSplit(setResults.lower, settings, true)}
+        {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
+        <PlannerSetSplit split={setResults.lower} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
       <div>
-        <span className="text-grayv2-main">Core Sets: </span>
-        {formatSetSplit(setResults.core, settings, true)}
+        {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
+        <PlannerSetSplit split={setResults.core} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
       <div>
-        <span className="text-grayv2-main">Push Sets: </span>
-        {formatSetSplit(setResults.push, settings, true)}
+        {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
+        <PlannerSetSplit split={setResults.push} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
       <div>
-        <span className="text-grayv2-main">Pull Sets: </span>
-        {formatSetSplit(setResults.pull, settings, true)}
+        {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
+        <PlannerSetSplit split={setResults.pull} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
       <div className="mb-4">
-        <span className="text-grayv2-main">Legs Sets: </span>
-        {formatSetSplit(setResults.legs, settings, true)}
+        {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
+        <PlannerSetSplit split={setResults.legs} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
 
       {props.frequency && (
@@ -82,13 +84,13 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
           <div>
-            <span className="text-grayv2-main">{StringUtils.capitalize(muscleGroup)}: </span>
-            {formatSetSplit(
-              setResults.muscleGroup[muscleGroup],
-              settings,
-              true,
-              props.colorize ? muscleGroup : undefined
-            )}
+            {labelSet(StringUtils.capitalize(muscleGroup), showLink, [], [muscleGroup], dispatch, focusedExercise)}{" "}
+            <PlannerSetSplit
+              split={setResults.muscleGroup[muscleGroup]}
+              settings={settings}
+              shouldIncludeFrequency={frequency}
+              muscle={props.colorize ? muscleGroup : undefined}
+            />
           </div>
         );
       })}
@@ -107,6 +109,7 @@ function labelSet(
   if (showLink && focusedExercise) {
     return (
       <LinkButton
+        className="font-normal"
         onClick={() => {
           dispatch(
             lb<IPlannerState>().p("ui").p("modalExercise").record({
@@ -125,12 +128,14 @@ function labelSet(
   }
 }
 
-function formatSetSplit(
-  split: ISetSplit,
-  settings: IPlannerSettings,
-  shouldIncludeFrequency: boolean,
-  muscle?: IScreenMuscle
-): JSX.Element {
+function PlannerSetSplit(props: {
+  split: ISetSplit;
+  settings: IPlannerSettings;
+  shouldIncludeFrequency: boolean;
+  muscle?: IScreenMuscle;
+}): JSX.Element {
+  const { split, settings, shouldIncludeFrequency, muscle } = props;
+  const [showTooltip, setShowTooltip] = useState(false);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
   const setColor = muscle
@@ -140,7 +145,14 @@ function formatSetSplit(
 
   return (
     <span>
-      <span className={setColor}>{total}</span>{" "}
+      <span
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className={`cursor-auto relative ${setColor}`}
+      >
+        {total}
+        {showTooltip && <PlannerStatsTooltip split={split} />}
+      </span>{" "}
       {total > 0 && (
         <>
           ({split.strength > 0 && <abbr title="Strength Sets Number">{split.strength}s</abbr>}
@@ -189,4 +201,36 @@ function colorThresholdValue(value: number, threshold: number): string {
   } else {
     return "text-redv2-main";
   }
+}
+
+function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
+  const split = props.split;
+  const exercises = CollectionUtils.sort(split.exercises, (a, b) => {
+    if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
+      return a.exerciseName.localeCompare(b.exerciseName);
+    } else if (a.isSynergist) {
+      return 1;
+    } else {
+      return -1;
+    }
+  });
+  if (exercises.length === 0) {
+    return null;
+  }
+  return (
+    <div
+      style={{ top: "30px", right: "0" }}
+      className="absolute z-10 px-3 py-2 bg-white border border-grayv2-400 rounded-xl"
+    >
+      <ul style={{ minWidth: "14rem" }}>
+        {exercises.map((exercise) => {
+          return (
+            <li className={`font-bold ${exercise.isSynergist ? "text-grayv2-main" : "text-blackv2"}`}>
+              {exercise.exerciseName}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }

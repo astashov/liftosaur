@@ -36,7 +36,6 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
   if (!isEligibleForSimple.success) {
     return <EditProgramExerciseSimpleErrors errors={isEligibleForSimple.error} />;
   }
-  console.log(programExercise);
 
   return (
     <div>
