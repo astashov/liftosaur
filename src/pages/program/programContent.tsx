@@ -87,6 +87,10 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         undoRedoMiddleware(dispatch, oldState);
       }
     },
+    async (action, oldState, newState) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).state = newState;
+    },
   ]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [programUrl, setProgramUrl] = useState<string | undefined>(undefined);

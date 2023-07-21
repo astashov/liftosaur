@@ -141,6 +141,9 @@ function PlannerSetSplit(props: {
   const setColor = muscle
     ? colorRangeValue(total, settings.weeklyRangeSets[muscle][0], settings.weeklyRangeSets[muscle][1])
     : "";
+  const setDirection = muscle
+    ? directionValue(total, settings.weeklyRangeSets[muscle][0], settings.weeklyRangeSets[muscle][1])
+    : "";
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.weeklyFrequency[muscle]) : "";
 
   return (
@@ -151,6 +154,7 @@ function PlannerSetSplit(props: {
         className={`cursor-auto relative ${setColor}`}
       >
         {total}
+        {setDirection}
         {showTooltip && <PlannerStatsTooltip split={split} />}
       </span>{" "}
       {total > 0 && (
@@ -190,6 +194,16 @@ function colorRangeValue(value: number, min: number, max: number): string {
     return "text-yellowv2";
   } else {
     return "text-redv2-main";
+  }
+}
+
+function directionValue(value: number, min: number, max: number): string {
+  if (value < min) {
+    return "↑";
+  } else if (value > max) {
+    return "↓";
+  } else {
+    return "";
   }
 }
 
