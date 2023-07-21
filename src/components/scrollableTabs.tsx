@@ -40,7 +40,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
           </Scroller>
         </div>
       )}
-      {tabs[selectedIndex][1]}
+      {tabs[selectedIndex]?.[1] || tabs[0][1]}
     </div>
   );
 }

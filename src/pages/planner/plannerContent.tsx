@@ -143,6 +143,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       });
     });
   }, [state.current.program, state.settings.customExercises]);
+  console.log(evaluatedWeeks);
 
   const modalExerciseUi = state.ui.modalExercise;
 
@@ -198,17 +199,36 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     />
                   </h3>
                   <div className="mb-4">
+                    {program.weeks.length > 1 && (
+                      <span className="mr-2">
+                        <LinkButton
+                          onClick={() => {
+                            if (confirm("Are you sure you want to delete this week?")) {
+                              dispatch(
+                                lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
+                              );
+                            }
+                          }}
+                        >
+                          Delete Week
+                        </LinkButton>
+                      </span>
+                    )}
                     <span className="mr-2">
                       <LinkButton
                         onClick={() => {
-                          if (confirm("Are you sure you want to delete this week?")) {
-                            dispatch(
-                              lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
-                            );
-                          }
+                          dispatch(
+                            lbProgram.p("weeks").recordModify((weeks) => [
+                              ...weeks,
+                              {
+                                ...ObjectUtils.clone(initialWeek),
+                                name: `Week ${weeks.length + 1}`,
+                              },
+                            ])
+                          );
                         }}
                       >
-                        Delete Week
+                        Add New Week
                       </LinkButton>
                     </span>
                     <LinkButton
@@ -217,14 +237,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                           lbProgram.p("weeks").recordModify((weeks) => [
                             ...weeks,
                             {
-                              ...ObjectUtils.clone(initialWeek),
+                              ...ObjectUtils.clone(week),
                               name: `Week ${weeks.length + 1}`,
                             },
                           ])
                         );
                       }}
                     >
-                      Add New Week
+                      Duplicate Week
                     </LinkButton>
                   </div>
                   {week.days.map((day, dayIndex) => {
