@@ -2376,8 +2376,8 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight"],
   },
   romanianDeadlift: {
-    targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
-    synergistMuscles: ["Adductor Magnus", "Hamstrings", "Quadriceps", "Soleus"],
+    targetMuscles: ["Erector Spinae", "Gluteus Maximus", "Hamstrings"],
+    synergistMuscles: ["Adductor Magnus", "Latissimus Dorsi", "Obliques", "Rectus Abdominis", "Soleus"],
     bodyParts: ["Hips"],
     sortedEquipment: ["barbell", "dumbbell"],
   },

@@ -116,6 +116,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       }
     },
     async (action, oldState, newState) => {
+      if ("type" in action && action.type === "Update" && action.desc === "stop-is-undoing") {
+        setTimeout(() => {
+          window.isUndoing = false;
+        }, 200);
+      }
+    },
+    async (action, oldState, newState) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).state = newState;
     },
@@ -282,6 +289,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         <ModalExercise
           isHidden={!modalExerciseUi}
           onChange={(exerciseId) => {
+            window.isUndoing = true;
             dispatch([
               lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
               lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
@@ -299,6 +307,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   return exerciseText + `\n${exercise.name}`;
                 }),
             ]);
+            dispatch(
+              [
+                lb<IPlannerState>()
+                  .p("ui")
+                  .recordModify((ui) => ui),
+              ],
+              "stop-is-undoing"
+            );
           }}
           onCreateOrUpdate={(
             name: string,

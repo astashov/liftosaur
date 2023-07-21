@@ -7,7 +7,7 @@ import { screenMuscles } from "../../../models/muscle";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IPlannerSettings, IPlannerState } from "../models/types";
+import { IPlannerSettings, IPlannerState, IPlannerWeeklyFrequency, IPlannerWeeklyRangeSets } from "../models/types";
 
 interface IModalPlannerSettingsProps {
   settings: IPlannerSettings;
@@ -16,6 +16,40 @@ interface IModalPlannerSettingsProps {
 }
 
 export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Element {
+  let allWeeklySetsMin: number | undefined;
+  if (
+    ObjectUtils.keys(props.settings.weeklyRangeSets).every(
+      (k) => props.settings.weeklyRangeSets[k][0] === props.settings.weeklyRangeSets.abs[0]
+    )
+  ) {
+    allWeeklySetsMin = props.settings.weeklyRangeSets.abs[0];
+  } else {
+    allWeeklySetsMin = undefined;
+  }
+
+  let allWeeklySetsMax: number | undefined;
+  if (
+    ObjectUtils.keys(props.settings.weeklyRangeSets).every(
+      (k) => props.settings.weeklyRangeSets[k][1] === props.settings.weeklyRangeSets.abs[1]
+    )
+  ) {
+    allWeeklySetsMax = props.settings.weeklyRangeSets.abs[1];
+  } else {
+    allWeeklySetsMax = undefined;
+  }
+  console.log("allWeeklySetsMax", allWeeklySetsMax);
+
+  let allWeeklyFrequency: number | undefined;
+  if (
+    ObjectUtils.keys(props.settings.weeklyFrequency).every(
+      (k) => props.settings.weeklyFrequency[k] === props.settings.weeklyFrequency.abs
+    )
+  ) {
+    allWeeklyFrequency = props.settings.weeklyFrequency.abs;
+  } else {
+    allWeeklyFrequency = undefined;
+  }
+
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <form style={{ minWidth: "32rem" }}>
@@ -188,6 +222,90 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
           </label>
         </div>
         <ul>
+          <li className="flex items-center mb-2" style={{ gap: "0.5rem" }}>
+            <div className="w-32 font-bold text-redv2-700">Change All</div>
+            <div className="flex-1">
+              <Input
+                label="Weekly sets min"
+                min={0}
+                type="number"
+                value={allWeeklySetsMin}
+                changeHandler={(e) => {
+                  if (e.success) {
+                    const value = parseInt(e.data, 10);
+                    if (!isNaN(value)) {
+                      const clampedValue = Math.max(0, value);
+                      props.dispatch(
+                        lb<IPlannerState>()
+                          .p("settings")
+                          .p("weeklyRangeSets")
+                          .recordModify((sets) => {
+                            return ObjectUtils.keys(sets).reduce<typeof sets>((acc, k) => {
+                              acc[k] = [clampedValue, sets[k][1]];
+                              return acc;
+                            }, {} as IPlannerWeeklyRangeSets);
+                          })
+                      );
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <Input
+                label="Weekly sets max"
+                min={0}
+                type="number"
+                value={allWeeklySetsMax}
+                changeHandler={(e) => {
+                  if (e.success) {
+                    const value = parseInt(e.data, 10);
+                    if (!isNaN(value)) {
+                      const clampedValue = Math.max(0, value);
+                      props.dispatch(
+                        lb<IPlannerState>()
+                          .p("settings")
+                          .p("weeklyRangeSets")
+                          .recordModify((sets) => {
+                            return ObjectUtils.keys(sets).reduce<typeof sets>((acc, k) => {
+                              acc[k] = [sets[k][0], clampedValue];
+                              return acc;
+                            }, {} as IPlannerWeeklyRangeSets);
+                          })
+                      );
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <Input
+                label="Frequency, days"
+                min={0}
+                type="number"
+                value={allWeeklyFrequency}
+                changeHandler={(e) => {
+                  if (e.success) {
+                    const value = parseInt(e.data, 10);
+                    if (!isNaN(value)) {
+                      const clampedValue = Math.max(0, value);
+                      props.dispatch(
+                        lb<IPlannerState>()
+                          .p("settings")
+                          .p("weeklyFrequency")
+                          .recordModify((sets) => {
+                            return ObjectUtils.keys(sets).reduce<typeof sets>((acc, k) => {
+                              acc[k] = clampedValue;
+                              return acc;
+                            }, {} as IPlannerWeeklyFrequency);
+                          })
+                      );
+                    }
+                  }
+                }}
+              />
+            </div>
+          </li>
           {screenMuscles.map((muscleGroup) => {
             return (
               <li className="flex items-center mb-2" style={{ gap: "0.5rem" }}>
