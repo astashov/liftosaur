@@ -16,4 +16,5 @@
 /program https://api2.liftosaur.com/program  200
 /p/:id https://api2.liftosaur.com/p/:id  200
 /b/:id https://api2.liftosaur.com/b/:id  200
+/n/:id https://api2.liftosaur.com/n/:id  200
 /programimage/:id https://api2.liftosaur.com/api/programimage/:id  200
