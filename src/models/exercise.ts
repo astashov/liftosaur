@@ -1754,8 +1754,8 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "smith"],
   },
   hammerCurl: {
-    targetMuscles: ["Brachioradialis"],
-    synergistMuscles: ["Biceps Brachii", "Brachialis"],
+    targetMuscles: ["Brachioradialis", "Biceps Brachii", "Brachialis"],
+    synergistMuscles: ["Deltoid Anterior", "Wrist Flexors"],
     bodyParts: ["Forearms"],
     sortedEquipment: ["cable", "dumbbell", "band"],
   },
@@ -2760,8 +2760,8 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["barbell", "dumbbell", "bodyweight", "band"],
   },
   stiffLegDeadlift: {
-    targetMuscles: ["Erector Spinae", "Gluteus Maximus"],
-    synergistMuscles: ["Hamstrings"],
+    targetMuscles: ["Erector Spinae", "Gluteus Maximus", "Hamstrings"],
+    synergistMuscles: ["Adductor Magnus", "Quadriceps", "Latissimus Dorsi", "Obliques", "Rectus Abdominis"],
     bodyParts: ["Hips"],
     sortedEquipment: ["barbell", "dumbbell", "band"],
   },
