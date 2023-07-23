@@ -299,7 +299,8 @@ export namespace History {
           if (
             Exercise.eq(currentEntry.exercise, entry.exercise) &&
             currentEntry.programExerciseId === entry.programExerciseId &&
-            entry.sets.length > 0
+            entry.sets.length > 0 &&
+            entry.sets.some((s) => (s.completedReps || 0) > 0)
           ) {
             return { record, entry };
           }
@@ -320,7 +321,8 @@ export namespace History {
           if (
             Exercise.eq(currentEntry.exercise, entry.exercise) &&
             entry.programExerciseId === currentEntry.programExerciseId &&
-            entry.sets.length > 0
+            entry.sets.length > 0 &&
+            entry.sets.some((s) => (s.completedReps || 0) > 0)
           ) {
             return { record, entry };
           }
