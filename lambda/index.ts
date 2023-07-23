@@ -55,6 +55,7 @@ import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
+import { PlannerReformatter } from "./utils/plannerReformatter";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1135,6 +1136,23 @@ const getFreeformHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   };
 };
 
+const postPlannerReformatterEndpoint = Endpoint.build("/api/plannerreformatter");
+const postPlannerReformatterHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postPlannerReformatterEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const { prompt } = getBodyJson(event);
+  const plannerReformatter = new PlannerReformatter(di);
+  const result = await plannerReformatter.generate(prompt);
+  if (result.success) {
+    return ResponseUtils.json(200, event, { data: result.data });
+  } else {
+    return ResponseUtils.json(400, event, { error: result.error });
+  }
+};
+
 const postFreeformGeneratorEndpoint = Endpoint.build("/api/freeform");
 const postFreeformGeneratorHandler: RouteHandler<
   IPayload,
@@ -1516,6 +1534,7 @@ export const handler = rollbar.lambdaHandler(
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getFreeformEndpoint, getFreeformHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
+      .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
       .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)

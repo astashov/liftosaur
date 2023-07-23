@@ -17,6 +17,10 @@ import { HtmlUtils } from "../../../utils/html";
 import { TimeUtils } from "../../../utils/time";
 import { PlannerStatsUtils } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
+import { Service } from "../../../api/service";
+import { IconSpinner } from "../../../components/icons/iconSpinner";
+import { useState } from "preact/hooks";
+import { IconHelp } from "../../../components/icons/iconHelp";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -28,11 +32,13 @@ interface IPlannerDayProps {
   evaluatedWeeks: IPlannerEvalResult[][];
   settings: IPlannerSettings;
   dispatch: ILensDispatch<IPlannerState>;
+  service: Service;
 }
 
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
   const { customExercises } = props.settings;
+  const [reformatterSpinner, setReformatterSpinner] = useState(false);
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
@@ -155,6 +161,34 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 }
               }}
             />
+            <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
+              {reformatterSpinner && <IconSpinner width={12} height={12} />}
+              <LinkButton
+                className="ml-1 text-xs font-normal align-middle"
+                onClick={async () => {
+                  setReformatterSpinner(true);
+                  const result = await props.service.postPlannerReformatter(day.exerciseText);
+                  setReformatterSpinner(false);
+                  window.isUndoing = true;
+                  dispatch(
+                    [lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(result)],
+                    "stop-is-undoing"
+                  );
+                }}
+              >
+                Reformat
+              </LinkButton>
+              <button
+                className="ml-1 align-middle"
+                onClick={() =>
+                  alert(
+                    "It'll try to format the exercises properly using ChatGPT - so that each exercise goes on a separate line, with proper sets x reps formatting. It's not 100% accurate, it'll do its best attempt! :)"
+                  )
+                }
+              >
+                <IconHelp size={12} />
+              </button>
+            </div>
           </div>
         </div>
         {isFocused && focusedExercise?.exerciseLine != null && (

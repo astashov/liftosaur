@@ -30,6 +30,7 @@ import { Exercise } from "../../models/exercise";
 import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import { ICustomExercise, IEquipment, IExerciseKind, IMuscle } from "../../types";
+import { Service } from "../../api/service";
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
@@ -37,6 +38,7 @@ export interface IPlannerContentProps {
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
+  const service = new Service(props.client);
   const initialDay: IPlannerProgramDay = {
     name: "Day 1",
     exerciseText: "",
@@ -260,6 +262,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                           dayIndex={dayIndex}
                           ui={state.ui}
                           lbProgram={lbProgram}
+                          service={service}
                         />
                       </div>
                     );
