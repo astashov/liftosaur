@@ -71,7 +71,7 @@ export namespace History {
       id: Progress.isCurrent(progress) ? Date.now() : progress.id,
       timerSince: undefined,
       timerMode: undefined,
-      endTime: Date.now(),
+      ...(Progress.isCurrent(progress) ? { endTime: Date.now() } : {}),
     };
   }
 
