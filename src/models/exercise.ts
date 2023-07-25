@@ -3103,10 +3103,10 @@ export namespace Exercise {
 
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
     const exerciseNames = ObjectUtils.values(exercises)
-      .filter((exercise) => StringUtils.fuzzySearch(query, exercise.name))
+      .filter((exercise) => StringUtils.fuzzySearch(query.toLowerCase(), exercise.name.toLowerCase()))
       .map((e) => e.name);
     const customExerciseNames = ObjectUtils.values(customExercises)
-      .filter((ce) => (ce ? StringUtils.fuzzySearch(query, ce.name) : false))
+      .filter((ce) => (ce ? StringUtils.fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
       .map((e) => e!.name);
     const names = [...exerciseNames, ...customExerciseNames];
     names.sort();
