@@ -64,7 +64,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row">
       <div className="flex-1">
         <div className="flex items-center pb-4">
           <h3 className="mr-2 text-xl font-bold">

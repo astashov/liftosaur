@@ -37,7 +37,6 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
   } else {
     allWeeklySetsMax = undefined;
   }
-  console.log("allWeeklySetsMax", allWeeklySetsMax);
 
   let allWeeklyFrequency: number | undefined;
   if (

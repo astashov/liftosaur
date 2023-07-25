@@ -145,7 +145,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       });
     });
   }, [state.current.program, state.settings.customExercises]);
-  console.log(evaluatedWeeks);
 
   const modalExerciseUi = state.ui.modalExercise;
 
@@ -190,7 +189,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           tabs={program.weeks.map((week, weekIndex) => {
             return [
               week.name,
-              <div key={weekIndex} className="flex">
+              <div key={weekIndex} className="flex flex-col md:flex-row">
                 <div className="flex-1">
                   <h3 className="mr-2 text-xl font-bold">
                     <BuilderLinkInlineInput
