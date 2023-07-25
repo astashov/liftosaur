@@ -562,6 +562,8 @@ export const THistoryRecord = t.intersection(
       timerSince: t.number,
       timerMode: TProgressMode,
       timer: t.number,
+      timerEntryIndex: t.number,
+      timerSetIndex: t.number,
       notes: t.string,
     }),
   ],

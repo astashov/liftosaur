@@ -521,6 +521,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230724": {
+    title: <span>Make the rest timer adjustable</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can adjust a running rest timer. Tap on the timer on the right bottom corner, it'll expand, and you
+          can add time, reduce time, or cancel the timer completely.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

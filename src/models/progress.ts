@@ -229,16 +229,18 @@ export namespace Progress {
     entryIndex: number,
     setIndex: number,
     subscription: ISubscription,
-    settings: ISettings
+    settings: ISettings,
+    timer?: number
   ): IHistoryRecord {
-    let timer: number | undefined;
-    if (Progress.isCurrent(progress) && mode === "workout") {
+    if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
       timer = getCustomWorkoutTimerValue(progress, program, entryIndex, setIndex, settings);
     }
     if (timer == null) {
       timer = settings.timers[mode] || undefined;
     }
     if (timer != null && Subscriptions.hasSubscription(subscription)) {
+      const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
+      console.log("timerForPush", timerForPush);
       const title = "It's time for the next set!";
       let subtitle = "";
       let body = "Time to lift!";
@@ -260,7 +262,7 @@ export namespace Progress {
       }
       SendMessage.toIos({
         type: "startTimer",
-        duration: timer.toString(),
+        duration: timerForPush.toString(),
         mode,
         title,
         subtitleHeader,
@@ -284,6 +286,8 @@ export namespace Progress {
       timerSince: timestamp,
       timer,
       timerMode: mode,
+      timerEntryIndex: entryIndex,
+      timerSetIndex: setIndex,
     };
   }
 
@@ -294,6 +298,8 @@ export namespace Progress {
       ...progress,
       timerSince: undefined,
       timerMode: undefined,
+      timerSetIndex: undefined,
+      timerEntryIndex: undefined,
     };
   }
 

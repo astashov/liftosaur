@@ -231,6 +231,11 @@ export type IStartTimer = {
   mode: IProgressMode;
   entryIndex: number;
   setIndex: number;
+  timer?: number;
+};
+
+export type IStopTimer = {
+  type: "StopTimer";
 };
 
 export type ICreateProgramAction = {
@@ -279,6 +284,7 @@ export type IAction =
   | ILoginAction
   | ILogoutAction
   | IStartTimer
+  | IStopTimer
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
@@ -505,6 +511,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     };
   } else if (action.type === "Logout") {
     return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
+  } else if (action.type === "StopTimer") {
+    const progress = Progress.getProgress(state);
+    if (progress != null) {
+      return Progress.setProgress(state, Progress.stopTimer(progress));
+    } else {
+      return state;
+    }
   } else if (action.type === "StartTimer") {
     const progress = Progress.getProgress(state);
     const program = progress ? Program.getProgram(state, progress.programId) : undefined;
@@ -519,7 +532,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           action.entryIndex,
           action.setIndex,
           state.storage.subscription,
-          state.storage.settings
+          state.storage.settings,
+          action.timer
         )
       );
     } else {

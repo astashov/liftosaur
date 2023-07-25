@@ -471,12 +471,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
       {content}
       {progress && screensWithoutTimer.indexOf(Screen.current(state.screenStack)) === -1 && (
-        <RestTimer
-          timer={progress.timer}
-          timerStart={progress.timerSince}
-          webpushr={state.webpushr}
-          dispatch={dispatch}
-        />
+        <RestTimer progress={progress} webpushr={state.webpushr} dispatch={dispatch} />
       )}
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
