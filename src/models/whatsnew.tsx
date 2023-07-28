@@ -532,6 +532,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230727": {
+    title: <span>Import history from Hevy app</span>,
+    body: (
+      <ul>
+        <li>
+          There's a new item in Settings - "Import history from other apps". It opens a modal, where you can choose Hevy
+          app, and upload CSV file - and it'll import the history from the file into Liftosaur.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

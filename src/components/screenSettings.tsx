@@ -26,6 +26,7 @@ import { StringUtils } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
 import { SendMessage } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
+import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 
 interface IProps {
   dispatch: IDispatch;
@@ -38,6 +39,7 @@ interface IProps {
 
 export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [showImportFromOtherAppsModal, setShowImportFromOtherAppsModal] = useState(false);
 
   return (
     <Surface
@@ -51,6 +53,15 @@ export function ScreenSettings(props: IProps): JSX.Element {
         />
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
+      addons={
+        <>
+          <ModalImportFromOtherApps
+            dispatch={props.dispatch}
+            isHidden={!showImportFromOtherAppsModal}
+            onClose={() => setShowImportFromOtherAppsModal(false)}
+          />
+        </>
+      }
     >
       <section className="px-4">
         <MenuItem
@@ -296,6 +307,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
         </div>
         <div className="ls-import-program">
           <ImporterProgram dispatch={props.dispatch} />
+        </div>
+        <div className="ls-import-other-apps">
+          <MenuItemWrapper name="Import history from other apps" onClick={() => setShowImportFromOtherAppsModal(true)}>
+            <button className="py-3">Import history from other apps</button>
+          </MenuItemWrapper>
         </div>
 
         <GroupHeader name="Miscellaneous" topPadding={true} />

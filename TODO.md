@@ -7,7 +7,6 @@
 - Add negative indexing (-1)
 - Names for variation sets
 - Volume for each exercise, and in exercise stats
-- Adjustable/cancellable rest timer
 
 - Programs
   - 5/3/1s
