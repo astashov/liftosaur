@@ -188,6 +188,7 @@ const ExerciseContentView = memo(
         props.settings
       );
     }
+    const volume = Reps.volume(props.entry.sets);
 
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
@@ -412,6 +413,11 @@ const ExerciseContentView = memo(
             dispatch={props.dispatch}
           />
         </section>
+        {!isCurrentProgress && volume.value > 0 && (
+          <div className="mb-1 text-xs text-left" style={{ marginTop: "-1rem" }}>
+            Volume: <strong>{Weight.print(volume)}</strong>
+          </div>
+        )}
         {isEditModeRef.current && (
           <div className="text-center">
             <Button

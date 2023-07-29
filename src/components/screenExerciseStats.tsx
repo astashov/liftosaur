@@ -27,6 +27,7 @@ import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { StringUtils } from "../utils/string";
 import { useGradualList } from "../utils/useGradualList";
 import { ObjectUtils } from "../utils/object";
+import { Reps } from "../models/set";
 
 interface IProps {
   exercise: IExercise;
@@ -275,9 +276,15 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                         <div>
                           {exerciseEntries.map((entry) => {
                             const state = entry.state || {};
+                            const volume = Reps.volume(entry.sets);
                             return (
                               <div className="pt-1">
                                 <HistoryRecordSetsView sets={entry.sets} unit={props.settings.units} isNext={false} />
+                                {volume.value > 0 && (
+                                  <div className="mb-1 text-xs leading-none text-left text-grayv2-main">
+                                    Volume: <strong>{Weight.print(volume)}</strong>
+                                  </div>
+                                )}
                                 {Object.keys(state).length > 0 && (
                                   <div className="text-xs text-grayv2-main">
                                     {ObjectUtils.keys(state).map((stateKey, i) => {
