@@ -171,7 +171,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                 </div>
               );
             } else if (graph.type === "muscleGroup") {
-              const muscleGroup = graph.id as IScreenMuscle;
+              const muscleGroup = graph.id as IScreenMuscle | "total";
               return (
                 <GraphMuscleGroup
                   programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}

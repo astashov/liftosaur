@@ -160,16 +160,18 @@ export namespace History {
 
   export function collectMuscleGroups(
     settings: ISettings
-  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle, [number[], number[]]>> {
+  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[]]>> {
     return {
       fn: (acc, hr) => {
         for (const entry of hr.entries) {
           const exercise = Exercise.get(entry.exercise, settings.exercises);
           const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises);
           const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises);
-          for (const muscleGroup of screenMuscles) {
+          for (const muscleGroup of [...screenMuscles, "total"] as const) {
             let multiplier = 0;
-            if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
+            if (muscleGroup === "total") {
+              multiplier = 1;
+            } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
               multiplier = 1;
             } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
               multiplier = 0.5;
@@ -206,6 +208,7 @@ export namespace History {
         return acc;
       },
       initial: {
+        total: [[], []],
         shoulders: [[], []],
         triceps: [[], []],
         back: [[], []],
