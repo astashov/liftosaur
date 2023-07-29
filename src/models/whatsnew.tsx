@@ -543,6 +543,16 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230729": {
+    title: <span>Add better volume support</span>,
+    body: (
+      <ul>
+        <li>Now there's a switch between volume and max weight for exercise graphs.</li>
+        <li>There're also muscle group volume per week graphs</li>
+        <li>There's also volume in lbs added to the exercise stats screen and also previous workouts.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
