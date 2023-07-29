@@ -15,6 +15,8 @@ import {
   IProgram,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
+import { IScreenMuscle, screenMuscles } from "./muscle";
+import { Reps } from "./set";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -134,6 +136,88 @@ export namespace History {
         return acc;
       },
       initial: { maxTime: 0, minTime: Infinity },
+    };
+  }
+
+  export function collectProgramChangeTimes(): ICollectorFn<
+    IHistoryRecord,
+    {
+      currentProgram?: string;
+      changeProgramTimes: [number, string][];
+    }
+  > {
+    return {
+      fn: (acc, hr) => {
+        if (!acc.currentProgram || acc.currentProgram !== hr.programName) {
+          acc.currentProgram = hr.programName;
+          acc.changeProgramTimes.push([new Date(Date.parse(hr.date)).getTime() / 1000, acc.currentProgram]);
+        }
+        return acc;
+      },
+      initial: { changeProgramTimes: [] },
+    };
+  }
+
+  export function collectMuscleGroups(
+    settings: ISettings
+  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle, [number[], number[]]>> {
+    return {
+      fn: (acc, hr) => {
+        for (const entry of hr.entries) {
+          const exercise = Exercise.get(entry.exercise, settings.exercises);
+          const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises);
+          const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises);
+          for (const muscleGroup of screenMuscles) {
+            let multiplier = 0;
+            if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
+              multiplier = 1;
+            } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
+              multiplier = 0.5;
+            }
+            if (multiplier === 0) {
+              continue;
+            }
+            const muscleGroupAcc = acc[muscleGroup];
+            const date = new Date(hr.startTime);
+            const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
+            if (lastTs == null) {
+              muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
+              muscleGroupAcc[1].push(0);
+            } else {
+              const lastDate = new Date(lastTs * 1000);
+              const beginningOfWeekForDate = new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate() - date.getDay()
+              );
+              const beginningOfWeekForLastDate = new Date(
+                lastDate.getFullYear(),
+                lastDate.getMonth(),
+                lastDate.getDate() - lastDate.getDay()
+              );
+              if (beginningOfWeekForDate.getTime() !== beginningOfWeekForLastDate.getTime()) {
+                muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
+                muscleGroupAcc[1].push(0);
+              }
+            }
+            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(entry.sets).value * multiplier;
+          }
+        }
+        return acc;
+      },
+      initial: {
+        shoulders: [[], []],
+        triceps: [[], []],
+        back: [[], []],
+        abs: [[], []],
+        glutes: [[], []],
+        hamstrings: [[], []],
+        quadriceps: [[], []],
+        chest: [[], []],
+        biceps: [[], []],
+        calves: [[], []],
+        forearms: [[], []],
+      },
     };
   }
 

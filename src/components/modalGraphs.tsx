@@ -24,6 +24,7 @@ import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
+import { screenMuscles } from "../models/muscle";
 
 interface IModalGraphsProps {
   isHidden: boolean;
@@ -52,7 +53,11 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter((k) => !usedStats.has(k));
   const statsLengthKeys = ObjectUtils.keys(props.stats.length).filter((k) => !usedStats.has(k));
   const statsPercentageKeys = ObjectUtils.keys(props.stats.percentage).filter((k) => !usedStats.has(k));
+  const availableMuscleGroups = screenMuscles.filter(
+    (m) => !graphs.some((g) => g.type === "muscleGroup" && g.id === m)
+  );
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
+
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <GroupHeader name="Settings" isExpanded={true}>
@@ -133,7 +138,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         />
       </GroupHeader>
       <form className="relative" data-cy="modal-graphs" onSubmit={(e) => e.preventDefault()}>
-        {graphs.length > 0 && <GroupHeader name="Selected Graphs" />}
+        {graphs.length > 0 && <GroupHeader topPadding={true} name="Selected Graphs" />}
         <DraggableList
           items={graphs}
           element={(graph, i, handleTouchStart) => {
@@ -150,6 +155,8 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   </div>
                   {graph.type === "exercise" ? (
                     <ExercisePreview exercise={graph.id} settings={props.settings} />
+                  ) : graph.type === "muscleGroup" ? (
+                    <MuscleGroupPreview muscleGroup={graph.id} />
                   ) : (
                     <StatsPreview stats={graph.id} />
                   )}
@@ -170,7 +177,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         />
         {exercises.length > 0 && (
           <>
-            <GroupHeader name="Available Exercise Graphs" />
+            <GroupHeader topPadding={true} name="Available Exercise Graphs" />
             {exercises.map((e) => {
               return (
                 <section
@@ -184,7 +191,23 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             })}
           </>
         )}
-        {hasAvailableStats && <GroupHeader name="Available Stats Graphs" />}
+        {availableMuscleGroups.length > 0 && (
+          <>
+            <GroupHeader name="Available Muscle Groups Graphs" topPadding={true} />
+            {availableMuscleGroups.map((muscleGroup) => {
+              return (
+                <section
+                  data-cy={`item-graph-${muscleGroup}`}
+                  className="flex w-full px-2 py-1 text-left border-b border-gray-200"
+                  onClick={() => EditGraphs.addMuscleGroupGraph(props.dispatch, muscleGroup)}
+                >
+                  <MuscleGroupPreview muscleGroup={muscleGroup} />
+                </section>
+              );
+            })}
+          </>
+        )}
+        {hasAvailableStats && <GroupHeader name="Available Stats Graphs" topPadding={true} />}
         {statsWeightKeys.map((statsKey) => {
           return (
             <MenuItem
@@ -235,6 +258,16 @@ function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
   return (
     <Fragment>
       <div className="flex items-center flex-1 py-3 text-left">{Stats.name(props.stats)}</div>
+    </Fragment>
+  );
+}
+
+function MuscleGroupPreview(props: { muscleGroup: string }): JSX.Element {
+  return (
+    <Fragment>
+      <div className="flex items-center flex-1 py-3 text-left">
+        {StringUtils.capitalize(props.muscleGroup)} Weekly Volume
+      </div>
     </Fragment>
   );
 }

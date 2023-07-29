@@ -53,6 +53,25 @@ export namespace EditGraphs {
     });
   }
 
+  export function addMuscleGroupGraph(dispatch: IDispatch, muscleGroup: string): void {
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("settings")
+          .p("graphs")
+          .recordModify((ex) => {
+            if (!ex.some((e) => e.type === "muscleGroup" && e.id === muscleGroup)) {
+              return [...ex, { type: "muscleGroup", id: muscleGroup }];
+            } else {
+              return ex;
+            }
+          }),
+      ],
+    });
+  }
+
   export function addStatsWeightGraph(dispatch: IDispatch, statsKey: keyof IStatsWeight): void {
     dispatch({
       type: "UpdateSettings",

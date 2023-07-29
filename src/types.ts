@@ -765,6 +765,7 @@ export const TGraph = t.union([
   t.type({ type: t.literal("statsWeight"), id: t.keyof(statsWeightDef) }),
   t.type({ type: t.literal("statsLength"), id: t.keyof(statsLengthDef) }),
   t.type({ type: t.literal("statsPercentage"), id: t.keyof(statsPercentageDef) }),
+  t.type({ type: t.literal("muscleGroup"), id: t.string }),
 ]);
 export type IGraph = t.TypeOf<typeof TGraph>;
 

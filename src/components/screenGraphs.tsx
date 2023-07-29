@@ -14,6 +14,10 @@ import { Footer2View } from "./footer2";
 import { IScreen, Screen } from "../models/screen";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpGraphs } from "./help/helpGraphs";
+import { Collector } from "../utils/collector";
+import { IScreenMuscle } from "../models/muscle";
+import { GraphMuscleGroup } from "./graphMuscleGroup";
+import { CollectionUtils } from "../utils/collection";
 
 interface IProps {
   dispatch: IDispatch;
@@ -32,6 +36,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const exerciseIds = ObjectUtils.keys(maxSets);
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
+
+  const historyCollector = Collector.build(CollectionUtils.sortBy(props.history, "id"))
+    .addFn(History.collectMuscleGroups(props.settings))
+    .addFn(History.collectProgramChangeTimes());
+  const [muscleGroupsData, programChangeTimes] = historyCollector.run();
+
   if (hasBodyweight && isWithBodyweight) {
     bodyweightData = getWeightDataForGraph(props.stats.weight.weight || [], props.settings);
   }
@@ -159,6 +169,16 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     statsKey={graph.id}
                   />
                 </div>
+              );
+            } else if (graph.type === "muscleGroup") {
+              const muscleGroup = graph.id as IScreenMuscle;
+              return (
+                <GraphMuscleGroup
+                  programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
+                  data={muscleGroupsData[muscleGroup]}
+                  muscleGroup={muscleGroup}
+                  settings={props.settings}
+                />
               );
             } else {
               const collection = getPercentageDataForGraph(props.stats.percentage[graph.id] || [], props.settings);
