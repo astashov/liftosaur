@@ -16,6 +16,8 @@ import { Surface } from "./surface";
 import { ILoading } from "../models/state";
 import { IScreen } from "../models/screen";
 import { Thunk } from "../ducks/thunks";
+import { IScreenMuscle } from "../models/muscle";
+import { Collector } from "../utils/collector";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -32,6 +34,13 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
   const totalReps = History.totalRecordReps(record);
+  const totalSets = History.totalRecordSets(record);
+
+  const leftColumn: IScreenMuscle[] = ["back", "glutes", "hamstrings", "calves", "triceps"];
+  const rightColumn: IScreenMuscle[] = ["shoulders", "abs", "quadriceps", "chest", "biceps", "forearms"];
+
+  const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
+  const [muscleGroupsData] = historyCollector.run();
 
   return (
     <Surface
@@ -63,12 +72,42 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             Time: <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong> hours
           </div>
           <div>
-            Total weight lifted: <strong>{Weight.display(totalWeight)}</strong>
+            Total volume: <strong>{Weight.display(totalWeight)}</strong>
+          </div>
+          <div>
+            Total sets: <strong>{totalSets}</strong>
           </div>
           <div>
             Total reps: <strong>{totalReps}</strong>
           </div>
         </section>
+        <div className="mt-4 text-sm font-bold text-center">Volume per muscle group</div>
+        <div className="flex mt-1" style={{ gap: "1rem" }}>
+          <ul className="flex-1">
+            {leftColumn
+              .filter((c) => muscleGroupsData[c][1][0] > 0)
+              .map((muscle) => (
+                <li>
+                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
+                  <strong>
+                    {muscleGroupsData[muscle][1] || 0} {props.settings.units}
+                  </strong>
+                </li>
+              ))}
+          </ul>
+          <ul className="flex-1">
+            {rightColumn
+              .filter((c) => muscleGroupsData[c][1][0] > 0)
+              .map((muscle) => (
+                <li>
+                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
+                  <strong>
+                    {muscleGroupsData[muscle][1] || 0} {props.settings.units}
+                  </strong>
+                </li>
+              ))}
+          </ul>
+        </div>
         {prs.size > 0 ? (
           <section className="px-4 py-8">
             <h3 className="pb-2 font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
