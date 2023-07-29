@@ -1,6 +1,6 @@
 import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight } from "../types";
 
 export type IProgramReps = number;
 
@@ -108,5 +108,13 @@ export namespace Reps {
     }
 
     return undefined;
+  }
+
+  export function volume(sets: ISet[]): IWeight {
+    const unit = sets[0]?.weight?.unit || "lb";
+    return sets.reduce(
+      (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps ?? 0)),
+      Weight.build(0, unit)
+    );
   }
 }

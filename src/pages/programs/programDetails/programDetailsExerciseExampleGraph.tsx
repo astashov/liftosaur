@@ -20,7 +20,7 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title,
-      class: "graph-max-weight",
+      class: "graph-program-details-example",
       width: rect.width,
       height: rect.height,
       cursor: {

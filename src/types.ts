@@ -279,6 +279,18 @@ export const TBodyPart = t.keyof(
 );
 export type IBodyPart = t.TypeOf<typeof TBodyPart>;
 
+export const graphExerciseSelectedTypes = ["weight", "volume"] as const;
+export const TGraphExerciseSelectedType = t.keyof(
+  graphExerciseSelectedTypes.reduce<Record<IArrayElement<typeof graphExerciseSelectedTypes>, null>>((memo, muscle) => {
+    memo[muscle] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof graphExerciseSelectedTypes>, null>),
+  "TGraphExerciseSelectedType"
+);
+export type IGraphExerciseSelectedType = t.TypeOf<typeof TGraphExerciseSelectedType>;
+
+export type IExerciseSelectedType = "weight" | "volume";
+
 export const TEquipment = t.string;
 export type IEquipment = t.TypeOf<typeof TEquipment>;
 
@@ -789,6 +801,7 @@ export const TSettings = t.intersection(
         isWithBodyweight: t.boolean,
         isWithOneRm: t.boolean,
         isWithProgramLines: t.boolean,
+        defaultType: TGraphExerciseSelectedType,
       }),
       exerciseStatsSettings: t.partial({
         ascendingSort: t.boolean,

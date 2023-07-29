@@ -137,6 +137,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               isWithProgramLines={true}
               history={props.history}
               exercise={props.exercise}
+              initialType={props.settings.graphsSettings.defaultType}
               dispatch={props.dispatch}
             />
           </div>

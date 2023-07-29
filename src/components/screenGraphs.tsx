@@ -113,6 +113,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
               return (
                 <div className="mb-2">
                   <GraphExercise
+                    initialType={props.settings.graphsSettings.defaultType}
                     isSameXAxis={isSameXAxis}
                     minX={Math.round(minX / 1000)}
                     maxX={Math.round(maxX / 1000)}

@@ -287,6 +287,12 @@ input[type="checkbox"].checkbox:disabled {
   line-height: 1.1;
 }
 
+.uplot.graph-max-weight .u-title {
+  padding-left: 0.75rem;
+  padding-right: 7rem;
+  text-align: left;
+}
+
 @keyframes shiny-border {
   0%,
   100% {

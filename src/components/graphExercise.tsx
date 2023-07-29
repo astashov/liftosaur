@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { h, JSX } from "preact";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
+import { useRef, useEffect, useState } from "preact/hooks";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
 import { Exercise, equipmentToBarKey } from "../models/exercise";
 import { Weight } from "../models/weight";
-import { IHistoryRecord, IExerciseType, ISettings } from "../types";
+import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
 import { HtmlUtils } from "../utils/html";
+import { Reps } from "../models/set";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -22,6 +23,7 @@ interface IGraphProps {
   minX: number;
   maxX: number;
   bodyweightData?: [number, number][];
+  initialType?: IExerciseSelectedType;
   dispatch?: IDispatch;
 }
 
@@ -32,7 +34,7 @@ function getData(
   isWithOneRm?: boolean,
   bodyweightData?: [number, number][]
 ): {
-  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
+  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
   historyRecords: { [key: number]: IHistoryRecord };
   changeProgramTimes: [number, string][];
 } {
@@ -40,7 +42,7 @@ function getData(
   let currentProgram: string | undefined = undefined;
   const historyRecords: { [key: number]: IHistoryRecord } = {};
   const normalizedData = CollectionUtils.sort(history, (a, b) => a.startTime - b.startTime).reduce<
-    [number, number | null, number | null, number | null, number | null][]
+    [number, number | null, number | null, number | null, number | null, number | null][]
   >((memo, i) => {
     if (!currentProgram || currentProgram !== i.programName) {
       currentProgram = i.programName;
@@ -53,6 +55,7 @@ function getData(
           ? Weight.compare(b.weight, a.weight)
           : (b.completedReps || 0) - (a.completedReps || 0);
       }).find((s) => s.completedReps != null && s.completedReps > 0);
+      const volume = Reps.volume(entry.sets);
       if (maxSet != null) {
         let onerm = null;
         if (isWithOneRm) {
@@ -66,6 +69,7 @@ function getData(
           Weight.convertTo(maxSet.weight, settings.units).value,
           maxSet.completedReps!,
           onerm,
+          volume.value,
           null,
         ]);
       }
@@ -73,29 +77,56 @@ function getData(
     return memo;
   }, []);
   const normalizedBodyweightData = (bodyweightData || []).map<
-    [number, number | null, number | null, number | null, number | null]
+    [number, number | null, number | null, number | null, number | null, number | null]
   >((i) => {
-    return [i[0], null, null, null, i[1]];
+    return [i[0], null, null, null, null, i[1]];
   });
   const sorted = CollectionUtils.sort(
     normalizedData.concat(normalizedBodyweightData),
     (a, b) => (a[0] || 0) - (b[0] || 0)
   );
-  const data = sorted.reduce<[number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]>(
+  const data = sorted.reduce<
+    [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]
+  >(
     (memo, i) => {
       memo[0].push(i[0]);
       memo[1].push(i[1]);
       memo[2].push(i[2]);
       memo[3].push(i[3]);
       memo[4].push(i[4]);
+      memo[5].push(i[5]);
       return memo;
     },
-    [[], [], [], [], []]
+    [[], [], [], [], [], []]
   );
   return { data, changeProgramTimes, historyRecords };
 }
 
 export function GraphExercise(props: IGraphProps): JSX.Element {
+  const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
+
+  return (
+    <div className="relative mx-1">
+      <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
+        <select
+          className="p-2 text-right"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.currentTarget.value as any)}
+        >
+          <option selected={selectedType === "weight"} value="weight">
+            Max Weight
+          </option>
+          <option selected={selectedType === "volume"} value="volume">
+            Volume
+          </option>
+        </select>
+      </div>
+      <GraphExerciseContent key={selectedType} {...{ ...props, selectedType }} />
+    </div>
+  );
+}
+
+function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSelectedType }): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   const selectedHistoryRecordRef = useRef<IHistoryRecord | undefined>(null);
@@ -107,7 +138,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
     const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
     const data = result.data;
     const opts: UPlot.Options = {
-      title: props.title || `${exercise.name} Max Weight`,
+      title: props.title || `${exercise.name}`,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,
@@ -128,21 +159,32 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
                 const weight = data[1][idx];
                 const reps = data[2][idx];
                 const onerm = data[3][idx];
-                const bodyweight = data[4][idx];
+                const volume = data[4][idx];
+                const bodyweight = data[5][idx];
                 const historyRecord = result.historyRecords[timestamp];
                 const dispatch = props.dispatch;
                 let text: string;
                 if (weight != null && units != null && reps != null) {
-                  text = `<div><div class="text-center">${DateUtils.format(
-                    date
-                  )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
-                  if (props.isWithOneRm && onerm != null) {
-                    text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
+                  if (props.selectedType === "weight") {
+                    text = `<div><div class="text-center">${DateUtils.format(
+                      date
+                    )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
+                    if (props.isWithOneRm && onerm != null) {
+                      text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
+                    }
+                    if (historyRecord != null && dispatch) {
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                    }
+                    text += "</span>";
+                  } else {
+                    text = `<div><div class="text-center">${DateUtils.format(
+                      date
+                    )}, Volume: <strong>${volume} ${units}s</strong>`;
+                    if (historyRecord != null && dispatch) {
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                    }
+                    text += "</span>";
                   }
-                  if (historyRecord != null && dispatch) {
-                    text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
-                  }
-                  text += "</span>";
                 } else if (bodyweight != null) {
                   text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</div>`;
                 } else {
@@ -180,6 +222,7 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
         {},
         {
           label: "Weight",
+          show: props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
           stroke: "red",
           width: 1,
@@ -193,9 +236,17 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
         },
         {
           label: "1RM",
-          show: props.isWithOneRm,
+          show: props.isWithOneRm && props.selectedType === "weight",
           value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "orange",
+          stroke: "#28839F",
+          width: 1,
+          spanGaps: true,
+        },
+        {
+          label: "Volume",
+          show: props.selectedType === "volume",
+          value: (self, rawValue) => `${rawValue} ${units}`,
+          stroke: "#FF8066",
           width: 1,
           spanGaps: true,
         },

@@ -7,7 +7,15 @@ import { GroupHeader } from "./groupHeader";
 import { DraggableList } from "./draggableList";
 import { IconHandle } from "./icons/iconHandle";
 import { EditGraphs } from "../models/editGraphs";
-import { IExerciseId, IGraph, ISettings, IStats, IStatsKey } from "../types";
+import {
+  graphExerciseSelectedTypes,
+  IExerciseId,
+  IGraph,
+  ISettings,
+  IStats,
+  IStatsKey,
+  IGraphExerciseSelectedType,
+} from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
 import { ObjectUtils } from "../utils/object";
@@ -48,6 +56,23 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
       <GroupHeader name="Settings" isExpanded={true}>
+        <MenuItemEditable
+          type="select"
+          name="Default exercise graph type"
+          value={settings.graphsSettings.defaultType || "weight"}
+          values={graphExerciseSelectedTypes.map((t) => [t, StringUtils.capitalize(t)])}
+          onChange={(v) => {
+            if (v) {
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("graphsSettings")
+                  .p("defaultType")
+                  .record(v as IGraphExerciseSelectedType)
+              );
+            }
+          }}
+        />
         <MenuItemEditable
           type="boolean"
           name="Same range for X axis for all graphs"
