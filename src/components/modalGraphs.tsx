@@ -15,6 +15,8 @@ import {
   IStats,
   IStatsKey,
   IGraphExerciseSelectedType,
+  graphMuscleGroupSelectedTypes,
+  IGraphMuscleGroupSelectedType,
 } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
@@ -74,6 +76,23 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   .p("graphsSettings")
                   .p("defaultType")
                   .record(v as IGraphExerciseSelectedType)
+              );
+            }
+          }}
+        />
+        <MenuItemEditable
+          type="select"
+          name="Default muscle group graph type"
+          value={settings.graphsSettings.defaultMuscleGroupType || "volume"}
+          values={graphMuscleGroupSelectedTypes.map((t) => [t, StringUtils.capitalize(t)])}
+          onChange={(v) => {
+            if (v) {
+              updateSettings(
+                props.dispatch,
+                lb<ISettings>()
+                  .p("graphsSettings")
+                  .p("defaultMuscleGroupType")
+                  .record(v as IGraphMuscleGroupSelectedType)
               );
             }
           }}

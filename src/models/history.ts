@@ -160,7 +160,7 @@ export namespace History {
 
   export function collectMuscleGroups(
     settings: ISettings
-  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[]]>> {
+  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[], number[]]>> {
     return {
       fn: (acc, hr) => {
         for (const entry of hr.entries) {
@@ -185,6 +185,7 @@ export namespace History {
             if (lastTs == null) {
               muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
               muscleGroupAcc[1].push(0);
+              muscleGroupAcc[2].push(0);
             } else {
               const lastDate = new Date(lastTs * 1000);
               const beginningOfWeekForDate = new Date(
@@ -200,26 +201,28 @@ export namespace History {
               if (beginningOfWeekForDate.getTime() !== beginningOfWeekForLastDate.getTime()) {
                 muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
                 muscleGroupAcc[1].push(0);
+                muscleGroupAcc[2].push(0);
               }
             }
             muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(entry.sets).value * multiplier;
+            muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += entry.sets.length * multiplier;
           }
         }
         return acc;
       },
       initial: {
-        total: [[], []],
-        shoulders: [[], []],
-        triceps: [[], []],
-        back: [[], []],
-        abs: [[], []],
-        glutes: [[], []],
-        hamstrings: [[], []],
-        quadriceps: [[], []],
-        chest: [[], []],
-        biceps: [[], []],
-        calves: [[], []],
-        forearms: [[], []],
+        total: [[], [], []],
+        shoulders: [[], [], []],
+        triceps: [[], [], []],
+        back: [[], [], []],
+        abs: [[], [], []],
+        glutes: [[], [], []],
+        hamstrings: [[], [], []],
+        quadriceps: [[], [], []],
+        chest: [[], [], []],
+        biceps: [[], [], []],
+        calves: [[], [], []],
+        forearms: [[], [], []],
       },
     };
   }

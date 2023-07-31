@@ -174,6 +174,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
               const muscleGroup = graph.id as IScreenMuscle | "total";
               return (
                 <GraphMuscleGroup
+                  initialType={props.settings.graphsSettings.defaultMuscleGroupType}
                   programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
                   data={muscleGroupsData[muscleGroup]}
                   muscleGroup={muscleGroup}
