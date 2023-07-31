@@ -151,7 +151,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
 
   return (
     <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full mx-2" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
+      <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
       <div data-cy="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
     </div>
   );
