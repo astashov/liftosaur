@@ -64,6 +64,7 @@ export const Playground = memo(
         programExerciseVariations[variationIndex].sets,
         programExerciseState,
         settings,
+        !!programExercise.enableRpe,
         programExerciseWarmupSets
       );
       return History.buildFromEntry(entry, day);
@@ -113,7 +114,22 @@ export const Playground = memo(
             updateProgress({ programExercise: newProgramExercise });
           }}
         />
-        <ModalAmrap isHidden={progressRef.current.ui?.amrapModal == null} dispatch={dispatch} />
+        <ModalAmrap
+          isHidden={progressRef.current.ui?.amrapModal == null}
+          initialReps={
+            progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[
+              progressRef.current.ui?.amrapModal?.setIndex || 0
+            ]?.completedReps
+          }
+          initialRpe={
+            progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[
+              progressRef.current.ui?.amrapModal?.setIndex || 0
+            ]?.completedRpe
+          }
+          dispatch={dispatch}
+          isAmrap={progressRef.current.ui?.amrapModal?.isAmrap || false}
+          logRpe={progressRef.current.ui?.amrapModal?.logRpe || false}
+        />
         <ModalWeight
           isHidden={progressRef.current.ui?.weightModal == null}
           programExercise={progressRef.current.ui?.weightModal?.programExercise}

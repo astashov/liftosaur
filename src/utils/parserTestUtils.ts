@@ -14,7 +14,9 @@ export namespace ParserTestUtils {
       { value: 40, unit: "lb" },
     ],
     reps: [1, 2, 3],
+    rpe: [0, 0, 0],
     completedReps: [1, 2, 3],
+    completedRpe: [0, 0, 0],
     w: [
       { value: 40, unit: "lb" },
       { value: 40, unit: "lb" },
@@ -35,6 +37,8 @@ export namespace ParserTestUtils {
       day: args.day ?? 1,
       weights,
       reps,
+      rpe: reps.map(() => 0),
+      completedRpe: reps.map(() => 0),
       completedReps,
       w: weights,
       r: reps,

@@ -72,6 +72,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
             ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
             state,
             settings,
+            !!programExercise.enableRpe,
             ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
           );
           props.onProgressChange(History.buildFromEntry(newEntry, newDay));
@@ -121,6 +122,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
               ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
               state,
               settings,
+              !!programExercise.enableRpe,
               ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
             );
             props.onProgressChange(History.buildFromEntry(newEntry, props.day));
@@ -129,7 +131,20 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           Reset Playground
         </LinkButton>
       </div>
-      <ModalAmrap isHidden={progress.ui?.amrapModal == null} dispatch={dispatch} />
+      <ModalAmrap
+        isHidden={progress.ui?.amrapModal == null}
+        dispatch={dispatch}
+        initialReps={
+          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+            ?.completedReps
+        }
+        initialRpe={
+          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+            ?.completedRpe
+        }
+        isAmrap={progress.ui?.amrapModal?.isAmrap || false}
+        logRpe={progress.ui?.amrapModal?.logRpe || false}
+      />
       <ModalWeight
         programExercise={progress.ui?.weightModal?.programExercise}
         isHidden={progress.ui?.weightModal == null}

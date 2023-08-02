@@ -190,7 +190,9 @@ export function MenuItemValue(
             const target = e.target;
             if (target instanceof HTMLInputElement) {
               const value = (target as HTMLInputElement).value;
-              target.setSelectionRange(0, value.length);
+              if (target.type !== "number") {
+                target.setSelectionRange(0, value.length);
+              }
               return true;
             }
             return undefined;

@@ -408,6 +408,9 @@ export const TSet = t.intersection(
     }),
     t.partial({
       completedReps: t.number,
+      rpe: t.number,
+      completedRpe: t.number,
+      logRpe: t.boolean,
       timestamp: t.number,
       isAmrap: t.boolean,
       label: t.string,
@@ -456,6 +459,8 @@ export const TProgramSet = t.intersection(
     }),
     t.partial({
       isAmrap: t.boolean,
+      rpeExpr: t.string,
+      logRpe: t.boolean,
       label: t.string,
     }),
   ],
@@ -506,6 +511,7 @@ export const TProgramExercise = t.intersection(
       description: t.string,
       descriptionExpr: t.string,
       quickAddSets: t.boolean,
+      enableRpe: t.boolean,
       stateMetadata: TProgramStateMetadata,
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
@@ -518,10 +524,16 @@ export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
 
 export const TProgressUi = t.partial(
   {
-    amrapModal: t.type({
-      entryIndex: t.number,
-      setIndex: t.number,
-    }),
+    amrapModal: t.intersection([
+      t.interface({
+        entryIndex: t.number,
+        setIndex: t.number,
+      }),
+      t.partial({
+        isAmrap: t.boolean,
+        logRpe: t.boolean,
+      }),
+    ]),
     weightModal: t.type({
       exercise: TExerciseType,
       weight: TWeight,

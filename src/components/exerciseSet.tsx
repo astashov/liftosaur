@@ -25,11 +25,13 @@ export const ExerciseSetView = memo(
     let cy: string;
     let color: "red" | "green" | "gray";
     let title;
-    let superstring;
+    let rightSuperstring;
+    let leftSuperstring: string | undefined;
+    let leftSuperstringColor: "orange" | "gray" | undefined;
     let shinyBorder;
     if (set.isAmrap) {
       title = set.completedReps == null ? `${set.reps}+` : set.completedReps;
-      superstring = set.completedReps != null ? `${set.reps}+` : undefined;
+      rightSuperstring = set.completedReps != null ? `${set.reps}+` : undefined;
       if (set.completedReps == null) {
         cy = "set-amrap-nonstarted";
         color = "gray";
@@ -55,6 +57,15 @@ export const ExerciseSetView = memo(
         color = "red";
       }
     }
+
+    if (set.rpe != null || set.completedRpe != null) {
+      leftSuperstring = set.completedRpe != null ? `@${set.completedRpe}` : `@${set.rpe}`;
+      leftSuperstringColor = set.completedRpe != null ? "orange" : "gray";
+    } else if (set.logRpe) {
+      leftSuperstring = "@?";
+      leftSuperstringColor = "gray";
+    }
+
     return (
       <ExerciseSetBase
         cy={cy}
@@ -62,7 +73,9 @@ export const ExerciseSetView = memo(
         onClick={props.onClick}
         title={title}
         subtitle={subtitle}
-        superstring={superstring}
+        leftSuperstring={leftSuperstring}
+        leftSuperstringColor={leftSuperstringColor}
+        rightSuperstring={rightSuperstring}
         shinyBorder={shinyBorder}
         size={props.size}
         onLongPress={props.onLongPress}
@@ -85,7 +98,9 @@ interface IExerciseSetBaseProps {
   showHelp?: boolean;
   title: string | number;
   subtitle: string | number;
-  superstring?: string;
+  leftSuperstring?: string;
+  leftSuperstringColor?: "gray" | "orange";
+  rightSuperstring?: string;
   color: "gray" | "red" | "green";
   shinyBorder?: boolean;
   size?: "small" | "medium";
@@ -124,13 +139,24 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
       onClick={onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >
-      {props.superstring != null && (
+      {props.rightSuperstring != null && (
         <div
           data-cy="reps-completed-amrap"
-          style={{ top: "-0.5rem", right: "-0.5rem" }}
+          style={{ top: "-9px", right: "-5px", fontSize: "10px" }}
           className="absolute p-1 text-xs leading-none text-right text-white rounded-full bg-purplev2-600 border-purplev2-800"
         >
-          {props.superstring}
+          {props.rightSuperstring}
+        </div>
+      )}
+      {props.leftSuperstring != null && (
+        <div
+          data-cy={props.leftSuperstringColor === "orange" ? "left-superscript-completed" : "left-superscript"}
+          style={{ top: "-9px", left: "-4px", fontSize: "10px" }}
+          className={`absolute p-1 text-xs leading-none text-right text-white rounded-full ${
+            props.leftSuperstringColor === "orange" ? "bg-orangev2" : "bg-grayv2-main"
+          }`}
+        >
+          {props.leftSuperstring}
         </div>
       )}
       <div className="font-bold leading-none" data-cy="reps-value">

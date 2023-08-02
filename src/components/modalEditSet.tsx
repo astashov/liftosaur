@@ -1,5 +1,5 @@
 import { IDispatch } from "../ducks/types";
-import { JSX, h } from "preact";
+import { JSX, h, Fragment } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
@@ -50,8 +50,11 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const set = props.set;
   const repsInput = useRef<HTMLInputElement>(null);
   const weightInput = useRef<HTMLInputElement>(null);
+  const rpeInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
   const initialWeight = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
+  const initialRpe = set?.completedRpe;
+  const classNames = inputClassName.replace(" px-4 ", " px-2 ");
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
@@ -82,7 +85,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               ref={repsInput}
               data-cy="modal-edit-set-reps-input"
               onFocus={selectInputOnFocus}
-              className={`${inputClassName}`}
+              className={classNames}
               value={set?.reps}
               required
               type="tel"
@@ -96,7 +99,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               ref={weightInput}
               data-cy="modal-edit-set-weight-input"
               onFocus={selectInputOnFocus}
-              className={inputClassName}
+              className={classNames}
               onInput={(e) => {
                 const target = e.target;
                 if (Subscriptions.hasSubscription(props.subscription) && target instanceof HTMLInputElement) {
@@ -116,6 +119,28 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             />
           </div>
           <div>{props.settings.units}</div>
+          {!props.isWarmup && props.programExercise?.enableRpe && (
+            <>
+              <div className="ml-2 mr-1">@</div>
+              <div className="w-16">
+                <input
+                  ref={rpeInput}
+                  data-cy="modal-edit-set-rpe-input"
+                  onFocus={selectInputOnFocus}
+                  className={classNames}
+                  // @ts-ignore
+                  defaultValue={initialRpe}
+                  required
+                  type={SendMessage.isIos() ? "number" : "tel"}
+                  step="0.5"
+                  maxLength={3}
+                  min="0"
+                  max="10"
+                  placeholder="RPE"
+                />
+              </div>
+            </>
+          )}
         </div>
         {!props.isWarmup && (
           <div className="mt-1 ml-1">
@@ -156,6 +181,10 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               if (repsInput.current.validity.valid && weightInput.current.validity.valid) {
                 const reps = parseInt(repsInput.current.value, 10);
                 const w = parseFloat(weightInput.current.value);
+                let rpe = rpeInput.current ? parseFloat(rpeInput.current.value) : undefined;
+                if (rpe && !isNaN(rpe)) {
+                  rpe = Math.round(Math.max(0, Math.min(10, rpe)) / 0.5) * 0.5;
+                }
                 const isAmrap = !!(isAmrapInput.current?.checked || false);
                 if (!isNaN(reps) && !isNaN(w)) {
                   const newSet: ISet = {
@@ -163,6 +192,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     weight: Weight.build(w, props.settings.units),
                     isAmrap,
                     completedReps: props.programExercise != null && quickAddSets ? reps : undefined,
+                    completedRpe: rpe && !isNaN(rpe) ? rpe : undefined,
                   };
                   EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
                   if (!props.isTimerDisabled && quickAddSets && !props.isWarmup) {

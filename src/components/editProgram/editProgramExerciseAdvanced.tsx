@@ -218,8 +218,14 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             onChangeReps={(reps: string, variation: number, setIndex: number) => {
               EditProgram.setReps(props.dispatch, reps, variation, setIndex);
             }}
+            onChangeRpe={(rpe: string, variation: number, setIndex: number) => {
+              EditProgram.setRpe(props.dispatch, rpe, variation, setIndex);
+            }}
             onChangeAmrap={(isSet: boolean, variation: number, setIndex: number) => {
               EditProgram.setAmrap(props.dispatch, isSet, variation, setIndex);
+            }}
+            onChangeLogRpe={(isSet: boolean, variation: number, setIndex: number) => {
+              EditProgram.setLogRpe(props.dispatch, isSet, variation, setIndex);
             }}
             onChangeWeight={(weight: string, variation: number, setIndex: number) => {
               EditProgram.setWeight(props.dispatch, weight, variation, setIndex);
@@ -259,6 +265,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             entry={entry}
             onChangeQuickAddSets={(quickAddSets) => {
               EditProgram.setQuickAddSets(props.dispatch, quickAddSets);
+            }}
+            onChangeEnableRpe={(enableRpe) => {
+              EditProgram.setEnableRpe(props.dispatch, enableRpe);
             }}
             onValid={(isValid) => {
               setIsTimerValid(isValid);

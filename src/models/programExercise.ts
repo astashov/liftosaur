@@ -234,6 +234,7 @@ export namespace ProgramExercise {
         ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
         state,
         settings,
+        !!programExercise.enableRpe,
         ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
       );
     } catch (e) {

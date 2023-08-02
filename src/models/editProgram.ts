@@ -142,6 +142,10 @@ export namespace EditProgram {
     ]);
   }
 
+  export function setRpe(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
+    updateState(dispatch, [EditProgramLenses.setRpe(lb<IState>().pi("editExercise"), value, variationIndex, setIndex)]);
+  }
+
   export function setLabel(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setLabel(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
@@ -178,6 +182,10 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.setQuickAddSets(lb<IState>().pi("editExercise"), value)]);
   }
 
+  export function setEnableRpe(dispatch: IDispatch, value: boolean): void {
+    updateState(dispatch, [EditProgramLenses.setEnableRpe(lb<IState>().pi("editExercise"), value)]);
+  }
+
   export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setWeight(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
@@ -187,6 +195,12 @@ export namespace EditProgram {
   export function setAmrap(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [
       EditProgramLenses.setAmrap(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
+    ]);
+  }
+
+  export function setLogRpe(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
+    updateState(dispatch, [
+      EditProgramLenses.setLogRpe(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
     ]);
   }
 

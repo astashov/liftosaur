@@ -71,10 +71,11 @@ export class ScriptRunner {
   }
 
   public execute(type: "reps"): number;
+  public execute(type: "rpe"): number;
   public execute(type: "weight"): IWeight;
   public execute(type: "timer"): number;
   public execute(type?: undefined): number | IWeight | boolean;
-  public execute(type?: "reps" | "weight" | "timer"): number | IWeight | boolean {
+  public execute(type?: "reps" | "weight" | "timer" | "rpe"): number | IWeight | boolean {
     const [liftoscriptEvaluator, liftoscriptTree] = this.parse();
     const rawResult = liftoscriptEvaluator.evaluate(liftoscriptTree.topNode);
     const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
@@ -84,7 +85,7 @@ export class ScriptRunner {
   }
 
   private convertResult(
-    type: "reps" | "weight" | "timer" | undefined,
+    type: "reps" | "weight" | "timer" | "rpe" | undefined,
     result: number | IWeight | boolean
   ): number | IWeight | boolean {
     if (type === "reps" || type === "timer") {
@@ -94,6 +95,12 @@ export class ScriptRunner {
         return 0;
       } else {
         return result;
+      }
+    } else if (type === "rpe") {
+      if (typeof result !== "number") {
+        throw new SyntaxError("Expected to get number as a result");
+      } else {
+        return Math.round(Math.min(10, Math.max(0, result)) / 0.5) * 0.5;
       }
     } else if (type === "weight") {
       if (typeof result === "boolean") {

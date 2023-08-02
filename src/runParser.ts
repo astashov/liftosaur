@@ -13,6 +13,8 @@ const bindings: IScriptBindings = {
     { value: 40, unit: "lb" },
   ],
   reps: [1, 2, 3],
+  rpe: [0, 0, 0],
+  completedRpe: [0, 0, 0],
   completedReps: [1, 2, 3],
   w: [
     { value: 40, unit: "lb" },
