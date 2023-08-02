@@ -37,6 +37,8 @@ export interface IScriptBindings {
   day: number;
   weights: IWeight[];
   reps: number[];
+  RPE: number[];
+  completedRPE: number[];
   completedReps: number[];
   w: IWeight[];
   r: number[];
@@ -135,7 +137,9 @@ export namespace Progress {
       day,
       weights: [],
       reps: [],
+      RPE: [],
       completedReps: [],
+      completedRPE: [],
       w: [],
       r: [],
       cr: [],
@@ -151,6 +155,8 @@ export namespace Progress {
       bindings.weights.push(set.weight);
       bindings.reps.push(set.reps);
       bindings.completedReps.push(set.completedReps || 0);
+      bindings.completedRPE.push(set.completedRpe || 0);
+      bindings.RPE.push(set.rpe || 0);
     }
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
@@ -431,8 +437,15 @@ export namespace Progress {
         return progress;
       }
     } else {
-      if (entry.sets[setIndex].isAmrap) {
-        const amrapUi: IProgressUi = { amrapModal: { entryIndex, setIndex } };
+      if (entry.sets[setIndex].isAmrap || entry.sets[setIndex].logRpe) {
+        const amrapUi: IProgressUi = {
+          amrapModal: {
+            entryIndex,
+            setIndex,
+            isAmrap: entry.sets[setIndex].isAmrap,
+            logRpe: entry.sets[setIndex].logRpe,
+          },
+        };
         return {
           ...progress,
           ui: {
@@ -472,20 +485,53 @@ export namespace Progress {
     }
   }
 
-  export function updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+  export function updateAmrapRepsInExercise(
+    progress: IHistoryRecord,
+    value?: number,
+    isAmrap?: boolean
+  ): IHistoryRecord {
     if (progress.ui?.amrapModal != null) {
       const { entryIndex, setIndex } = progress.ui.amrapModal;
       return {
         ...progress,
-        ui: { ...progress.ui, amrapModal: undefined },
+        entries: progress.entries.map((progressEntry, i) => {
+          if (i === entryIndex) {
+            const sets = [...progressEntry.sets];
+            const set = sets[setIndex];
+            if (isAmrap) {
+              if (value == null) {
+                sets[setIndex] = { ...set, completedReps: undefined };
+              } else {
+                sets[setIndex] = { ...set, completedReps: value };
+              }
+            } else {
+              sets[setIndex] = { ...set, completedReps: set.reps };
+            }
+            return { ...progressEntry, sets: sets };
+          } else {
+            return progressEntry;
+          }
+        }),
+      };
+    } else {
+      return progress;
+    }
+  }
+
+  export function updateRpeInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+    if (progress.ui?.amrapModal != null) {
+      const { entryIndex, setIndex } = progress.ui.amrapModal;
+      return {
+        ...progress,
         entries: progress.entries.map((progressEntry, i) => {
           if (i === entryIndex) {
             const sets = [...progressEntry.sets];
             const set = sets[setIndex];
             if (value == null) {
-              sets[setIndex] = { ...set, completedReps: undefined };
-            } else {
-              sets[setIndex] = { ...set, completedReps: value };
+              sets[setIndex] = { ...set, completedRpe: undefined };
+            } else if (typeof value === "number") {
+              value = Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5;
+              sets[setIndex] = { ...set, completedRpe: value };
             }
             return { ...progressEntry, sets: sets };
           } else {
@@ -716,6 +762,16 @@ export namespace Progress {
               "reps"
             ),
             weight: roundedWeight,
+            rpe: set.rpeExpr
+              ? executeEntryScript(
+                  set.rpeExpr,
+                  day,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment },
+                  settings,
+                  "rpe"
+                )
+              : undefined,
             isAmrap: set.isAmrap,
             label: set.label,
           };
@@ -773,7 +829,7 @@ export namespace Progress {
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
-    type: "reps"
+    type: "reps" | "rpe"
   ): number;
   export function executeEntryScript(
     expr: string,
@@ -789,7 +845,7 @@ export namespace Progress {
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
-    type: "reps" | "weight" | "timer"
+    type: "reps" | "weight" | "timer" | "rpe"
   ): IWeight | number | undefined {
     const runner = new ScriptRunner(
       expr,
@@ -811,6 +867,13 @@ export namespace Progress {
         () => runner.execute(type),
         (e) =>
           `There's an error while calculating timer script via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default timer. Please fix the exercise's timer script.`,
+        undefined
+      );
+    } else if (type === "rpe") {
+      return ScriptRunner.safe(
+        () => runner.execute(type),
+        (e) =>
+          `There's an error while calculating RPE script via expression: ${expr}:\n\n${e.message}.\n\nWe ignore the RPE value. Please fix the exercise's RPE script.`,
         undefined
       );
     } else {

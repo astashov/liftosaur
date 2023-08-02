@@ -64,7 +64,9 @@ export namespace Reps {
           (!Weight.eq(last.weight, set.weight) ||
             last.reps !== set.reps ||
             last.completedReps !== set.completedReps ||
-            (isNext && last.isAmrap !== set.isAmrap))
+            (isNext && last.isAmrap !== set.isAmrap) ||
+            last.rpe !== set.rpe ||
+            last.completedRpe !== set.completedRpe)
         ) {
           memo.push([]);
           lastGroup = memo[memo.length - 1];

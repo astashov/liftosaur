@@ -7,6 +7,8 @@ import { IProgramSet, ISet, IUnit } from "../types";
 interface IDisplaySet {
   reps: string;
   weight: string;
+  rpe?: string;
+  completedRpe?: string;
   isCompleted?: boolean;
 }
 
@@ -22,15 +24,18 @@ export function HistoryRecordSetsView(props: {
     return g.map((set) => {
       return {
         reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
+        rpe: set.rpe?.toString(),
+        completedRpe: set.completedRpe?.toString(),
         weight: Weight.display(Weight.convertTo(set.weight, unit), false),
         isCompleted: Reps.isCompletedSet(set),
       };
     });
   });
+  const hasRpe = displayGroups.some((group) => group.some((set) => set.rpe || set.completedRpe));
   return (
     <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>
       {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} isNext={props.isNext} />
+        <HistoryRecordSet sets={g} isNext={props.isNext} hasRpe={hasRpe} />
       ))}
     </div>
   );
@@ -57,7 +62,7 @@ export function HistoryRecordProgramSetsView(props: { sets: IProgramSet[] }): JS
   );
 }
 
-export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean }): JSX.Element {
+export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; hasRpe?: boolean }): JSX.Element {
   const { sets, isNext } = props;
   if (sets.length === 0) {
     return <div />;
@@ -65,9 +70,28 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean }
   const set = sets[0];
   const length = sets.length;
   const color = isNext ? "text-grayv2-main" : set.isCompleted ? "text-greenv2-main" : "text-redv2-main";
+  const rpeClassName = "relative text-xs leading-none text-center";
+  const rpeStyles = { right: "0", top: "0" };
   return (
     <div className="flex py-2 mr-2 leading-none">
-      <div className="text-center">
+      <div className="relative text-center">
+        {set.completedRpe != null ? (
+          <div
+            data-cy="history-entry-completed-rpe"
+            className={`${rpeClassName}`}
+            style={{ ...rpeStyles, color: "#d1720c" }}
+          >
+            @{set.completedRpe}
+          </div>
+        ) : set.completedRpe == null && set.rpe != null ? (
+          <div data-cy="history-entry-rpe" className={`${rpeClassName} text-grayv2-main`} style={rpeStyles}>
+            @{set.rpe}
+          </div>
+        ) : props.hasRpe ? (
+          <div className={rpeClassName} style={rpeStyles}>
+            &nbsp;
+          </div>
+        ) : undefined}
         <div
           data-cy={
             isNext

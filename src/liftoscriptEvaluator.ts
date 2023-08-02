@@ -153,7 +153,16 @@ export class LiftoscriptEvaluator {
         }
         const name = this.getValue(nameNode);
         if (indexExpr != null) {
-          const validNames: (keyof IScriptBindings)[] = ["weights", "reps", "completedReps", "w", "r", "cr"];
+          const validNames: (keyof IScriptBindings)[] = [
+            "weights",
+            "reps",
+            "completedReps",
+            "w",
+            "r",
+            "cr",
+            "completedRPE",
+            "RPE",
+          ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
           }

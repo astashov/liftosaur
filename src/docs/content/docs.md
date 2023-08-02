@@ -95,6 +95,8 @@ The list of available variables you can use in your Finish Day Scripts:
 - `weights[n]` or `w[n]` - weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
+- `RPE[n]` - if exercise enabled RPE - the RPE expression that's required for an N set.
+- `completedRPE[n]` - if exercise enabled RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `day` - current day number, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
 
@@ -212,6 +214,8 @@ You cannot assign values to them, but you can use theirs values. There're:
 - `weights[x]` or `w[x]` - weight of an X set. X starts from 1.
 - `reps[x]` or `r[x]` - number of reps for an X set.
 - `completedReps[x]` or `cr[x]` - number of completed reps for an X set.
+- `RPE[n]` - if exercise enabled RPE - the RPE expression that's required for an N set.
+- `completedRPE[n]` - if exercise enabled RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `day` - current day number, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
 - `setIndex` - available only in **Timer Expressions**. Index of the just completed set.
@@ -268,7 +272,7 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `weights` or `reps` variables.
+It sums all the numbers or weights. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 if (sum(completedReps) >= 15) {
@@ -278,7 +282,7 @@ if (sum(completedReps) >= 15) {
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `weights` or `reps` variables.
+Finds the minimum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.minWeight = min(weights);
@@ -286,7 +290,7 @@ state.minWeight = min(weights);
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `weights` or `reps` variables.
+Finds the maximum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);

@@ -9,6 +9,7 @@ import { EditProgramExerciseTimer } from "./editProgramExerciseTimer";
 interface IProps {
   onChangeTimer: (value: string) => void;
   onChangeQuickAddSets: (value: boolean) => void;
+  onChangeEnableRpe: (value: boolean) => void;
   onValid: (isValid: boolean) => void;
   areVariationsEnabled: boolean;
   onEnableVariations: (value: boolean) => void;
@@ -40,6 +41,14 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
               <strong>Quick Add Sets: </strong> There will be + button next to last set on the workout screen, so you
               can quickly add a set. Useful for set-based programs, where you progress based on how many sets you can
               do. based on
+            </div>
+            <div>
+              <strong>Enable RPE: </strong> For each set, you'll be able to set required RPEs and potentially enable
+              logging completed RPE. RPE (Rate of Perceived Exertion) is a measure of how hard the set was, very popular
+              in hypertrophy programs. It's a scale from 1 to 10, where 10 is you cannot possibly do any rep, 9 - you
+              still could do another rep, 8 - 2 reps, etc. You can use Liftoscript to specify required RPE, and access
+              required and completed RPE in the finish day script (by <code>RPE</code> and <code>completedRPE</code>{" "}
+              variables).
             </div>
           </>
         }
@@ -91,6 +100,14 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
         value={programExercise.quickAddSets ? "true" : "false"}
         onChange={(v) => {
           props.onChangeQuickAddSets(v === "true");
+        }}
+      />
+      <MenuItemEditable
+        type="boolean"
+        name="Enable RPE"
+        value={programExercise.enableRpe ? "true" : "false"}
+        onChange={(v) => {
+          props.onChangeEnableRpe(v === "true");
         }}
       />
     </div>

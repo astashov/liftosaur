@@ -269,6 +269,15 @@ export namespace EditProgramLenses {
     return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("repsExpr").record(value);
   }
 
+  export function setRpe<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string,
+    variationIndex: number,
+    setIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("rpeExpr").record(value);
+  }
+
   export function setLabel<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,
@@ -289,6 +298,13 @@ export namespace EditProgramLenses {
     return prefix.p("quickAddSets").record(value);
   }
 
+  export function setEnableRpe<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: boolean
+  ): ILensRecordingPayload<T> {
+    return prefix.p("enableRpe").record(value);
+  }
+
   export function setWeight<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,
@@ -305,6 +321,15 @@ export namespace EditProgramLenses {
     setIndex: number
   ): ILensRecordingPayload<T> {
     return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("isAmrap").record(value);
+  }
+
+  export function setLogRpe<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: boolean,
+    variationIndex: number,
+    setIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("logRpe").record(value);
   }
 
   export function setExerciseFinishDayExpr<T>(

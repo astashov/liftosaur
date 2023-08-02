@@ -553,6 +553,36 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230804": {
+    title: <span>Added RPE support</span>,
+    body: (
+      <ul>
+        <li>
+          RPE (Rating of Perceived Exertion) now is well supported in Liftosaur. It's how hard was the exercise, on the
+          scale of 0-10, where 10 is the hardest (you couldn't make any more reps){" "}
+        </li>
+        <li>
+          Now you can enable RPE support for your exercises (in Extra Features section), and each set will have 2
+          additional fields: <strong>RPE</strong> and <strong>Log RPE</strong>.
+        </li>
+        <li>For RPE, you can provide Liftoscript expression, that would define required RPE for that set.</li>
+        <li>If you enable "Log RPE", it'll ask you for YOUR perceived RPE value when you finish the set.</li>
+        <li>
+          You can access the required RPE values via <code>RPE</code> and logged RPE in <code>completedRPE</code>{" "}
+          variables in the Finish Day Script.
+        </li>
+        <li>
+          Using that, you can define progressions based on RPE, e.g. comparing if your RPE was lower than required RPE -{" "}
+          then increase the weight, or something like that.
+        </li>
+        <li>
+          On the history and workout screens, we show required RPE like{" "}
+          <strong className="font-bold text-grayv2-main">@8</strong> (gray color) and logged RPE like{" "}
+          <strong className="font-bold text-orangev2">@9</strong> (orange color), prefixed by <strong>@</strong> sign.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

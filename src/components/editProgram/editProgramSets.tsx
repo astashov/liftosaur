@@ -28,6 +28,8 @@ interface IEditProgramSets {
   onRemoveSet: (variationIndex: number, setIndex: number) => void;
   onReorderSets: (variationIndex: number, startIndex: number, endIndex: number) => void;
   onChangeLabel: (variationIndex: number, setIndex: number, value: string) => void;
+  onChangeRpe: (rpe: string, variationIndex: number, setIndex: number) => void;
+  onChangeLogRpe: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onAddSet: (variationIndex: number) => void;
 }
 
@@ -93,9 +95,12 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               state={programExercise.state}
               variationIndex={variationIndex}
               setIndex={setIndex}
+              enabledRpe={!!programExercise.enableRpe}
               isDeleteEnabled={programExercise.quickAddSets || variation.sets.length > 1}
               onChangeAmrap={props.onChangeAmrap}
+              onChangeLogRpe={props.onChangeLogRpe}
               onChangeReps={props.onChangeReps}
+              onChangeRpe={props.onChangeRpe}
               onChangeWeight={props.onChangeWeight}
               onRemoveSet={props.onRemoveSet}
               onChangeLabel={props.onChangeLabel}
@@ -123,9 +128,12 @@ interface ISetFieldsProps {
   setIndex: number;
   equipment?: IEquipment;
   isDeleteEnabled: boolean;
+  enabledRpe: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
+  onChangeRpe: (rpe: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
+  onChangeLogRpe: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
   onRemoveSet: (variationIndex: number, setIndex: number) => void;
   onChangeLabel: (variationIndex: number, setIndex: number, value: string) => void;
@@ -138,7 +146,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 
   function validate(
     script: string | undefined,
-    type: "reps" | "weight"
+    type: "reps" | "weight" | "rpe"
   ): IEither<number | IWeight | undefined, string> {
     try {
       if (script) {
@@ -151,6 +159,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           { equipment }
         );
         if (type === "reps") {
+          return { success: true, data: scriptRunnerResult.execute(type) };
+        } else if (type === "rpe") {
           return { success: true, data: scriptRunnerResult.execute(type) };
         } else {
           return {
@@ -172,6 +182,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 
   const repsResult = validate(set.repsExpr.trim(), "reps");
   const weightResult = validate(set.weightExpr.trim(), "weight");
+  const rpeResult = props.enabledRpe && set.rpeExpr ? validate(set.rpeExpr.trim(), "rpe") : undefined;
 
   return (
     <li className="relative pb-2">
@@ -237,6 +248,28 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
               />
             </div>
           </div>
+          {props.enabledRpe && (
+            <div className="flex mt-2">
+              <div className="flex-1 min-w-0">
+                <RpeInput
+                  rpeResult={rpeResult}
+                  variationIndex={propsRef.current.variationIndex}
+                  setIndex={propsRef.current.setIndex}
+                  state={state}
+                  set={set}
+                  onChangeRpe={props.onChangeRpe}
+                />
+              </div>
+              <div className="pt-2 pl-2 pr-1">
+                <LogRpe
+                  onChangeLogRpe={props.onChangeLogRpe}
+                  set={set}
+                  variationIndex={propsRef.current.variationIndex}
+                  setIndex={propsRef.current.setIndex}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </li>
@@ -323,6 +356,30 @@ function WeightInput(props: IWeightInputProps): JSX.Element {
   );
 }
 
+interface IRpeInputProps {
+  state: IProgramState;
+  set: IProgramSet;
+  rpeResult?: IEither<number | IWeight | undefined, string>;
+  onChangeRpe: (reps: string, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function RpeInput(props: IRpeInputProps): JSX.Element {
+  return (
+    <OneLineTextEditor
+      label="RPE"
+      name="rpe"
+      state={props.state}
+      value={props.set.rpeExpr}
+      result={props.rpeResult}
+      onChange={(value) => {
+        props.onChangeRpe(value, props.variationIndex, props.setIndex);
+      }}
+    />
+  );
+}
+
 interface IAmrapProps {
   set: IProgramSet;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
@@ -347,6 +404,45 @@ function Amrap(props: IAmrapProps): JSX.Element {
       <div className="text-xs leading-none">
         <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
         <button className="align-middle" onClick={() => alert("As Many Reps As Possible.")}>
+          <IconHelp size={12} color="#607284" />
+        </button>
+      </div>
+    </label>
+  );
+}
+
+interface ILogRpeProps {
+  set: IProgramSet;
+  onChangeLogRpe: (isSet: boolean, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function LogRpe(props: ILogRpeProps): JSX.Element {
+  return (
+    <label className="text-center">
+      <div>
+        <input
+          data-cy="toggle-log-rpe"
+          checked={props.set.logRpe}
+          className="block checkbox text-bluev2"
+          id="variation-0-amrap"
+          type="checkbox"
+          onChange={(e) => {
+            props.onChangeLogRpe(e.currentTarget.checked, props.variationIndex, props.setIndex);
+          }}
+        />
+      </div>
+      <div className="text-xs leading-none">
+        <span className="align-middle text-grayv2-main">Log RPE</span>{" "}
+        <button
+          className="align-middle"
+          onClick={() =>
+            alert(
+              "Log RPE (Rate of Perceived Exertion) when finished this set. You can access it in the Finish Day Script in `completedRPE` variable."
+            )
+          }
+        >
           <IconHelp size={12} color="#607284" />
         </button>
       </div>

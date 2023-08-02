@@ -123,6 +123,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             <ModalAmrap
               isHidden={progress.ui?.amrapModal == null}
               dispatch={props.dispatch}
+              isAmrap={progress.ui?.amrapModal?.isAmrap || false}
+              logRpe={progress.ui?.amrapModal?.logRpe || false}
+              initialReps={
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+                  ?.completedReps
+              }
+              initialRpe={
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+                  ?.completedRpe
+              }
               onDone={() => {
                 const amrapModal = progress.ui?.amrapModal;
                 if (amrapModal != null) {
@@ -220,7 +230,10 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           dispatch={props.dispatch}
           setIsShareShown={setIsShareShown}
           onChangeReps={(mode, entryIndex, setIndex) => {
-            const isAmrapSet = mode === "workout" && !!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap;
+            const isAmrapSet =
+              mode === "workout" &&
+              (!!progress.entries[entryIndex]?.sets[setIndex]?.isAmrap ||
+                !!progress.entries[entryIndex]?.sets[setIndex]?.logRpe);
             if (!isAmrapSet) {
               maybeStartTimer(mode, entryIndex, setIndex, dispatch);
             }

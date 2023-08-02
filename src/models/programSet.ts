@@ -10,7 +10,11 @@ export namespace ProgramSet {
         const last = lastGroup[lastGroup.length - 1];
         if (
           last != null &&
-          (last.weightExpr !== set.weightExpr || last.repsExpr !== set.repsExpr || last.isAmrap !== set.isAmrap)
+          (last.weightExpr !== set.weightExpr ||
+            last.repsExpr !== set.repsExpr ||
+            last.isAmrap !== set.isAmrap ||
+            last.rpeExpr !== set.rpeExpr ||
+            last.logRpe !== set.logRpe)
         ) {
           memo.push([]);
           lastGroup = memo[memo.length - 1];

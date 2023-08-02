@@ -180,8 +180,14 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 onChangeReps={(reps: string, variation: number, setIndex: number) => {
                   props.dispatch(EditProgramLenses.setReps(lbe, reps, variation, setIndex));
                 }}
+                onChangeRpe={(rpe: string, variation: number, setIndex: number) => {
+                  props.dispatch(EditProgramLenses.setRpe(lbe, rpe, variation, setIndex));
+                }}
                 onChangeAmrap={(isSet: boolean, variation: number, setIndex: number) => {
                   props.dispatch(EditProgramLenses.setAmrap(lbe, isSet, variation, setIndex));
+                }}
+                onChangeLogRpe={(isSet: boolean, variation: number, setIndex: number) => {
+                  props.dispatch(EditProgramLenses.setLogRpe(lbe, isSet, variation, setIndex));
                 }}
                 onChangeWeight={(weight: string, variation: number, setIndex: number) => {
                   props.dispatch(EditProgramLenses.setWeight(lbe, weight, variation, setIndex));
@@ -254,6 +260,9 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             entry={entry}
             onChangeQuickAddSets={(value) => {
               props.dispatch(EditProgramLenses.setQuickAddSets(lbe, value));
+            }}
+            onChangeEnableRpe={(enableRpe) => {
+              props.dispatch(EditProgramLenses.setEnableRpe(lbe, enableRpe));
             }}
             onValid={(isValid) => {
               setAreExtraFeaturesValid(isValid);

@@ -67,12 +67,25 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 isCurrentProgress={!!isCurrentProgress}
                 onLongPress={
                   onStartSetChanging &&
-                  (() => onStartSetChanging(true, props.index, setIndex, undefined, props.entry.exercise.equipment))
+                  (() =>
+                    onStartSetChanging(
+                      true,
+                      props.index,
+                      setIndex,
+                      props.programExercise,
+                      props.entry.exercise.equipment
+                    ))
                 }
                 onClick={useCallback(() => {
                   if (!friend) {
                     if (isEditMode && onStartSetChanging) {
-                      onStartSetChanging(true, props.index, setIndex, undefined, props.entry.exercise.equipment);
+                      onStartSetChanging(
+                        true,
+                        props.index,
+                        setIndex,
+                        props.programExercise,
+                        props.entry.exercise.equipment
+                      );
                     } else {
                       handleClick(
                         props.dispatch,
@@ -93,7 +106,13 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
           {isEditMode && onStartSetChanging && (
             <AddSetButton
               onClick={() => {
-                onStartSetChanging!(true, props.index, undefined, undefined, props.entry.exercise.equipment);
+                onStartSetChanging!(
+                  true,
+                  props.index,
+                  undefined,
+                  props.programExercise,
+                  props.entry.exercise.equipment
+                );
               }}
               size={props.size || "medium"}
               label="Warmup"
@@ -134,12 +153,19 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
             isCurrentProgress={!!isCurrentProgress}
             onLongPress={
               onStartSetChanging &&
-              (() => onStartSetChanging(false, props.index, setIndex, undefined, props.entry.exercise.equipment))
+              (() =>
+                onStartSetChanging(false, props.index, setIndex, props.programExercise, props.entry.exercise.equipment))
             }
             onClick={useCallback(() => {
               if (!friend) {
                 if (isEditMode && onStartSetChanging) {
-                  onStartSetChanging(false, props.index, setIndex, undefined, props.entry.exercise.equipment);
+                  onStartSetChanging(
+                    false,
+                    props.index,
+                    setIndex,
+                    props.programExercise,
+                    props.entry.exercise.equipment
+                  );
                 } else {
                   handleClick(
                     props.dispatch,
@@ -163,13 +189,7 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
             size={props.size || "medium"}
             quickAddSets={!isEditMode && quickAddSets}
             onClick={() =>
-              onStartSetChanging!(
-                false,
-                props.index,
-                undefined,
-                quickAddSets ? props.programExercise : undefined,
-                props.entry.exercise.equipment
-              )
+              onStartSetChanging!(false, props.index, undefined, props.programExercise, props.entry.exercise.equipment)
             }
             mode="workout"
           />
@@ -206,7 +226,10 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
         className="leading-none text-center text-grayv2-main"
         style={{
           fontSize: props.size === "small" ? "9px" : "10px",
-          marginBottom: "3px",
+          marginTop:
+            (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? "0px" : "5px",
+          marginBottom:
+            (set.isAmrap && set.completedReps != null) || set.completedRpe != null || set.rpe != null ? "8px" : "3px",
           minHeight: props.size === "small" ? "9px" : "10px",
         }}
       >
@@ -267,7 +290,7 @@ function AddSetButton(props: IAddSetButtonProps): JSX.Element {
         className="leading-none text-center text-grayv2-main"
         style={{
           fontSize: props.size === "small" ? "9px" : "10px",
-          marginBottom: "3px",
+          marginBottom: "8px",
           minHeight: props.size === "small" ? "9px" : "10px",
         }}
       >

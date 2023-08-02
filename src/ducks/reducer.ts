@@ -182,7 +182,10 @@ export type IStartProgramDayAction = {
 
 export type IChangeAMRAPAction = {
   type: "ChangeAMRAPAction";
-  value?: number;
+  amrapValue?: number;
+  rpeValue?: number;
+  isAmrap?: boolean;
+  logRpe?: boolean;
 };
 
 export type IChangeWeightAction = {
@@ -358,11 +361,14 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         return newProgress;
       }
       case "ChangeAMRAPAction": {
-        progress = Progress.updateAmrapRepsInExercise(progress, action.value);
+        progress = Progress.updateAmrapRepsInExercise(progress, action.amrapValue, action.isAmrap);
+        if (action.logRpe) {
+          progress = Progress.updateRpeInExercise(progress, action.rpeValue);
+        }
         if (Progress.isFullyFinishedSet(progress)) {
           progress = Progress.stopTimer(progress);
         }
-        return progress;
+        return { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
       }
       case "ChangeWeightAction": {
         return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);

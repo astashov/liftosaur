@@ -101,8 +101,8 @@ export namespace Program {
       sets,
       state,
       settings,
+      !!programExercise.enableRpe,
       ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
-      ProgramExercise.getTimerExpr(programExercise, allProgramExercises),
       true
     );
   }
@@ -114,8 +114,8 @@ export namespace Program {
     programSets: IProgramSet[],
     state: IProgramState,
     settings: ISettings,
+    enabledRpe: boolean,
     warmupSets?: IProgramExerciseWarmupSet[],
-    timerExpr?: string,
     shouldFallback?: boolean
   ): IHistoryEntry {
     const sets: ISet[] = programSets.map((set) => {
@@ -153,10 +153,33 @@ export namespace Program {
         Weight.build(100, settings.units),
         !shouldFallback
       );
+      const rpeExpr = set.rpeExpr;
+      const rpeValue =
+        enabledRpe && rpeExpr?.trim()
+          ? ScriptRunner.safe(
+              () => {
+                return new ScriptRunner(
+                  rpeExpr,
+                  state,
+                  Progress.createEmptyScriptBindings(day),
+                  Progress.createScriptFunctions(settings),
+                  settings.units,
+                  { equipment: exercise.equipment }
+                ).execute("rpe");
+              },
+              (e) => {
+                return `There's an error while calculating RPE for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's RPE script.`;
+              },
+              undefined,
+              !shouldFallback
+            )
+          : undefined;
       return {
         isAmrap: set.isAmrap,
         label: set.label,
         reps: repsValue,
+        rpe: rpeValue,
+        logRpe: set.logRpe,
         weight: Weight.roundConvertTo(weightValue, settings, exercise.equipment),
       };
     });
@@ -354,7 +377,7 @@ export namespace Program {
     script: string,
     day: number,
     settings: ISettings,
-    type: "reps"
+    type: "reps" | "rpe"
   ): IEither<number, string>;
   export function runScript(
     programExercise: IProgramExercise,
@@ -370,7 +393,7 @@ export namespace Program {
     script: string,
     day: number,
     settings: ISettings,
-    type: string
+    type: "reps" | "rpe" | "weight"
   ): IEither<IWeight | number, string> {
     try {
       if (script) {
@@ -591,6 +614,9 @@ export namespace Program {
     const errors = [];
     if (programExercise.quickAddSets) {
       errors.push("Must not have Quick Add Sets enabled");
+    }
+    if (programExercise.enableRpe) {
+      errors.push("Must not have RPE enabled");
     }
     if (programExercise.reuseLogic?.selected != null) {
       errors.push("Must not reuse another experiment logic");

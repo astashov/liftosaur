@@ -65,7 +65,9 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
       })}
       {!reuseLogicId && (
         <div className="p-1">
-          <LinkButton onClick={props.onAddStateVariable}>Add State Variable</LinkButton>
+          <LinkButton data-cy="add-state-variable" onClick={props.onAddStateVariable}>
+            Add State Variable
+          </LinkButton>
         </div>
       )}
     </section>

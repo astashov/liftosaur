@@ -67,7 +67,22 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
             Finish this day
           </Button>
         </div>
-        <ModalAmrap isHidden={props.progress.ui?.amrapModal == null} dispatch={dispatch} />
+        <ModalAmrap
+          isHidden={props.progress.ui?.amrapModal == null}
+          dispatch={dispatch}
+          initialReps={
+            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.sets[
+              props.progress.ui?.amrapModal?.setIndex || 0
+            ]?.completedReps
+          }
+          initialRpe={
+            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.sets[
+              props.progress.ui?.amrapModal?.setIndex || 0
+            ]?.completedRpe
+          }
+          isAmrap={props.progress.ui?.amrapModal?.isAmrap || false}
+          logRpe={props.progress.ui?.amrapModal?.logRpe || false}
+        />
         <ModalWeight
           isHidden={props.progress.ui?.weightModal == null}
           programExercise={props.progress.ui?.weightModal?.programExercise}
