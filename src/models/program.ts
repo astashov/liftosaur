@@ -91,7 +91,7 @@ export namespace Program {
     staticState?: IProgramState
   ): IHistoryEntry {
     const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
-    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
+    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, state, day, settings, true);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
 
     return nextHistoryEntry(
@@ -202,9 +202,17 @@ export namespace Program {
     allProgramExercises: IProgramExercise[],
     state: IProgramState,
     day: number,
-    settings: ISettings
+    settings: ISettings,
+    shouldFallback?: boolean
   ): number {
-    const variationIndexResult = runVariationScript(programExercise, allProgramExercises, state, day, settings);
+    const variationIndexResult = runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      day,
+      settings,
+      shouldFallback
+    );
     if (!variationIndexResult.success) {
       throw new Error(variationIndexResult.error);
     }
@@ -303,20 +311,31 @@ export namespace Program {
     allProgramExercises: IProgramExercise[],
     state: IProgramState,
     day: number,
-    settings: ISettings
+    settings: ISettings,
+    shouldFallback?: boolean
   ): IEither<number, string> {
     const script = ProgramExercise.getVariationScript(programExercise, allProgramExercises);
     try {
       if (script) {
-        const scriptRunnerResult = new ScriptRunner(
-          script,
-          state,
-          Progress.createEmptyScriptBindings(day),
-          Progress.createScriptFunctions(settings),
-          settings.units,
-          { equipment: programExercise.exerciseType.equipment }
+        const scriptRunnerResult = ScriptRunner.safe(
+          () => {
+            return new ScriptRunner(
+              script,
+              state,
+              Progress.createEmptyScriptBindings(day),
+              Progress.createScriptFunctions(settings),
+              settings.units,
+              { equipment: programExercise.exerciseType.equipment }
+            ).execute("reps");
+          },
+          (e) => {
+            return `There's an error while calculating variation script for the next workout for '${programExercise.exerciseType.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default - 1st variation. Please fix the program's variation script.`;
+          },
+          1,
+          !shouldFallback
         );
-        return { success: true, data: scriptRunnerResult.execute("reps") };
+
+        return { success: true, data: scriptRunnerResult };
       } else {
         return { success: false, error: "Empty expression" };
       }
