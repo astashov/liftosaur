@@ -53,7 +53,7 @@ export namespace ObjectUtils {
     }, {} as any);
   }
 
-  export function omit<T extends {}, K extends keyof T, U extends Omit<T, K>>(obj: T, theKeys: K[]): U {
+  export function omit<T extends {}, K extends keyof T, U extends Omit<T, K>>(obj: T, theKeys: readonly K[]): U {
     return keys(obj).reduce<U>((memo, key: any) => {
       if (theKeys.indexOf(key) === -1) {
         (memo as any)[key] = (obj as any)[key];

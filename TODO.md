@@ -2,11 +2,10 @@
 - AMRAP as an expression
 - Dynamic sets!
 - Moving average on graphs
-- Volume on graphs
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets
-- Volume for each exercise, and in exercise stats
+- Add 1RM/NRM calculator where we specify weights
 
 - Programs
   - 5/3/1s

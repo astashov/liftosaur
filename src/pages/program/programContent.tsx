@@ -20,6 +20,7 @@ import { IconCog2 } from "../../components/icons/iconCog2";
 import { useCopyPaste } from "./utils/programCopypaste";
 import { ProgramContentModalEquipment } from "./components/programContentModalEquipment";
 import { lb } from "lens-shmens";
+import { equipments } from "../../types";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -65,10 +66,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
+        const customEquipment = ObjectUtils.omit(newState.settings.equipment, equipments);
         const exportedProgram: IExportedProgram = {
           program: newState.current.program,
           customExercises: newState.settings.exercises,
-          customEquipment: newState.settings.equipment,
+          customEquipment: customEquipment,
           version: getLatestMigrationVersion(),
           settings: ObjectUtils.pick(newState.settings, ["timers", "units"]),
         };

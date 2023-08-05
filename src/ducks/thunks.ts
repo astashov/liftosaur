@@ -601,7 +601,8 @@ export namespace Thunk {
 
   export function importProgram(maybeProgram: string): IThunk {
     return async (dispatch, getState, env) => {
-      const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram);
+      const state = getState();
+      const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises, customEquipment } = result.data;
         if (!confirm(`Do you want to import program ${program.name}?`)) {

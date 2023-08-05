@@ -246,7 +246,6 @@ export namespace Progress {
     }
     if (timer != null && Subscriptions.hasSubscription(subscription)) {
       const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
-      console.log("timerForPush", timerForPush);
       const title = "It's time for the next set!";
       let subtitle = "";
       let body = "Time to lift!";

@@ -1,4 +1,4 @@
-import { IStorage } from "../types";
+import { ISettings, IStorage } from "../types";
 import { DateUtils } from "../utils/date";
 import { Exporter } from "../utils/exporter";
 import { IExportedProgram, Program } from "../models/program";
@@ -22,7 +22,8 @@ export namespace ImportExporter {
 
   export async function getExportedProgram(
     client: Window["fetch"],
-    maybeProgram: string
+    maybeProgram: string,
+    settings?: ISettings
   ): Promise<IEither<IExportedProgram, string[]>> {
     let parsedMaybeProgram: IExportedProgram | IBuilderProgram;
     try {
@@ -48,6 +49,7 @@ export namespace ImportExporter {
       exportedProgram = parsedMaybeProgram;
     }
     const payload = Storage.getDefault();
+    payload.settings = settings || payload.settings;
     payload.settings = { ...payload.settings, ...exportedProgram.settings };
     payload.settings.exercises = { ...payload.settings.exercises, ...exportedProgram.customExercises };
     payload.settings.equipment = { ...payload.settings.equipment, ...exportedProgram.customEquipment };
