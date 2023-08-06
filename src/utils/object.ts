@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { CollectionUtils } from "./collection";
+
 /* eslint-disable @typescript-eslint/ban-types */
 export namespace ObjectUtils {
   export function keys<T extends {}>(obj: T): Array<keyof T> {
@@ -11,6 +14,34 @@ export namespace ObjectUtils {
 
   export function entries<T extends {}>(obj: T): Array<[keyof T, T[keyof T]]> {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
+  }
+
+  export function changedKeys<T extends {}>(
+    oldObj: T,
+    newObj: T
+  ): Partial<Record<keyof T, "delete" | "update" | "add">> {
+    let oldKeys = keys(oldObj);
+    const newKeys = keys(newObj);
+    const changes: Partial<Record<keyof T, "delete" | "update" | "add">> = {};
+
+    for (const newKey of newKeys) {
+      if (newObj[newKey] != null && oldObj[newKey] == null) {
+        changes[newKey] = "add";
+      } else if (newObj[newKey] == null && oldObj[newKey] != null) {
+        changes[newKey] = "delete";
+      } else if (newObj[newKey] != null && oldObj[newKey] != null) {
+        if (newObj[newKey] !== oldObj[newKey]) {
+          changes[newKey] = "update";
+        }
+      }
+      oldKeys = CollectionUtils.remove(oldKeys, newKey);
+    }
+    for (const oldKey of oldKeys) {
+      if (oldObj[oldKey] != null && newObj[oldKey] == null) {
+        changes[oldKey] = "delete";
+      }
+    }
+    return changes;
   }
 
   export function mapValues<U, V, T extends Record<any, U>>(obj: T, fn: (x: U) => V): Record<keyof T, V> {

@@ -48,7 +48,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   programExercise,
                   props.settings
                 );
-                props.dispatch({ type: "ApplyProgramChangesToProgress" });
               }}
               onEditStateVariable={(stateKey, newValue) => {
                 EditProgram.properlyUpdateStateVariableInPlace(
@@ -58,7 +57,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   stateKey,
                   newValue
                 );
-                props.dispatch({ type: "ApplyProgramChangesToProgress" });
               }}
             />
             <div className="mt-4 text-center">

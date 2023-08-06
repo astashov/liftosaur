@@ -20,18 +20,19 @@ import {
   IExerciseType,
   IProgressUi,
   IProgram,
-  IProgramDay,
   IProgramState,
   IEquipment,
   IProgramExercise,
   ISubscription,
   ISet,
+  IProgramDay,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
 import { IExerciseId } from "../types";
 import { History } from "./history";
+import { CollectionUtils } from "../utils/collection";
 
 export interface IScriptBindings {
   day: number;
@@ -788,29 +789,59 @@ export namespace Progress {
     program: IProgram,
     programDay: IProgramDay,
     settings: ISettings,
-    staticStates?: Partial<Record<string, IProgramState>>
+    staticStates?: Partial<Record<string, IProgramState>>,
+    programExerciseIds?: string[],
+    checkReused?: boolean
   ): IHistoryRecord {
     const day = progress.day;
-    const existingProgramlessEntries = progress.entries.filter((e) => e.programExerciseId == null);
+    const affectedProgramExerciseIds = programExerciseIds
+      ? checkReused
+        ? CollectionUtils.flat(
+            programExerciseIds.map((id) => {
+              const reusingExerciseIds = program.exercises
+                .filter((e) => e.reuseLogic?.selected === id)
+                .map((e) => e.id);
+              return [id].concat(reusingExerciseIds);
+            })
+          )
+        : programExerciseIds
+      : undefined;
+
+    const newEntries = progress.entries
+      .filter((e) => !e.programExerciseId || !(progress.deletedProgramExercises || {})[e.programExerciseId])
+      .map((progressEntry) => {
+        const programExerciseId = progressEntry.programExerciseId;
+        if (programExerciseId == null) {
+          return progressEntry;
+        }
+        if (affectedProgramExerciseIds && affectedProgramExerciseIds.indexOf(programExerciseId) === -1) {
+          return progressEntry;
+        }
+        const programExercise = program.exercises.find((e) => e.id === programExerciseId);
+        if (programExercise == null) {
+          return progressEntry;
+        }
+        const staticState = staticStates?.[programExerciseId];
+        return applyProgramExercise(
+          progressEntry,
+          programExercise,
+          program.exercises,
+          day,
+          settings,
+          false,
+          staticState
+        );
+      });
+
+    const sortedNewEntries = CollectionUtils.sortInOrder(
+      newEntries,
+      "programExerciseId",
+      programDay.exercises.map((e) => e.id)
+    );
+
     return {
       ...progress,
-      entries: programDay.exercises
-        .filter((e) => !(progress.deletedProgramExercises || {})[e.id])
-        .map((dayEntry) => {
-          const programExercise = program.exercises.find((e) => e.id === dayEntry.id)!;
-          const progressEntry = progress.entries.find((e) => programExercise.id === e.programExerciseId);
-          const staticState = staticStates?.[programExercise.id];
-          return applyProgramExercise(
-            progressEntry,
-            programExercise,
-            program.exercises,
-            day,
-            settings,
-            false,
-            staticState
-          );
-        })
-        .concat(existingProgramlessEntries),
+      entries: sortedNewEntries,
     };
   }
 

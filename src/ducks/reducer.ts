@@ -257,6 +257,8 @@ export type IEditDayAction = {
 
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
+  programExerciseIds?: string[];
+  checkReused?: boolean;
 };
 
 export type IUpdateProgressAction = {
@@ -741,7 +743,15 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress != null) {
       const program = Program.getProgram(state, progress.programId)!;
       const programDay = program.days[progress.day - 1];
-      const newProgress = Progress.applyProgramDay(progress, program, programDay, state.storage.settings);
+      const newProgress = Progress.applyProgramDay(
+        progress,
+        program,
+        programDay,
+        state.storage.settings,
+        undefined,
+        action.programExerciseIds,
+        action.checkReused
+      );
       return {
         ...state,
         progress: { ...state.progress, 0: newProgress },

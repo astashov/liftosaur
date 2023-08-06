@@ -191,6 +191,12 @@ export namespace CollectionUtils {
     return from.filter((x) => !to.includes(x)).concat(to.filter((x) => !from.includes(x)));
   }
 
+  export function diffBy<T extends {}>(from: T[], to: T[], key: keyof T): T[] {
+    return from
+      .filter((x) => !to.some((y) => x[key] === y[key]))
+      .concat(to.filter((x) => !from.some((y) => x[key] === y[key])));
+  }
+
   export function remove<T>(from: T[], item: T): T[] {
     return from.filter((t) => t !== item);
   }

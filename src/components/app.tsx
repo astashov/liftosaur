@@ -40,6 +40,8 @@ import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage } from "../utils/sendMessage";
+import { ObjectUtils } from "../utils/object";
+import { CollectionUtils } from "../utils/collection";
 
 interface IProps {
   client: Window["fetch"];
@@ -68,8 +70,27 @@ export function AppView(props: IProps): JSX.Element | null {
       if (progress != null) {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
-        if (oldProgram !== newProgram) {
-          dispatch({ type: "ApplyProgramChangesToProgress" });
+        if (oldProgram != null && newProgram != null && oldProgram !== newProgram) {
+          const changes = ObjectUtils.changedKeys(oldProgram, newProgram);
+          if (ObjectUtils.keys(changes).length === 1 && changes.exercises === "update") {
+            const changedExerciseIds = Array.from(
+              new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
+            );
+            const onlyState = changedExerciseIds.every((id) => {
+              const oldExercise = oldProgram.exercises.find((e) => e.id === id);
+              const newExercise = newProgram.exercises.find((e) => e.id === id);
+              const exerciseChanges =
+                oldExercise && newExercise ? ObjectUtils.changedKeys(oldExercise, newExercise) : {};
+              return ObjectUtils.keys(exerciseChanges).length === 1 && exerciseChanges.state === "update";
+            });
+            dispatch({
+              type: "ApplyProgramChangesToProgress",
+              programExerciseIds: changedExerciseIds,
+              checkReused: !onlyState,
+            });
+          } else {
+            dispatch({ type: "ApplyProgramChangesToProgress" });
+          }
         }
       }
     },
