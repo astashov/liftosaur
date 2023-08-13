@@ -9,7 +9,7 @@
 - Change volume to sets on the congrats screen
 - Add finished exercises on the congrats screen
 - Add image URL for the exercise
-- Add rounding NUX
+- Custom exercise lists
 
 * Programs
   - 5/3/1s

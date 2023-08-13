@@ -27,6 +27,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   arnoldPress: {
     id: "arnoldPress",
@@ -34,6 +36,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   aroundTheWorld: {
     id: "aroundTheWorld",
@@ -41,6 +45,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["core"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   backExtension: {
     id: "backExtension",
@@ -48,30 +54,40 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "core"],
+    startingWeightLb: { value: 50, unit: "lb" },
+    startingWeightKg: { value: 22.5, unit: "kg" },
   },
   ballSlams: {
     id: "ballSlams",
     name: "Ball Slams",
     defaultEquipment: "medicineball",
     types: ["core", "upper"],
+    startingWeightLb: { value: 10, unit: "lb" },
+    startingWeightKg: { value: 4.5, unit: "kg" },
   },
   battleRopes: {
     id: "battleRopes",
     name: "Battle Ropes",
     defaultEquipment: "bodyweight",
     types: ["upper", "core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   behindTheNeckPress: {
     id: "behindTheNeckPress",
     name: "Behind The Neck Press",
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   benchDip: {
     id: "benchDip",
     name: "Bench Dip",
     defaultEquipment: "bodyweight",
     types: ["upper", "push"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   benchPress: {
     id: "benchPress",
@@ -79,6 +95,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 135, unit: "lb" },
+    startingWeightKg: { value: 60, unit: "kg" },
   },
   benchPressCloseGrip: {
     id: "benchPressCloseGrip",
@@ -86,6 +104,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 115, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   benchPressWideGrip: {
     id: "benchPressWideGrip",
@@ -93,6 +113,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 135, unit: "lb" },
+    startingWeightKg: { value: 60, unit: "kg" },
   },
   bentOverOneArmRow: {
     id: "bentOverOneArmRow",
@@ -100,6 +122,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   bentOverRow: {
     id: "bentOverRow",
@@ -107,6 +131,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   bicepCurl: {
     id: "bicepCurl",
@@ -114,6 +140,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   bicycleCrunch: {
     id: "bicycleCrunch",
@@ -121,6 +149,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   boxJump: {
     id: "boxJump",
@@ -128,6 +158,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   boxSquat: {
     id: "boxSquat",
@@ -135,6 +167,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 155, unit: "lb" },
+    startingWeightKg: { value: 70, unit: "kg" },
   },
   bulgarianSplitSquat: {
     id: "bulgarianSplitSquat",
@@ -142,6 +176,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   burpee: {
     id: "burpee",
@@ -149,6 +185,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "lower", "core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   cableCrossover: {
     id: "cableCrossover",
@@ -156,6 +194,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   cableCrunch: {
     id: "cableCrunch",
@@ -163,6 +203,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["core"],
+    startingWeightLb: { value: 50, unit: "lb" },
+    startingWeightKg: { value: 22.5, unit: "kg" },
   },
   cableKickback: {
     id: "cableKickback",
@@ -170,6 +212,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   cablePullThrough: {
     id: "cablePullThrough",
@@ -177,6 +221,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["lower", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   cableTwist: {
     id: "cableTwist",
@@ -184,6 +230,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["core"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   calfPressOnLegPress: {
     id: "calfPressOnLegPress",
@@ -191,6 +239,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 150, unit: "lb" },
+    startingWeightKg: { value: 67.5, unit: "kg" },
   },
   calfPressOnSeatedLegPress: {
     id: "calfPressOnSeatedLegPress",
@@ -198,6 +248,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 120, unit: "lb" },
+    startingWeightKg: { value: 53.75, unit: "kg" },
   },
   chestDip: {
     id: "chestDip",
@@ -205,6 +257,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "push"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   chestFly: {
     id: "chestFly",
@@ -212,6 +266,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   chestPress: {
     id: "chestPress",
@@ -219,6 +275,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   chestSupportedRow: {
     id: "chestSupportedRow",
@@ -226,6 +284,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 85, unit: "lb" },
+    startingWeightKg: { value: 37.5, unit: "kg" },
   },
   chinUp: {
     id: "chinUp",
@@ -233,6 +293,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   clean: {
     id: "clean",
@@ -240,6 +302,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "push"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   cleanandJerk: {
     id: "cleanandJerk",
@@ -247,6 +311,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "push"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   concentrationCurl: {
     id: "concentrationCurl",
@@ -254,6 +320,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   crossBodyCrunch: {
     id: "crossBodyCrunch",
@@ -261,6 +329,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   crunch: {
     id: "crunch",
@@ -268,6 +338,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   cycling: {
     id: "cycling",
@@ -275,6 +347,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   deadlift: {
     id: "deadlift",
@@ -282,6 +356,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["lower", "pull"],
+    startingWeightLb: { value: 185, unit: "lb" },
+    startingWeightKg: { value: 82.5, unit: "kg" },
   },
   deadliftHighPull: {
     id: "deadliftHighPull",
@@ -289,6 +365,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 75, unit: "lb" },
+    startingWeightKg: { value: 32.5, unit: "kg" },
   },
   declineBenchPress: {
     id: "declineBenchPress",
@@ -296,6 +374,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 125, unit: "lb" },
+    startingWeightKg: { value: 55, unit: "kg" },
   },
   declineCrunch: {
     id: "declineCrunch",
@@ -303,6 +383,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   deficitDeadlift: {
     id: "deficitDeadlift",
@@ -310,6 +392,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["lower", "pull"],
+    startingWeightLb: { value: 165, unit: "lb" },
+    startingWeightKg: { value: 75, unit: "kg" },
   },
   ellipticalMachine: {
     id: "ellipticalMachine",
@@ -317,6 +401,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   facePull: {
     id: "facePull",
@@ -324,6 +410,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "band",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   flatKneeRaise: {
     id: "flatKneeRaise",
@@ -331,6 +419,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   flatLegRaise: {
     id: "flatLegRaise",
@@ -338,6 +428,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   frontRaise: {
     id: "frontRaise",
@@ -345,6 +437,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   frontSquat: {
     id: "frontSquat",
@@ -352,6 +446,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   gobletSquat: {
     id: "gobletSquat",
@@ -359,6 +455,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 15, unit: "kg" },
   },
   goodMorning: {
     id: "goodMorning",
@@ -366,6 +464,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   gluteBridge: {
     id: "gluteBridge",
@@ -373,6 +473,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 15, unit: "kg" },
   },
   gluteBridgeMarch: {
     id: "gluteBridgeMarch",
@@ -380,6 +482,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   hackSquat: {
     id: "hackSquat",
@@ -387,6 +491,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 115, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   hammerCurl: {
     id: "hammerCurl",
@@ -394,6 +500,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   handstandPushUp: {
     id: "handstandPushUp",
@@ -401,6 +509,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "push"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   hangClean: {
     id: "hangClean",
@@ -408,6 +518,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 85, unit: "lb" },
+    startingWeightKg: { value: 37.5, unit: "kg" },
   },
   hangSnatch: {
     id: "hangSnatch",
@@ -415,6 +527,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   hangingLegRaise: {
     id: "hangingLegRaise",
@@ -422,6 +536,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   highKneeSkips: {
     id: "highKneeSkips",
@@ -429,6 +545,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   hipAbductor: {
     id: "hipAbductor",
@@ -436,6 +554,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
   },
   hipThrust: {
     id: "hipThrust",
@@ -443,6 +563,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   inclineBenchPress: {
     id: "inclineBenchPress",
@@ -450,6 +572,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 115, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   inclineBenchPressWideGrip: {
     id: "inclineBenchPressWideGrip",
@@ -457,6 +581,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 110, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   inclineChestFly: {
     id: "inclineChestFly",
@@ -464,6 +590,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   inclineChestPress: {
     id: "inclineChestPress",
@@ -471,6 +599,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   inclineCurl: {
     id: "inclineCurl",
@@ -478,6 +608,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   inclineRow: {
     id: "inclineRow",
@@ -485,6 +617,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   invertedRow: {
     id: "invertedRow",
@@ -492,6 +626,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   isoLateralChestPress: {
     id: "isoLateralChestPress",
@@ -499,6 +635,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   isoLateralRow: {
     id: "isoLateralRow",
@@ -506,6 +644,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   jackknifeSitUp: {
     id: "jackknifeSitUp",
@@ -513,6 +653,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   jumpRope: {
     id: "jumpRope",
@@ -520,6 +662,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   jumpSquat: {
     id: "jumpSquat",
@@ -527,6 +671,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   jumpingJack: {
     id: "jumpingJack",
@@ -534,6 +680,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: undefined,
     types: ["upper", "lower"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   kettlebellSwing: {
     id: "kettlebellSwing",
@@ -541,6 +689,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "kettlebell",
     types: ["upper", "lower", "core"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 16, unit: "kg" },
   },
   kettlebellTurkishGetUp: {
     id: "kettlebellTurkishGetUp",
@@ -548,6 +698,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "kettlebell",
     types: ["upper", "lower", "core"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 8, unit: "kg" },
   },
   kippingPullUp: {
     id: "kippingPullUp",
@@ -555,6 +707,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   kneeRaise: {
     id: "kneeRaise",
@@ -562,6 +716,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   kneelingPulldown: {
     id: "kneelingPulldown",
@@ -569,6 +725,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "band",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   kneestoElbows: {
     id: "kneestoElbows",
@@ -576,6 +734,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   latPulldown: {
     id: "latPulldown",
@@ -583,6 +743,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   lateralBoxJump: {
     id: "lateralBoxJump",
@@ -590,6 +752,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: undefined,
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   lateralRaise: {
     id: "lateralRaise",
@@ -597,6 +761,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   legsUpBenchPress: {
     id: "legsUpBenchPress",
@@ -604,6 +770,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 135, unit: "lb" },
+    startingWeightKg: { value: 60, unit: "kg" },
   },
   legCurl: {
     id: "legCurl",
@@ -611,6 +779,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
   },
   legExtension: {
     id: "legExtension",
@@ -618,6 +788,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
   },
   legPress: {
     id: "legPress",
@@ -625,6 +797,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 250, unit: "lb" },
+    startingWeightKg: { value: 112.5, unit: "kg" },
   },
   lunge: {
     id: "lunge",
@@ -632,6 +806,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 75, unit: "lb" },
+    startingWeightKg: { value: 32.5, unit: "kg" },
   },
   lyingBicepCurl: {
     id: "lyingBicepCurl",
@@ -639,6 +815,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   lyingLegCurl: {
     id: "lyingLegCurl",
@@ -646,6 +824,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
   },
   mountainClimber: {
     id: "mountainClimber",
@@ -653,6 +833,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core", "lower"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   muscleUp: {
     id: "muscleUp",
@@ -660,6 +842,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   obliqueCrunch: {
     id: "obliqueCrunch",
@@ -667,6 +851,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   overheadPress: {
     id: "overheadPress",
@@ -674,6 +860,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 75, unit: "lb" },
+    startingWeightKg: { value: 32.5, unit: "kg" },
   },
   overheadSquat: {
     id: "overheadSquat",
@@ -681,6 +869,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 55, unit: "lb" },
+    startingWeightKg: { value: 25, unit: "kg" },
   },
   pecDeck: {
     id: "pecDeck",
@@ -688,6 +878,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["upper", "push"],
+    startingWeightLb: { value: 50, unit: "lb" },
+    startingWeightKg: { value: 22.5, unit: "kg" },
   },
   pendlayRow: {
     id: "pendlayRow",
@@ -695,6 +887,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   pistolSquat: {
     id: "pistolSquat",
@@ -702,6 +896,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   plank: {
     id: "plank",
@@ -709,6 +905,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   powerClean: {
     id: "powerClean",
@@ -716,6 +914,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   powerSnatch: {
     id: "powerSnatch",
@@ -723,6 +923,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   preacherCurl: {
     id: "preacherCurl",
@@ -730,6 +932,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   pressUnder: {
     id: "pressUnder",
@@ -737,6 +941,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   pullUp: {
     id: "pullUp",
@@ -744,6 +950,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   pullover: {
     id: "pullover",
@@ -751,6 +959,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   pushPress: {
     id: "pushPress",
@@ -758,6 +968,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "kettlebell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 16, unit: "kg" },
   },
   pushUp: {
     id: "pushUp",
@@ -765,6 +977,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "push"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   reverseCrunch: {
     id: "reverseCrunch",
@@ -772,6 +986,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   reverseCurl: {
     id: "reverseCurl",
@@ -779,6 +995,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   reverseFly: {
     id: "reverseFly",
@@ -786,6 +1004,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   reverseGripConcentrationCurl: {
     id: "reverseGripConcentrationCurl",
@@ -793,6 +1013,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   reversePlank: {
     id: "reversePlank",
@@ -800,6 +1022,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   reverseLatPulldown: {
     id: "reverseLatPulldown",
@@ -807,6 +1031,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   romanianDeadlift: {
     id: "romanianDeadlift",
@@ -814,6 +1040,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 40, unit: "lb" },
+    startingWeightKg: { value: 17.5, unit: "kg" },
   },
   reverseHyperextension: {
     id: "reverseHyperextension",
@@ -821,6 +1049,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "band",
     types: ["core", "lower"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   rowing: {
     id: "rowing",
@@ -828,6 +1058,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   russianTwist: {
     id: "russianTwist",
@@ -835,6 +1067,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   safetySquatBarSquat: {
     id: "safetySquatBarSquat",
@@ -842,6 +1076,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 145, unit: "lb" },
+    startingWeightKg: { value: 65, unit: "kg" },
   },
   seatedCalfRaise: {
     id: "seatedCalfRaise",
@@ -849,6 +1085,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 90, unit: "lb" },
+    startingWeightKg: { value: 40, unit: "kg" },
   },
   seatedFrontRaise: {
     id: "seatedFrontRaise",
@@ -856,6 +1094,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   seatedLegCurl: {
     id: "seatedLegCurl",
@@ -863,6 +1103,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
   },
   seatedLegPress: {
     id: "seatedLegPress",
@@ -870,6 +1112,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 200, unit: "lb" },
+    startingWeightKg: { value: 90, unit: "kg" },
   },
   seatedOverheadPress: {
     id: "seatedOverheadPress",
@@ -877,6 +1121,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 75, unit: "lb" },
+    startingWeightKg: { value: 32.5, unit: "kg" },
   },
   seatedPalmsUpWristCurl: {
     id: "seatedPalmsUpWristCurl",
@@ -884,6 +1130,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 15, unit: "lb" },
+    startingWeightKg: { value: 5, unit: "kg" },
   },
   seatedRow: {
     id: "seatedRow",
@@ -891,6 +1139,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   seatedWideGripRow: {
     id: "seatedWideGripRow",
@@ -898,6 +1148,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   shoulderPress: {
     id: "shoulderPress",
@@ -905,6 +1157,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   shoulderPressParallelGrip: {
     id: "shoulderPressParallelGrip",
@@ -912,6 +1166,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   shrug: {
     id: "shrug",
@@ -919,6 +1175,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 45, unit: "lb" },
+    startingWeightKg: { value: 20, unit: "kg" },
   },
   sideBend: {
     id: "sideBend",
@@ -926,6 +1184,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["core"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   sideCrunch: {
     id: "sideCrunch",
@@ -933,6 +1193,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   sideHipAbductor: {
     id: "sideHipAbductor",
@@ -940,6 +1202,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   sideLyingClam: {
     id: "sideLyingClam",
@@ -947,6 +1211,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   sidePlank: {
     id: "sidePlank",
@@ -954,6 +1220,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   singleLegBridge: {
     id: "singleLegBridge",
@@ -961,6 +1229,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   singleLegCalfRaise: {
     id: "singleLegCalfRaise",
@@ -968,6 +1238,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 85, unit: "lb" },
+    startingWeightKg: { value: 37.5, unit: "kg" },
   },
   singleLegDeadlift: {
     id: "singleLegDeadlift",
@@ -975,6 +1247,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   singleLegGluteBridgeBench: {
     id: "singleLegGluteBridgeBench",
@@ -982,6 +1256,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   singleLegGluteBridgeStraight: {
     id: "singleLegGluteBridgeStraight",
@@ -989,6 +1265,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   singleLegGluteBridgeBentKnee: {
     id: "singleLegGluteBridgeBentKnee",
@@ -996,6 +1274,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   singleLegHipThrust: {
     id: "singleLegHipThrust",
@@ -1003,6 +1283,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   sissySquat: {
     id: "sissySquat",
@@ -1010,6 +1292,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "bodyweight",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   sitUp: {
     id: "sitUp",
@@ -1017,6 +1301,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   skullcrusher: {
     id: "skullcrusher",
@@ -1024,6 +1310,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "ezbar",
     types: ["upper", "push"],
+    startingWeightLb: { value: 45, unit: "lb" },
+    startingWeightKg: { value: 20, unit: "kg" },
   },
   slingShotBenchPress: {
     id: "slingShotBenchPress",
@@ -1031,6 +1319,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 140, unit: "lb" },
+    startingWeightKg: { value: 62.5, unit: "kg" },
   },
   snatch: {
     id: "snatch",
@@ -1038,6 +1328,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "dumbbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   snatchPull: {
     id: "snatchPull",
@@ -1045,6 +1337,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 85, unit: "lb" },
+    startingWeightKg: { value: 37.5, unit: "kg" },
   },
   splitJerk: {
     id: "splitJerk",
@@ -1052,6 +1346,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "push"],
+    startingWeightLb: { value: 95, unit: "lb" },
+    startingWeightKg: { value: 42.5, unit: "kg" },
   },
   squat: {
     id: "squat",
@@ -1059,6 +1355,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 135, unit: "lb" },
+    startingWeightKg: { value: 60, unit: "kg" },
   },
   squatRow: {
     id: "squatRow",
@@ -1066,6 +1364,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "band",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   standingCalfRaise: {
     id: "standingCalfRaise",
@@ -1073,6 +1373,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 15, unit: "kg" },
   },
   standingRow: {
     id: "standingRow",
@@ -1080,6 +1382,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   standingRowCloseGrip: {
     id: "standingRowCloseGrip",
@@ -1087,6 +1391,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   standingRowRearDeltWithRope: {
     id: "standingRowRearDeltWithRope",
@@ -1094,6 +1400,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   standingRowRearHorizontalDeltWithRope: {
     id: "standingRowRearHorizontalDeltWithRope",
@@ -1101,6 +1409,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 30, unit: "lb" },
+    startingWeightKg: { value: 12.5, unit: "kg" },
   },
   standingRowVBar: {
     id: "standingRowVBar",
@@ -1108,6 +1418,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 70, unit: "lb" },
+    startingWeightKg: { value: 30, unit: "kg" },
   },
   stepUp: {
     id: "stepUp",
@@ -1115,6 +1427,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   stiffLegDeadlift: {
     id: "stiffLegDeadlift",
@@ -1122,6 +1436,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 115, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   straightLegDeadlift: {
     id: "straightLegDeadlift",
@@ -1129,6 +1445,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 110, unit: "lb" },
+    startingWeightKg: { value: 50, unit: "kg" },
   },
   sumoDeadlift: {
     id: "sumoDeadlift",
@@ -1136,6 +1454,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 175, unit: "lb" },
+    startingWeightKg: { value: 77.5, unit: "kg" },
   },
   sumoDeadliftHighPull: {
     id: "sumoDeadliftHighPull",
@@ -1143,6 +1463,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 95,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "pull"],
+    startingWeightLb: { value: 85, unit: "lb" },
+    startingWeightKg: { value: 37.5, unit: "kg" },
   },
   superman: {
     id: "superman",
@@ -1150,6 +1472,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   tBarRow: {
     id: "tBarRow",
@@ -1157,6 +1481,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 90, unit: "lb" },
+    startingWeightKg: { value: 40, unit: "kg" },
   },
   thruster: {
     id: "thruster",
@@ -1164,6 +1490,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["upper", "lower", "push"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
   },
   toesToBar: {
     id: "toesToBar",
@@ -1171,6 +1499,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   torsoRotation: {
     id: "torsoRotation",
@@ -1178,6 +1508,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   trapBarDeadlift: {
     id: "trapBarDeadlift",
@@ -1185,6 +1517,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "trapbar",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 185, unit: "lb" },
+    startingWeightKg: { value: 82.5, unit: "kg" },
   },
   tricepsDip: {
     id: "tricepsDip",
@@ -1192,6 +1526,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "push"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   tricepsExtension: {
     id: "tricepsExtension",
@@ -1199,6 +1535,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "push"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   tricepsPushdown: {
     id: "tricepsPushdown",
@@ -1206,6 +1544,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "cable",
     types: ["upper", "push"],
+    startingWeightLb: { value: 40, unit: "lb" },
+    startingWeightKg: { value: 17.5, unit: "kg" },
   },
   uprightRow: {
     id: "uprightRow",
@@ -1213,6 +1553,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "dumbbell",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 7.5, unit: "kg" },
   },
   vUp: {
     id: "vUp",
@@ -1220,6 +1562,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["core"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   widePullUp: {
     id: "widePullUp",
@@ -1227,6 +1571,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   wristRoller: {
     id: "wristRoller",
@@ -1234,6 +1580,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 10,
     defaultEquipment: "bodyweight",
     types: ["upper", "pull"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   zercherSquat: {
     id: "zercherSquat",
@@ -1241,6 +1589,8 @@ export const exercises: Record<IExerciseId, IExercise> = {
     defaultWarmup: 45,
     defaultEquipment: "barbell",
     types: ["lower", "legs"],
+    startingWeightLb: { value: 105, unit: "lb" },
+    startingWeightKg: { value: 47.5, unit: "kg" },
   },
 };
 
@@ -2986,6 +3336,8 @@ export type IExercise = {
   defaultEquipment?: IEquipment;
   types: IExerciseKind[];
   onerm?: number;
+  startingWeightLb: IWeight;
+  startingWeightKg: IWeight;
 };
 
 export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerciseWarmupSet[]>> {
@@ -3082,7 +3434,15 @@ function warmupEmpty(weight: IWeight): ISet[] {
 
 function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
   const custom = customExercises[id];
-  return custom != null ? { ...custom, defaultWarmup: 45, types: custom.types || [] } : exercises[id];
+  return custom != null
+    ? {
+        ...custom,
+        defaultWarmup: 45,
+        types: custom.types || [],
+        startingWeightKg: Weight.build(0, "kg"),
+        startingWeightLb: Weight.build(0, "lb"),
+      }
+    : exercises[id];
 }
 
 function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise {

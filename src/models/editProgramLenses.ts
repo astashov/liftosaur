@@ -164,6 +164,16 @@ export namespace EditProgramLenses {
     return [
       prefix.p("exerciseType").p("id").record(exercise.id),
       prefix.p("exerciseType").p("equipment").record(exercise.defaultEquipment),
+      prefix.p("state").recordModify((oldState) => {
+        if ("weight" in oldState) {
+          return {
+            ...oldState,
+            weight: settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb,
+          };
+        } else {
+          return oldState;
+        }
+      }),
       prefix.p("name").record(exercise.name),
     ];
   }

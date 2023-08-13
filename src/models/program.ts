@@ -1,4 +1,4 @@
-import { Exercise, warmupValues } from "./exercise";
+import { Exercise, exercises, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { Screen } from "./screen";
@@ -545,7 +545,7 @@ export namespace Program {
         equipment: "barbell",
       },
       state: {
-        weight: units === "kg" ? Weight.build(20, units) : Weight.build(45, units),
+        weight: units === "kg" ? exercises.squat.startingWeightKg : exercises.squat.startingWeightLb,
       },
       warmupSets: defaultWarmup,
       finishDayExpr: "",
@@ -709,13 +709,13 @@ export namespace Program {
       }
     }
 
-    const exercises = Object.keys(builderExercises).map((id) => {
+    const exrcs = Object.keys(builderExercises).map((id) => {
       const ex = builderExercises[id];
       return ProgramExercise.planExercisesToProgramExercise(id, ex);
     });
 
     return {
-      exercises: exercises,
+      exercises: exrcs,
       id: UidFactory.generateUid(8),
       name: plan.name,
       description: "Generated from a Workout Planner",
