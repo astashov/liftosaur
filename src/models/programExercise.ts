@@ -133,6 +133,10 @@ export namespace ProgramExercise {
     return !!getProgramExercise(programExercise, allProgramExercises).quickAddSets;
   }
 
+  export function getEnableRpe(programExercise: IProgramExercise, allProgramExercises: IProgramExercise[]): boolean {
+    return !!getProgramExercise(programExercise, allProgramExercises).enableRpe;
+  }
+
   export function getWarmupSets(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
@@ -177,7 +181,7 @@ export namespace ProgramExercise {
     };
   }
 
-  export function getProgramExercise<T>(
+  export function getProgramExercise(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
   ): IProgramExercise {

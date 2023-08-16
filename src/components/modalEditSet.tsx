@@ -58,6 +58,9 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
+  const enableRpe = props.programExercise
+    ? ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises || [])
+    : false;
 
   const [platesStr, setPlatesStr] = useState<string | undefined>(
     props.set ? getPlatesStr(props.subscription, initialWeight || 0, props.settings, props.equipment) : undefined
@@ -119,7 +122,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             />
           </div>
           <div>{props.settings.units}</div>
-          {!props.isWarmup && props.programExercise?.enableRpe && (
+          {!props.isWarmup && enableRpe && (
             <>
               <div className="ml-2 mr-1">@</div>
               <div className="w-16">

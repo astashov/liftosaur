@@ -101,7 +101,7 @@ export namespace Program {
       sets,
       state,
       settings,
-      !!programExercise.enableRpe,
+      ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
       ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
       true
     );

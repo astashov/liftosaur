@@ -73,7 +73,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
                 ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
                 state,
                 settings,
-                !!programExercise.enableRpe,
+                ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
                 ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
               );
               props.onProgressChange(History.buildFromEntry(newEntry, newDay));
@@ -143,7 +143,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
               ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
               state,
               settings,
-              !!programExercise.enableRpe,
+              ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
               ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
             );
             props.onProgressChange(History.buildFromEntry(newEntry, props.day));

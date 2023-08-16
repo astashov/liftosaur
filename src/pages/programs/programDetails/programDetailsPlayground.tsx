@@ -54,6 +54,7 @@ export const Playground = memo(
     const programExerciseState = ProgramExercise.getState(props.programExercise, props.allProgramExercises);
     const programExerciseVariations = ProgramExercise.getVariations(props.programExercise, props.allProgramExercises);
     const programExerciseWarmupSets = ProgramExercise.getWarmupSets(props.programExercise, props.allProgramExercises);
+    const programExerciseEnableRpe = ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises);
 
     const { settings, day, variationIndex, programExercise } = props;
     const [progress, setProgress] = useState(() => {
@@ -64,7 +65,7 @@ export const Playground = memo(
         programExerciseVariations[variationIndex].sets,
         programExerciseState,
         settings,
-        !!programExercise.enableRpe,
+        programExerciseEnableRpe,
         programExerciseWarmupSets
       );
       return History.buildFromEntry(entry, day);
