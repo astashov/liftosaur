@@ -6,6 +6,7 @@ import { Screen, IScreen } from "../models/screen";
 import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
+import { EditProgramWeek } from "./editProgram/editProgramWeek";
 
 interface IProps {
   editProgram: IProgram;
@@ -15,6 +16,7 @@ interface IProps {
   programIndex: number;
   subscription: ISubscription;
   dayIndex: number;
+  weekIndex?: number;
   settings: ISettings;
   adminKey?: string;
   loading: ILoading;
@@ -51,6 +53,22 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
     } else {
       throw new Error("Opened 'editProgramDay' screen, but 'state.editProgram.editDay' is null");
     }
+  } else if (screen === "editProgramWeek") {
+    if (props.weekIndex != null && props.weekIndex !== -1) {
+      return (
+        <EditProgramWeek
+          loading={props.loading}
+          screenStack={props.screenStack}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          editProgram={props.editProgram}
+          editWeek={props.editProgram.weeks[props.weekIndex]}
+          weekIndex={props.weekIndex}
+        />
+      );
+    } else {
+      throw new Error(`Opened 'editProgramWeek' screen, but 'state.editProgram.weekIndex' is ${props.weekIndex}`);
+    }
   } else if (screen === "editProgramExercise") {
     const editExercise = props.editExercise;
     if (editExercise == null) {
@@ -62,11 +80,9 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
         subscription={props.subscription}
         loading={props.loading}
         programIndex={props.programIndex}
-        days={props.editProgram.days}
-        programName={props.editProgram.name}
         settings={props.settings}
+        program={props.editProgram}
         dispatch={props.dispatch}
-        allProgramExercises={props.editProgram.exercises}
         programExercise={editExercise}
       />
     );

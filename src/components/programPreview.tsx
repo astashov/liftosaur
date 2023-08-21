@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { IProgram, IProgramExercise, ISettings, ISubscription, IExerciseType } from "../types";
+import { IProgram, IProgramExercise, ISettings, ISubscription, IExerciseType, IDayData } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { ExerciseImage } from "./exerciseImage";
@@ -85,19 +85,21 @@ export function ProgramPreview(props: IProps): JSX.Element {
       </div>
       {program.description && <div className="pt-2" dangerouslySetInnerHTML={{ __html: program.description }} />}
       <GroupHeader name="Days and Exercises" topPadding={true} />
-      {program.days.map((day, dayIndex) => {
+      {program.days.map((day, i) => {
+        const dayIndex = i + 1;
+        const dayData = Program.getDayData(program, dayIndex);
         return (
-          <section data-cy={`day-${dayIndex + 1}`} className="pb-4">
+          <section data-cy={`day-${dayIndex}`} className="pb-4">
             <div className="flex items-center">
               <h2 data-cy="program-day-name" className="flex-1 text-2xl text-gray-600">
-                {dayIndex + 1}. {day.name}
+                {dayIndex}. {day.name}
               </h2>
               <div>
                 <button
                   style={{ marginRight: "-0.5rem" }}
                   data-cy="program-show-day-muscles"
                   className="p-2"
-                  onClick={() => setMusclesModal({ type: "day", dayIndex })}
+                  onClick={() => setMusclesModal({ type: "day", dayIndex: dayIndex - 1 })}
                 >
                   <IconMuscles2 />
                 </button>
@@ -107,7 +109,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
               <IconWatch />{" "}
               <span className="align-middle">
                 Approximate time to finish:{" "}
-                <strong>{TimeUtils.formatHHMM(Program.dayApproxTimeMs(dayIndex, program, props.settings))}</strong>
+                <strong>{TimeUtils.formatHHMM(Program.dayApproxTimeMs(dayData, program, props.settings))}</strong>
               </span>
             </div>
             <ul>
@@ -122,7 +124,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
                       allProgramExercises={program.exercises}
                       subscription={props.subscription}
                       programExerciseIndex={index}
-                      dayIndex={dayIndex}
+                      dayData={dayData}
                       settings={props.settings}
                       shouldShowAllFormulas={showFx}
                       onExerciseTypeClick={(exerciseType) => setExerciseTypeInfo(exerciseType)}
@@ -163,7 +165,7 @@ interface IProgramPreviewExerciseProps {
   allProgramExercises: IProgramExercise[];
   programExerciseIndex: number;
   programId: string;
-  dayIndex: number;
+  dayData: IDayData;
   subscription: ISubscription;
   settings: ISettings;
   shouldShowAllFormulas: boolean;
@@ -185,7 +187,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
   const timer = timerExpr?.trim()
     ? Progress.executeEntryScript(
         timerExpr,
-        props.dayIndex,
+        props.dayData,
         ProgramExercise.getState(props.programExercise, props.allProgramExercises),
         { equipment: props.programExercise.exerciseType.equipment },
         props.settings,
@@ -247,7 +249,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                       sets={variation.sets}
                       programExercise={programExercise}
                       allProgramExercises={props.allProgramExercises}
-                      dayIndex={props.dayIndex}
+                      dayData={props.dayData}
                       settings={settings}
                       shouldShowAllFormulas={props.shouldShowAllFormulas}
                       forceShowFormula={showScripts}
@@ -301,7 +303,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
           subscription={props.subscription}
           variationIndex={0}
           settings={props.settings}
-          day={props.dayIndex}
+          dayData={props.dayData}
           onProgramExerciseUpdate={setProgramExercise}
         />
       )}

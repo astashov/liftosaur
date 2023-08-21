@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { IHistoryEntry, IProgramExercise, ISettings } from "../../types";
+import { IDayData, IHistoryEntry, IProgramExercise, ISettings } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { MenuItemWrapper } from "../menuItem";
 import { MenuItemEditable } from "../menuItemEditable";
@@ -13,7 +13,7 @@ interface IProps {
   onValid: (isValid: boolean) => void;
   areVariationsEnabled: boolean;
   onEnableVariations: (value: boolean) => void;
-  day: number;
+  dayData: IDayData;
   settings: ISettings;
   programExercise: IProgramExercise;
   entry?: IHistoryEntry;
@@ -81,7 +81,7 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
           showTimer ? (
             <div className="pl-4">
               <EditProgramExerciseTimer
-                day={props.day}
+                dayData={props.dayData}
                 settings={props.settings}
                 state={programExercise.state}
                 equipment={programExercise.exerciseType.equipment}

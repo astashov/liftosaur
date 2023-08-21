@@ -13,6 +13,7 @@ import { TimeUtils } from "../../../utils/time";
 import { RepsAndWeight } from "../../programs/programDetails/programDetailsValues";
 import { IconTrash } from "../../../components/icons/iconTrash";
 import { IProgramEditorUiSelected } from "../models/types";
+import { Program } from "../../../models/program";
 
 interface IProgramContentExerciseProps {
   program: IProgram;
@@ -31,8 +32,9 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
   const { programExercise, program, settings } = props;
   const isUnassigned = props.dayIndex == null;
   const dayIndex = props.dayIndex || 0;
+  const dayData = Program.getDayData(program, dayIndex + 1);
   const approxTime = TimeUtils.formatHHMM(
-    ProgramExercise.approxTimeMs(dayIndex, programExercise, program.exercises, settings)
+    ProgramExercise.approxTimeMs(dayData, programExercise, program.exercises, settings)
   );
   const reusedProgramExercise = ProgramExercise.getReusedProgramExercise(programExercise, program.exercises);
   const stateVars = ProgramExercise.getState(programExercise, program.exercises);
@@ -107,7 +109,7 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                         sets={variation.sets}
                         programExercise={programExercise}
                         allProgramExercises={program.exercises}
-                        dayIndex={dayIndex}
+                        dayData={dayData}
                         settings={settings}
                         shouldShowAllFormulas={false}
                         forceShowFormula={false}

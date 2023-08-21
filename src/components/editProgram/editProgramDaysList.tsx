@@ -7,7 +7,7 @@ import { DraggableList } from "../draggableList";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { StringUtils } from "../../utils/string";
-import { ILoading, IState } from "../../models/state";
+import { ILoading, IState, updateState } from "../../models/state";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
@@ -28,6 +28,8 @@ import { LinkButton } from "../linkButton";
 import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
+import { ObjectUtils } from "../../utils/object";
+import { UidFactory } from "../../utils/generator";
 
 interface IProps {
   editProgram: IProgram;
@@ -130,18 +132,131 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           }}
         />
         <MenuItemEditable
+          type="boolean"
+          name="Is Multi-Week program?"
+          value={props.editProgram.isMultiweek.toString()}
+          onChange={(newValueStr) => {
+            EditProgram.setIsMultiweek(props.dispatch, props.editProgram, newValueStr === "true");
+          }}
+        />
+        <MenuItemEditable
           type="select"
           name="Next Day:"
-          values={props.editProgram.days.map((day, i) => [`${i + 1}`, day.name])}
+          values={Program.getListOfDays(props.editProgram)}
           value={props.editProgram.nextDay.toString()}
           onChange={(newValueStr) => {
             const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
             if (newValue != null && !isNaN(newValue)) {
-              const newDay = Math.max(1, Math.min(newValue, props.editProgram.days.length));
+              const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram)));
               EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
             }
           }}
         />
+        {props.editProgram.isMultiweek && (
+          <>
+            <GroupHeader
+              topPadding={true}
+              name="Weeks"
+              help={<span>Add days to weeks to build multi-week programs.</span>}
+            />
+            <DraggableList
+              onDragEnd={(startIndex, endIndex) => {
+                EditProgram.reorderWeeks(props.dispatch, props.programIndex, startIndex, endIndex);
+              }}
+              items={props.editProgram.weeks}
+              element={(week, index, handleTouchStart) => {
+                return (
+                  <MenuItem
+                    handleTouchStart={handleTouchStart}
+                    name={week.name}
+                    addons={
+                      <ul className="ml-4 text-xs text-grayv2-main">
+                        {week.days.map((day) => {
+                          const programDay = props.editProgram.days.find((d) => d.id === day.id);
+                          return <li className="list-disc">{programDay?.name}</li>;
+                        })}
+                      </ul>
+                    }
+                    value={
+                      <>
+                        <button
+                          data-cy="edit-week"
+                          className="px-2 align-middle ls-days-list-edit-week button"
+                          onClick={() => {
+                            updateState(props.dispatch, [
+                              lb<IState>().pi("editProgram").p("weekIndex").record(index),
+                              lb<IState>()
+                                .p("screenStack")
+                                .recordModify((screenStack) => Screen.push(screenStack, "editProgramWeek")),
+                            ]);
+                          }}
+                        >
+                          <IconEditSquare />
+                        </button>
+                        <button
+                          data-cy="clone-week"
+                          className="px-2 align-middle ls-days-list-copy-week button"
+                          onClick={() => {
+                            const newName = StringUtils.nextName(week.name);
+                            props.dispatch({
+                              type: "UpdateState",
+                              lensRecording: [
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("programs")
+                                  .i(props.programIndex)
+                                  .p("weeks")
+                                  .recordModify((weeks) => {
+                                    const newWeeks = [...weeks];
+                                    newWeeks.push({ ...ObjectUtils.clone(week), name: newName });
+                                    return newWeeks;
+                                  }),
+                              ],
+                            });
+                          }}
+                        >
+                          <IconDuplicate2 />
+                        </button>
+                        {props.editProgram.weeks.length > 1 && (
+                          <button
+                            data-cy={`menu-item-delete-${StringUtils.dashcase(week.name)}`}
+                            className="px-2 align-middle ls-days-list-delete-week button"
+                            onClick={() => {
+                              if (confirm("Are you sure?")) {
+                                props.dispatch({
+                                  type: "UpdateState",
+                                  lensRecording: [
+                                    lb<IState>()
+                                      .p("storage")
+                                      .p("programs")
+                                      .i(props.programIndex)
+                                      .p("weeks")
+                                      .recordModify((weeks) => weeks.filter((w) => w !== week)),
+                                  ],
+                                });
+                              }
+                            }}
+                          >
+                            <IconTrash />
+                          </button>
+                        )}
+                      </>
+                    }
+                  />
+                );
+              }}
+            />
+            <LinkButton
+              className="mt-2"
+              data-cy="add-week"
+              onClick={() => {
+                EditProgram.createWeek(props.dispatch, props.programIndex);
+              }}
+            >
+              Add New Week
+            </LinkButton>
+          </>
+        )}
         <GroupHeader
           topPadding={true}
           name="Days"
@@ -163,7 +278,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             );
             return (
               <MenuItem
-                handleTouchStart={handleTouchStart}
+                handleTouchStart={props.editProgram.isMultiweek ? undefined : handleTouchStart}
                 name={day.name}
                 addons={exerciseTypes.map((e) => (
                   <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
@@ -193,7 +308,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                               .p("days")
                               .recordModify((days) => {
                                 const newDays = [...days];
-                                newDays.push({ ...day, name: newName });
+                                newDays.push({ ...day, name: newName, id: UidFactory.generateUid(8) });
                                 return newDays;
                               }),
                           ],
@@ -207,17 +322,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                         data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
                         className="px-2 align-middle ls-days-list-delete-day button"
                         onClick={() => {
-                          props.dispatch({
-                            type: "UpdateState",
-                            lensRecording: [
-                              lb<IState>()
-                                .p("storage")
-                                .p("programs")
-                                .i(props.programIndex)
-                                .p("days")
-                                .recordModify((days) => days.filter((d) => d !== day)),
-                            ],
-                          });
+                          EditProgram.deleteDay(props.dispatch, props.editProgram.id, day.id);
                         }}
                       >
                         <IconTrash />
@@ -267,6 +372,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                     <IconEditSquare />
                   </button>
                   <button
+                    data-cy="clone-exercise"
                     className="px-2 align-middle ls-days-list-copy-exercise button"
                     onClick={() => {
                       EditProgram.copyProgramExercise(props.dispatch, props.editProgram, exercise);

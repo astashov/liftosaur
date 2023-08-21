@@ -45,13 +45,14 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
       ...week.days[day].states[props.programExercise.id],
       ...props.staticStateBuilder?.(weekIndex + 1, day + 1, programExercise.state),
     };
+    const dayData = Program.getDayData(props.program, day + 1);
 
     return {
       label: week.name,
       entry: Program.programExerciseToHistoryEntry(
         programExercise,
         props.program.exercises,
-        day + 1,
+        dayData,
         props.settings,
         staticState
       ),

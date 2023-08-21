@@ -3,7 +3,7 @@ import { IDispatch } from "../../ducks/types";
 import { h, JSX } from "preact";
 import { EditProgramExerciseAdvanced } from "./editProgramExerciseAdvanced";
 import { EditProgramExerciseSimple } from "./editProgramExerciseSimple";
-import { ISettings, IProgramDay, IProgramExercise, ISubscription } from "../../types";
+import { ISettings, IProgramExercise, ISubscription, IProgram } from "../../types";
 import { ILoading } from "../../models/state";
 import { NavbarView } from "../navbar";
 import { IScreen, Screen } from "../../models/screen";
@@ -16,13 +16,11 @@ import { HelpEditProgramExerciseAdvanced } from "../help/helpEditProgramExercise
 
 interface IProps {
   settings: ISettings;
-  days: IProgramDay[];
   programIndex: number;
   screenStack: IScreen[];
-  allProgramExercises: IProgramExercise[];
   subscription: ISubscription;
   programExercise: IProgramExercise;
-  programName: string;
+  program: IProgram;
   loading: ILoading;
   dispatch: IDispatch;
 }
@@ -41,7 +39,7 @@ export function EditProgramExercise(props: IProps): JSX.Element {
           helpContent={selectedTab === 0 ? <HelpEditProgramExerciseSimple /> : <HelpEditProgramExerciseAdvanced />}
           screenStack={props.screenStack}
           title="Edit Program Exercise"
-          subtitle={props.programName}
+          subtitle={props.program.name}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}

@@ -3,6 +3,7 @@ import { h, JSX } from "preact";
 import { IProgram, ISettings, ISubscription } from "../../../types";
 import { ProgramDetailsExercise } from "./programDetailsExercise";
 import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsProps {
   settings: ISettings;
@@ -56,6 +57,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
             <ul>
               {day.exercises.map((dayEntry, index) => {
                 const programExercise = props.program.exercises.filter((e) => e.id === dayEntry.id)[0];
+                const dayData = Program.getDayData(props.program, dayIndex + 1);
                 return (
                   <ProgramDetailsExercise
                     programId={props.program.id}
@@ -63,7 +65,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
                     subscription={props.subscription}
                     allProgramExercises={props.program.exercises}
                     programExerciseIndex={index}
-                    dayIndex={dayIndex}
+                    dayData={dayData}
                     settings={props.settings}
                     shouldShowAllFormulas={props.shouldShowAllFormulas}
                     shouldShowAllScripts={props.shouldShowAllScripts}

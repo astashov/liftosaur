@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { h, JSX } from "preact";
-import { IEquipment, IHistoryRecord, IProgramDay, IProgramExercise, ISettings } from "../../../types";
+import { IDayData, IEquipment, IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
 import { useRef } from "preact/hooks";
 import { IDispatch } from "../../../ducks/types";
 import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
@@ -28,17 +28,17 @@ export interface IPlaygroundProps {
   progress: IHistoryRecord;
   hideDay?: boolean;
   programExercise: IProgramExercise;
-  allProgramExercises: IProgramExercise[];
+  program: IProgram;
   settings: ISettings;
-  day: number;
-  days: IProgramDay[];
+  dayData: IDayData;
   onProgressChange: (p: IHistoryRecord) => void;
   lbe: LensBuilder<IProgramEditorState, IProgramExercise, {}>;
   dispatch: ILensDispatch<IProgramEditorState>;
 }
 
 export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
-  const { programExercise, days, settings, progress, allProgramExercises } = props;
+  const { programExercise, settings, progress } = props;
+  const { exercises: allProgramExercises } = props.program;
   const entry = progress.entries[0];
   const progressRef = useRef(props.progress);
   progressRef.current = props.progress;
@@ -47,7 +47,12 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
     const newProgress = buildCardsReducer(settings)(progressRef.current, action as ICardsAction);
     props.onProgressChange(newProgress);
   };
-  const description = ProgramExercise.getDescription(programExercise, allProgramExercises, props.day, props.settings);
+  const description = ProgramExercise.getDescription(
+    programExercise,
+    allProgramExercises,
+    props.dayData,
+    props.settings
+  );
 
   const workoutWeights = CollectionUtils.compatBy(
     entry.sets.map((s) => ({
@@ -69,31 +74,32 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
             onChange={(e) => {
               const newValue = (e.target as HTMLSelectElement).value;
               const newDay = parseInt(newValue || "1", 10);
+              const newDayData = Program.getDayData(props.program, newDay);
               const state = ProgramExercise.getState(programExercise, allProgramExercises);
               const nextVariationIndex = Program.nextVariationIndex(
                 programExercise,
                 allProgramExercises,
                 state,
-                newDay,
+                newDayData,
                 settings
               );
               const newEntry = Program.nextHistoryEntry(
                 programExercise.id,
                 programExercise.exerciseType,
-                newDay,
+                newDayData,
                 ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
                 state,
                 settings,
                 ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
                 ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
               );
-              props.onProgressChange(History.buildFromEntry(newEntry, newDay));
+              props.onProgressChange(History.buildFromEntry(newEntry, newDayData));
             }}
           >
-            {days.map((d, i) => {
+            {Program.getListOfDays(props.program).map(([value, name]) => {
               return (
-                <option value={i + 1} selected={i + 1 === progressRef.current.day}>
-                  {i + 1} - {d.name}
+                <option value={value} selected={Number(value) === progressRef.current.day}>
+                  {name}
                 </option>
               );
             })}
@@ -135,9 +141,9 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <ProgressStateChanges
         entry={entry}
         settings={props.settings}
-        day={props.day}
-        state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
-        script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
+        dayData={props.dayData}
+        state={ProgramExercise.getState(props.programExercise, allProgramExercises)}
+        script={ProgramExercise.getFinishDayScript(props.programExercise, allProgramExercises)}
       />
       <div className="text-xs">
         <LinkButton
@@ -147,20 +153,20 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
               programExercise,
               allProgramExercises,
               state,
-              props.day,
+              props.dayData,
               settings
             );
             const newEntry = Program.nextHistoryEntry(
               programExercise.id,
               programExercise.exerciseType,
-              props.day,
+              props.dayData,
               ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
               state,
               settings,
               ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
               ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
             );
-            props.onProgressChange(History.buildFromEntry(newEntry, props.day));
+            props.onProgressChange(History.buildFromEntry(newEntry, props.dayData));
           }}
         >
           Reset
@@ -203,7 +209,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
         settings={props.settings}
         equipment={progress.ui?.editSetModal?.equipment}
         programExercise={progress.ui?.editSetModal?.programExercise}
-        allProgramExercises={props.allProgramExercises}
+        allProgramExercises={allProgramExercises}
         isTimerDisabled={true}
         set={EditProgressEntry.getEditSetData(props.progress)}
         isWarmup={progress.ui?.editSetModal?.isWarmup || false}

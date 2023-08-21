@@ -230,6 +230,13 @@ export namespace EditProgram {
     ]);
   }
 
+  export function setIsMultiweek(dispatch: IDispatch, program: IProgram, value: boolean): void {
+    updateState(
+      dispatch,
+      EditProgramLenses.setIsMultiweek(lb<IState>().p("storage").p("programs").findBy("id", program.id), value)
+    );
+  }
+
   export function reorderSets(
     dispatch: IDispatch,
     variationIndex: number,
@@ -244,6 +251,12 @@ export namespace EditProgram {
   export function setDayName(dispatch: IDispatch, program: IProgram, dayIndex: number, name: string): void {
     updateState(dispatch, [
       lb<IState>().p("storage").p("programs").findBy("id", program.id).p("days").i(dayIndex).p("name").record(name),
+    ]);
+  }
+
+  export function setWeekName(dispatch: IDispatch, programId: string, weekIndex: number, name: string): void {
+    updateState(dispatch, [
+      EditProgramLenses.setWeekName(lb<IState>().p("storage").p("programs").findBy("id", programId), weekIndex, name),
     ]);
   }
 
@@ -304,6 +317,22 @@ export namespace EditProgram {
     ]);
   }
 
+  export function addWeekDay(dispatch: IDispatch, programId: string, weekIndex: number, dayId: string): void {
+    updateState(dispatch, [
+      EditProgramLenses.addWeekDay(lb<IState>().p("storage").p("programs").findBy("id", programId), weekIndex, dayId),
+    ]);
+  }
+
+  export function removeWeekDay(dispatch: IDispatch, programId: string, weekIndex: number, dayIndex: number): void {
+    updateState(dispatch, [
+      EditProgramLenses.removeWeekDay(
+        lb<IState>().p("storage").p("programs").findBy("id", programId),
+        weekIndex,
+        dayIndex
+      ),
+    ]);
+  }
+
   export function reorderDays(
     dispatch: IDispatch,
     programIndex: number,
@@ -316,6 +345,62 @@ export namespace EditProgram {
         startDayIndex,
         endDayIndex
       ),
+    ]);
+  }
+
+  export function reorderDaysWithinWeek(
+    dispatch: IDispatch,
+    programId: string,
+    weekIndex: number,
+    startDayIndex: number,
+    endDayIndex: number
+  ): void {
+    updateState(dispatch, [
+      EditProgramLenses.reorderDaysWithinWeek(
+        lb<IState>().p("storage").p("programs").findBy("id", programId),
+        weekIndex,
+        startDayIndex,
+        endDayIndex
+      ),
+    ]);
+  }
+
+  export function deleteDay(dispatch: IDispatch, programId: string, dayId: string): void {
+    updateState(
+      dispatch,
+      EditProgramLenses.deleteDay(lb<IState>().p("storage").p("programs").findBy("id", programId), dayId)
+    );
+  }
+
+  export function reorderWeeks(
+    dispatch: IDispatch,
+    programIndex: number,
+    startWeekIndex: number,
+    endWeekIndex: number
+  ): void {
+    updateState(dispatch, [
+      EditProgramLenses.reorderWeeks(
+        lb<IState>().p("storage").p("programs").i(programIndex),
+        startWeekIndex,
+        endWeekIndex
+      ),
+    ]);
+  }
+
+  export function createWeek(dispatch: IDispatch, programIndex: number): void {
+    const lensGetters = {
+      editProgram: lb<IState>().p("storage").p("programs").i(programIndex).get(),
+    };
+    updateState(dispatch, [
+      EditProgramLenses.createWeek(lb<IState>().p("storage").p("programs").i(programIndex)),
+      lbu<IState, typeof lensGetters>(lensGetters)
+        .pi("editProgram")
+        .recordModify((editProgram, getters) => {
+          return { ...editProgram, weekIndex: getters.editProgram.weeks.length - 1 };
+        }),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((screenStack) => Screen.push(screenStack, "editProgramWeek")),
     ]);
   }
 

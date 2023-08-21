@@ -19,12 +19,19 @@ export function EditProgramExerciseSimpleRow(props: IEditProgramExerciseSimpleRo
   const state = ProgramExercise.getState(programExercise, allProgramExercises);
   const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[0].sets;
   const firstSet: IProgramSet | undefined = sets[0];
-  const reps = Program.runScript(programExercise, allProgramExercises, firstSet?.repsExpr || "", 1, settings, "reps");
+  const reps = Program.runScript(
+    programExercise,
+    allProgramExercises,
+    firstSet?.repsExpr || "",
+    { day: 1 },
+    settings,
+    "reps"
+  );
   const weight = Program.runScript(
     programExercise,
     allProgramExercises,
     firstSet?.weightExpr || "",
-    1,
+    { day: 1 },
     settings,
     "weight"
   );

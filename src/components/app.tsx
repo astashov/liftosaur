@@ -431,6 +431,7 @@ export function AppView(props: IProps): JSX.Element | null {
           dispatch={dispatch}
           programIndex={Program.getEditingProgramIndex(state)}
           dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}
+          weekIndex={state.editProgram?.weekIndex}
           editProgram={editProgram}
         />
       );

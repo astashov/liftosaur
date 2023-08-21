@@ -73,12 +73,11 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
           {progress && entry && (
             <ProgramContentPlayground
               hideDay={true}
-              day={0}
               programExercise={programExercise}
-              allProgramExercises={allProgramExercises}
+              program={program}
+              dayData={{ day: 1 }}
               progress={progress}
               settings={props.settings}
-              days={props.program.days}
               lbe={props.lbe}
               dispatch={props.dispatch}
               onProgressChange={props.onProgressChange}

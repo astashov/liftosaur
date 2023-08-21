@@ -1,7 +1,7 @@
 import { Program } from "./program";
 import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle } from "../types";
+import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle, IDayData } from "../types";
 
 export type IScreenMuscle =
   | "shoulders"
@@ -199,7 +199,8 @@ export namespace Muscle {
     return programDay.exercises.reduce(
       (memo, exerciseId) => {
         const programExercise = program.exercises.find((e) => e.id === exerciseId.id)!;
-        return mergePoints(memo, getPointsForExercise(programExercise, program.exercises, program.nextDay, settings));
+        const dayData = Program.getDayData(program, program.nextDay);
+        return mergePoints(memo, getPointsForExercise(programExercise, program.exercises, dayData, settings));
       },
       { screenMusclePoints, exercisePoints }
     );
@@ -208,7 +209,7 @@ export namespace Muscle {
   export function getPointsForExercise(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     settings: ISettings
   ): IPoints {
     const screenMusclePoints: IScreenMusclePoints = {
@@ -221,7 +222,7 @@ export namespace Muscle {
     };
 
     const id = Exercise.toKey(programExercise.exerciseType);
-    const historyEntry = Program.programExerciseToHistoryEntry(programExercise, allProgramExercises, day, settings);
+    const historyEntry = Program.programExerciseToHistoryEntry(programExercise, allProgramExercises, dayData, settings);
     const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
     const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
     const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));

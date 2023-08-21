@@ -425,7 +425,10 @@ For given weightlifting program, respond with what weeks and how many days each 
       url: "",
       id: UidFactory.generateUid(8),
       tags: [],
+      weeks: [],
+      isMultiweek: false,
       days: freeformProgram.workouts.map((workout) => ({
+        id: UidFactory.generateUid(8),
         name: workout.name,
         exercises: CollectionUtils.compact(
           workout.exercises.map((exercise) => {

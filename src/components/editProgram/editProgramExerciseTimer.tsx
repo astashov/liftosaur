@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { Progress } from "../../models/progress";
 import { ScriptRunner } from "../../parser";
-import { IEquipment, IHistoryEntry, IProgramState, ISettings } from "../../types";
+import { IDayData, IEquipment, IHistoryEntry, IProgramState, ISettings } from "../../types";
 import { IEither } from "../../utils/types";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 
@@ -10,7 +10,7 @@ interface IProps {
   onChangeTimer?: (value: string) => void;
   onValid?: (isValid: boolean) => void;
   timerExpr?: string;
-  day: number;
+  dayData: IDayData;
   settings: ISettings;
   state: IProgramState;
   equipment?: IEquipment;
@@ -24,8 +24,8 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
         let index = props.entry?.sets.findIndex((s) => s.completedReps == null) ?? 0;
         index = index === -1 ? 0 : index;
         const bindings = props.entry
-          ? Progress.createScriptBindings(props.day, props.entry, index + 1)
-          : Progress.createEmptyScriptBindings(props.day);
+          ? Progress.createScriptBindings(props.dayData, props.entry, index + 1)
+          : Progress.createEmptyScriptBindings(props.dayData);
         const scriptRunnerResult = new ScriptRunner(
           script,
           props.state,

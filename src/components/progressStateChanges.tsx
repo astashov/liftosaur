@@ -4,12 +4,12 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState } from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData } from "../types";
 
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
-  day: number;
+  dayData: IDayData;
   state: IProgramState;
   script: string;
   userPromptedStateVars?: IProgramState;
@@ -18,12 +18,12 @@ interface IProps {
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const { entry, settings, state, script, day } = props;
+  const { entry, settings, state, script, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
   const result = Program.runExerciseFinishDayScript(
     entry,
-    day,
+    dayData,
     settings,
     mergedState,
     script,

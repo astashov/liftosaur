@@ -45,7 +45,9 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     shortDescription: "",
     description: "",
     nextDay: 1,
-    days: [{ name: "Day 1", exercises: [] }],
+    isMultiweek: false,
+    weeks: [],
+    days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
     exercises: [],
     tags: [],
   };
@@ -221,6 +223,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           setShowSettingsModal(false);
           setShowEquipmentModal(true);
         }}
+        program={state.current.program}
         isHidden={!showSettingsModal}
         settings={state.settings}
         dispatch={dispatch}

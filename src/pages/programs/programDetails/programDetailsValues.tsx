@@ -3,14 +3,14 @@ import { memo, useState } from "preact/compat";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progress } from "../../../models/progress";
 import { Weight } from "../../../models/weight";
-import { IProgramExercise, IProgramSet, ISet, ISettings, IWeight } from "../../../types";
+import { IDayData, IProgramExercise, IProgramSet, ISet, ISettings, IWeight } from "../../../types";
 import { HistoryRecordProgramSetsView, HistoryRecordSetsView } from "../../../components/historyRecordSets";
 
 function getRepsValues(props: IRepsWeightsProps): number[] {
   return props.sets.map((set) => {
     return Progress.executeEntryScript(
       set.repsExpr,
-      props.dayIndex + 1,
+      props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
       props.settings,
@@ -23,7 +23,7 @@ function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
   return props.sets.map((set) => {
     const value = Progress.executeEntryScript(
       set.weightExpr,
-      props.dayIndex,
+      props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
       props.settings,
@@ -45,7 +45,7 @@ interface IRepsWeightsProps {
   sets: IProgramSet[];
   programExercise: IProgramExercise;
   allProgramExercises: IProgramExercise[];
-  dayIndex: number;
+  dayData: IDayData;
   settings: ISettings;
   shouldShowAllFormulas: boolean;
   forceShowFormula?: boolean;

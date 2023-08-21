@@ -26,6 +26,7 @@ import {
   ISubscription,
   ISet,
   IProgramDay,
+  IDayData,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -36,6 +37,8 @@ import { CollectionUtils } from "../utils/collection";
 
 export interface IScriptBindings {
   day: number;
+  week: number;
+  dayInWeek: number;
   weights: IWeight[];
   reps: number[];
   RPE: number[];
@@ -133,9 +136,11 @@ function max(vals: IWeight[] | number[]): IWeight | number {
 }
 
 export namespace Progress {
-  export function createEmptyScriptBindings(day: number): IScriptBindings {
+  export function createEmptyScriptBindings(dayData: IDayData): IScriptBindings {
     return {
-      day,
+      day: dayData.day,
+      week: dayData.week ?? 1,
+      dayInWeek: dayData.dayInWeek ?? dayData.day,
       weights: [],
       reps: [],
       RPE: [],
@@ -150,8 +155,8 @@ export namespace Progress {
     };
   }
 
-  export function createScriptBindings(day: number, entry: IHistoryEntry, setIndex?: number): IScriptBindings {
-    const bindings = createEmptyScriptBindings(day);
+  export function createScriptBindings(dayData: IDayData, entry: IHistoryEntry, setIndex?: number): IScriptBindings {
+    const bindings = createEmptyScriptBindings(dayData);
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
       bindings.reps.push(set.reps);
@@ -210,7 +215,7 @@ export namespace Progress {
       const exercise = programExercise.exerciseType;
       const timerExpr = ProgramExercise.getTimerExpr(programExercise, program.exercises);
       const state = ProgramExercise.getState(programExercise, program.exercises);
-      const bindings = Progress.createScriptBindings(progress.day, entry, setIndex + 1);
+      const bindings = Progress.createScriptBindings(Progress.getDayData(progress), entry, setIndex + 1);
       if (timerExpr?.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
@@ -665,17 +670,25 @@ export namespace Progress {
     updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)]);
   }
 
+  export function getDayData(progress: IHistoryRecord): IDayData {
+    return {
+      day: progress.day,
+      week: progress.week,
+      dayInWeek: progress.dayInWeek,
+    };
+  }
+
   export function applyProgramExercise(
     progressEntry: IHistoryEntry | undefined,
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     forceWarmupSets?: boolean,
     staticState?: IProgramState
   ): IHistoryEntry {
     const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
-    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
+    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
     const programExerciseWarmupSets = ProgramExercise.getWarmupSets(programExercise, allProgramExercises);
 
@@ -684,7 +697,7 @@ export namespace Progress {
       firstWeightExpr != null
         ? executeEntryScript(
             firstWeightExpr,
-            day,
+            dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
             settings,
@@ -701,7 +714,7 @@ export namespace Progress {
         if (programSet != null) {
           const weight = executeEntryScript(
             programSet.weightExpr,
-            day,
+            dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
             settings,
@@ -711,7 +724,7 @@ export namespace Progress {
             ...progressSet,
             reps: executeEntryScript(
               programSet.repsExpr,
-              day,
+              dayData,
               state,
               { equipment: programExercise.exerciseType.equipment },
               settings,
@@ -744,7 +757,7 @@ export namespace Progress {
         sets: sets.map((set) => {
           const weight = executeEntryScript(
             set.weightExpr,
-            day,
+            dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
             settings,
@@ -753,7 +766,7 @@ export namespace Progress {
           return {
             reps: executeEntryScript(
               set.repsExpr,
-              day,
+              dayData,
               state,
               { equipment: programExercise.exerciseType.equipment },
               settings,
@@ -763,7 +776,7 @@ export namespace Progress {
             rpe: set.rpeExpr
               ? executeEntryScript(
                   set.rpeExpr,
-                  day,
+                  dayData,
                   state,
                   { equipment: programExercise.exerciseType.equipment },
                   settings,
@@ -791,7 +804,6 @@ export namespace Progress {
     programExerciseIds?: string[],
     checkReused?: boolean
   ): IHistoryRecord {
-    const day = progress.day;
     const affectedProgramExerciseIds = programExerciseIds
       ? checkReused
         ? CollectionUtils.flat(
@@ -824,7 +836,7 @@ export namespace Progress {
           progressEntry,
           programExercise,
           program.exercises,
-          day,
+          Progress.getDayData(progress),
           settings,
           false,
           staticState
@@ -845,7 +857,7 @@ export namespace Progress {
 
   export function executeEntryScript(
     expr: string,
-    day: number,
+    dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
@@ -853,7 +865,7 @@ export namespace Progress {
   ): IWeight;
   export function executeEntryScript(
     expr: string,
-    day: number,
+    dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
@@ -861,7 +873,7 @@ export namespace Progress {
   ): number;
   export function executeEntryScript(
     expr: string,
-    day: number,
+    dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
@@ -869,7 +881,7 @@ export namespace Progress {
   ): number;
   export function executeEntryScript(
     expr: string,
-    day: number,
+    dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
     settings: ISettings,
@@ -878,7 +890,7 @@ export namespace Progress {
     const runner = new ScriptRunner(
       expr,
       state,
-      createEmptyScriptBindings(day),
+      createEmptyScriptBindings(dayData),
       createScriptFunctions(settings),
       settings.units,
       context

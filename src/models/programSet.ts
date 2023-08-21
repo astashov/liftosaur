@@ -1,4 +1,4 @@
-import { IProgramSet, IProgramExercise, ISettings } from "../types";
+import { IProgramSet, IProgramExercise, ISettings, IDayData } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Progress } from "./progress";
 
@@ -28,14 +28,14 @@ export namespace ProgramSet {
 
   export function approxTimeMs(
     set: IProgramSet,
-    dayIndex: number,
+    dayData: IDayData,
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     settings: ISettings
   ): number {
     const reps = Progress.executeEntryScript(
       set.repsExpr,
-      dayIndex,
+      dayData,
       ProgramExercise.getState(programExercise, allProgramExercises),
       { equipment: programExercise.exerciseType.equipment },
       settings,

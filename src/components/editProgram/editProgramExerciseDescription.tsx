@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { Input } from "../input";
 import { IconTrash } from "../icons/iconTrash";
-import { IProgramExercise, ISettings } from "../../types";
+import { IDayData, IProgramExercise, ISettings } from "../../types";
 import { Program } from "../../models/program";
 import { ProgramExercise } from "../../models/programExercise";
 import { OneLineTextEditor } from "./oneLineTextEditor";
@@ -13,7 +13,7 @@ import { GroupHeader } from "../groupHeader";
 interface IEditProgramExerciseAdvancedDescriptionsProps {
   programExercise: IProgramExercise;
   allProgramExercises: IProgramExercise[];
-  day: number;
+  dayData: IDayData;
   settings: ISettings;
   onAdd: () => void;
   onRemove: (index: number) => void;
@@ -71,7 +71,7 @@ export function EditProgramExerciseAdvancedDescriptions(
     script,
     props.programExercise.exerciseType.equipment,
     state,
-    props.day,
+    props.dayData,
     props.settings
   );
   return (

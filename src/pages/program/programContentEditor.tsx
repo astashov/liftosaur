@@ -33,6 +33,8 @@ import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 import { IProgramExercise } from "../../types";
 import { UidFactory } from "../../utils/generator";
 import { HtmlUtils } from "../../utils/html";
+import { ProgramContentManageDaysModal } from "./components/programContentManageDaysModal";
+import { ProgramContentEditWeeks } from "./components/programContentEditWeeks";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -73,6 +75,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
   useUndoRedo(state, dispatch);
 
   const [showAddExistingExerciseModal, setShowAddExistingExerciseModal] = useState<number | undefined>(undefined);
+  const [showManageDaysModal, setShowManageDaysModal] = useState<number | undefined>(undefined);
   const [collapsedDays, setCollapsedDays] = useState<boolean[]>([]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
 
@@ -147,11 +150,20 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </a>
             </div>
           )}
+          {program.isMultiweek && (
+            <ProgramContentEditWeeks
+              program={program}
+              dispatch={dispatch}
+              onShowManageDaysModal={setShowManageDaysModal}
+              settings={state.settings}
+            />
+          )}
           <DraggableList
             hideBorders={true}
             items={program.days}
             element={(day, i, handleTouchStart) => {
-              const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(i, program, state.settings));
+              const dayData = Program.getDayData(program, i + 1);
+              const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(dayData, program, state.settings));
               return (
                 <section className="flex w-full px-2 py-1 text-left">
                   <div className="flex flex-col">
@@ -206,7 +218,11 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                             dispatch(
                               lbProgram.p("days").recordModify((days) => {
                                 const newDays = [...days];
-                                newDays.push({ ...ObjectUtils.clone(day), name: newName });
+                                newDays.push({
+                                  ...ObjectUtils.clone(day),
+                                  name: newName,
+                                  id: UidFactory.generateUid(8),
+                                });
                                 return newDays;
                               })
                             );
@@ -220,7 +236,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                             data-cy={`menu-item-delete-${StringUtils.dashcase(day.name)}`}
                             className="px-2 align-middle ls-web-editor-delete-day button"
                             onClick={() => {
-                              dispatch(lbProgram.p("days").recordModify((days) => CollectionUtils.removeAt(days, i)));
+                              dispatch(EditProgramLenses.deleteDay(lbProgram, day.id));
                               setCollapsedDays(CollectionUtils.removeAt(collapsedDays, i));
                             }}
                           >
@@ -393,6 +409,14 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
         program={program}
         settings={state.settings}
       />
+      {showManageDaysModal != null && (
+        <ProgramContentManageDaysModal
+          onClose={() => setShowManageDaysModal(undefined)}
+          program={program}
+          weekIndex={showManageDaysModal}
+          dispatch={dispatch}
+        />
+      )}
       {lbExamples && (
         <ProgramContentModalExerciseExamples unit={state.settings.units} dispatch={dispatch} lbe={lbExamples!} />
       )}

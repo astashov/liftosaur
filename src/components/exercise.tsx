@@ -18,6 +18,7 @@ import {
   ISet,
   ISubscription,
   IEquipment,
+  IDayData,
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IFriendUser, IState, updateState } from "../models/state";
@@ -51,7 +52,7 @@ interface IProps {
   settings: ISettings;
   history: IHistoryRecord[];
   progress: IHistoryRecord;
-  day: number;
+  dayData: IDayData;
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
   helps: string[];
@@ -133,7 +134,7 @@ export const ExerciseView = memo(
               entry={props.entry}
               forceShow={props.forceShowStateChanges}
               settings={props.settings}
-              day={props.day}
+              dayData={props.dayData}
               state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
               userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
               script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
@@ -194,7 +195,7 @@ const ExerciseContentView = memo(
       description = ProgramExercise.getDescription(
         programExercise,
         props.allProgramExercises,
-        props.day,
+        props.dayData,
         props.settings
       );
     }

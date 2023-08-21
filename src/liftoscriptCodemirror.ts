@@ -49,6 +49,8 @@ export function buildLiftoscriptLanguageSupport(codeEditor: CodeEditor): Languag
           { label: "completedReps", type: "keyword" },
           { label: "completedRPE", type: "keyword" },
           { label: "day", type: "keyword" },
+          { label: "week", type: "keyword" },
+          { label: "dayInWeek", type: "keyword" },
           { label: "setIndex", type: "keyword" },
           { label: "numberOfSets", type: "keyword" },
           { label: "roundWeight", type: "function" },

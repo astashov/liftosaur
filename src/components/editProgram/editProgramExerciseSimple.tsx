@@ -10,7 +10,7 @@ import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { Button } from "../button";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
-import { ISettings, IProgramDay, IProgramExercise, IEquipment } from "../../types";
+import { ISettings, IProgramExercise, IEquipment, IProgram } from "../../types";
 import { LinkButton } from "../linkButton";
 import { ProgramExercise } from "../../models/programExercise";
 import { EditCustomExercise } from "../../models/editCustomExercise";
@@ -21,11 +21,9 @@ import { EditProgramExerciseSimpleDescription } from "./editProgramExerciseDescr
 
 interface IProps {
   settings: ISettings;
-  days: IProgramDay[];
+  program: IProgram;
   programIndex: number;
   programExercise: IProgramExercise;
-  allProgramExercises: IProgramExercise[];
-  programName: string;
   dispatch: IDispatch;
 }
 
@@ -40,7 +38,8 @@ export function EditProgramExerciseSimple(props: IProps): JSX.Element {
 }
 
 function Edit(props: IProps): JSX.Element {
-  const { programExercise, allProgramExercises } = props;
+  const { exercises: allProgramExercises } = props.program;
+  const { programExercise } = props;
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
   const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
@@ -107,6 +106,7 @@ function Edit(props: IProps): JSX.Element {
       />
       <div className="p-2 mb-6 text-center">
         <Button
+          data-cy="save-exercise"
           kind="orange"
           onClick={() => {
             setTimeout(() => {

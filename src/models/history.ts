@@ -14,6 +14,7 @@ import {
   ISettings,
   IProgram,
   IEquipment,
+  IDayData,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
 import { IScreenMuscle, screenMuscles } from "./muscle";
@@ -30,14 +31,16 @@ export interface IHistoryRecordAndEntry {
 }
 
 export namespace History {
-  export function buildFromEntry(entry: IHistoryEntry, day: number): IHistoryRecord {
+  export function buildFromEntry(entry: IHistoryEntry, dayData: IDayData): IHistoryRecord {
     return {
       id: 0,
       date: new Date().toISOString(),
       programId: "",
       programName: "",
-      day,
-      dayName: day.toString(),
+      day: dayData.day,
+      week: dayData.week,
+      dayInWeek: dayData.dayInWeek,
+      dayName: dayData.day.toString(),
       startTime: Date.now(),
       entries: [entry],
     };

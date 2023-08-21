@@ -610,6 +610,32 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230831": {
+    title: <span>Added multi-week support</span>,
+    body: (
+      <ul>
+        <li>
+          Now for programs you can enable "Multi-week" mode. That adds <strong>Weeks</strong> - they are similar to{" "}
+          <strong>Days</strong>. Like you add exercises to Days and can reuse exercises between days - now you can add
+          Days to Weeks and reuse Days between Weeks.
+        </li>
+        <li>
+          That makes it easier to create multi-week programs with mesocycles, deload weeks, 1RM testing weeks, etc. You
+          can create regular days, deload days or testing RM days, and then create e.g. 6 weeks with regular days, and
+          then 1 week with deload days.
+        </li>
+        <li>
+          When multi-week mode is enabled, the program follows the order of days in weeks. I.e. when you finish a
+          workout, it'll go to the next day in the week, or when it was the last day in the week - goes to the first day
+          of the next week.
+        </li>
+        <li>
+          There're also new variables available for all the Liftoscript scripts - <strong>week</strong> and{" "}
+          <strong>dayInWeek</strong>. You can use them to define logic based on the week number, or week day number.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

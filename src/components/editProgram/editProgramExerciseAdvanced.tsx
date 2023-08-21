@@ -13,15 +13,7 @@ import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
-import {
-  ISettings,
-  IProgramDay,
-  IProgramExercise,
-  IHistoryRecord,
-  IEquipment,
-  IUnit,
-  ISubscription,
-} from "../../types";
+import { ISettings, IProgramExercise, IHistoryRecord, IEquipment, IUnit, ISubscription, IProgram } from "../../types";
 import { Playground } from "../playground";
 import { LinkButton } from "../linkButton";
 import { ProgramExercise } from "../../models/programExercise";
@@ -34,26 +26,26 @@ import { EditProgramVariationsEditor } from "./editProgramVariationsEditor";
 import { ModalEditProgramExerciseExamples } from "./modalEditProgramExerciseExamples";
 import { EditProgramExtraFeatures } from "./editProgramExtraFeatures";
 import { EditProgramExerciseAdvancedDescriptions } from "./editProgramExerciseDescription";
+import { Progress } from "../../models/progress";
 
 interface IProps {
   settings: ISettings;
-  days: IProgramDay[];
   programIndex: number;
   programExercise: IProgramExercise;
   subscription: ISubscription;
-  allProgramExercises: IProgramExercise[];
-  programName: string;
+  program: IProgram;
   dispatch: IDispatch;
 }
 
 export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
-  const { programExercise, allProgramExercises } = props;
+  const { programExercise } = props;
+  const { exercises: allProgramExercises } = props.program;
 
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   const prevProps = useRef<IProps>(props);
   const [variationIndex, setVariationIndex] = useState<number>(0);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(() =>
-    ProgramExercise.buildProgress(programExercise, allProgramExercises, 1, props.settings)
+    ProgramExercise.buildProgress(programExercise, allProgramExercises, { day: 1 }, props.settings)
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
@@ -67,27 +59,32 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
       setProgress(
-        ProgramExercise.buildProgress(programExercise, allProgramExercises, progress?.day || 1, props.settings)
+        ProgramExercise.buildProgress(
+          programExercise,
+          allProgramExercises,
+          progress ? Progress.getDayData(progress) : { day: 1 },
+          props.settings
+        )
       );
     }
     window.isUndoing = false;
     prevProps.current = props;
   });
   const entry = progress?.entries[0];
-  const day = progress?.day ?? 1;
+  const dayData = progress ? Progress.getDayData(progress) : { day: 1 };
   const state = ProgramExercise.getState(programExercise, allProgramExercises);
 
   const finishScriptResult =
     entry != null
       ? Program.runExerciseFinishDayScript(
           entry,
-          day,
+          dayData,
           props.settings,
           state,
           programExercise.finishDayExpr,
           entry?.exercise?.equipment
         )
-      : Program.parseExerciseFinishDayScript(day, props.settings, state, programExercise.finishDayExpr);
+      : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }
     : finishScriptResult;
@@ -96,7 +93,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
     programExercise,
     allProgramExercises,
     state,
-    day,
+    dayData,
     props.settings
   );
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
@@ -152,7 +149,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         <EditProgramExerciseAdvancedDescriptions
           programExercise={programExercise}
           allProgramExercises={allProgramExercises}
-          day={day}
+          dayData={dayData}
           settings={props.settings}
           onAdd={() => EditProgram.addDescription(props.dispatch)}
           onRemove={(index) => EditProgram.removeDescription(props.dispatch, index)}
@@ -170,7 +167,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ReuseLogic
         dispatch={props.dispatch}
         programExercise={programExercise}
-        allProgramExercises={props.allProgramExercises}
+        allProgramExercises={allProgramExercises}
       />
       <div className="mt-8">
         <EditProgramStateVariables
@@ -210,7 +207,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           <EditProgramSets
             variationIndex={variationIndex}
             settings={props.settings}
-            day={day}
+            dayData={dayData}
             programExercise={programExercise}
             onChangeLabel={(variation: number, setIndex: number, label: string) => {
               EditProgram.setLabel(props.dispatch, label, variation, setIndex);
@@ -259,7 +256,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             />
           </div>
           <EditProgramExtraFeatures
-            day={day}
+            dayData={dayData}
             settings={props.settings}
             programExercise={programExercise}
             entry={entry}
@@ -290,13 +287,12 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           />
           {progress && entry && (
             <Playground
-              day={day}
+              dayData={dayData}
+              program={props.program}
               subscription={props.subscription}
               programExercise={programExercise}
-              allProgramExercises={allProgramExercises}
               progress={progress}
               settings={props.settings}
-              days={props.days}
               onProgressChange={(p) => setProgress(p)}
             />
           )}

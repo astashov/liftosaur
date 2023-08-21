@@ -262,6 +262,7 @@ export type ICreateProgramAction = {
 
 export type ICreateDayAction = {
   type: "CreateDayAction";
+  weekIndex?: number;
 };
 
 export type IEditDayAction = {
@@ -714,7 +715,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       shortDescription: "",
       description: "",
       nextDay: 1,
-      days: [{ name: "Day 1", exercises: [] }],
+      weeks: [],
+      isMultiweek: false,
+      days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
       exercises: [],
       tags: [],
     };
@@ -730,9 +733,18 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const programIndex = Program.getEditingProgramIndex(state)!;
     const days = program.days;
     const dayName = `Day ${days.length + 1}`;
-    const newProgram = lf(program)
+    const day = Program.createDay(dayName);
+    let newProgram = lf(program)
       .p("days")
-      .modify((d) => [...d, Program.createDay(dayName)]);
+      .modify((d) => [...d, day]);
+    if (action.weekIndex != null && newProgram.weeks[action.weekIndex] != null) {
+      newProgram = lf(newProgram)
+        .p("weeks")
+        .i(action.weekIndex)
+        .p("days")
+        .modify((d) => [...d, { id: day.id }]);
+    }
+
     let newState = lf(state).p("storage").p("programs").i(programIndex).set(newProgram);
     newState = lf(newState)
       .pi("editProgram")
@@ -752,7 +764,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = state.progress[0];
     if (progress != null) {
       const program = Program.getProgram(state, progress.programId)!;
-      const programDay = program.days[progress.day - 1];
+      const programDay = Program.getProgramDay(program, progress.day);
       const newProgress = Progress.applyProgramDay(
         progress,
         program,

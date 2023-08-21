@@ -159,6 +159,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div>
             <Button
               kind="orange"
+              data-cy="finish-day-continue"
               onClick={() => {
                 ScreenActions.setScreen(props.dispatch, "main");
                 props.dispatch(Thunk.maybeRequestReview());

@@ -7,6 +7,8 @@ const program = `r[state.foo]`;
 
 const bindings: IScriptBindings = {
   day: 1,
+  week: 1,
+  dayInWeek: 1,
   weights: [
     { value: 40, unit: "lb" },
     { value: 40, unit: "lb" },

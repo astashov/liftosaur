@@ -127,6 +127,7 @@ export interface IState {
   editProgram?: {
     id: string;
     dayIndex?: number;
+    weekIndex?: number;
   };
   viewExerciseType?: IExerciseType;
   editExercise?: IProgramExercise;

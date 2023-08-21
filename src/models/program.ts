@@ -26,6 +26,8 @@ import {
   IProgramExerciseWarmupSet,
   IUnit,
   IEquipmentData,
+  IProgramWeek,
+  IDayData,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -78,26 +80,35 @@ export namespace Program {
 
   export function createDay(name: string): IProgramDay {
     return {
+      id: UidFactory.generateUid(8),
       name,
       exercises: [],
+    };
+  }
+
+  export function createWeek(name: string): IProgramWeek {
+    return {
+      id: UidFactory.generateUid(8),
+      name,
+      days: [],
     };
   }
 
   export function programExerciseToHistoryEntry(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     staticState?: IProgramState
   ): IHistoryEntry {
     const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
-    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, state, day, settings, true);
+    const variationIndex = nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings, true);
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
 
     return nextHistoryEntry(
       programExercise.id,
       programExercise.exerciseType,
-      day,
+      dayData,
       sets,
       state,
       settings,
@@ -110,7 +121,7 @@ export namespace Program {
   export function nextHistoryEntry(
     programExerciseId: string,
     exercise: IExerciseType,
-    day: number,
+    dayData: IDayData,
     programSets: IProgramSet[],
     state: IProgramState,
     settings: ISettings,
@@ -124,7 +135,7 @@ export namespace Program {
           return new ScriptRunner(
             set.repsExpr,
             state,
-            Progress.createEmptyScriptBindings(day),
+            Progress.createEmptyScriptBindings(dayData),
             Progress.createScriptFunctions(settings),
             settings.units,
             { equipment: exercise.equipment }
@@ -141,7 +152,7 @@ export namespace Program {
           return new ScriptRunner(
             set.weightExpr,
             state,
-            Progress.createEmptyScriptBindings(day),
+            Progress.createEmptyScriptBindings(dayData),
             Progress.createScriptFunctions(settings),
             settings.units,
             { equipment: exercise.equipment }
@@ -161,7 +172,7 @@ export namespace Program {
                 return new ScriptRunner(
                   rpeExpr,
                   state,
-                  Progress.createEmptyScriptBindings(day),
+                  Progress.createEmptyScriptBindings(dayData),
                   Progress.createScriptFunctions(settings),
                   settings.units,
                   { equipment: exercise.equipment }
@@ -202,20 +213,31 @@ export namespace Program {
     dayIndex?: number,
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
-    const day = Math.min(program.days.length, Math.max(1, dayIndex || program.nextDay));
-    const programDay = program.days[day - 1];
+    const day = Math.min(numberOfDays(program), Math.max(1, dayIndex || program.nextDay));
+    const programDay = getProgramDay(program, day);
+    const week = getWeekFromDay(program, day);
+    const dayInWeek = getDayInWeek(program, day);
+    const dayData: IDayData = {
+      day,
+      week,
+      dayInWeek,
+    };
+
+    const dayName = program.isMultiweek ? `${program.weeks[week - 1].name} - ${programDay.name}` : programDay.name;
     return {
       id: 0,
       date: new Date().toISOString(),
       programId: program.id,
       programName: program.name,
       day,
-      dayName: programDay.name,
+      week,
+      dayInWeek,
+      dayName,
       startTime: Date.now(),
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
         const staticState = staticStates?.[id];
-        return programExerciseToHistoryEntry(programExercise, program.exercises, day, settings, staticState);
+        return programExerciseToHistoryEntry(programExercise, program.exercises, dayData, settings, staticState);
       }),
     };
   }
@@ -224,7 +246,7 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     state: IProgramState,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     shouldFallback?: boolean
   ): number {
@@ -232,7 +254,7 @@ export namespace Program {
       programExercise,
       allProgramExercises,
       state,
-      day,
+      dayData,
       settings,
       shouldFallback
     );
@@ -244,7 +266,7 @@ export namespace Program {
   }
 
   export function parseExerciseFinishDayScript(
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     state: IProgramState,
     script: string,
@@ -253,7 +275,7 @@ export namespace Program {
     const scriptRunner = new ScriptRunner(
       script,
       state,
-      Progress.createEmptyScriptBindings(day),
+      Progress.createEmptyScriptBindings(dayData),
       Progress.createScriptFunctions(settings),
       settings.units,
       { equipment }
@@ -272,14 +294,14 @@ export namespace Program {
 
   export function runExerciseFinishDayScript(
     entry: IHistoryEntry,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     state: IProgramState,
     script: string,
     equipment?: IEquipment,
     staticState?: IProgramState
   ): IEither<IProgramState, string> {
-    const bindings = Progress.createScriptBindings(day, entry);
+    const bindings = Progress.createScriptBindings(dayData, entry);
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
 
@@ -303,7 +325,7 @@ export namespace Program {
     script: string,
     equipment: IEquipment | undefined,
     state: IProgramState,
-    day: number,
+    dayData: IDayData,
     settings: ISettings
   ): IEither<number, string> {
     try {
@@ -311,7 +333,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           state,
-          Progress.createEmptyScriptBindings(day),
+          Progress.createEmptyScriptBindings(dayData),
           Progress.createScriptFunctions(settings),
           settings.units,
           { equipment }
@@ -333,7 +355,7 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     state: IProgramState,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     shouldFallback?: boolean
   ): IEither<number, string> {
@@ -345,7 +367,7 @@ export namespace Program {
             return new ScriptRunner(
               script,
               state,
-              Progress.createEmptyScriptBindings(day),
+              Progress.createEmptyScriptBindings(dayData),
               Progress.createScriptFunctions(settings),
               settings.units,
               { equipment: programExercise.exerciseType.equipment }
@@ -375,7 +397,7 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     script: string,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     type: "reps" | "rpe"
   ): IEither<number, string>;
@@ -383,7 +405,7 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     script: string,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     type: "weight"
   ): IEither<IWeight, string>;
@@ -391,7 +413,7 @@ export namespace Program {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     script: string,
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     type: "reps" | "rpe" | "weight"
   ): IEither<IWeight | number, string> {
@@ -400,7 +422,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           ProgramExercise.getState(programExercise, allProgramExercises),
-          Progress.createEmptyScriptBindings(day),
+          Progress.createEmptyScriptBindings(dayData),
           Progress.createScriptFunctions(settings),
           settings.units,
           { equipment: programExercise.exerciseType.equipment }
@@ -421,13 +443,13 @@ export namespace Program {
   export function runFinishDayScript(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
   ): IEither<IProgramState, string> {
-    const bindings = Progress.createScriptBindings(day, entry);
+    const bindings = Progress.createScriptBindings(dayData, entry);
     const fns = Progress.createScriptFunctions(settings);
 
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
@@ -465,16 +487,19 @@ export namespace Program {
   }
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
-    const dayApproxTimes = program.days.map((d, i) => dayApproxTimeMs(i, program, settings));
+    const dayApproxTimes = program.days.map((d, i) => {
+      const dayData = Program.getDayData(program, i + 1);
+      return dayApproxTimeMs(dayData, program, settings);
+    });
     return dayApproxTimes.reduce((acc, t) => acc + t, 0) / dayApproxTimes.length;
   }
 
-  export function dayApproxTimeMs(dayIndex: number, program: IProgram, settings: ISettings): number {
-    const day = program.days[dayIndex];
+  export function dayApproxTimeMs(dayData: IDayData, program: IProgram, settings: ISettings): number {
+    const day = program.days[dayData.day - 1];
     return day.exercises.reduce((acc, e) => {
       const programExercise = program.exercises.find((pe) => pe.id === e.id);
       if (programExercise) {
-        return acc + ProgramExercise.approxTimeMs(dayIndex, programExercise, program.exercises, settings);
+        return acc + ProgramExercise.approxTimeMs(dayData, programExercise, program.exercises, settings);
       } else {
         return acc;
       }
@@ -497,7 +522,7 @@ export namespace Program {
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
-              progress.day,
+              Progress.getDayData(progress),
               entry,
               settings,
               progress.userPromptedStateVars?.[e.id],
@@ -597,8 +622,95 @@ export namespace Program {
     ]);
   }
 
+  export function numberOfDays(program: IProgram): number {
+    return program.isMultiweek ? program.weeks.reduce((memo, w) => memo + w.days.length, 0) : program.days.length;
+  }
+
+  export function getWeekFromDay(program: IProgram, day: number): number {
+    if (program.isMultiweek) {
+      let daysTotal = 0;
+      const d = day - 1;
+      for (let i = 0; i < program.weeks.length; i += 1) {
+        const weekDays = program.weeks[i].days.length;
+        daysTotal += weekDays;
+        if (daysTotal > d) {
+          return i + 1;
+        }
+      }
+    }
+
+    return 1;
+  }
+
+  export function getDayData(program: IProgram, day: number): IDayData {
+    return {
+      day,
+      week: Program.getWeekFromDay(program, day),
+      dayInWeek: Program.getDayInWeek(program, day),
+    };
+  }
+
+  export function getDayInWeek(program: IProgram, day: number): number {
+    if (program.isMultiweek) {
+      let daysTotal = 0;
+      const d = day - 1;
+      for (let i = 0; i < program.weeks.length; i += 1) {
+        const weekDays = program.weeks[i].days.length;
+        daysTotal += weekDays;
+        if (daysTotal > d) {
+          const beginningOfWeek = daysTotal - weekDays;
+          return d - beginningOfWeek + 1;
+        }
+      }
+    }
+
+    return day;
+  }
+
+  export function getListOfDays(program: IProgram): [string, string][] {
+    if (program.isMultiweek) {
+      const result: [string, string][] = [];
+      let dayIndex = 1;
+      for (const week of program.weeks) {
+        for (const day of week.days) {
+          const programDay = program.days.find((d) => d.id === day.id);
+          if (programDay) {
+            result.push([`${dayIndex}`, `${week.name} - ${programDay.name}`]);
+            dayIndex += 1;
+          }
+        }
+      }
+      return result;
+    } else {
+      return program.days.map<[string, string]>((day, i) => [`${i + 1}`, day.name]);
+    }
+  }
+
+  export function getProgramDay(program: IProgram, day: number): IProgramDay {
+    const d = day - 1;
+    if (program.isMultiweek) {
+      let daysTotal = 0;
+      let weekIndex = 0;
+      let dayIndex = 0;
+      for (let i = 0; i < program.weeks.length; i += 1) {
+        const weekDays = program.weeks[i].days.length;
+        daysTotal += weekDays;
+        if (daysTotal > d) {
+          weekIndex = i;
+          dayIndex = d - (daysTotal - weekDays);
+          break;
+        }
+      }
+      const dayId = program.weeks[weekIndex].days[dayIndex]?.id;
+      const programDay = program.days.find((pd) => pd.id === dayId) || program.days[0];
+      return programDay;
+    } else {
+      return program.days[d];
+    }
+  }
+
   export function nextDay(program: IProgram, day?: number): number {
-    return (day != null ? day % program.days.length : 0) + 1;
+    return (day != null ? day % numberOfDays(program) : 0) + 1;
   }
 
   export function editAction(dispatch: IDispatch, id: string): void {
@@ -722,10 +834,13 @@ export namespace Program {
       url: "",
       author: "",
       nextDay: 1,
+      weeks: [],
+      isMultiweek: false,
       days: plan.weeks.flatMap((week) => {
         return week.days.map((day) => {
           const name = `${week.name} - ${day.name}`;
           return {
+            id: UidFactory.generateUid(8),
             name,
             exercises: day.exercises.map((e) => ({ id: `plan_${e.exerciseType.id}_${e.exerciseType.equipment}` })),
           };

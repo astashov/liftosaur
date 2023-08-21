@@ -3,7 +3,7 @@ import { useRef, useState } from "preact/hooks";
 import { Progress } from "../../models/progress";
 import { Weight } from "../../models/weight";
 import { ScriptRunner } from "../../parser";
-import { IEquipment, IProgramExercise, IProgramSet, IProgramState, ISettings, IWeight } from "../../types";
+import { IDayData, IEquipment, IProgramExercise, IProgramSet, IProgramState, ISettings, IWeight } from "../../types";
 import { IEither } from "../../utils/types";
 import { DraggableList } from "../draggableList";
 import { GroupHeader } from "../groupHeader";
@@ -17,7 +17,7 @@ import { Input } from "../input";
 
 interface IEditProgramSets {
   programExercise: IProgramExercise;
-  day: number;
+  dayData: IDayData;
   variationIndex: number;
   settings: ISettings;
   onDeleteVariation?: (variationIndex: number) => void;
@@ -34,7 +34,7 @@ interface IEditProgramSets {
 }
 
 export function EditProgramSets(props: IEditProgramSets): JSX.Element {
-  const { programExercise, day, settings, variationIndex } = props;
+  const { programExercise, dayData, settings, variationIndex } = props;
   const variation = programExercise.variations[variationIndex];
   const [resetCounter, setResetCounter] = useState(0);
   const onDeleteVariation = props.onDeleteVariation;
@@ -90,7 +90,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               equipment={programExercise.exerciseType.equipment}
               settings={settings}
               handleTouchStart={handleTouchStart}
-              day={day}
+              dayData={dayData}
               set={set}
               state={programExercise.state}
               variationIndex={variationIndex}
@@ -122,7 +122,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
 interface ISetFieldsProps {
   state: IProgramState;
   set: IProgramSet;
-  day: number;
+  dayData: IDayData;
   settings: ISettings;
   variationIndex: number;
   setIndex: number;
@@ -153,7 +153,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         const scriptRunnerResult = new ScriptRunner(
           script,
           propsRef.current.state,
-          Progress.createEmptyScriptBindings(propsRef.current.day),
+          Progress.createEmptyScriptBindings(propsRef.current.dayData),
           Progress.createScriptFunctions(settings),
           settings.units,
           { equipment }

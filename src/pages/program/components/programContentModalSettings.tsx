@@ -3,14 +3,16 @@ import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
-import { ISettings, IUnit } from "../../../types";
+import { IProgram, ISettings, IUnit } from "../../../types";
 import { lb } from "lens-shmens";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
 import { LinkButton } from "../../../components/linkButton";
+import { EditProgramLenses } from "../../../models/editProgramLenses";
 
 interface IProgramContentModalSettingsProps {
   isHidden: boolean;
   dispatch: ILensDispatch<IProgramEditorState>;
+  program: IProgram;
   settings: ISettings;
   onShowEquipment: () => void;
   onClose: () => void;
@@ -19,6 +21,20 @@ interface IProgramContentModalSettingsProps {
 export function ProgramContentModalSettings(props: IProgramContentModalSettingsProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+      <label className="flex items-center">
+        <div className="mr-2 font-bold">Is Multiweek program?</div>
+        <MenuItemValue
+          name="Is Multiweek program?"
+          setPatternError={() => undefined}
+          type="boolean"
+          value={props.program.isMultiweek.toString()}
+          onChange={(newValue) => {
+            props.dispatch(
+              EditProgramLenses.setIsMultiweek(lb<IProgramEditorState>().p("current").p("program"), newValue === "true")
+            );
+          }}
+        />
+      </label>
       <div className="mb-2">
         <label>
           <span className="mr-2 font-bold">Units:</span>

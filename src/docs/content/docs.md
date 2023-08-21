@@ -98,6 +98,8 @@ The list of available variables you can use in your Finish Day Scripts:
 - `RPE[n]` - if exercise enabled RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise enabled RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `day` - current day number, starting from 1.
+- `week` - for multi-week programs - current week number, starting from 1.
+- `dayInWeek` - current index of day in week, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
 
 You can also write it as:
@@ -217,6 +219,8 @@ You cannot assign values to them, but you can use theirs values. There're:
 - `RPE[n]` - if exercise enabled RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise enabled RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `day` - current day number, starting from 1.
+- `week` - for multi-week programs - current week number, starting from 1.
+- `dayInWeek` - current index of day in week, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
 - `setIndex` - available only in **Timer Expressions**. Index of the just completed set.
 

@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "preact/hooks";
 import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
-import { IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
+import { IDayData, IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { Program } from "../../../models/program";
 import { IDispatch } from "../../../ducks/types";
 import { ICardsAction } from "../../../ducks/reducer";
@@ -22,13 +22,14 @@ interface IPlaygroundProps {
   subscription: ISubscription;
   variationIndex: number;
   settings: ISettings;
-  day: number;
+  dayData: IDayData;
   hidePlatesCalculator?: boolean;
   onProgramExerciseUpdate: (programExercise: IProgramExercise) => void;
 }
 
 export const Playground = memo(
   (props: IPlaygroundProps): JSX.Element => {
+    const { settings, dayData, variationIndex, programExercise } = props;
     const updateProgress = (args: { programExercise?: IProgramExercise; progress?: IHistoryRecord }): void => {
       let newProgress;
       if (args.programExercise != null) {
@@ -37,11 +38,11 @@ export const Playground = memo(
           entry,
           args.programExercise,
           props.allProgramExercises,
-          day,
+          dayData,
           settings,
           true
         );
-        newProgress = History.buildFromEntry(newEntry, day);
+        newProgress = History.buildFromEntry(newEntry, dayData);
       } else if (args.progress != null) {
         newProgress = args.progress;
       }
@@ -56,19 +57,18 @@ export const Playground = memo(
     const programExerciseWarmupSets = ProgramExercise.getWarmupSets(props.programExercise, props.allProgramExercises);
     const programExerciseEnableRpe = ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises);
 
-    const { settings, day, variationIndex, programExercise } = props;
     const [progress, setProgress] = useState(() => {
       const entry = Program.nextHistoryEntry(
         programExercise.id,
         programExercise.exerciseType,
-        day,
+        dayData,
         programExerciseVariations[variationIndex].sets,
         programExerciseState,
         settings,
         programExerciseEnableRpe,
         programExerciseWarmupSets
       );
-      return History.buildFromEntry(entry, day);
+      return History.buildFromEntry(entry, dayData);
     });
     const progressRef = useRef(progress);
     const historyRef = useRef([]);
@@ -90,7 +90,7 @@ export const Playground = memo(
           showHelp={false}
           helps={[]}
           entry={entry}
-          day={props.day}
+          dayData={props.dayData}
           subscription={props.subscription}
           showEditButtons={false}
           progress={progress}

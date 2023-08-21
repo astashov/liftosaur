@@ -61,6 +61,58 @@ export namespace EditProgramLenses {
     });
   }
 
+  export function reorderDaysWithinWeek<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    weekIndex: number,
+    startDayIndex: number,
+    endDayIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("weeks")
+      .i(weekIndex)
+      .recordModify((week) => {
+        const newDays = [...week.days];
+        const [daysToMove] = newDays.splice(startDayIndex, 1);
+        newDays.splice(endDayIndex, 0, daysToMove);
+        return { ...week, days: newDays };
+      });
+  }
+
+  export function deleteDay<T>(prefix: LensBuilder<T, IProgram, {}>, dayId: string): ILensRecordingPayload<T>[] {
+    return [
+      prefix
+        .p("weeks")
+        .recordModify((weeks) => weeks.map((w) => ({ ...w, days: CollectionUtils.removeBy(w.days, "id", dayId) }))),
+      prefix.p("days").recordModify((days) => CollectionUtils.removeBy(days, "id", dayId)),
+    ];
+  }
+
+  export function setIsMultiweek<T>(prefix: LensBuilder<T, IProgram, {}>, value: boolean): ILensRecordingPayload<T>[] {
+    return [
+      prefix.p("isMultiweek").record(value),
+      prefix.p("weeks").recordModify((weeks) => {
+        if (value && weeks.length === 0) {
+          return [...weeks, Program.createWeek("Week 1")];
+        } else {
+          return weeks;
+        }
+      }),
+    ];
+  }
+
+  export function reorderWeeks<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    startWeekIndex: number,
+    endWeekIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("weeks").recordModify((weeks) => {
+      const newWeeks = [...weeks];
+      const [weeksToMove] = newWeeks.splice(startWeekIndex, 1);
+      newWeeks.splice(endWeekIndex, 0, weeksToMove);
+      return newWeeks;
+    });
+  }
+
   export function reorderExercises<T>(
     prefix: LensBuilder<T, IProgram, {}>,
     dayIndex: number,
@@ -146,6 +198,30 @@ export namespace EditProgramLenses {
           return [...es, { id: exerciseId }];
         }
       });
+  }
+
+  export function addWeekDay<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    weekIndex: number,
+    dayId: string
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("weeks")
+      .i(weekIndex)
+      .p("days")
+      .recordModify((days) => [...days, { id: dayId }]);
+  }
+
+  export function removeWeekDay<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    weekIndex: number,
+    dayIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("weeks")
+      .i(weekIndex)
+      .p("days")
+      .recordModify((days) => CollectionUtils.removeAt(days, dayIndex));
   }
 
   export function changeExerciseEquipment<T>(
@@ -646,6 +722,25 @@ export namespace EditProgramLenses {
     }
     lbs.push(prefix.p("finishDayExpr").record(finishDayExpr.join("\n")));
     return lbs;
+  }
+
+  export function setWeekName<T>(
+    prefix: LensBuilder<T, IProgram, {}>,
+    weekIndex: number,
+    name: string
+  ): ILensRecordingPayload<T> {
+    return prefix
+      .p("weeks")
+      .i(weekIndex)
+      .recordModify((week) => ({ ...week, name }));
+  }
+
+  export function createWeek<T>(prefix: LensBuilder<T, IProgram, {}>): ILensRecordingPayload<T> {
+    return prefix.p("weeks").recordModify((weeks) => {
+      const lastWeek = weeks[weeks.length - 1];
+      const weekName = StringUtils.nextName(lastWeek?.name || "Week");
+      return [...weeks, Program.createWeek(weekName)];
+    });
   }
 }
 

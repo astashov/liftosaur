@@ -9,6 +9,7 @@ import {
   IProgramSet,
   IUnit,
   IProgramExerciseReuseLogic,
+  IDayData,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
@@ -92,7 +93,7 @@ export namespace ProgramExercise {
   export function getDescription(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     settings: ISettings,
     staticState?: IProgramState
   ): string {
@@ -111,7 +112,7 @@ export namespace ProgramExercise {
         script,
         programExercise.exerciseType.equipment,
         state,
-        day,
+        dayData,
         settings
       );
       if (resultIndex.success) {
@@ -189,7 +190,7 @@ export namespace ProgramExercise {
   }
 
   export function approxTimeMs(
-    dayIndex: number,
+    dayData: IDayData,
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
     settings: ISettings
@@ -200,12 +201,12 @@ export namespace ProgramExercise {
       programExercise,
       allProgramExercises,
       state,
-      dayIndex,
+      dayData,
       settings
     );
     const variation = programExerciseVariations[nextVariationIndex];
     return variation.sets.reduce(
-      (memo, set) => memo + ProgramSet.approxTimeMs(set, dayIndex, programExercise, allProgramExercises, settings),
+      (memo, set) => memo + ProgramSet.approxTimeMs(set, dayData, programExercise, allProgramExercises, settings),
       0
     );
   }
@@ -221,20 +222,20 @@ export namespace ProgramExercise {
   export function buildProgress(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    day: number,
+    dayData: IDayData,
     settings: ISettings
   ): IHistoryRecord | undefined {
     let entry: IHistoryEntry | undefined;
     let variationIndex = 0;
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     try {
-      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, day, settings);
+      variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
     } catch (_) {}
     try {
       entry = Program.nextHistoryEntry(
         programExercise.id,
         programExercise.exerciseType,
-        day,
+        dayData,
         ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
         state,
         settings,
@@ -244,7 +245,7 @@ export namespace ProgramExercise {
     } catch (e) {
       entry = undefined;
     }
-    return entry != null ? History.buildFromEntry(entry, day) : undefined;
+    return entry != null ? History.buildFromEntry(entry, dayData) : undefined;
   }
 
   export function hasDifferentUnitStateVariables(programExercise: IProgramExercise, unit: IUnit): boolean {

@@ -10,6 +10,10 @@
 - Add finished exercises on the congrats screen
 - Add image URL for the exercise
 - Custom exercise lists
+- Take custom timers into account
+- Figure out a different way to store URLs in programs
+- Autofocus for AMRAP / RPE
+- Import from Perseus
 
 * Programs
   - 5/3/1s

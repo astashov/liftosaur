@@ -58,7 +58,9 @@ export const CardsView = memo(
           <div className="flex-1">
             <div className="text-lg font-semibold">{props.progress?.programName}</div>
             <div className="flex text-sm text-grayv2-main">
-              <div className="flex-1 mr-2 align-middle">{props.progress?.dayName}</div>
+              <div data-cy="day-name" className="flex-1 mr-2 align-middle">
+                {props.progress?.dayName}
+              </div>
               <div className="mr-2 align-middle">
                 <button
                   className="px-2 ml-1 align-middle"
@@ -113,7 +115,7 @@ export const CardsView = memo(
               programExercise={programExercise}
               allProgramExercises={props.program?.exercises}
               subscription={props.subscription}
-              day={props.progress.day}
+              dayData={Progress.getDayData(props.progress)}
               dispatch={props.dispatch}
               onChangeReps={props.onChangeReps}
               onExerciseInfoClick={() => {
@@ -175,6 +177,7 @@ export const CardsView = memo(
           <div className="pt-1 pb-3 text-center">
             <Button
               kind="orange"
+              data-cy="finish-workout"
               className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
               onClick={() => {
                 if (

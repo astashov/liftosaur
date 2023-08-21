@@ -1,6 +1,8 @@
 import { IProgram } from "../types";
 
 export const basicBeginnerProgram: IProgram = {
+  isMultiweek: false,
+  weeks: [],
   exercises: [
     {
       descriptions: [""],
@@ -473,6 +475,7 @@ export const basicBeginnerProgram: IProgram = {
     "<div><p>This is a great starting routine for complete beginners.</p><p>It's simple, easy to follow routine, which will introduce you to weight lifting.</p><p>You should run it for ~3 months, and then switch to some other routine, like '5/3/1 for beginners'.</p></div>",
   days: [
     {
+      id: "workouta",
       name: "Workout A",
       exercises: [
         {
@@ -488,6 +491,7 @@ export const basicBeginnerProgram: IProgram = {
     },
     {
       name: "Workout B",
+      id: "workoutb",
       exercises: [
         {
           id: "xjvluydi",

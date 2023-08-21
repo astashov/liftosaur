@@ -3,7 +3,7 @@ import { buildCardsReducer, ICardsAction } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
-import { IEquipment, IHistoryRecord, IProgramDay, IProgramExercise, ISettings, ISubscription } from "../types";
+import { IDayData, IEquipment, IHistoryRecord, IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ExerciseView } from "./exercise";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -20,15 +20,15 @@ export interface IPlaygroundProps {
   progress: IHistoryRecord;
   programExercise: IProgramExercise;
   subscription: ISubscription;
-  allProgramExercises: IProgramExercise[];
+  program: IProgram;
   settings: ISettings;
-  day: number;
-  days: IProgramDay[];
+  dayData: IDayData;
   onProgressChange: (p: IHistoryRecord) => void;
 }
 
 export function Playground(props: IPlaygroundProps): JSX.Element {
-  const { programExercise, days, settings, progress, allProgramExercises } = props;
+  const { programExercise, settings, progress } = props;
+  const { exercises: allProgramExercises } = props.program;
   const entry = progress.entries[0];
   const progressRef = useRef(props.progress);
   progressRef.current = props.progress;
@@ -54,28 +54,29 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         name="Choose Day"
         type="select"
         value={`${props.progress.day}`}
-        values={[...days.map<[string, string]>((d, i) => [(i + 1).toString(), `${i + 1} - ${d.name}`])]}
+        values={Program.getListOfDays(props.program)}
         onChange={(newValue) => {
           const newDay = parseInt(newValue || "1", 10);
+          const dayData = Program.getDayData(props.program, newDay);
           const state = ProgramExercise.getState(programExercise, allProgramExercises);
           const nextVariationIndex = Program.nextVariationIndex(
             programExercise,
             allProgramExercises,
             state,
-            newDay,
+            dayData,
             settings
           );
           const newEntry = Program.nextHistoryEntry(
             programExercise.id,
             programExercise.exerciseType,
-            newDay,
+            dayData,
             ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
             state,
             settings,
             ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
             ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
           );
-          props.onProgressChange(History.buildFromEntry(newEntry, newDay));
+          props.onProgressChange(History.buildFromEntry(newEntry, dayData));
         }}
       />
       <ExerciseView
@@ -84,7 +85,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         helps={[]}
         showHelp={false}
         entry={entry}
-        day={props.day}
+        dayData={props.dayData}
         subscription={props.subscription}
         programExercise={programExercise}
         allProgramExercises={allProgramExercises}
@@ -113,20 +114,20 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
               programExercise,
               allProgramExercises,
               state,
-              props.day,
+              props.dayData,
               settings
             );
             const newEntry = Program.nextHistoryEntry(
               programExercise.id,
               programExercise.exerciseType,
-              props.day,
+              props.dayData,
               ProgramExercise.getVariations(programExercise, allProgramExercises)[nextVariationIndex].sets,
               state,
               settings,
               ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
               ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
             );
-            props.onProgressChange(History.buildFromEntry(newEntry, props.day));
+            props.onProgressChange(History.buildFromEntry(newEntry, props.dayData));
           }}
         >
           Reset Playground
@@ -169,7 +170,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         settings={props.settings}
         equipment={progress.ui?.editSetModal?.equipment}
         programExercise={progress.ui?.editSetModal?.programExercise}
-        allProgramExercises={props.allProgramExercises}
+        allProgramExercises={props.program.exercises}
         isTimerDisabled={true}
         set={EditProgressEntry.getEditSetData(props.progress)}
         isWarmup={progress.ui?.editSetModal?.isWarmup || false}

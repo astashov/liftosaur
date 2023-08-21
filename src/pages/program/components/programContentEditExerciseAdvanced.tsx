@@ -23,6 +23,7 @@ import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { EditProgramExtraFeatures } from "../../../components/editProgram/editProgramExtraFeatures";
 import { ProgramExercise } from "../../../models/programExercise";
 import { EditProgramExerciseAdvancedDescriptions } from "../../../components/editProgram/editProgramExerciseDescription";
+import { Progress } from "../../../models/progress";
 
 interface IProgramContentEditExerciseAdvancedProps {
   dispatch: ILensDispatch<IProgramEditorState>;
@@ -43,20 +44,20 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   const [shouldShowAddStateVariable, setShouldShowAddStateVariable] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const entry = progress?.entries[0];
-  const day = progress?.day ?? 1;
+  const dayData = progress ? Progress.getDayData(progress) : { day: 1 };
   const state = ProgramExercise.getState(programExercise, allProgramExercises);
 
   const finishScriptResult =
     entry != null
       ? Program.runExerciseFinishDayScript(
           entry,
-          day,
+          dayData,
           props.settings,
           state,
           programExercise.finishDayExpr,
           entry?.exercise?.equipment
         )
-      : Program.parseExerciseFinishDayScript(day, props.settings, state, programExercise.finishDayExpr);
+      : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }
     : finishScriptResult;
@@ -65,7 +66,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
     programExercise,
     allProgramExercises,
     state,
-    day,
+    dayData,
     props.settings
   );
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
@@ -104,7 +105,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
       <EditProgramExerciseAdvancedDescriptions
         programExercise={programExercise}
         allProgramExercises={allProgramExercises}
-        day={day}
+        dayData={dayData}
         settings={props.settings}
         onAdd={() => props.dispatch(EditProgramLenses.addDescription(lbe))}
         onRemove={(index) => props.dispatch(EditProgramLenses.removeDescription(lbe, index))}
@@ -142,12 +143,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         <div className="flex-1">
           {progress && entry && (
             <ProgramContentPlayground
-              day={day}
+              dayData={dayData}
               programExercise={programExercise}
-              allProgramExercises={allProgramExercises}
+              program={program}
               progress={progress}
               settings={props.settings}
-              days={props.program.days}
               lbe={props.lbe}
               dispatch={props.dispatch}
               onProgressChange={props.onProgressChange}
@@ -172,7 +172,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
               <EditProgramSets
                 variationIndex={variationIndex}
                 settings={props.settings}
-                day={day}
+                dayData={dayData}
                 programExercise={programExercise}
                 onChangeLabel={(variation: number, setIndex: number, label: string) => {
                   props.dispatch(EditProgramLenses.setLabel(lbe, label, variation, setIndex));
@@ -254,7 +254,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             />
           </div>
           <EditProgramExtraFeatures
-            day={day}
+            dayData={dayData}
             settings={props.settings}
             programExercise={programExercise}
             entry={entry}

@@ -594,6 +594,8 @@ export const THistoryRecord = t.intersection(
     }),
     t.partial({
       endTime: t.number,
+      week: t.number,
+      dayInWeek: t.number,
       ui: TProgressUi,
       deletedProgramExercises: dictionary(t.string, t.boolean),
       userPromptedStateVars: dictionary(t.string, TProgramState),
@@ -618,8 +620,23 @@ export const TProgramDayEntry = t.type(
 );
 export type IProgramDayEntry = Readonly<t.TypeOf<typeof TProgramDayEntry>>;
 
+export const TProgramWeek = t.type(
+  {
+    id: t.string,
+    name: t.string,
+    days: t.array(
+      t.type({
+        id: t.string,
+      })
+    ),
+  },
+  "TProgramWeek"
+);
+export type IProgramWeek = Readonly<t.TypeOf<typeof TProgramWeek>>;
+
 export const TProgramDay = t.type(
   {
+    id: t.string,
     name: t.string,
     exercises: t.array(
       t.type({
@@ -662,6 +679,8 @@ export const TProgram = t.intersection(
       author: t.string,
       nextDay: t.number,
       days: t.array(TProgramDay),
+      weeks: t.array(TProgramWeek),
+      isMultiweek: t.boolean,
       tags: t.array(TProgramTag),
     }),
     t.partial({
@@ -899,3 +918,9 @@ export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
 
 export type IProgramContentSettings = Pick<ISettings, "timers" | "units">;
+
+export type IDayData = {
+  week?: number;
+  day: number;
+  dayInWeek?: number;
+};

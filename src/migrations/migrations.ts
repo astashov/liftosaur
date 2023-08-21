@@ -325,4 +325,15 @@ export const migrations = {
     }
     return storage;
   },
+  "20230826135508_add_multiweek_support": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      program.isMultiweek = program.isMultiweek ?? false;
+      program.weeks = program.weeks ?? [];
+      for (const day of program.days) {
+        day.id = day.id || UidFactory.generateUid(8);
+      }
+    }
+    return storage;
+  },
 };

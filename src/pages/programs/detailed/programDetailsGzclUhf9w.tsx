@@ -218,13 +218,14 @@ function buildStaticStates(
 
   return program.exercises.reduce<Partial<Record<string, IProgramState>>>((acc, exercise) => {
     if (day.exercises.map((e) => e.id).indexOf(exercise.id) !== -1) {
+      const dayData = Program.getDayData(program, dayIndex);
       const staticState: IProgramState = { week: week - 1 };
       const script = ProgramExercise.getFinishDayScript(exercise, program.exercises);
       const state = ProgramExercise.getState(exercise, program.exercises);
-      const entry = Program.programExerciseToHistoryEntry(exercise, program.exercises, dayIndex, settings, { week });
+      const entry = Program.programExerciseToHistoryEntry(exercise, program.exercises, dayData, settings, { week });
       const newStaticState = Program.runExerciseFinishDayScript(
         entry,
-        dayIndex,
+        dayData,
         settings,
         state,
         script,

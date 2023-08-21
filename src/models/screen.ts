@@ -24,6 +24,7 @@ export type IScreen =
   | "editProgramExercise"
   | "editProgramDay"
   | "editProgramDayScript"
+  | "editProgramWeek"
   | "friends"
   | "friendsAdd"
   | "measurements"
@@ -35,6 +36,7 @@ export namespace Screen {
   export const editProgramScreens: IScreen[] = [
     "editProgram",
     "editProgramDay",
+    "editProgramWeek",
     "editProgramExercise",
     "editProgramDayScript",
   ];
@@ -121,6 +123,9 @@ export namespace Screen {
         return "measurements";
       }
       case "editProgram": {
+        return "program";
+      }
+      case "editProgramWeek": {
         return "program";
       }
       case "editProgramExercise": {

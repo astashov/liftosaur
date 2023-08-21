@@ -6,7 +6,7 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progression } from "../../../models/progression";
-import { IProgramExercise, ISettings, ISubscription } from "../../../types";
+import { IDayData, IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { DeloadView } from "./programDetailsDeload";
 import { FinishDayExprView } from "./programDetailsFinishDayExpr";
 import { Playground } from "./programDetailsPlayground";
@@ -20,7 +20,7 @@ interface IProgramDetailsExerciseProps {
   allProgramExercises: IProgramExercise[];
   programExerciseIndex: number;
   subscription: ISubscription;
-  dayIndex: number;
+  dayData: IDayData;
   settings: ISettings;
   shouldShowAllFormulas: boolean;
   shouldShowAllScripts: boolean;
@@ -31,15 +31,9 @@ type IProgramDetailsExerciseMode = "details" | "playground";
 
 export const ProgramDetailsExercise = memo(
   (props: IProgramDetailsExerciseProps): JSX.Element => {
-    const { programExercise, dayIndex, settings, programExerciseIndex, allProgramExercises } = props;
+    const { programExercise, dayData, settings, programExerciseIndex, allProgramExercises } = props;
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    const variationIndex = Program.nextVariationIndex(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayIndex + 1,
-      settings
-    );
+    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
     const variation = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex];
     const finishDayScript = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const progression = Progression.getProgression(finishDayScript);
@@ -78,7 +72,7 @@ export const ProgramDetailsExercise = memo(
                     sets={variation.sets}
                     programExercise={programExercise}
                     allProgramExercises={allProgramExercises}
-                    dayIndex={dayIndex}
+                    dayData={dayData}
                     settings={settings}
                     shouldShowAllFormulas={props.shouldShowAllFormulas}
                   />
@@ -100,7 +94,7 @@ export const ProgramDetailsExercise = memo(
                   allProgramExercises={allProgramExercises}
                   variationIndex={variationIndex}
                   settings={settings}
-                  day={dayIndex + 1}
+                  dayData={dayData}
                   onProgramExerciseUpdate={(newProgramExercise) => {
                     props.dispatch(
                       lb<IProgramDetailsState>()

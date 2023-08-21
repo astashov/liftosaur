@@ -20,6 +20,7 @@ import { Tabs2 } from "../../../components/tabs2";
 import { Program } from "../../../models/program";
 import { ProgramContentEditExerciseSimple } from "./programContentEditExerciseSimple";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
+import { Progress } from "../../../models/progress";
 
 interface IProps {
   settings: ISettings;
@@ -36,7 +37,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
 
   const prevProps = useRef<IProps>(props);
   const [progress, setProgress] = useState<IHistoryRecord | undefined>(() =>
-    ProgramExercise.buildProgress(programExercise, allProgramExercises, 1, props.settings)
+    ProgramExercise.buildProgress(programExercise, allProgramExercises, { day: 1 }, props.settings)
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
@@ -47,7 +48,12 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   useEffect(() => {
     if (props.programExercise !== prevProps.current.programExercise) {
       setProgress(
-        ProgramExercise.buildProgress(programExercise, allProgramExercises, progress?.day || 1, props.settings)
+        ProgramExercise.buildProgress(
+          programExercise,
+          allProgramExercises,
+          progress ? Progress.getDayData(progress) : { day: 1 },
+          props.settings
+        )
       );
     }
     prevProps.current = props;

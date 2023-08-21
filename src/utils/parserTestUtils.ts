@@ -8,6 +8,8 @@ export namespace ParserTestUtils {
   const fns = Progress.createScriptFunctions(Settings.build());
   export const defaultBindings: IScriptBindings = {
     day: 1,
+    week: 1,
+    dayInWeek: 1,
     weights: [
       { value: 40, unit: "lb" },
       { value: 40, unit: "lb" },
@@ -35,6 +37,8 @@ export namespace ParserTestUtils {
     const weights = args.results.map((r) => Weight.build(r[2], args.unit || "lb"));
     return {
       day: args.day ?? 1,
+      week: 1,
+      dayInWeek: args.day ?? 1,
       weights,
       reps,
       RPE: reps.map(() => 0),
