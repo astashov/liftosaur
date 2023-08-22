@@ -602,8 +602,10 @@ const whatsNew: Record<string, IWhatsNew> = {
         </li>
         <li>
           If this change somehow breaks the rounding logic in your program, please contact in Discord or by{" "}
-          <a href="mailto:info@liftosaur.com">info@liftosaur.com</a>. It shouldn't break anything, but I could miss some
-          edge cases...
+          <a className="font-bold underline text-bluev2" href="mailto:info@liftosaur.com">
+            info@liftosaur.com
+          </a>
+          . It shouldn't break anything, but I could miss some edge cases...
         </li>
       </ul>
     ),
