@@ -20,6 +20,9 @@ import { Markdown } from "../../../components/markdown";
 import { LinkButton } from "../../../components/linkButton";
 import { ModalEditSet } from "../../../components/modalEditSet";
 import { EditProgressEntry } from "../../../models/editProgressEntry";
+import { WeightLinesUnsubscribed } from "../../../components/weightLinesUnsubscribed";
+import { CollectionUtils } from "../../../utils/collection";
+import { Weight } from "../../../models/weight";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -45,6 +48,14 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
     props.onProgressChange(newProgress);
   };
   const description = ProgramExercise.getDescription(programExercise, allProgramExercises, props.day, props.settings);
+
+  const workoutWeights = CollectionUtils.compatBy(
+    entry.sets.map((s) => ({
+      original: s.weight,
+      rounded: Weight.roundConvertTo(s.weight, props.settings, entry.exercise.equipment),
+    })),
+    (w) => w.rounded.value.toString()
+  );
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
@@ -94,7 +105,10 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           <Markdown value={description} />
         </div>
       )}
-      <section className="flex flex-wrap py-2">
+      <div className="mt-1">
+        <WeightLinesUnsubscribed weights={workoutWeights} />
+      </div>
+      <section className="flex flex-wrap pb-2">
         <ExerciseSets
           isEditMode={false}
           progress={progress}

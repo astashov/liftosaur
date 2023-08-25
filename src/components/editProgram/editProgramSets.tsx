@@ -165,7 +165,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         } else {
           return {
             success: true,
-            data: Weight.roundConvertTo(scriptRunnerResult.execute(type), settings, equipment),
+            data: Weight.convertTo(scriptRunnerResult.execute(type), settings.units),
           };
         }
       } else {

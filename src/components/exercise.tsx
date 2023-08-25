@@ -43,6 +43,7 @@ import { WorkoutStateVariables } from "./workoutStateVariables";
 import { ExerciseImage } from "./exerciseImage";
 import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
+import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
 
 interface IProps {
   showHelp: boolean;
@@ -636,33 +637,5 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
         <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
       </div>
     </div>
-  );
-}
-
-interface IWeightLinesUnsubscribedProps {
-  weights: { rounded: IWeight; original: IWeight }[];
-}
-
-function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): JSX.Element {
-  return (
-    <>
-      {props.weights
-        .filter((w) => !Weight.eq(w.original, w.rounded))
-        .map((w) => {
-          return (
-            <div>
-              <div className="text-xs text-grayv2-main">
-                <span className="line-through">
-                  {Number(w.original.value?.toFixed(2))} {w.original.unit}
-                </span>
-                <span> → </span>
-                <span>
-                  {w.rounded.value} {w.rounded.unit}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-    </>
   );
 }
