@@ -245,10 +245,10 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   payload,
 }) => {
   const { event, di } = payload;
-  const { id, state } = getBodyJson(event);
+  const { id, data } = getBodyJson(event);
   const debugDao = new DebugDao(di);
-  await debugDao.store(id, state);
-  return ResponseUtils.json(200, event, {});
+  await debugDao.store(id, JSON.stringify(data));
+  return ResponseUtils.json(200, event, { data: "ok" });
 };
 
 interface IAppleKeysResponse {

@@ -95,6 +95,15 @@ export interface ISubscriptionLoading {
   lifetime?: boolean;
 }
 
+export interface IStateErrors {
+  corruptedstorage?: {
+    userid: string;
+    backup: boolean;
+    confirmed: boolean;
+    local: boolean;
+  };
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -125,6 +134,7 @@ export interface IState {
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
+  errors: IStateErrors;
 }
 
 export interface IWebpushr {

@@ -60,7 +60,7 @@ describe("Program", () => {
     g("modal-edit-set-weight-input").clear().type("120");
     g("modal-edit-set-submit").click();
     g("state-changes-value-lastrep").should("have.text", "0 -> 7");
-    g("state-changes-value-weight").should("have.text", "45 lb -> 50 lb");
+    g("state-changes-value-weight").should("have.text", "135 lb -> 140 lb");
 
     g("workout-set").should("have.length", 5);
   });

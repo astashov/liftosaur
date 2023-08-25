@@ -42,6 +42,7 @@ import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage } from "../utils/sendMessage";
 import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
+import { ModalCorruptedState } from "./modalCorruptedState";
 
 interface IProps {
   client: Window["fetch"];
@@ -500,6 +501,14 @@ export function AppView(props: IProps): JSX.Element | null {
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
         <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
+      )}
+      {state.errors.corruptedstorage != null && (
+        <ModalCorruptedState
+          userId={state.errors.corruptedstorage?.userid}
+          backup={state.errors.corruptedstorage?.backup || false}
+          local={state.errors.corruptedstorage?.local}
+          onReset={() => updateState(dispatch, [lb<IState>().p("errors").p("corruptedstorage").record(undefined)])}
+        />
       )}
       {state.showSignupRequest && (
         <ModalSignupRequest numberOfWorkouts={state.storage.history.length} dispatch={dispatch} />

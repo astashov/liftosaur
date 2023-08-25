@@ -76,12 +76,18 @@ export class Service {
     });
   }
 
-  public async postDebug(id: string, state: string): Promise<void> {
-    await this.client(`${__API_HOST__}/api/debug`, {
-      method: "POST",
-      body: JSON.stringify({ id, state }),
-      credentials: "include",
-    });
+  public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/debug`, {
+        method: "POST",
+        body: JSON.stringify({ id, data: { state, meta } }),
+        credentials: "include",
+      });
+      const json = await response.json();
+      return json?.data === "ok";
+    } catch (e) {
+      return false;
+    }
   }
 
   public async postClaimKey(userid: string): Promise<{ key: string; expires: number } | undefined> {

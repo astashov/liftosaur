@@ -56,20 +56,20 @@ test("rpe", async ({ page }) => {
   await expect(page.getByTestId("left-superscript").nth(1)).toHaveText("@8");
   await expect(page.getByTestId("left-superscript").nth(2)).toHaveText("@?");
 
-  await page.getByTestId("set-nonstarted").nth(0).click();
+  await page.getByTestId("set-nonstarted").nth(3).click();
   await page.getByTestId("modal-rpe-input").type("7.5");
   await page.getByTestId("modal-amrap-submit").click();
 
   await expect(page.getByTestId("left-superscript-completed")).toHaveCount(1);
   await expect(page.getByTestId("left-superscript-completed")).toHaveText("@7.5");
 
-  await page.getByTestId("set-nonstarted").nth(0).click();
+  await page.getByTestId("set-nonstarted").nth(3).click();
   await expect(page.getByTestId("left-superscript")).toHaveCount(2);
   await expect(page.getByTestId("left-superscript-completed")).toHaveCount(1);
 
-  await page.getByTestId("set-nonstarted").nth(0).click();
+  await page.getByTestId("set-nonstarted").nth(3).click();
 
-  await page.getByTestId("set-nonstarted").nth(0).click();
+  await page.getByTestId("set-nonstarted").nth(3).click();
   await page.getByTestId("modal-rpe-input").type("11");
   await page.getByTestId("modal-amrap-submit").click();
 

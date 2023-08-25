@@ -5,7 +5,7 @@ import { IGetStorageResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
-import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
+import { IAllFriends, IFriendStatus, ILike, IState, IStateErrors, updateState } from "../models/state";
 import { IProgram, IStorage, IPartialStorage, IExerciseType, ISettings } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";
@@ -123,14 +123,15 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       const userid = state.user?.id || state.storage.tempUserId;
-      await load(dispatch, "debug", async () => env.service.postDebug(userid, JSON.stringify(state)));
+      await load(dispatch, "debug", async () => env.service.postDebug(userid, JSON.stringify(state), {}));
     };
   }
 
   export function sync(args: { withHistory: boolean; withStats: boolean; withPrograms: boolean }): IThunk {
     return async (dispatch, getState, env) => {
-      if (getState().adminKey == null && getState().user != null) {
-        const storage: IPartialStorage = { ...getState().storage };
+      const state = getState();
+      if (state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
+        const storage: IPartialStorage = { ...state.storage };
         if (!args.withHistory) {
           storage.history = undefined;
         }
@@ -162,11 +163,13 @@ export namespace Thunk {
 
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
-      const result = await load(dispatch, "fetchStorage", () => {
-        const state = getState();
-        return env.service.getStorage(state.storage.tempUserId, state.user?.id, state.adminKey);
-      });
-      await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+      if (getState().errors.corruptedstorage == null) {
+        const result = await load(dispatch, "fetchStorage", () => {
+          const state = getState();
+          return env.service.getStorage(state.storage.tempUserId, state.user?.id, state.adminKey);
+        });
+        await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+      }
     };
   }
 
@@ -892,7 +895,29 @@ async function handleLogin(
 ): Promise<void> {
   if (result.email != null) {
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
-    const storage = await runMigrations(client, result.storage);
+    let storage: IStorage;
+    const storageResult = await Storage.get(client, await runMigrations(client, result.storage), true);
+    const errors: IStateErrors = {};
+    if (storageResult.success) {
+      storage = storageResult.data;
+    } else {
+      const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
+      const service = new Service(client);
+      errors.corruptedstorage = {
+        userid,
+        backup: await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" }),
+        confirmed: false,
+        local: false,
+      };
+      storage = Storage.getDefault();
+      updateState(dispatch, [
+        lb<IState>()
+          .p("errors")
+          .recordModify((e) => ({ ...e, ...errors })),
+      ]);
+      await service.signout();
+      return;
+    }
     storage.tempUserId = result.user_id;
     storage.email = result.email;
     if (oldUserId === result.user_id) {

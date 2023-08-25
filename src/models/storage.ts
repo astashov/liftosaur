@@ -87,19 +87,6 @@ export namespace Storage {
     };
   }
 
-  export async function getWithDefault(
-    client: Window["fetch"],
-    maybeStorage?: Record<string, unknown>,
-    shouldReportError?: boolean
-  ): Promise<IStorage> {
-    const storage = await get(client, maybeStorage, shouldReportError);
-    if (storage.success) {
-      return storage.data;
-    } else {
-      return getDefault();
-    }
-  }
-
   export function setAffiliate(dispatch: IDispatch, source?: string): void {
     if (source) {
       updateState(dispatch, [

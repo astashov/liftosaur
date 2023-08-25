@@ -43,19 +43,19 @@ describe("User Prompted State Vars", () => {
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });
     g("modal-state-vars-user-prompt-input-rpe").clear().type("8");
     g("modal-state-vars-user-prompt-submit").click();
-    g("state-changes").should("contain.text", "weight: 45 lb -> 40 lb");
+    g("state-changes").should("contain.text", "weight: 135 lb -> 130 lb");
     g("state-changes").should("contain.text", "rpe: 0 -> 8");
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
-    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(1).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
+    cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
 
     g("modal-state-vars-user-prompt-input-rpe").clear().type("2");
     g("modal-state-vars-user-prompt-submit").click();
-    g("state-changes").should("contain.text", "weight: 45 lb -> 50 lb");
+    g("state-changes").should("contain.text", "weight: 135 lb -> 140 lb");
     g("state-changes").should("contain.text", "rpe: 0 -> 2");
 
     cy.contains("Finish the workout").click();
@@ -65,7 +65,7 @@ describe("User Prompted State Vars", () => {
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]")
       .eq(1)
       .find("[data-cy=weight-value]")
-      .should("have.text", "50");
+      .should("have.text", "70");
 
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });
     g("modal-state-vars-user-prompt-input-rpe").clear().type("5");

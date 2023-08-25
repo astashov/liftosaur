@@ -9,7 +9,7 @@ import deepmerge from "deepmerge";
 import { CollectionUtils } from "../utils/collection";
 import { ILensRecordingPayload, lf } from "lens-shmens";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { ILocalStorage, INotification, IState } from "../models/state";
+import { ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
@@ -28,6 +28,7 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
 import { IProgramState } from "../types";
+import { Service } from "../api/service";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -72,7 +73,23 @@ export async function getInitialState(
       : undefined;
 
   if (storage != null && storage.storage != null) {
-    const finalStorage = await Storage.getWithDefault(client, storage.storage, true);
+    const maybeStorage = await Storage.get(client, storage.storage, true);
+    let finalStorage: IStorage;
+    const errors: IStateErrors = {};
+    if (maybeStorage.success) {
+      finalStorage = maybeStorage.data;
+    } else {
+      const userid = (storage.storage?.tempUserId || `missing-${UidFactory.generateUid(8)}`) as string;
+      const service = new Service(client);
+      errors.corruptedstorage = {
+        userid,
+        backup: await service.postDebug(userid, JSON.stringify(storage.storage), { local: "true" }),
+        confirmed: false,
+        local: true,
+      };
+      await service.signout();
+      finalStorage = Storage.getDefault();
+    }
     const isProgressValid =
       storage.progress != null
         ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
@@ -96,6 +113,7 @@ export async function getInitialState(
       comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
       user: userId ? { email: userId, id: userId } : undefined,
+      errors,
     };
   }
   const newState: IState = {
@@ -110,6 +128,7 @@ export async function getInitialState(
     comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
     storage: Storage.getDefault(),
     user: userId ? { email: userId, id: userId } : undefined,
+    errors: {},
   };
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;
@@ -315,23 +334,25 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).state = newState;
-  timerId = window.setTimeout(async () => {
-    clearTimeout(timerId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newState2: IState = (window as any).state;
-    timerId = undefined;
-    const userId = newState2.user?.id || newState.storage.tempUserId;
-    const localStorage: ILocalStorage = {
-      storage: newState2.storage,
-      progress: newState2.progress[0],
-    };
-    try {
-      await IndexedDBUtils.set("current_account", userId);
-      await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-    } catch (e) {
-      console.error(e);
-    }
-  }, 100);
+  if (newState.errors.corruptedstorage == null) {
+    timerId = window.setTimeout(async () => {
+      clearTimeout(timerId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newState2: IState = (window as any).state;
+      timerId = undefined;
+      const userId = newState2.user?.id || newState.storage.tempUserId;
+      const localStorage: ILocalStorage = {
+        storage: newState2.storage,
+        progress: newState2.progress[0],
+      };
+      try {
+        await IndexedDBUtils.set("current_account", userId);
+        await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+      } catch (e) {
+        console.error(e);
+      }
+    }, 100);
+  }
   return newState;
 };
 
