@@ -5,16 +5,7 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import {
-  IAllComments,
-  IAllFriends,
-  IAllLikes,
-  IFriendUser,
-  ILoading,
-  IState,
-  IWebpushr,
-  updateState,
-} from "../models/state";
+import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IState, updateState } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
@@ -62,7 +53,6 @@ interface IProps {
   nickname?: string;
   timerSince?: number;
   timerMode?: IProgressMode;
-  webpushr?: IWebpushr;
   screenStack: IScreen[];
 }
 

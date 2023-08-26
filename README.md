@@ -62,7 +62,6 @@ I try to be efficient with the JavaScript size, and avoid heavy third-party libr
 - [Preact](https://preactjs.com/) for a view layer
 - [Prism](https://prismjs.com/) for code highlighting
 - [uPlot](https://github.com/leeoniya/uPlot) for graphs
-- [Webpushr](https://www.webpushr.com/) to send notifications on web when Rest Timer is expired
 - [Rollbar](https://rollbar.com/) for error reporting
 - [11ty](https://www.11ty.dev/) for the blog
 - [Cypress](https://www.cypress.io/) for integration tests

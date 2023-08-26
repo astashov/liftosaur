@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { TimeUtils } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
-import { IState, IWebpushr, updateState } from "../models/state";
+import { IState, updateState } from "../models/state";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { lb } from "lens-shmens";
@@ -11,7 +11,6 @@ import { SendMessage } from "../utils/sendMessage";
 import { IHistoryRecord } from "../types";
 
 interface IProps {
-  webpushr?: IWebpushr;
   progress: IHistoryRecord;
   dispatch: IDispatch;
 }
@@ -53,7 +52,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
       }, 1000);
       const timeDifference = Date.now() - timerSince;
       if (timer != null && timeDifference > timer * 1000 && !sentNotification.current) {
-        props.dispatch(Thunk.sendTimerPushNotification(props.webpushr?.sid));
+        props.dispatch(Thunk.playAudioNotification());
         sentNotification.current = true;
       }
       if (prevProps.current.progress.timerSince !== props.progress.timerSince) {

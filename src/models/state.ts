@@ -112,7 +112,6 @@ export interface IState {
   likes: IAllLikes;
   friendsHistory: Partial<Record<string, IFriendUser>>;
   notification?: INotification;
-  webpushr?: IWebpushr;
   screenStack: IScreen[];
   currentHistoryRecord?: number;
   loading: ILoading;
@@ -135,10 +134,6 @@ export interface IState {
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
   errors: IStateErrors;
-}
-
-export interface IWebpushr {
-  sid: number;
 }
 
 export interface ILocalStorage {

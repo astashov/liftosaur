@@ -363,10 +363,6 @@ export class Service {
     }
   }
 
-  public sendTimerPushNotification(sid: number): void {
-    this.client(`${__API_HOST__}/timernotification?sid=${sid}`, { method: "POST" });
-  }
-
   public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
     const url = new URL(`${__API_HOST__}/api/publishprogram`);
     url.searchParams.set("key", adminKey);

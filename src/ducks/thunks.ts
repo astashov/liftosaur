@@ -173,14 +173,11 @@ export namespace Thunk {
     };
   }
 
-  export function sendTimerPushNotification(sid?: number): IThunk {
+  export function playAudioNotification(): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().adminKey == null) {
         const settings = getState().storage.settings;
         env.audio.play(settings.volume, !!settings.vibration);
-        if (sid != null) {
-          env.service.sendTimerPushNotification(sid);
-        }
       }
     };
   }

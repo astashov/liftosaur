@@ -236,11 +236,6 @@ export type IReplaceStateAction = {
   state: IState;
 };
 
-export type IStoreWebpushrSidAction = {
-  type: "StoreWebpushrSidAction";
-  sid: number;
-};
-
 export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
   userId?: string;
@@ -312,7 +307,6 @@ export type IAction =
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
-  | IStoreWebpushrSidAction
   | ICreateProgramAction
   | ICreateDayAction
   | IEditDayAction
@@ -493,11 +487,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date));
   } else if (action.type === "ConfirmDate") {
     return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date));
-  } else if (action.type === "StoreWebpushrSidAction") {
-    return {
-      ...state,
-      webpushr: { sid: action.sid },
-    };
   } else if (action.type === "CancelProgress") {
     const progress = Progress.getProgress(state)!;
     return {

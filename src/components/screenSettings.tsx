@@ -20,7 +20,6 @@ import { Footer2View } from "./footer2";
 import { IScreen, Screen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
 import { HelpSettings } from "./help/helpSettings";
-import { WebpushrButton } from "./webpushrButton";
 import { Features } from "../utils/features";
 import { StringUtils } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
@@ -199,7 +198,6 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
-        <WebpushrButton />
         {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
           (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13)) && (
           <MenuItemEditable

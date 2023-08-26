@@ -112,29 +112,6 @@ async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Prom
   }
 }
 
-const timerEndpoint = Endpoint.build("/timernotification");
-const timerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof timerEndpoint> = async ({ payload }) => {
-  const { event, di } = payload;
-  const response = await fetch("https://app.webpushr.com/api/v1/notification/send/sid", {
-    method: "POST",
-    headers: {
-      webpushrKey: await di.secrets.getWebpushrKey(),
-      webpushrAuthToken: await di.secrets.getWebpushrAuthToken(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      title: "Timer",
-      message: "Time to make another attempt",
-      target_url: "https://www.liftosaur.com",
-      expire_push: "5m",
-      sid: (event.queryStringParameters || {}).sid,
-    }),
-  });
-
-  const body = JSON.stringify({ status: response.ok ? "ok" : "error" });
-  return ResponseUtils.json(response.status, event, body);
-};
-
 const postVerifyAppleReceiptEndpoint = Endpoint.build("/api/verifyapplereceipt");
 const postVerifyAppleReceiptHandler: RouteHandler<
   IPayload,
@@ -1524,7 +1501,6 @@ export const handler = rollbar.lambdaHandler(
     const di = buildDi(log);
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
-      .post(timerEndpoint, timerHandler)
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
       .get(getPlannerShorturlEndpoint, getPlannerShorturlHandler)
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)

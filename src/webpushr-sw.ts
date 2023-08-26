@@ -102,7 +102,3 @@ function initialize(service: ServiceWorkerGlobalScope): void {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 initialize(self as any);
-
-if (self.importScripts != null) {
-  self.importScripts("https://cdn.webpushr.com/sw-server.min.js");
-}
