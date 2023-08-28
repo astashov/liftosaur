@@ -1,7 +1,7 @@
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
 
-const tableNames = {
+export const subscriptionDetailsTableNames = {
   dev: {
     subscriptionDetails: "lftSubscriptionDetailsDev",
   },
@@ -27,7 +27,7 @@ export class SubscriptionDetailsDao {
   public async getAll(userIds: string[]): Promise<ISubscriptionDetailsDao[]> {
     const env = Utils.getEnv();
     return this.di.dynamo.batchGet<ISubscriptionDetailsDao>({
-      tableName: tableNames[env].subscriptionDetails,
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
       keys: userIds.map((uid) => ({ userId: uid })),
     });
   }
@@ -35,7 +35,7 @@ export class SubscriptionDetailsDao {
   public async add(subscriptionDetails: ISubscriptionDetailsDao): Promise<void> {
     const env = Utils.getEnv();
     await this.di.dynamo.put({
-      tableName: tableNames[env].subscriptionDetails,
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
       item: { ...subscriptionDetails, ts: Date.now() },
     });
   }

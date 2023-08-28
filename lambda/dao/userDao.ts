@@ -5,6 +5,9 @@ import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
 import { IDI } from "../utils/di";
 import { getLatestMigrationVersion } from "../../src/migrations/migrations";
+import { freeUsersTableNames } from "./freeUserDao";
+import { LogDao, logTableNames } from "./logDao";
+import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
 
 export const userTableNames = {
   dev: {
@@ -200,6 +203,59 @@ export class UserDao {
       attrs: { "#userId": "userId" },
       values: { ":userId": userId },
     });
+  }
+
+  public async removeUser(userId: string): Promise<void> {
+    const env = Utils.getEnv();
+    const programs = await this.getProgramsByUserId(userId);
+    const programIds = Array.from(new Set(programs.map((p) => p.id)));
+    if (programIds.length > 0) {
+      await this.di.dynamo.batchDelete({
+        tableName: userTableNames[env].programs,
+        keys: programIds.map((id) => ({ id, userId })),
+      });
+    }
+
+    const statsDb = await this.di.dynamo.query<IStatDb>({
+      tableName: userTableNames[env].stats,
+      expression: "#userId = :userId",
+      scanIndexForward: false,
+      attrs: { "#userId": "userId" },
+      values: { ":userId": userId },
+    });
+    const names = Array.from(new Set(statsDb.map((p) => p.name)));
+    if (names.length > 0) {
+      await this.di.dynamo.batchDelete({
+        tableName: userTableNames[env].stats,
+        keys: names.map((name) => ({ name, userId })),
+      });
+    }
+
+    const historyRecords = await this.getHistoryByUserId(userId);
+    const historyRecordIds = Array.from(new Set(historyRecords.map((p) => p.id)));
+    if (historyRecordIds.length > 0) {
+      await this.di.dynamo.batchDelete({
+        tableName: userTableNames[env].historyRecords,
+        keys: historyRecordIds.map((id) => ({ id, userId })),
+      });
+    }
+
+    await this.di.dynamo.remove({ tableName: userTableNames[env].users, key: { id: userId } });
+    await this.di.dynamo.remove({ tableName: freeUsersTableNames[env].freeUsers, key: { id: userId } });
+    await this.di.dynamo.remove({
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
+      key: { userId },
+    });
+
+    const logDao = new LogDao(this.di);
+    const logs = await logDao.getForUsers([userId]);
+    const actions = logs.map((l) => l.action);
+    if (actions.length > 0) {
+      await this.di.dynamo.batchDelete({
+        tableName: logTableNames[env].logs,
+        keys: actions.map((action) => ({ action, userId })),
+      });
+    }
   }
 
   public async getById(userId: string): Promise<IUserDao | undefined> {
