@@ -4,6 +4,7 @@ import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
 import { IDI } from "../utils/di";
+import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 
 export const userTableNames = {
   dev: {
@@ -110,7 +111,7 @@ export class UserDao {
         stats: { weight: {}, length: {}, percentage: {} },
         id: 1,
         currentProgramId: undefined,
-        version: "0",
+        version: getLatestMigrationVersion(),
         helps: [],
         tempUserId: "",
         settings: Settings.build(),
