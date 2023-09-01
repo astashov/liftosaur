@@ -132,14 +132,16 @@ export namespace Thunk {
       const state = getState();
       if (state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
         const storage: IPartialStorage = { ...state.storage };
-        if (!args.withHistory) {
-          storage.history = undefined;
-        }
-        if (!args.withStats) {
-          storage.stats = undefined;
-        }
-        if (!args.withPrograms) {
-          storage.programs = undefined;
+        if (false) {
+          if (!args.withHistory) {
+            storage.history = undefined;
+          }
+          if (!args.withStats) {
+            storage.stats = undefined;
+          }
+          if (!args.withPrograms) {
+            storage.programs = undefined;
+          }
         }
         await load(dispatch, "sync", async () => env.service.postStorage(storage));
       }
