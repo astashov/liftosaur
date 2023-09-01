@@ -895,27 +895,30 @@ async function handleLogin(
   if (result.email != null) {
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     let storage: IStorage;
-    const storageResult = await Storage.get(client, await runMigrations(client, result.storage), true);
-    const errors: IStateErrors = {};
+    const finalStorage = await runMigrations(client, result.storage);
+    const storageResult = await Storage.get(client, finalStorage, true);
+    // const errors: IStateErrors = {};
     if (storageResult.success) {
       storage = storageResult.data;
     } else {
+      storage = finalStorage;
       const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
       const service = new Service(client);
-      errors.corruptedstorage = {
-        userid,
-        backup: await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" }),
-        confirmed: false,
-        local: false,
-      };
-      storage = Storage.getDefault();
-      updateState(dispatch, [
-        lb<IState>()
-          .p("errors")
-          .recordModify((e) => ({ ...e, ...errors })),
-      ]);
-      await service.signout();
-      return;
+      await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
+      // errors.corruptedstorage = {
+      //   userid,
+      //   backup: await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" }),
+      //   confirmed: false,
+      //   local: false,
+      // };
+      // storage = Storage.getDefault();
+      // updateState(dispatch, [
+      //   lb<IState>()
+      //     .p("errors")
+      //     .recordModify((e) => ({ ...e, ...errors })),
+      // ]);
+      // await service.signout();
+      // return;
     }
     storage.tempUserId = result.user_id;
     storage.email = result.email;
