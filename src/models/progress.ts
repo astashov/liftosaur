@@ -41,11 +41,13 @@ export interface IScriptBindings {
   dayInWeek: number;
   weights: IWeight[];
   reps: number[];
+  minReps: number[];
   RPE: number[];
   completedRPE: number[];
   completedReps: number[];
   w: IWeight[];
   r: number[];
+  mr: number[];
   cr: number[];
   ns: number;
   numberOfSets: number;
@@ -143,12 +145,14 @@ export namespace Progress {
       dayInWeek: dayData.dayInWeek ?? dayData.day,
       weights: [],
       reps: [],
+      minReps: [],
       RPE: [],
       completedReps: [],
       completedRPE: [],
       w: [],
       r: [],
       cr: [],
+      mr: [],
       numberOfSets: 0,
       ns: 0,
       setIndex: 1,
@@ -160,6 +164,7 @@ export namespace Progress {
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
       bindings.reps.push(set.reps);
+      bindings.minReps.push(set.minReps != null ? set.minReps : set.reps);
       bindings.completedReps.push(set.completedReps || 0);
       bindings.completedRPE.push(set.completedRpe || 0);
       bindings.RPE.push(set.rpe || 0);
@@ -167,6 +172,7 @@ export namespace Progress {
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
     bindings.cr = bindings.completedReps;
+    bindings.mr = bindings.minReps;
     bindings.ns = entry.sets.length;
     bindings.numberOfSets = entry.sets.length;
     bindings.setIndex = setIndex ?? 1;

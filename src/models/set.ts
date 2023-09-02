@@ -16,7 +16,8 @@ export namespace Reps {
   }
 
   export function displayReps(set: ISet): string {
-    return set.isAmrap ? `${set.reps}+` : `${set.reps}`;
+    const reps = set.minReps != null ? `${set.minReps}-${set.reps}` : `${set.reps}`;
+    return set.isAmrap ? `${reps}+` : `${reps}`;
   }
 
   export function displayCompletedReps(set: ISet): string {
@@ -50,8 +51,19 @@ export namespace Reps {
     }
   }
 
+  export function isInRangeCompletedSet(set: ISet): boolean {
+    return (
+      set.completedReps != null &&
+      (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
+    );
+  }
+
   export function isFinished(sets: ISet[]): boolean {
     return sets.every((s) => s.completedReps != null);
+  }
+
+  export function isInRangeCompleted(sets: ISet[]): boolean {
+    return sets.some((s) => s.minReps != null) && sets.every((s) => Reps.isInRangeCompletedSet(s));
   }
 
   export function roundSets(sets: ISet[], settings: ISettings, equipment?: IEquipment): ISet[] {
@@ -69,6 +81,7 @@ export namespace Reps {
           last != null &&
           (!Weight.eq(last.weight, set.weight) ||
             last.reps !== set.reps ||
+            last.minReps !== set.minReps ||
             last.completedReps !== set.completedReps ||
             (isNext && last.isAmrap !== set.isAmrap) ||
             last.rpe !== set.rpe ||

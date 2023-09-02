@@ -113,6 +113,7 @@ export namespace Program {
       state,
       settings,
       ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
+      ProgramExercise.getEnableRepRanges(programExercise, allProgramExercises),
       ProgramExercise.getWarmupSets(programExercise, allProgramExercises),
       true
     );
@@ -126,6 +127,7 @@ export namespace Program {
     state: IProgramState,
     settings: ISettings,
     enabledRpe: boolean,
+    enabledRepRanges: boolean,
     warmupSets?: IProgramExerciseWarmupSet[],
     shouldFallback?: boolean
   ): IHistoryEntry {
@@ -179,7 +181,28 @@ export namespace Program {
                 ).execute("rpe");
               },
               (e) => {
-                return `There's an error while calculating RPE for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's RPE script.`;
+                return `There's an error while calculating RPE for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nPlease fix the program's RPE script.`;
+              },
+              undefined,
+              !shouldFallback
+            )
+          : undefined;
+      const minRepsExpr = set.minRepsExpr;
+      const minRepsValue =
+        enabledRepRanges && minRepsExpr?.trim()
+          ? ScriptRunner.safe(
+              () => {
+                return new ScriptRunner(
+                  minRepsExpr,
+                  state,
+                  Progress.createEmptyScriptBindings(dayData),
+                  Progress.createScriptFunctions(settings),
+                  settings.units,
+                  { equipment: exercise.equipment }
+                ).execute("reps");
+              },
+              (e) => {
+                return `There's an error while calculating Min Reps for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nPlease fix the program's Min Reps script.`;
               },
               undefined,
               !shouldFallback
@@ -189,6 +212,7 @@ export namespace Program {
         isAmrap: set.isAmrap,
         label: set.label,
         reps: repsValue,
+        minReps: minRepsValue,
         rpe: rpeValue,
         logRpe: set.logRpe,
         weight: weightValue,
@@ -726,6 +750,9 @@ export namespace Program {
     const errors = [];
     if (programExercise.quickAddSets) {
       errors.push("Must not have Quick Add Sets enabled");
+    }
+    if (programExercise.enableRepRanges) {
+      errors.push("Must not have Rep Ranges enabled");
     }
     if (programExercise.enableRpe) {
       errors.push("Must not have RPE enabled");

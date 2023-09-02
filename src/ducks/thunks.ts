@@ -5,7 +5,7 @@ import { IGetStorageResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
-import { IAllFriends, IFriendStatus, ILike, IState, IStateErrors, updateState } from "../models/state";
+import { IAllFriends, IFriendStatus, ILike, IState, updateState } from "../models/state";
 import { IProgram, IStorage, IPartialStorage, IExerciseType, ISettings } from "../types";
 import { runMigrations } from "../migrations/runner";
 import { IEither } from "../utils/types";

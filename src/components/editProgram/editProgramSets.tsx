@@ -22,6 +22,7 @@ interface IEditProgramSets {
   settings: ISettings;
   onDeleteVariation?: (variationIndex: number) => void;
   onDuplicateVariation?: (variationIndex: number) => void;
+  onChangeMinReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
@@ -96,9 +97,11 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               variationIndex={variationIndex}
               setIndex={setIndex}
               enabledRpe={!!programExercise.enableRpe}
+              enabledRepRanges={!!programExercise.enableRepRanges}
               isDeleteEnabled={programExercise.quickAddSets || variation.sets.length > 1}
               onChangeAmrap={props.onChangeAmrap}
               onChangeLogRpe={props.onChangeLogRpe}
+              onChangeMinReps={props.onChangeMinReps}
               onChangeReps={props.onChangeReps}
               onChangeRpe={props.onChangeRpe}
               onChangeWeight={props.onChangeWeight}
@@ -113,7 +116,9 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
         />
       </ul>
       <div>
-        <LinkButton onClick={() => props.onAddSet(variationIndex)}>Add New Set</LinkButton>
+        <LinkButton data-cy="add-new-set" onClick={() => props.onAddSet(variationIndex)}>
+          Add New Set
+        </LinkButton>
       </div>
     </Fragment>
   );
@@ -129,7 +134,9 @@ interface ISetFieldsProps {
   equipment?: IEquipment;
   isDeleteEnabled: boolean;
   enabledRpe: boolean;
+  enabledRepRanges: boolean;
   handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  onChangeMinReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   onChangeRpe: (rpe: string, variationIndex: number, setIndex: number) => void;
   onChangeAmrap: (isSet: boolean, variationIndex: number, setIndex: number) => void;
@@ -182,6 +189,8 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
 
   const repsResult = validate(set.repsExpr.trim(), "reps");
   const weightResult = validate(set.weightExpr.trim(), "weight");
+  const minRepsResult =
+    props.enabledRepRanges && set.minRepsExpr ? validate(set.minRepsExpr.trim(), "reps") : undefined;
   const rpeResult = props.enabledRpe && set.rpeExpr ? validate(set.rpeExpr.trim(), "rpe") : undefined;
 
   return (
@@ -196,7 +205,20 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex">
             <div className="flex-1 min-w-0">
+              {props.enabledRepRanges && (
+                <div className="mb-1">
+                  <MinRepsInput
+                    repsResult={minRepsResult}
+                    variationIndex={propsRef.current.variationIndex}
+                    setIndex={propsRef.current.setIndex}
+                    state={state}
+                    set={set}
+                    onChangeReps={props.onChangeMinReps}
+                  />
+                </div>
+              )}
               <RepsInput
+                label={props.enabledRepRanges ? "Max Reps" : "Reps"}
                 repsResult={repsResult}
                 variationIndex={propsRef.current.variationIndex}
                 setIndex={propsRef.current.setIndex}
@@ -310,6 +332,7 @@ export function SetNumber(props: { setIndex: number }): JSX.Element {
 
 interface IRepsInputProps {
   state: IProgramState;
+  label: string;
   set: IProgramSet;
   repsResult: IEither<number | IWeight | undefined, string>;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
@@ -320,10 +343,34 @@ interface IRepsInputProps {
 function RepsInput(props: IRepsInputProps): JSX.Element {
   return (
     <OneLineTextEditor
-      label="Reps"
+      label={props.label}
       name="reps"
       state={props.state}
       value={props.set.repsExpr}
+      result={props.repsResult}
+      onChange={(value) => {
+        props.onChangeReps(value, props.variationIndex, props.setIndex);
+      }}
+    />
+  );
+}
+
+interface IMinRepsInputProps {
+  state: IProgramState;
+  set: IProgramSet;
+  repsResult?: IEither<number | IWeight | undefined, string>;
+  onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
+  variationIndex: number;
+  setIndex: number;
+}
+
+function MinRepsInput(props: IMinRepsInputProps): JSX.Element {
+  return (
+    <OneLineTextEditor
+      label="Min Reps"
+      name="minreps"
+      state={props.state}
+      value={props.set.minRepsExpr}
       result={props.repsResult}
       onChange={(value) => {
         props.onChangeReps(value, props.variationIndex, props.setIndex);

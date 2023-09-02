@@ -636,6 +636,28 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230902": {
+    title: <span>Added rep ranges support</span>,
+    body: (
+      <ul>
+        <li>
+          There's a new "Extra Feature" you can enable for exercises now - <strong>Rep Ranges</strong>. If you turn it
+          on, you can specify optional <strong>Min Reps</strong> Liftoscript scripts for each set in an exercise. On the
+          sets, you'll see rep ranges instead of just a single rep number.
+        </li>
+        <li>
+          If the reps are less than max reps, but more or equal than min reps, the set will be yellow, both in the
+          workout and in the history.
+        </li>
+        <li>
+          If the min reps are enabled and provided, you'll have them available in the <strong>minReps</strong> variable
+          in the Finish Day scripts. If they're not enabled or provided, they'll use <strong>reps</strong> (i.e. max
+          reps) variable values. For example, you don't have min reps for the first set, but max reps are{" "}
+          <strong>5</strong>. Then, <code>minReps[1]</code> would be <strong>5</strong>.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

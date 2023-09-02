@@ -10,6 +10,7 @@ interface IProps {
   onChangeTimer: (value: string) => void;
   onChangeQuickAddSets: (value: boolean) => void;
   onChangeEnableRpe: (value: boolean) => void;
+  onChangeEnableRepRanges: (value: boolean) => void;
   onValid: (isValid: boolean) => void;
   areVariationsEnabled: boolean;
   onEnableVariations: (value: boolean) => void;
@@ -49,6 +50,12 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
               still could do another rep, 8 - 2 reps, etc. You can use Liftoscript to specify required RPE, and access
               required and completed RPE in the finish day script (by <code>RPE</code> and <code>completedRPE</code>{" "}
               variables).
+            </div>
+            <div>
+              <strong>Enable rep ranges: </strong> For each set, you'll be able to set min reps, as a Liftoscript
+              expression. If it's set, it'll be used during workouts, and would mark the set yellow if you're below the
+              max reps, but equal or above the min reps. You can use it in the finish day scripts too - all the min reps
+              would be available in the <code>minReps</code> variable, similar to the <code>reps</code> variable.
             </div>
           </>
         }
@@ -108,6 +115,14 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
         value={programExercise.enableRpe ? "true" : "false"}
         onChange={(v) => {
           props.onChangeEnableRpe(v === "true");
+        }}
+      />
+      <MenuItemEditable
+        type="boolean"
+        name="Enable rep ranges"
+        value={programExercise.enableRepRanges ? "true" : "false"}
+        onChange={(v) => {
+          props.onChangeEnableRepRanges(v === "true");
         }}
       />
     </div>

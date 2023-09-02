@@ -355,6 +355,15 @@ export namespace EditProgramLenses {
     return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("repsExpr").record(value);
   }
 
+  export function setMinReps<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: string,
+    variationIndex: number,
+    setIndex: number
+  ): ILensRecordingPayload<T> {
+    return prefix.p("variations").i(variationIndex).p("sets").i(setIndex).p("minRepsExpr").record(value);
+  }
+
   export function setRpe<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     value: string,
@@ -389,6 +398,13 @@ export namespace EditProgramLenses {
     value: boolean
   ): ILensRecordingPayload<T> {
     return prefix.p("enableRpe").record(value);
+  }
+
+  export function setEnableRepRanges<T>(
+    prefix: LensBuilder<T, IProgramExercise, {}>,
+    value: boolean
+  ): ILensRecordingPayload<T> {
+    return prefix.p("enableRepRanges").record(value);
   }
 
   export function setWeight<T>(

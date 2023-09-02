@@ -408,6 +408,7 @@ export const TSet = t.intersection(
     }),
     t.partial({
       completedReps: t.number,
+      minReps: t.number,
       rpe: t.number,
       completedRpe: t.number,
       logRpe: t.boolean,
@@ -460,6 +461,7 @@ export const TProgramSet = t.intersection(
     t.partial({
       isAmrap: t.boolean,
       rpeExpr: t.string,
+      minRepsExpr: t.string,
       logRpe: t.boolean,
       label: t.string,
     }),
@@ -511,6 +513,7 @@ export const TProgramExercise = t.intersection(
       description: t.string,
       descriptionExpr: t.string,
       quickAddSets: t.boolean,
+      enableRepRanges: t.boolean,
       enableRpe: t.boolean,
       stateMetadata: TProgramStateMetadata,
       timerExpr: t.string,

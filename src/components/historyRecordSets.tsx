@@ -10,6 +10,7 @@ interface IDisplaySet {
   rpe?: string;
   completedRpe?: string;
   isCompleted?: boolean;
+  isInRange?: boolean;
 }
 
 export function HistoryRecordSetsView(props: {
@@ -28,6 +29,7 @@ export function HistoryRecordSetsView(props: {
         completedRpe: set.completedRpe?.toString(),
         weight: Weight.display(Weight.convertTo(set.weight, settings.units), false),
         isCompleted: Reps.isCompletedSet(set),
+        isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
       };
     });
   });
@@ -69,7 +71,13 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
   }
   const set = sets[0];
   const length = sets.length;
-  const color = isNext ? "text-grayv2-main" : set.isCompleted ? "text-greenv2-main" : "text-redv2-main";
+  const color = isNext
+    ? "text-grayv2-main"
+    : set.isCompleted
+    ? "text-greenv2-main"
+    : set.isInRange
+    ? "text-orange-400"
+    : "text-redv2-main";
   const rpeClassName = "relative text-xs leading-none text-center";
   const rpeStyles = { right: "0", top: "0" };
   return (
@@ -98,6 +106,8 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
               ? "history-entry-sets-next"
               : set.isCompleted
               ? "history-entry-sets-completed"
+              : set.isInRange
+              ? "history-entry-sets-in-range"
               : "history-entry-sets-incompleted"
           }
           className="pb-1 font-bold border-b border-grayv2-200"

@@ -156,10 +156,12 @@ export class LiftoscriptEvaluator {
           const validNames: (keyof IScriptBindings)[] = [
             "weights",
             "reps",
+            "minReps",
             "completedReps",
             "w",
             "r",
             "cr",
+            "mr",
             "completedRPE",
             "RPE",
           ];

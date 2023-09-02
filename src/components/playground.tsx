@@ -74,6 +74,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
             state,
             settings,
             ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
+            ProgramExercise.getEnableRepRanges(programExercise, allProgramExercises),
             ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
           );
           props.onProgressChange(History.buildFromEntry(newEntry, dayData));
@@ -125,6 +126,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
               state,
               settings,
               ProgramExercise.getEnableRpe(programExercise, allProgramExercises),
+              ProgramExercise.getEnableRepRanges(programExercise, allProgramExercises),
               ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
             );
             props.onProgressChange(History.buildFromEntry(newEntry, props.dayData));

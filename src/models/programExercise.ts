@@ -138,6 +138,13 @@ export namespace ProgramExercise {
     return !!getProgramExercise(programExercise, allProgramExercises).enableRpe;
   }
 
+  export function getEnableRepRanges(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): boolean {
+    return !!getProgramExercise(programExercise, allProgramExercises).enableRepRanges;
+  }
+
   export function getWarmupSets(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
@@ -240,6 +247,7 @@ export namespace ProgramExercise {
         state,
         settings,
         !!programExercise.enableRpe,
+        ProgramExercise.getEnableRepRanges(programExercise, allProgramExercises),
         ProgramExercise.getWarmupSets(programExercise, allProgramExercises)
       );
     } catch (e) {

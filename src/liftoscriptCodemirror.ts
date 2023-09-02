@@ -45,6 +45,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: CodeEditor): Languag
           { label: "state", type: "keyword" },
           { label: "weights", type: "keyword" },
           { label: "reps", type: "keyword" },
+          { label: "minReps", type: "keyword" },
           { label: "RPE", type: "keyword" },
           { label: "completedReps", type: "keyword" },
           { label: "completedRPE", type: "keyword" },

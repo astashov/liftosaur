@@ -177,6 +177,9 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
                 onChangeLabel={(variation: number, setIndex: number, label: string) => {
                   props.dispatch(EditProgramLenses.setLabel(lbe, label, variation, setIndex));
                 }}
+                onChangeMinReps={(reps: string, variation: number, setIndex: number) => {
+                  props.dispatch(EditProgramLenses.setMinReps(lbe, reps, variation, setIndex));
+                }}
                 onChangeReps={(reps: string, variation: number, setIndex: number) => {
                   props.dispatch(EditProgramLenses.setReps(lbe, reps, variation, setIndex));
                 }}
@@ -263,6 +266,9 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             }}
             onChangeEnableRpe={(enableRpe) => {
               props.dispatch(EditProgramLenses.setEnableRpe(lbe, enableRpe));
+            }}
+            onChangeEnableRepRanges={(enableRepRanges) => {
+              props.dispatch(EditProgramLenses.setEnableRepRanges(lbe, enableRepRanges));
             }}
             onValid={(isValid) => {
               setAreExtraFeaturesValid(isValid);

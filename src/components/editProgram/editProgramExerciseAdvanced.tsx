@@ -212,6 +212,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             onChangeLabel={(variation: number, setIndex: number, label: string) => {
               EditProgram.setLabel(props.dispatch, label, variation, setIndex);
             }}
+            onChangeMinReps={(reps: string, variation: number, setIndex: number) => {
+              EditProgram.setMinReps(props.dispatch, reps, variation, setIndex);
+            }}
             onChangeReps={(reps: string, variation: number, setIndex: number) => {
               EditProgram.setReps(props.dispatch, reps, variation, setIndex);
             }}
@@ -265,6 +268,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
             }}
             onChangeEnableRpe={(enableRpe) => {
               EditProgram.setEnableRpe(props.dispatch, enableRpe);
+            }}
+            onChangeEnableRepRanges={(enableRepRanges) => {
+              EditProgram.setEnableRepRanges(props.dispatch, enableRepRanges);
             }}
             onValid={(isValid) => {
               setIsTimerValid(isValid);

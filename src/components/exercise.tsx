@@ -81,6 +81,8 @@ function getColor(entry: IHistoryEntry): string {
   if (Reps.isFinished(entry.sets)) {
     if (Reps.isCompleted(entry.sets)) {
       return "green";
+    } else if (Reps.isInRangeCompleted(entry.sets)) {
+      return "yellow";
     } else {
       return "red";
     }
@@ -95,6 +97,8 @@ function getBgColor100(entry: IHistoryEntry): string {
     return "bg-greenv2-100";
   } else if (color === "red") {
     return "bg-redv2-100";
+  } else if (color === "yellow") {
+    return "bg-orange-100";
   } else {
     return "bg-purplev2-100";
   }
@@ -106,6 +110,8 @@ function getBgColor200(entry: IHistoryEntry): string {
     return "bg-greenv2-200";
   } else if (color === "red") {
     return "bg-redv2-200";
+  } else if (color === "yellow") {
+    return "bg-orange-200";
   } else {
     return "bg-purplev2-200";
   }
@@ -119,6 +125,8 @@ export const ExerciseView = memo(
     let dataCy;
     if (color === "green") {
       dataCy = "exercise-completed";
+    } else if (color === "yellow") {
+      dataCy = "exercise-in-range-completed";
     } else if (color === "red") {
       dataCy = "exercise-finished";
     } else {
@@ -501,11 +509,13 @@ const ExerciseContentView = memo(
 function NextSet(props: { nextSet: ISet; settings: ISettings; equipment?: IEquipment }): JSX.Element {
   const nextSet = props.nextSet;
   return (
-    <div className="pt-2 text-xs text-grayv2-main">
+    <div className="pt-2 text-xs text-grayv2-main" data-cy="next-set">
       Next Set:{" "}
       <strong>
         {nextSet.isAmrap ? "at least " : ""}
+        {nextSet.minReps != null ? `${nextSet.minReps}-` : ""}
         {nextSet.reps} reps x {Weight.print(Weight.roundConvertTo(nextSet.weight, props.settings, props.equipment))}
+        {nextSet.rpe != null ? ` @${nextSet.rpe} RPE` : ""}
       </strong>
     </div>
   );

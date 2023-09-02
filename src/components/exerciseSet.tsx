@@ -23,18 +23,24 @@ export const ExerciseSetView = memo(
     const subtitle = convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value;
 
     let cy: string;
-    let color: "red" | "green" | "gray";
+    let color: "red" | "green" | "gray" | "yellow";
     let title;
     let rightSuperstring;
     let leftSuperstring: string | undefined;
     let leftSuperstringColor: "orange" | "gray" | undefined;
     let shinyBorder;
     if (set.isAmrap) {
-      title = set.completedReps == null ? `${set.reps}+` : set.completedReps;
+      title = set.completedReps == null ? Reps.displayReps(set) : set.completedReps;
       rightSuperstring = set.completedReps != null ? `${set.reps}+` : undefined;
       if (set.completedReps == null) {
         cy = "set-amrap-nonstarted";
         color = "gray";
+      } else if (set.minReps != null && set.completedReps < set.minReps) {
+        cy = "set-amrap-incompleted";
+        color = "red";
+      } else if (set.minReps != null && set.completedReps < set.reps) {
+        cy = "set-amrap-in-range";
+        color = "yellow";
       } else if (set.completedReps < set.reps) {
         cy = "set-amrap-incompleted";
         color = "red";
@@ -52,6 +58,9 @@ export const ExerciseSetView = memo(
       if (set.completedReps >= set.reps) {
         cy = "set-completed";
         color = "green";
+      } else if (set.minReps != null && set.completedReps >= set.minReps) {
+        cy = "set-in-range";
+        color = "yellow";
       } else {
         cy = "set-incompleted";
         color = "red";
@@ -101,7 +110,7 @@ interface IExerciseSetBaseProps {
   leftSuperstring?: string;
   leftSuperstringColor?: "gray" | "orange";
   rightSuperstring?: string;
-  color: "gray" | "red" | "green";
+  color: "gray" | "red" | "green" | "yellow";
   shinyBorder?: boolean;
   size?: "small" | "medium";
   onClick: (e: Event) => void;
@@ -116,6 +125,8 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
     className += ` bg-greenv2-300 border-greenv2-400`;
   } else if (props.color === "red") {
     className += ` bg-redv2-300 border-redv2-400`;
+  } else if (props.color === "yellow") {
+    className += ` bg-orange-200 border-orange-400`;
   } else {
     className += ` bg-grayv2-50 border-grayv2-200`;
   }

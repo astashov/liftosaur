@@ -142,6 +142,12 @@ export namespace EditProgram {
     ]);
   }
 
+  export function setMinReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
+    updateState(dispatch, [
+      EditProgramLenses.setMinReps(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
+    ]);
+  }
+
   export function setRpe(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
     updateState(dispatch, [EditProgramLenses.setRpe(lb<IState>().pi("editExercise"), value, variationIndex, setIndex)]);
   }
@@ -184,6 +190,10 @@ export namespace EditProgram {
 
   export function setEnableRpe(dispatch: IDispatch, value: boolean): void {
     updateState(dispatch, [EditProgramLenses.setEnableRpe(lb<IState>().pi("editExercise"), value)]);
+  }
+
+  export function setEnableRepRanges(dispatch: IDispatch, value: boolean): void {
+    updateState(dispatch, [EditProgramLenses.setEnableRepRanges(lb<IState>().pi("editExercise"), value)]);
   }
 
   export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
