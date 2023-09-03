@@ -824,7 +824,12 @@ export namespace Progress {
       : undefined;
 
     const newEntries = progress.entries
-      .filter((e) => !e.programExerciseId || !(progress.deletedProgramExercises || {})[e.programExerciseId])
+      .filter(
+        (e) =>
+          !e.programExerciseId ||
+          (programDay.exercises.some((ex) => ex.id === e.programExerciseId) &&
+            !(progress.deletedProgramExercises || {})[e.programExerciseId])
+      )
       .map((progressEntry) => {
         const programExerciseId = progressEntry.programExerciseId;
         if (programExerciseId == null) {
@@ -855,9 +860,34 @@ export namespace Progress {
       programDay.exercises.map((e) => e.id)
     );
 
+    const newProgramExercises = programDay.exercises.filter(
+      (e) => !progress.entries.some((ent) => ent.programExerciseId === e.id)
+    );
+    const additionalEntries =
+      programExerciseIds == null
+        ? CollectionUtils.compact(
+            newProgramExercises.map((programDayExercise) => {
+              const programExercise = program.exercises.find((e) => e.id === programDayExercise.id);
+              if (!programExercise) {
+                return undefined;
+              }
+              const staticState = staticStates?.[programExercise.id];
+              return applyProgramExercise(
+                undefined,
+                programExercise,
+                program.exercises,
+                Progress.getDayData(progress),
+                settings,
+                false,
+                staticState
+              );
+            })
+          )
+        : [];
+
     return {
       ...progress,
-      entries: sortedNewEntries,
+      entries: [...sortedNewEntries, ...additionalEntries],
     };
   }
 
