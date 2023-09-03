@@ -17,7 +17,8 @@ export function undoRedoMiddleware<T, S extends IUndoRedoState<T>>(dispatch: ILe
     lbu<S, typeof lastHistoryTsGetter>(lastHistoryTsGetter)
       .p("history")
       .recordModify((history, getters) => {
-        if (getters.lastHistoryTs && getters.lastHistoryTs < Date.now() - 500) {
+        const lastHistoryTs = getters.lastHistoryTs?.valueOf();
+        if (lastHistoryTs != null && Date.now() - lastHistoryTs < 500) {
           return history;
         } else {
           return { ...history, past: [...history.past, oldState.current], future: [], lastHistoryTs: Date.now() };
