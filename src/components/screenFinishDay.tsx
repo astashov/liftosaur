@@ -41,7 +41,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
   const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
   const [muscleGroupsData] = historyCollector.run();
-  console.log(muscleGroupsData); // FIXME: remove!
 
   return (
     <Surface
