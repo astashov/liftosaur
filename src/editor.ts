@@ -55,7 +55,6 @@ export class CodeEditor {
 
   public setValue(value: string): void {
     if (this.codeMirror) {
-      console.log("Set Value", value);
       this.codeMirror.update([
         this.codeMirror.state.update({ changes: { from: 0, to: this.codeMirror.state.doc.length, insert: value } }),
       ]);
@@ -74,8 +73,6 @@ export class CodeEditor {
     });
 
     const liftoscriptLanguage = buildLiftoscriptLanguageSupport(this);
-
-    console.log("Initial value", this.args.value);
 
     const editorState = EditorState.create({
       doc: this.args.value || "",
