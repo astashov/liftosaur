@@ -114,96 +114,98 @@ export const ProgramDetailsWorkoutPlayground = memo(
         </div>
         <ScrollableTabs
           tabs={state.progresses.map((week, weekIndex) => {
-            return [
-              week.name,
-              <div className="flex flex-wrap justify-center mt-4" style={{ gap: "3rem" }}>
-                {week.days.map((d: IPlaygroundDetailsDayWithProgress, i) => {
-                  return (
-                    <div style={{ maxWidth: "24rem" }}>
-                      <ProgramDetailsWorkoutDayPlayground
-                        weekName={state.progresses.length > 1 ? week.name : undefined}
-                        dayIndex={d.dayIndex}
-                        program={state.program}
-                        progress={d.progress}
-                        settings={state.settings}
-                        staticStates={d.states}
-                        onProgressChange={(newProgress) => {
-                          dispatch(
-                            lb<IProgramDetailsPlaygroundState>()
-                              .p("progresses")
-                              .pi(weekIndex)
-                              .p("days")
-                              .pi(i)
-                              .p("progress")
-                              .record(newProgress)
-                          );
-                        }}
-                        onProgramChange={(newProgram) => {
-                          dispatch([
-                            lb<IProgramDetailsPlaygroundState>()
-                              .p("progresses")
-                              .recordModify((progresses) => {
-                                return progresses.map((wk) => {
-                                  return {
-                                    ...wk,
-                                    days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
-                                      const programDay = newProgram.days[day.dayIndex - 1];
-                                      const newProgress = Progress.applyProgramDay(
-                                        day.progress,
-                                        newProgram,
-                                        programDay,
-                                        state.settings,
-                                        day.states
-                                      );
-                                      return {
-                                        ...day,
-                                        progress: newProgress,
-                                      };
-                                    }),
-                                  };
-                                });
-                              }),
-                            lb<IProgramDetailsPlaygroundState>().p("program").record(newProgram),
-                          ]);
-                        }}
-                        onFinish={() => {
-                          const newProgram = Program.runAllFinishDayScripts(
-                            state.program,
-                            d.progress,
-                            state.settings,
-                            d.states
-                          );
-                          dispatch([
-                            lb<IProgramDetailsPlaygroundState>()
-                              .p("progresses")
-                              .recordModify((progresses) => {
-                                return progresses.map((wk) => {
-                                  return {
-                                    ...wk,
-                                    days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
-                                      const newProgress = Program.nextProgramRecord(
-                                        newProgram,
-                                        state.settings,
-                                        day.dayIndex,
-                                        day.states
-                                      );
-                                      return {
-                                        ...day,
-                                        progress: newProgress,
-                                      };
-                                    }),
-                                  };
-                                });
-                              }),
-                            lb<IProgramDetailsPlaygroundState>().p("program").record(newProgram),
-                          ]);
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>,
-            ];
+            return {
+              label: week.name,
+              children: (
+                <div className="flex flex-wrap justify-center mt-4" style={{ gap: "3rem" }}>
+                  {week.days.map((d: IPlaygroundDetailsDayWithProgress, i) => {
+                    return (
+                      <div style={{ maxWidth: "24rem" }}>
+                        <ProgramDetailsWorkoutDayPlayground
+                          weekName={state.progresses.length > 1 ? week.name : undefined}
+                          dayIndex={d.dayIndex}
+                          program={state.program}
+                          progress={d.progress}
+                          settings={state.settings}
+                          staticStates={d.states}
+                          onProgressChange={(newProgress) => {
+                            dispatch(
+                              lb<IProgramDetailsPlaygroundState>()
+                                .p("progresses")
+                                .pi(weekIndex)
+                                .p("days")
+                                .pi(i)
+                                .p("progress")
+                                .record(newProgress)
+                            );
+                          }}
+                          onProgramChange={(newProgram) => {
+                            dispatch([
+                              lb<IProgramDetailsPlaygroundState>()
+                                .p("progresses")
+                                .recordModify((progresses) => {
+                                  return progresses.map((wk) => {
+                                    return {
+                                      ...wk,
+                                      days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
+                                        const programDay = newProgram.days[day.dayIndex - 1];
+                                        const newProgress = Progress.applyProgramDay(
+                                          day.progress,
+                                          newProgram,
+                                          programDay,
+                                          state.settings,
+                                          day.states
+                                        );
+                                        return {
+                                          ...day,
+                                          progress: newProgress,
+                                        };
+                                      }),
+                                    };
+                                  });
+                                }),
+                              lb<IProgramDetailsPlaygroundState>().p("program").record(newProgram),
+                            ]);
+                          }}
+                          onFinish={() => {
+                            const newProgram = Program.runAllFinishDayScripts(
+                              state.program,
+                              d.progress,
+                              state.settings,
+                              d.states
+                            );
+                            dispatch([
+                              lb<IProgramDetailsPlaygroundState>()
+                                .p("progresses")
+                                .recordModify((progresses) => {
+                                  return progresses.map((wk) => {
+                                    return {
+                                      ...wk,
+                                      days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
+                                        const newProgress = Program.nextProgramRecord(
+                                          newProgram,
+                                          state.settings,
+                                          day.dayIndex,
+                                          day.states
+                                        );
+                                        return {
+                                          ...day,
+                                          progress: newProgress,
+                                        };
+                                      }),
+                                    };
+                                  });
+                                }),
+                              lb<IProgramDetailsPlaygroundState>().p("program").record(newProgram),
+                            ]);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ),
+            };
           })}
         />
       </div>

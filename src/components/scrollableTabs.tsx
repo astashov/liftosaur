@@ -4,7 +4,11 @@ import { useState } from "preact/hooks";
 import { Scroller } from "./scroller";
 
 interface IProps {
-  tabs: [string, ComponentChildren][];
+  tabs: {
+    label: string;
+    children: ComponentChildren;
+    isInvalid?: boolean;
+  }[];
   defaultIndex?: number;
 }
 
@@ -18,20 +22,21 @@ export function ScrollableTabs(props: IProps): JSX.Element {
         <div className="sticky top-0 left-0 z-10 bg-white" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
           <Scroller arrowYOffsetPct={-20}>
             <div className="flex w-full py-2">
-              {tabs.map(([name, content], index) => {
-                const nameClass = `tab-${StringUtils.dashcase(name.toLowerCase())}`;
+              {tabs.map(({ label, isInvalid }, index) => {
+                const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 return (
                   <div className="flex-1 text-center whitespace-no-wrap border-b border-grayv2-50">
                     <button
                       className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
-                      }`}
+                      } ${isInvalid ? " text-redv2-main" : ""}`}
                       style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                       data-cy={nameClass}
                       onClick={() => setSelectedIndex(index)}
                     >
-                      {name}
+                      {isInvalid ? " ⚠️" : ""}
+                      {label}
                     </button>
                   </div>
                 );
@@ -40,7 +45,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
           </Scroller>
         </div>
       )}
-      {tabs[selectedIndex]?.[1] || tabs[0][1]}
+      {tabs[selectedIndex]?.children || tabs[0]?.children}
     </div>
   );
 }

@@ -68,7 +68,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
   return (
     <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web" }}>
       {props.result && <EvalResult result={props.result} onCustomErrorCta={props.onCustomErrorCta} />}
-      <div data-cy="planner-editor" style={{ maxWidth: "30rem" }} className={className} ref={divRef}></div>
+      <div data-cy="planner-editor" className={className} ref={divRef}></div>
     </div>
   );
 }

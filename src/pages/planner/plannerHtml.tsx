@@ -15,7 +15,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
     <Page
       css={["planner"]}
       js={["planner"]}
-      maxWidth={1020}
+      maxWidth={1200}
       title="Workout Program Planner"
       ogTitle="Liftosaur: Workout Program Builder"
       ogDescription="The weightlifting program planner, allowing to balance volume, time and muscles worked"

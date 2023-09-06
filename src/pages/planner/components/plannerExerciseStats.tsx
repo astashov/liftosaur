@@ -120,9 +120,8 @@ function getIntensityPerWeeks(
     if (!exercise) {
       continue;
     }
-    const globalRpe = exercise.globals.rpe || 8;
     const weights = exercise.sets.map((s) =>
-      Number((Weight.rpeMultiplier(s.repRange?.maxrep || 1, s.rpe ?? globalRpe) * 100).toFixed(2))
+      Number((Weight.rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100).toFixed(2))
     );
     data[0].push(weekIndex + 1);
     data[1].push(Math.max(...weights));
@@ -146,8 +145,6 @@ function getVolumePerWeeks(
     if (!exercise) {
       continue;
     }
-    const globalRpe = exercise.globals.rpe || 8;
-
     const volume = Number(
       exercise.sets
         .reduce((acc, s) => {
@@ -155,7 +152,7 @@ function getVolumePerWeeks(
             return acc;
           }
           const reps = s.repRange.maxrep;
-          const weight = Weight.rpeMultiplier(reps, s.rpe ?? globalRpe) * 100;
+          const weight = Weight.rpeMultiplier(reps, s.rpe ?? 10) * 100;
           return acc + s.repRange.numberOfSets * weight * reps;
         }, 0)
         .toFixed(2)

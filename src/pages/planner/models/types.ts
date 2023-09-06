@@ -1,7 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises } from "../../../types";
+import { IAllCustomExercises, IUnit, IWeight } from "../../../types";
 
 export interface IPlannerProgram {
   name: string;
@@ -22,6 +22,7 @@ export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number]
 export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
 
 export interface IPlannerSettings {
+  unit: IUnit;
   synergistMultiplier: number;
   strengthSetsPct: number;
   hypertrophySetsPct: number;
@@ -32,25 +33,33 @@ export interface IPlannerSettings {
 }
 
 export interface IPlannerProgramExercise {
+  label?: string;
+  equipment?: string;
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
-  globals: {
-    timer?: number;
-    rpe?: number;
-  };
+  properties: IPlannerProgramProperty[];
 }
 
 export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
   rpe?: number;
+  percentage?: number;
+  weight?: IWeight;
+}
+
+export interface IPlannerProgramProperty {
+  name: string;
+  fnName: string;
+  fnArgs: string[];
 }
 
 export interface IPlannerProgramExerciseRepRange {
   numberOfSets: number;
   maxrep: number;
   minrep: number;
+  isAmrap: boolean;
 }
 
 export interface IPlannerUiFocusedExercise {
