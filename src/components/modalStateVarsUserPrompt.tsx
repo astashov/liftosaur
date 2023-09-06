@@ -75,6 +75,7 @@ export function ModalStateVarsUserPrompt(props: IModalStateVarsUserPromptProps):
                   label={label}
                   ref={textInput}
                   defaultValue={num}
+                  step="0.0001"
                   type={SendMessage.isIos() ? "number" : "tel"}
                   autofocus={i === 0}
                 />
