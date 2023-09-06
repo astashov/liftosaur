@@ -151,6 +151,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       });
     });
   }, [state.current.program, state.settings.customExercises]);
+  console.log(evaluatedWeeks);
 
   const modalExerciseUi = state.ui.modalExercise;
 

@@ -3,8 +3,14 @@ import { SyntaxNode } from "@lezer/common";
 import { Exercise } from "../../models/exercise";
 import { CollectionUtils } from "../../utils/collection";
 import { IEither } from "../../utils/types";
-import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, IPlannerProgramExerciseSet } from "./models/types";
-import { IAllCustomExercises } from "../../types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseRepRange,
+  IPlannerProgramExerciseSet,
+  IPlannerProgramProperty,
+} from "./models/types";
+import { IAllCustomExercises, IWeight, equipments } from "../../types";
+import * as W from "../../models/weight";
 
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -21,17 +27,28 @@ export type IPlannerEvalResult = IEither<IPlannerProgramExercise[], PlannerSynta
 
 // eslint-disable-next-line no-shadow
 enum NodeName {
-  Program = "Program",
-  EmptyExpression = "EmptyExpression",
   LineComment = "LineComment",
+  Program = "Program",
   ExerciseExpression = "ExerciseExpression",
-  ExerciseName = "ExerciseName",
+  ExerciseLabel = "ExerciseLabel",
   Word = "Word",
+  ExerciseName = "ExerciseName",
+  SectionSeparator = "SectionSeparator",
   ExerciseSection = "ExerciseSection",
+  ExerciseSets = "ExerciseSets",
   ExerciseSet = "ExerciseSet",
-  SetPart = "SetPart",
   Rpe = "Rpe",
   Timer = "Timer",
+  SetPart = "SetPart",
+  Weight = "Weight",
+  Percentage = "Percentage",
+  ExerciseProperty = "ExerciseProperty",
+  ExercisePropertyName = "ExercisePropertyName",
+  FunctionExpression = "FunctionExpression",
+  FunctionName = "FunctionName",
+  Alphanumeric = "Alphanumeric",
+  FunctionArgument = "FunctionArgument",
+  EmptyExpression = "EmptyExpression",
 }
 
 function getChildren(node: SyntaxNode): SyntaxNode[] {
@@ -117,6 +134,16 @@ export class PlannerExerciseEvaluator {
     };
   }
 
+  private getWeight(expr?: SyntaxNode | null): IWeight | undefined {
+    if (expr?.type.name === NodeName.Weight) {
+      const value = this.getValue(expr);
+      const unit = value.indexOf("kg") !== -1 ? "kg" : "lb";
+      return W.Weight.build(parseFloat(value), unit);
+    } else {
+      return undefined;
+    }
+  }
+
   private evaluateSet(expr: SyntaxNode): IPlannerProgramExerciseSet {
     if (expr.type.name === NodeName.ExerciseSet) {
       const setPartNodes = expr.getChildren(NodeName.SetPart);
@@ -124,22 +151,68 @@ export class PlannerExerciseEvaluator {
       const repRange = this.getRepRange(setParts);
       const rpeNode = expr.getChild(NodeName.Rpe);
       const timerNode = expr.getChild(NodeName.Timer);
+      const percentageNode = expr.getChild(NodeName.Percentage);
+      const weightNode = expr.getChild(NodeName.Weight);
       const rpe = rpeNode == null ? undefined : parseInt(this.getValue(rpeNode).replace("@", ""), 10);
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
+      const percentage =
+        percentageNode == null ? undefined : parseInt(this.getValue(percentageNode).replace("%", ""), 10);
+      const weight = this.getWeight(weightNode);
       return {
         repRange,
         timer,
         rpe,
+        weight,
+        percentage,
       };
     } else {
       assert(NodeName.ExerciseSection);
     }
   }
 
-  private evaluateSection(expr: SyntaxNode): IPlannerProgramExerciseSet[] {
+  private evaluateProperty(expr: SyntaxNode): IPlannerProgramProperty {
+    if (expr.type.name === NodeName.ExerciseProperty) {
+      const nameNode = expr.getChild(NodeName.ExercisePropertyName);
+      if (nameNode == null) {
+        assert(NodeName.ExercisePropertyName);
+      }
+      const valueNode = expr.getChild(NodeName.FunctionExpression);
+      if (valueNode == null) {
+        assert(NodeName.FunctionExpression);
+      }
+      const name = this.getValue(nameNode);
+      const fnNameNode = valueNode.getChild(NodeName.FunctionName);
+      if (fnNameNode == null) {
+        assert(NodeName.FunctionName);
+      }
+      const fnName = this.getValue(fnNameNode);
+      const fnArgs = valueNode.getChildren(NodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
+      return {
+        name,
+        fnName,
+        fnArgs: fnArgs,
+      };
+    } else {
+      assert(NodeName.ExerciseProperty);
+    }
+  }
+
+  private evaluateSection(expr: SyntaxNode): IPlannerProgramExerciseSet[] | IPlannerProgramProperty {
     if (expr.type.name === NodeName.ExerciseSection) {
-      const sets = expr.getChildren(NodeName.ExerciseSet);
-      return sets.map((set) => this.evaluateSet(set));
+      const setsNode = expr.getChild(NodeName.ExerciseSets);
+      if (setsNode != null) {
+        const sets = setsNode.getChildren(NodeName.ExerciseSet);
+        if (sets.length > 0) {
+          return sets.map((set) => this.evaluateSet(set));
+        }
+      }
+      const property = expr.getChild(NodeName.ExerciseProperty);
+      if (property != null) {
+        return this.evaluateProperty(property);
+      } else {
+        console.log(this.getValue(expr));
+        assert(NodeName.ExerciseProperty);
+      }
     } else {
       assert(NodeName.ExerciseSection);
     }
@@ -153,35 +226,58 @@ export class PlannerExerciseEvaluator {
       if (nameNode == null) {
         assert("ExerciseName");
       }
+      const labelNode = expr.getChild(NodeName.ExerciseLabel);
+      const label = labelNode == null ? undefined : this.getValue(labelNode);
       const name = this.getValue(nameNode);
+      const parts = name.split(",").map((part) => part.trim());
+      let equipment: string | undefined = undefined;
+      if (parts.length > 1) {
+        const potentialEquipment = parts.pop();
+        if (potentialEquipment != null && (equipments as readonly string[]).indexOf(potentialEquipment) !== -1) {
+          equipment = potentialEquipment;
+        }
+      }
       const exerciseId = Exercise.findIdByName(name, this.customExercises);
       if (exerciseId == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }
       const sectionNodes = expr.getChildren(NodeName.ExerciseSection);
       let hadRepRange = false;
-      const allSets = sectionNodes.reduce<IPlannerProgramExerciseSet[]>((acc, sectionNode) => {
+      const allSets: IPlannerProgramExerciseSet[] = [];
+      const allProperties: IPlannerProgramProperty[] = [];
+      for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode);
-        const sectionHasRepRange = section.some((set) => set.repRange != null);
-        if (sectionHasRepRange) {
-          if (hadRepRange) {
-            throw new PlannerSyntaxError(`Exercise should only have rep range in one section`, 0, 0);
+        if (Array.isArray(section)) {
+          const sectionHasRepRange = section.some((set) => set.repRange != null);
+          if (sectionHasRepRange) {
+            if (hadRepRange) {
+              throw new PlannerSyntaxError(`Exercise should only have rep range in one section`, 0, 0);
+            }
+            hadRepRange = true;
           }
-          hadRepRange = true;
+          allSets.push(...section);
+        } else {
+          allProperties.push(section);
         }
-        return [...acc, ...section];
-      }, []);
+      }
       const sets = allSets.filter((set) => set.repRange != null);
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
+      const percentage = allSets.find((set) => set.repRange == null && set.timer != null)?.percentage;
+      const weight = allSets.find((set) => set.repRange == null && set.timer != null)?.weight;
       const [line] = this.getLineAndOffset(expr);
       return {
+        label,
         name,
+        equipment,
         line,
         sets,
+        properties: allProperties,
         globals: {
           rpe,
           timer,
+          percentage,
+          weight,
         },
       };
     } else {

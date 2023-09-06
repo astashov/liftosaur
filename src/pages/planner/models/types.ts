@@ -1,7 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises } from "../../../types";
+import { IAllCustomExercises, IWeight } from "../../../types";
 
 export interface IPlannerProgram {
   name: string;
@@ -32,12 +32,17 @@ export interface IPlannerSettings {
 }
 
 export interface IPlannerProgramExercise {
+  label?: string;
+  equipment?: string;
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
+  properties: IPlannerProgramProperty[];
   globals: {
     timer?: number;
     rpe?: number;
+    percentage?: number;
+    weight?: IWeight;
   };
 }
 
@@ -45,6 +50,14 @@ export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
   rpe?: number;
+  percentage?: number;
+  weight?: IWeight;
+}
+
+export interface IPlannerProgramProperty {
+  name: string;
+  fnName: string;
+  fnArgs: string[];
 }
 
 export interface IPlannerProgramExerciseRepRange {
