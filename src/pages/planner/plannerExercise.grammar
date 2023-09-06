@@ -22,5 +22,5 @@ ExerciseSet { (Rpe | Timer | SetPart)+ }
   Word { @asciiLetter+ }
   Rpe { "@" @digit }
   Timer { @digit+ "s" }
-  SetPart { $[0-9\-x]+ }
+  SetPart { $[0-9\-x]+ "+"? }
 }

@@ -51,6 +51,7 @@ export interface IPlannerProgramExerciseRepRange {
   numberOfSets: number;
   maxrep: number;
   minrep: number;
+  isAmrap: boolean;
 }
 
 export interface IPlannerUiFocusedExercise {

@@ -1,9 +1,10 @@
-import { Exercise, exercises, warmupValues } from "./exercise";
+import { Exercise, exercises, IExercise, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
 import { Screen } from "./screen";
 import { lb, lf } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
+import { parser as plannerExerciseParser } from "../pages/planner/plannerExerciseParser";
 import { IEither } from "../utils/types";
 import { Weight } from "./weight";
 import { UidFactory } from "../utils/generator";
@@ -28,6 +29,7 @@ import {
   IEquipmentData,
   IProgramWeek,
   IDayData,
+  IAllCustomExercises,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -38,6 +40,9 @@ import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
+import { IPlannerProgram, IPlannerProgramExercise } from "../pages/planner/models/types";
+import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
+import { Settings } from "./settings";
 
 declare let __HOST__: string;
 
@@ -875,6 +880,240 @@ export namespace Program {
       }),
       tags: [],
     };
+  }
+
+  export function plannerToProgram(plannerProgram: IPlannerProgram, customExercises: IAllCustomExercises): IProgram {
+    const evaluatedWeeks = plannerProgram.weeks.map((week) => {
+      return week.days.map((day) => {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises);
+        return evaluator.evaluate(tree.topNode);
+      });
+    });
+
+    const exercisesToWeeksDays: Record<
+      string,
+      { dayData: { week: number; dayInWeek: number }[]; exercises: string[] }
+    > = {};
+    for (let week = 0; week < evaluatedWeeks.length; week += 1) {
+      for (let day = 0; day < evaluatedWeeks[week].length; day += 1) {
+        const result = evaluatedWeeks[week][day];
+        if (result.success) {
+          const exs = result.data;
+          const names = exs.map((e) => e.name);
+          const key = names.join("|");
+          exercisesToWeeksDays[key] = exercisesToWeeksDays[key] || {};
+          exercisesToWeeksDays[key].dayData = exercisesToWeeksDays[key].dayData || [];
+          exercisesToWeeksDays[key].exercises = exercisesToWeeksDays[key].exercises || [];
+          exercisesToWeeksDays[key].dayData.push({ week, dayInWeek: day });
+          exercisesToWeeksDays[key].exercises = names;
+        }
+      }
+    }
+
+    const plannerExercises: Record<
+      string,
+      { week: number; day: number; dayInWeek: number; exercises: IPlannerProgramExercise[] }[]
+    > = {};
+    let dayIndex = 0;
+    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
+      const week = evaluatedWeeks[weekIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
+        const day = week[dayInWeekIndex];
+        if (day.success) {
+          const excrs = day.data;
+          const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
+          for (const exercise of excrs) {
+            exercisesByName[exercise.name] = exercisesByName[exercise.name] || [];
+            exercisesByName[exercise.name].push(exercise);
+          }
+          for (const groupedExercises of ObjectUtils.values(exercisesByName)) {
+            plannerExercises[groupedExercises[0].name] = plannerExercises[groupedExercises[0].name] || [];
+            plannerExercises[groupedExercises[0].name].push({
+              week: weekIndex,
+              day: dayIndex,
+              dayInWeek: dayInWeekIndex,
+              exercises: groupedExercises,
+            });
+          }
+        }
+        dayIndex += 1;
+      }
+    }
+
+    const settings = Settings.build();
+    const intermediateSets: Record<
+      string,
+      Record<string, { encounters: IDayData[]; sets: IProgramSet[]; schema: string; exercise: IExercise }>
+    > = {};
+    for (const exerciseGrouped of ObjectUtils.values(plannerExercises)) {
+      let isWithRepRanges = false;
+      const exercise = Exercise.findByName(exerciseGrouped[0].exercises[0].name, settings.exercises);
+      if (!exercise) {
+        continue;
+      }
+
+      for (const item of exerciseGrouped) {
+        const programSets: IProgramSet[] = [];
+        const exs = item.exercises;
+
+        for (const ex of exs) {
+          for (const set of ex.sets) {
+            if (set.repRange) {
+              for (let i = 0; i < set.repRange.numberOfSets; i += 1) {
+                const multiplier = Weight.rpeMultiplier(set.repRange.maxrep, set.rpe || 10);
+                const minrep = set.repRange.minrep !== set.repRange.maxrep ? set.repRange.minrep : undefined;
+                if (minrep != null) {
+                  isWithRepRanges = true;
+                }
+                const programSet: IProgramSet = {
+                  minRepsExpr: minrep ? `${minrep}` : undefined,
+                  repsExpr: `${set.repRange.maxrep}`,
+                  weightExpr: `state.weight * ${multiplier}`,
+                  isAmrap: !!set.repRange?.isAmrap,
+                };
+                programSets.push(programSet);
+              }
+            }
+          }
+        }
+        const schema = programSets
+          .reduce<string[]>((memo, programSet) => {
+            let set = `${
+              programSet.minRepsExpr ? `${programSet.minRepsExpr}-${programSet.repsExpr}` : programSet.repsExpr
+            }`;
+            set += `:${programSet.weightExpr}`;
+            if (programSet.isAmrap) {
+              set += `+`;
+            }
+            return [...memo, set];
+          }, [])
+          .join("/");
+
+        const exid = `${exercise.id}_${exercise.equipment}`;
+        intermediateSets[exid] = intermediateSets[exid] || {};
+        intermediateSets[exid][schema] = intermediateSets[exid][schema] || {
+          encounters: [],
+          sets: [],
+          schema,
+          exercise,
+        };
+        intermediateSets[exid][schema].encounters.push({
+          day: item.day,
+          week: item.week,
+          dayInWeek: item.dayInWeek,
+        });
+        intermediateSets[exid][schema].schema = schema;
+        intermediateSets[exid][schema].sets = programSets;
+      }
+    }
+
+    const exerciseNamesToIds: Record<string, string> = {};
+
+    const programExercises: IProgramExercise[] = Object.keys(intermediateSets).map((key) => {
+      const variationsData = ObjectUtils.values(intermediateSets[key]);
+      const exercise = variationsData[0].exercise;
+      const conditions: Record<number, IDayData[]> = {};
+      const variations: IProgramExerciseVariation[] = variationsData.map((v, i) => {
+        conditions[i] = v.encounters;
+        return {
+          sets: v.sets,
+        };
+      });
+      const weeksAndDays = ObjectUtils.values(conditions).reduce<Record<number, number[]>>((memo, v) => {
+        for (const dayData of v) {
+          const week = dayData.week!;
+          memo[week] = memo[week] || [];
+          memo[week].push(dayData.dayInWeek!);
+        }
+        return memo;
+      }, {});
+      console.log(key);
+      console.log(weeksAndDays);
+      let variationExpr = ObjectUtils.keys(conditions).reduce((acc, index) => {
+        const cond = conditions[index];
+        const groupByWeek = cond.reduce<Record<number, number[]>>((memo, c) => {
+          memo[c.week!] = memo[c.week!] || [];
+          memo[c.week!].push(c.dayInWeek!);
+          return memo;
+        }, {});
+        console.log(groupByWeek);
+        const expr = ObjectUtils.keys(groupByWeek).reduce<string[]>((memo, week) => {
+          const days = groupByWeek[week];
+          const daysInWeek = weeksAndDays[week];
+          const useDayInWeek = daysInWeek.length > 1;
+          if (days.length === 1) {
+            if (useDayInWeek) {
+              memo.push(`(week == ${Number(week) + 1} && dayInWeek == ${Number(days[0]) + 1})`);
+            } else {
+              memo.push(`(week == ${Number(week) + 1})`);
+            }
+          } else {
+            memo.push(
+              `(week == ${Number(week) + 1} && (${days.map((d) => `dayInWeek == ${Number(d) + 1}`).join(" || ")}))`
+            );
+          }
+          return memo;
+        }, []);
+        return acc + `${expr.join(" || ")} ? ${Number(index) + 1} :\n`;
+      }, "");
+      variationExpr += ` 1`;
+      const id = UidFactory.generateUid(8);
+      exerciseNamesToIds[exercise.name] = id;
+      const programExercise: IProgramExercise = {
+        id,
+        name: exercise.name,
+        variationExpr,
+        variations,
+        finishDayExpr: "",
+        exerciseType: exercise,
+        state: { weight: exercise.startingWeightLb },
+        descriptions: [],
+      };
+      return programExercise;
+    });
+
+    const weeks: IProgramWeek[] = [];
+    const days: IProgramDay[] = [];
+    for (const key of Object.keys(exercisesToWeeksDays)) {
+      const value = exercisesToWeeksDays[key];
+      const id = UidFactory.generateUid(8);
+      const dayInWeeks = Array.from(new Set(value.dayData.map((d) => d.dayInWeek)));
+      const day: IProgramDay = {
+        id,
+        name: `Day ${dayInWeeks.map((d) => d + 1).join("/")}`,
+        exercises: value.exercises.map((e) => ({ id: exerciseNamesToIds[e] })),
+      };
+      days.push(day);
+      for (const dayData of value.dayData) {
+        let week: IProgramWeek | undefined = weeks[dayData.week];
+        if (week == null) {
+          week = {
+            id: UidFactory.generateUid(8),
+            name: `Week ${dayData.week + 1}`,
+            days: [],
+          };
+          weeks[dayData.week] = week;
+        }
+        week.days[dayData.dayInWeek] = { id: day.id };
+      }
+    }
+
+    const program: IProgram = {
+      id: UidFactory.generateUid(8),
+      name: "My Program",
+      description: "Generated from a Workout Planner",
+      url: "",
+      author: "",
+      nextDay: 1,
+      exercises: programExercises,
+      days: days,
+      weeks: weeks,
+      isMultiweek: true,
+      tags: [],
+    };
+
+    return program;
   }
 
   export function switchToUnit(program: IProgram, settings: ISettings): IProgram {

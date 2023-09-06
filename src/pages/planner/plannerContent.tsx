@@ -31,6 +31,12 @@ import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import { ICustomExercise, IEquipment, IExerciseKind, IMuscle } from "../../types";
 import { Service } from "../../api/service";
+import { Button } from "../../components/button";
+import { IExportedProgram, Program } from "../../models/program";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { ClipboardUtils } from "../../utils/clipboard";
+
+declare let __HOST__: string;
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
@@ -173,6 +179,28 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             <button onClick={() => setIsSettingsModalOpen(true)} className="p-2">
               <IconCog2 />
             </button>
+          </div>
+          <div>
+            <Button
+              kind="purple"
+              onClick={async () => {
+                const liftosaurProgram = Program.plannerToProgram(
+                  state.current.program,
+                  state.settings.customExercises
+                );
+                const exportedProgram: IExportedProgram = {
+                  program: liftosaurProgram,
+                  customExercises: {},
+                  version: getLatestMigrationVersion(),
+                  settings: { timers: { workout: 180, warmup: 90 }, units: "lb" },
+                };
+                const programBuilderUrl = new URL("/program", __HOST__);
+                const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), programBuilderUrl.toString());
+                ClipboardUtils.copy(url.toString());
+              }}
+            >
+              Convert to Liftosaur program
+            </Button>
           </div>
         </div>
       </div>

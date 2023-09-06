@@ -104,10 +104,16 @@ export class PlannerExerciseEvaluator {
     if (!maxrepStr) {
       maxrepStr = minrepStr;
     }
+    let isAmrap = false;
+    if (maxrepStr.endsWith("+")) {
+      isAmrap = true;
+      maxrepStr.replace(/\+/g, "");
+    }
     return {
       numberOfSets: parseInt(numberOfSetsStr, 10),
       minrep: parseInt(minrepStr, 10),
       maxrep: parseInt(maxrepStr, 10),
+      isAmrap: isAmrap,
     };
   }
 
