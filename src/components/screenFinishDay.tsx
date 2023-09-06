@@ -81,29 +81,25 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             Total reps: <strong>{totalReps}</strong>
           </div>
         </section>
-        <div className="mt-4 text-sm font-bold text-center">Volume per muscle group</div>
+        <div className="mt-4 text-sm font-bold text-center">Sets per muscle group</div>
         <div className="flex mt-1" style={{ gap: "1rem" }}>
           <ul className="flex-1">
             {leftColumn
-              .filter((c) => muscleGroupsData[c][1][0] > 0)
+              .filter((c) => muscleGroupsData[c][2][0] > 0)
               .map((muscle) => (
                 <li>
                   <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>
-                    {muscleGroupsData[muscle][1] || 0} {props.settings.units}
-                  </strong>
+                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
                 </li>
               ))}
           </ul>
           <ul className="flex-1">
             {rightColumn
-              .filter((c) => muscleGroupsData[c][1][0] > 0)
+              .filter((c) => muscleGroupsData[c][2][0] > 0)
               .map((muscle) => (
                 <li>
                   <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>
-                    {muscleGroupsData[muscle][1] || 0} {props.settings.units}
-                  </strong>
+                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
                 </li>
               ))}
           </ul>
