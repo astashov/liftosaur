@@ -198,6 +198,7 @@ export namespace History {
             const muscleGroupAcc = acc[muscleGroup];
             const date = new Date(hr.startTime);
             const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
+            const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
             if (lastTs == null) {
               muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
               muscleGroupAcc[1].push(0);
@@ -220,8 +221,8 @@ export namespace History {
                 muscleGroupAcc[2].push(0);
               }
             }
-            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(entry.sets).value * multiplier;
-            muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += entry.sets.length * multiplier;
+            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(finishedSets).value * multiplier;
+            muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
           }
         }
         return acc;
