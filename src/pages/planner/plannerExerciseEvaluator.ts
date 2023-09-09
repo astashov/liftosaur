@@ -210,7 +210,6 @@ export class PlannerExerciseEvaluator {
       if (property != null) {
         return this.evaluateProperty(property);
       } else {
-        console.log(this.getValue(expr));
         assert(NodeName.ExerciseProperty);
       }
     } else {
@@ -228,7 +227,7 @@ export class PlannerExerciseEvaluator {
       }
       const labelNode = expr.getChild(NodeName.ExerciseLabel);
       const label = labelNode == null ? undefined : this.getValue(labelNode);
-      const name = this.getValue(nameNode);
+      let name = this.getValue(nameNode);
       const parts = name.split(",").map((part) => part.trim());
       let equipment: string | undefined = undefined;
       if (parts.length > 1) {
@@ -237,14 +236,17 @@ export class PlannerExerciseEvaluator {
           equipment = potentialEquipment;
         }
       }
-      const exerciseId = Exercise.findIdByName(name, this.customExercises);
-      if (exerciseId == null) {
+      name = parts.join(", ");
+      const exercise = Exercise.findByName(name, this.customExercises);
+      equipment = equipment || exercise?.defaultEquipment;
+      if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }
       const sectionNodes = expr.getChildren(NodeName.ExerciseSection);
       let hadRepRange = false;
       const allSets: IPlannerProgramExerciseSet[] = [];
       const allProperties: IPlannerProgramProperty[] = [];
+      let isReusing = false;
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode);
         if (Array.isArray(section)) {
@@ -257,8 +259,18 @@ export class PlannerExerciseEvaluator {
           }
           allSets.push(...section);
         } else {
+          if (section.name === "reuse") {
+            isReusing = true;
+          }
           allProperties.push(section);
         }
+      }
+      if (isReusing && (allSets.length > 0 || allProperties.length > 1)) {
+        throw new PlannerSyntaxError(
+          `Exercises that reuse logic should not specify any sets or properties except 'reuse'`,
+          0,
+          0
+        );
       }
       const sets = allSets.filter((set) => set.repRange != null);
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
@@ -266,6 +278,12 @@ export class PlannerExerciseEvaluator {
       const percentage = allSets.find((set) => set.repRange == null && set.timer != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.timer != null)?.weight;
       const [line] = this.getLineAndOffset(expr);
+      for (const set of sets) {
+        set.rpe = set.rpe ?? rpe;
+        set.timer = set.timer ?? timer;
+        set.percentage = set.percentage ?? percentage;
+        set.weight = set.weight ?? weight;
+      }
       return {
         label,
         name,
@@ -273,12 +291,6 @@ export class PlannerExerciseEvaluator {
         line,
         sets,
         properties: allProperties,
-        globals: {
-          rpe,
-          timer,
-          percentage,
-          weight,
-        },
       };
     } else {
       this.error(`Unexpected node type ${expr.node.type.name}`, expr);

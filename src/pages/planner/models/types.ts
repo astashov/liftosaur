@@ -38,12 +38,6 @@ export interface IPlannerProgramExercise {
   line: number;
   sets: IPlannerProgramExerciseSet[];
   properties: IPlannerProgramProperty[];
-  globals: {
-    timer?: number;
-    rpe?: number;
-    percentage?: number;
-    weight?: IWeight;
-  };
 }
 
 export interface IPlannerProgramExerciseSet {

@@ -14,7 +14,7 @@ ExerciseProperty {  ExercisePropertyName ":" FunctionExpression }
 ExercisePropertyName { Word }
 
 FunctionExpression { FunctionName ("(" FunctionArgument ("," FunctionArgument)* ")")* }
-FunctionName { Alphanumeric }
+FunctionName { Alphanumeric+ }
 FunctionArgument { Alphanumeric }
 
 @skip { space | LineComment }

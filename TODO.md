@@ -14,6 +14,12 @@
 - Figure out a different way to store URLs in programs
 - Autofocus for AMRAP / RPE
 - Import from Perseus
+- Add an option to disable plates calculator
+- Group plates in the plates calculator together
+- Disable Zoom in the app
+- Move the app from liftosaur.com to liftosaur.com/app
+- Add calculate1RM function
+- Add integration with Apple Health
 
 * Programs
   - 5/3/1s

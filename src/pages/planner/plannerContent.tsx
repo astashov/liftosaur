@@ -32,9 +32,10 @@ import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import { ICustomExercise, IEquipment, IExerciseKind, IMuscle } from "../../types";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
-import { IExportedProgram, Program } from "../../models/program";
+import { IExportedProgram } from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { ClipboardUtils } from "../../utils/clipboard";
+import { PlannerToProgram } from "../../models/plannerToProgram";
 
 declare let __HOST__: string;
 
@@ -151,7 +152,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       });
     });
   }, [state.current.program, state.settings.customExercises]);
-  console.log(evaluatedWeeks);
 
   const modalExerciseUi = state.ui.modalExercise;
 
@@ -185,10 +185,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             <Button
               kind="purple"
               onClick={async () => {
-                const liftosaurProgram = Program.plannerToProgram(
+                const liftosaurProgram = new PlannerToProgram(
                   state.current.program,
                   state.settings.customExercises
-                );
+                ).convert();
                 const exportedProgram: IExportedProgram = {
                   program: liftosaurProgram,
                   customExercises: {},

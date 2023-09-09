@@ -47,6 +47,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   if (evaluatedDay.success) {
     for (const plannerExercise of evaluatedDay.data) {
       const exercise = Exercise.findByName(plannerExercise.name, {});
+      if (exercise) {
+        exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
+      }
       const imageUrl =
         exercise && ExerciseImageUtils.exists(exercise, "small")
           ? ExerciseImageUtils.url(exercise, "small")
