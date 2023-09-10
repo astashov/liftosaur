@@ -11,8 +11,6 @@ Progress:
 - Slow Double Progression: sdp(8, 12, 5lb)
 
 progress
-reuse
-onerm
 
 Myo rep:
 Bench Press / 12, 5, 5, 5, 5 / 20s

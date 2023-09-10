@@ -1595,7 +1595,7 @@ export const exercises: Record<IExerciseId, IExercise> = {
 };
 
 const nameToIdMapping = ObjectUtils.keys(exercises).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
-  acc[exercises[key].name] = exercises[key].id;
+  acc[exercises[key].name.toLowerCase()] = exercises[key].id;
   return acc;
 }, {});
 
@@ -3478,7 +3478,11 @@ export namespace Exercise {
   }
 
   export function findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
-    return ObjectUtils.values(customExercises).find((ce) => ce?.name === name)?.id || nameToIdMapping[name];
+    const lowercaseName = name.toLowerCase();
+    return (
+      ObjectUtils.values(customExercises).find((ce) => ce?.name?.toLowerCase() === lowercaseName)?.id ||
+      nameToIdMapping[lowercaseName]
+    );
   }
 
   export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {

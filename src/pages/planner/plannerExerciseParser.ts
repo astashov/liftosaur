@@ -3,19 +3,19 @@ import { LRParser } from "@lezer/lr";
 export const parser = LRParser.deserialize({
   version: 14,
   states:
-    "'nQYQPOOOOQO'#Ct'#CtObQQO'#C`OpQQO'#C_OxQPO'#C_OOQO'#Cr'#CrOOQO'#DO'#DOOOQO'#Cs'#CsQYQPOOOOQO-E6r-E6rO!`QPO'#CuO!gQQO,58yOOQO,58y,58yO!oQPO,58yOOQO-E6q-E6qOOQO'#Cv'#CvO!tQSO'#CfO#RQSO'#CeOOQO'#Cm'#CmO#^QPO'#ClOOQO'#Cd'#CdOOQO,59a,59aOOQO-E6s-E6sOOQO1G.e1G.eO#cQQO'#CbO#nQQO1G.eOOQO-E6t-E6tO}QPO'#CwO#vQSO,59PO$RQWO,59WO$WQQO7+$POOQO7+$P7+$POOQO,59c,59cOOQO-E6u-E6uOOQO'#Cx'#CxO$`QWO'#CoO$nQQO'#CnOOQO1G.r1G.rOOQO<<Gk<<GkOOQO-E6v-E6vO$yQWO'#CyO%OQQO,59YOOQO'#Cq'#CqO%ZQSO,59eOOQO-E6w-E6wO$yQWO'#CzO%cQSO1G/POOQO1G/P1G/POOQO,59f,59fOOQO-E6x-E6xOOQO7+$k7+$k",
+    "'nQYQPOOOOQO'#Cu'#CuObQQO'#C`OpQQO'#C_OxQPO'#C_OOQO'#Cs'#CsOOQO'#DP'#DPOOQO'#Ct'#CtQYQPOOOOQO-E6s-E6sO!`QPO'#CvO!gQQO,58yOOQO,58y,58yO!oQPO,58yOOQO-E6r-E6rOOQO'#Cf'#CfO!tQPO'#CeOOQO'#Cz'#CzO!yQSO'#CmO#WQSO'#ClOOQO'#Cd'#CdOOQO,59b,59bOOQO-E6t-E6tOOQO1G.e1G.eO#cQQO'#CbO#nQQO1G.eO#vQWO,59POOQO-E6x-E6xO}QPO'#C{O#{QSO,59WO$WQQO7+$POOQO7+$P7+$POOQO'#Cw'#CwO$`QWO'#ChO$nQQO'#CgOOQO1G.k1G.kOOQO,59g,59gOOQO-E6y-E6yOOQO<<Gk<<GkOOQO-E6u-E6uO$yQ`O'#CxO%OQQO,59ROOQO'#Cj'#CjO%ZQSO,59dOOQO-E6v-E6vO$yQ`O'#CyO%cQSO1G/OOOQO1G/O1G/OOOQO,59e,59eOOQO-E6w-E6wOOQO7+$j7+$j",
   stateData:
-    "%u~OqOSPOS~OTPOxTO~OTPOVUXsSXwUX~OVYOw[O~Os]O~OZ_O[_O]_O^_O__O~OTbO~P}OVYOwgO~OTPO~OVYXtYXwYX~P}OtkOVXXwXX~OsmO~OTPOVUXwUX~OVYOwoO~OtkOVXawXa~OdrO~OVYOwvO~OdrOVcXucXwcX~OuxOVbXwbX~OdzO~OuxOVbawba~Ot}Ov!PO~Ot}Ov!SO~OZ[PV^_]_T~",
+    "%u~OrOSPOS~OTPOyTO~OTPOVUXtSXxUX~OVYOx[O~Ot]O~ObaOcaOdaOeaOfaO~OT_O~P}OVYOxgO~OTPO~OtjO~OVaXvaXxaX~P}OvlOV`Xx`X~OTPOVUXxUX~OVYOxoO~O]pO~OvlOV`ax`a~OVYOxvO~O]pOV[Xu[Xx[X~OuxOVZXxZX~O_zO~OuxOVZaxZa~Ov}Ow!PO~Ov}Ow!SO~ObcPVefdfT~",
   goto:
-    "$QsPPPtxP|P!T!W!ZPPPPP!W!a!d!gP!jt!p!v#R#]#d#j#p#vPPP#|TUOWTSOWSROWRi]ReYRdYQaYRpkRcYRumRtmQ{xR!Q}QWOR^WSQOWSXQhRh]QZRSfZnRniS`YkRj`QlaRqlQsmRwsQytR|yQ!O{R!R!OTVOW",
+    "$RtPPPuyP}P!U!X![!_!bP!eP!X!kPPPPPu!q!w#S#^#d#j#p#wPPP#}TUOWTSOWSROWRi]ReYRdYR`YRsjRrjQ{xR!Q}QcYRtlQWOR^WSQOWSXQhRh]QZRSfZnRniQqjRwqQyrR|yQ!O{R!R!OSbYlRkbQmcRumTVOW",
   nodeNames:
-    "⚠ LineComment Program ExerciseExpression ExerciseLabel Word ExerciseName SectionSeparator ExerciseSection ExerciseSets ExerciseSet Rpe Timer SetPart Weight Percentage ExerciseProperty ExercisePropertyName FunctionExpression FunctionName Alphanumeric FunctionArgument EmptyExpression",
-  maxTerm: 40,
+    "⚠ LineComment Program ExerciseExpression ExerciseLabel Word ExerciseName SectionSeparator ExerciseSection ExerciseProperty ExercisePropertyName FunctionExpression FunctionName FnName FunctionArgument FnArg ExerciseSets ExerciseSet Rpe Timer SetPart Weight Percentage EmptyExpression",
+  maxTerm: 41,
   skippedNodes: [0, 1],
   repeatNodeCount: 8,
   tokenData:
-    ",Q~RbXY!ZYZ!f]^!mpq!Zxy!wyz!||}#R}!O$T!P!Q$|!Q![&e![!]+k!b!c+p!c!}'r#R#S'r#T#l'r#l#m*u#m#o'r~~+{~!`Qq~XY!Zpq!Z_!mOxPw^_!tPxPw^YZ!f~!|Ou~~#ROv~V#YUtSTR|}#l}!O#l!Q![#l!c!}#l#R#S#l#T#o#lR#qUTR|}#l}!O#l!Q![#l!c!}#l#R#S#l#T#o#lV$[X]TTR{|$w|}#l}!O$T!Q![$T!c!}#l#R#S#l#T#l#l#l#m$T#m#o#lT$|O]T~%RPV~!P!Q%U~%XVOY%UYZ%nZ]%U]^%s^;'S%U;'S;=`&_<%lO%U~%sOP~~%xVP~OY%UYZ%nZ]%U]^%s^;'S%U;'S;=`&_<%lO%U~&bP;=`<%l%U_&n_dW]TTRuv'm{|$w|}#l}!O$T!Q![&e!c!}'r#R#S'r#T#_'r#_#`(]#`#a)i#a#g'r#g#h*Y#h#l'r#l#m*u#m#o'rT'rO_TZ'yUdWTR|}#l}!O#l!Q!['r!c!}'r#R#S'r#T#o'r_(dWdWTR|}#l}!O#l!Q!['r!c!}'r#R#S'r#T#Z'r#Z#[(|#[#o'r_)VUdW^TTR|}#l}!O#l!Q!['r!c!}'r#R#S'r#T#o'r_)pWdWTR|}#l}!O#l!Q!['r!c!}'r#R#S'r#T#U'r#U#V(|#V#o'r_*cUdW[TTR|}#l}!O#l!Q!['r!c!}'r#R#S'r#T#o'r_+OXdW]TTR{|$w|}#l}!O$T!Q![*u!c!}'r#R#S'r#T#l'r#l#m*u#m#o'r~+pOs~~+sP!Q![+v~+{OZ~^,QOw^",
-  tokenizers: [0, 1, 2, 3],
+    "-p~RcXY!^YZ!i]^!ppq!^uv!zxy#byz#g|}#l}!O$n!P!Q%g!Q!['O![!]-Z!b!c-`!c!}(r#R#S(r#T#l(r#l#m,`#m#o(r~~-k~!cQr~XY!^pq!^_!pOyPx^_!wPyPx^YZ!ih#RT_`]Wuv!z!Q![!z!c!}!z#R#S!z#T#o!z~#gOu~~#lOw~V#sUvSTR|}$V}!O$V!Q![$V!c!}$V#R#S$V#T#o$VR$[UTR|}$V}!O$V!Q![$V!c!}$V#R#S$V#T#o$VV$uXdTTR{|%b|}$V}!O$n!Q![$n!c!}$V#R#S$V#T#l$V#l#m$n#m#o$VT%gOdT~%lPV~!P!Q%o~%rVOY%oYZ&XZ]%o]^&^^;'S%o;'S;=`&x<%lO%o~&^OP~~&cVP~OY%oYZ&XZ]%o]^&^^;'S%o;'S;=`&x<%lO%o~&{P;=`<%l%oo'Z__`]WdTTRuv(Y{|%b|}$V}!O$n!Q!['O!c!}(r#R#S(r#T#_(r#_#`)b#`#a*x#a#g(r#g#h+n#h#l(r#l#m,`#m#o(rm(cT_`]WfTuv!z!Q![!z!c!}!z#R#S!z#T#o!zk({V_`]WTRuv!z|}$V}!O$V!Q![(r!c!}(r#R#S(r#T#o(ro)kX_`]WTRuv!z|}$V}!O$V!Q![(r!c!}(r#R#S(r#T#Z(r#Z#[*W#[#o(ro*cV_`]WeTTRuv!z|}$V}!O$V!Q![(r!c!}(r#R#S(r#T#o(ro+RX_`]WTRuv!z|}$V}!O$V!Q![(r!c!}(r#R#S(r#T#U(r#U#V*W#V#o(ro+yV_`]WcTTRuv!z|}$V}!O$V!Q![(r!c!}(r#R#S(r#T#o(ro,kY_`]WdTTRuv!z{|%b|}$V}!O$n!Q![,`!c!}(r#R#S(r#T#l(r#l#m,`#m#o(r~-`Ot~~-cP!Q![-f~-kOb~^-pOx^",
+  tokenizers: [0, 1, 2, 3, 4],
   topRules: { Program: [0, 2] },
   tokenPrec: 211,
 });

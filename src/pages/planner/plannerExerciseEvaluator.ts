@@ -176,17 +176,80 @@ export class PlannerExerciseEvaluator {
       if (nameNode == null) {
         assert(NodeName.ExercisePropertyName);
       }
+      const name = this.getValue(nameNode);
+      if (["progress"].indexOf(name) === -1) {
+        throw new PlannerSyntaxError(`There's no such property exists - '${name}'`, 0, 0);
+      }
       const valueNode = expr.getChild(NodeName.FunctionExpression);
       if (valueNode == null) {
-        assert(NodeName.FunctionExpression);
+        throw new PlannerSyntaxError(`Missing value for the property '${name}'`, 0, 0);
       }
-      const name = this.getValue(nameNode);
       const fnNameNode = valueNode.getChild(NodeName.FunctionName);
       if (fnNameNode == null) {
         assert(NodeName.FunctionName);
       }
       const fnName = this.getValue(fnNameNode);
+      if (["lp", "sum", "dp"].indexOf(fnName) === -1) {
+        throw new PlannerSyntaxError(`There's no such progression exists - '${fnName}'`, 0, 0);
+      }
       const fnArgs = valueNode.getChildren(NodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
+      console.log(fnArgs);
+      if (fnName === "lp") {
+        if (fnArgs.length > 4) {
+          throw new PlannerSyntaxError(`Linear Progression 'lp' only has 4 arguments max`, 0, 0);
+        } else if (fnArgs[0] && !fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%")) {
+          throw new PlannerSyntaxError(
+            `1st argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            0,
+            0
+          );
+        } else if (fnArgs[1] != null && isNaN(parseInt(fnArgs[1], 10))) {
+          throw new PlannerSyntaxError(`2nd argument of 'lp' should be a number of attempts - i.e. a number`, 0, 0);
+        } else if (
+          fnArgs[2] != null &&
+          !fnArgs[2].endsWith("lb") &&
+          !fnArgs[2].endsWith("kg") &&
+          !fnArgs[2].endsWith("%")
+        ) {
+          throw new PlannerSyntaxError(
+            `3rd argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            0,
+            0
+          );
+        } else if (fnArgs[3] != null && isNaN(parseInt(fnArgs[3], 10))) {
+          throw new PlannerSyntaxError(`4th argument of 'lp' should be a number of attempts - i.e. a number`, 0, 0);
+        }
+      } else if (fnName === "sum") {
+        if (fnArgs.length > 2) {
+          throw new PlannerSyntaxError(`Reps Sum Progression 'sum' only has 2 arguments max`, 0, 0);
+        } else if (fnArgs[0] == null || isNaN(parseInt(fnArgs[0], 10))) {
+          throw new PlannerSyntaxError(`1st argument of 'sum' should be a number of reps - i.e. a number`, 0, 0);
+        } else if (
+          fnArgs[1] == null ||
+          (!fnArgs[1].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
+        ) {
+          throw new PlannerSyntaxError(
+            `2nd argument of 'sum' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            0,
+            0
+          );
+        }
+      } else if (fnName === "dp") {
+        if (fnArgs.length > 2) {
+          throw new PlannerSyntaxError(`Double Progression 'dp' only has 2 arguments max`, 0, 0);
+        } else if (fnArgs[0] == null || isNaN(parseInt(fnArgs[0], 10))) {
+          throw new PlannerSyntaxError(`1st argument of 'dp' should be a range of reps - i.e. a number`, 0, 0);
+        } else if (
+          fnArgs[1] == null ||
+          (!fnArgs[1].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
+        ) {
+          throw new PlannerSyntaxError(
+            `2nd argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            0,
+            0
+          );
+        }
+      }
       return {
         name,
         fnName,

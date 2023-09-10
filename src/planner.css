@@ -69,6 +69,57 @@ body {
   font-size: 1rem;
 }
 
+.property-completion {
+  max-width: 20rem;
+  padding: 0 0.5rem;
+}
+
+.property-completion-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.property-completion-description {
+  padding-top: 0.25rem;
+  font-size: 0.75rem;
+  white-space: initial;
+}
+
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .function-completion-description ul {
+  list-style: disc;
+  padding-left: 1rem;
+  padding-top: 0.25rem;
+}
+
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .function-completion-description ul li {
+  display: list-item;
+  padding: 0;
+}
+
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .function-completion-description p {
+  padding-top: 0.25rem;
+}
+
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .function-completion-description code {
+  font-family: "Iosevka Web" !important;
+}
+
+.function-completion {
+  max-width: 25rem;
+  padding: 0 0.5rem;
+}
+
+.function-completion-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.function-completion-description {
+  font-size: 0.75rem;
+  padding-top: 0.25rem;
+  white-space: initial;
+}
+
 .exercise-default-image {
   width: 2rem;
   height: 2rem;

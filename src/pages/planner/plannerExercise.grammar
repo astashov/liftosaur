@@ -7,20 +7,20 @@ EmptyExpression { linebreak }
 
 ExerciseLabel { Word+ }
 ExerciseName { Word+ }
-ExerciseSets { ExerciseSet ("," ExerciseSet)* }
-ExerciseSection { ExerciseSets | ExerciseProperty }
+ExerciseSets {  ExerciseSet ("," ExerciseSet)* }
+ExerciseSection { ExerciseProperty | ExerciseSets }
 ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage)+ }
-ExerciseProperty {  ExercisePropertyName ":" FunctionExpression }
+ExerciseProperty { ExercisePropertyName ":" FunctionExpression }
 ExercisePropertyName { Word }
 
 FunctionExpression { FunctionName ("(" FunctionArgument ("," FunctionArgument)* ")")* }
-FunctionName { Alphanumeric+ }
-FunctionArgument { Alphanumeric }
+FunctionName { FnName+ }
+FunctionArgument { FnArg }
 
 @skip { space | LineComment }
 
 @tokens {
-  @precedence { Rpe, Timer, Weight, Percentage, SetPart, Word }
+  @precedence { Rpe, Timer, Weight, Percentage, SetPart, Word, PropName }
   @precedence { LineComment, SectionSeparator }
   LineComment { "//" ![\n]* linebreak }
   space { $[ \t]+ }
@@ -28,7 +28,9 @@ FunctionArgument { Alphanumeric }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\n" | "\r" | "\r\n" }
   Word { $[a-zA-Z0-9,_\-]+ }
-  Alphanumeric { $[0-9a-zA-Z_]+ }
+  Alphanumeric { $[0-9a-zA-Z_%]+ }
+  FnArg { Alphanumeric }
+  FnName { Alphanumeric }
   Rpe { "@" @digit }
   Percentage { @digit+ "%" }
   Weight { @digit+ ("kg" | "lb") }
