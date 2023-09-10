@@ -1,4 +1,4 @@
-import { IPlannerProgram, IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IPlannerProgram, IPlannerProgramExercise, IPlannerProgramProperty } from "../pages/planner/models/types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { parser as plannerExerciseParser } from "../pages/planner/plannerExerciseParser";
 import {
@@ -10,12 +10,15 @@ import {
   IProgramExerciseVariation,
   IProgramSet,
   IProgramWeek,
+  IUnit,
 } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, IExercise } from "./exercise";
 import { Settings } from "./settings";
 import { Weight } from "./weight";
+import { IProgramState } from "../types";
+import { Progression } from "./progression";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
@@ -26,8 +29,19 @@ type IExerciseTypeToDayData = Record<string, Array<{ dayData: Required<IDayData>
 
 type IExerciseTypeToPotentialVariations = Record<
   string,
-  Record<string, { dayDatas: Required<IDayData>[]; programSets: IProgramSet[]; schema: string; exercise: IExercise }>
+  Record<
+    string,
+    {
+      dayDatas: Required<IDayData>[];
+      programSets: IProgramSet[];
+      schema: string;
+      exercise: IExercise;
+      plannerExercise: IPlannerProgramExercise;
+    }
+  >
 >;
+
+type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 
 export class PlannerToProgram {
   private _evaluatedWeeks?: IPlannerEvalResult[][];
@@ -73,9 +87,10 @@ export class PlannerToProgram {
     return ObjectUtils.values(exercisesToWeeksDays);
   }
 
-  public getExerciseTypeToDayData(): IExerciseTypeToDayData {
+  private generateEquipmentTypeAndDayData(
+    cb: (exercise: IPlannerProgramExercise, name: string, dayData: Required<IDayData>) => void
+  ): void {
     const evaluatedWeeks = this.getEvaluatedWeeks();
-    const plannerExercises: IExerciseTypeToDayData = {};
     let dayIndex = 0;
     for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
       const week = evaluatedWeeks[weekIndex];
@@ -98,21 +113,49 @@ export class PlannerToProgram {
               continue;
             }
             const name = `${liftosaurExercise.id}_${exercise.equipment || liftosaurExercise.defaultEquipment}`;
-            plannerExercises[name] = plannerExercises[name] || [];
-            plannerExercises[name].push({
-              dayData: {
-                week: weekIndex,
-                day: dayIndex,
-                dayInWeek: dayInWeekIndex,
-              },
-              exercise,
-            });
+            const dayData = {
+              week: weekIndex,
+              day: dayIndex,
+              dayInWeek: dayInWeekIndex,
+            };
+            cb(exercise, name, dayData);
           }
         }
         dayIndex += 1;
       }
     }
+  }
 
+  private getExerciseTypeToProperties(): IExerciseTypeToProperties {
+    const exerciseTypeToProperties: IExerciseTypeToProperties = {};
+    this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
+      exerciseTypeToProperties[name] = exerciseTypeToProperties[name] || [];
+      const properties = exerciseTypeToProperties[name];
+      for (const property of exercise.properties) {
+        const existingProperty = properties.find((p) => p.name === property.name);
+        if (
+          existingProperty != null &&
+          (existingProperty.fnName !== property.fnName ||
+            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a))
+        ) {
+          throw new Error(
+            `Same property '${property.name}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
+              `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
+              `and week ${dayData.week + 1}, day ${dayData.dayInWeek + 1}`
+          );
+        }
+        properties.push({ ...property, dayData });
+      }
+    });
+    return exerciseTypeToProperties;
+  }
+
+  public getExerciseTypeToDayData(): IExerciseTypeToDayData {
+    const plannerExercises: IExerciseTypeToDayData = {};
+    this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
+      plannerExercises[name] = plannerExercises[name] || [];
+      plannerExercises[name].push({ dayData: dayData, exercise });
+    });
     return plannerExercises;
   }
 
@@ -145,11 +188,11 @@ export class PlannerToProgram {
 
               const minrep = set.repRange.minrep !== set.repRange.maxrep ? set.repRange.minrep : undefined;
               const programSet: IProgramSet = {
-                minRepsExpr: minrep ? `${minrep}` : undefined,
-                repsExpr: `${set.repRange.maxrep}`,
+                minRepsExpr: minrep ? `${minrep} + state.addreps` : undefined,
+                repsExpr: `${set.repRange.maxrep} + state.addreps`,
                 weightExpr: weightExpr,
                 isAmrap: !!set.repRange?.isAmrap,
-                rpeExpr: set.rpe ? `${set.rpe}` : undefined,
+                rpeExpr: set.rpe ? `${set.rpe} + state.addrpe` : undefined,
               };
               programSets.push(programSet);
             }
@@ -175,6 +218,7 @@ export class PlannerToProgram {
           programSets: [],
           schema,
           exercise,
+          plannerExercise: dayData.exercise,
         };
         potentialVariations[exid][schema].dayDatas.push({
           day: dayData.dayData.day,
@@ -192,65 +236,108 @@ export class PlannerToProgram {
     string,
     Record<string, Array<Required<IDayData> & { setIndex?: number }>>
   > {
-    const evaluatedWeeks = this.getEvaluatedWeeks();
     const timers: Record<string, Record<string, Array<Required<IDayData> & { setIndex?: number }>>> = {};
-    let dayIndex = 0;
-    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
-      const week = evaluatedWeeks[weekIndex];
-      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
-        const day = week[dayInWeekIndex];
-        if (day.success) {
-          const excrs = day.data;
-          const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
-          for (const exercise of excrs) {
-            exercisesByName[exercise.name] = exercisesByName[exercise.name] || [];
-            exercisesByName[exercise.name].push(exercise);
-          }
-          for (const groupedExercises of ObjectUtils.values(exercisesByName)) {
-            const exercise = groupedExercises.reduce((memo, ex) => {
-              memo.sets.push(...ex.sets);
-              return memo;
-            });
-            const liftosaurExercise = Exercise.findByName(exercise.name, Settings.build().exercises);
-            if (liftosaurExercise) {
-              const name = `${liftosaurExercise.id}_${exercise.equipment || liftosaurExercise.defaultEquipment}`;
-              timers[name] = timers[name] || {};
-              const globalTimer = exercise.sets.find((s) => s.repRange == null && s.timer != null)?.timer;
-              let globalSetIndex = 0;
-              for (let setIndex = 0; setIndex < exercise.sets.length; setIndex += 1) {
-                const numberOfSets = exercise.sets[setIndex].repRange?.numberOfSets || 0;
-                const timer = (exercise.sets[setIndex].timer ?? globalTimer)?.toString();
-                if (timer != null) {
-                  const sameTimerForAllSets = exercise.sets.every(
-                    (s) => s.timer != null && s.timer.toString() === timer
-                  );
-                  timers[name][timer] = timers[name][timer] || [];
-                  if (sameTimerForAllSets) {
-                    timers[name][timer].push({
-                      day: dayIndex,
-                      week: weekIndex,
-                      dayInWeek: dayInWeekIndex,
-                    });
-                  } else {
-                    for (let setSubindex = 0; setSubindex < numberOfSets; setSubindex += 1) {
-                      timers[name][timer].push({
-                        day: dayIndex,
-                        week: weekIndex,
-                        dayInWeek: dayInWeekIndex,
-                        setIndex: globalSetIndex + setSubindex,
-                      });
-                    }
-                  }
-                }
-                globalSetIndex += numberOfSets;
-              }
+    this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
+      timers[name] = timers[name] || {};
+      const globalTimer = exercise.sets.find((s) => s.repRange == null && s.timer != null)?.timer;
+      let globalSetIndex = 0;
+      for (let setIndex = 0; setIndex < exercise.sets.length; setIndex += 1) {
+        const numberOfSets = exercise.sets[setIndex].repRange?.numberOfSets || 0;
+        const timer = (exercise.sets[setIndex].timer ?? globalTimer)?.toString();
+        if (timer != null) {
+          const sameTimerForAllSets = exercise.sets.every((s) => s.timer != null && s.timer.toString() === timer);
+          timers[name][timer] = timers[name][timer] || [];
+          if (sameTimerForAllSets) {
+            timers[name][timer].push(dayData);
+          } else {
+            for (let setSubindex = 0; setSubindex < numberOfSets; setSubindex += 1) {
+              timers[name][timer].push({
+                ...dayData,
+                setIndex: globalSetIndex + setSubindex,
+              });
             }
           }
         }
-        dayIndex += 1;
+        globalSetIndex += numberOfSets;
+      }
+    });
+    return timers;
+  }
+
+  private getIncrementAndUnit(raw: string): [number, "%" | IUnit] | undefined {
+    const match = raw.match(/lb|kg/);
+    const unit = (match ? match[0] : "%") as "%" | IUnit;
+    const increment = parseFloat(raw);
+    return increment != null && !isNaN(increment) ? [increment, unit] : undefined;
+  }
+
+  private addProgression(
+    properties: IPlannerProgramProperty[]
+  ):
+    | {
+        additionalState: IProgramState;
+        finishDayExpr: string;
+      }
+    | undefined {
+    const progress = properties.find((p) => p.name === "progress");
+    if (progress) {
+      const { fnName, fnArgs } = progress;
+      if (fnName === "lp") {
+        const [increment, unitIncrement] = this.getIncrementAndUnit(fnArgs[0] || "5lb") || [5, "lb"];
+        const incrementAttempts = parseInt(fnArgs[1] ?? 1, 10);
+        const progression = {
+          attempts: incrementAttempts,
+          increment: increment,
+          unit: unitIncrement,
+        };
+
+        let deload: { decrement: number; unit: IUnit | "%"; attempts: number } | undefined = undefined;
+        const rawDecrement = fnArgs[2];
+        if (rawDecrement != null) {
+          const result = this.getIncrementAndUnit(fnArgs[0] || "5lb");
+          if (result != null) {
+            const [decrement, unitDecrement] = result;
+            const decrementAttempts = parseInt(fnArgs[3] ?? 1, 10);
+            deload = {
+              attempts: decrementAttempts,
+              decrement: decrement,
+              unit: unitDecrement,
+            };
+          }
+        }
+        const finishDayExpr = Progression.setLinearProgression(progression, deload);
+        return {
+          additionalState: {
+            successes: 0,
+            failures: 0,
+          },
+          finishDayExpr,
+        };
+      } else if (fnName === "sum") {
+        const reps = parseInt(fnArgs[0], 10);
+        const result = this.getIncrementAndUnit(fnArgs[1] || "5lb");
+        if (!isNaN(reps) && result != null) {
+          const [increment, unit] = result;
+          const finishDayExpr = Progression.setSumRepsProgression(reps, increment, unit);
+          return {
+            additionalState: {},
+            finishDayExpr,
+          };
+        }
+      } else if (fnName === "dp") {
+        const range = parseInt(fnArgs[0], 10);
+        const result = this.getIncrementAndUnit(fnArgs[1] || "5lb");
+        if (!isNaN(range) && result != null) {
+          const [increment, unit] = result;
+          const finishDayExpr = Progression.setDoubleProgression(range, increment, unit);
+          return {
+            additionalState: {},
+            finishDayExpr,
+          };
+        }
       }
     }
-    return timers;
+    return undefined;
   }
 
   private buildProgramExercises(): {
@@ -260,6 +347,8 @@ export class PlannerToProgram {
     const exerciseTypeToPotentialVariations = this.getExerciseTypeToPotentialVariations();
     const exerciseNamesToIds: Record<string, string> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
+    const exerciseTypeToProperties = this.getExerciseTypeToProperties();
+    console.log(exerciseTypeToProperties);
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
       const potentialVariations = ObjectUtils.values(exerciseTypeToPotentialVariations[exerciseType]);
       const exercise = potentialVariations[0].exercise;
@@ -367,14 +456,23 @@ export class PlannerToProgram {
       const isWithRpe = variations.some((v) => v.sets.some((s) => !!s.rpeExpr));
       const iwWithRepRanges = variations.some((v) => v.sets.some((s) => !!s.minRepsExpr));
 
+      const properties = exerciseTypeToProperties[exerciseType] || [];
+      const progressionResult = this.addProgression(properties);
+      let finishDayExpr = "";
+      let state = { weight: exercise.startingWeightLb, addreps: 0, addrpe: 0 };
+      if (progressionResult != null) {
+        finishDayExpr = progressionResult.finishDayExpr;
+        state = { ...state, ...progressionResult.additionalState };
+      }
+
       const programExercise: IProgramExercise = {
         id,
         name: exercise.name,
         variationExpr,
         variations,
-        finishDayExpr: "",
+        finishDayExpr,
         exerciseType: exercise,
-        state: { weight: exercise.startingWeightLb },
+        state,
         descriptions: [],
         enableRpe: isWithRpe,
         enableRepRanges: iwWithRepRanges,
@@ -382,6 +480,7 @@ export class PlannerToProgram {
       };
       return programExercise;
     });
+
     return { programExercises, exerciseNamesToIds };
   }
 
@@ -393,10 +492,16 @@ export class PlannerToProgram {
     const days: IProgramDay[] = [];
     for (const value of potentialWeeksAndDays) {
       const id = UidFactory.generateUid(8);
-      const dayInWeeks = Array.from(new Set(value.dayData.map((d) => d.dayInWeek)));
+      const dayInWeekNames = Array.from(
+        new Set(
+          value.dayData.map(
+            (d) => this.plannerProgram.weeks[d.week]?.days[d.dayInWeek]?.name ?? `Day ${d.dayInWeek + 1}`
+          )
+        )
+      );
       const day: IProgramDay = {
         id,
-        name: `Day ${dayInWeeks.map((d) => d + 1).join("/")}`,
+        name: dayInWeekNames.join("/"),
         exercises: value.exercises.map((e) => ({ id: exerciseNamesToIds[e] })),
       };
       days.push(day);
@@ -405,7 +510,7 @@ export class PlannerToProgram {
         if (week == null) {
           week = {
             id: UidFactory.generateUid(8),
-            name: `Week ${dayData.week + 1}`,
+            name: this.plannerProgram.weeks[dayData.week]?.name ?? `Week ${dayData.week + 1}`,
             days: [],
           };
           weeks[dayData.week] = week;
