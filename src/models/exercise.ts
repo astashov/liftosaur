@@ -1962,7 +1962,6 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
       "Obliques",
       "Rectus Abdominis",
       "Gastrocnemius",
-      "Brachialis",
       "Brachioradialis",
       "Soleus",
     ],
