@@ -11,7 +11,6 @@ import {
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
-import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { LinkButton } from "../../components/linkButton";
 import { ObjectUtils } from "../../utils/object";
@@ -20,7 +19,6 @@ import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerDay } from "./components/plannerDay";
 import { Encoder } from "../../utils/encoder";
 import { useMemo, useState } from "preact/hooks";
-import { PlannerExerciseEvaluator } from "./plannerExerciseEvaluator";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
@@ -36,6 +34,7 @@ import { IExportedProgram } from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { PlannerToProgram } from "../../models/plannerToProgram";
+import { PlannerProgram } from "./models/plannerProgram";
 
 declare let __HOST__: string;
 
@@ -62,6 +61,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   };
 
   const initialSettings: IPlannerSettings = props.initialProgram?.settings || {
+    unit: "lb",
     strengthSetsPct: 30,
     hypertrophySetsPct: 70,
     weeklyRangeSets: {
@@ -144,16 +144,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const program = state.current.program;
 
   const evaluatedWeeks = useMemo(() => {
-    return state.current.program.weeks.map((week) => {
-      return week.days.map((day) => {
-        const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, state.settings.customExercises);
-        return evaluator.evaluate(tree.topNode);
-      });
-    });
+    return PlannerProgram.evaluate(state.current.program, state.settings.customExercises);
   }, [state.current.program, state.settings.customExercises]);
 
   const modalExerciseUi = state.ui.modalExercise;
+  const isInvalid = !PlannerProgram.isValid(state.current.program, state.settings.customExercises);
 
   return (
     <section className="px-4">
@@ -184,16 +179,19 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           <div>
             <Button
               kind="purple"
+              disabled={isInvalid}
+              title={isInvalid ? "Fix the errors in the program before converting" : undefined}
               onClick={async () => {
                 const liftosaurProgram = new PlannerToProgram(
                   state.current.program,
-                  state.settings.customExercises
+                  state.settings.customExercises,
+                  state.settings.unit
                 ).convert();
                 const exportedProgram: IExportedProgram = {
                   program: liftosaurProgram,
-                  customExercises: {},
+                  customExercises: state.settings.customExercises,
                   version: getLatestMigrationVersion(),
-                  settings: { timers: { workout: 180, warmup: 90 }, units: "lb" },
+                  settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
                 };
                 const programBuilderUrl = new URL("/program", __HOST__);
                 const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), programBuilderUrl.toString());
@@ -216,116 +214,121 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       <div>
         <ScrollableTabs
           tabs={program.weeks.map((week, weekIndex) => {
-            return [
-              week.name,
-              <div key={weekIndex} className="flex flex-col md:flex-row">
-                <div className="flex-1">
-                  <h3 className="mr-2 text-xl font-bold">
-                    <BuilderLinkInlineInput
-                      value={week.name}
-                      onInputString={(v) => {
-                        dispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(v));
-                      }}
-                    />
-                  </h3>
-                  <div className="mb-4">
-                    {program.weeks.length > 1 && (
+            return {
+              label: week.name,
+              isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
+              children: (
+                <div key={weekIndex} className="flex flex-col md:flex-row">
+                  <div className="flex-1">
+                    <h3 className="mr-2 text-xl font-bold">
+                      <BuilderLinkInlineInput
+                        value={week.name}
+                        onInputString={(v) => {
+                          dispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(v));
+                        }}
+                      />
+                    </h3>
+                    <div className="mb-4">
+                      {program.weeks.length > 1 && (
+                        <span className="mr-2">
+                          <LinkButton
+                            onClick={() => {
+                              if (confirm("Are you sure you want to delete this week?")) {
+                                dispatch(
+                                  lbProgram
+                                    .p("weeks")
+                                    .recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
+                                );
+                              }
+                            }}
+                          >
+                            Delete Week
+                          </LinkButton>
+                        </span>
+                      )}
                       <span className="mr-2">
                         <LinkButton
                           onClick={() => {
-                            if (confirm("Are you sure you want to delete this week?")) {
-                              dispatch(
-                                lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
-                              );
-                            }
+                            dispatch(
+                              lbProgram.p("weeks").recordModify((weeks) => [
+                                ...weeks,
+                                {
+                                  ...ObjectUtils.clone(initialWeek),
+                                  name: `Week ${weeks.length + 1}`,
+                                },
+                              ])
+                            );
                           }}
                         >
-                          Delete Week
+                          Add New Week
                         </LinkButton>
                       </span>
-                    )}
-                    <span className="mr-2">
                       <LinkButton
                         onClick={() => {
                           dispatch(
                             lbProgram.p("weeks").recordModify((weeks) => [
                               ...weeks,
                               {
-                                ...ObjectUtils.clone(initialWeek),
+                                ...ObjectUtils.clone(week),
                                 name: `Week ${weeks.length + 1}`,
                               },
                             ])
                           );
                         }}
                       >
-                        Add New Week
+                        Duplicate Week
                       </LinkButton>
-                    </span>
-                    <LinkButton
-                      onClick={() => {
-                        dispatch(
-                          lbProgram.p("weeks").recordModify((weeks) => [
-                            ...weeks,
-                            {
-                              ...ObjectUtils.clone(week),
-                              name: `Week ${weeks.length + 1}`,
-                            },
-                          ])
-                        );
-                      }}
-                    >
-                      Duplicate Week
-                    </LinkButton>
+                    </div>
+                    {week.days.map((day, dayIndex) => {
+                      return (
+                        <div key={dayIndex}>
+                          <PlannerDay
+                            evaluatedWeeks={evaluatedWeeks}
+                            settings={state.settings}
+                            program={program}
+                            dispatch={dispatch}
+                            day={day}
+                            weekIndex={weekIndex}
+                            dayIndex={dayIndex}
+                            ui={state.ui}
+                            lbProgram={lbProgram}
+                            service={service}
+                          />
+                        </div>
+                      );
+                    })}
+                    <div>
+                      <LinkButton
+                        onClick={() => {
+                          dispatch(
+                            lbProgram
+                              .p("weeks")
+                              .i(weekIndex)
+                              .p("days")
+                              .recordModify((days) => [
+                                ...days,
+                                {
+                                  ...ObjectUtils.clone(initialDay),
+                                  name: `Day ${days.length + 1}`,
+                                },
+                              ])
+                          );
+                        }}
+                      >
+                        Add Day
+                      </LinkButton>
+                    </div>
                   </div>
-                  {week.days.map((day, dayIndex) => {
-                    return (
-                      <div key={dayIndex}>
-                        <PlannerDay
-                          evaluatedWeeks={evaluatedWeeks}
-                          settings={state.settings}
-                          program={program}
-                          dispatch={dispatch}
-                          day={day}
-                          weekIndex={weekIndex}
-                          dayIndex={dayIndex}
-                          ui={state.ui}
-                          lbProgram={lbProgram}
-                          service={service}
-                        />
-                      </div>
-                    );
-                  })}
-                  <div>
-                    <LinkButton
-                      onClick={() => {
-                        dispatch(
-                          lbProgram
-                            .p("weeks")
-                            .i(weekIndex)
-                            .p("days")
-                            .recordModify((days) => [
-                              ...days,
-                              {
-                                ...ObjectUtils.clone(initialDay),
-                                name: `Day ${days.length + 1}`,
-                              },
-                            ])
-                        );
-                      }}
-                    >
-                      Add Day
-                    </LinkButton>
+                  <div className="ml-4" style={{ width: "14rem" }}>
+                    <PlannerWeekStats
+                      dispatch={dispatch}
+                      evaluatedDays={evaluatedWeeks[weekIndex]}
+                      settings={state.settings}
+                    />
                   </div>
                 </div>
-                <div className="ml-4" style={{ width: "14rem" }}>
-                  <PlannerWeekStats
-                    dispatch={dispatch}
-                    evaluatedDays={evaluatedWeeks[weekIndex]}
-                    settings={state.settings}
-                  />
-                </div>
-              </div>,
-            ];
+              ),
+            };
           })}
         />
       </div>

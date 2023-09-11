@@ -28,3 +28,10 @@ Bench Press / 2x8 50% / @9 / 180s / 10kg / progress: lp(5lb, 3)
 
 Week 1 Day 3
 Bench Press / 2x8 50% / @9 / 180s / 10kg / progress: lp(5lb, 3)
+
+- Add second pass for full program validation
+- Disable the convert button if there're issues with the program
+- Highlight invalid weeks
+
+- Make sure it looks okay on mobile
+- Add autocomplete for equipments

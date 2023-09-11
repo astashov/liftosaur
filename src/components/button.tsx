@@ -31,6 +31,9 @@ export function Button(props: IProps): JSX.Element {
   if (props.className) {
     className += ` ${props.className}`;
   }
+  if (props.disabled) {
+    className += " cursor-not-allowed";
+  }
   return (
     <button {...otherProps} className={`${props.className || ""} ${className}`}>
       {props.children}

@@ -1,7 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises, IWeight } from "../../../types";
+import { IAllCustomExercises, IUnit, IWeight } from "../../../types";
 
 export interface IPlannerProgram {
   name: string;
@@ -22,6 +22,7 @@ export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number]
 export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
 
 export interface IPlannerSettings {
+  unit: IUnit;
   synergistMultiplier: number;
   strengthSetsPct: number;
   hypertrophySetsPct: number;

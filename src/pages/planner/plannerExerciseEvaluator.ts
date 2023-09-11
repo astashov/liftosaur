@@ -226,7 +226,7 @@ export class PlannerExerciseEvaluator {
           throw new PlannerSyntaxError(`1st argument of 'sum' should be a number of reps - i.e. a number`, 0, 0);
         } else if (
           fnArgs[1] == null ||
-          (!fnArgs[1].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
+          (!fnArgs[1].endsWith("lb") && !fnArgs[1].endsWith("kg") && !fnArgs[1].endsWith("%"))
         ) {
           throw new PlannerSyntaxError(
             `2nd argument of 'sum' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
@@ -241,7 +241,7 @@ export class PlannerExerciseEvaluator {
           throw new PlannerSyntaxError(`1st argument of 'dp' should be a range of reps - i.e. a number`, 0, 0);
         } else if (
           fnArgs[1] == null ||
-          (!fnArgs[1].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
+          (!fnArgs[1].endsWith("lb") && !fnArgs[1].endsWith("kg") && !fnArgs[1].endsWith("%"))
         ) {
           throw new PlannerSyntaxError(
             `2nd argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,

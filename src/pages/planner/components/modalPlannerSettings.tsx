@@ -4,6 +4,7 @@ import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
 import { screenMuscles } from "../../../models/muscle";
+import { IUnit } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -52,6 +53,29 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <form style={{ minWidth: "32rem" }}>
+        <div className="mb-1">
+          <label>
+            <span className="mr-2">Units:</span>
+            <MenuItemValue
+              name="Sets split preset"
+              setPatternError={() => undefined}
+              type="desktop-select"
+              value={props.settings.unit}
+              values={[
+                ["lb", "lb"],
+                ["kg", "kg"],
+              ]}
+              onChange={(newValue) => {
+                props.dispatch(
+                  lb<IPlannerState>()
+                    .p("settings")
+                    .p("unit")
+                    .record(newValue as IUnit)
+                );
+              }}
+            />
+          </label>
+        </div>
         <div className="flex mb-2" style={{ gap: "1rem" }}>
           <div className="flex-1">
             <Input

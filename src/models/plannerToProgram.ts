@@ -1,6 +1,5 @@
 import { IPlannerProgram, IPlannerProgramExercise, IPlannerProgramProperty } from "../pages/planner/models/types";
-import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
-import { parser as plannerExerciseParser } from "../pages/planner/plannerExerciseParser";
+import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
   IDayData,
@@ -15,10 +14,10 @@ import {
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, IExercise } from "./exercise";
-import { Settings } from "./settings";
 import { Weight } from "./weight";
 import { IProgramState } from "../types";
 import { Progression } from "./progression";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
@@ -48,18 +47,13 @@ export class PlannerToProgram {
 
   constructor(
     private readonly plannerProgram: IPlannerProgram,
-    private readonly customExercises: IAllCustomExercises
+    private readonly customExercises: IAllCustomExercises,
+    private readonly unit: IUnit
   ) {}
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
     if (this._evaluatedWeeks == null) {
-      this._evaluatedWeeks = this.plannerProgram.weeks.map((week) => {
-        return week.days.map((day) => {
-          const tree = plannerExerciseParser.parse(day.exerciseText);
-          const evaluator = new PlannerExerciseEvaluator(day.exerciseText, this.customExercises);
-          return evaluator.evaluate(tree.topNode);
-        });
-      });
+      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.customExercises);
     }
     return this._evaluatedWeeks;
   }
@@ -91,39 +85,7 @@ export class PlannerToProgram {
     cb: (exercise: IPlannerProgramExercise, name: string, dayData: Required<IDayData>) => void
   ): void {
     const evaluatedWeeks = this.getEvaluatedWeeks();
-    let dayIndex = 0;
-    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
-      const week = evaluatedWeeks[weekIndex];
-      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
-        const day = week[dayInWeekIndex];
-        if (day.success) {
-          const excrs = day.data;
-          const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
-          for (const exercise of excrs) {
-            exercisesByName[exercise.name] = exercisesByName[exercise.name] || [];
-            exercisesByName[exercise.name].push(exercise);
-          }
-          for (const groupedExercises of ObjectUtils.values(exercisesByName)) {
-            const exercise = groupedExercises.reduce((memo, ex) => {
-              memo.sets.push(...ex.sets);
-              return memo;
-            });
-            const liftosaurExercise = Exercise.findByName(exercise.name, Settings.build().exercises);
-            if (!liftosaurExercise) {
-              continue;
-            }
-            const name = `${liftosaurExercise.id}_${exercise.equipment || liftosaurExercise.defaultEquipment}`;
-            const dayData = {
-              week: weekIndex,
-              day: dayIndex,
-              dayInWeek: dayInWeekIndex,
-            };
-            cb(exercise, name, dayData);
-          }
-        }
-        dayIndex += 1;
-      }
-    }
+    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, this.customExercises, cb);
   }
 
   private getExerciseTypeToProperties(): IExerciseTypeToProperties {
@@ -160,11 +122,10 @@ export class PlannerToProgram {
   }
 
   public getExerciseTypeToPotentialVariations(): IExerciseTypeToPotentialVariations {
-    const settings = Settings.build();
     const exerciseTypeToDayData = this.getExerciseTypeToDayData();
     const potentialVariations: IExerciseTypeToPotentialVariations = {};
     for (const dayDatas of ObjectUtils.values(exerciseTypeToDayData)) {
-      const exercise = Exercise.findByName(dayDatas[0].exercise.name, settings.exercises);
+      const exercise = Exercise.findByName(dayDatas[0].exercise.name, this.customExercises);
       if (!exercise) {
         continue;
       }
@@ -281,9 +242,10 @@ export class PlannerToProgram {
     | undefined {
     const progress = properties.find((p) => p.name === "progress");
     if (progress) {
+      const defaultIncrement = this.unit === "kg" ? "2.5kg" : "5lb";
       const { fnName, fnArgs } = progress;
       if (fnName === "lp") {
-        const [increment, unitIncrement] = this.getIncrementAndUnit(fnArgs[0] || "5lb") || [5, "lb"];
+        const [increment, unitIncrement] = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement) || [5, "lb"];
         const incrementAttempts = parseInt(fnArgs[1] ?? 1, 10);
         const progression = {
           attempts: incrementAttempts,
@@ -294,7 +256,7 @@ export class PlannerToProgram {
         let deload: { decrement: number; unit: IUnit | "%"; attempts: number } | undefined = undefined;
         const rawDecrement = fnArgs[2];
         if (rawDecrement != null) {
-          const result = this.getIncrementAndUnit(fnArgs[0] || "5lb");
+          const result = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement);
           if (result != null) {
             const [decrement, unitDecrement] = result;
             const decrementAttempts = parseInt(fnArgs[3] ?? 1, 10);
@@ -315,7 +277,7 @@ export class PlannerToProgram {
         };
       } else if (fnName === "sum") {
         const reps = parseInt(fnArgs[0], 10);
-        const result = this.getIncrementAndUnit(fnArgs[1] || "5lb");
+        const result = this.getIncrementAndUnit(fnArgs[1] || defaultIncrement);
         if (!isNaN(reps) && result != null) {
           const [increment, unit] = result;
           const finishDayExpr = Progression.setSumRepsProgression(reps, increment, unit);
@@ -326,7 +288,7 @@ export class PlannerToProgram {
         }
       } else if (fnName === "dp") {
         const range = parseInt(fnArgs[0], 10);
-        const result = this.getIncrementAndUnit(fnArgs[1] || "5lb");
+        const result = this.getIncrementAndUnit(fnArgs[1] || defaultIncrement);
         if (!isNaN(range) && result != null) {
           const [increment, unit] = result;
           const finishDayExpr = Progression.setDoubleProgression(range, increment, unit);
@@ -459,7 +421,11 @@ export class PlannerToProgram {
       const properties = exerciseTypeToProperties[exerciseType] || [];
       const progressionResult = this.addProgression(properties);
       let finishDayExpr = "";
-      let state = { weight: exercise.startingWeightLb, addreps: 0, addrpe: 0 };
+      let state = {
+        weight: this.unit === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb,
+        addreps: 0,
+        addrpe: 0,
+      };
       if (progressionResult != null) {
         finishDayExpr = progressionResult.finishDayExpr;
         state = { ...state, ...progressionResult.additionalState };
