@@ -4,6 +4,7 @@ import { styleTags, tags as t } from "@lezer/highlight";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { Exercise } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
+import { equipments } from "../../types";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [
@@ -29,16 +30,28 @@ const language = LRLanguage.define({
 export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor): LanguageSupport {
   const completion = language.data.of({
     autocomplete: (context: CompletionContext): CompletionResult | undefined => {
-      console.log("is explicit", context.explicit);
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
       if (exerciseMatch) {
-        const exerciseNames = Exercise.searchNames(exerciseMatch.text, plannerEditor.args.customExercises || {});
-        const result = {
-          from: exerciseMatch.from,
-          options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
-          validFor: /.*/,
-        };
-        return result;
+        let text = exerciseMatch.text;
+        if (text.match(/,\s*\w*$/)) {
+          const offsetMatch = text.match(/(,\s*)(\w*)/);
+          const offset = offsetMatch ? text.length - offsetMatch[2].length : text.length;
+          text = text.substring(offset);
+          const equipment = equipments.filter((eq) => eq.startsWith(text));
+          return {
+            from: exerciseMatch.from + offset,
+            options: equipment.map((eq) => ({ label: eq as string, type: "method" })),
+            validFor: /.*/,
+          };
+        } else {
+          const exerciseNames = Exercise.searchNames(text, plannerEditor.args.customExercises || {});
+          const result = {
+            from: exerciseMatch.from,
+            options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
+            validFor: /.*/,
+          };
+          return result;
+        }
       }
       const sectionMatch = context.matchBefore(/\/\s*\w+$/);
       if (sectionMatch) {

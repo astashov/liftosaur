@@ -164,6 +164,14 @@ function getEditorSetup(plannerEditor: PlannerEditor): Extension[] {
               container.appendChild(title);
               container.appendChild(description);
               return container;
+            } else if (completion.type === "method") {
+              const container = document.createElement("div");
+              container.classList.add("equipment-completion");
+              const title = document.createElement("div");
+              title.classList.add("equipment-completion-title");
+              title.textContent = completion.label;
+              container.appendChild(title);
+              return container;
             } else if (completion.type === "function") {
               const container = document.createElement("div");
               container.classList.add("function-completion");

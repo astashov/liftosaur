@@ -129,6 +129,7 @@ export class PlannerToProgram {
       if (!exercise) {
         continue;
       }
+      exercise.equipment = dayDatas[0].exercise.equipment ?? exercise.defaultEquipment;
 
       for (const dayData of dayDatas) {
         const programSets: IProgramSet[] = [];
@@ -310,7 +311,6 @@ export class PlannerToProgram {
     const exerciseNamesToIds: Record<string, string> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
     const exerciseTypeToProperties = this.getExerciseTypeToProperties();
-    console.log(exerciseTypeToProperties);
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
       const potentialVariations = ObjectUtils.values(exerciseTypeToPotentialVariations[exerciseType]);
       const exercise = potentialVariations[0].exercise;
@@ -437,7 +437,7 @@ export class PlannerToProgram {
         variationExpr,
         variations,
         finishDayExpr,
-        exerciseType: exercise,
+        exerciseType: { id: exercise.id, equipment: exercise.equipment },
         state,
         descriptions: [],
         enableRpe: isWithRpe,

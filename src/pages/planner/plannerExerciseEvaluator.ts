@@ -193,7 +193,6 @@ export class PlannerExerciseEvaluator {
         throw new PlannerSyntaxError(`There's no such progression exists - '${fnName}'`, 0, 0);
       }
       const fnArgs = valueNode.getChildren(NodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
-      console.log(fnArgs);
       if (fnName === "lp") {
         if (fnArgs.length > 4) {
           throw new PlannerSyntaxError(`Linear Progression 'lp' only has 4 arguments max`, 0, 0);

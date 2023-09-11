@@ -120,6 +120,14 @@ body {
   white-space: initial;
 }
 
+.equipment-completion {
+  padding-left: 1rem;
+}
+
+.equipment-completion-title {
+  font-size: 1rem;
+}
+
 .exercise-default-image {
   width: 2rem;
   height: 2rem;
