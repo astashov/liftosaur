@@ -18,6 +18,7 @@ import { Weight } from "./weight";
 import { IProgramState } from "../types";
 import { Progression } from "./progression";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { CollectionUtils } from "../utils/collection";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
@@ -67,7 +68,7 @@ export class PlannerToProgram {
         const result = evaluatedWeeks[week][dayInWeek];
         if (result.success) {
           const exs = result.data;
-          const names = exs.map((e) => e.name);
+          const names = exs.map((e) => CollectionUtils.compact([e.label, e.name]).join("_"));
           const key = names.join("|");
           exercisesToWeeksDays[key] = exercisesToWeeksDays[key] || {};
           exercisesToWeeksDays[key].dayData = exercisesToWeeksDays[key].dayData || [];
@@ -173,7 +174,7 @@ export class PlannerToProgram {
           }, [])
           .join("/");
 
-        const exid = `${exercise.id}_${dayDatas[0].exercise.equipment || exercise.defaultEquipment}`;
+        const exid = PlannerProgram.generateExerciseTypeKey(dayDatas[0].exercise, exercise);
         potentialVariations[exid] = potentialVariations[exid] || {};
         potentialVariations[exid][schema] = potentialVariations[exid][schema] || {
           dayDatas: [],
@@ -413,7 +414,9 @@ export class PlannerToProgram {
       }
 
       const id = UidFactory.generateUid(8);
-      exerciseNamesToIds[exercise.name] = id;
+      const plannerExercise = potentialVariations[0].plannerExercise;
+      const name = CollectionUtils.compact([plannerExercise.label, plannerExercise.name]).join("_");
+      exerciseNamesToIds[name] = id;
 
       const isWithRpe = variations.some((v) => v.sets.some((s) => !!s.rpeExpr));
       const iwWithRepRanges = variations.some((v) => v.sets.some((s) => !!s.minRepsExpr));

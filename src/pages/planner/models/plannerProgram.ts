@@ -3,7 +3,7 @@ import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { IPlannerEvalResult, PlannerExerciseEvaluator, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { IAllCustomExercises, IDayData } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
-import { Exercise } from "../../../models/exercise";
+import { Exercise, IExercise } from "../../../models/exercise";
 
 export class PlannerProgram {
   public static isValid(program: IPlannerProgram, customExercises: IAllCustomExercises): boolean {
@@ -80,7 +80,7 @@ export class PlannerProgram {
             if (!liftosaurExercise) {
               continue;
             }
-            const name = `${liftosaurExercise.id}_${exercise.equipment || liftosaurExercise.defaultEquipment}`;
+            const name = PlannerProgram.generateExerciseTypeKey(exercise, liftosaurExercise);
             const dayData = {
               week: weekIndex,
               day: dayIndex,
@@ -92,5 +92,10 @@ export class PlannerProgram {
         dayIndex += 1;
       }
     }
+  }
+
+  public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
+    const equipment = plannerExercise.equipment ?? exercise.defaultEquipment;
+    return `${plannerExercise.label ? `${plannerExercise.label}_` : ""}${exercise.id}_${equipment}`;
   }
 }
