@@ -139,6 +139,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useUndoRedo(state, dispatch);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
+  const [showLiftosaurConvertInfo, setShowLiftosaurConvertInfo] = useState<string | undefined>(undefined);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const program = state.current.program;
@@ -152,8 +153,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   return (
     <section className="px-4">
-      <h1 className="mb-4 text-2xl font-bold">Weightlifting Program Planner</h1>
-      <div className="flex">
+      <h1 className="mb-4 text-2xl font-bold leading-tight">Weightlifting Program Planner</h1>
+      <div className="flex flex-col mb-2 sm:flex-row">
         <h2 className="flex-1 pb-4 mr-2 text-2xl font-bold">
           <BuilderLinkInlineInput
             value={state.current.program.name}
@@ -176,7 +177,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <IconCog2 />
             </button>
           </div>
-          <div>
+          <div className="ml-2">
             <Button
               kind="purple"
               disabled={isInvalid}
@@ -194,8 +195,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
                 };
                 const programBuilderUrl = new URL("/program", __HOST__);
-                const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), programBuilderUrl.toString());
-                ClipboardUtils.copy(url.toString());
+                const fullurl = await Encoder.encodeIntoUrl(
+                  JSON.stringify(exportedProgram),
+                  programBuilderUrl.toString()
+                );
+                const url = await service.postShortUrl(fullurl.toString(), "p");
+                ClipboardUtils.copy(url);
+                setShowLiftosaurConvertInfo(url);
               }}
             >
               Convert to Liftosaur program
@@ -204,10 +210,18 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </div>
       </div>
       {showClipboardInfo && (
-        <div className="text-xs text-right text-grayv2-main">
+        <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
           Copied to clipboard:{" "}
           <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
             {showClipboardInfo}
+          </a>
+        </div>
+      )}
+      {showLiftosaurConvertInfo && (
+        <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
+          Copied Liftosaur program to clipboard:{" "}
+          <a target="_blank" className="font-bold underline text-bluev2" href={showLiftosaurConvertInfo}>
+            {showLiftosaurConvertInfo}
           </a>
         </div>
       )}
@@ -228,7 +242,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                         }}
                       />
                     </h3>
-                    <div className="mb-4">
+                    <div className="mt-1 mb-4">
                       {program.weeks.length > 1 && (
                         <span className="mr-2">
                           <LinkButton
@@ -319,7 +333,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       </LinkButton>
                     </div>
                   </div>
-                  <div className="ml-4" style={{ width: "14rem" }}>
+                  <div className="mt-2 ml-0 sm:ml-4 sm:mt-0" style={{ width: "14rem" }}>
                     <PlannerWeekStats
                       dispatch={dispatch}
                       evaluatedDays={evaluatedWeeks[weekIndex]}

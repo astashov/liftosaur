@@ -65,6 +65,10 @@ body {
   font-size: 22px;
 }
 
+.planner-editor-view .cm-scroller {
+  min-height: 6rem;
+}
+
 .exercise-completion-title {
   font-size: 1rem;
 }

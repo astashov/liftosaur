@@ -106,7 +106,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               })}
             </ul>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 w-0">
             <PlannerEditorView
               name="Exercises"
               customExercises={customExercises}
@@ -222,7 +222,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           </LinkButton>
         </div>
       </div>
-      <div className="w-56 ml-4">
+      <div className="w-56 ml-0 sm:ml-4">
         {isFocused && (
           <PlannerDayStats
             dispatch={dispatch}

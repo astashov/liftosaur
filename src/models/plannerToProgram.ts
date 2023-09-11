@@ -484,23 +484,21 @@ export class PlannerToProgram {
         week.days[dayData.dayInWeek] = { id: day.id };
       }
     }
-    const isMultiweek = weeks.length > 1;
 
     const program: IProgram = {
       id: UidFactory.generateUid(8),
-      name: "My Program",
+      name: this.plannerProgram.name,
       description: "Generated from a Workout Planner",
       url: "",
       author: "",
       nextDay: 1,
       exercises: programExercises,
       days: days,
-      weeks: isMultiweek ? weeks : [],
-      isMultiweek,
+      weeks: weeks,
+      isMultiweek: true,
       tags: [],
     };
 
-    console.log("program", program);
     return program;
   }
 }
