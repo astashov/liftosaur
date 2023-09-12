@@ -11,6 +11,7 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
+    app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
@@ -67,7 +68,7 @@ module.exports = {
         vendors: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendors",
-          chunks: (chunk) => chunk.name === "main",
+          chunks: (chunk) => chunk.name === "main" || chunk.name === "app",
         },
       },
     },
@@ -99,6 +100,16 @@ module.exports = {
       {
         from: `src/index.html`,
         to: `index.html`,
+        transform: (content) => {
+          return content
+            .toString()
+            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
+            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
+        },
+      },
+      {
+        from: `src/index.html`,
+        to: `app/index.html`,
         transform: (content) => {
           return content
             .toString()
