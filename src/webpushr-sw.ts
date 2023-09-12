@@ -14,6 +14,7 @@ const filesToCache = [
   "/",
   "/index.html",
   "/app",
+  "/app/index.html",
   "/icons/icon192.png",
   "/icons/icon512.png",
   "/notification.m4r",
