@@ -13,6 +13,7 @@ const filesToCache = [
   /\/externalimages\/exercises\//,
   "/",
   "/index.html",
+  "/app",
   "/icons/icon192.png",
   "/icons/icon512.png",
   "/notification.m4r",
