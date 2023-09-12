@@ -39,7 +39,10 @@ function initialize(service: ServiceWorkerGlobalScope): void {
 
   service.addEventListener("fetch", (e) => {
     const url = new URL(e.request.url);
-    if (e.request.method === "GET" && (url.pathname === "/" || url.pathname === "index.html")) {
+    if (
+      e.request.method === "GET" &&
+      (url.pathname === "/" || url.pathname === "index.html" || url.pathname === "/app")
+    ) {
       console.log("[Service Worker] Fetching " + e.request.url);
       e.respondWith(
         caches.match(e.request).then((r) => {
