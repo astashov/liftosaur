@@ -113,7 +113,12 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                 }
               }}
               // @ts-ignore
-              defaultValue={initialWeight}
+              defaultValue={
+                Weight.round(
+                  Weight.build(initialWeight || 0, props.settings.units), 
+                  props.settings, props.equipment
+                ).value
+              }
               required
               type={SendMessage.isIos() ? "number" : "tel"}
               step="0.05"
