@@ -147,12 +147,8 @@ function PlannerSetSplit(props: {
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.weeklyFrequency[muscle]) : "";
 
   return (
-    <span>
-      <span
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        className={`cursor-auto relative ${setColor}`}
-      >
+    <span onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+      <span className={`cursor-auto relative ${setColor}`}>
         {total}
         {setDirection}
         {showTooltip && <PlannerStatsTooltip split={split} />}
