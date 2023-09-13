@@ -125,7 +125,9 @@ function add(
   dayIndex: number,
   exercise: IExercise
 ): void {
+  let isStrength = false;
   if (repRange.maxrep < 8) {
+    isStrength = true;
     results[key].strength += repRange.numberOfSets;
   } else {
     results[key].hypertrophy += repRange.numberOfSets;
@@ -136,7 +138,17 @@ function add(
       exerciseName: exercise.name,
       dayIndex: dayIndex,
       isSynergist: false,
+      strengthSets: 0,
+      hypertrophySets: 0,
     });
+  }
+  const ex = results[key].exercises.find((e) => e.exerciseName === exercise.name);
+  if (ex) {
+    if (isStrength) {
+      ex.strengthSets += repRange.numberOfSets;
+    } else {
+      ex.hypertrophySets += repRange.numberOfSets;
+    }
   }
 }
 
@@ -149,7 +161,9 @@ function addMuscleGroup(
   synergistMultiplier: number,
   exercise: IExercise
 ): void {
+  let isStrength = false;
   if (repRange.maxrep < 8) {
+    isStrength = true;
     results[key].strength += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
   } else {
     results[key].hypertrophy += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
@@ -160,6 +174,16 @@ function addMuscleGroup(
       exerciseName: exercise.name,
       dayIndex: dayIndex,
       isSynergist: !isTarget,
+      strengthSets: 0,
+      hypertrophySets: 0,
     });
+  }
+  const ex = results[key].exercises.find((e) => e.exerciseName === exercise.name);
+  if (ex) {
+    if (isStrength) {
+      ex.strengthSets += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
+    } else {
+      ex.hypertrophySets += isTarget ? repRange.numberOfSets : repRange.numberOfSets * synergistMultiplier;
+    }
   }
 }

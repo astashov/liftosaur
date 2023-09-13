@@ -110,6 +110,8 @@ export interface ISetSplit {
     dayIndex: number;
     exerciseName: string;
     isSynergist: boolean;
+    strengthSets: number;
+    hypertrophySets: number;
   }[];
   frequency: Partial<Record<number, true>>;
 }
