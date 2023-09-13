@@ -20,6 +20,8 @@
 - Move the app from liftosaur.com to liftosaur.com/app
 - Add calculate1RM function
 - Add integration with Apple Health
+- Fix the bug with rounding when editing the set
+- Fix the bug with clipboard in Safari
 
 * Programs
   - 5/3/1s
