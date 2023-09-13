@@ -237,7 +237,7 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
           return (
             <li className={`font-bold ${exercise.isSynergist ? "text-grayv2-main" : "text-blackv2"}`}>
-              {exercise.exerciseName} - {totalSets} ({exercise.strengthSets}s, {exercise.hypertrophySets}h)
+              {exercise.exerciseName}: {totalSets} ({exercise.strengthSets}s, {exercise.hypertrophySets}h)
             </li>
           );
         })}
