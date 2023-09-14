@@ -136,7 +136,7 @@ You can see that **Bent Over Row** and **Overhead Press** are black (meaning the
 
 The number of sets is colored in <span style="color: #e53e3e">red</span>, <span style="color: #8c8e00">yellow</span> or <span style="color: #38a169">green</span>, based on whether you're in the recommended range. You can define the range in **Settings**, with some presets, like 10-12 sets per muscle group for novice, 13-15 for intermediate, etc, and that will define the color of the set numbers. <span style="color: #e53e3e">Red</span> - you're completely outside of the range, <span style="color: #8c8e00">yellow</span> - you're close to the range, <span style="color: #38a169">green</span> - you're in the range. The arrow ↓ means you need to decrease the number of sets to get into the range.
 
-`(2.5s, 1.5h)` means it has 7.5 sets in strength rep range (1-8 reps) and 7.5 sets of hypertrophy (8+ reps). We count synergist muscles by default as a half set, hence there's .5 - i.e. the number is not round.
+`(2.5s, 1.5h)` means it has 2.5 sets in strength rep range (1-8 reps) and 1.5 sets of hypertrophy (8+ reps). We count synergist muscles by default as a half set, hence there's .5 - i.e. the number is not round.
 
 `3d` is frequency - means we hit this muscle group 3 days per week.
 
