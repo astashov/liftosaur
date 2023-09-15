@@ -66,6 +66,8 @@ const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
     "Trapezius Lower Fibers",
     "Trapezius Middle Fibers",
     "Trapezius Upper Fibers",
+    "Sternocleidomastoid",
+    "Splenius",
   ],
   abs: ["Obliques", "Rectus Abdominis", "Iliopsoas"],
   glutes: ["Gluteus Maximus", "Gluteus Medius", "Tensor Fasciae Latae"],
