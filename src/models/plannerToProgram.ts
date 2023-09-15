@@ -375,7 +375,7 @@ export class PlannerToProgram {
         timerExpr = ObjectUtils.keys(timersForExercise).reduce((acc, timer) => {
           const dayDatas = timersForExercise[timer];
           const groupByWeek = dayDatas.reduce<Record<number, Record<number, number[]>>>((memo, dayData) => {
-            memo[dayData.week] = memo[dayData.week] || [];
+            memo[dayData.week] = memo[dayData.week] || {};
             memo[dayData.week][dayData.dayInWeek] = memo[dayData.week][dayData.dayInWeek] || [];
             if (dayData.setIndex != null) {
               memo[dayData.week][dayData.dayInWeek].push(dayData.setIndex);
@@ -389,12 +389,16 @@ export class PlannerToProgram {
               const daysInWeek = weekToDayInWeeks2[week];
               const useDayInWeek = daysInWeek.length > 1;
               const condDays = [];
-              for (const dayInWeek of Object.keys(days)) {
+              for (const dayInWeekStr of Object.keys(days)) {
+                const dayInWeek = Number(dayInWeekStr);
+                if (isNaN(dayInWeek)) {
+                  continue;
+                }
                 if (useDayInWeek) {
-                  condDays.push(`dayInWeek == ${Number(dayInWeek) + 1}`);
+                  condDays.push(`dayInWeek == ${dayInWeek + 1}`);
                 }
                 const condSetIndexes = [];
-                for (const setIndex of days[0]) {
+                for (const setIndex of days[dayInWeek]) {
                   condSetIndexes.push(`setIndex == ${setIndex + 1}`);
                 }
                 if (condSetIndexes.length > 0) {

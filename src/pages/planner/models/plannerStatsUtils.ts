@@ -26,9 +26,9 @@ export class PlannerStatsUtils {
           const secondsPerRep = 7;
           const prepareTime = 20;
           const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
-          const timeToRest = (settings.restTimer || 0) * 1000;
+          const timeToRest = (set.timer || settings.restTimer || 0) * 1000;
           const totalTime = timeToRep + timeToRest;
-          return repRange.numberOfSets * totalTime;
+          return acc2 + repRange.numberOfSets * totalTime;
         }, 0)
       );
     }, 0);

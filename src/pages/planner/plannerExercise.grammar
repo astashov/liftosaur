@@ -32,7 +32,7 @@ FunctionArgument { FnArg }
   FnArg { Alphanumeric }
   FnName { Alphanumeric }
   Float { $[0-9\.] }
-  Rpe { "@" @digit }
+  Rpe { "@" @digit+ }
   Percentage { Float+ "%" }
   Weight { Float+ ("kg" | "lb") }
   Timer { @digit+ "s" }
