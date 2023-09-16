@@ -35,7 +35,6 @@ import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { PlannerToProgram } from "../../models/plannerToProgram";
 import { PlannerProgram } from "./models/plannerProgram";
-import { Nux } from "../../components/nux";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
