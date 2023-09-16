@@ -194,4 +194,8 @@ body {
   color: #164;
 }
 
+.tok-string {
+  color: #28839f;
+}
+
 /* purgecss end ignore */

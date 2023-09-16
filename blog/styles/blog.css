@@ -123,3 +123,7 @@ body {
 .tok-number {
   color: #164;
 }
+
+.tok-string {
+  color: #28839f;
+}
