@@ -3,6 +3,7 @@ import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
   IDayData,
+  IEquipment,
   IProgram,
   IProgramDay,
   IProgramExercise,
@@ -22,7 +23,12 @@ import { CollectionUtils } from "../utils/collection";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
-  exercises: string[];
+  names: string[];
+  exercises: {
+    label?: string;
+    name: string;
+    equipment?: string;
+  }[];
 }
 
 type IExerciseTypeToDayData = Record<string, Array<{ dayData: Required<IDayData>; exercise: IPlannerProgramExercise }>>;
@@ -68,13 +74,19 @@ export class PlannerToProgram {
         const result = evaluatedWeeks[week][dayInWeek];
         if (result.success) {
           const exs = result.data;
-          const names = exs.map((e) => CollectionUtils.compact([e.label, e.name]).join("_"));
+          const names = exs.map((e) => CollectionUtils.compact([e.label, e.name, e.equipment]).join("_"));
           const key = names.join("|");
           exercisesToWeeksDays[key] = exercisesToWeeksDays[key] || {};
           exercisesToWeeksDays[key].dayData = exercisesToWeeksDays[key].dayData || [];
-          exercisesToWeeksDays[key].exercises = exercisesToWeeksDays[key].exercises || [];
+          exercisesToWeeksDays[key].exercises =
+            exercisesToWeeksDays[key].exercises ||
+            exs.map((e) => ({
+              label: e.label,
+              name: e.name,
+              equipment: e.equipment,
+            }));
           exercisesToWeeksDays[key].dayData.push({ week, dayInWeek, day });
-          exercisesToWeeksDays[key].exercises = names;
+          exercisesToWeeksDays[key].names = names;
         }
         day += 1;
       }
@@ -306,10 +318,10 @@ export class PlannerToProgram {
 
   private buildProgramExercises(): {
     programExercises: IProgramExercise[];
-    exerciseNamesToIds: Record<string, string>;
+    exerciseNamesToIds: Record<string, Record<string, string>>;
   } {
     const exerciseTypeToPotentialVariations = this.getExerciseTypeToPotentialVariations();
-    const exerciseNamesToIds: Record<string, string> = {};
+    const exerciseNamesToIds: Record<string, Record<string, string>> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
     const exerciseTypeToProperties = this.getExerciseTypeToProperties();
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
@@ -420,7 +432,8 @@ export class PlannerToProgram {
       const id = UidFactory.generateUid(8);
       const plannerExercise = potentialVariations[0].plannerExercise;
       const name = CollectionUtils.compact([plannerExercise.label, plannerExercise.name]).join("_");
-      exerciseNamesToIds[name] = id;
+      exerciseNamesToIds[name] = exerciseNamesToIds[name] || {};
+      exerciseNamesToIds[name][plannerExercise.equipment || "default"] = id;
 
       const isWithRpe = variations.some((v) => v.sets.some((s) => !!s.rpeExpr));
       const iwWithRepRanges = variations.some((v) => v.sets.some((s) => !!s.minRepsExpr));
@@ -463,19 +476,30 @@ export class PlannerToProgram {
 
     const weeks: IProgramWeek[] = [];
     const days: IProgramDay[] = [];
+    console.log(potentialWeeksAndDays);
     for (const value of potentialWeeksAndDays) {
       const id = UidFactory.generateUid(8);
-      const dayInWeekNames = Array.from(
+      const usedDayNames = new Set<string>();
+      let dayInWeekNames = Array.from(
         new Set(
-          value.dayData.map(
-            (d) => this.plannerProgram.weeks[d.week]?.days[d.dayInWeek]?.name ?? `Day ${d.dayInWeek + 1}`
-          )
+          value.dayData.map((d) => {
+            let name = this.plannerProgram.weeks[d.week]?.days[d.dayInWeek]?.name ?? `Day ${d.dayInWeek + 1}`;
+            if (usedDayNames.has(name)) {
+              const weekName = this.plannerProgram.weeks[d.week]?.name ?? `Week ${d.week + 1}`;
+              name += ` (${weekName})`;
+            }
+            usedDayNames.add(name);
+            return name;
+          })
         )
       );
+      if (dayInWeekNames.length > 3) {
+        dayInWeekNames = [`Day ${UidFactory.generateUid(3)}`];
+      }
       const day: IProgramDay = {
         id,
         name: dayInWeekNames.join("/"),
-        exercises: value.exercises.map((e) => ({ id: exerciseNamesToIds[e] })),
+        exercises: value.exercises.map((e) => ({ id: exerciseNamesToIds[e.name][e.equipment || "default"] })),
       };
       days.push(day);
       for (const dayData of value.dayData) {
