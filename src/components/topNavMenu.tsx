@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 
-export function TopNavMenu(props: { maxWidth?: number; current: string }): JSX.Element {
+export function TopNavMenu(props: { maxWidth?: number; current?: string }): JSX.Element {
   return (
     <nav
       class="w-full flex items-center mx-auto my-0 px-2 py-6 flex-col md:px-2 md:py-12 sm:flex-row"
