@@ -3,7 +3,6 @@ import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
   IDayData,
-  IEquipment,
   IProgram,
   IProgramDay,
   IProgramExercise,
