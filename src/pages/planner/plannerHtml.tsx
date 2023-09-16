@@ -16,11 +16,12 @@ export function PlannerHtml(props: IProps): JSX.Element {
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}
-      title="Workout Program Planner"
-      ogTitle="Liftosaur: Workout Program Builder"
+      title="Workout Planner"
+      ogTitle="Liftosaur: Workout Planner"
       ogDescription="The weightlifting program planner, allowing to balance volume, time and muscles worked"
       ogUrl="https://www.liftosaur.com/planner"
       data={data}
+      url="/planner"
     >
       <PlannerContent client={client} {...data} />
     </Page>

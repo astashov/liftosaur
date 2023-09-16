@@ -22,9 +22,10 @@ export function FooterPage(props: IProps): JSX.Element {
             <div className="flex flex-1 md:pr-6">
               <ul className="flex-1">
                 {[
-                  ["App", "/"],
+                  ["About", "/about"],
                   ["Docs", "/docs/docs.html"],
-                  ["Program Builder", "/program"],
+                  ["Web Editor", "/program"],
+                  ["Workout Planner", "/planner"],
                 ].map(([text, link]) => {
                   return (
                     <li className="block mx-4 my-0 mb-2 leading-5 text-left">
