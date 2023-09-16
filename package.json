@@ -4,10 +4,11 @@
   "description": "App for tracking weight lifting progress",
   "main": "dist/index.js",
   "scripts": {
-    "build": "yarn docs && NODE_ENV=production yarn build:dev && yarn blog",
+    "build": "yarn docs && NODE_ENV=production yarn build:dev && yarn plannerhighlighter && yarn blog",
     "build:stage": "yarn docs && NODE_ENV=production STAGE=1 yarn build:dev && yarn blog",
     "analyze": "open dist/report.html",
     "docs": "generate-md --layout ./src/docs/layout/ --input ./src/docs/content/ --output ./docs",
+    "plannerhighlighter": "tsc --outDir dist-plannerhighlighter ./src/pages/planner/plannerHighlighter.ts",
     "blog": "eleventy",
     "build:server": "webpack --config webpack.server.config.js",
     "build:dev": "webpack",

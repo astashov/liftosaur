@@ -11,6 +11,7 @@
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda
+/dist-plannerhighlighter
 /lambda/node_modules
 /lambda/scripts
 /template.yaml

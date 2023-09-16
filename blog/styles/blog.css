@@ -69,6 +69,7 @@ body {
   margin: 0 1rem;
 }
 
+.plannercode,
 .markdown-body-pre {
   padding: 16px;
   overflow: auto;
@@ -80,4 +81,45 @@ body {
   margin-top: 0;
   margin-bottom: 16px;
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.plannercode-content {
+  white-space: pre;
+}
+
+.tok-variableName {
+  color: #171718;
+  font-weight: bold;
+}
+
+.tok-keyword {
+  color: #708;
+}
+
+.tok-literal {
+  color: #164;
+}
+
+.tok-comment {
+  color: #8b9bab;
+}
+
+.tok-atom {
+  color: #940;
+}
+
+.tok-propertyName {
+  color: #8b9bab;
+}
+
+.tok-attributeName {
+  color: #940;
+}
+
+.tok-attributeValue {
+  color: #28839f;
+}
+
+.tok-number {
+  color: #164;
 }

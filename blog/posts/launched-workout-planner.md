@@ -33,21 +33,21 @@ The workout planner is similar - it will autocomplete the exercises, equipment, 
 
 Each exercise should go on a separate line. It consists of sections separated by a slash (`/`). The simplest exercise is written like this:
 
-```
+{% plannercode %}
 Bench Press / 3x8
-```
+{% endplannercode %}
 
 You can do rep ranges too:
 
-```
+{% plannercode %}
 Bench Press / 3x8-12
-```
+{% endplannercode %}
 
 You can list multiple sets, separated by commas, like this:
 
-```
+{% plannercode %}
 Bench Press / 5, 3, 1, 5x5
-```
+{% endplannercode %}
 
 That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets of 5 reps.
 
@@ -55,62 +55,62 @@ If you don't specify the weight, it'll use the weight calculated from
 <abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
 tables, like [this one](https://articles.reactivetrainingsystems.com/wp-content/uploads/2015/11/E1RM-TABLE.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
 
-```
+{% plannercode %}
 Bench Press / 3x12
-```
+{% endplannercode %}
 
 It'll check in the RPE table that for if you want to do 12 reps til failure (@10 RPE), you probably should use 65% of 1RM, so it'll set the weight to 65% of 1RM under the hood. If you don't want to go to full failure, you can specify desired RPE:
 
-```
+{% plannercode %}
 Bench Press / 3x12 @8
-```
+{% endplannercode %}
 
 Then the weight would be lower - 60%. You can specify the weight explicitly, as a percentage of 1RM, like this:
 
-```
+{% plannercode %}
 Bench Press / 3x12 80%
-```
+{% endplannercode %}
 
 Or you can specify the weight in kg/lb, like this:
 
-```
+{% plannercode %}
 Bench Press / 3x12 60kg
-```
+{% endplannercode %}
 
 If you specify the weight in kgs though, it'd be static, and not tied to the `state.weight` state variable when you convert it into Liftosaur program.
 
 RPE, percentage and weight can be specified for each set or range of sets individually, so you can mix and match:
 
-```
-Bench Press / 5 @8, 3 @9, 1 @10, 5x5 %50
-```
+{% plannercode %}
+Bench Press / 5 @8, 3 @9, 1 @10, 5x5 50%
+{% endplannercode %}
 
 You can specify the rest time. E.g. this is how you could do **myo-reps** - i.e. doing heavy 12, and then doing 5x5 with short rest times and same weight:
 
-```
+{% plannercode %}
 Bench Press / 12 20s 60%, 5x5 20s 60%
-```
+{% endplannercode %}
 
 You can also specify the rest time, weight, 1RM percentage and RPE also, for all sets, so you don't have to repeat yourself. Do it in a separate section like this:
 
-```
+{% plannercode %}
 Bench Press / 12, 5x5 / 20s 60%
-```
+{% endplannercode %}
 
 So, an example workout may look something like this:
 
-```
-Bench Press / 3x5 %80
+{% plannercode %}
+Bench Press / 3x5 80%
 Incline Bench Press / 3x8-12 @8 / 90s
 Skullcrusher / 3x15 @8
 Lateral Raise / 3x15 @8
-```
+{% endplannercode %}
 
 By default, it'll use default equipment - e.g. for **Bench Press** it'll use **Barbell**. If you want to specify different equipment, add it after the exercise name, like this:
 
-```
+{% plannercode %}
 Bench Press, dumbbell / 3x5
-```
+{% endplannercode %}
 
 ## How to read stats
 
@@ -152,15 +152,15 @@ You can specify the progressive overload for each exercise. It won't affect the 
 
 You can add a progression like this:
 
-```
+{% plannercode %}
 Bench Press / 3x8 / progress: lp(5lb, 3)
-```
+{% endplannercode %}
 
 That will increase the weight by 5lb after 3 successful attempts. Or like this:
 
-```
+{% plannercode %}
 Bench Press / 3x8 / progress: dp(4, 5lb)
-```
+{% endplannercode %}
 
 It will keep increasing reps from 8 to 12 (8 + 4), and then reset the reps to 8 and increase the weight by 5lb.
 
@@ -172,7 +172,7 @@ Here're some examples of workouts you can build with the workout planner:
 
 ### Stronglifts 5x5
 
-```
+{% plannercode %}
 // Workout A
 Squat / 5x5 / progress: lp(10lb, 1, 10%, 3)
 Bench Press / 5x5 / progress: lp(5lb, 1, 10%, 3)
@@ -182,40 +182,40 @@ Bent Over Row / 5x5 / progress: lp(5lb, 1, 10%, 3)
 Squat / 5x5 / progress: lp(10lb, 1, 10%, 3)
 Overhead Press / 5x5 / progress: lp(5lb, 1, 10%, 3)
 Deadlift / 5 / progress: lp(10lb, 1, 10%, 3)
-```
+{% endplannercode %}
 
 ### Myo reps
 
 Do "activating" set, and then additional sets of the same weight with less reps and short rest:
 
-```
+{% plannercode %}
 Squat / 12, 3x5 / 20s 60%
-```
+{% endplannercode %}
 
 ### Drop sets
 
 Do a set with 100%, then 85%, then 75%, then 60% of the weight, with short rests:
 
-```
+{% plannercode %}
 Bench Press / 5 100%, 8 85%, 10 75%, 12 60% / 40s
-```
+{% endplannercode %}
 
 ### 5/3/1 Basic Beginner main lift
 
-```
+{% plannercode %}
 Bench Press / 5 75%, 3 85%, 1+ 95%, 5x5 75%
-```
+{% endplannercode %}
 
 ### Bullmastiff Week 1 Day 1
 
-```
+{% plannercode %}
 Squat / 3x6 65%, 6+ 65%
 Romanian Deadlift, barbell / 3x12 @6
 Bent Over Row / 2x12-15
 Leg Curl / 2x12-15
 Leg Extension / 2x12-15
 Cable Crunch / 2x12-15
-```
+{% endplannercode %}
 
 ## Exporting to Liftosaur
 
