@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { IProgramExercise, IUnit, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
+import { SendMessage } from "../utils/sendMessage";
 
 interface IModalWeightProps {
   dispatch: IDispatch;
@@ -35,9 +36,9 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
           data-cy="modal-weight-input"
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           value={Weight.is(props.weight) ? props.weight.value : props.weight}
-          type="tel"
+          type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
-          placeholder="Weight in lbs"
+          placeholder={`Weight in ${props.units}`}
         />
         <div className="mt-4 text-right">
           <Button
