@@ -56,6 +56,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: CodeEditor): Languag
           { label: "numberOfSets", type: "keyword" },
           { label: "roundWeight", type: "function" },
           { label: "calculateTrainingMax", type: "function" },
+          { label: "calculate1RM", type: "function" },
           { label: "floor", type: "function" },
           { label: "round", type: "function" },
           { label: "ceil", type: "function" },
