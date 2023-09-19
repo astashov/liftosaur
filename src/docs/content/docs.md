@@ -247,6 +247,16 @@ state.nextWeight = calculateTrainingMax(150lb, 5);
 
 It would assign `155lb` to `state.nextWeight`. First argument is the weight you used for a lift, and the second argument is the number of reps you were able to do with that weight.
 
+#### `calculate1RM`
+
+This function operates identically to `calculateTrainingMax`, but it abstains from applying the percentage operation. It is also calculated according to the [Epley formula](https://en.wikipedia.org/wiki/One-repetition_maximum).
+
+```javascript
+state.nextWeight = calculate1RM(150lb, 5);
+```
+
+It would assign `175lb` to `state.nextWeight`. The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
+
 #### `floor`
 
 It rounds the number down to the nearest integer.

@@ -61,6 +61,7 @@ export interface IScriptContext {
 export interface IScriptFunctions {
   roundWeight: (num: IWeight, context: IScriptContext) => IWeight;
   calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
+  calculate1RM: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
   floor(num: number): number;
   floor(num: IWeight): IWeight;
   ceil(num: number): number;
@@ -192,6 +193,12 @@ export namespace Progress {
           weight = Weight.build(weight, settings.units);
         }
         return Weight.getTrainingMax(weight, reps || 0, settings, "barbell");
+      },
+      calculate1RM: (weight, reps, context) => {
+        if (!Weight.is(weight)) {
+          weight = Weight.build(weight, settings.units);
+        }
+        return Weight.getOneRepMax(weight, reps, settings, undefined);
       },
       floor,
       ceil,
