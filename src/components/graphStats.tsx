@@ -55,7 +55,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   const useMovingAverage: boolean = props.movingAverageWindowSize !== undefined;
-  const avgWindowSize = props.movingAverageWindowSize || 3;
+  const avgWindowSize = props.movingAverageWindowSize || 5;
   useEffect(() => {
     const data = props.collection.reduce<[number[], number[], number[]]>(
       (memo, i, index, array) => {
@@ -95,12 +95,11 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
                 const idx = self.cursor.idx!;
                 const date = new Date(data[0][idx] * 1000);
                 const value = data[1][idx];
-                const avg = data[2][idx];
                 let text: string;
                 if (value != null && props.units != null) {
                   text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
                   if (useMovingAverage) {
-                    text += ` (Avg. ${avg} ${props.units})`;
+                    text += ` (Avg. ${data[2][idx]} ${props.units})`;
                   }
                 } else {
                   text = "";
