@@ -62,6 +62,7 @@ export interface IScriptFunctions {
   roundWeight: (num: IWeight, context: IScriptContext) => IWeight;
   calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
   calculate1RM: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
+  rpeMultiplier: (reps: number, rpe: number, context: IScriptContext) => number;
   floor(num: number): number;
   floor(num: IWeight): IWeight;
   ceil(num: number): number;
@@ -199,6 +200,11 @@ export namespace Progress {
           weight = Weight.build(weight, settings.units);
         }
         return Weight.getOneRepMax(weight, reps, settings, undefined);
+      },
+      rpeMultiplier: (repsRaw, rpeRaw, context) => {
+        const reps = Weight.is(repsRaw) ? repsRaw.value : typeof repsRaw === "number" ? repsRaw : 1;
+        const rpe = Weight.is(rpeRaw) ? rpeRaw.value : typeof rpeRaw === "number" ? rpeRaw : 1;
+        return Weight.rpeMultiplier(reps, rpe);
       },
       floor,
       ceil,

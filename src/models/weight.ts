@@ -260,6 +260,9 @@ export namespace Weight {
   }
 
   export function rpeMultiplier(reps: number, rpe: number): number {
+    reps = Math.max(Math.min(reps, 24), 1);
+    rpe = Math.max(Math.min(rpe, 10), 1);
+
     const rpe10Reps = [
       1,
       0.955,
@@ -286,6 +289,6 @@ export namespace Weight {
       0.506,
       0.5,
     ];
-    return rpe10Reps[reps + (10 - rpe) - 1];
+    return rpe10Reps[reps + (10 - rpe) - 1] || 0.5;
   }
 }

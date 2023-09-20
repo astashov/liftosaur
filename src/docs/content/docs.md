@@ -257,6 +257,17 @@ state.nextWeight = calculate1RM(150lb, 5);
 
 It would assign `175lb` to `state.nextWeight`. The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
 
+#### `rpeMultiplier`
+
+Used for calculating the multiplier of 1RM given the reps and RPE. Like for example, for 13 reps at 9 RPE, it'd
+return multiplier of 0.6, i.e. you probably would be able to lift 60% of your 1RM for 13 reps at 9 RPE.
+
+```javascript
+state.weight * rpeMultiplier(13, 9);
+```
+
+First argument is the number of reps (1-24), second - the RPE value (1-10).
+
 #### `floor`
 
 It rounds the number down to the nearest integer.
