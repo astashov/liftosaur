@@ -22,7 +22,7 @@ function getExamples(unit: IUnit): IProgramExerciseExample[] {
     {
       title: "Linear progression",
       description:
-        "We increase weight every succesful workout. This good for beginners, while you're getting newbie gains",
+        "We increase the weight every successful workout. This good for beginners, while you're getting newbie gains",
       sets: [
         {
           repsExpr: "5",

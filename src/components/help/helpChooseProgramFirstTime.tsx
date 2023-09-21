@@ -12,7 +12,7 @@ export function HelpChooseProgramFirstTime(): JSX.Element {
         If you're a beginner, consider starting with the pre-built program rather than creating your own.
       </p>
       <p className="pb-2">
-        A program defines the list of workout days and the exercies for each day. It also defines the logic for
+        A program defines the list of workout days and the exercises for each day. It also defines the logic for
         increasing or decreasing reps and weights over time, depending on your workout performance.
       </p>
       <p className="pb-2">

@@ -42,7 +42,7 @@ Press `45 lb` value of the `weight` variable, and change it to e.g. `50`.
 Now, let's put that variable in use. Scroll down to the "Sets" section. For simplicity, we'll only have 1 set of 5 reps for our exercise. The weight of it though will be controlled by the `weight` state variable we set above. You could see in the **Weight** field it's already entered `state.weight`.
 
 It should give you a hint that evaluation result will be `50lb`, which is the current value of `state.weight`.
-You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights there're often percentages of training max weight being used, so you could write it as `state.weight * 0.7`, for example. Or do something completely crazy like `(state.weight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
+You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights they are often percentages of training max weight being used, so you could write it as `state.weight * 0.7`, for example. Or do something completely crazy like `(state.weight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
 
 Now let's define the rules how we'll do progressions. Scroll to the section "Finish Day Script" at the bottom. Type there:
 
@@ -150,7 +150,7 @@ If you create more than one variation, there will be the "Variation Expression" 
 day == 1 ? 1 : 2;
 ```
 
-And for the Day 1 it will use `Variation 1`, for all other days it will use `Variation 2` SetsxReps scheme.
+And for the Day 1 it will use `Variation 1`, for all other days it will use `Variation 2` Sets x Reps scheme.
 
 ## Language Reference
 
@@ -163,7 +163,7 @@ Number or weight could be used for set weight expressions.
 
 ### Values
 
-The values are numbers (1, 3, 100, 31534532, etc), and also you can add kg or lb suffix to the number to indicate that is's a weight (like 1lb, 3kg, 100lb, 31534532kg).
+The values are numbers (1, 3, 100, 31534532, etc.), and also you can add kg or lb suffix to the number to indicate that it is a weight (like 1lb, 3kg, 100lb, 31534532kg).
 
 Using lb/kg is recommended for when you deal with weights, because they will be converted to kilograms properly if user selects that unit on the settings screen.
 
@@ -211,7 +211,7 @@ state.someVar = (10 + 15) * 2;
 
 ### Predefined variables
 
-You cannot assign values to them, but you can use theirs values. There're:
+You cannot assign values to them, but you can use their values. They are:
 
 - `weights[x]` or `w[x]` - weight of an X set. X starts from 1.
 - `reps[x]` or `r[x]` - number of reps for an X set.
@@ -235,7 +235,7 @@ state.myVar = 4;
 
 ### Built-in functions
 
-There're some built-in functions you can use in the expressions. There're:
+There are some built-in functions you can use in the expressions. They are:
 
 #### `calculateTrainingMax`
 

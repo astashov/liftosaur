@@ -118,7 +118,7 @@ export namespace EditProgramLenses {
     prefix: LensBuilder<T, IProgram, {}>,
     dayIndex: number,
     startExerciseIndex: number,
-    endExceciseIndex: number
+    endExerciseIndex: number
   ): ILensRecordingPayload<T> {
     return prefix
       .p("days")
@@ -127,7 +127,7 @@ export namespace EditProgramLenses {
       .recordModify((exercises) => {
         const newExercises = [...exercises];
         const [exercisesToMove] = newExercises.splice(startExerciseIndex, 1);
-        newExercises.splice(endExceciseIndex, 0, exercisesToMove);
+        newExercises.splice(endExerciseIndex, 0, exercisesToMove);
         return newExercises;
       });
   }

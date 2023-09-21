@@ -63,7 +63,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           </p>
           <p>
             It's an intermediate program, so you're going to find it most useful after your newbie gains are over.
-            There's good variaty in exercises, and a lot of people reported getting serious gains and new PRs after
+            There's good variety in exercises, and a lot of people reported getting serious gains and new PRs after
             running this program.
           </p>
           <p>

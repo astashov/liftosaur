@@ -342,7 +342,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           help={
             <span>
               Exercises available in this program. You need to add them to <strong>days</strong> to make them appear in
-              workouts. They could be reused inbetween days.
+              workouts. They could be reused in between days.
             </span>
           }
         />

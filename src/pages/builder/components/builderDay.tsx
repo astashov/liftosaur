@@ -173,8 +173,8 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
                         .p("days")
                         .i(props.index)
                         .p("exercises")
-                        .recordModify((excercises) => {
-                          return CollectionUtils.removeAt(excercises, index);
+                        .recordModify((exercises) => {
+                          return CollectionUtils.removeAt(exercises, index);
                         }),
                     ])
                   }

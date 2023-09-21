@@ -304,7 +304,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           specify required sets and weight. It also is marked as completed automatically.
         </li>
         <li>
-          Also, there're 2 new variables available in Finish Day Script - <strong>numberOfSets</strong>, and an alias
+          Also, there are 2 new variables available in Finish Day Script - <strong>numberOfSets</strong>, and an alias
           for it - <strong>ns</strong>. They contain the number of sets for the exercise at the end of the workout.
         </li>
         <li>
@@ -548,7 +548,7 @@ const whatsNew: Record<string, IWhatsNew> = {
     body: (
       <ul>
         <li>Now there's a switch between volume and max weight for exercise graphs.</li>
-        <li>There're also muscle group volume per week graphs</li>
+        <li>There are also muscle group volume per week graphs</li>
         <li>There's also volume in lbs added to the exercise stats screen and also previous workouts.</li>
       </ul>
     ),
@@ -630,7 +630,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           of the next week.
         </li>
         <li>
-          There're also new variables available for all the Liftoscript scripts - <strong>week</strong> and{" "}
+          There are also new variables available for all the Liftoscript scripts - <strong>week</strong> and{" "}
           <strong>dayInWeek</strong>. You can use them to define logic based on the week number, or week day number.
         </li>
       </ul>

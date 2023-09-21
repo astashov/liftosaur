@@ -28,14 +28,14 @@ export function HelpWorkout(): JSX.Element {
         right corner, the <IconCog2 /> icon).
       </p>
       <p className="pb-2">
-        The order of doing exercises and sets is not important, the app doesn't inforce it at all. You can do
+        The order of doing exercises and sets is not important, the app doesn't enforce it at all. You can do
         "supersets", i.e. simultaneously going through e.g. 2 exercises one after another, without rest period, to save
         time in gym.
       </p>
       <p>
         After you've done all the sets for an exercise, the "Finish Day Script" for that exercise will be run. It may
-        increase or decrease weight or reps, depending on the logic defined in the program for that exercise. If
-        there're any changes applied, you'll see that under the exercise, in the{" "}
+        increase or decrease weight or reps, depending on the logic defined in the program for that exercise. If there
+        are any changes applied, you'll see that under the exercise, in the{" "}
         <strong>Exercise State Variables changes</strong> block.
       </p>
     </>

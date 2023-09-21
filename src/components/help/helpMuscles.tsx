@@ -5,7 +5,7 @@ export function HelpMuscles(): JSX.Element {
     <>
       <h2 className="pb-2 text-xl">Muscles Map - Program</h2>
       <p className="pb-2">
-        Shows how much specific muscles are used in the program. You may use it to find inbalances in your program.
+        Shows how much specific muscles are used in the program. You may use it to find imbalances in your program.
       </p>
       <p className="pb-2">
         We calculate usage for <strong>strength</strong> and <strong>hypertrophy</strong> separately. For{" "}
