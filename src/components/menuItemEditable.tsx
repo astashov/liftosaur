@@ -1,4 +1,4 @@
-import { h, JSX, Fragment, ComponentChildren } from "preact";
+import { h, JSX, ComponentChildren } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils } from "../utils/string";
