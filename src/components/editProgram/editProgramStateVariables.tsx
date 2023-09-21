@@ -91,6 +91,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
       {showCalculator && (
         <Modal shouldShowClose={true} onClose={() => setShowCalculator(undefined)}>
           <RepMaxCalculator
+            backLabel="Close"
             unit={showCalculator[1]}
             onSelect={(weightValue) => {
               if (weightValue != null) {

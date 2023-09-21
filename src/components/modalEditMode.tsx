@@ -136,6 +136,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
           </>
         ) : (
           <RepMaxCalculator
+            backLabel="Back"
             unit={showCalculator[1]}
             onSelect={(weightValue) => {
               if (weightValue != null) {

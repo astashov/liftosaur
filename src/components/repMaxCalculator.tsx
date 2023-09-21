@@ -8,6 +8,7 @@ import { Input } from "./input";
 
 interface IRepMaxCalculatorProps {
   unit: IUnit;
+  backLabel: string;
   onSelect: (weight?: number) => void;
 }
 
@@ -115,7 +116,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
       <div className="flex" style={{ gap: "0.5rem" }}>
         <div className="flex-1 text-center">
           <Button kind="grayv2" onClick={() => props.onSelect()}>
-            Back
+            {props.backLabel}
           </Button>
         </div>
         <div className="flex-1 text-center">
