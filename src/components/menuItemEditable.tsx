@@ -52,12 +52,12 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.prefix}
           <span
             data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className={`flex items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+            className={`flex min-w-0 break-all items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
             {props.isNameHtml ? "" : props.name}
           </span>
-          <Fragment>
+          <div className="flex-1" style={{ minWidth: "3rem" }}>
             <MenuItemValue
               name={props.name}
               type={props.type}
@@ -68,8 +68,8 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               setPatternError={setPatternError}
               onChange={props.onChange}
             />
-            {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
-          </Fragment>
+          </div>
+          {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
           {props.value != null && props.hasClear && (
             <button
               data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
@@ -140,7 +140,7 @@ export function MenuItemValue(
         data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 w-0 py-2 text-right bg-transparent text-bluev2"
+        className="flex-1 w-full py-2 text-right bg-transparent text-bluev2"
         value={props.value || undefined}
         title={props.patternMessage}
         onBlur={handleChange(props.onChange, props.setPatternError)}

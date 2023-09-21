@@ -1,10 +1,14 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
+import { useState } from "preact/hooks";
 import { Weight } from "../../models/weight";
-import { IProgramExercise, IProgramStateMetadata, ISettings } from "../../types";
+import { IProgramExercise, IProgramStateMetadata, ISettings, IUnit } from "../../types";
 import { ObjectUtils } from "../../utils/object";
 import { GroupHeader } from "../groupHeader";
+import { IconCalculator } from "../icons/iconCalculator";
 import { LinkButton } from "../linkButton";
 import { MenuItemEditable } from "../menuItemEditable";
+import { Modal } from "../modal";
+import { RepMaxCalculator } from "../repMaxCalculator";
 import { EditProgramConvertStateVariables } from "./editProgramConvertStateVariables";
 
 interface IStateProps {
@@ -20,6 +24,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
   const { programExercise } = props;
   const reuseLogicId = programExercise.reuseLogic?.selected;
   const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
+  const [showCalculator, setShowCalculator] = useState<[string, IUnit] | undefined>(undefined);
 
   return (
     <section className="px-4 py-2 bg-purple-100 rounded-2xl">
@@ -57,6 +62,19 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
             value={displayValue.toString()}
             valueUnits={Weight.is(value) ? value.unit : undefined}
             hasClear={!reuseLogicId}
+            after={
+              Weight.is(value) ? (
+                <button
+                  className="p-2 ml-2"
+                  style={{ marginRight: "-0.25rem" }}
+                  onClick={() => setShowCalculator([stateKey, value.unit])}
+                >
+                  <IconCalculator size={16} color="#171718" />
+                </button>
+              ) : (
+                <></>
+              )
+            }
             onChange={(newValue) => {
               props.onEditStateVariable(stateKey, newValue);
             }}
@@ -69,6 +87,19 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
             Add State Variable
           </LinkButton>
         </div>
+      )}
+      {showCalculator && (
+        <Modal shouldShowClose={true} onClose={() => setShowCalculator(undefined)}>
+          <RepMaxCalculator
+            unit={showCalculator[1]}
+            onSelect={(weightValue) => {
+              if (weightValue != null) {
+                props.onEditStateVariable(showCalculator[0], `${weightValue}`);
+              }
+              setShowCalculator(undefined);
+            }}
+          />
+        </Modal>
       )}
     </section>
   );

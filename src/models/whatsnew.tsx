@@ -658,6 +658,18 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230920": {
+    title: <span>Added Rep Max Calculator</span>,
+    body: (
+      <ul>
+        <li>
+          It's located near weight state variables. You can enter the known weight, reps and RPE, and target reps and
+          RPE, and it'll calculate the weight for you.
+        </li>
+        <li>For actual Rep Max, use RPE = 10.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
