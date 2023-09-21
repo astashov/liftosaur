@@ -93,7 +93,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
           <p>
             Same as T1, we use a 2RM weight for the TM and various T1 exercises. But unlike T1, we use a linear increase
             in weight (non-wavy) and a somewhat wavy decrease in volume. The peaks of the waves are mostly due to AMRAP
-            (As Many Reps As Possible) sets..
+            (As Many Reps As Possible) sets.
           </p>
           <p>
             For T2, we use the 'opposite' side for exercise selection - if T1 is Upper, T2 is Lower, and vice versa.
