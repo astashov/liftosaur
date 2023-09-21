@@ -5,7 +5,7 @@ export function ProgramDetailsGzclPrinciple(): JSX.Element {
   return (
     <div>
       <h2>GZCL principle</h2>
-      <p>Before diving in, here are some basic terminologies:</p>
+      <p>Before diving in, here's some basic terminology:</p>
       <ul>
         <li>
           <strong>Rep Max</strong>: This refers to the maximum weight you can lift for a given number of reps. For
@@ -50,7 +50,7 @@ export function ProgramDetailsGzclPrinciple(): JSX.Element {
             />{" "}
             Incline Bench Press
           </strong>
-          , etc). These exercises have less intensity (lower weights), but higher volume (more reps and sets). You
+          , etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You
           should pick exercises that will assist with your T1 exercises. For example, if you want to improve your{" "}
           <strong>Squat</strong>, you could do <strong>Front Squats</strong> as a T2 exercise. These exercises are
           performed with <strong>65-85%</strong> of your 2-3 rep max, usually within <strong>5-8 reps</strong> per set.

@@ -39,7 +39,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: The Rippler program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: The Rippler Program Explained</h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
           By Cody Lefever
@@ -113,8 +113,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           </p>
           <h2>1RM test</h2>
           <p>
-            Starting from week 11, you'll begin preparing for the 1RM test. You won't do T2 and T3 exercises at all
-            during this period. On week 11, you will do heavy 2RMs of T1, and on week 12, you'll test your 1RM, and
+            Starting from week 11, you'll begin preparing for the 1RM test. You won't perform the T2 and T3 exercises at
+            all during this period. On week 11, you will do heavy 2RMs of T1, and on week 12, you'll test your 1RM, and
             enjoy your new PRs!
           </p>
           <p>

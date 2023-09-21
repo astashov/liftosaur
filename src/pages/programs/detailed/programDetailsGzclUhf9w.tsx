@@ -35,7 +35,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
   return (
     <section className="px-4">
       <h1 className="text-2xl font-bold leading-8 text-center">
-        GZCL: UHF (Ultra High Frequency) 9 weeks program explained
+        GZCL: UHF (Ultra High Frequency) 9 Weeks Program Explained
       </h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
@@ -54,26 +54,27 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
             <a href="https://www.reddit.com/u/gzcl" target="_blank">
               u/gzcl
             </a>
-            . It's a program, that combines together GZCL principles and Daily Undulated Periodization (DUP) principle.
-            It's somewhat similar to{" "}
+            . It's a program, that combines together GZCL principles and the Daily Undulated Periodization (DUP)
+            principle. It's somewhat similar to{" "}
             <a href="/programs/gzcl-the-rippler" target="_blank">
               GZCL: The Rippler
             </a>{" "}
-            , but The Rippler used week to week undulating, and UFH sticks closer to the DUP principle, and changes
+            , but The Rippler used week to week undulating while UFH sticks closer to the DUP principle and changes
             volume and intensity daily.
           </p>
           <p>
             Another difference is that The Rippler sticks to Upper/Lower days, while in UHF every day is pretty much
             full body (if T1 is Upper, T2 is Lower, and vice versa).
           </p>
-          <p>Volume is also significantly higher, which makes it more like an advanced program.</p>
+          <p>The volume is also significantly higher, which makes it more of an advanced program.</p>
           <ProgramDetailsGzclPrinciple />
           <h2>Application of the GZCL Principle to the UHF program</h2>
           <h3>T1 Exercise</h3>
           <p>
-            In UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a <strong>9-week</strong>{" "}
-            program, and each week we use different 2RM% weight and reps for various T1 exercises. E.g. for week 1, we
-            use 85% of 2RM weight for Squat, 75% for Deadlift, 90% for Sling Shot Bench Press, etc.
+            In the UHF program, we use the 2 rep max (2RM) weight as Training Max (TM). This is a{" "}
+            <strong>9-week</strong> program, and each week we use different 2RM% weight and reps for various T1
+            exercises. E.g. for week 1, we use 85% of 2RM weight for Squat, 75% for Deadlift, 90% for Sling Shot Bench
+            Press, etc.
           </p>
           <p>
             Like in any Linear Periodization program, the weight generally goes up, while volume goes down. The weight

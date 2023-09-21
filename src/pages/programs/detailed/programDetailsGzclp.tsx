@@ -26,7 +26,7 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">GZCLP program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCLP Program Explained</h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
           By Cody Lefever
@@ -42,7 +42,7 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
             . The GZCL name comes from his Reddit username -{" "}
             <a href="https://www.reddit.com/u/gzcl" target="_blank">
               u/gzcl
-            </a>
+            </a>{" "}
             It's a great beginner program. You do it three times a week and it's based on something called the GZCL
             principle. It's a good next step after doing 3-6 months of a Basic Beginner Routine or Starting Strength.
             It's also good for getting a lot of practice with exercises, because you do more reps than most other
@@ -51,12 +51,12 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
           <ProgramDetailsGzclPrinciple />
           <h2>Application of the GZCL Principle to GZCLP program</h2>
           <p>
-            The GZCLP program has three workouts per week, but it's made up of four different days - A1, A2, B1, and B2.
-            So, you might do A1 on Monday, A2 on Wednesday, B1 on Friday, and then start the next week with B2 on
+            The GZCLP program has three workouts per week, but it's comprised of four different days - A1, A2, B1, and
+            B2. So, you might do A1 on Monday, A2 on Wednesday, B1 on Friday, and then start the next week with B2 on
             Monday. You keep rotating through these workouts.
           </p>
           <p>
-            For <strong>T1 exercises</strong>, we use main lifts:
+            For <strong>T1 exercises</strong>, we utilize main lifts:
             <strong>
               <ExerciseImage
                 settings={props.settings}
@@ -98,8 +98,8 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
             finish - you move to "Stage 3" - 10 sets of 1 rep.
           </p>
           <p>
-            If you can't manage "Stage 3" you either find out your new 5 reps max (5RM) and use that to start "Stage 1"
-            again, or you take off 10% of your current weight and go back to "Stage 1".
+            If you can't manage "Stage 3", you either establish your new 5 reps max (5RM) and use that to restart "Stage
+            1", or you reduce your current weight by 10% and revert to "Stage 1".
           </p>
           <p>So, to summarize:</p>
           <ul>
@@ -149,7 +149,7 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
             You flip flop the T1 and T2.
           </p>
           <p>
-            There're also 3 stages in T2, but you don't do AMRAP on the last set. You use the same progression rules as
+            There are also 3 stages in T2, but you don't do AMRAP on the last set. You use the same progression rules as
             in T1 - if you successfully finish all sets, you increase the weight by <strong>5lb</strong> for Bench Press
             and Overhead Press, and by <strong>10lb</strong> for Squat and Deadlift. If you couldn't finish all sets,
             you switch to the next stage.
@@ -166,7 +166,10 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
               <strong>Stage 3</strong> - 3 sets of 6 reps, no AMRAP
             </li>
           </ul>
-          <p>If you fail "Stage 3", you use your last weight of "Stage 1", add 15lb to it, and switch to "Stage 1".</p>
+          <p>
+            If you fail "Stage 3", you revert to your last weight from "Stage 1", add 15lb to it, and transition back to
+            "Stage 1".
+          </p>
           <p>
             For the <strong>T3 exercises</strong>, we use
             <strong>
@@ -186,21 +189,24 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
               Dumbbell Bent Over Row
             </strong>
           </p>
-          <p>There're no stages, just do 3 sets of 15 reps, with AMRAP as a last set.</p>
+          <p>There are no stages, just do 3 sets of 15 reps, with AMRAP as a last set.</p>
           <p>Once you can do 25 reps or more - add 5lb to the weight.</p>
           <p>
-            Again, this is just a short description, and for full information and details, please read the{" "}
-            <a href="http://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html" target="_blank">
+            Again, this is a brief overview. For comprehensive information and details, please read the{" "}
+            <a
+              href="https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html"
+              target="_blank"
+            >
               original post with the GZCL applications
             </a>
             .
           </p>
           <p>
             Check the interactive playground below to see how the program works. Try to complete different reps and see
-            how it updates the weights, or switches to different stages for T1 and T2 exercises. You can set your
-            weights there by clicking on the <IconEditSquare className="inline-block" /> icon.
+            how it updates the weights, or switches to different stages for T1 and T2 exercises. You can adjust your
+            weights by clicking on the <IconEditSquare className="inline-block" /> icon.
           </p>
-          <p>You can run GZCLP program in the Liftosaur app.</p>
+          <p>You can run the GZCLP program in the Liftosaur app.</p>
         </div>
         <div className="w-64 mx-auto">
           <h3 className="text-lg font-bold leading-8 text-center">Muscle Balance</h3>
