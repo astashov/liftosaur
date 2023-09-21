@@ -14,6 +14,7 @@ import { EditProgramConvertStateVariables } from "./editProgram/editProgramConve
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
+import { StringUtils } from "../utils/string";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -200,6 +201,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             after={
               Weight.is(value) ? (
                 <button
+                  data-cy={`state-${StringUtils.dashcase(stateKey)}-calculator`}
                   className="p-2 ml-2"
                   style={{ marginRight: "-0.25rem" }}
                   onClick={() => props.onOpenCalculator(stateKey, value.unit)}

@@ -3,6 +3,7 @@ import { useState } from "preact/hooks";
 import { Weight } from "../../models/weight";
 import { IProgramExercise, IProgramStateMetadata, ISettings, IUnit } from "../../types";
 import { ObjectUtils } from "../../utils/object";
+import { StringUtils } from "../../utils/string";
 import { GroupHeader } from "../groupHeader";
 import { IconCalculator } from "../icons/iconCalculator";
 import { LinkButton } from "../linkButton";
@@ -65,6 +66,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
             after={
               Weight.is(value) ? (
                 <button
+                  data-cy={`state-${StringUtils.dashcase(stateKey)}-calculator`}
                   className="p-2 ml-2"
                   style={{ marginRight: "-0.25rem" }}
                   onClick={() => setShowCalculator([stateKey, value.unit])}

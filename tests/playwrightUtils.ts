@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Locator, Page } from "@playwright/test";
+import { Locator, Page, expect } from "@playwright/test";
 
 export class PlaywrightUtils {
   public static clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {
@@ -30,6 +30,14 @@ export class PlaywrightUtils {
       },
       [dataCy, text, index]
     );
+  }
+
+  public static async type(value: string, locator: () => Locator): Promise<void> {
+    await locator().clear();
+    await expect(locator()).toHaveValue("");
+    await locator().type(value);
+    await expect(locator()).toHaveValue(value);
+    await locator().blur();
   }
 
   public static disableSubscriptions(page: Page): Promise<void> {

@@ -5,7 +5,6 @@
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets
-- Add 1RM/NRM calculator where we specify weights
 - Change volume to sets on the congrats screen
 - Add finished exercises on the congrats screen
 - Add image URL for the exercise

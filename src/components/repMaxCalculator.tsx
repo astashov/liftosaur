@@ -60,6 +60,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type="tel"
             label="Reps"
+            data-cy="rep-max-calculator-known-reps"
             value={knownRepsValue}
             maxLength={2}
             min={1}
@@ -72,8 +73,9 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type={SendMessage.isIos() ? "number" : "tel"}
             label="RPE"
-            defaultValue="10"
+            value={knownRpeValue}
             maxLength={4}
+            data-cy="rep-max-calculator-known-rpe"
             onBlur={generateOnChange("float", 1, 10, setKnownRpeValue)}
             min={1}
             max={10}
@@ -85,7 +87,8 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type="number"
             label="Weight"
-            defaultValue="200"
+            data-cy="rep-max-calculator-known-weight"
+            value={knownWeightValue}
             onBlur={generateOnChange("float", 1, 9999, setKnownWeightValue)}
             maxLength={8}
             max={99999}
@@ -97,30 +100,37 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
       <p className="mb-2">Now enter the Reps & RPE you want to find out your weight for:</p>
       <div className="flex items-center mb-4" style={{ gap: "0.5rem" }}>
         <div style={{ minWidth: "4rem" }}>
-          <Input type="tel" label="Reps" defaultValue="1" onBlur={generateOnChange("int", 1, 24, setTargetRepsValue)} />
+          <Input
+            type="tel"
+            data-cy="rep-max-calculator-target-reps"
+            value={targetRepsValue}
+            label="Reps"
+            onBlur={generateOnChange("int", 1, 24, setTargetRepsValue)}
+          />
         </div>
         <div>@</div>
         <div style={{ minWidth: "4rem" }}>
           <Input
             type={SendMessage.isIos() ? "number" : "tel"}
+            data-cy="rep-max-calculator-target-rpe"
             label="RPE"
-            defaultValue="10"
+            value={targetRpeValue}
             onBlur={generateOnChange("float", 1, 10, setTargetRpeValue)}
           />
         </div>
         <div>=</div>
-        <div className="text-lg font-bold whitespace-no-wrap">
+        <div className="text-lg font-bold whitespace-no-wrap" data-cy="rep-max-calculator-target-weight">
           {weight} {props.unit}
         </div>
       </div>
       <div className="flex" style={{ gap: "0.5rem" }}>
         <div className="flex-1 text-center">
-          <Button kind="grayv2" onClick={() => props.onSelect()}>
+          <Button kind="grayv2" onClick={() => props.onSelect()} data-cy="rep-max-calculator-back">
             {props.backLabel}
           </Button>
         </div>
         <div className="flex-1 text-center">
-          <Button kind="orange" onClick={() => props.onSelect(weight)}>
+          <Button kind="orange" data-cy="rep-max-calculator-submit" onClick={() => props.onSelect(weight)}>
             Use it!
           </Button>
         </div>
