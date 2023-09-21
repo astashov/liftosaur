@@ -9,7 +9,7 @@ export function IconCalculator(props: IProps): JSX.Element {
   const color = props.color || "#171718";
   const size = props.size ?? 20;
   return (
-    <svg width={size} height={size * 1.3} viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={Math.ceil(size * 1.3)} viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"
