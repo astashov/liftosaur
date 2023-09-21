@@ -15,19 +15,19 @@ Each set consists of:
 - weight to lift
 - whether it's an AMRAP exercise (As Many Reps As Possible).
 
-There's a special scripting language called Liftoscript. You can use it to describe the logic
-for the number of reps in a set, and for the set weights. It will allow to express almost any
-possible progressions and deloads variants.
+There's a special scripting language called Liftoscript. You can use it to describe the logic for the number of reps 
+in a set and for the set weights. It will allow you to express almost any possible progression and deload variant.
 
 ## Liftoscript tutorial
 
-If you have ever written scripts in JavaScript, Python or similar programming language (or even Excel!),
-Liftoscript will look very familiar. If not - no worries, it's a pretty simple and small language.
+If you have ever written scripts in JavaScript, Python, or a similar programming language (or even Excel!), 
+Liftoscript will look very familiar. If not, no worries, it's a pretty simple and small language.
 
 <div style="text-align: center">
   <video src="/images/docs-video2.mp4" controls style="width: 100%; max-width: 320px;"></video>
 </div>
-Check this video if you get stuck, it replicates what's written below.
+
+Check out this video if you get stuck, it replicates what's written below.
 
 ### State Variables and Finish Day Script
 
@@ -60,7 +60,7 @@ Under "Finish Day Script" there's a Playground section. There, you could see the
 
 Now, scroll to the very bottom and press "Save". You'll get back to the day editing screen. In the "Available Exercises" you'll see our new "Bench Press" exercise. Press it, and it should appear in the "Selected exercises". That means our first day now has this exercise added.
 
-You can give it a try for real now - go back to the list of days, and then go back again to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Press "Start Workout" at the footer, then press "Finish the workout". You'll see that for the next workout the weight will be 50lb now.
+You can give it a try now - go back to the list of days, and then go back to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Click on "Start Workout" at the footer, then click on "Finish the workout". You'll see that for the next workout, the weight will be 50lb now.
 
 ### Conditional logic
 
@@ -76,7 +76,7 @@ if (completedReps[1] >= reps[1]) {
 }
 ```
 
-Now we only will update the weight of the bench press if the completed reps of the first set is more or equal than the defined reps for that set (which is 5 in our case). I.e. the number in square brackets after `completedReps` or `reps` is for what set in the exercise.
+Now we will only update the weight of the bench press if the completed reps of the first set is more or equal than the defined reps for that set (which is 5 in our case). I.e. the number in square brackets after `completedReps` or `reps` is for what set in the exercise.
 
 We could also write it as:
 
@@ -86,7 +86,7 @@ if (completedReps[1] >= 5) {
 }
 ```
 
-But in that case if we ever change the required reps for the exercise to e.g. 10, it still will bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
+But in that case, if we ever change the required reps for the exercise to e.g. 10, it will still bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
 
 You can verify it works via playground. Scroll down to the "Playground" section, and try to set 5 completed reps, make sure in "State changes" you see that the `weight` got bumped. And if you set less than 5 completed reps, `weight` disappears from the state changes, meaning that state variable won't be changed anymore.
 
