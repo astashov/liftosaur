@@ -26,11 +26,10 @@ export namespace SendMessage {
   }
 
   export function isIos(): boolean {
-    return true;
-    /*return (
+    return (
       typeof window !== "undefined" &&
       !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftosaurMessage)
-    );*/
+    );
   }
 
   export function toIosWithResult<T>(obj: Record<string, string>): Promise<T | undefined> {
