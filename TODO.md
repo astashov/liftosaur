@@ -7,7 +7,6 @@
 - Names for variation sets
 - Add 1RM/NRM calculator where we specify weights
 - Change volume to sets on the congrats screen
-- Add finished exercises on the congrats screen
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
