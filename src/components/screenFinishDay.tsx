@@ -36,7 +36,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
   const totalReps = History.totalRecordReps(record);
-  const totalSets = History.totalRecordSets(record);
+  const totalSets = record.entries.map((e) => History.roundSetsInEntry(e, props.settings, e.exercise.equipment)).length;
 
   return (
     <Surface
