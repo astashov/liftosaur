@@ -67,9 +67,11 @@ export namespace Reps {
   }
 
   export function roundSets(sets: ISet[], settings: ISettings, equipment?: IEquipment): ISet[] {
-    return sets.map((set) => {
-      return { ...set, weight: Weight.roundConvertTo(set.weight, settings, equipment) };
-    });
+    return sets
+      .filter((s) => (s.completedReps || 0) > 0)
+      .map((set) => {
+        return { ...set, weight: Weight.roundConvertTo(set.weight, settings, equipment) };
+      });
   }
 
   export function group(sets: ISet[], isNext?: boolean): ISet[][] {
