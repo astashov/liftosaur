@@ -16,8 +16,6 @@ import { Surface } from "./surface";
 import { ILoading } from "../models/state";
 import { IScreen } from "../models/screen";
 import { Thunk } from "../ducks/thunks";
-import { IScreenMuscle } from "../models/muscle";
-import { Collector } from "../utils/collector";
 import { ExerciseImage } from "./exerciseImage";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { Reps } from "../models/set";
@@ -39,12 +37,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
-
-  const leftColumn: IScreenMuscle[] = ["back", "glutes", "hamstrings", "calves", "triceps"];
-  const rightColumn: IScreenMuscle[] = ["shoulders", "abs", "quadriceps", "chest", "biceps", "forearms"];
-
-  const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
-  const [muscleGroupsData] = historyCollector.run();
 
   return (
     <Surface
@@ -90,23 +82,23 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         {completedExercises.length > 0 ? (
           <>
             <div className="text-base font-bold pt-2">Your completed exercises</div>
-            <div className="flex rounded-lg bg-purplev2-100 overflow-x-scroll">
-              <div className={"flex flex-col"}>
+            <div className="flex rounded-lg bg-purplev2-100">
+              <div className={"flex flex-col m-2 w-full"}>
                 {completedExercises.map((e) => {
                   return (
-                    <div className="flex px-2 gap-1">
-                      <div className="flex items-center" style={{ minWidth: "6rem", maxWidth: "16rem" }}>
-                        <div style={{ width: "40px" }} className="box-content px-1 mr-1 justify-center">
-                          <ExerciseImage
-                            settings={props.settings}
-                            className="w-full"
-                            exerciseType={e.exercise}
-                            size="small"
-                          />
-                        </div>
-                        <div className="flex gap-2 mr-auto flex-wrap" style={{ maxWidth: "14rem" }}>
-                          <div className="flex-1 flex-col">
-                            <div className="flex-1 mr-1 text-sm font-bold">
+                    <div className="flex flex-row items-center flex-1 py-1 px-1 border-b border-grayv2-100">
+                      <div className="justify-center" style={{ minWidth: "2.25rem" }}>
+                        <ExerciseImage
+                          settings={props.settings}
+                          className="w-12 mr-3"
+                          exerciseType={e.exercise}
+                          size="small"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <div className={"flex-1 flex-col"}>
+                            <div className="pr-2 font-bold">
                               {Exercise.getById(e.exercise.id, props.settings.exercises).name}
                             </div>
                             {e.exercise.equipment && (
@@ -115,22 +107,16 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                               </div>
                             )}
                           </div>
+                          <div className="flex-1">
+                            <HistoryRecordSetsView
+                              sets={Reps.roundSets(e.sets, props.settings, e.exercise.equipment)}
+                              settings={props.settings}
+                              isNext={false}
+                              noWrap={true}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className={"flex flex-col"}>
-                {completedExercises.map((e) => {
-                  return (
-                    <div className={"flex ml-4 items-center"} style={{ height: "4rem" }}>
-                      <HistoryRecordSetsView
-                        noWrap={true}
-                        sets={Reps.roundSets(e.sets, props.settings, e.exercise.equipment)}
-                        isNext={false}
-                        settings={props.settings}
-                      />
                     </div>
                   );
                 })}
@@ -173,31 +159,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <div>No new personal records this time</div>
           </section>
         )}
-        {/*
-        <div className="mt-4 text-sm font-bold text-center">Sets per muscle group</div>
-        <div className="flex mt-1" style={{ gap: "1rem" }}>
-          <ul className="flex-1">
-            {leftColumn
-              .filter((c) => muscleGroupsData[c][2][0] > 0)
-              .map((muscle) => (
-                <li>
-                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
-                </li>
-              ))}
-          </ul>
-          <ul className="flex-1">
-            {rightColumn
-              .filter((c) => muscleGroupsData[c][2][0] > 0)
-              .map((muscle) => (
-                <li>
-                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
-                </li>
-              ))}
-          </ul>
-        </div>
-        */}
 
         <div className="fixed left-0 z-10 flex w-full px-16 py-4" style={{ bottom: "40px" }}>
           <div className="flex-1">
