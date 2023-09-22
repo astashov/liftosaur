@@ -31,15 +31,14 @@ interface IProps {
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
-  const completedExercises = record.entries.filter((e) => e.sets.filter((s) => (s.completedReps || 0) > 0).length > 0);
+
   const prs = History.findAllPersonalRecords(record, props.history);
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
+
+  const startedExercises = History.getStartedExercises(record);
   const totalReps = History.totalRecordReps(record);
-  const totalSets = record.entries.reduce(
-    (memo, e) => memo + History.roundSetsInEntry(e, props.settings, e.exercise.equipment).sets.length,
-    0
-  );
+  const totalSets = History.totalRecordSets(record);
 
   return (
     <Surface
@@ -82,16 +81,16 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         </div>
 
-        {completedExercises.length > 0 ? (
+        {startedExercises.length > 0 ? (
           <>
             <div className="text-base font-bold pt-2">Your completed exercises</div>
             <div className="flex rounded-lg bg-purplev2-100">
               <div className={"flex flex-col m-1 w-full"}>
-                {completedExercises.map((e, idx) => {
+                {startedExercises.map((e, idx) => {
                   return (
                     <div
                       className={`flex flex-1 flex-row items-center py-1 px-1 ${
-                        idx < completedExercises.length - 1 ? "border-b border-grayv2-100" : ""
+                        idx < startedExercises.length - 1 ? "border-b border-grayv2-100" : ""
                       }`}
                     >
                       <div className="justify-center" style={{ minWidth: "2.25rem" }}>
@@ -116,7 +115,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                           </div>
                           <div className="flex-1">
                             <HistoryRecordSetsView
-                              sets={Reps.roundSets(e.sets, props.settings, e.exercise.equipment)}
+                              sets={Reps.roundSets(History.getFinishedSets(e), props.settings, e.exercise.equipment)}
                               settings={props.settings}
                               isNext={false}
                               noWrap={true}
