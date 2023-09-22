@@ -83,14 +83,18 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <>
             <div className="text-base font-bold pt-2">Your completed exercises</div>
             <div className="flex rounded-lg bg-purplev2-100">
-              <div className={"flex flex-col m-2 w-full"}>
-                {completedExercises.map((e) => {
+              <div className={"flex flex-col m-1 w-full"}>
+                {completedExercises.map((e, idx) => {
                   return (
-                    <div className="flex flex-row items-center flex-1 py-1 px-1 border-b border-grayv2-100">
+                    <div
+                      className={`flex flex-1 flex-row items-center py-1 px-1 ${
+                        idx < completedExercises.length - 1 ? "border-b border-grayv2-100" : ""
+                      }`}
+                    >
                       <div className="justify-center" style={{ minWidth: "2.25rem" }}>
                         <ExerciseImage
                           settings={props.settings}
-                          className="w-12 mr-3"
+                          className="w-8 mr-3"
                           exerciseType={e.exercise}
                           size="small"
                         />
