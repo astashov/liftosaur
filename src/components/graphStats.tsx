@@ -27,6 +27,7 @@ interface IGraphStatsProps {
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
+  movingAverageWindowSize?: number;
 }
 
 export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
@@ -53,14 +54,27 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
 export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
+  const useMovingAverage: boolean = props.movingAverageWindowSize !== undefined;
+  const avgWindowSize = props.movingAverageWindowSize || 5;
   useEffect(() => {
-    const data = props.collection.reduce<[number[], number[]]>(
-      (memo, i) => {
+    const data = props.collection.reduce<[number[], number[], number[]]>(
+      (memo, i, index, array) => {
         memo[0].push(i[0]);
         memo[1].push(i[1]);
+
+        if (useMovingAverage) {
+          if (index >= avgWindowSize - 1) {
+            const movingAvg =
+              memo[1].slice(index - avgWindowSize + 1, index + 1).reduce((a, b) => a + b, 0) / avgWindowSize;
+            memo[2].push(Math.round(movingAvg * 10) / 10);
+          } else {
+            memo[2].push(i[1]);
+          }
+        }
+
         return memo;
       },
-      [[], []]
+      [[], [], []]
     );
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
@@ -84,6 +98,9 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
                 let text: string;
                 if (value != null && props.units != null) {
                   text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
+                  if (useMovingAverage) {
+                    text += ` (Avg. ${data[2][idx]} ${props.units})`;
+                  }
                 } else {
                   text = "";
                 }
@@ -107,6 +124,14 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
           stroke: "red",
           width: 1,
         },
+        useMovingAverage
+          ? {
+              label: "Moving Average",
+              value: (self, rawValue) => `${rawValue} ${props.units}`,
+              stroke: "blue",
+              width: 1,
+            }
+          : {},
       ],
     };
 

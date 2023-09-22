@@ -1,7 +1,6 @@
 - Push notif for the forgotten session
 - AMRAP as an expression
 - Dynamic sets!
-- Moving average on graphs
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets

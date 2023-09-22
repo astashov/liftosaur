@@ -59,6 +59,8 @@ export function StatsList(props: IProps): JSX.Element {
     ...ObjectUtils.keys(props.stats.length),
   ];
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(statsKeys[0] || "weight");
+  const [averageWindowSize, setAverageWindowSize] = useState("5");
+  const [graphState, setGraphState] = useState([selectedKey, averageWindowSize]);
   const values = getValues(props.stats, selectedKey);
 
   if (statsKeys.length === 0) {
@@ -100,6 +102,23 @@ export function StatsList(props: IProps): JSX.Element {
         values={statsKeys.map((key) => [key, Stats.name(key)])}
         onChange={(value) => {
           setSelectedKey(value as IStatsKey);
+          setGraphState([selectedKey, averageWindowSize]);
+        }}
+      />
+      <MenuItemEditable
+        name="Moving Average Data Points"
+        type="select"
+        value={averageWindowSize.toString()}
+        values={[
+          ["off", "Off"],
+          ["2", "2"],
+          ["3", "3"],
+          ["4", "4"],
+          ["5", "5"],
+        ]}
+        onChange={(value) => {
+          setAverageWindowSize(value || "off");
+          setGraphState([selectedKey, averageWindowSize]);
         }}
       />
       <div className="relative">
@@ -111,10 +130,11 @@ export function StatsList(props: IProps): JSX.Element {
               minX={graphPoints[0][0]}
               maxX={graphPoints[graphPoints.length - 1][0]}
               units={graphUnit}
-              key={selectedKey}
+              key={graphState}
               settings={props.settings}
               collection={graphPoints}
               statsKey={selectedKey}
+              movingAverageWindowSize={averageWindowSize === "off" ? undefined : Number(averageWindowSize)}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           </>
