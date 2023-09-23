@@ -19,6 +19,7 @@
 - Add integration with Apple Health
 - Fix the bug with clipboard in Safari
 - Add pushpress and lat pulldown images
+- Don't combine all equipment on graphs
 
 * Programs
   - 5/3/1s

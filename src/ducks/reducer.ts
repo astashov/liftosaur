@@ -29,6 +29,7 @@ import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
 import { IProgramState } from "../types";
 import { Service } from "../api/service";
+import { unrunMigrations } from "../migrations/runner";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -73,6 +74,7 @@ export async function getInitialState(
       : undefined;
 
   if (storage != null && storage.storage != null) {
+    const hasUnrunMigrations = unrunMigrations(storage.storage).length > 0;
     const maybeStorage = await Storage.get(client, storage.storage, true);
     let finalStorage: IStorage;
     const errors: IStateErrors = {};
@@ -113,6 +115,7 @@ export async function getInitialState(
       comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
       user: userId ? { email: userId, id: userId } : undefined,
+      freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
     };
   }
@@ -129,6 +132,7 @@ export async function getInitialState(
     storage: Storage.getDefault(),
     user: userId ? { email: userId, id: userId } : undefined,
     errors: {},
+    freshMigrations: false,
   };
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;

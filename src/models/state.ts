@@ -134,6 +134,7 @@ export interface IState {
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
+  freshMigrations: boolean;
   errors: IStateErrors;
 }
 

@@ -132,7 +132,7 @@ export namespace Thunk {
       const state = getState();
       if (state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
         const storage: IPartialStorage = { ...state.storage };
-        if (false) {
+        if (!state.freshMigrations) {
           if (!args.withHistory) {
             storage.history = undefined;
           }
@@ -143,7 +143,12 @@ export namespace Thunk {
             storage.programs = undefined;
           }
         }
-        await load(dispatch, "sync", async () => env.service.postStorage(storage));
+        await load(dispatch, "sync", async () => {
+          await env.service.postStorage(storage);
+          if (state.freshMigrations) {
+            updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)]);
+          }
+        });
       }
     };
   }
@@ -717,9 +722,6 @@ export namespace Thunk {
         WhatsNew.updateStorage(dispatch);
       }
       dispatch(Thunk.fetchPrograms());
-      if (getState().user?.id) {
-        fetchAllFriendsThings(dispatch, getState().storage);
-      }
       SendMessage.toIos({ type: "restoreSubscriptions" });
       SendMessage.toAndroid({ type: "restoreSubscriptions" });
     };
