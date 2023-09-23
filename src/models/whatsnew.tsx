@@ -670,6 +670,23 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230922": {
+    title: <span>Moving Average on the Measurement Graphs</span>,
+    body: (
+      <ul>
+        <li>
+          Now, on the Measurement screen, for the graphs there you can add moving average graph. It's super useful
+          especially for tracking bodyweight or body fat, due to high volatility of those measurements. This was added
+          by awesome{" "}
+          <a href="https://github.com/123marvin123" target="_blank" className="font-bold underline text-bluev2">
+            @123marvin123
+          </a>
+          , thank you so so much for contributing and adding this feature! It'll help a lot of people tracking their
+          weight, and it's a great addition to Liftosaur. Thank you very very much!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
