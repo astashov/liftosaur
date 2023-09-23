@@ -336,4 +336,10 @@ export const migrations = {
     }
     return storage;
   },
+  "20230922191948_add_graph_options": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.graphOptions = storage.settings.graphOptions || {};
+    console.log(storage);
+    return storage;
+  },
 };

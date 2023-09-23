@@ -839,12 +839,18 @@ export const TEquipmentData = t.intersection(
 );
 export type IEquipmentData = t.TypeOf<typeof TEquipmentData>;
 
+export const TGraphOptions = t.partial({
+  movingAverageWindowSize: t.number,
+});
+export type IGraphOptions = t.TypeOf<typeof TGraphOptions>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
       equipment: dictionary(TEquipment, TEquipmentData),
       graphs: t.array(TGraph),
+      graphOptions: dictionary(t.string, TGraphOptions),
       graphsSettings: t.partial({
         isSameXAxis: t.boolean,
         isWithBodyweight: t.boolean,

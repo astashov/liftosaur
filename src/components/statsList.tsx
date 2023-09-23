@@ -16,6 +16,9 @@ import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
 import { Button } from "./button";
 import { Thunk } from "../ducks/thunks";
+import { updateSettings } from "../models/state";
+import { lb } from "lens-shmens";
+import { Subscriptions } from "../utils/subscriptions";
 
 interface IProps {
   stats: IStats;
@@ -59,8 +62,7 @@ export function StatsList(props: IProps): JSX.Element {
     ...ObjectUtils.keys(props.stats.length),
   ];
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(statsKeys[0] || "weight");
-  const [averageWindowSize, setAverageWindowSize] = useState("5");
-  const [graphState, setGraphState] = useState([selectedKey, averageWindowSize]);
+  const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
   const values = getValues(props.stats, selectedKey);
 
   if (statsKeys.length === 0) {
@@ -102,25 +104,34 @@ export function StatsList(props: IProps): JSX.Element {
         values={statsKeys.map((key) => [key, Stats.name(key)])}
         onChange={(value) => {
           setSelectedKey(value as IStatsKey);
-          setGraphState([selectedKey, averageWindowSize]);
         }}
       />
-      <MenuItemEditable
-        name="Moving Average Data Points"
-        type="select"
-        value={averageWindowSize.toString()}
-        values={[
-          ["off", "Off"],
-          ["2", "2"],
-          ["3", "3"],
-          ["4", "4"],
-          ["5", "5"],
-        ]}
-        onChange={(value) => {
-          setAverageWindowSize(value || "off");
-          setGraphState([selectedKey, averageWindowSize]);
-        }}
-      />
+      {Subscriptions.hasSubscription(props.subscription) && (
+        <MenuItemEditable
+          name="Moving Average Window Size"
+          type="select"
+          value={movingAverageWindowSize?.toString() ?? ""}
+          values={[
+            ["", "Off"],
+            ["2", "2"],
+            ["3", "3"],
+            ["4", "4"],
+            ["5", "5"],
+          ]}
+          onChange={(value) => {
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("graphOptions")
+                .p(selectedKey)
+                .recordModify((opts) => ({
+                  ...opts,
+                  movingAverageWindowSize: value ? parseInt(value, 10) : undefined,
+                }))
+            );
+          }}
+        />
+      )}
       <div className="relative">
         {graphPoints.length > 2 && (
           <>
@@ -130,11 +141,11 @@ export function StatsList(props: IProps): JSX.Element {
               minX={graphPoints[0][0]}
               maxX={graphPoints[graphPoints.length - 1][0]}
               units={graphUnit}
-              key={graphState}
+              key={`${selectedKey}_${movingAverageWindowSize}`}
               settings={props.settings}
               collection={graphPoints}
               statsKey={selectedKey}
-              movingAverageWindowSize={averageWindowSize === "off" ? undefined : Number(averageWindowSize)}
+              movingAverageWindowSize={movingAverageWindowSize}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           </>

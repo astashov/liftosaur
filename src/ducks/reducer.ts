@@ -682,6 +682,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         settings: {
           equipment: Equipment.mergeEquipment(oldStorage.settings.equipment, newStorage.settings.equipment),
           graphsSettings: newStorage.settings.graphsSettings,
+          graphOptions: newStorage.settings.graphOptions,
           exerciseStatsSettings: newStorage.settings.exerciseStatsSettings,
           lengthUnits: newStorage.settings.lengthUnits,
           statsEnabled: newStorage.settings.statsEnabled,

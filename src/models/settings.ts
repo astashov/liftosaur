@@ -20,6 +20,7 @@ export namespace Settings {
         isWithBodyweight: false,
         isWithOneRm: true,
       },
+      graphOptions: {},
       exerciseStatsSettings: {
         ascendingSort: false,
       },
