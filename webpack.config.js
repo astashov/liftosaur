@@ -255,6 +255,11 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/externalimages/*": {
+        target: "https://www.liftosaur.com/",
+        secure: true,
+        changeOrigin: true,
+      },
       "/dashboards/users": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,

@@ -642,8 +642,8 @@ export namespace ExerciseImageUtils {
   export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
     const src =
       size === "large"
-        ? `https://www.liftosaur.com/externalimages/exercises/full/large/${id(type, settings)}_full_large.png`
-        : `https://www.liftosaur.com/externalimages/exercises/single/small/${id(type, settings)}_single_small.png`;
+        ? `/externalimages/exercises/full/large/${id(type, settings)}_full_large.png`
+        : `/externalimages/exercises/single/small/${id(type, settings)}_single_small.png`;
     return src;
   }
 }
