@@ -11,7 +11,7 @@ function plannerReformatterPrompt(): string {
 * Each exercise starts with a new line
 * First always goes the exercise name
 * Then, after slash (/) - sets x reps. E.g. 5x5, 3x1, 1x3, etc. If there's a range of reps, use dash (-) to separate them. E.g. 3x3-5, 2x4-8.
-* If there're multiple sets of different reps, separate them with comma. E.g. "3x3, 2x4-8, 1x10-12", or "3, 4, 5", or "1x3, 1x4, 1x5" or "3x3-6, 5, 5, 5".
+* If there are multiple sets of different reps, separate them with comma. E.g. "3x3, 2x4-8, 1x10-12", or "3, 4, 5", or "1x3, 1x4, 1x5" or "3x3-6, 5, 5, 5".
 
 Example:
 Bench Press / 3x3
@@ -29,7 +29,7 @@ Examples:
 IT IS VERY VERY IMPORTANT THAT YOU TRY TO FIND SIMILAR EXERCISES FROM THE LIST AND USE THEM IN THE OUTPUT!!!
 
 The list of built-in exercises is case sensitive, so change the case if necessary.
-If user entered something like "Double Rope Pushdown" - we don't have such exercise in the list, so you keep it as is. The list of buit-in exercises:
+If user entered something like "Double Rope Pushdown" - we don't have such exercise in the list, so you keep it as is. The list of built-in exercises:
 
 "Ab Wheel
 Arnold Press
@@ -285,7 +285,7 @@ export class PlannerReformatter {
             requestMessages.push({ role: "assistant", content: message });
             requestMessages.push({
               role: "user",
-              content: `There're exercises not from the built-in exercises list - ${unknownExercises.join(
+              content: `There are exercises not from the built-in exercises list - ${unknownExercises.join(
                 ", "
               )}. Try to use the built-in exercises list if possible and they have just slightly different name, but mean the same exercise`,
             });

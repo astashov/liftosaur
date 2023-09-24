@@ -39,7 +39,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: Jacked And Tan 2.0 program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: Jacked And Tan 2.0 Program Explained</h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
           By Cody Lefever
@@ -57,14 +57,14 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
               u/gzcl
             </a>
             . It's a 12-week weightlifting program, following GZCL principles, and offering quite a lot of volume. It's
-            both for hypertrophy and strength. It starts with lower intensity / higher volume, and progresses to higher
-            intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes,
-            with testing for different RMs each workout.
+            designed both for hypertrophy and strength. It starts with lower intensity / higher volume, then progresses
+            to higher intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep
+            schemes, with testing for different RMs each workout.
           </p>
           <p>
-            It's an intermediate program, so you gonna find it most useful after your newbie gains are over. There's
-            good variaty in exercises, and a lot of people reported getting serious gains and new PRs after running this
-            program.
+            It's an intermediate program, so you're going to find it most useful after your newbie gains are over.
+            There's good variety in exercises, and a lot of people reported getting serious gains and new PRs after
+            running this program.
           </p>
           <p>
             You can run it after beginner{" "}
@@ -85,9 +85,9 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
             lower volume and higher intensity (lower reps, higher weight) - so called Linear Periodization.
           </p>
           <p>
-            First, you need to define your training max (TM), which is approximately equal your 2RM (2 Rep Max). It'll
-            be the basis for your "drop sets" for T1 exercise. Drop sets are the sets that you do after the Rep Max set,
-            which are based on percentage of TM.
+            First, you need to define your training max (TM), which is approximately equal to your 2RM (2 Rep Max).
+            It'll be the basis for your "drop sets" for T1 exercise. Drop sets are the sets that you do after the Rep
+            Max set, which are based on percentage of TM.
           </p>
           <p>
             The first set is a Rep Max set, where you have to work up to your Rep Max. For the first week it's 10RM, for
@@ -166,8 +166,8 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           <h3>T2b and T3 Exercises</h3>
           <p>
             T2b and T3 exercises are pretty similar to each other, they just use different first set RM value. So, for
-            the first set you attempt to do RM for the reps of that set (similar like for T1), record the weight, and
-            then you do so called Max Rep Sets (MRS). Simply, try to do as many reps as possible with the same weight as
+            the first set, you attempt to do RM for the reps of that set (similar to T1), record the weight, and then
+            you do the so-called Max Rep Sets (MRS). Simply, try to do as many reps as possible with the same weight as
             you did for the first set. For the 2nd, 3rd, etc Max Reps Set you likely will be able to do less and less
             reps, but that's okay and expected, as you're accumulating fatigue.
           </p>
@@ -201,10 +201,10 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
           </p>
           <p>
             Check the interactive playground below to see how the program works, and what the weights/sets/reps look
-            like for each week. You can edit the 2RM, 5RM, etc weights for each exercise, and see how the weight
+            like for each week. You can edit the 2RM, 5RM, etc. weights for each exercise, and see how the weight
             changes.
           </p>
-          <p>You can run GZCL: Jacked And Tan 2.0 program in the Liftosaur app.</p>
+          <p>You can run the GZCL: Jacked And Tan 2.0 program in the Liftosaur app.</p>
         </div>
         <div className="w-64 mx-auto">
           <h3 className="text-lg font-bold leading-8 text-center">Muscle Balance</h3>

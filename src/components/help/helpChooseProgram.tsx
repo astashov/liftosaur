@@ -17,7 +17,7 @@ export function HelpChooseProgram(): JSX.Element {
         <strong>Cloning</strong> a pre-built means you copy the program to the list of your programs.
       </p>
       <p className="pb-2">
-        A program defines the list of workout days and the exercies for each day. It also defines the logic for
+        A program defines the list of workout days and the exercises for each day. It also defines the logic for
         increasing or decreasing reps and weights over time, depending on your workout performance.
       </p>
       <p className="pb-2">

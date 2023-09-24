@@ -419,14 +419,14 @@ export namespace EditProgram {
     program: IProgram,
     dayIndex: number,
     startExerciseIndex: number,
-    endExceciseIndex: number
+    endExerciseIndex: number
   ): void {
     updateState(dispatch, [
       EditProgramLenses.reorderExercises(
         lb<IState>().p("storage").p("programs").findBy("id", program.id),
         dayIndex,
         startExerciseIndex,
-        endExceciseIndex
+        endExerciseIndex
       ),
     ]);
   }

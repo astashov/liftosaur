@@ -186,8 +186,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             This tool allows you to quickly build your weightlifting programs, ensure you have proper{" "}
             <strong>weekly volume per muscle group</strong>, and balance it with the{" "}
             <strong>time you spend in a gym</strong>. You can build multi-week programs, plan your mesocycles, deload
-            weeks, testing 1RM weeks, and see the weekly undulation of volume and instensity of each exercise on a
-            graph.
+            weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each exercise on a graph.
           </p>
           <p className="mb-2">
             Set the program name, create weeks and days, type the list of exercises for each day, putting each exercise
@@ -205,7 +204,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </p>
           <p className="mb-2">
             On the right you'll see <strong>Weekly Stats</strong>, where you can see the number of sets per week per
-            muscle group, whether you're in the recommended range (indicated by color), strenght/hypertrophy split, and
+            muscle group, whether you're in the recommended range (indicated by color), strength/hypertrophy split, and
             if you hover a mouse over the numbers - you'll see what exercises contribute to that number, and how much.
           </p>
           <p className="mb-2">

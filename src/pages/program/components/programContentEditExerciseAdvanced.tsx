@@ -71,10 +71,10 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
   );
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
-  const [areExtraFeatuersValid, setAreExtraFeaturesValid] = useState<boolean>(true);
+  const [areExtraFeaturesValid, setAreExtraFeaturesValid] = useState<boolean>(true);
 
   const isSaveDisabled =
-    !entry || !finishEditorResult.success || !variationScriptResult.success || !areExtraFeatuersValid;
+    !entry || !finishEditorResult.success || !variationScriptResult.success || !areExtraFeaturesValid;
 
   const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);
 

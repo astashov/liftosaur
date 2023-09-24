@@ -6,7 +6,7 @@ export function HelpEditProgramDay(): JSX.Element {
     <>
       <h2 className="pb-2 text-xl">Edit Program Day</h2>
       <p className="pb-2">
-        On this screen you can edit day name and pick/reoder exercises that will be used in that day.
+        On this screen you can edit day name and pick/reorder exercises that will be used in that day.
       </p>
       <p className="pb-2">
         To add exercises to the day, tap on them in the <strong>Available Exercises</strong> sections below. To remove -

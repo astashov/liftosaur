@@ -15,19 +15,19 @@ Each set consists of:
 - weight to lift
 - whether it's an AMRAP exercise (As Many Reps As Possible).
 
-There's a special scripting language called Liftoscript. You can use it to describe the logic
-for the number of reps in a set, and for the set weights. It will allow to express almost any
-possible progressions and deloads variants.
+There's a special scripting language called Liftoscript. You can use it to describe the logic for the number of reps 
+in a set and for the set weights. It will allow you to express almost any possible progression and deload variant.
 
 ## Liftoscript tutorial
 
-If you have ever written scripts in JavaScript, Python or similar programming language (or even Excel!),
-Liftoscript will look very familiar. If not - no worries, it's a pretty simple and small language.
+If you have ever written scripts in JavaScript, Python, or a similar programming language (or even Excel!), 
+Liftoscript will look very familiar. If not, no worries, it's a pretty simple and small language.
 
 <div style="text-align: center">
   <video src="/images/docs-video2.mp4" controls style="width: 100%; max-width: 320px;"></video>
 </div>
-Check this video if you get stuck, it replicates what's written below.
+
+Check out this video if you get stuck, it replicates what's written below.
 
 ### State Variables and Finish Day Script
 
@@ -42,7 +42,7 @@ Press `45 lb` value of the `weight` variable, and change it to e.g. `50`.
 Now, let's put that variable in use. Scroll down to the "Sets" section. For simplicity, we'll only have 1 set of 5 reps for our exercise. The weight of it though will be controlled by the `weight` state variable we set above. You could see in the **Weight** field it's already entered `state.weight`.
 
 It should give you a hint that evaluation result will be `50lb`, which is the current value of `state.weight`.
-You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights there're often percentages of training max weight being used, so you could write it as `state.weight * 0.7`, for example. Or do something completely crazy like `(state.weight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
+You can enter any expression there, using math operators. For example, in 5/3/1 workout variations, for weights they are often percentages of training max weight being used, so you could write it as `state.weight * 0.7`, for example. Or do something completely crazy like `(state.weight + 10lb) * 5 / 3.14` (no idea why would you need it, but it's totally possible).
 
 Now let's define the rules how we'll do progressions. Scroll to the section "Finish Day Script" at the bottom. Type there:
 
@@ -60,7 +60,7 @@ Under "Finish Day Script" there's a Playground section. There, you could see the
 
 Now, scroll to the very bottom and press "Save". You'll get back to the day editing screen. In the "Available Exercises" you'll see our new "Bench Press" exercise. Press it, and it should appear in the "Selected exercises". That means our first day now has this exercise added.
 
-You can give it a try for real now - go back to the list of days, and then go back again to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Press "Start Workout" at the footer, then press "Finish the workout". You'll see that for the next workout the weight will be 50lb now.
+You can give it a try now - go back to the list of days, and then go back to the "Choose Program" screen. There, click on our new "Liftosaurus" program to select it. Click on "Start Workout" at the footer, then click on "Finish the workout". You'll see that for the next workout, the weight will be 50lb now.
 
 ### Conditional logic
 
@@ -76,7 +76,7 @@ if (completedReps[1] >= reps[1]) {
 }
 ```
 
-Now we only will update the weight of the bench press if the completed reps of the first set is more or equal than the defined reps for that set (which is 5 in our case). I.e. the number in square brackets after `completedReps` or `reps` is for what set in the exercise.
+Now we will only update the weight of the bench press if the completed reps of the first set is more or equal than the defined reps for that set (which is 5 in our case). I.e. the number in square brackets after `completedReps` or `reps` is for what set in the exercise.
 
 We could also write it as:
 
@@ -86,7 +86,7 @@ if (completedReps[1] >= 5) {
 }
 ```
 
-But in that case if we ever change the required reps for the exercise to e.g. 10, it still will bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
+But in that case, if we ever change the required reps for the exercise to e.g. 10, it will still bump the bench press weight by 5 if we complete 5 or more reps, which is probably not what we want.
 
 You can verify it works via playground. Scroll down to the "Playground" section, and try to set 5 completed reps, make sure in "State changes" you see that the `weight` got bumped. And if you set less than 5 completed reps, `weight` disappears from the state changes, meaning that state variable won't be changed anymore.
 
@@ -150,7 +150,7 @@ If you create more than one variation, there will be the "Variation Expression" 
 day == 1 ? 1 : 2;
 ```
 
-And for the Day 1 it will use `Variation 1`, for all other days it will use `Variation 2` SetsxReps scheme.
+And for the Day 1 it will use `Variation 1`, for all other days it will use `Variation 2` Sets x Reps scheme.
 
 ## Language Reference
 
@@ -163,7 +163,7 @@ Number or weight could be used for set weight expressions.
 
 ### Values
 
-The values are numbers (1, 3, 100, 31534532, etc), and also you can add kg or lb suffix to the number to indicate that is's a weight (like 1lb, 3kg, 100lb, 31534532kg).
+The values are numbers (1, 3, 100, 31534532, etc.), and also you can add kg or lb suffix to the number to indicate that it is a weight (like 1lb, 3kg, 100lb, 31534532kg).
 
 Using lb/kg is recommended for when you deal with weights, because they will be converted to kilograms properly if user selects that unit on the settings screen.
 
@@ -211,7 +211,7 @@ state.someVar = (10 + 15) * 2;
 
 ### Predefined variables
 
-You cannot assign values to them, but you can use theirs values. There're:
+You cannot assign values to them, but you can use their values. They are:
 
 - `weights[x]` or `w[x]` - weight of an X set. X starts from 1.
 - `reps[x]` or `r[x]` - number of reps for an X set.
@@ -235,7 +235,7 @@ state.myVar = 4;
 
 ### Built-in functions
 
-There're some built-in functions you can use in the expressions. There're:
+There are some built-in functions you can use in the expressions. They are:
 
 #### `calculateTrainingMax`
 

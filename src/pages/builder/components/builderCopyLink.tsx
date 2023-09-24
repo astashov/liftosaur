@@ -5,7 +5,7 @@ import { Service } from "../../../api/service";
 import { useEffect } from "preact/hooks";
 import { ClipboardUtils } from "../../../utils/clipboard";
 
-interface IBuilerCopyLinkProps<T> {
+interface IBuilderCopyLinkProps<T> {
   msg?: string;
   rightAligned?: boolean;
   suppressShowInfo?: boolean;
@@ -15,7 +15,7 @@ interface IBuilerCopyLinkProps<T> {
   client: Window["fetch"];
 }
 
-export function BuilderCopyLink<T>(props: IBuilerCopyLinkProps<T>): JSX.Element {
+export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element {
   const msg = props.msg || "Copied this workout link to clipboard";
   const [showInfo, setShowInfo] = useState<string | undefined>(undefined);
 

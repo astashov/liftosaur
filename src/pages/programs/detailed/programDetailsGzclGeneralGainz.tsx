@@ -26,7 +26,7 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
 
   return (
     <section className="px-4">
-      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: General Gainz program explained</h1>
+      <h1 className="text-2xl font-bold leading-8 text-center">GZCL: General Gainz Program Explained</h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
           By Cody Lefever
@@ -43,7 +43,7 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
             <a href="https://www.reddit.com/u/gzcl" target="_blank">
               u/gzcl
             </a>
-            . It's the newest Cody's program, combining together the learnings from all other GZCL programs, from{" "}
+            . It's the newest program from Cody, combining the learnings from all other GZCL programs, from{" "}
             <a href="/programs/gzcl-vdip" target="_blank">
               VDIP
             </a>{" "}
@@ -64,31 +64,31 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
           <ul>
             <li>
               <strong>Find</strong>: you pick a weight you can do for 3-6 reps (3RM-6RM), make an attempt, and estimate
-              it's complexity. Whether it was easy (RPE 8 - 2 reps in the tank), medium (RPE 9 - 1 rep in the tank) or
+              it's complexity. Whether it was easy (RPE 8 - 2 reps in the tank), medium (RPE 9 - 1 rep in the tank), or
               hard - (RPE 10 - no reps in the tank).
             </li>
             <li>
-              <strong>Hold</strong>: next time you try to do <strong>same reps with same weight</strong> (e.g. for a
-              second chance).
+              <strong>Hold</strong>: next time you try to do the <strong>same reps with same weight</strong> (e.g., for
+              a second chance).
             </li>
             <li>
-              <strong>Push</strong>: next time you try to do <strong>more reps with same weight</strong>, "push" your
+              <strong>Push</strong>: next time you try to do <strong>more reps with same weight</strong>, push your
               limits.
             </li>
             <li>
-              <strong>Extend</strong>: Do <strong>1 rep sets</strong> after the first 3-6 RM set. Number of sets matches
-              your first RM set, e.g. if you did 5RM, you do 5 additional 1 rep sets with the same weight. You can
-              extend number of sets to up to additional 3 sets if first set was easy or medium.
+              <strong>Extend</strong>: Do <strong>1-rep sets</strong> after the first 3-6 RM set. The number of sets
+              matches your first RM set. For example, if you did a 5RM, you do 5 additional 1-rep sets with the same
+              weight. You can extend the number of sets up to an additional 3 sets if the first set was easy or medium.
             </li>
           </ul>
           <p>
             So, initially you do <strong>Find</strong> and <strong>Extend</strong>. In the next workouts, you make a
-            decision - do either <strong>Hold</strong> or <strong>Push</strong>, and after that -{" "}
-            <strong>Extend</strong> again.
+            decision - either <strong>Hold</strong> or <strong>Push</strong>, and after that - <strong>Extend</strong>{" "}
+            again.
           </p>
           <p>Once you get to 6RM + 6 sets, you can increase the weight.</p>
           <p>
-            Rest time is important, otherwise you can pretty much do the extension sets forever. <strong>3-5</strong>{" "}
+            Rest time is important; otherwise, you can pretty much do the extension sets forever. <strong>3-5</strong>{" "}
             minutes after first set, and <strong>2-3</strong> minutes after extension sets.
           </p>
           <h3>T2 Exercises</h3>
@@ -100,33 +100,33 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
               tank) or hard - (RPE 10 - no reps in the tank).
             </li>
             <li>
-              <strong>Hold</strong>: next time you try to do <strong>same reps with same weight</strong> (e.g. for a
-              second chance).
+              <strong>Hold</strong>: next time you try to do the <strong>same reps with same weight</strong> (e.g., for
+              a second chance).
             </li>
             <li>
-              <strong>Push</strong>: next time you try to do <strong>more reps with same weight</strong>, "push" your
+              <strong>Push</strong>: next time you try to do <strong>more reps with same weight</strong>, push your
               limits.
             </li>
             <li>
               <strong>Extend</strong>: Do <strong>half-sets</strong> after the first 6-10 RM set. Your goal is to get 2
               times of the reps from the first set, doing sets with half reps of your first set. For example if you did
               10RM first set, you want to get <strong>20 reps</strong> total in the extension sets. So, you do{" "}
-              <strong>4 sets of 5 reps</strong> (5 = 10 / 2). You can extend number of sets to up to additional{" "}
-              <strong>2 sets</strong> if first set was easy or medium.
+              <strong>4 sets of 5 reps</strong> (5 = 10 / 2). You can extend the number of sets up to an additional{" "}
+              <strong>2 sets</strong> if the first set was easy or medium.
             </li>
           </ul>
           <p>Once you get to 10RM + all extension sets, you can increase the weight.</p>
           <p>
-            Rest time is important too here. <strong>2-4</strong> minutes after first set, and <strong>1-2</strong>{" "}
-            minutes after extension sets.
+            Rest time is important here too. Rest for <strong>2-4</strong> minutes after the first set, and{" "}
+            <strong>1-2</strong> minutes after extension sets.
           </p>
           <h3>T3 Exercises</h3>
           <p>
-            T3 exercises are just 3 sets of AMRAP (or Max Rep Sets - MRS). Keep short rest timers between them -{" "}
+            T3 exercises consist of just 3 sets of AMRAP (or Max Rep Sets - MRS). Keep short rest times between them -{" "}
             <strong>30-90 seconds</strong>.
           </p>
           <p>
-            Again, this is just a short description, and for full information and details, please read the{" "}
+            Again, this is just a brief description, and for full information and details, please read the{" "}
             <a href="https://www.reddit.com/r/gzcl/comments/aqkdgo/happy_gday_gainerz/" target="_blank">
               original post on Reddit with the GZCL General Gainz application
             </a>
@@ -136,7 +136,7 @@ export function ProgramDetailsGzclGeneralGainz(props: IProgramDetailsGzclVdipPro
             Check the interactive playground below to see how the program works, and what the weights/sets/reps look
             like for each day. You can simulate doing RM, and then singles or half-sets after, etc.
           </p>
-          <p>You can run GZCL: General Gainz program in the Liftosaur app.</p>
+          <p>You can run the GZCL: General Gainz program in the Liftosaur app.</p>
         </div>
         <div className="w-64 mx-auto">
           <h3 className="text-lg font-bold leading-8 text-center">Muscle Balance</h3>

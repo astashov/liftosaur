@@ -27,7 +27,7 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
   return (
     <section className="px-4">
       <h1 className="text-2xl font-bold leading-8 text-center">
-        GZCL: VDIP (Volume-dependent Intensity Progression) program explained
+        GZCL: VDIP (Volume-dependent Intensity Progression) Program Explained
       </h1>
       <div className="mb-4 text-sm font-bold text-center">
         <a href="https://www.gainzfever.com/" target="_blank" className="underline text-bluev2">
@@ -55,15 +55,15 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
             First, you come up with the initial weight - which is <strong>~85%</strong> of your 2RM for that exercise.
           </p>
           <p>
-            There're <strong>3 sets</strong>, and every set of every exercise in this program is a Max Rep Set (or AMRAP
-            - As May Reps As Possible). You don't go to full failure, but leave 1-2 reps in the tank, but you do them as
-            many as you can. For the following sets, with each set you likely will be able to do less and less reps, but
-            that's okay. There's autoregulating part of the program, it'll increase the weight if the sum of all the
-            reps is <strong>15</strong> or more by <strong>10lbs</strong>, and <strong>10</strong> or more - by{" "}
-            <strong>5lb</strong>.
+            There are <strong>3 sets</strong>, and every set of every exercise in this program is a Max Rep Set (or
+            AMRAP - As Many Reps As Possible). You don't go to complete failure, but leave 1-2 reps in the tank, and do
+            as many as you can. For the following sets, you will likely be able to do fewer and fewer reps, but that's
+            okay. There's an autoregulating part of the program that will increase the weight by <strong>10lbs</strong>{" "}
+            if the sum of all the reps is <strong>15</strong> or more, and by <strong>5lb</strong> if it's{" "}
+            <strong>10</strong> or more.
           </p>
           <p>
-            It's important to track Rest Timer here, which should be <strong>3-5</strong> minutes for T1.
+            It's important to track the Rest Timer here, which should be <strong>3-5</strong> minutes for T1.
           </p>
           <h3>T2 Exercise</h3>
           <p>
@@ -75,7 +75,7 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
             <strong>5lb</strong> - if <strong>25</strong> or more total reps.
           </p>
           <p>
-            Rest Timer is smaller - <strong>2-3</strong> minutes for T2.
+            The Rest Timer is smaller - <strong>2-3</strong> minutes for T2.
           </p>
           <h3>T3 Exercise</h3>
           <p>
@@ -83,13 +83,13 @@ export function ProgramDetailsGzclVdip(props: IProgramDetailsGzclVdipProps): JSX
             for that exercise.
           </p>
           <p>
-            It'll bump the weight by <strong>5lb</strong> if you got <strong>50</strong> reps or more total.
+            It'll increase the weight by <strong>5lb</strong> if you got <strong>50</strong> reps or more total.
           </p>
           <p>
-            Rest Timer is even smaller - <strong>30-90</strong> seconds for T3.
+            The Rest Timer is even smaller - <strong>30-90</strong> seconds for T3.
           </p>
           <p>
-            Again, this is just a short description, and for full information and details, please read the{" "}
+            Again, this is just a brief description, and for full information and details, please read the{" "}
             <a
               href="http://swoleateveryheight.blogspot.com/2016/11/volume-dependent-intensity-progression.html"
               target="_blank"
