@@ -28,8 +28,10 @@ export const HistoryEntryView = memo(
         </div>
         <div className="flex-1">
           <div className="flex items-center">
-            <div data-cy="history-entry-exercise-name" className="pr-2" style={{ width: "40%" }}>
-              <div className="font-bold">{exercise.name}</div>
+            <div className="pr-2" style={{ width: "40%" }}>
+              <div data-cy="history-entry-exercise-name" className="font-bold">
+                {exercise.name}
+              </div>
               <div className="text-xs text-grayv2-main">{equipmentName(exercise.equipment)}</div>
             </div>
             <div className="flex-1">
