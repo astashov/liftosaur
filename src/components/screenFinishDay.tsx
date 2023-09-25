@@ -6,7 +6,7 @@ import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
 import { TimeUtils } from "../utils/time";
-import { Exercise } from "../models/exercise";
+import { equipmentName, Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
 import { ModalShare } from "./modalShare";
 import { Confetti } from "./confetti";
@@ -16,8 +16,9 @@ import { Surface } from "./surface";
 import { ILoading } from "../models/state";
 import { IScreen } from "../models/screen";
 import { Thunk } from "../ducks/thunks";
-import { IScreenMuscle } from "../models/muscle";
-import { Collector } from "../utils/collector";
+import { ExerciseImage } from "./exerciseImage";
+import { HistoryRecordSetsView } from "./historyRecordSets";
+import { Reps } from "../models/set";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -30,17 +31,14 @@ interface IProps {
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
+
   const prs = History.findAllPersonalRecords(record, props.history);
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
+
+  const startedExercises = History.getStartedExercises(record);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
-
-  const leftColumn: IScreenMuscle[] = ["back", "glutes", "hamstrings", "calves", "triceps"];
-  const rightColumn: IScreenMuscle[] = ["shoulders", "abs", "quadriceps", "chest", "biceps", "forearms"];
-
-  const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
-  const [muscleGroupsData] = historyCollector.run();
 
   return (
     <Surface
@@ -62,50 +60,81 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       }
     >
       <section className="px-4">
-        <section className="p-4 text-base font-bold text-center">
-          <h2 className="text-redv2-main">Great job finishing</h2>
+        <section className="px-4 pb-2 text-center">
+          <div className="text-base text-grayv2-main">{record.programName}</div>
+          <div className="text-lg">{record.dayName}</div>
         </section>
-        <section className="px-4 text-center">
-          <div className="text-lg text-grayv2-main">{record.programName}</div>
-          <div className="text-xl">{record.dayName}</div>
-          <div className="mt-4">
-            Time: <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong> hours
+        <div className="flex px-4 py-2 justify-center rounded-lg bg-purplev2-100">
+          <div className="flex flex-col gap-2">
+            <div dangerouslySetInnerHTML={{ __html: "&#x1F550  Time spent:" }} />
+            <div dangerouslySetInnerHTML={{ __html: "&#x1F3CB  Total volume:" }} />
+            <div dangerouslySetInnerHTML={{ __html: "&#x1F4AA  Total sets:" }} />
+            <div dangerouslySetInnerHTML={{ __html: "&#x1F504  Total reps:" }} />
           </div>
-          <div>
-            Total volume: <strong>{Weight.display(totalWeight)}</strong>
+          <div className="flex flex-col mx-4 gap-2 font-bold">
+            <div>
+              <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong> hours
+            </div>
+            <strong>{Weight.display(totalWeight)}</strong>
+            <strong>{totalSets}</strong>
+            <strong>{totalReps}</strong>
           </div>
-          <div>
-            Total sets: <strong>{totalSets}</strong>
-          </div>
-          <div>
-            Total reps: <strong>{totalReps}</strong>
-          </div>
-        </section>
-        <div className="mt-4 text-sm font-bold text-center">Sets per muscle group</div>
-        <div className="flex mt-1" style={{ gap: "1rem" }}>
-          <ul className="flex-1">
-            {leftColumn
-              .filter((c) => muscleGroupsData[c][2][0] > 0)
-              .map((muscle) => (
-                <li>
-                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
-                </li>
-              ))}
-          </ul>
-          <ul className="flex-1">
-            {rightColumn
-              .filter((c) => muscleGroupsData[c][2][0] > 0)
-              .map((muscle) => (
-                <li>
-                  <span className="text-grayv2-main">{StringUtils.capitalize(muscle)}</span>:{" "}
-                  <strong>{muscleGroupsData[muscle][2] || 0}</strong>
-                </li>
-              ))}
-          </ul>
         </div>
+
+        {startedExercises.length > 0 ? (
+          <>
+            <div className="text-base font-bold pt-2">Your completed exercises</div>
+            <div className="flex rounded-lg bg-purplev2-100">
+              <div className={"flex flex-col m-1 w-full"}>
+                {startedExercises.map((e, idx) => {
+                  return (
+                    <div
+                      className={`flex flex-1 flex-row items-center py-1 px-1 ${
+                        idx < startedExercises.length - 1 ? "border-b border-grayv2-100" : ""
+                      }`}
+                    >
+                      <div className="justify-center" style={{ minWidth: "2.25rem" }}>
+                        <ExerciseImage
+                          settings={props.settings}
+                          className="w-8 mr-3"
+                          exerciseType={e.exercise}
+                          size="small"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <div className={"flex-1 flex-col"}>
+                            <div className="pr-2 font-bold">
+                              {Exercise.getById(e.exercise.id, props.settings.exercises).name}
+                            </div>
+                            {e.exercise.equipment && (
+                              <div className="text-xs text-grayv2-600">
+                                {equipmentName(e.exercise.equipment, props.settings)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <HistoryRecordSetsView
+                              sets={Reps.roundSets(History.getFinishedSets(e), props.settings, e.exercise.equipment)}
+                              settings={props.settings}
+                              isNext={false}
+                              noWrap={true}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
+
         {prs.size > 0 ? (
-          <section className="px-4 py-8">
+          <section className="px-4 py-4">
             <h3 className="pb-2 font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
             <ul>
               {Array.from(prs.keys()).map((exerciseType) => {
@@ -136,6 +165,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <div>No new personal records this time</div>
           </section>
         )}
+
         <div className="fixed left-0 z-10 flex w-full px-16 py-4" style={{ bottom: "40px" }}>
           <div className="flex-1">
             <Button

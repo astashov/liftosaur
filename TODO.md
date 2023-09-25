@@ -5,7 +5,6 @@
 - Add negative indexing (-1)
 - Names for variation sets
 - Change volume to sets on the congrats screen
-- Add finished exercises on the congrats screen
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account

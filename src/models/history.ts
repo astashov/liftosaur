@@ -383,7 +383,7 @@ export namespace History {
   }
 
   export function totalRecordSets(record: IHistoryRecord): number {
-    return record.entries.reduce((memo, e) => memo + e.sets.length, 0);
+    return record.entries.reduce((memo, e) => memo + totalEntrySets(e), 0);
   }
 
   export function totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
@@ -397,6 +397,18 @@ export namespace History {
 
   export function totalEntryReps(entry: IHistoryEntry): number {
     return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
+  }
+
+  export function totalEntrySets(entry: IHistoryEntry): number {
+    return getFinishedSets(entry).length;
+  }
+
+  export function getStartedExercises(record: IHistoryRecord): IHistoryEntry[] {
+    return record.entries.filter((e) => e.sets.filter((s) => (s.completedReps || 0) > 0).length > 0);
+  }
+
+  export function getFinishedSets(entry: IHistoryEntry): ISet[] {
+    return entry.sets.filter((s) => Reps.isFinishedSet(s));
   }
 
   export function getHistoricalSameDay(

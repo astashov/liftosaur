@@ -59,7 +59,11 @@ export namespace Reps {
   }
 
   export function isFinished(sets: ISet[]): boolean {
-    return sets.every((s) => s.completedReps != null);
+    return sets.every((s) => isFinishedSet(s));
+  }
+
+  export function isFinishedSet(s: ISet): boolean {
+    return s.completedReps != null;
   }
 
   export function isInRangeCompleted(sets: ISet[]): boolean {
