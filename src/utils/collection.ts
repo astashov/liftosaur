@@ -25,6 +25,22 @@ export namespace CollectionUtils {
     }
   }
 
+  export function splitIntoNGroups<T>(coll: T[], numberOfGroups: number): T[][] {
+    const result: T[][] = [];
+    for (let i = 0; i < numberOfGroups; i += 1) {
+      result.push([]);
+    }
+    let index = 0;
+    for (const item of coll) {
+      result[index].push(item);
+      index += 1;
+      if (index >= numberOfGroups) {
+        index = 0;
+      }
+    }
+    return result;
+  }
+
   export function inGroupsOfFilled<T>(length: number, collection: T[], shouldFill?: boolean): (T | undefined)[][] {
     const result = inGroupsOf(length, collection) as (T | undefined)[][];
     if (result.length > 0) {

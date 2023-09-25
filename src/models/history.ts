@@ -403,7 +403,7 @@ export namespace History {
     return getFinishedSets(entry).length;
   }
 
-  export function getStartedExercises(record: IHistoryRecord): IHistoryEntry[] {
+  export function getStartedEntries(record: IHistoryRecord): IHistoryEntry[] {
     return record.entries.filter((e) => e.sets.filter((s) => (s.completedReps || 0) > 0).length > 0);
   }
 

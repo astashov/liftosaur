@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { DateUtils } from "../utils/date";
-import { Exercise } from "../models/exercise";
 import { TimeUtils } from "../utils/time";
 import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
@@ -13,9 +12,7 @@ import { HtmlUtils } from "../utils/html";
 import { ButtonLike } from "./buttonLike";
 import { IconWatch } from "./icons/iconWatch";
 import { IconProfile } from "./icons/iconProfile";
-import { ExerciseImage } from "./exerciseImage";
-import { HistoryRecordSetsView } from "./historyRecordSets";
-import { Weight } from "../models/weight";
+import { HistoryEntryView } from "./historyEntry";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -81,38 +78,16 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           </div>
         </div>
         <div className="flex flex-col mt-2" data-cy="history-entry">
-          {entries.map((entry) => {
-            const exercise = Exercise.get(entry.exercise, props.settings.exercises);
+          {entries.map((entry, i) => {
             const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
             return (
-              <div
-                data-cy="history-entry-exercise"
-                className="flex flex-row items-center flex-1 py-1 border-b border-grayv2-100"
-              >
-                <div data-cy="history-entry-exercise-img" style={{ minWidth: "2.25rem" }}>
-                  <ExerciseImage settings={props.settings} className="w-6 mr-3" exerciseType={exercise} size="small" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <div data-cy="history-entry-exercise-name" className="pr-2 font-bold" style={{ width: "35%" }}>
-                      {exercise.name}
-                    </div>
-                    <div className="flex-1">
-                      <HistoryRecordSetsView
-                        sets={entry.sets.map((set) => ({
-                          ...set,
-                          weight: isNext
-                            ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise.equipment)
-                            : set.weight,
-                        }))}
-                        settings={props.settings}
-                        isNext={isNext}
-                      />
-                    </div>
-                  </div>
-                  {entry.notes && <p className="mt-1 text-sm text-grayv2-main">{entry.notes}</p>}
-                </div>
-              </div>
+              <HistoryEntryView
+                entry={entry}
+                isNext={isNext}
+                isLast={i === entries.length - 1}
+                settings={props.settings}
+                showNotes={true}
+              />
             );
           })}
         </div>
