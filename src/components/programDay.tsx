@@ -29,12 +29,12 @@ import { HelpWorkout } from "./help/helpWorkout";
 import { DateUtils } from "../utils/date";
 import { TimeUtils } from "../utils/time";
 import { IScreen, Screen } from "../models/screen";
-import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
 import { ModalEditMode } from "./modalEditMode";
 import { ModalExercise } from "./modalExercise";
 import { EditCustomExercise } from "../models/editCustomExercise";
 import { IExerciseId } from "../types";
 import { lb } from "lens-shmens";
+import { Program } from "../models/program";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -116,6 +116,12 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               dispatch={props.dispatch}
               isAmrap={progress.ui?.amrapModal?.isAmrap || false}
               logRpe={progress.ui?.amrapModal?.logRpe || false}
+              userVars={progress.ui?.amrapModal?.userVars || false}
+              programExercise={Program.getProgramExerciseFromEntry(
+                props.program?.exercises || [],
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
+              )}
+              allProgramExercises={props.program?.exercises || []}
               initialReps={
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
                   ?.completedReps
@@ -148,12 +154,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 dispatch={props.dispatch}
               />
             )}
-            <ModalStateVarsUserPrompt
-              programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
-              allProgramExercises={props.program?.exercises || []}
-              isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
-              dispatch={props.dispatch}
-            />
             <ModalDate
               isHidden={progress.ui?.dateModal == null}
               dispatch={props.dispatch}

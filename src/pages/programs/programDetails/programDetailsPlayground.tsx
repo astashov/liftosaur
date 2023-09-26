@@ -13,7 +13,6 @@ import { StateVars } from "./programDetailsStateVars";
 import { ModalAmrap } from "../../../components/modalAmrap";
 import { ModalWeight } from "../../../components/modalWeight";
 import { ProgramExercise } from "../../../models/programExercise";
-import { ModalStateVarsUserPrompt } from "../../../components/modalStateVarsUserPrompt";
 
 interface IPlaygroundProps {
   programId: string;
@@ -136,6 +135,9 @@ export const Playground = memo(
           dispatch={dispatch}
           isAmrap={progressRef.current.ui?.amrapModal?.isAmrap || false}
           logRpe={progressRef.current.ui?.amrapModal?.logRpe || false}
+          userVars={progressRef.current.ui?.amrapModal?.userVars || false}
+          programExercise={programExercise}
+          allProgramExercises={props.allProgramExercises}
         />
         <ModalWeight
           isHidden={progressRef.current.ui?.weightModal == null}
@@ -143,12 +145,6 @@ export const Playground = memo(
           units={props.settings.units}
           dispatch={dispatch}
           weight={progressRef.current.ui?.weightModal?.weight ?? 0}
-        />
-        <ModalStateVarsUserPrompt
-          programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
-          allProgramExercises={props.allProgramExercises}
-          isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
-          dispatch={dispatch}
         />
       </>
     );

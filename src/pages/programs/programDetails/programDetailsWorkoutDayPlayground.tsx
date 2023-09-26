@@ -7,13 +7,13 @@ import { IDispatch } from "../../../ducks/types";
 import { ProgramDetailsWorkoutExercisePlayground } from "./programDetailsWorkoutExercisePlayground";
 import { ModalAmrap } from "../../../components/modalAmrap";
 import { ModalWeight } from "../../../components/modalWeight";
-import { ModalStateVarsUserPrompt } from "../../../components/modalStateVarsUserPrompt";
 import { ProgramDetailsWorkoutExerciseEditModal } from "./programDetailsWorkoutExerciseEditModal";
 import { lb } from "lens-shmens";
 import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { Button } from "../../../components/button";
 import { ModalEditSet } from "../../../components/modalEditSet";
 import { EditProgressEntry } from "../../../models/editProgressEntry";
+import { Program } from "../../../models/program";
 
 interface IProgramDetailsPlaygroundDayProps {
   program: IProgram;
@@ -82,6 +82,12 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           }
           isAmrap={props.progress.ui?.amrapModal?.isAmrap || false}
           logRpe={props.progress.ui?.amrapModal?.logRpe || false}
+          userVars={props.progress.ui?.amrapModal?.userVars || false}
+          programExercise={Program.getProgramExerciseFromEntry(
+            props.program.exercises,
+            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]
+          )}
+          allProgramExercises={props.program.exercises}
         />
         <ModalWeight
           isHidden={props.progress.ui?.weightModal == null}
@@ -89,12 +95,6 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           units={props.settings.units}
           dispatch={dispatch}
           weight={props.progress.ui?.weightModal?.weight ?? 0}
-        />
-        <ModalStateVarsUserPrompt
-          programExercise={props.progress.ui?.stateVarsUserPromptModal?.programExercise}
-          allProgramExercises={props.program.exercises}
-          isHidden={props.progress.ui?.stateVarsUserPromptModal?.programExercise == null}
-          dispatch={dispatch}
         />
         <ModalEditSet
           isHidden={props.progress.ui?.editSetModal == null}

@@ -535,6 +535,7 @@ export const TProgressUi = t.partial(
       t.partial({
         isAmrap: t.boolean,
         logRpe: t.boolean,
+        userVars: t.boolean,
       }),
     ]),
     weightModal: t.type({
@@ -545,9 +546,6 @@ export const TProgressUi = t.partial(
     editModal: t.type({
       programExercise: TProgramExercise,
       entryIndex: t.number,
-    }),
-    stateVarsUserPromptModal: t.type({
-      programExercise: t.union([TProgramExercise, t.undefined]),
     }),
     dateModal: t.type({
       date: t.string,

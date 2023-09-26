@@ -27,9 +27,9 @@ import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
-import { IProgramState } from "../types";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
+import { ObjectUtils } from "../utils/object";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
@@ -189,12 +189,6 @@ export type IChangeRepsAction = {
   mode: IProgressMode;
 };
 
-export type IConfirmUserPromptedStateVarsAction = {
-  type: "ConfirmUserPromptedStateVars";
-  programExerciseId: string;
-  userPromptedStateVars: IProgramState;
-};
-
 export type IFinishProgramDayAction = {
   type: "FinishProgramDayAction";
 };
@@ -209,6 +203,8 @@ export type IChangeAMRAPAction = {
   rpeValue?: number;
   isAmrap?: boolean;
   logRpe?: boolean;
+  programExerciseId?: string;
+  userVars?: Record<string, number | IWeight>;
 };
 
 export type IChangeWeightAction = {
@@ -290,7 +286,6 @@ export type ICardsAction =
   | IChangeWeightAction
   | IChangeAMRAPAction
   | IConfirmWeightAction
-  | IConfirmUserPromptedStateVarsAction
   | IUpdateProgressAction;
 
 export type IAction =
@@ -359,24 +354,18 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "ChangeRepsAction": {
-        let newProgress = Progress.updateRepsInExercise(progress, action.entryIndex, action.setIndex, action.mode);
-        const oldEntry = progress.entries[action.entryIndex];
-        const entry = newProgress.entries[action.entryIndex];
-        if (
-          entry != null &&
-          !Progress.isFinishedSet(oldEntry) &&
-          Progress.isFinishedSet(entry) &&
+        const hasUserPromptedVars =
           action.programExercise &&
           action.allProgramExercises &&
-          ProgramExercise.hasUserPromptedVars(action.programExercise, action.allProgramExercises)
-        ) {
-          newProgress.ui = {
-            ...(progress.ui || {}),
-            stateVarsUserPromptModal: {
-              programExercise: action.programExercise,
-            },
-          };
-        }
+          ProgramExercise.hasUserPromptedVars(action.programExercise, action.allProgramExercises);
+
+        let newProgress = Progress.updateRepsInExercise(
+          progress,
+          action.entryIndex,
+          action.setIndex,
+          action.mode,
+          !!hasUserPromptedVars
+        );
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
@@ -386,6 +375,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         progress = Progress.updateAmrapRepsInExercise(progress, action.amrapValue, action.isAmrap);
         if (action.logRpe) {
           progress = Progress.updateRpeInExercise(progress, action.rpeValue);
+        }
+        if (ObjectUtils.keys(action.userVars || {}).length > 0 && action.programExerciseId != null) {
+          progress = Progress.updateUserPromptedStateVars(progress, action.programExerciseId, action.userVars || {});
         }
         if (Progress.isFullyFinishedSet(progress)) {
           progress = Progress.stopTimer(progress);
@@ -397,9 +389,6 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
       }
       case "ConfirmWeightAction": {
         return Progress.updateWeight(progress, settings, action.weight, action.programExercise);
-      }
-      case "ConfirmUserPromptedStateVars": {
-        return Progress.updateUserPromptedStateVars(progress, action.programExerciseId, action.userPromptedStateVars);
       }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
@@ -416,8 +405,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "ChangeWeightAction") {
     return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "ConfirmWeightAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
-  } else if (action.type === "ConfirmUserPromptedStateVars") {
     return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
   } else if (action.type === "UpdateProgress") {
     return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));

@@ -360,6 +360,10 @@ export namespace Progress {
     return Reps.isFinished(entry.sets);
   }
 
+  export function hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
+    return entry.sets.filter((s) => s.completedReps == null).length === 1;
+  }
+
   export function showUpdateWeightModal(
     progress: IHistoryRecord,
     exercise: IExerciseType,
@@ -429,7 +433,8 @@ export namespace Progress {
     progress: IHistoryRecord,
     entryIndex: number,
     setIndex: number,
-    mode: IProgressMode
+    mode: IProgressMode,
+    hasUserPromptedVars: boolean
   ): IHistoryRecord {
     const entry = progress.entries[entryIndex];
     if (mode === "warmup") {
@@ -461,13 +466,21 @@ export namespace Progress {
         return progress;
       }
     } else {
-      if (entry.sets[setIndex].isAmrap || entry.sets[setIndex].logRpe) {
+      const isAmrap = entry.sets[setIndex].isAmrap;
+      const shouldLogRpe = (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].logRpe;
+      const shouldPromptUserVars =
+        hasUserPromptedVars &&
+        ((Progress.hasLastUnfinishedSet(entry) && !Reps.isFinishedSet(entry.sets[setIndex])) ||
+          (isAmrap && Progress.isFinishedSet(entry)));
+
+      if (isAmrap || shouldLogRpe || shouldPromptUserVars) {
         const amrapUi: IProgressUi = {
           amrapModal: {
             entryIndex,
             setIndex,
-            isAmrap: entry.sets[setIndex].isAmrap,
-            logRpe: entry.sets[setIndex].logRpe,
+            isAmrap: isAmrap,
+            logRpe: shouldLogRpe,
+            userVars: shouldPromptUserVars,
           },
         };
         return {
@@ -621,10 +634,6 @@ export namespace Progress {
       userPromptedStateVars: {
         ...(progress.userPromptedStateVars || {}),
         [programExerciseId]: userPromptedStateVars,
-      },
-      ui: {
-        ...(progress.ui || {}),
-        stateVarsUserPromptModal: undefined,
       },
     };
   }

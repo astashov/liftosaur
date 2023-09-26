@@ -11,7 +11,6 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { useRef } from "preact/hooks";
 import { ProgramExercise } from "../models/programExercise";
-import { ModalStateVarsUserPrompt } from "./modalStateVarsUserPrompt";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { LinkButton } from "./linkButton";
@@ -146,8 +145,11 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
             ?.completedRpe
         }
+        programExercise={programExercise}
+        allProgramExercises={props.program.exercises}
         isAmrap={progress.ui?.amrapModal?.isAmrap || false}
         logRpe={progress.ui?.amrapModal?.logRpe || false}
+        userVars={progress.ui?.amrapModal?.userVars || false}
       />
       <ModalWeight
         programExercise={progress.ui?.weightModal?.programExercise}
@@ -155,12 +157,6 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         units={props.settings.units}
         dispatch={dispatch}
         weight={progress.ui?.weightModal?.weight ?? 0}
-      />
-      <ModalStateVarsUserPrompt
-        programExercise={progress.ui?.stateVarsUserPromptModal?.programExercise}
-        allProgramExercises={allProgramExercises}
-        isHidden={progress.ui?.stateVarsUserPromptModal?.programExercise == null}
-        dispatch={dispatch}
       />
       <ModalEditSet
         isHidden={progress.ui?.editSetModal == null}

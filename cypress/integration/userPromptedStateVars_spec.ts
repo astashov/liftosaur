@@ -42,7 +42,7 @@ describe("User Prompted State Vars", () => {
 
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });
     g("modal-state-vars-user-prompt-input-rpe").clear().type("8");
-    g("modal-state-vars-user-prompt-submit").click();
+    g("modal-amrap-submit").click();
     g("state-changes").should("contain.text", "weight: 135 lb -> 130 lb");
     g("state-changes").should("contain.text", "rpe: 0 -> 8");
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
@@ -54,7 +54,7 @@ describe("User Prompted State Vars", () => {
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").eq(4).click();
 
     g("modal-state-vars-user-prompt-input-rpe").clear().type("2");
-    g("modal-state-vars-user-prompt-submit").click();
+    g("modal-amrap-submit").click();
     g("state-changes").should("contain.text", "weight: 135 lb -> 140 lb");
     g("state-changes").should("contain.text", "rpe: 0 -> 2");
 
@@ -69,7 +69,7 @@ describe("User Prompted State Vars", () => {
 
     cy.get("[data-cy^=exercise-]:contains('Squat') [data-cy^=set-]").click({ multiple: true });
     g("modal-state-vars-user-prompt-input-rpe").clear().type("5");
-    g("modal-state-vars-user-prompt-submit").click();
+    g("modal-amrap-submit").click();
     g("state-changes").should("not.contain.text", "weight");
     g("state-changes").should("contain.text", "rpe: 2 -> 5");
   });

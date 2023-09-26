@@ -1,9 +1,15 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { h, JSX, Fragment } from "preact";
+import { Ref, useRef } from "preact/hooks";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { Input } from "./input";
+import { IProgramExercise, IWeight } from "../types";
+import { GroupHeader } from "./groupHeader";
+import { ObjectUtils } from "../utils/object";
+import { Weight } from "../models/weight";
+import { SendMessage } from "../utils/sendMessage";
+import { ProgramExercise } from "../models/programExercise";
 
 interface IModalAmrapProps {
   isHidden: boolean;
@@ -12,15 +18,27 @@ interface IModalAmrapProps {
   initialRpe?: number;
   isAmrap: boolean;
   logRpe: boolean;
+  userVars: boolean;
+  programExercise?: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   onDone?: () => void;
 }
 
 export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const amrapInput = useRef<HTMLInputElement>(null);
   const rpeInput = useRef<HTMLInputElement>(null);
+  const userVarValues = useRef<Record<string, number | IWeight>>({});
 
   function onDone(amrapValue?: number, rpeValue?: number): void {
-    props.dispatch({ type: "ChangeAMRAPAction", amrapValue, rpeValue, isAmrap: props.isAmrap, logRpe: props.logRpe });
+    props.dispatch({
+      type: "ChangeAMRAPAction",
+      amrapValue,
+      rpeValue,
+      isAmrap: props.isAmrap,
+      logRpe: props.logRpe,
+      userVars: userVarValues.current,
+      programExerciseId: props.programExercise?.id,
+    });
     if (props.onDone != null) {
       props.onDone();
     }
@@ -60,13 +78,23 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             />
           </div>
         )}
+        {props.programExercise && props.userVars && (
+          <UserPromptedStateVars
+            programExercise={props.programExercise}
+            allProgramExercises={props.allProgramExercises}
+            onUpdate={(val) => (userVarValues.current = val)}
+          />
+        )}
         <div className="mt-4 text-right">
           <Button
             data-cy="modal-amrap-clear"
             type="button"
             kind="grayv2"
             className="mr-3"
-            onClick={() => onDone(undefined)}
+            onClick={(e) => {
+              e.preventDefault();
+              onDone(undefined);
+            }}
           >
             Clear
           </Button>
@@ -75,7 +103,8 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             type="submit"
             data-cy="modal-amrap-submit"
             className="ls-modal-set-amrap"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               const amrapValue = amrapInput.current?.value;
               const amrapNumValue = amrapValue != null ? parseInt(amrapValue, 10) : undefined;
 
@@ -93,5 +122,65 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
         </div>
       </form>
     </Modal>
+  );
+}
+
+interface IUserPromptedStateVarsProps {
+  programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
+  onUpdate: (newStateVars: Record<string, number | IWeight>) => void;
+}
+
+export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.Element {
+  const programExercise = props.programExercise;
+  const stateMetadata = ProgramExercise.getStateMetadata(programExercise, props.allProgramExercises) || {};
+  const stateMetadataKeys = ObjectUtils.keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
+  const textInputs = stateMetadataKeys.reduce<Record<keyof typeof stateMetadata, Ref<HTMLInputElement>>>((memo, k) => {
+    memo[k] = useRef<HTMLInputElement>(null);
+    return memo;
+  }, {});
+  const state = programExercise ? ProgramExercise.getState(programExercise, props.allProgramExercises) : { fake: 0 };
+
+  function onInput(): void {
+    props.onUpdate(
+      ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight>>((memo, k) => {
+        const value = textInputs[k].current?.value;
+        let numValue = value != null ? parseFloat(value) : undefined;
+        const previousValue = state[k];
+        if (numValue == null) {
+          numValue = Weight.is(previousValue) ? previousValue.value : previousValue;
+        }
+        const typedValue = Weight.is(previousValue) ? Weight.build(numValue, previousValue.unit) : numValue;
+        memo[k] = typedValue;
+        return memo;
+      }, {})
+    );
+  }
+
+  return (
+    <>
+      <GroupHeader size="large" name="Enter new state variables values" />
+      {ObjectUtils.keys(textInputs).map((key, i) => {
+        const value = state[key];
+        const num = Weight.is(value) ? value.value : value;
+        const textInput = textInputs[key];
+        const label = Weight.is(value) ? `${key}, ${value.unit}` : key;
+        return (
+          <div className={i !== 0 ? "mt-2" : ""}>
+            <Input
+              data-cy={`modal-state-vars-user-prompt-input-${key}`}
+              onInput={onInput}
+              key={i}
+              label={label}
+              ref={textInput}
+              defaultValue={num}
+              step="0.0001"
+              type={SendMessage.isIos() ? "number" : "tel"}
+              autofocus={i === 0}
+            />
+          </div>
+        );
+      })}
+    </>
   );
 }

@@ -231,6 +231,13 @@ export namespace Program {
     return program.exercises.find((e) => e.id === id);
   }
 
+  export function getProgramExerciseFromEntry(
+    allProgramExercises: IProgramExercise[],
+    entry: IHistoryEntry
+  ): IProgramExercise | undefined {
+    return allProgramExercises.find((e) => e.id === entry.programExerciseId);
+  }
+
   export function nextProgramRecord(
     program: IProgram,
     settings: ISettings,
