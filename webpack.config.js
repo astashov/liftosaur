@@ -11,6 +11,7 @@ const commitHash = require("child_process").execSync("git rev-parse --short HEAD
 module.exports = {
   entry: {
     main: ["./src/index.tsx", "./src/index.css"],
+    aboutexporter: ["./src/aboutExporter.tsx"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
@@ -98,7 +99,7 @@ module.exports = {
     }),
     new CopyPlugin([
       {
-        from: `src/index.html`,
+        from: `src/about.html`,
         to: `index.html`,
         transform: (content) => {
           return content
