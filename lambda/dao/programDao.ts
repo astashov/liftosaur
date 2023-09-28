@@ -29,6 +29,7 @@ export class ProgramDao {
       "basicBeginner",
       "drswoleullowvolume",
       "gzclp",
+      "gzclp-blacknoir",
       "gzcl-the-rippler",
       "gzcl-jacked-and-tan-2",
       "gzcl-uhf-9-weeks",
