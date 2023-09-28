@@ -19,6 +19,8 @@
 - Fix the bug with clipboard in Safari
 - Add pushpress and lat pulldown images
 - Don't combine all equipment on graphs
+- Graphs per reps
+- Copy plates for custom equipment from 'similar' equipment
 
 * Programs
   - 5/3/1s

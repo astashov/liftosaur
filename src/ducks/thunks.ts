@@ -44,17 +44,17 @@ export namespace Thunk {
         if (accessToken != null) {
           const state = getState();
           const userId = state.user?.id || state.storage.tempUserId;
-          const result = await load(dispatch, "googleSignIn", async () =>
+          const result = await load(dispatch, "Logging in", async () =>
             env.service.googleSignIn(accessToken, userId, {})
           );
-          await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
+          await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
           dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
         }
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
-        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
+        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
@@ -84,8 +84,8 @@ export namespace Thunk {
       if (id_token != null && code != null) {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
-        const result = await load(dispatch, "appleSignIn", async () => env.service.appleSignIn(code, id_token, userId));
-        await load(dispatch, "handleLogin", () => handleLogin(dispatch, result, env.service.client, userId));
+        const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
+        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
         dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
@@ -123,7 +123,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       const userid = state.user?.id || state.storage.tempUserId;
-      await load(dispatch, "debug", async () => env.service.postDebug(userid, JSON.stringify(state), {}));
+      await load(dispatch, "Debug sync", async () => env.service.postDebug(userid, JSON.stringify(state), {}));
     };
   }
 
@@ -143,7 +143,7 @@ export namespace Thunk {
             storage.programs = undefined;
           }
         }
-        await load(dispatch, "sync", async () => {
+        await load(dispatch, "Sync", async () => {
           await env.service.postStorage(storage);
           if (state.freshMigrations) {
             updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)]);
@@ -171,7 +171,7 @@ export namespace Thunk {
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().errors.corruptedstorage == null) {
-        const result = await load(dispatch, "fetchStorage", () => {
+        const result = await load(dispatch, "Loading from cloud", () => {
           const state = getState();
           return env.service.getStorage(state.storage.tempUserId, state.user?.id, state.adminKey);
         });
@@ -327,7 +327,7 @@ export namespace Thunk {
 
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {
-      const programs = await load(dispatch, "fetchPrograms", () => env.service.programs());
+      const programs = await load(dispatch, "Loading programs", () => env.service.programs());
       dispatch({ type: "UpdateState", lensRecording: [lb<IState>().p("programs").record(programs)] });
     };
   }
@@ -350,7 +350,7 @@ export namespace Thunk {
 
   export function fetchFriendsHistory(startDate: string, endDate?: string): IThunk {
     return async (dispatch, getState, env) => {
-      const friends = await load(dispatch, "fetchFriendsHistory", () =>
+      const friends = await load(dispatch, "Loading friends history", () =>
         env.service.getFriendsHistory(startDate, endDate)
       );
       for (const key of ObjectUtils.keys(friends)) {
@@ -390,7 +390,7 @@ export namespace Thunk {
   export function fetchLikes(startDate: string, endDate?: string): IThunk {
     return async (dispatch, getState, env) => {
       updateState(dispatch, [lb<IState>().p("likes").p("isLoading").record(true)]);
-      const newLikes = await load(dispatch, "fetchLikes", () => env.service.getLikes(startDate, endDate));
+      const newLikes = await load(dispatch, "Loading likes", () => env.service.getLikes(startDate, endDate));
       updateState(dispatch, [lb<IState>().p("likes").p("isLoading").record(false)]);
       updateState(dispatch, [
         lb<IState>()
@@ -440,7 +440,7 @@ export namespace Thunk {
         addLike();
       }
 
-      const result = await load(dispatch, "like", () => env.service.like(friendId, historyRecordId));
+      const result = await load(dispatch, "Liking", () => env.service.like(friendId, historyRecordId));
       if (result == null) {
         if (existingLike) {
           addLike();
@@ -475,7 +475,7 @@ export namespace Thunk {
 
   export function getComments(startDate: string, endDate?: string): IThunk {
     return async (dispatch, getState, env) => {
-      const comments = await load(dispatch, "getComments", () => env.service.getComments(startDate, endDate));
+      const comments = await load(dispatch, "Loading comments", () => env.service.getComments(startDate, endDate));
       updateState(dispatch, [
         lb<IState>()
           .p("comments")
@@ -729,7 +729,7 @@ export namespace Thunk {
 
   export function redeemCoupon(code: string): IThunk {
     return async (dispatch, getState, env) => {
-      const result = await load(dispatch, "claimCoupon", () => env.service.postClaimCoupon(code));
+      const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code));
       if (result.success) {
         const { key, expires } = result.data;
         finishFreeAccess(dispatch, key, expires);
@@ -862,12 +862,7 @@ function _load<T>(
     .catch((e) => {
       if (attempt >= 3) {
         updateState(dispatch, [
-          lb<IState>()
-            .p("loading")
-            .p("items")
-            .pi(name)
-            .p("error")
-            .record(e.message || "Error"),
+          lb<IState>().p("loading").p("items").pi(name).p("error").record(`${type} failed`),
           lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
         ]);
         reject(e);
