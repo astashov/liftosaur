@@ -687,6 +687,19 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20230927": {
+    title: <span>Offline mode</span>,
+    body: (
+      <ul>
+        <li>
+          Liftosaur now can work offline. If there's no Internet, it of course won't be able to load all the built-in
+          programs, and it won't be able to sync your data to the server. But it'll still work, all your history and
+          programs would be there, and it will just sync the data next time when Internet is available if you're logged
+          in.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
