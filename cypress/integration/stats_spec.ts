@@ -9,7 +9,7 @@ describe("Stats", () => {
   });
 
   it("enters stats and shows graphs", () => {
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
     disableSubscriptions();
     g("clone-program").click();

@@ -9,7 +9,7 @@ describe("Program Preview", () => {
   });
 
   it("increments and deloads properly", () => {
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
     g("preview-program").click();
     g("program-name").should("have.text", "Basic Beginner Routine");

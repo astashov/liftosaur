@@ -9,7 +9,7 @@ describe("5/3/1 for beginners calculator", () => {
   });
 
   it("works", () => {
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1");
     cy.contains("5/3/1 For Beginners").click();
     g("clone-program").click();
     g("squat-training-max-lb-input").clear().type("300");

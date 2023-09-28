@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PlaywrightUtils } from "./playwrightUtils";
 
 test("Rep Max Calculator", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080?skipintro=1");
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("clone-program").click();
   await page.getByTestId("start-workout").click();
@@ -25,8 +25,8 @@ test("Rep Max Calculator", async ({ page }) => {
   await page.getByTestId("state-weight-calculator").click();
 
   await PlaywrightUtils.type("150", () => page.getByTestId("rep-max-calculator-known-weight"));
-  await expect(page.getByTestId("rep-max-calculator-target-weight")).toHaveText("174 lb");
+  await expect(page.getByTestId("rep-max-calculator-target-weight")).toHaveText("173 lb");
 
   await page.getByTestId("rep-max-calculator-submit").click();
-  await expect(page.getByTestId("menu-item-value-weight")).toHaveValue("174");
+  await expect(page.getByTestId("menu-item-value-weight")).toHaveValue("173");
 });

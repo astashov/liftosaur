@@ -9,7 +9,7 @@ describe("Subscriptions", () => {
   });
 
   it("works", () => {
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1&enforce=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&enforce=1");
     cy.get("button:contains('Basic Beginner Routine')").click();
     const adminKey = Cypress.env("LIFTOSAUR_ADMIN_KEY");
     g("clone-program").click();
@@ -22,7 +22,7 @@ describe("Subscriptions", () => {
       return win.eval(`state.storage.subscription.key = 'test'`);
     });
     cy.wait(2000);
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1&enforce=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&enforce=1");
     g("footer-graphs").click();
     g("screen").should("contain.text", "Select graphs you want to display");
     g("footer-settings").click();
@@ -37,7 +37,7 @@ describe("Subscriptions", () => {
     });
 
     cy.wait(2000);
-    cy.visit("https://local.liftosaur.com:8080?skipintro=1&enforce=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&enforce=1");
     g("footer-graphs").click();
     g("button-subscription-free").click();
     g("footer-graphs").click();
