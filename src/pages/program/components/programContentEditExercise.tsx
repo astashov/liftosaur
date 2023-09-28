@@ -179,7 +179,9 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
           onChange={(exerciseId) => {
             setShowModalSubstitute(false);
             if (exerciseId != null) {
-              props.dispatch(EditProgramLenses.changeExerciseId(lbe, props.settings, exerciseId));
+              props.dispatch(
+                EditProgramLenses.changeExerciseId(lbe, props.settings, programExercise.exerciseType, exerciseId)
+              );
             }
           }}
         />
@@ -206,7 +208,9 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {
-            props.dispatch(EditProgramLenses.changeExerciseId(lbe, props.settings, exerciseId));
+            props.dispatch(
+              EditProgramLenses.changeExerciseId(lbe, props.settings, programExercise.exerciseType, exerciseId)
+            );
           }
         }}
       />

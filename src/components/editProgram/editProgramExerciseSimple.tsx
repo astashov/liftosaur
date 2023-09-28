@@ -124,7 +124,7 @@ function Edit(props: IProps): JSX.Element {
           onChange={(exerciseId) => {
             setShowModalSubstitute(false);
             if (exerciseId != null) {
-              EditProgram.changeExerciseId(props.dispatch, props.settings, exerciseId);
+              EditProgram.changeExerciseId(props.dispatch, props.settings, programExercise.exerciseType, exerciseId);
             }
           }}
         />
@@ -147,7 +147,8 @@ function Edit(props: IProps): JSX.Element {
         onChange={(exerciseId) => {
           setShowModalExercise(false);
           if (exerciseId != null) {
-            EditProgram.changeExerciseId(props.dispatch, props.settings, exerciseId);
+            const oldExerciseType = programExercise.exerciseType;
+            EditProgram.changeExerciseId(props.dispatch, props.settings, oldExerciseType, exerciseId);
           }
         }}
       />

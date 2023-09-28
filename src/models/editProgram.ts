@@ -14,6 +14,7 @@ import {
   IProgramExercise,
   ISettings,
   IProgramExerciseWarmupSet,
+  IExerciseType,
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
@@ -122,9 +123,17 @@ export namespace EditProgram {
     ]);
   }
 
-  export function changeExerciseId(dispatch: IDispatch, settings: ISettings, newId?: IExerciseId): void {
+  export function changeExerciseId(
+    dispatch: IDispatch,
+    settings: ISettings,
+    oldExerciseType: IExerciseType,
+    newId?: IExerciseId
+  ): void {
     if (newId != null) {
-      updateState(dispatch, EditProgramLenses.changeExerciseId(lb<IState>().pi("editExercise"), settings, newId));
+      updateState(
+        dispatch,
+        EditProgramLenses.changeExerciseId(lb<IState>().pi("editExercise"), settings, oldExerciseType, newId)
+      );
     }
   }
 

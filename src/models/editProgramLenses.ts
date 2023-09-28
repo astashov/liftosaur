@@ -3,6 +3,7 @@ import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import {
   IEquipment,
   IExerciseId,
+  IExerciseType,
   IProgram,
   IProgramExercise,
   IProgramExerciseWarmupSet,
@@ -235,8 +236,10 @@ export namespace EditProgramLenses {
   export function changeExerciseId<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     settings: ISettings,
+    oldExerciseType: IExerciseType,
     newId: IExerciseId
   ): ILensRecordingPayload<T>[] {
+    const oldExercise = Exercise.get(oldExerciseType, settings.exercises);
     const exercise = Exercise.get({ id: newId, equipment: "barbell" }, settings.exercises);
     return [
       prefix.p("exerciseType").p("id").record(exercise.id),
@@ -251,7 +254,13 @@ export namespace EditProgramLenses {
           return oldState;
         }
       }),
-      prefix.p("name").record(exercise.name),
+      prefix.p("name").recordModify((oldName) => {
+        if (oldExercise != null) {
+          return oldName.replace(oldExercise.name, exercise.name);
+        } else {
+          return exercise.name;
+        }
+      }),
     ];
   }
 
