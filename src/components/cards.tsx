@@ -22,6 +22,7 @@ import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
 import { LinkButton } from "./linkButton";
+import { Program } from "../models/program";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -64,9 +65,14 @@ export const CardsView = memo(
               <div className="mr-2 align-middle">
                 <button
                   className="px-2 ml-1 align-middle"
-                  onClick={() =>
-                    Progress.editDayAction(props.dispatch, props.progress.programId, props.progress.day - 1)
-                  }
+                  onClick={() => {
+                    const programDay = props.program
+                      ? Program.getProgramDay(props.program, props.progress.day)
+                      : undefined;
+                    const dayIndex =
+                      programDay && props.program ? props.program.days.indexOf(programDay) : props.progress.day - 1;
+                    Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
+                  }}
                 >
                   <IconEditSquare />
                 </button>
