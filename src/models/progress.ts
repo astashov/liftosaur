@@ -201,9 +201,16 @@ export namespace Progress {
         }
         return Weight.getOneRepMax(weight, reps, settings, undefined);
       },
-      rpeMultiplier: (repsRaw, rpeRaw, context) => {
+      rpeMultiplier: (repsRaw, rpeRawOrContext, context) => {
         const reps = Weight.is(repsRaw) ? repsRaw.value : typeof repsRaw === "number" ? repsRaw : 1;
-        const rpe = Weight.is(rpeRaw) ? rpeRaw.value : typeof rpeRaw === "number" ? rpeRaw : 1;
+        const rpe =
+          typeof rpeRawOrContext === "number" && context != null
+            ? Weight.is(rpeRawOrContext)
+              ? rpeRawOrContext.value
+              : typeof rpeRawOrContext === "number"
+              ? rpeRawOrContext
+              : 10
+            : 10;
         return Weight.rpeMultiplier(reps, rpe);
       },
       floor,

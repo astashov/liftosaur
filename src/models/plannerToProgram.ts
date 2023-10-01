@@ -14,7 +14,6 @@ import {
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, IExercise } from "./exercise";
-import { Weight } from "./weight";
 import { IProgramState } from "../types";
 import { Progression } from "./progression";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
@@ -156,8 +155,8 @@ export class PlannerToProgram {
               } else if (set.percentage) {
                 weightExpr = `state.weight * ${set.percentage / 100}`;
               } else {
-                const multiplier = Weight.rpeMultiplier(set.repRange.maxrep, set.rpe || 10);
-                weightExpr = `state.weight * ${multiplier}`;
+                const rpe = set.rpe || 10;
+                weightExpr = `state.weight * rpeMultiplier(${set.repRange.maxrep}${rpe < 10 ? `, ${rpe}` : ""})`;
               }
 
               const minrep = set.repRange.minrep !== set.repRange.maxrep ? set.repRange.minrep : undefined;
