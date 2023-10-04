@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface Window {
   handleGapiLoad: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replaceState: (state: any) => void;
+  reducerLastState?: any;
+  reducerLastActions?: any[];
+  loadRollbar: (item: string | number, token: string) => Promise<void>;
   isUndoing?: boolean;
   lftAndroidAppVersion?: string;
   lftIosAppVersion?: string;

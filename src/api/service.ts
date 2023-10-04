@@ -199,6 +199,17 @@ export class Service {
     return { email: json.email, storage: json.storage, user_id: json.user_id, key: json.key };
   }
 
+  public async getExceptionData(id: string): Promise<string | undefined> {
+    const url = new URL(`${__API_HOST__}/api/exception/${id}`);
+    try {
+      const result = await this.client(url.toString(), { credentials: "include" });
+      const json = await result.json();
+      return json.data.data;
+    } catch (_) {
+      return undefined;
+    }
+  }
+
   private async cache(key: string, fn: () => Promise<unknown>): Promise<unknown> {
     if (cachePromises[key] == null) {
       cachePromises[key] = fn();

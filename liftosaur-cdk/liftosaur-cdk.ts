@@ -236,6 +236,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       lifecycleRules: [{ expiration: cdk.Duration.days(365) }],
     });
 
+    const exceptionsbucket = new s3.Bucket(this, `LftS3Exceptions${suffix}`, {
+      bucketName: `liftosaurexceptions${suffix.toLowerCase()}`,
+      lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
+    });
+
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset("dist-lambda"),
@@ -279,6 +284,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
+    exceptionsbucket.grantReadWrite(lambdaFunction);
     freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
     allSecrets.grantRead(freeformLambdaFunction);

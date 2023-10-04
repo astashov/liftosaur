@@ -56,6 +56,7 @@ import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { PlannerReformatter } from "./utils/plannerReformatter";
+import { ExceptionDao } from "./dao/exceptionDao";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1328,6 +1329,38 @@ const postClaimFreeUserHandler: RouteHandler<
   return ResponseUtils.json(200, event, { data: { claim } });
 };
 
+const postStoreExceptionDataEndpoint = Endpoint.build("/api/exception");
+const postStoreExceptionDataHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postStoreExceptionDataEndpoint
+> = async ({ payload }) => {
+  const { di, event } = payload;
+  const bodyJson = getBodyJson(event);
+  const { id, data } = bodyJson;
+  console.log(id, data);
+  const exceptionDao = new ExceptionDao(di);
+  await exceptionDao.store(id, JSON.stringify(data));
+  return ResponseUtils.json(200, event, { data: { id } });
+};
+
+const getStoreExceptionDataEndpoint = Endpoint.build("/api/exception/:id");
+const getStoreExceptionDataHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getStoreExceptionDataEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di, event } = payload;
+  const id = params.id;
+  const exceptionDao = new ExceptionDao(di);
+  const data = await exceptionDao.get(id);
+  if (data) {
+    return ResponseUtils.json(200, event, { data });
+  } else {
+    return ResponseUtils.json(404, event, { error: "Not Found" });
+  }
+};
+
 const getPlannerShorturlEndpoint = Endpoint.build("/n/:id");
 const getPlannerShorturlHandler: RouteHandler<
   IPayload,
@@ -1501,6 +1534,8 @@ export const handler = rollbar.lambdaHandler(
     const di = buildDi(log);
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
+      .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
+      .post(postStoreExceptionDataEndpoint, postStoreExceptionDataHandler)
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)
       .get(getPlannerShorturlEndpoint, getPlannerShorturlHandler)
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)

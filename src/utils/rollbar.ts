@@ -1,14 +1,69 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import RB from "rollbar";
+import { Service } from "../api/service";
+import { UidFactory } from "./generator";
 
 declare let __ENV__: string;
 
+interface IOccurenceResponse {
+  err: number;
+  result: {
+    data: {
+      liftosaur_exception_id: string;
+    };
+  };
+}
+
+declare let __API_HOST__: string;
+
 export namespace RollbarUtils {
+  export async function load(item: string | number, token: string): Promise<void> {
+    const result = await fetch(`https://api.rollbar.com/api/1/instance/${item}`, {
+      headers: {
+        accept: "application/json",
+        "X-Rollbar-Access-Token": token,
+      },
+    });
+    const json = (await result.json()) as IOccurenceResponse;
+    if (json.err === 0) {
+      const id = json.result.data.liftosaur_exception_id;
+      const service = new Service(window.fetch.bind(window));
+      const data = await service.getExceptionData(id);
+      if (data == null) {
+        console.error("No exception info");
+        return;
+      }
+      const { lastState, lastActions } = JSON.parse(data);
+      window.replaceState(JSON.parse(lastState));
+      console.log("Last Actions");
+      console.log(JSON.parse(lastActions));
+    } else {
+      console.error(json);
+    }
+  }
+
   export function config(payload?: object): RB.Configuration {
     return {
       payload: {
         environment: __ENV__,
         ...(payload || {}),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      transform: async (pld: any) => {
+        const id = UidFactory.generateUid(12);
+        pld.liftosaur_exception_id = id;
+        fetch(`${__API_HOST__}/api/exception`, {
+          method: "POST",
+          body: JSON.stringify({
+            id,
+            data: {
+              userid: pld.person?.id,
+              lastState: window.reducerLastState ? JSON.stringify(window.reducerLastState) : undefined,
+              lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
+            },
+          }),
+          credentials: "include",
+        });
       },
       checkIgnore: function (isUncaught, args, _payload) {
         const ignores = [
@@ -30,4 +85,8 @@ export namespace RollbarUtils {
       },
     };
   }
+}
+
+if (typeof window !== "undefined") {
+  window.loadRollbar = RollbarUtils.load;
 }

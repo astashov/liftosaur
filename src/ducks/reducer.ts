@@ -315,6 +315,8 @@ export type IAction =
 let timerId: number | undefined = undefined;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
+  window.reducerLastState = state;
+  window.reducerLastActions = [action, ...(window.reducerLastActions || []).slice(0, 30)];
   const newState = reducer(state, action);
   if (state.storage !== newState.storage) {
     newState.storage = {
