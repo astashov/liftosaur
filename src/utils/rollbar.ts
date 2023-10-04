@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import RB from "rollbar";
 import { Service } from "../api/service";
+import { IState } from "../models/state";
 import { UidFactory } from "./generator";
 
 declare let __ENV__: string;
@@ -34,9 +35,15 @@ export namespace RollbarUtils {
         return;
       }
       const { lastState, lastActions } = JSON.parse(data);
-      window.replaceState(JSON.parse(lastState));
-      console.log("Last Actions");
-      console.log(JSON.parse(lastActions));
+      if (lastState && lastActions) {
+        const state = JSON.parse(lastState) as IState;
+        state.nosync = true;
+        window.replaceState(state);
+        console.log("Last Actions");
+        console.log(JSON.parse(lastActions));
+      } else {
+        console.error("No last state or actions");
+      }
     } else {
       console.error(json);
     }

@@ -117,6 +117,7 @@ export async function getInitialState(
       user: userId ? { email: userId, id: userId } : undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
+      nosync: false,
     };
   }
   const newState: IState = {
@@ -133,6 +134,7 @@ export async function getInitialState(
     user: userId ? { email: userId, id: userId } : undefined,
     errors: {},
     freshMigrations: false,
+    nosync: false,
   };
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;

@@ -136,6 +136,7 @@ export interface IState {
   showSignupRequest?: boolean;
   freshMigrations: boolean;
   errors: IStateErrors;
+  nosync: boolean;
 }
 
 export interface ILocalStorage {

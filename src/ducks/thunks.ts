@@ -130,7 +130,7 @@ export namespace Thunk {
   export function sync(args: { withHistory: boolean; withStats: boolean; withPrograms: boolean }): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      if (state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
+      if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
         const storage: IPartialStorage = { ...state.storage };
         if (!state.freshMigrations) {
           if (!args.withHistory) {
