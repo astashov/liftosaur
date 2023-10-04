@@ -1443,7 +1443,7 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
 // }
 
 const rollbar = new Rollbar({
-  accessToken: "3b3e1e0fe50041debced953e58707402",
+  accessToken: "bcdd086a019f49edb69f790a854b44dd",
   captureUncaught: true,
   captureUnhandledRejections: true,
   payload: {
