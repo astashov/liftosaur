@@ -94,16 +94,18 @@ export namespace Thunk {
   export function log(action: string): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      LogUtils.log(
-        state.user?.id || state.storage.tempUserId,
-        action,
-        state.storage.affiliates,
-        Subscriptions.listOfSubscriptions(state.storage.subscription),
-        () => {
-          updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)]);
-        },
-        state.storage.subscription.key
-      );
+      if (!state.nosync) {
+        LogUtils.log(
+          state.user?.id || state.storage.tempUserId,
+          action,
+          state.storage.affiliates,
+          Subscriptions.listOfSubscriptions(state.storage.subscription),
+          () => {
+            updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)]);
+          },
+          state.storage.subscription.key
+        );
+      }
     };
   }
 
