@@ -10,7 +10,8 @@ export namespace LogUtils {
     affiliates: Partial<Record<string, number>>,
     subscriptions: string[],
     onClear: () => void,
-    key?: string
+    key?: string,
+    referrer?: string
   ): Promise<void> {
     let enforce = false;
     if (typeof window !== "undefined") {
@@ -25,7 +26,7 @@ export namespace LogUtils {
     try {
       fetch(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, enforce }),
+        body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, enforce, referrer }),
         credentials: "include",
       })
         .then((res) => res.json())

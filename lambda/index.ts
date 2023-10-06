@@ -558,7 +558,7 @@ const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
   const env = Utils.getEnv();
-  const { user, action, affiliates, platform, subscriptions, key, enforce } = getBodyJson(event);
+  const { user, action, affiliates, platform, subscriptions, key, enforce, referrer } = getBodyJson(event);
   let data: { result: "ok" | "error"; clear?: boolean };
   if (user && action) {
     let clear: boolean | undefined;
@@ -568,7 +568,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
         clear = true;
       }
     }
-    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates);
+    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates, referrer);
     data = { result: "ok", clear };
   } else {
     data = { result: "error" };
@@ -698,6 +698,7 @@ const getDashboardsUsersHandler: RouteHandler<
       const lastAction = userLogRecords[0];
       const firstAction = userLogRecords[userLogRecords.length - 1];
       const workoutsCount = userLogRecords.filter((r) => r.action === "ls-finish-workout")[0]?.cnt || 0;
+      const referrer = usersById[userId]?.storage.referrer || userLogRecords.filter((r) => !!r.referrer)[0]?.referrer;
       const platforms = Array.from(
         userLogRecords.reduce<Set<string>>((memo, record) => {
           for (const val of record.platforms || []) {
@@ -782,6 +783,7 @@ const getDashboardsUsersHandler: RouteHandler<
         affiliates,
         subscriptions: Array.from(subscriptions),
         subscriptionDetails,
+        referrer,
       };
     });
 

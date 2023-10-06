@@ -50,11 +50,11 @@ state.dayInWeek = dayInWeek`
   await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("add-day").click();
-  await page.getByTestId("menu-item-bench-press").click();
+  await page.getByTestId("menu-item-bench-press-copy").click();
   await page.getByTestId("navbar-back").click();
 
   await page.getByTestId("add-day").click();
-  await page.getByTestId("menu-item-deadlift").click();
+  await page.getByTestId("menu-item-deadlift-copy").click();
   await page.getByTestId("navbar-back").click();
 
   await page.getByTestId("menu-item-name-is-multi-week-program?").click();

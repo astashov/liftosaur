@@ -899,24 +899,29 @@ export const TSubscription = t.intersection([
 ]);
 export type ISubscription = t.TypeOf<typeof TSubscription>;
 
-export const TStorage = t.type(
-  {
-    id: t.number,
-    history: t.array(THistoryRecord),
-    stats: TStats,
-    settings: TSettings,
-    currentProgramId: t.union([t.string, t.undefined]),
-    version: t.string,
-    programs: t.array(TProgram),
-    reviewRequests: t.array(t.number),
-    signupRequests: t.array(t.number),
-    helps: t.array(t.string),
-    tempUserId: t.string,
-    email: t.union([t.string, t.undefined]),
-    affiliates: dictionary(t.string, t.number),
-    subscription: TSubscription,
-    whatsNew: t.union([t.string, t.undefined]),
-  },
+export const TStorage = t.intersection(
+  [
+    t.interface({
+      id: t.number,
+      history: t.array(THistoryRecord),
+      stats: TStats,
+      settings: TSettings,
+      currentProgramId: t.union([t.string, t.undefined]),
+      version: t.string,
+      programs: t.array(TProgram),
+      reviewRequests: t.array(t.number),
+      signupRequests: t.array(t.number),
+      helps: t.array(t.string),
+      tempUserId: t.string,
+      email: t.union([t.string, t.undefined]),
+      affiliates: dictionary(t.string, t.number),
+      subscription: TSubscription,
+      whatsNew: t.union([t.string, t.undefined]),
+    }),
+    t.partial({
+      referrer: t.string,
+    }),
+  ],
   "TStorage"
 );
 export type IStorage = t.TypeOf<typeof TStorage>;

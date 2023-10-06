@@ -103,7 +103,8 @@ export namespace Thunk {
           () => {
             updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(undefined)]);
           },
-          state.storage.subscription.key
+          state.storage.subscription.key,
+          state.storage.referrer
         );
       }
     };

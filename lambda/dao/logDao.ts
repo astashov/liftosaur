@@ -25,6 +25,7 @@ export interface ILogDao {
   year: number;
   month: number;
   day: number;
+  referrer?: string;
 }
 
 export class LogDao {
@@ -89,7 +90,8 @@ export class LogDao {
     action: string,
     platform: { name: string; version?: string },
     subscriptions: ("apple" | "google")[],
-    maybeAffiliates?: Partial<Record<string, number>>
+    maybeAffiliates?: Partial<Record<string, number>>,
+    referrer?: string
   ): Promise<void> {
     const env = Utils.getEnv();
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
@@ -118,7 +120,7 @@ export class LogDao {
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day",
+          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -128,6 +130,7 @@ export class LogDao {
           "#year": "year",
           "#month": "month",
           "#day": "day",
+          "#referrer": "referrer",
         },
         values: {
           ":timestamp": Date.now(),
@@ -138,6 +141,7 @@ export class LogDao {
           ":year": year,
           ":month": month,
           ":day": day,
+          ":referrer": referrer || "",
         },
       });
     } else {
@@ -145,7 +149,7 @@ export class LogDao {
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day",
+          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -154,6 +158,7 @@ export class LogDao {
           "#year": "year",
           "#month": "month",
           "#day": "day",
+          "#referrer": "referrer",
         },
         values: {
           ":timestamp": Date.now(),
@@ -163,6 +168,7 @@ export class LogDao {
           ":year": year,
           ":month": month,
           ":day": day,
+          ":referrer": referrer || "",
         },
       });
     }

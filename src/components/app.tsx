@@ -153,6 +153,17 @@ export function AppView(props: IProps): JSX.Element | null {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.pullScreen());
+      } else if (event.data?.type === "setReferrer") {
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("referrer")
+              .record(event.data?.data || undefined),
+          ],
+          "Set Referrer"
+        );
       } else if (event.data?.type === "requestedReview") {
         updateState(dispatch, [
           lb<IState>()
@@ -182,6 +193,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch({ type: "ReplaceState", state: newState });
       };
     }
+    SendMessage.toIos({ type: "loaded" });
+    SendMessage.toAndroid({ type: "loaded" });
   }, []);
 
   const currentProgram =
