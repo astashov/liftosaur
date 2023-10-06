@@ -233,9 +233,9 @@ export namespace Program {
 
   export function getProgramExerciseFromEntry(
     allProgramExercises: IProgramExercise[],
-    entry: IHistoryEntry
+    entry?: IHistoryEntry
   ): IProgramExercise | undefined {
-    return allProgramExercises.find((e) => e.id === entry.programExerciseId);
+    return allProgramExercises.find((e) => e.id === entry?.programExerciseId);
   }
 
   export function nextProgramRecord(
