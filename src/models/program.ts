@@ -741,7 +741,8 @@ export namespace Program {
   }
 
   export function nextDay(program: IProgram, day?: number): number {
-    return (day != null ? day % numberOfDays(program) : 0) + 1;
+    const nd = (day != null ? day % numberOfDays(program) : 0) + 1;
+    return isNaN(nd) ? 1 : nd;
   }
 
   export function editAction(dispatch: IDispatch, id: string): void {

@@ -339,7 +339,13 @@ export const migrations = {
   "20230922191948_add_graph_options": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.graphOptions = storage.settings.graphOptions || {};
-    console.log(storage);
+    return storage;
+  },
+  "20231006165141_fix_null_nextday": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      program.nextDay = program.nextDay ?? 1;
+    }
     return storage;
   },
 };
