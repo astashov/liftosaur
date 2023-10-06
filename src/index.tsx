@@ -13,6 +13,7 @@ import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils } from "./utils/date";
 import { IndexedDBUtils } from "./utils/indexeddb";
 import { Service } from "./api/service";
+import { UrlUtils } from "./utils/url";
 
 IndexedDBUtils.initializeForSafari();
 
@@ -24,7 +25,7 @@ if ("serviceWorker" in navigator && (typeof window === "undefined" || window.loc
 console.log(DateUtils.formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
-const url = new URL(document.location.href);
+const url = UrlUtils.build(document.location.href);
 const userId = url.searchParams.get("userid") || undefined;
 const adminKey = url.searchParams.get("admin");
 

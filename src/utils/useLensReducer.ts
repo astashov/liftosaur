@@ -2,6 +2,7 @@ import { IGThunk } from "../ducks/types";
 import { useThunkReducer } from "./useThunkReducer";
 import { ILensRecordingPayload } from "lens-shmens";
 import { useCallback } from "preact/hooks";
+import { UrlUtils } from "./url";
 
 type IAction<TState> = {
   type: "Update";
@@ -17,7 +18,9 @@ export type ILensDispatch<TState> = (
 ) => void | Promise<void>;
 
 const isLoggingEnabled =
-  typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
+  typeof window !== "undefined" && window?.location
+    ? !!UrlUtils.build(window.location.href).searchParams.get("log")
+    : false;
 
 export function useLensReducer<TState, TEnv>(
   initialState: TState,

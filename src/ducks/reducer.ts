@@ -30,12 +30,15 @@ import { ProgramExercise } from "../models/programExercise";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
 import { ObjectUtils } from "../utils/object";
+import { UrlUtils } from "../utils/url";
 
 const isLoggingEnabled =
-  typeof window !== "undefined" && window?.location ? !!new URL(window.location.href).searchParams.get("log") : false;
+  typeof window !== "undefined" && window?.location
+    ? !!UrlUtils.build(window.location.href).searchParams.get("log")
+    : false;
 const shouldSkipIntro =
   typeof window !== "undefined" && window?.location
-    ? !!new URL(window.location.href).searchParams.get("skipintro")
+    ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
     : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
@@ -51,7 +54,7 @@ export async function getInitialState(
   client: Window["fetch"],
   args?: { url?: URL; rawStorage?: string; storage?: IStorage }
 ): Promise<IState> {
-  const url = args?.url || new URL(document.location.href);
+  const url = args?.url || UrlUtils.build(document.location.href);
   const userId = url.searchParams.get("userid") || undefined;
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;

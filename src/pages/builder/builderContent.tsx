@@ -28,6 +28,7 @@ import { IExportedProgram, Program } from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { Service } from "../../api/service";
 import { ClipboardUtils } from "../../utils/clipboard";
+import { UrlUtils } from "../../utils/url";
 
 declare let __HOST__: string;
 
@@ -125,7 +126,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
                 version: getLatestMigrationVersion(),
                 settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
               };
-              const programBuilderUrl = new URL("/program", __HOST__);
+              const programBuilderUrl = UrlUtils.build("/program", __HOST__);
               const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), programBuilderUrl.toString());
               const service = new Service(props.client);
               const shortUrl = await service.postShortUrl(url.toString(), "p");

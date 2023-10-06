@@ -43,6 +43,7 @@ import { SendMessage } from "../utils/sendMessage";
 import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
 import { ModalCorruptedState } from "./modalCorruptedState";
+import { UrlUtils } from "../utils/url";
 
 interface IProps {
   client: Window["fetch"];
@@ -178,7 +179,7 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href, "https://liftosaur.com");
+      const url = UrlUtils.build(window.location.href, "https://liftosaur.com");
       const source = url.searchParams.get("s");
       if (source) {
         updateState(dispatch, [

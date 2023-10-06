@@ -9,6 +9,7 @@ import { IFriend, IFriendStatus } from "../../src/models/state";
 import { IHistoryRecord } from "../../src/types";
 import { CollectionUtils } from "../../src/utils/collection";
 import { noReplyEmail } from "../utils/email";
+import { UrlUtils } from "../../src/utils/url";
 
 const tableNames = {
   dev: {
@@ -101,7 +102,7 @@ export class FriendDao {
       return { success: false, error: "User is already a friend" };
     }
     const hash = await this.encrypt(user.id, friend.id);
-    const url = new URL("/acceptfriendinvitation", host);
+    const url = UrlUtils.build("/acceptfriendinvitation", host);
     url.searchParams.set("hash", hash);
     const username = HtmlUtils.escapeHtml(user.nickname || user.id);
     const subject = `Liftosaur: ${username} wants to be a friend`;

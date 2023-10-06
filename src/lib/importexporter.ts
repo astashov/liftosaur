@@ -10,6 +10,7 @@ import { Thunk } from "../ducks/thunks";
 import { ObjectUtils } from "../utils/object";
 import { ImportFromLink } from "../utils/importFromLink";
 import { IBuilderProgram } from "../pages/builder/models/types";
+import { UrlUtils } from "../utils/url";
 
 export namespace ImportExporter {
   export function exportStorage(storage: IStorage): void {
@@ -77,7 +78,7 @@ export namespace ImportExporter {
   }
 
   export async function handleUniversalLink(dispatch: IDispatch, link: string, client: Window["fetch"]): Promise<void> {
-    const url = new URL(link);
+    const url = UrlUtils.build(link);
     if ((url.pathname === "/program" && url.searchParams.has("data")) || url.pathname.startsWith("/p/")) {
       const data = await ImportFromLink.importFromLink(link, client);
       if (data.success) {

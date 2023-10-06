@@ -1,4 +1,5 @@
 import RB from "rollbar";
+import { UrlUtils } from "./url";
 
 declare let Rollbar: RB;
 declare let __API_HOST__: string;
@@ -15,14 +16,14 @@ export namespace LogUtils {
   ): Promise<void> {
     let enforce = false;
     if (typeof window !== "undefined") {
-      const currentUrl = new URL(window.location.href);
+      const currentUrl = UrlUtils.build(window.location.href);
       enforce = !!currentUrl.searchParams.get("enforce");
     }
     const platform = {
       name: window.lftAndroidVersion ? "android" : window.lftIosVersion ? "ios" : "web",
       version: window.lftAndroidAppVersion || window.lftIosAppVersion,
     };
-    const url = new URL(`${__API_HOST__}/api/log`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/log`);
     try {
       fetch(url.toString(), {
         method: "POST",

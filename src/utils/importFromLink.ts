@@ -1,13 +1,14 @@
 import { IEither } from "./types";
 import { Encoder } from "./encoder";
 import { Service } from "../api/service";
+import { UrlUtils } from "./url";
 
 export namespace ImportFromLink {
   export async function importFromLink(
     link: string,
     client: Window["fetch"]
   ): Promise<IEither<{ decoded: string; source?: string }, string[]>> {
-    const url = new URL(link);
+    const url = UrlUtils.build(link);
     let base64 = url.searchParams.get("data") || undefined;
     let source = url.searchParams.get("s") || undefined;
     let decoded;

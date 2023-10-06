@@ -6,6 +6,7 @@ import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";
+import { UrlUtils } from "../utils/url";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -716,7 +717,7 @@ export namespace WhatsNew {
   }
 
   export function newUpdates(lastDateStr: string): Record<string, IWhatsNew> {
-    const url = new URL(window.location.href);
+    const url = UrlUtils.build(window.location.href);
     const forcedUserEmail = url.searchParams.get("forceuseremail");
     if (forcedUserEmail != null) {
       return {};

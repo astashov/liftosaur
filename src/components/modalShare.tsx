@@ -4,6 +4,7 @@ import { Share } from "../models/share";
 import { Button } from "./button";
 import { useRef, useState, useEffect } from "preact/hooks";
 import { ClipboardUtils } from "../utils/clipboard";
+import { UrlUtils } from "../utils/url";
 
 interface IProps {
   userId: string;
@@ -61,7 +62,7 @@ export function ModalShare(props: IProps): JSX.Element {
             kind="purple"
             className="ls-modal-share-facebook"
             onClick={() => {
-              const url = new URL("https://www.facebook.com/dialog/share");
+              const url = UrlUtils.build("https://www.facebook.com/dialog/share");
               url.searchParams.set("app_id", "3448767138535273");
               url.searchParams.set("display", "popup");
               url.searchParams.set("href", link);
@@ -79,7 +80,7 @@ export function ModalShare(props: IProps): JSX.Element {
             kind="purple"
             className="ls-modal-share-twitter"
             onClick={() => {
-              const url = new URL("https://twitter.com/intent/tweet");
+              const url = UrlUtils.build("https://twitter.com/intent/tweet");
               url.searchParams.set("text", `Check out my weightlifting workout!`);
               url.searchParams.set("url", link);
               url.searchParams.set("hashtag", "liftosaur");

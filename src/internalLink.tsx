@@ -1,5 +1,6 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { SendMessage } from "./utils/sendMessage";
+import { UrlUtils } from "./utils/url";
 
 interface IProps {
   href: string;
@@ -14,7 +15,7 @@ export function InternalLink(props: IProps): JSX.Element {
         <button
           className={`block w-full ${props.className}`}
           onClick={() => {
-            const url = new URL(props.href, window.location.href);
+            const url = UrlUtils.build(props.href, window.location.href);
             SendMessage.toIos({ type: "openUrl", url: url.toString() });
           }}
         >
@@ -33,7 +34,7 @@ export function InternalLink(props: IProps): JSX.Element {
       <button
         className={`block w-full ${props.className}`}
         onClick={() => {
-          const url = new URL(props.href, window.location.href);
+          const url = UrlUtils.build(props.href, window.location.href);
           SendMessage.toAndroid({ type: "openUrl", url: url.toString() });
         }}
       >

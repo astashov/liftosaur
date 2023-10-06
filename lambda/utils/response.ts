@@ -1,4 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { UrlUtils } from "../../src/utils/url";
 
 const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com", "localhost:8080", "stage.liftosaur.com"];
 
@@ -14,7 +15,7 @@ export namespace ResponseUtils {
 
   export function getHeaders(event: APIGatewayProxyEvent): Record<string, string> {
     const origin = event.headers.Origin || event.headers.origin || "http://example.com";
-    const url = new URL(origin);
+    const url = UrlUtils.build(origin);
     let headers: Record<string, string> = {
       "content-type": "application/json",
     };

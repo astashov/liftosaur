@@ -38,6 +38,7 @@ import { PlannerProgram } from "./models/plannerProgram";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
+import { UrlUtils } from "../../utils/url";
 
 declare let __HOST__: string;
 
@@ -281,7 +282,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   version: getLatestMigrationVersion(),
                   settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
                 };
-                const programBuilderUrl = new URL("/program", __HOST__);
+                const programBuilderUrl = UrlUtils.build("/program", __HOST__);
                 const fullurl = await Encoder.encodeIntoUrl(
                   JSON.stringify(exportedProgram),
                   programBuilderUrl.toString()

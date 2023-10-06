@@ -1,6 +1,7 @@
 import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
 import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
+import { UrlUtils } from "../utils/url";
 
 export interface IGetStorageResponse {
   email: string;
@@ -100,7 +101,7 @@ export class Service {
   }
 
   public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
-    const url = new URL(`${__API_HOST__}/api/addfreeuser/${userid}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/addfreeuser/${userid}`);
     url.searchParams.set("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
@@ -109,7 +110,7 @@ export class Service {
   }
 
   public async postFreeformGenerator(prompt: string): Promise<string> {
-    const url = new URL(`${__API_HOST__}/api/freeform`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/freeform`);
     const result = await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ prompt }),
@@ -120,7 +121,7 @@ export class Service {
   }
 
   public async postPlannerReformatter(prompt: string): Promise<string> {
-    const url = new URL(`${__API_HOST__}/api/plannerreformatter`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatter`);
     const result = await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ prompt }),
@@ -131,7 +132,7 @@ export class Service {
   }
 
   public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
-    const url = new URL(`${__API_HOST__}/api/coupon/claim/${code}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/coupon/claim/${code}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
@@ -159,7 +160,7 @@ export class Service {
     return new Promise((resolve, reject) => {
       const start = Date.now();
       const fetchFreeformRecord = async (): Promise<void> => {
-        const url = new URL(`${__API_HOST__}/api/freeform/${id}`);
+        const url = UrlUtils.build(`${__API_HOST__}/api/freeform/${id}`);
         const result = await client(url.toString(), {
           method: "GET",
           credentials: "include",
@@ -186,7 +187,7 @@ export class Service {
   }
 
   public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
-    const url = new URL(`${__API_HOST__}/api/storage`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
     }
@@ -200,7 +201,7 @@ export class Service {
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {
-    const url = new URL(`${__API_HOST__}/api/exception/${id}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/exception/${id}`);
     try {
       const result = await this.client(url.toString(), { credentials: "include" });
       const json = await result.json();
@@ -220,7 +221,7 @@ export class Service {
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
     const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
-        const url = new URL(`${__API_HOST__}/api/verifyapplereceipt`);
+        const url = UrlUtils.build(`${__API_HOST__}/api/verifyapplereceipt`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ appleReceipt, userId }),
@@ -237,7 +238,7 @@ export class Service {
   public async verifyGooglePurchaseToken(userId: string, googlePurchaseToken: string): Promise<boolean> {
     const json = await this.cache(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
       try {
-        const url = new URL(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+        const url = UrlUtils.build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ googlePurchaseToken, userId }),
@@ -252,7 +253,7 @@ export class Service {
   }
 
   public async getFriends(username: string): Promise<IFriend[]> {
-    const url = new URL(`${__API_HOST__}/api/friends`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/friends`);
     url.searchParams.set("username", username);
     const result = await this.client(url.toString(), { credentials: "include" });
     const json: { friends: IFriend[] } = await result.json();
@@ -260,7 +261,7 @@ export class Service {
   }
 
   public async getFriendsHistory(startDate: string, endDate?: string): Promise<Partial<Record<string, IFriendUser>>> {
-    const url = new URL(`${__API_HOST__}/api/friendshistory`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/friendshistory`);
     url.searchParams.set("startdate", startDate);
     if (endDate) {
       url.searchParams.set("enddate", endDate);
@@ -275,22 +276,22 @@ export class Service {
   }
 
   public async inviteFriend(friendId: string, message: string): Promise<IEither<boolean, string>> {
-    const url = new URL(`${__API_HOST__}/api/invite/${friendId}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/invite/${friendId}`);
     return this.makeFriendCall("POST", url.toString(), JSON.stringify({ message }));
   }
 
   public async removeFriend(friendId: string): Promise<IEither<boolean, string>> {
-    const url = new URL(`${__API_HOST__}/api/removefriend/${friendId}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/removefriend/${friendId}`);
     return this.makeFriendCall("DELETE", url.toString());
   }
 
   public async acceptFrienshipInvitation(friendId: string): Promise<IEither<boolean, string>> {
-    const url = new URL(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
     return this.makeFriendCall("POST", url.toString());
   }
 
   public async getComments(startDate: string, endDate?: string): Promise<Partial<Record<number, IComment[]>>> {
-    const url = new URL(`${__API_HOST__}/api/comments`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
     url.searchParams.set("startdate", startDate);
     if (endDate) {
       url.searchParams.set("enddate", endDate);
@@ -301,7 +302,7 @@ export class Service {
   }
 
   public async postComment(historyRecordId: string, friendId: string, text: string): Promise<IComment> {
-    const url = new URL(`${__API_HOST__}/api/comments`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
     const body = JSON.stringify({ historyRecordId, friendId, text });
     const result = await this.client(url.toString(), {
       method: "POST",
@@ -314,12 +315,12 @@ export class Service {
   }
 
   public async deleteComment(id: string): Promise<void> {
-    const url = new URL(`${__API_HOST__}/api/comments/${id}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/comments/${id}`);
     await this.client(url.toString(), { method: "DELETE", credentials: "include" });
   }
 
   public async getLikes(startDate: string, endDate?: string): Promise<Partial<Record<string, ILike[]>>> {
-    const url = new URL(`${__API_HOST__}/api/likes`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/likes`);
     url.searchParams.set("startdate", startDate);
     if (endDate) {
       url.searchParams.set("enddate", endDate);
@@ -330,26 +331,26 @@ export class Service {
   }
 
   public async like(friendId: string, historyRecordId: number): Promise<boolean | undefined> {
-    const url = new URL(`${__API_HOST__}/api/likes/${friendId}/${historyRecordId}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/likes/${friendId}/${historyRecordId}`);
     const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
     const json: { result?: boolean } = await result.json();
     return json.result;
   }
 
   public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
-    const url = new URL(`${__API_HOST__}/shorturl/${type}`);
+    const url = UrlUtils.build(`${__API_HOST__}/shorturl/${type}`);
     url.searchParams.set("url", urlToShorten);
     const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
     if (result.ok) {
       const json: { url: string } = await result.json();
-      return new URL(json.url, window.location.href).toString();
+      return UrlUtils.build(json.url, window.location.href).toString();
     } else {
       throw new Error("Couldn't shorten url");
     }
   }
 
   public async getDataFromShortUrl(type: "p" | "b", id: string): Promise<{ data: string; s?: string }> {
-    const url = new URL(`${__API_HOST__}/api/${type}/${id}`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
       const json: { data: string; s?: string } = await result.json();
@@ -375,7 +376,7 @@ export class Service {
   }
 
   public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
-    const url = new URL(`${__API_HOST__}/api/publishprogram`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/publishprogram`);
     url.searchParams.set("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
@@ -391,7 +392,7 @@ export class Service {
   }
 
   public record(user: string, id: string): Promise<{ data: IRecordResponse } | { error: string }> {
-    const url = new URL(`${__API_HOST__}/api/record`);
+    const url = UrlUtils.build(`${__API_HOST__}/api/record`);
     url.searchParams.set("user", user);
     url.searchParams.set("id", id);
     return this.client(url.toString(), { credentials: "include" }).then((response) => response.json());

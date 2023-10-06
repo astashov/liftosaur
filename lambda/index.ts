@@ -57,6 +57,7 @@ import { renderPlannerHtml } from "./planner";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { PlannerReformatter } from "./utils/plannerReformatter";
 import { ExceptionDao } from "./dao/exceptionDao";
+import { UrlUtils } from "../src/utils/url";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -963,7 +964,7 @@ const acceptFriendInvitationByHashHandler: RouteHandler<
   const host = ResponseUtils.getHost(event);
   const friendDao = new FriendDao(payload.di);
   const result = await friendDao.acceptInvitationByHash(params.hash);
-  const redirectUrl = host ? new URL(`https://${host}`) : new URL("https://www.liftosaur.com");
+  const redirectUrl = host ? UrlUtils.build(`https://${host}`) : UrlUtils.build("https://www.liftosaur.com");
   if (result.success) {
     redirectUrl.searchParams.set("messagesuccess", result.data);
   } else {
@@ -1307,7 +1308,7 @@ async function _getProgramShorturlResponseHandler(
 ): Promise<APIGatewayProxyResult> {
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
-    const url = new URL(urlString, "https://www.liftosaur.com");
+    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const s = url.searchParams.get("s");
     if (data) {
@@ -1590,7 +1591,7 @@ export const handler = rollbar.lambdaHandler(
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
-    const url = new URL(event.path, "http://example.com");
+    const url = UrlUtils.build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
       url.searchParams.set(key, value || "");

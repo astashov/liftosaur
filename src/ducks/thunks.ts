@@ -30,6 +30,7 @@ import { ImportFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils } from "../utils/log";
 import { RollbarUtils } from "../utils/rollbar";
+import { UrlUtils } from "../utils/url";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
@@ -37,7 +38,7 @@ declare let __ENV__: string;
 export namespace Thunk {
   export function googleSignIn(): IThunk {
     return async (dispatch, getState, env) => {
-      const url = new URL(window.location.href);
+      const url = UrlUtils.build(window.location.href);
       const forcedUserEmail = url.searchParams.get("forceuseremail");
       if (forcedUserEmail == null) {
         const accessToken = await getGoogleAccessToken();

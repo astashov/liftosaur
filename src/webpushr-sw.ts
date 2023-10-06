@@ -1,3 +1,5 @@
+import { UrlUtils } from "./utils/url";
+
 declare let __COMMIT_HASH__: string;
 declare let __API_HOST__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
@@ -39,7 +41,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
   });
 
   service.addEventListener("fetch", (e) => {
-    const url = new URL(e.request.url);
+    const url = UrlUtils.build(e.request.url);
     if (
       e.request.method === "GET" &&
       (url.pathname === "/" || url.pathname === "index.html" || url.pathname === "/app")
@@ -75,10 +77,10 @@ function initialize(service: ServiceWorkerGlobalScope): void {
                 e.request.method === "GET" &&
                 filesToCache.some((f) => {
                   if (typeof f === "string") {
-                    const u = new URL(e.request.url);
+                    const u = UrlUtils.build(e.request.url);
                     return `${u.pathname}${u.search}` === f;
                   } else {
-                    const u = new URL(e.request.url);
+                    const u = UrlUtils.build(e.request.url);
                     return f.test(`${u.pathname}${u.search}`);
                   }
                 })
