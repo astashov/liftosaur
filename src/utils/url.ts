@@ -3,7 +3,11 @@ export class UrlUtils {
     try {
       return new URL(url, base);
     } catch (e) {
-      throw new TypeError(`Failed to construct URL: ${url}`);
+      let json: string | undefined;
+      try {
+        json = JSON.stringify(url);
+      } catch {}
+      throw new TypeError(`Failed to construct URL: ${json || url}`);
     }
   }
 }

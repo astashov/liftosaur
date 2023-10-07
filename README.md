@@ -6,8 +6,8 @@ Link: https://www.liftosaur.com/about
 
 It's a mobile app, that's available as:
 
-- [PWA](https://www.liftosaur.com) - meaning you can open the page in a browser on your mobile phone, add it to a home screen, and it will behave exactly as a regular app.
-- [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa) - thin Android app around this PWA with some native features added.
+- [PWA](https://www.liftosaur.com/app) - meaning you can open the page in a browser on your mobile phone, add it to a home screen, and it will behave exactly as a regular app.
+- [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa?referrer=utm_source%3Dgithub) - thin Android app around this PWA with some native features added.
 - [iOS app](https://apps.apple.com/us/app/liftosaur/id1661880849) - thin iOS app around this PWA with some native features added.
 
 The main idea is to make a weightlifting tracker app, that is flexible enough to implement pretty much any weightlifting routine. It would be a platform for your experiments in weightlifting, you can try any progression and deloading logic you want to see what suits you better. It automatically handles progressive overloads and deloads based on the logic you define. Any program should be possible to implement - Stronglifts 5x5, GZCLP, any 5/3/1s, any PPL, you name it.
