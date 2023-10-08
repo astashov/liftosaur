@@ -6,6 +6,7 @@ import { aws_secretsmanager as sm } from "aws-cdk-lib";
 import { aws_s3 as s3 } from "aws-cdk-lib";
 import { aws_certificatemanager as acm } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
+import { LftS3Buckets } from "../lambda/dao/buckets";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -227,17 +228,17 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const bucket = new s3.Bucket(this, `LftS3Caches${suffix}`, {
-      bucketName: `liftosaurcaches${suffix.toLowerCase()}`,
+      bucketName: `${LftS3Buckets.caches}${suffix.toLowerCase()}`,
       lifecycleRules: [{ expiration: cdk.Duration.days(1) }],
     });
 
     const debugbucket = new s3.Bucket(this, `LftS3Debugs${suffix}`, {
-      bucketName: `liftosaurdebugs${suffix.toLowerCase()}`,
+      bucketName: `${LftS3Buckets.debugs}${suffix.toLowerCase()}`,
       lifecycleRules: [{ expiration: cdk.Duration.days(365) }],
     });
 
     const exceptionsbucket = new s3.Bucket(this, `LftS3Exceptions${suffix}`, {
-      bucketName: `liftosaurexceptions${suffix.toLowerCase()}`,
+      bucketName: `${LftS3Buckets.exceptions}${suffix.toLowerCase()}`,
       lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
     });
 
