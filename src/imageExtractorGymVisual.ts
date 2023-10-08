@@ -6,6 +6,7 @@ import { LogUtil } from "../lambda/utils/log";
 import util from "util";
 import { CollectionUtils } from "./utils/collection";
 import childProcess from "child_process";
+import { LftS3Buckets } from "../lambda/dao/buckets";
 
 // Usage:
 // Extract all images from gymvisual.com into a directory
@@ -251,7 +252,7 @@ async function uploadToS3(): Promise<void> {
     await Promise.all(
       sf.map((file) =>
         s3.putObject({
-          bucket: "liftosaurimages",
+          bucket: LftS3Buckets.images,
           key: `exercises/single/small/${file}`,
           body: fs.readFileSync(path.join(outputDirSmall, file)),
           opts: {
@@ -267,7 +268,7 @@ async function uploadToS3(): Promise<void> {
     await Promise.all(
       lf.map((file) =>
         s3.putObject({
-          bucket: "liftosaurimages",
+          bucket: LftS3Buckets.images,
           key: `exercises/full/large/${file}`,
           body: fs.readFileSync(path.join(outputDirLarge, file)),
           opts: {
@@ -283,7 +284,7 @@ async function uploadToS3(): Promise<void> {
 async function listAvailableImages(): Promise<void> {
   const logUtil = new LogUtil();
   const s3 = new S3Util(logUtil);
-  const smallList = await s3.listObjects({ bucket: "liftosaurimages", prefix: "exercises/single/small" });
+  const smallList = await s3.listObjects({ bucket: LftS3Buckets.images, prefix: "exercises/single/small" });
   let cleanedSmallList = smallList!.map((l) =>
     l.replace("exercises/single/small/", "").replace("_single_small.png", "").replace("_single.png", "")
   );
@@ -292,7 +293,7 @@ async function listAvailableImages(): Promise<void> {
   console.log("Available small images:");
   console.log(util.inspect(cleanedSmallList, { depth: null, colors: true, maxArrayLength: null }));
 
-  const largeList = await s3.listObjects({ bucket: "liftosaurimages", prefix: "exercises/full/large" });
+  const largeList = await s3.listObjects({ bucket: LftS3Buckets.images, prefix: "exercises/full/large" });
   let cleanedLargeList = largeList!.map((l) => l.replace("exercises/full/large/", "").replace("_full_large.png", ""));
   cleanedLargeList.sort();
   cleanedLargeList = Array.from(new Set(cleanedLargeList));

@@ -1,12 +1,13 @@
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
+import { LftS3Buckets } from "./buckets";
 
 const bucketNames = {
   dev: {
-    exceptions: "liftosaurexceptionsdev",
+    exceptions: `${LftS3Buckets.exceptions}dev`,
   },
   prod: {
-    exceptions: "liftosaurexceptions",
+    exceptions: LftS3Buckets.exceptions,
   },
 } as const;
 

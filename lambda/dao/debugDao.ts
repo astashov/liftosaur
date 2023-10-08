@@ -1,13 +1,14 @@
 import { DateUtils } from "../../src/utils/date";
 import { Utils } from "../utils";
 import { IDI } from "../utils/di";
+import { LftS3Buckets } from "./buckets";
 
 const bucketNames = {
   dev: {
-    debug: "liftosaurdebugsdev",
+    debug: `${LftS3Buckets.debugs}dev`,
   },
   prod: {
-    debug: "liftosaurdebugs",
+    debug: LftS3Buckets.debugs,
   },
 } as const;
 
