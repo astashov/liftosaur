@@ -54,8 +54,8 @@ export class SecretsUtil {
   private async getSecret<T extends keyof IAllSecrets>(key: T): Promise<IAllSecrets[T]> {
     const startTime = Date.now();
     const arns = {
-      dev: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
-      prod: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecrets-1Ojxkw",
+      dev: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG",
+      prod: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1",
     };
     const result = await this.secrets
       .getSecretValue({ SecretId: arns[Utils.getEnv()] })
