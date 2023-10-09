@@ -1,20 +1,20 @@
-/record id=:id user=:user https://api2.liftosaur.com/api/record?id=:id&user=:user  200
-/recordimage id=:id user=:user https://api2.liftosaur.com/api/recordimage?id=:id&user=:user  200
+/record id=:id user=:user https://api3.liftosaur.com/api/record?id=:id&user=:user  200
+/recordimage id=:id user=:user https://api3.liftosaur.com/api/recordimage?id=:id&user=:user  200
 /externalimages/* https://liftosaurimages.s3-us-west-2.amazonaws.com/:splat  200
-/admin/users key=:key https://api2.liftosaur.com/admin/users?key=:key  200
-/dashboards/users key=:key https://api2.liftosaur.com/dashboards/users?key=:key  200
-/admin/logs key=:key https://api2.liftosaur.com/admin/logs?key=:key  200
-/profile/:user https://api2.liftosaur.com/profile?user=:user  200
-/profileimage/:user https://api2.liftosaur.com/profileimage?user=:user  200
-/acceptfriendinvitation hash=:hash https://api2.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
-/acceptfriendinvitation hash=:hash https://api2.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
-/affiliates https://api2.liftosaur.com/affiliates  200
-/programs/:programId https://api2.liftosaur.com/programs/:programId  200
-/builder https://api2.liftosaur.com/builder  200
-/planner https://api2.liftosaur.com/planner  200
-/freeform https://api2.liftosaur.com/freeform  200
-/program https://api2.liftosaur.com/program  200
-/p/:id https://api2.liftosaur.com/p/:id  200
-/b/:id https://api2.liftosaur.com/b/:id  200
-/n/:id https://api2.liftosaur.com/n/:id  200
-/programimage/:id https://api2.liftosaur.com/api/programimage/:id  200
+/admin/users key=:key https://api3.liftosaur.com/admin/users?key=:key  200
+/dashboards/users key=:key https://api3.liftosaur.com/dashboards/users?key=:key  200
+/admin/logs key=:key https://api3.liftosaur.com/admin/logs?key=:key  200
+/profile/:user https://api3.liftosaur.com/profile?user=:user  200
+/profileimage/:user https://api3.liftosaur.com/profileimage?user=:user  200
+/acceptfriendinvitation hash=:hash https://api3.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
+/acceptfriendinvitation hash=:hash https://api3.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
+/affiliates https://api3.liftosaur.com/affiliates  200
+/programs/:programId https://api3.liftosaur.com/programs/:programId  200
+/builder https://api3.liftosaur.com/builder  200
+/planner https://api3.liftosaur.com/planner  200
+/freeform https://api3.liftosaur.com/freeform  200
+/program https://api3.liftosaur.com/program  200
+/p/:id https://api3.liftosaur.com/p/:id  200
+/b/:id https://api3.liftosaur.com/b/:id  200
+/n/:id https://api3.liftosaur.com/n/:id  200
+/programimage/:id https://api3.liftosaur.com/api/programimage/:id  200

@@ -18,7 +18,7 @@
     "trust": "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert/private.crt",
     "start:https": "webpack-dev-server --https --cert cert/private.pem --key cert/private.key --port 8443",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:3000/api/migrate?key=$KEY",
-    "migrate:prod": "curl -v -X POST https://api2.liftosaur.com/api/migrate?key=$KEY",
+    "migrate:prod": "curl -v -X POST https://api3.liftosaur.com/api/migrate?key=$KEY",
     "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:3000/api/synctoprod?ids=$IDS\\&key=$KEY",
     "synctodev": "curl -v -X POST http://local-api.liftosaur.com:3000/api/synctodev?ids=$IDS\\&key=$KEY",
     "copy:lambda": "mkdir -p ./dist-lambda && cp ./lambda/package*.json ./dist-lambda && cp -r ./lambda/images ./dist-lambda",

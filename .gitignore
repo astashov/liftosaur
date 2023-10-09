@@ -8,6 +8,7 @@
 /docs
 /cypress/videos
 /cypress/screenshots
+/backup
 
 /liftosaur-cdk/*.d.ts
 /dist-lambda

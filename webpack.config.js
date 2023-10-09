@@ -84,8 +84,8 @@ module.exports = {
       __API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production"
           ? process.env.STAGE
-            ? "https://api2-dev.liftosaur.com"
-            : "https://api2.liftosaur.com"
+            ? "https://api3-dev.liftosaur.com"
+            : "https://api3.liftosaur.com"
           : "https://local-api.liftosaur.com:3000"
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),

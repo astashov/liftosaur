@@ -1,6 +1,6 @@
 export const LftS3Buckets = {
-  caches: "liftosaurcaches",
-  debugs: "liftosaurdebugs",
-  exceptions: "liftosaurexceptions",
-  images: "liftosaurimages",
+  caches: "liftosaurcaches2",
+  debugs: "liftosaurdebugs2",
+  exceptions: "liftosaurexceptions2",
+  images: "liftosaurimages2",
 };

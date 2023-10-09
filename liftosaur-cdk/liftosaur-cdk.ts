@@ -216,10 +216,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const secretArns = {
       dev: {
-        all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecretsDev-ZKOi5r",
+        all: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG",
       },
       prod: {
-        all: "arn:aws:secretsmanager:us-west-2:547433167554:secret:lftAppSecrets-1Ojxkw",
+        all: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1",
       },
     };
 
@@ -270,14 +270,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const cert = acm.Certificate.fromCertificateArn(
       this,
       `LftEndpointCert${suffix}`,
-      "arn:aws:acm:us-west-2:547433167554:certificate/9b0ad338-9f91-45c0-9cd6-5ba854748035"
+      "arn:aws:acm:us-west-2:366191129585:certificate/2e317b03-2624-4b47-a116-2cc66107d65b"
     );
 
     const restApi = new apigw.RestApi(this, `LftEndpoint${suffix}`, {
       defaultIntegration: new apigw.LambdaIntegration(lambdaFunction),
       binaryMediaTypes: ["*/*"],
       domainName: {
-        domainName: `api2${isDev ? "-dev" : ""}.liftosaur.com`,
+        domainName: `api3${isDev ? "-dev" : ""}.liftosaur.com`,
         certificate: cert,
       },
     });
