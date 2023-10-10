@@ -6,6 +6,7 @@ import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { IStorage, IExerciseId } from "../types";
 import { Weight } from "../models/weight";
+import { SendMessage } from "../utils/sendMessage";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -347,5 +348,10 @@ export const migrations = {
       program.nextDay = program.nextDay ?? 1;
     }
     return storage;
+  },
+  "20231009191950_clear_caches": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    SendMessage.toIos({ type: "clearCache" });
+    SendMessage.toAndroid({ type: "clearCache" });
+    return aStorage;
   },
 };
