@@ -45,6 +45,9 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
 
     receiveMessage = (event) => {
       const data = event.data;
+      if (typeof data !== "string") {
+        return;
+      }
       const callbackUrl = UrlUtils.build(data);
       const params = callbackUrl.hash.slice(1);
       const exUrl = UrlUtils.build("https://www.example.com");
