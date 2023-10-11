@@ -14,7 +14,6 @@
 - Add an option to disable plates calculator
 - Group plates in the plates calculator together
 - Disable Zoom in the app
-- Move the app from liftosaur.com to liftosaur.com/app
 - Add integration with Apple Health
 - Fix the bug with clipboard in Safari
 - Add pushpress and lat pulldown images

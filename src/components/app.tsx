@@ -474,7 +474,10 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen.current(state.screenStack) === "musclesDay") {
-    const day = Program.getProgramDay(currentProgram!, state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 1);
+    const day = Program.getProgramDay(
+      currentProgram!,
+      (state.editProgram?.dayIndex != null ? state.editProgram.dayIndex + 1 : undefined) ?? state.progress[0]?.day ?? 1
+    );
     content = (
       <ScreenMusclesDay
         screenStack={state.screenStack}
