@@ -350,8 +350,10 @@ export const migrations = {
     return storage;
   },
   "20231009191950_clear_caches": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
-    SendMessage.toIos({ type: "clearCache" });
-    SendMessage.toAndroid({ type: "clearCache" });
+    if (typeof window !== "undefined") {
+      SendMessage.toIos({ type: "clearCache" });
+      SendMessage.toAndroid({ type: "clearCache" });
+    }
     return aStorage;
   },
 };
