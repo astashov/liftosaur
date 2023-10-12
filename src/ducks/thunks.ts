@@ -209,7 +209,7 @@ export namespace Thunk {
       const confirmation = Screen.shouldConfirmNavigation(getState());
       if (confirmation) {
         if (confirm(confirmation)) {
-          dispatch(Thunk.cleanup());
+          cleanup(dispatch, getState());
           dispatch({ type: "PullScreen" });
         } else {
           return;
@@ -270,26 +270,23 @@ export namespace Thunk {
     };
   }
 
-  export function cleanup(): IThunk {
-    return async (dispatch, getState) => {
-      const state = getState();
-      if (state.currentHistoryRecord) {
-        const progress = state.progress[state.currentHistoryRecord];
-        if (progress && !Progress.isCurrent(progress)) {
-          updateState(dispatch, [
-            lb<IState>().p("currentHistoryRecord").record(undefined),
-            lb<IState>()
-              .p("progress")
-              .recordModify((progresses) => Progress.stop(progresses, progress.id)),
-          ]);
-        }
+  function cleanup(dispatch: IDispatch, state: IState): void {
+    if (state.currentHistoryRecord) {
+      const progress = state.progress[state.currentHistoryRecord];
+      if (progress && !Progress.isCurrent(progress)) {
+        updateState(dispatch, [
+          lb<IState>().p("currentHistoryRecord").record(undefined),
+          lb<IState>()
+            .p("progress")
+            .recordModify((progresses) => Progress.stop(progresses, progress.id)),
+        ]);
       }
+    }
 
-      const editExercise = state.editExercise;
-      if (editExercise) {
-        updateState(dispatch, [lb<IState>().p("editExercise").record(undefined)]);
-      }
-    };
+    const editExercise = state.editExercise;
+    if (editExercise) {
+      updateState(dispatch, [lb<IState>().p("editExercise").record(undefined)]);
+    }
   }
 
   export function pullScreen(): IThunk {
@@ -297,7 +294,7 @@ export namespace Thunk {
       const confirmation = Screen.shouldConfirmNavigation(getState());
       if (confirmation) {
         if (confirm(confirmation)) {
-          dispatch(Thunk.cleanup());
+          cleanup(dispatch, getState());
         } else {
           return;
         }
