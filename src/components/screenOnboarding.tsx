@@ -56,7 +56,7 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
         <div
           ref={screensRef}
           onScroll={() => {
-            const scrollLeft = screensRef.current.scrollLeft;
+            const scrollLeft = screensRef.current?.scrollLeft ?? 0;
             const windowWidth = window.innerWidth;
             const selectedDot = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
             if (selectedDotRef.current !== selectedDot) {
