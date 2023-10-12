@@ -153,10 +153,10 @@ export class PlannerExerciseEvaluator {
       const timerNode = expr.getChild(NodeName.Timer);
       const percentageNode = expr.getChild(NodeName.Percentage);
       const weightNode = expr.getChild(NodeName.Weight);
-      const rpe = rpeNode == null ? undefined : parseInt(this.getValue(rpeNode).replace("@", ""), 10);
+      const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", ""), 10);
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
       const percentage =
-        percentageNode == null ? undefined : parseInt(this.getValue(percentageNode).replace("%", ""), 10);
+        percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
       const weight = this.getWeight(weightNode);
       return {
         repRange,
