@@ -17,8 +17,7 @@ export type IScreen =
   | "progress"
   | "graphs"
   | "finishDay"
-  | "musclesProgram"
-  | "musclesDay"
+  | "muscles"
   | "stats"
   | "editProgram"
   | "editProgramExercise"
@@ -113,10 +112,7 @@ export namespace Screen {
       case "finishDay": {
         return "workout";
       }
-      case "musclesProgram": {
-        return "program";
-      }
-      case "musclesDay": {
+      case "muscles": {
         return "program";
       }
       case "stats": {

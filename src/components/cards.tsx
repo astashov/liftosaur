@@ -13,7 +13,7 @@ import {
   ISubscription,
   IEquipment,
 } from "../types";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser } from "../models/state";
+import { IAllComments, IAllFriends, IAllLikes, IFriendUser, IState, updateState } from "../models/state";
 import { Comments } from "./comments";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
@@ -23,6 +23,7 @@ import { inputClassName } from "./input";
 import { IconNotebook } from "./icons/iconNotebook";
 import { LinkButton } from "./linkButton";
 import { Program } from "../models/program";
+import { lb } from "lens-shmens";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -52,7 +53,7 @@ interface ICardsViewProps {
 
 export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
-    const { friend, userId } = props;
+    const { friend, userId, program } = props;
     return (
       <section className="px-4 pb-4">
         <div className="flex pb-2">
@@ -76,9 +77,20 @@ export const CardsView = memo(
                 >
                   <IconEditSquare />
                 </button>
-                <button onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))} className="px-2 align-middle">
-                  <IconMuscles2 />
-                </button>
+                {program && (
+                  <button
+                    onClick={() => {
+                      const dayIndex = Program.getProgramDayIndex(program, props.progress.day);
+                      updateState(props.dispatch, [
+                        lb<IState>().p("muscleView").record({ type: "day", programId: program.id, dayIndex }),
+                      ]);
+                      props.dispatch(Thunk.pushScreen("muscles"));
+                    }}
+                    className="px-2 align-middle"
+                  >
+                    <IconMuscles2 />
+                  </button>
+                )}
               </div>
             </div>
           </div>

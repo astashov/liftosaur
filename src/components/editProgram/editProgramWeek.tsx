@@ -63,6 +63,7 @@ export function EditProgramWeek(props: IProps): JSX.Element {
             items={week.days}
             element={(dayRef, dayIndex, handleTouchStart) => {
               const day = program.days.find((d) => d.id === dayRef.id)!;
+              const editDayIndex = program.days.indexOf(day);
               return (
                 <MenuItem
                   handleTouchStart={handleTouchStart}
@@ -71,7 +72,7 @@ export function EditProgramWeek(props: IProps): JSX.Element {
                     <Fragment>
                       <button
                         className="p-2 align-middle ls-day-edit-exercise button"
-                        onClick={() => props.dispatch({ type: "EditDayAction", index: dayIndex })}
+                        onClick={() => props.dispatch({ type: "EditDayAction", index: editDayIndex })}
                       >
                         <IconEditSquare />
                       </button>

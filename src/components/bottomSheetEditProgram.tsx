@@ -8,6 +8,8 @@ import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { Program } from "../models/program";
 import { IconLink } from "./icons/iconLink";
+import { IState, updateState } from "../models/state";
+import { lb } from "lens-shmens";
 
 interface IProps {
   isHidden: boolean;
@@ -37,7 +39,12 @@ export function BottomSheetEditProgram(props: IProps): JSX.Element {
           title="Muscles"
           icon={<IconMuscles2 />}
           description="Muscle balance of the current program."
-          onClick={() => props.dispatch(Thunk.pushScreen("musclesProgram"))}
+          onClick={() => {
+            updateState(props.dispatch, [
+              lb<IState>().p("muscleView").record({ type: "program", programId: props.editProgramId }),
+            ]);
+            props.dispatch(Thunk.pushScreen("muscles"));
+          }}
         />
         <BottomSheetItem
           name="export-program"

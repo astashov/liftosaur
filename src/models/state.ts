@@ -129,6 +129,11 @@ export interface IState {
     dayIndex?: number;
     weekIndex?: number;
   };
+  muscleView?: {
+    type: "program" | "day";
+    programId?: string;
+    dayIndex?: number;
+  };
   viewExerciseType?: IExerciseType;
   editExercise?: IProgramExercise;
   adminKey?: string;

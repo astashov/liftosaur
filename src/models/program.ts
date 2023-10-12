@@ -717,6 +717,11 @@ export namespace Program {
     }
   }
 
+  export function getProgramDayIndex(program: IProgram, day: number): number {
+    const programDay = getProgramDay(program, day);
+    return program.days.findIndex((d) => d.id === programDay.id);
+  }
+
   export function getProgramDay(program: IProgram, day: number): IProgramDay {
     const d = day - 1;
     if (program.isMultiweek) {

@@ -7,7 +7,7 @@ import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { Thunk } from "../../ducks/thunks";
 import { ISettings, IProgram, IProgramDay } from "../../types";
-import { ILoading } from "../../models/state";
+import { ILoading, IState, updateState } from "../../models/state";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { IScreen, Screen } from "../../models/screen";
@@ -23,6 +23,7 @@ import { BottomSheetItem } from "../bottomSheetItem";
 import { BottomSheet } from "../bottomSheet";
 import { useState } from "preact/hooks";
 import { IconKebab } from "../icons/iconKebab";
+import { lb } from "lens-shmens";
 
 interface IProps {
   isProgress: boolean;
@@ -73,7 +74,14 @@ export function EditProgramDay(props: IProps): JSX.Element {
               title="Muscles"
               icon={<IconMuscles2 />}
               description="Muscle balance of the current day."
-              onClick={() => props.dispatch(Thunk.pushScreen("musclesDay"))}
+              onClick={() => {
+                updateState(props.dispatch, [
+                  lb<IState>()
+                    .p("muscleView")
+                    .record({ type: "day", programId: props.editProgram.id, dayIndex: props.dayIndex }),
+                ]);
+                props.dispatch(Thunk.pushScreen("muscles"));
+              }}
             />
           </div>
         </BottomSheet>

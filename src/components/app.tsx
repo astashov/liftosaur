@@ -463,31 +463,41 @@ export function AppView(props: IProps): JSX.Element | null {
         userId={state.user?.id}
       />
     );
-  } else if (Screen.current(state.screenStack) === "musclesProgram") {
-    content = (
-      <ScreenMusclesProgram
-        loading={state.loading}
-        dispatch={dispatch}
-        screenStack={state.screenStack}
-        program={currentProgram!}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen.current(state.screenStack) === "musclesDay") {
-    const day = Program.getProgramDay(
-      currentProgram!,
-      (state.editProgram?.dayIndex != null ? state.editProgram.dayIndex + 1 : undefined) ?? state.progress[0]?.day ?? 1
-    );
-    content = (
-      <ScreenMusclesDay
-        screenStack={state.screenStack}
-        loading={state.loading}
-        dispatch={dispatch}
-        program={currentProgram!}
-        programDay={day}
-        settings={state.storage.settings}
-      />
-    );
+  } else if (Screen.current(state.screenStack) === "muscles") {
+    const type = state.muscleView || {
+      type: "program",
+      programId: state.storage.currentProgramId || state.storage.programs[0]?.id,
+    };
+    if (type.programId == null) {
+      throw new Error("Opened 'muscles' screen, but 'state.storage.currentProgramId' is null");
+    }
+    const program = Program.getProgram(state, type.programId);
+    if (program == null) {
+      throw new Error("Opened 'muscles' screen, but 'program' is null");
+    }
+    if (type.type === "program") {
+      content = (
+        <ScreenMusclesProgram
+          loading={state.loading}
+          dispatch={dispatch}
+          screenStack={state.screenStack}
+          program={program}
+          settings={state.storage.settings}
+        />
+      );
+    } else {
+      const day = program.days[type.dayIndex ?? 0];
+      content = (
+        <ScreenMusclesDay
+          screenStack={state.screenStack}
+          loading={state.loading}
+          dispatch={dispatch}
+          program={program}
+          programDay={day}
+          settings={state.storage.settings}
+        />
+      );
+    }
   } else {
     return null;
   }
