@@ -31,6 +31,7 @@ import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
 import { ObjectUtils } from "../utils/object";
 import { UrlUtils } from "../utils/url";
+import { DateUtils } from "../utils/date";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -321,7 +322,10 @@ let timerId: number | undefined = undefined;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   window.reducerLastState = state;
-  window.reducerLastActions = [action, ...(window.reducerLastActions || []).slice(0, 30)];
+  window.reducerLastActions = [
+    { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
+    ...(window.reducerLastActions || []).slice(0, 30),
+  ];
   const newState = reducer(state, action);
   if (state.storage !== newState.storage) {
     newState.storage = {

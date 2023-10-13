@@ -95,7 +95,7 @@ export namespace DateUtils {
     return [year, month, day, hours, minutes, seconds].join("");
   }
 
-  export function formatHHMMSS(date: Date | string | number): string {
+  export function formatHHMMSS(date: Date | string | number, withMs: boolean = false): string {
     const d = new Date(date);
     let seconds = `${d.getSeconds()}`;
     let minutes = `${d.getMinutes()}`;
@@ -110,8 +110,11 @@ export namespace DateUtils {
     if (hours.length < 2) {
       hours = `0${hours}`;
     }
-
-    return [hours, minutes, seconds].join(":");
+    let result = [hours, minutes, seconds].join(":");
+    if (withMs) {
+      result += `.${d.getMilliseconds()}`;
+    }
+    return result;
   }
 
   export function fromYYYYMMDD(dateStr: string, separator: string = "-"): string {
