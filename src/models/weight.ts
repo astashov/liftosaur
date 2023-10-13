@@ -99,7 +99,8 @@ export namespace Weight {
         break;
       }
     }
-    return arr.join("/");
+
+    return CollectionUtils.compressArray(arr, 3).join("/");
   }
 
   export function calculatePlates(
