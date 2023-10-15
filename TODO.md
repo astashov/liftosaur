@@ -4,7 +4,6 @@
 - Use state vars for warmups
 - Add negative indexing (-1)
 - Names for variation sets
-- Change volume to sets on the congrats screen
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
@@ -12,7 +11,6 @@
 - Autofocus for AMRAP / RPE
 - Import from Perseus
 - Add an option to disable plates calculator
-- Group plates in the plates calculator together
 - Disable Zoom in the app
 - Add integration with Apple Health
 - Fix the bug with clipboard in Safari
@@ -21,6 +19,7 @@
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
 - Validation error for vars starting with a number
+- QR code for program sharing
 
 * Programs
   - 5/3/1s

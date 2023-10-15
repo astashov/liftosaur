@@ -31,7 +31,11 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   }
 
   const customExercises = props.settings.customExercises;
-  const exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
+  let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
+  if (!exercise) {
+    return <></>;
+  }
+  exercise = Exercise.find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
   if (!exercise) {
     return <></>;
   }
