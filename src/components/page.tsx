@@ -1,25 +1,25 @@
-import { JSX, h, ComponentChildren } from "preact";
-import { TopNavMenu } from "./topNavMenu";
-import { FooterPage } from "./footerPage";
+import { JSX, h } from "preact";
+import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
-interface IProps<T> {
+interface IProps<T> extends IPageWrapperProps {
   title: string;
   css: string[];
   js: string[];
   ogTitle?: string;
-  maxWidth?: number;
   ogDescription?: string;
   ogUrl?: string;
   ogImage?: string;
-  skipTopNavMenu?: boolean;
-  skipFooter?: boolean;
   data: T;
-  children?: ComponentChildren;
   postHead?: JSX.Element;
-  url?: string;
 }
 
 export function Page<T>(props: IProps<T>): JSX.Element {
+  const pageWrapperProps: IPageWrapperProps = {
+    skipTopNavMenu: props.skipTopNavMenu,
+    maxWidth: props.maxWidth,
+    url: props.url,
+    skipFooter: props.skipFooter,
+  };
   return (
     <html lang="en">
       <head>
@@ -52,12 +52,11 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.postHead}
       </head>
       <body>
-        <div class="content">
-          {!props.skipTopNavMenu && <TopNavMenu maxWidth={props.maxWidth || 800} current={props.url} />}
-          <div id="app" style={{ maxWidth: props.maxWidth || 800, margin: "0 auto", width: "100%" }}>
-            {props.children}
-          </div>
-          {!props.skipFooter && <FooterPage maxWidth={props.maxWidth || 800} />}
+        <div class="content" id="app">
+          <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>
+        </div>
+        <div id="pagewrapper" style={{ display: "none" }}>
+          {JSON.stringify(pageWrapperProps)}
         </div>
         <div id="data" style={{ display: "none" }}>
           {JSON.stringify(props.data)}
