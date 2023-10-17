@@ -359,7 +359,7 @@ export class Service {
       const json: { data: string; s?: string } = await result.json();
       return json;
     } else {
-      throw new Error("Couldn't parse short url");
+      throw new Error(`Couldn't parse short url: ${url.toString()}`);
     }
   }
 
