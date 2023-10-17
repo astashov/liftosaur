@@ -12,7 +12,7 @@ import { ProgramContentEditor } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
 import { Service } from "../../api/service";
-import { useEffect, useState, useRef } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
