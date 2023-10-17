@@ -9,6 +9,7 @@ interface IBuilderCopyLinkProps<T> {
   msg?: string;
   rightAligned?: boolean;
   suppressShowInfo?: boolean;
+  encodedProgram?: string;
   onShowInfo?: (url: string) => void;
   type: "p" | "b" | "n";
   program: T;
@@ -38,7 +39,7 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
         className="p-2 align-middle"
         onClick={async () => {
           const service = new Service(props.client);
-          const url = await service.postShortUrl(window.location.href, props.type);
+          const url = await service.postShortUrl(props.encodedProgram || window.location.href, props.type);
           ClipboardUtils.copy(url);
           if (props.onShowInfo) {
             props.onShowInfo(url);

@@ -701,6 +701,24 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20231016": {
+    title: <span>Changed how Web Editor program links work</span>,
+    body: (
+      <ul>
+        <li>
+          It used to be that when you edit a program in a web editor, it'd update the link right in the URL bar, and the
+          short links like /p/123abc would just redirect to the long links with whole program presented into a URL.
+        </li>
+        <li>
+          But apprently there's 10K limit in the URL length, so it was breaking for some large programs. So, I had to
+          change how it works. Now, when you edit a program, you need to generate a link to "Save" it, each change won't
+          automatically update the browser history. It'll also show a warning (that you can close) when you change a
+          linked program that in order to "Save" the changes, you need to generate a new link that'll represent a
+          changed program.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

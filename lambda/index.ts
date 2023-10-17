@@ -1383,7 +1383,32 @@ const getProgramShorturlHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const di = payload.di;
   const id = params.id;
-  return shorturlRedirect(di, id);
+  let program: IExportedProgram | undefined;
+  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const urlString = await new UrlDao(di).get(id);
+  if (urlString) {
+    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
+    const data = url.searchParams.get("data");
+    if (data) {
+      try {
+        const exportedProgramJson = await NodeEncoder.decode(data);
+        const result = await ImportExporter.getExportedProgram(fetch, exportedProgramJson);
+        if (result.success) {
+          program = result.data;
+          return {
+            statusCode: 200,
+            body: renderProgramHtml(fetch, isMobile, program),
+            headers: { "content-type": "text/html" },
+          };
+        } else {
+          di.log.log(result.error);
+        }
+      } catch (e) {
+        di.log.log(e);
+      }
+    }
+  }
+  return ResponseUtils.json(404, payload.event, { error: "Not Found" });
 };
 
 const getBuilderShorturlEndpoint = Endpoint.build("/b/:id");

@@ -4,7 +4,6 @@ import { IProgramEditorState } from "./models/types";
 import { IExportedProgram } from "../../models/program";
 import { Settings } from "../../models/settings";
 import { ObjectUtils } from "../../utils/object";
-import { Encoder } from "../../utils/encoder";
 import { undoRedoMiddleware } from "../builder/utils/undoredo";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UidFactory } from "../../utils/generator";
@@ -13,7 +12,7 @@ import { ProgramContentEditor } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
 import { Service } from "../../api/service";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState, useRef } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
@@ -21,11 +20,23 @@ import { useCopyPaste } from "./utils/programCopypaste";
 import { ProgramContentModalEquipment } from "./components/programContentModalEquipment";
 import { lb } from "lens-shmens";
 import { equipments } from "../../types";
+import { Encoder } from "../../utils/encoder";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
   isMobile: boolean;
   exportedProgram?: IExportedProgram;
+}
+
+function generateExportedProgram(state: IProgramEditorState): IExportedProgram {
+  const customEquipment = ObjectUtils.omit(state.settings.equipment, equipments);
+  return {
+    program: state.current.program,
+    customExercises: state.settings.exercises,
+    customEquipment: customEquipment,
+    version: getLatestMigrationVersion(),
+    settings: ObjectUtils.pick(state.settings, ["timers", "units"]),
+  };
 }
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
@@ -64,19 +75,16 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       past: [],
       future: [],
     },
+    initialEncodedProgramUrl: undefined,
+    encodedProgramUrl: undefined,
   };
+
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
-        const customEquipment = ObjectUtils.omit(newState.settings.equipment, equipments);
-        const exportedProgram: IExportedProgram = {
-          program: newState.current.program,
-          customExercises: newState.settings.exercises,
-          customEquipment: customEquipment,
-          version: getLatestMigrationVersion(),
-          settings: ObjectUtils.pick(newState.settings, ["timers", "units"]),
-        };
-        await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
+        const exportedProgram = generateExportedProgram(newState);
+        const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href);
+        dispatch(lb<IProgramEditorState>().p("encodedProgramUrl").record(url.toString()));
       }
     },
     async (action, oldState, newState) => {
@@ -102,9 +110,36 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
 
   useEffect(() => {
+    function onBeforeUnload(e: Event): void {
+      if (
+        state.encodedProgramUrl != null &&
+        state.initialEncodedProgramUrl != null &&
+        state.encodedProgramUrl !== state.initialEncodedProgramUrl
+      ) {
+        e.preventDefault();
+        e.returnValue = true;
+      }
+    }
+    function onPopState(e: Event): void {
+      window.location.reload();
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [state]);
+
+  useEffect(() => {
     if (props.isMobile) {
       const service = new Service(props.client);
       service.postShortUrl(window.location.href, "p").then(setProgramUrl);
+    } else if (props.exportedProgram) {
+      const exportedProgram = generateExportedProgram(state);
+      Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then((url) => {
+        dispatch(lb<IProgramEditorState>().p("initialEncodedProgramUrl").record(url.toString()));
+      });
     }
   }, []);
 
@@ -215,6 +250,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
           selected={state.ui.selected}
           state={state}
           dispatch={dispatch}
+          initialEncodedProgramUrl={state.initialEncodedProgramUrl}
+          encodedProgramUrl={state.encodedProgramUrl}
           onShowSettingsModal={() => setShowSettingsModal(true)}
         />
       )}

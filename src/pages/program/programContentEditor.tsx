@@ -35,12 +35,15 @@ import { UidFactory } from "../../utils/generator";
 import { HtmlUtils } from "../../utils/html";
 import { ProgramContentManageDaysModal } from "./components/programContentManageDaysModal";
 import { ProgramContentEditWeeks } from "./components/programContentEditWeeks";
+import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
   dispatch: ILensDispatch<IProgramEditorState>;
   state: IProgramEditorState;
   selected: IProgramEditorUiSelected[];
+  initialEncodedProgramUrl?: string;
+  encodedProgramUrl?: string;
   onShowSettingsModal: () => void;
 }
 
@@ -88,8 +91,22 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
   const lbExamples = state.ui.showExamplesForExerciseKey
     ? lbEditExercises.pi(state.ui.showExamplesForExerciseKey)
     : undefined;
+  const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
+  const hasChanges =
+    props.encodedProgramUrl != null &&
+    props.initialEncodedProgramUrl != null &&
+    props.encodedProgramUrl !== props.initialEncodedProgramUrl;
   return (
     <section className="px-4 py-2">
+      {hasChanges && !clearHasChanges && (
+        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-redv2-main">
+          Made changes to the program, but the link still goes to the original version. If you want to share updated
+          version, generate a new link.
+          <button className="p-2 align-middle" onClick={() => setClearHasChanges(true)}>
+            <IconCloseCircleOutline size={14} />
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row">
         <div className="flex-1 min-w-0">
           <div className="flex items-center">
@@ -117,7 +134,19 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 program={program}
                 client={props.client}
                 suppressShowInfo={true}
-                onShowInfo={setShowClipboardInfo}
+                onShowInfo={(url) => {
+                  props.dispatch(
+                    lb<IProgramEditorState>()
+                      .p("initialEncodedProgramUrl")
+                      .record(props.encodedProgramUrl || props.initialEncodedProgramUrl)
+                  );
+                  // Add new URL to the browser history
+                  if (url !== window.location.href) {
+                    window.history.pushState({}, document.title, url);
+                  }
+                  setShowClipboardInfo(url);
+                }}
+                encodedProgram={props.encodedProgramUrl || props.initialEncodedProgramUrl}
               />
               <button title="Settings" className="p-2" onClick={() => props.onShowSettingsModal()}>
                 <IconCog2 />

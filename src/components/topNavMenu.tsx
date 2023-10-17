@@ -8,7 +8,7 @@ export function TopNavMenu(props: { maxWidth?: number; current?: string }): JSX.
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav class="w-full mx-auto px-2 my-6" style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}>
+    <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}>
       <div class="flex items-center cursor-pointer">
         <div className="mr-2 sm:hidden">
           <button className="p-2" onClick={() => setIsMenuOpen(true)}>

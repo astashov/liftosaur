@@ -13,4 +13,6 @@ export interface IProgramEditorState
     showExamplesForExerciseKey?: string;
     selected: IProgramEditorUiSelected[];
   };
+  initialEncodedProgramUrl?: string;
+  encodedProgramUrl?: string;
 }
