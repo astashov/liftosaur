@@ -21,6 +21,7 @@ import { ProgramContentModalEquipment } from "./components/programContentModalEq
 import { lb } from "lens-shmens";
 import { equipments } from "../../types";
 import { Encoder } from "../../utils/encoder";
+import { UrlUtils } from "../../utils/url";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -83,7 +84,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
         const exportedProgram = generateExportedProgram(newState);
-        const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href);
+        const baseUrl = UrlUtils.build("/program", window.location.href);
+        const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
         dispatch(lb<IProgramEditorState>().p("encodedProgramUrl").record(url.toString()));
       }
     },
@@ -137,7 +139,8 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       service.postShortUrl(window.location.href, "p").then(setProgramUrl);
     } else if (props.exportedProgram) {
       const exportedProgram = generateExportedProgram(state);
-      Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then((url) => {
+      const baseUrl = UrlUtils.build("/program", window.location.href);
+      Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString()).then((url) => {
         dispatch(lb<IProgramEditorState>().p("initialEncodedProgramUrl").record(url.toString()));
       });
     }
