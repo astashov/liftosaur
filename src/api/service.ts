@@ -339,8 +339,11 @@ export class Service {
 
   public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
     const url = UrlUtils.build(`${__API_HOST__}/shorturl/${type}`);
-    url.searchParams.set("url", urlToShorten);
-    const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({ url: urlToShorten }),
+    });
     if (result.ok) {
       const json: { url: string } = await result.json();
       return UrlUtils.build(json.url, window.location.href).toString();

@@ -1441,13 +1441,17 @@ async function shorturlRedirect(di: IDI, id: string): Promise<APIGatewayProxyRes
   }
 }
 
-const postShortUrlEndpoint = Endpoint.build("/shorturl/:type", { url: "string" });
+const postShortUrlEndpoint = Endpoint.build("/shorturl/:type");
 const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postShortUrlEndpoint> = async ({
   payload,
   match: { params },
 }) => {
   const { event, di } = payload;
-  const { type, url } = params;
+  const { type } = params;
+  const { url } = getBodyJson(event);
+  if (url == null || typeof url !== "string") {
+    return ResponseUtils.json(400, event, {});
+  }
   const id = await new UrlDao(di).put(url);
   const newUrl = `/${type}/${id}`;
 
