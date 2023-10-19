@@ -36,6 +36,10 @@ import { HtmlUtils } from "../../utils/html";
 import { ProgramContentManageDaysModal } from "./components/programContentManageDaysModal";
 import { ProgramContentEditWeeks } from "./components/programContentEditWeeks";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
+import { ProgramQrCode } from "../../components/programQrCode";
+import { ProgramContentExport } from "./utils/programContentExport";
+import { UrlUtils } from "../../utils/url";
+import { Encoder } from "../../utils/encoder";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -129,25 +133,39 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </button>
             </h1>
             <div className="flex">
-              <BuilderCopyLink
-                type="p"
-                program={program}
-                client={props.client}
-                suppressShowInfo={true}
-                onShowInfo={(url) => {
-                  props.dispatch(
-                    lb<IProgramEditorState>()
-                      .p("initialEncodedProgramUrl")
-                      .record(props.encodedProgramUrl || props.initialEncodedProgramUrl)
-                  );
-                  // Add new URL to the browser history
-                  if (url !== window.location.href) {
-                    window.history.pushState({}, document.title, url);
-                  }
-                  setShowClipboardInfo(url);
-                }}
-                encodedProgram={props.encodedProgramUrl || props.initialEncodedProgramUrl}
-              />
+              {(props.encodedProgramUrl || props.initialEncodedProgramUrl) && (
+                <BuilderCopyLink
+                  type="p"
+                  program={program}
+                  client={props.client}
+                  suppressShowInfo={true}
+                  onShowInfo={(url) => {
+                    props.dispatch(
+                      lb<IProgramEditorState>()
+                        .p("initialEncodedProgramUrl")
+                        .record(props.encodedProgramUrl || props.initialEncodedProgramUrl)
+                    );
+                    // Add new URL to the browser history
+                    if (url !== window.location.href) {
+                      window.history.pushState({}, document.title, url);
+                    }
+                    setShowClipboardInfo(url);
+                  }}
+                  encodedProgram={async () => {
+                    let encodedProgram = props.encodedProgramUrl || props.initialEncodedProgramUrl;
+                    if (!encodedProgram) {
+                      const exportedProgram = ProgramContentExport.generateExportedProgram(state);
+                      const baseUrl = UrlUtils.build("/program", window.location.href);
+                      const encodedUrl = await Encoder.encodeIntoUrl(
+                        JSON.stringify(exportedProgram),
+                        baseUrl.toString()
+                      );
+                      encodedProgram = encodedUrl.toString();
+                    }
+                    return encodedProgram;
+                  }}
+                />
+              )}
               <button title="Settings" className="p-2" onClick={() => props.onShowSettingsModal()}>
                 <IconCog2 />
               </button>
@@ -173,10 +191,15 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
           </div>
           {showClipboardInfo && (
             <div className="text-xs text-right text-grayv2-main">
-              Copied to clipboard:{" "}
-              <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
-                {showClipboardInfo}
-              </a>
+              <div>
+                Copied to clipboard:{" "}
+                <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+                  {showClipboardInfo}
+                </a>
+              </div>
+              <div>
+                <ProgramQrCode url={showClipboardInfo} />
+              </div>
             </div>
           )}
           {program.isMultiweek && (

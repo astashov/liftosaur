@@ -3,9 +3,7 @@ import { useLensReducer } from "../../utils/useLensReducer";
 import { IProgramEditorState } from "./models/types";
 import { IExportedProgram } from "../../models/program";
 import { Settings } from "../../models/settings";
-import { ObjectUtils } from "../../utils/object";
 import { undoRedoMiddleware } from "../builder/utils/undoredo";
-import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { UidFactory } from "../../utils/generator";
 import { ProgramPreview } from "../../components/programPreview";
 import { ProgramContentEditor } from "./programContentEditor";
@@ -19,25 +17,14 @@ import { IconCog2 } from "../../components/icons/iconCog2";
 import { useCopyPaste } from "./utils/programCopypaste";
 import { ProgramContentModalEquipment } from "./components/programContentModalEquipment";
 import { lb } from "lens-shmens";
-import { equipments } from "../../types";
 import { Encoder } from "../../utils/encoder";
 import { UrlUtils } from "../../utils/url";
+import { ProgramContentExport } from "./utils/programContentExport";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
   isMobile: boolean;
   exportedProgram?: IExportedProgram;
-}
-
-function generateExportedProgram(state: IProgramEditorState): IExportedProgram {
-  const customEquipment = ObjectUtils.omit(state.settings.equipment, equipments);
-  return {
-    program: state.current.program,
-    customExercises: state.settings.exercises,
-    customEquipment: customEquipment,
-    version: getLatestMigrationVersion(),
-    settings: ObjectUtils.pick(state.settings, ["timers", "units"]),
-  };
 }
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
@@ -83,7 +70,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
-        const exportedProgram = generateExportedProgram(newState);
+        const exportedProgram = ProgramContentExport.generateExportedProgram(newState);
         const baseUrl = UrlUtils.build("/program", window.location.href);
         const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
         dispatch(lb<IProgramEditorState>().p("encodedProgramUrl").record(url.toString()));
@@ -138,7 +125,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       const service = new Service(props.client);
       service.postShortUrl(window.location.href, "p").then(setProgramUrl);
     } else if (props.exportedProgram) {
-      const exportedProgram = generateExportedProgram(state);
+      const exportedProgram = ProgramContentExport.generateExportedProgram(state);
       const baseUrl = UrlUtils.build("/program", window.location.href);
       Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString()).then((url) => {
         dispatch(lb<IProgramEditorState>().p("initialEncodedProgramUrl").record(url.toString()));
