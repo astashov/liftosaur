@@ -24,6 +24,7 @@ import { IconNotebook } from "./icons/iconNotebook";
 import { LinkButton } from "./linkButton";
 import { Program } from "../models/program";
 import { lb } from "lens-shmens";
+import { Features } from "../utils/features";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -179,7 +180,7 @@ export const CardsView = memo(
             className={`${inputClassName} h-32`}
           />
         </div>
-        {!Progress.isCurrent(props.progress) && userId && (
+        {Features.areFriendsEnabled() && !Progress.isCurrent(props.progress) && userId && (
           <Comments
             nickname={props.nickname}
             currentUserId={userId}
