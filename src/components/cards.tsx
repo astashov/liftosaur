@@ -65,19 +65,18 @@ export const CardsView = memo(
                 {props.progress?.dayName}
               </div>
               <div className="mr-2 align-middle">
-                <button
-                  className="px-2 ml-1 align-middle"
-                  onClick={() => {
-                    const programDay = props.program
-                      ? Program.getProgramDay(props.program, props.progress.day)
-                      : undefined;
-                    const dayIndex =
-                      programDay && props.program ? props.program.days.indexOf(programDay) : props.progress.day - 1;
-                    Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
-                  }}
-                >
-                  <IconEditSquare />
-                </button>
+                {program && (
+                  <button
+                    className="px-2 ml-1 align-middle"
+                    onClick={() => {
+                      const programDay = Program.getProgramDay(program, props.progress.day);
+                      const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
+                      Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
+                    }}
+                  >
+                    <IconEditSquare />
+                  </button>
+                )}
                 {program && (
                   <button
                     onClick={() => {
