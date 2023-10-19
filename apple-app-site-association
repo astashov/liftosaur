@@ -4,7 +4,7 @@
     "details": [
       {
         "appIDs": [
-          "LTYGDF4LZG.com.liftosaur.www"
+          "7V6ZVS97Z2.com.liftosaur.www"
         ],
         "components": [
           {
@@ -12,6 +12,9 @@
           },
           {
             "/": "program"
+          },
+          {
+            "/": "p/*"
           }
         ]
       }
