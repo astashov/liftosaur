@@ -8,7 +8,12 @@ export namespace ImportFromLink {
     link: string,
     client: Window["fetch"]
   ): Promise<IEither<{ decoded: string; source?: string }, string[]>> {
-    const url = UrlUtils.build(link);
+    let url: URL;
+    try {
+      url = UrlUtils.build(link);
+    } catch (e) {
+      return { success: false, error: ["Invalid link"] };
+    }
     let base64 = url.searchParams.get("data") || undefined;
     let source = url.searchParams.get("s") || undefined;
     let decoded;
