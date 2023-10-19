@@ -122,8 +122,15 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
 
   useEffect(() => {
     if (props.isMobile) {
-      const service = new Service(props.client);
-      service.postShortUrl(window.location.href, "p").then(setProgramUrl);
+      if (window.location.href.indexOf("/p/") !== -1) {
+        setProgramUrl(window.location.href);
+      } else {
+        const exportedProgram = ProgramContentExport.generateExportedProgram(state);
+        const baseUrl = UrlUtils.build("/program", window.location.href);
+        Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString()).then((url) => {
+          setProgramUrl(url.toString());
+        });
+      }
     } else if (props.exportedProgram) {
       const exportedProgram = ProgramContentExport.generateExportedProgram(state);
       const baseUrl = UrlUtils.build("/program", window.location.href);
