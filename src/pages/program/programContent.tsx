@@ -9,7 +9,6 @@ import { ProgramPreview } from "../../components/programPreview";
 import { ProgramContentEditor } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
-import { Service } from "../../api/service";
 import { useEffect, useState } from "preact/hooks";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
@@ -253,6 +252,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         />
       )}
       <ProgramContentModalSettings
+        isMobile={props.isMobile}
         onShowEquipment={() => {
           setShowSettingsModal(false);
           setShowEquipmentModal(true);

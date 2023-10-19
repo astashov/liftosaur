@@ -11,6 +11,7 @@ import { EditProgramLenses } from "../../../models/editProgramLenses";
 
 interface IProgramContentModalSettingsProps {
   isHidden: boolean;
+  isMobile: boolean;
   dispatch: ILensDispatch<IProgramEditorState>;
   program: IProgram;
   settings: ISettings;
@@ -21,20 +22,25 @@ interface IProgramContentModalSettingsProps {
 export function ProgramContentModalSettings(props: IProgramContentModalSettingsProps): JSX.Element {
   return (
     <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
-      <label className="flex items-center">
-        <div className="mr-2 font-bold">Is Multiweek program?</div>
-        <MenuItemValue
-          name="Is Multiweek program?"
-          setPatternError={() => undefined}
-          type="boolean"
-          value={props.program.isMultiweek.toString()}
-          onChange={(newValue) => {
-            props.dispatch(
-              EditProgramLenses.setIsMultiweek(lb<IProgramEditorState>().p("current").p("program"), newValue === "true")
-            );
-          }}
-        />
-      </label>
+      {!props.isMobile && (
+        <label className="flex items-center">
+          <div className="mr-2 font-bold">Is Multiweek program?</div>
+          <MenuItemValue
+            name="Is Multiweek program?"
+            setPatternError={() => undefined}
+            type="boolean"
+            value={props.program.isMultiweek.toString()}
+            onChange={(newValue) => {
+              props.dispatch(
+                EditProgramLenses.setIsMultiweek(
+                  lb<IProgramEditorState>().p("current").p("program"),
+                  newValue === "true"
+                )
+              );
+            }}
+          />
+        </label>
+      )}
       <div className="mb-2">
         <label>
           <span className="mr-2 font-bold">Units:</span>
