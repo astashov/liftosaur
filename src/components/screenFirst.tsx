@@ -35,7 +35,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
         Build <strong>any weightlifting program</strong> using a simple scripting language, and track your progress.
       </div>
       <div className="pb-12 text-center">
-        <Button kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("onboarding"))}>
+        <Button name="see-how-it-works" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("onboarding"))}>
           <span className="align-middle">See how it works</span>{" "}
           <IconArrowRight className="inline ml-2 align-middle left-right-animation" color="white" />
         </Button>

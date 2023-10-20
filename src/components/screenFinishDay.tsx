@@ -178,6 +178,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         <div className="flex w-full gap-8 px-4 pt-4">
           <div className="flex-1 text-center">
             <Button
+              name="finish-day-share"
               className="w-32 ls-finish-day-share"
               kind="purple"
               onClick={() => {
@@ -193,6 +194,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
           <div className="flex-1 text-center">
             <Button
+              name="finish-day-continue"
               kind="orange"
               className="w-32"
               data-cy="finish-day-continue"

@@ -26,6 +26,7 @@ export function ModalAddFriend(props: IModalAddFriendProps): JSX.Element {
         ></textarea>
         <div className="mt-4 text-right">
           <Button
+            name="modal-add-friend-cancel"
             type="button"
             kind="grayv2"
             data-cy="modal-add-friend-cancel"
@@ -35,6 +36,7 @@ export function ModalAddFriend(props: IModalAddFriendProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="modal-add-friend-submit"
             kind="orange"
             data-cy="modal-add-friend-invite"
             className="ls-modal-set-weight"

@@ -215,7 +215,7 @@ export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesP
   return (
     <section className="text-sm">
       <div className="my-2">
-        <InternalLink className="font-bold underline text-bluev2" href="/docs/docs.html">
+        <InternalLink className="font-bold underline text-bluev2" href="/docs/docs.html" name="liftoscript-tutorial">
           Check the tutorial for Liftoscript
         </InternalLink>
       </div>

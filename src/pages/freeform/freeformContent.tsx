@@ -74,6 +74,7 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
           <div className="flex">
             <div>
               <Button
+                name="freeform-generate-program"
                 kind="orange"
                 style={{ width: "8rem" }}
                 onClick={async () => {

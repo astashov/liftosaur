@@ -38,10 +38,18 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
       )}
       <div dangerouslySetInnerHTML={{ __html: program.description }} className="mt-4 program-description" />
       <p className="mt-6 text-center">
-        <Button data-cy="preview-program" type="button" kind="purple" className="mr-3" onClick={props.onPreview}>
+        <Button
+          name="preview-program"
+          data-cy="preview-program"
+          type="button"
+          kind="purple"
+          className="mr-3"
+          onClick={props.onPreview}
+        >
           Preview
         </Button>
         <Button
+          name="clone-program"
           type="button"
           kind="orange"
           data-cy="clone-program"

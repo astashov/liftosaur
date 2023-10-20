@@ -324,7 +324,14 @@ export function ScreenStats(props: IProps): JSX.Element {
           />
         )}
         <div className="py-4 mb-2 text-center">
-          <Button tabIndex={1} className="ls-add-stats" data-cy="add-stats" kind="orange" onClick={save}>
+          <Button
+            name="add-stats"
+            tabIndex={1}
+            className="ls-add-stats"
+            data-cy="add-stats"
+            kind="orange"
+            onClick={save}
+          >
             Done
           </Button>
         </div>

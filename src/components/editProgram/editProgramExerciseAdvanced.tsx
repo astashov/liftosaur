@@ -330,6 +330,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       )}
       <div className="p-2 mb-8 text-center">
         <Button
+          name="save-exercise-advanced"
           kind="orange"
           data-cy="save-program"
           disabled={cannotSave}

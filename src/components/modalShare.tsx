@@ -59,6 +59,7 @@ export function ModalShare(props: IProps): JSX.Element {
       <div className="flex m-2 mt-4 text-center">
         <div className="flex-1">
           <Button
+            name="modal-share-facebook"
             kind="purple"
             className="ls-modal-share-facebook"
             onClick={() => {
@@ -77,6 +78,7 @@ export function ModalShare(props: IProps): JSX.Element {
         </div>
         <div className="flex-1 text-center">
           <Button
+            name="modal-share-twitter"
             kind="purple"
             className="ls-modal-share-twitter"
             onClick={() => {

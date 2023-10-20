@@ -87,6 +87,7 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
       </div>
       <div className="p-2 mb-4 text-center">
         <Button
+          name="cancel-edit-exercise-simple"
           className="mr-2"
           onClick={() => {
             if (
@@ -107,6 +108,7 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
           Cancel
         </Button>
         <Button
+          name="save-edit-exercise-simple"
           onClick={() => {
             const getters = {
               editExercise: lbe.get(),

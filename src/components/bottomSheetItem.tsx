@@ -16,7 +16,7 @@ export function BottomSheetItem(props: IProps): JSX.Element {
       data-cy={`bottom-sheet-${props.name}`}
       className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
         props.className
-      }`}
+      } nm-${props.name}`}
       onClick={props.onClick}
     >
       <div className={`flex items-center ${!props.isFirst ? "pt-4" : ""}`}>

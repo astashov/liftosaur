@@ -108,6 +108,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             {props.email ? (
               <div className="text-center">
                 <Button
+                  name="account-sign-out"
                   kind="purple"
                   data-cy="menu-item-logout"
                   className="ls-logout"
@@ -239,6 +240,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             <GroupHeader name="Delete current account" topPadding={true} />
             <div>
               <Button
+                name="account-delete"
                 kind="red"
                 className="mt-4 ls-delete-account"
                 onClick={() => {

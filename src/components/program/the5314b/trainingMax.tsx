@@ -54,6 +54,7 @@ export function TrainingMax(props: IProps): JSX.Element {
       ))}
       <div className="p-2 text-center">
         <Button
+          name="save-training-max"
           kind="orange"
           className="ls-save-training-max"
           onClick={() => {
@@ -170,6 +171,7 @@ export function TrainingMaxCalculator(props: IPropsCalculator): JSX.Element {
           </div>
           <div className="">
             <Button
+              name="use-this-value-tm"
               buttonSize="sm"
               disabled={result == null}
               type="button"

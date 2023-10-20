@@ -410,6 +410,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         {props.adminKey && (
           <div className="py-3 text-center">
             <Button
+              name="publish-program"
               kind="orange"
               onClick={() => {
                 setShouldShowPublishModal(true);

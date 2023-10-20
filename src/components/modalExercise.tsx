@@ -345,6 +345,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
       <div class="py-4 flex">
         <div class="flex-1">
           <Button
+            name="custom-exercise-cancel"
             kind="grayv2"
             data-cy="custom-exercise-cancel"
             onClick={(e) => {
@@ -357,6 +358,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
         </div>
         <div class="flex-1 text-right">
           <Button
+            name="custom-exercise-create"
             kind="orange"
             data-cy="custom-exercise-create"
             onClick={(e) => {

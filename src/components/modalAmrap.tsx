@@ -87,6 +87,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
         )}
         <div className="mt-4 text-right">
           <Button
+            name="modal-amrap-clear"
             data-cy="modal-amrap-clear"
             type="button"
             kind="grayv2"
@@ -99,6 +100,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             Clear
           </Button>
           <Button
+            name="modal-amrap-submit"
             kind="orange"
             type="submit"
             data-cy="modal-amrap-submit"

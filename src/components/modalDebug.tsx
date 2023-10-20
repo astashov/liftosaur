@@ -46,7 +46,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
         })}
       </ul>
       <div className="mt-4 text-center">
-        <Button kind="orange" onClick={() => props.dispatch(Thunk.postDebug())}>
+        <Button name="send-debug-info" kind="orange" onClick={() => props.dispatch(Thunk.postDebug())}>
           Send Debug Info
         </Button>
       </div>

@@ -63,7 +63,7 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           );
         })}
         <div className="text-center">
-          <Button kind="orange" onClick={props.onFinish}>
+          <Button name="finish-day-details-playground" kind="orange" onClick={props.onFinish}>
             Finish this day
           </Button>
         </div>

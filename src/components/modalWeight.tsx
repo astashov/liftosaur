@@ -42,6 +42,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
         />
         <div className="mt-4 text-right">
           <Button
+            name="modal-weight-cancel"
             type="button"
             kind="grayv2"
             data-cy="modal-weight-cancel"
@@ -51,6 +52,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="modal-weight-submit"
             kind="orange"
             data-cy="modal-weight-submit"
             className="ls-modal-set-weight"

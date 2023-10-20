@@ -97,6 +97,7 @@ export const CardsView = memo(
           {!friend && !Progress.isCurrent(props.progress) && (
             <div className="pt-1 pl-2">
               <Button
+                name="finish-day-share"
                 className="ls-finish-day-share"
                 kind="purple"
                 onClick={() => {
@@ -194,6 +195,7 @@ export const CardsView = memo(
         {!friend && (
           <div className="pt-1 pb-3 text-center">
             <Button
+              name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
               kind="orange"
               data-cy="finish-workout"
               className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}

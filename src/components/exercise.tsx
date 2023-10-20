@@ -436,6 +436,7 @@ const ExerciseContentView = memo(
         {isEditModeRef.current && (
           <div className="text-center">
             <Button
+              name="delete-workout-exercise"
               data-cy="delete-edit-exercise"
               kind="red"
               className="mr-1"
@@ -457,6 +458,7 @@ const ExerciseContentView = memo(
               Delete
             </Button>
             <Button
+              name="finish-edit-workout-exercise"
               data-cy="done-edit-exercise"
               kind="orange"
               className="ml-1"

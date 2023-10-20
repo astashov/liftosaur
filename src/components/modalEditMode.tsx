@@ -68,7 +68,12 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   onOpenCalculator={(key, unit) => setShowCalculator([key, unit])}
                 />
                 <div className="mt-4 text-center">
-                  <Button kind="orange" onClick={() => onClose()} data-cy="modal-edit-mode-save-statvars">
+                  <Button
+                    name="edit-mode-stave-statvars"
+                    kind="orange"
+                    onClick={() => onClose()}
+                    data-cy="modal-edit-mode-save-statvars"
+                  >
                     Done
                   </Button>
                 </div>
@@ -81,6 +86,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             <div className="flex items-center mt-2">
               <div className="flex-1 text-center">
                 <Button
+                  name="edit-mode-this-workout"
                   kind="purple"
                   style={{ minHeight: "3.25rem", width: "7rem" }}
                   buttonSize="md"
@@ -111,6 +117,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
               </div>
               <div className="flex-1 text-center">
                 <Button
+                  name="edit-mode-in-a-program"
                   style={{ minHeight: "3.25rem", width: "7rem" }}
                   kind="purple"
                   buttonSize="md"

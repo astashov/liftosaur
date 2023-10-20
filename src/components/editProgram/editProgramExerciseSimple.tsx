@@ -106,6 +106,7 @@ function Edit(props: IProps): JSX.Element {
       />
       <div className="p-2 mb-6 text-center">
         <Button
+          name="save-exercise-simple"
           data-cy="save-exercise"
           kind="orange"
           onClick={() => {

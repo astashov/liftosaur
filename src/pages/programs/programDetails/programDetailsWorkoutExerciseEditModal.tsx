@@ -32,7 +32,12 @@ export function ProgramDetailsWorkoutExerciseEditModal(
           onEditStateVariable={props.onEditStateVariable}
         />
         <div className="mt-4 text-center">
-          <Button kind="orange" onClick={props.onClose} data-cy="modal-edit-mode-save-statvars">
+          <Button
+            name="details-workout-playground-save-statvars"
+            kind="orange"
+            onClick={props.onClose}
+            data-cy="modal-edit-mode-save-statvars"
+          >
             Done
           </Button>
         </div>

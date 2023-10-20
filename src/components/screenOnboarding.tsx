@@ -112,7 +112,11 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
           style={{ visibility: selectedDotIndex === screens.length - 1 ? "visible" : "hidden" }}
           className="safe-area-inset-bottom"
         >
-          <Button onClick={() => props.dispatch(Thunk.pushScreen("programs"))} kind="purple">
+          <Button
+            name="onboarding-choose-a-program"
+            onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+            kind="purple"
+          >
             <span className="align-middle">Choose a program</span>{" "}
             <IconArrowRight className="inline ml-2 align-middle left-right-animation" color="white" />
           </Button>

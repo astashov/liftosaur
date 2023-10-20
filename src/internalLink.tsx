@@ -6,6 +6,7 @@ interface IProps {
   href: string;
   className?: string;
   children: ComponentChildren;
+  name: string;
 }
 
 export function InternalLink(props: IProps): JSX.Element {
@@ -13,7 +14,7 @@ export function InternalLink(props: IProps): JSX.Element {
     if (SendMessage.iosAppVersion() > 4) {
       return (
         <button
-          className={`block w-full ${props.className}`}
+          className={`block w-full ${props.className} nm-${props.name}`}
           onClick={() => {
             const url = UrlUtils.build(props.href, window.location.href);
             SendMessage.toIos({ type: "openUrl", url: url.toString() });
@@ -32,7 +33,7 @@ export function InternalLink(props: IProps): JSX.Element {
   } else if (SendMessage.isAndroid() && SendMessage.androidAppVersion() > 11) {
     return (
       <button
-        className={`block w-full ${props.className}`}
+        className={`block w-full ${props.className} nm-${props.name}`}
         onClick={() => {
           const url = UrlUtils.build(props.href, window.location.href);
           SendMessage.toAndroid({ type: "openUrl", url: url.toString() });

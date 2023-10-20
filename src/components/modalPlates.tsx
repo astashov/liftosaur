@@ -32,11 +32,18 @@ export function ModalPlates(props: IProps): JSX.Element {
           placeholder={`Plate weight in ${props.units}`}
         />
         <div className="mt-4 text-right">
-          <Button type="button" kind="grayv2" className="mr-3" onClick={() => props.onInput(undefined)}>
+          <Button
+            name="modal-new-plate-weight-cancel"
+            type="button"
+            kind="grayv2"
+            className="mr-3"
+            onClick={() => props.onInput(undefined)}
+          >
             Cancel
           </Button>
           <Button
             kind="orange"
+            name="modal-new-plate-weight-submit"
             type="submit"
             data-cy="add-plate"
             className="ls-add-plate"

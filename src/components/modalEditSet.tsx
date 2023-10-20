@@ -114,10 +114,8 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               }}
               // @ts-ignore
               defaultValue={
-                Weight.round(
-                  Weight.build(initialWeight || 0, props.settings.units), 
-                  props.settings, props.equipment
-                ).value
+                Weight.round(Weight.build(initialWeight || 0, props.settings.units), props.settings, props.equipment)
+                  .value
               }
               required
               type={SendMessage.isIos() ? "number" : "tel"}
@@ -170,6 +168,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
         )}
         <div className="mt-4 text-right">
           <Button
+            name="modal-edit-set-cancel"
             type="button"
             kind="grayv2"
             data-cy="modal-edit-set-cancel"
@@ -181,6 +180,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="modal-edit-set-submit"
             kind="orange"
             data-cy="modal-edit-set-submit"
             className="ls-modal-edit-set"

@@ -24,6 +24,7 @@ export function ModalImportFromLink(props: IProps): JSX.Element {
         <input ref={textInput} className={inputClassName} type="text" />
         <div className="mt-4 text-right">
           <Button
+            name="modal-import-from-link-cancel"
             type="button"
             kind="grayv2"
             className="mr-3"
@@ -35,6 +36,7 @@ export function ModalImportFromLink(props: IProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="modal-import-from-link-submit"
             kind="orange"
             type="submit"
             className="ls-submit-link"

@@ -322,6 +322,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
 
       <div className="p-2 mb-4 text-center">
         <Button
+          name="cancel-edit-exercise-advanced"
           className="mr-2"
           onClick={() => {
             if (
@@ -346,6 +347,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           Cancel
         </Button>
         <Button
+          name="save-edit-exercise-advanced"
           onClick={() => {
             const container = containerRef.current;
             if (container) {

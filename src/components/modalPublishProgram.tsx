@@ -52,6 +52,7 @@ export function ModalPublishProgram(props: IProps): JSX.Element {
         </div>
         <div className="mt-4 text-center">
           <Button
+            name="modal-publish-program"
             type="button"
             kind="orange"
             className="mr-3"

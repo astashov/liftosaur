@@ -22,6 +22,7 @@ export function ModalCoupon(props: IProps): JSX.Element {
       </div>
       <div className="text-center">
         <Button
+          name="redeem-coupon"
           kind="orange"
           onClick={() => {
             const value = textInput.current.value?.trim() || "";

@@ -28,6 +28,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
         />
         <div className="mt-4 text-right">
           <Button
+            name="modal-date-cancel"
             type="button"
             kind="grayv2"
             className="mr-3"
@@ -38,6 +39,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="modal-date-submit"
             kind="orange"
             type="submit"
             className="ls-modal-set-date"

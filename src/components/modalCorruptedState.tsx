@@ -42,7 +42,7 @@ export function ModalCorruptedState(props: IModalAmrapProps): JSX.Element {
         </p>
       )}
       <div className="text-center">
-        <Button kind="red" onClick={props.onReset}>
+        <Button name="corrupted-state-reset" kind="red" onClick={props.onReset}>
           {props.local ? "Reset and start from scratch" : "Continue"}
         </Button>
       </div>

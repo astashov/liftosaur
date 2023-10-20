@@ -75,6 +75,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
         />
         <div className="flex justify-between mt-4">
           <Button
+            name="cancel-add-state-variable"
             data-cy="modal-add-state-variable-cancel"
             type="button"
             kind="grayv2"
@@ -86,6 +87,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             Cancel
           </Button>
           <Button
+            name="add-state-variable"
             data-cy="modal-add-state-variable-submit"
             kind="orange"
             type="submit"

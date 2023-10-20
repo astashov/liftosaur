@@ -117,6 +117,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
             <IconHelp />
           </button>
           <Button
+            name="builder-convert-to-liftosaur"
             kind="purple"
             onClick={async () => {
               const program = Program.planToProgram(state.current.program);

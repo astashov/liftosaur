@@ -125,12 +125,22 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
       </div>
       <div className="flex" style={{ gap: "0.5rem" }}>
         <div className="flex-1 text-center">
-          <Button kind="grayv2" onClick={() => props.onSelect()} data-cy="rep-max-calculator-back">
+          <Button
+            name="rep-max-calculator-back"
+            kind="grayv2"
+            onClick={() => props.onSelect()}
+            data-cy="rep-max-calculator-back"
+          >
             {props.backLabel}
           </Button>
         </div>
         <div className="flex-1 text-center">
-          <Button kind="orange" data-cy="rep-max-calculator-submit" onClick={() => props.onSelect(weight)}>
+          <Button
+            name="rep-max-calculator-submit"
+            kind="orange"
+            data-cy="rep-max-calculator-submit"
+            onClick={() => props.onSelect(weight)}
+          >
             Use it!
           </Button>
         </div>

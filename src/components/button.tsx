@@ -3,6 +3,7 @@ import { h, JSX } from "preact";
 interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   buttonSize?: "xs" | "sm" | "md" | "lg";
   kind: "orange" | "purple" | "grayv2" | "red";
+  name: string;
 }
 
 export function Button(props: IProps): JSX.Element {
@@ -35,7 +36,7 @@ export function Button(props: IProps): JSX.Element {
     className += " cursor-not-allowed";
   }
   return (
-    <button {...otherProps} className={`${props.className || ""} ${className}`}>
+    <button {...otherProps} className={`${props.className || ""} ${className} nm-${props.name}`}>
       {props.children}
     </button>
   );

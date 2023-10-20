@@ -60,6 +60,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
 
         <div className="mt-4 text-center">
           <Button
+            name="modal-signup-request-later"
             type="button"
             kind="grayv2"
             data-cy="modal-signup-request-later"
@@ -71,6 +72,7 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
             Maybe later
           </Button>
           <Button
+            name="modal-signup-request-submit"
             kind="orange"
             data-cy="modal-signup-request-submit"
             className="ls-signup-request-signup"

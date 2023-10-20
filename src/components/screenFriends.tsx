@@ -43,7 +43,7 @@ export function ScreenFriends(props: IProps): JSX.Element {
     >
       <section className="px-4">
         <div className="p-2 text-center">
-          <Button kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("friendsAdd"))}>
+          <Button name="add-friend" kind="orange" onClick={() => props.dispatch(Thunk.pushScreen("friendsAdd"))}>
             Add Friend
           </Button>
         </div>

@@ -26,6 +26,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
       />
       <p className="mt-4 text-center">
         <Button
+          name="modal-create-program-cancel"
           data-cy="modal-create-program-cancel"
           type="button"
           kind="grayv2"
@@ -35,6 +36,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           Cancel
         </Button>
         <Button
+          name="modal-create-program-submit"
           data-cy="modal-create-program-submit"
           type="button"
           kind="orange"

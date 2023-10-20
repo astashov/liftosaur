@@ -174,6 +174,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 </div>
                 <div>
                   <Button
+                    name="subscription-free"
                     onClick={() => props.dispatch(Thunk.claimkey())}
                     kind="orange"
                     className="whitespace-no-wrap"
@@ -190,6 +191,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   <div className="flex-1 px-2 text-center">
                     <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
                     <Button
+                      name="subscription-monthly"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           SendMessage.toIos({ type: "subscribeMontly" });
@@ -215,6 +217,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   <div className="flex-1 px-2 text-center">
                     <div className="text-xs text-grayv2-main">Includes free 14 days trial</div>
                     <Button
+                      name="subscription-yearly"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           SendMessage.toIos({ type: "subscribeYearly" });
@@ -240,6 +243,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 15)) && (
                   <div className="px-2 pt-2 text-center">
                     <Button
+                      name="subscription-lifetime"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
                           SendMessage.toIos({ type: "subscribeLifetime" });
@@ -272,7 +276,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 </LinkButton>
               </div>
               <div className="flex-1 pt-2 text-center">
-                <InternalLink href="/terms.html" className="font-bold underline border-none text-bluev2">
+                <InternalLink
+                  name="terms-of-use"
+                  href="/terms.html"
+                  className="font-bold underline border-none text-bluev2"
+                >
                   Terms of use
                 </InternalLink>
               </div>

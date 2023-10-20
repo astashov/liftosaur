@@ -30,12 +30,19 @@ export function ModalNewEquipment(props: IProps): JSX.Element {
           placeholder="Tummy Tormentor 3000"
         />
         <div className="mt-4 text-right">
-          <Button type="button" kind="grayv2" className="mr-3" onClick={() => props.onInput(undefined)}>
+          <Button
+            name="add-equipment-cancel"
+            type="button"
+            kind="grayv2"
+            className="mr-3"
+            onClick={() => props.onInput(undefined)}
+          >
             Cancel
           </Button>
           <Button
             kind="orange"
             type="submit"
+            name="add-equipment-submit"
             className="ls-add-equipment"
             onClick={() => {
               const value = textInput.current?.value;

@@ -98,6 +98,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     >
       <div className="pb-2 text-center">
         <Button
+          name="create-program"
           buttonSize="md"
           className="mr-2"
           data-cy="create-program"
@@ -107,6 +108,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           Create new program
         </Button>
         <Button
+          name="import-program-from-link"
           buttonSize="md"
           data-cy="import-program-from-link"
           kind="orange"

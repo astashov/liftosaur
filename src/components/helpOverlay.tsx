@@ -113,6 +113,7 @@ export function HelpOverlay(props: IProps): JSX.Element | null {
       <div className="absolute bottom-0 left-0 w-full mb-6 text-center">
         <span className="inline-block p-2 bg-white rounded">
           <Button
+            name="close-help-overlay"
             kind="orange"
             className="ls-close-help-overlay"
             onClick={() => {

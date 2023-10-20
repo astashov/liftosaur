@@ -128,6 +128,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                       Copy Link To Clipboard
                     </button>
                     <InternalLink
+                      name="public-profile-page"
                       href={`/profile/${props.user.id}`}
                       className="ml-4 text-xs text-right text-blue-700 underline"
                     >
@@ -326,16 +327,32 @@ export function ScreenSettings(props: IProps): JSX.Element {
         >
           <IconDiscord className="inline-block mr-1" /> Discord Server
         </a>
-        <InternalLink href="/privacy.html" className="block py-3 text-base text-left border-b border-gray-200">
+        <InternalLink
+          name="privacy-policy"
+          href="/privacy.html"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
           Privacy Policy
         </InternalLink>
-        <InternalLink href="/terms.html" className="block py-3 text-base text-left border-b border-gray-200">
+        <InternalLink
+          name="terms"
+          href="/terms.html"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
           Terms &amp; Conditions
         </InternalLink>
-        <InternalLink href="/licenses.html" className="block py-3 text-base text-left border-b border-gray-200">
+        <InternalLink
+          name="licenses"
+          href="/licenses.html"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
           Licenses
         </InternalLink>
-        <InternalLink href="/docs/docs.html" className="block py-3 text-base text-left border-b border-gray-200">
+        <InternalLink
+          name="documentation"
+          href="/docs/docs.html"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
           Documentation
         </InternalLink>
         <a

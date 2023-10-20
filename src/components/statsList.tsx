@@ -70,7 +70,12 @@ export function StatsList(props: IProps): JSX.Element {
       <div>
         <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>
         <div className="text-center">
-          <Button data-cy="add-measurements" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("stats"))}>
+          <Button
+            name="add-measurements"
+            data-cy="add-measurements"
+            kind="purple"
+            onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+          >
             Add measurements
           </Button>
         </div>
@@ -92,7 +97,12 @@ export function StatsList(props: IProps): JSX.Element {
   return (
     <div className="px-4" data-cy={`stats-list-${selectedKey}`}>
       <div className="pb-2 text-center">
-        <Button data-cy="add-measurements" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("stats"))}>
+        <Button
+          name="add-measurements"
+          data-cy="add-measurements"
+          kind="purple"
+          onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+        >
           Add measurements
         </Button>
       </div>

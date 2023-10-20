@@ -93,6 +93,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
           className={`${inputClassName} flex-1`}
         />
         <Button
+          name="new-comment-submit"
           disabled={props.comments.isPosting}
           data-cy="new-comment-submit"
           kind="purple"

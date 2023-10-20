@@ -267,6 +267,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </div>
           <div className="ml-2">
             <Button
+              name="planner-convert-to-liftosaur"
               kind="purple"
               disabled={isInvalid}
               title={isInvalid ? "Fix the errors in the program before converting" : undefined}
