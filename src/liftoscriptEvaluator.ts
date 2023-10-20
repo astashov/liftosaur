@@ -371,7 +371,7 @@ export class LiftoscriptEvaluator {
           this.error(`Variable ${name} should be an array`, nameNode);
         }
         if (value[index] == null) {
-          this.error(`Out of bounds index ${index} for array ${name}`, indexExpr);
+          this.error(`Out of bounds index ${index + 1} for array ${name}`, indexExpr);
         }
         return value[index];
       }

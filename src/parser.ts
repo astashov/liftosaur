@@ -78,7 +78,10 @@ export class ScriptRunner {
   public execute(type?: "reps" | "weight" | "timer" | "rpe"): number | IWeight | boolean {
     const [liftoscriptEvaluator, liftoscriptTree] = this.parse();
     const rawResult = liftoscriptEvaluator.evaluate(liftoscriptTree.topNode);
-    const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+    let result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+    if (result == null) {
+      result = 0;
+    }
     const output = this.convertResult(type, result);
 
     return output;
