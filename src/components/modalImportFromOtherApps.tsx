@@ -29,6 +29,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
       historyRecords = result.historyRecords;
       customExercises = result.customExercises;
     } catch (e) {
+      console.error(e);
       Rollbar.error(e);
       historyRecords = [];
       customExercises = {};
