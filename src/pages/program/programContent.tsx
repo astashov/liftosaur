@@ -199,13 +199,17 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                 </div>
               </div>
               <div className="flex-1 text-right">
-                <button title="Settings" className="p-2" onClick={() => setShowSettingsModal(true)}>
+                <button
+                  title="Settings"
+                  className="p-2 nm-program-content-settings"
+                  onClick={() => setShowSettingsModal(true)}
+                >
                   <IconCog2 />
                 </button>
                 {programUrl && (
                   <button
                     title="Copy link to clipboard"
-                    className="p-2 align-middle"
+                    className="p-2 align-middle nm-program-content-copy-to-clipboard"
                     onClick={async (e) => {
                       e.preventDefault();
                       await ClipboardUtils.copy(programUrl);

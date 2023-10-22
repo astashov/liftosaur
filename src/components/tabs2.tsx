@@ -22,7 +22,7 @@ export function Tabs2(props: IProps): JSX.Element {
               <button
                 className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                   selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
-                }`}
+                } nm-${nameClass}`}
                 style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                 data-cy={nameClass}
                 onClick={() => {

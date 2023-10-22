@@ -151,7 +151,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               onClick={() =>
                 dispatch(lb<IProgramDetailsState>().p("shouldShowAllFormulas").record(!state.shouldShowAllFormulas))
               }
-              className="mr-2 text-sm italic text-blue-700 underline"
+              className="mr-2 text-sm italic text-blue-700 underline nm-program-details-toggle-all-formulas"
             >
               {state.shouldShowAllFormulas ? "Hide All Formulas" : "Show All Formulas"}
             </button>
@@ -159,7 +159,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               onClick={() =>
                 dispatch(lb<IProgramDetailsState>().p("shouldShowAllScripts").record(!state.shouldShowAllScripts))
               }
-              className="text-sm italic text-blue-700 underline"
+              className="text-sm italic text-blue-700 underline nm-program-details-toggle-all-scripts"
             >
               {state.shouldShowAllScripts ? "Hide All Scripts" : "Show All Scripts"}
             </button>

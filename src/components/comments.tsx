@@ -65,6 +65,7 @@ export function Comments(props: ICommentsProps): JSX.Element {
                   <div>
                     {!props.comments.isRemoving[comment.id] ? (
                       <button
+                        className="nm-remove-comment"
                         data-cy="comment-delete"
                         onClick={() => dispatch(Thunk.removeComment(historyRecordId, comment.id))}
                       >

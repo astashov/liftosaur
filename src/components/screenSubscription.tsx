@@ -271,7 +271,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             )}
             <div className="flex flex-row">
               <div className="flex-1 text-center">
-                <LinkButton onClick={() => setIsRedeemShown(true)} className="pt-2 font-bold text-center">
+                <LinkButton
+                  name="redeem-coupon"
+                  onClick={() => setIsRedeemShown(true)}
+                  className="pt-2 font-bold text-center"
+                >
                   Redeem coupon
                 </LinkButton>
               </div>
@@ -311,7 +315,7 @@ function Feature(props: IFeatureProps): JSX.Element {
       <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
       <div className="flex-1">
         <h3 className="text-base font-bold">
-          <LinkButton>{props.title}</LinkButton>
+          <LinkButton name="subscription-feature">{props.title}</LinkButton>
         </h3>
         <p className="text-sm text-blackv2">{props.description}</p>
       </div>

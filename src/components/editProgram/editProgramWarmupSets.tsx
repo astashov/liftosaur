@@ -57,6 +57,7 @@ export function EditProgramWarmupSets(props: IEditProgramWarmupSetsProps): JSX.E
       })}
       <div>
         <LinkButton
+          name="edit-warmup-set-add"
           data-cy="edit-warmup-set-add"
           onClick={() => {
             props.onAddWarmupSet(warmupSets || []);
@@ -162,7 +163,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
       </div>
       <div className="px-2">{threshold.unit}</div>
       <button
-        className="p-4"
+        className="p-4 nm-remove-warmup"
         data-cy="edit-warmup-set-delete"
         onClick={() => {
           props.onRemoveWarmupSet(props.warmupSets || [], props.index);

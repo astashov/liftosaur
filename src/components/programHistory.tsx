@@ -59,7 +59,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       navbar={
         <NavbarView
           rightButtons={[
-            <button data-cy="navbar-user" className="p-2" onClick={() => props.dispatch(Thunk.pushScreen("account"))}>
+            <button
+              data-cy="navbar-user"
+              className="p-2 nm-navbar-user"
+              onClick={() => props.dispatch(Thunk.pushScreen("account"))}
+            >
               <IconUser size={22} color={props.userId ? "#38A169" : isUserLoading ? "#607284" : "#E53E3E"} />
             </button>,
           ]}

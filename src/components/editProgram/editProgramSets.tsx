@@ -50,7 +50,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
             {onDuplicateVariation ? (
               <button
                 style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
-                className="p-2"
+                className="p-2 nm-duplicate-variation"
                 onClick={() => onDuplicateVariation(variationIndex)}
               >
                 <IconDuplicate2 />
@@ -59,7 +59,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
             {onDeleteVariation ? (
               <button
                 style={{ marginTop: "-0.5rem", marginBottom: "-0.5rem" }}
-                className="p-2"
+                className="p-2 nm-delete-variation"
                 onClick={() => onDeleteVariation(variationIndex)}
               >
                 <IconTrash />
@@ -116,7 +116,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
         />
       </ul>
       <div>
-        <LinkButton data-cy="add-new-set" onClick={() => props.onAddSet(variationIndex)}>
+        <LinkButton name="add-new-set" data-cy="add-new-set" onClick={() => props.onAddSet(variationIndex)}>
           Add New Set
         </LinkButton>
       </div>
@@ -305,7 +305,7 @@ function DeleteBtn(props: {
 }): JSX.Element {
   return (
     <button
-      className="p-3"
+      className="p-3 nm-remove-set"
       style={{ top: 0, right: 0 }}
       onClick={() => props.onRemoveSet(props.variationIndex, props.setIndex)}
     >
@@ -450,7 +450,7 @@ function Amrap(props: IAmrapProps): JSX.Element {
       </div>
       <div className="text-xs leading-none">
         <span className="align-middle text-grayv2-main">AMRAP</span>{" "}
-        <button className="align-middle" onClick={() => alert("As Many Reps As Possible.")}>
+        <button className="align-middle nm-amrap-help" onClick={() => alert("As Many Reps As Possible.")}>
           <IconHelp size={12} color="#607284" />
         </button>
       </div>
@@ -483,7 +483,7 @@ function LogRpe(props: ILogRpeProps): JSX.Element {
       <div className="text-xs leading-none">
         <span className="align-middle text-grayv2-main">Log RPE</span>{" "}
         <button
-          className="align-middle"
+          className="align-middle nm-log-rpe-help"
           onClick={() =>
             alert(
               "Log RPE (Rate of Perceived Exertion) when finished this set. You can access it in the Finish Day Script in `completedRPE` variable."

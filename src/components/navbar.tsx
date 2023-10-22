@@ -72,7 +72,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         <div className="flex items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
           {showBackButton ? (
             <button
-              className="p-2"
+              className="p-2 nm-back"
               data-cy="navbar-back"
               onClick={() => {
                 if (!props.onBack || props.onBack()) {
@@ -110,7 +110,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
           {props.helpContent && (
-            <button className="p-2" onClick={() => setShouldShowModalHelp(true)}>
+            <button className="p-2 nm-navbar-help" onClick={() => setShouldShowModalHelp(true)}>
               <IconHelp />
             </button>
           )}
@@ -128,7 +128,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 {error}
               </div>
               <button
-                className="px-3"
+                className="px-3 nm-navbar-error-close"
                 onClick={() =>
                   updateState(props.dispatch, [
                     lb<IState>()

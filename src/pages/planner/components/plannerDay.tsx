@@ -118,6 +118,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                   const customExerciseName = match[1].trim();
                   return (
                     <LinkButton
+                      name="planner-add-custom-exercise"
                       onClick={() => {
                         dispatch(
                           lb<IPlannerState>()
@@ -167,6 +168,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
               {reformatterSpinner && <IconSpinner width={12} height={12} />}
               <LinkButton
+                name="planner-reformat-day"
                 className="ml-1 text-xs font-normal align-middle"
                 onClick={async () => {
                   setReformatterSpinner(true);
@@ -182,7 +184,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 Reformat
               </LinkButton>
               <button
-                className="ml-1 align-middle"
+                className="ml-1 align-middle nm-planner-reformat"
                 onClick={() =>
                   alert(
                     "It'll try to format the exercises properly using ChatGPT - so that each exercise goes on a separate line, with proper sets x reps formatting. It's not 100% accurate, it'll do its best attempt! :)"
@@ -206,6 +208,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         )}
         <div className="mb-6">
           <LinkButton
+            name="planner-delete-day"
             onClick={() => {
               if (confirm("Are you sure you want to delete this day?")) {
                 dispatch(

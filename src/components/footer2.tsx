@@ -51,7 +51,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         <div className="relative" style={{ width: "75px" }}>
           <div>
             <button
-              className="absolute"
+              className="absolute nm-footer-workout"
               data-cy="footer-workout"
               style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
               onClick={() => props.dispatch(Thunk.pushScreen("main"))}

@@ -67,7 +67,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
               Weight.is(value) ? (
                 <button
                   data-cy={`state-${StringUtils.dashcase(stateKey)}-calculator`}
-                  className="p-2 ml-2"
+                  className="p-2 ml-2 nm-rm-calculator"
                   style={{ marginRight: "-0.25rem" }}
                   onClick={() => setShowCalculator([stateKey, value.unit])}
                 >
@@ -85,7 +85,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
       })}
       {!reuseLogicId && (
         <div className="p-1">
-          <LinkButton data-cy="add-state-variable" onClick={props.onAddStateVariable}>
+          <LinkButton name="add-state-variable" data-cy="add-state-variable" onClick={props.onAddStateVariable}>
             Add State Variable
           </LinkButton>
         </div>

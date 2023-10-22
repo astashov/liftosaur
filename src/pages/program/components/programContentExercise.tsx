@@ -74,19 +74,19 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
                 <span className="pl-1 align-middle">{approxTime} h</span>
               </div>
               {props.onCopy && (
-                <button title="Clone Exercise" className="p-2" onClick={props.onCopy}>
+                <button title="Clone Exercise" className="p-2 nm-program-content-clone-exercise" onClick={props.onCopy}>
                   <IconDuplicate2 />
                 </button>
               )}
               {props.onEdit && (
-                <button title="Edit Exercise" onClick={props.onEdit} className="p-2">
+                <button title="Edit Exercise" onClick={props.onEdit} className="p-2 nm-program-content-edit-exercise">
                   <IconEditSquare />
                 </button>
               )}
               {props.onDelete && (
                 <button
                   title={isUnassigned ? "Delete exercise" : "Remove exercise from day"}
-                  className="p-2"
+                  className="p-2 nm-program-content-delete-exercise"
                   onClick={props.onDelete}
                 >
                   {isUnassigned ? <IconTrash /> : <IconCloseCircleOutline />}

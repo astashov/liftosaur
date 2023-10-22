@@ -196,7 +196,7 @@ const ExercisesList = forwardRef(
                   </div>
                   <div>
                     <button
-                      className="px-3 py-4 button"
+                      className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
                       data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
                       onClick={(event) => {
                         event.preventDefault();
@@ -207,7 +207,7 @@ const ExercisesList = forwardRef(
                       <IconEditSquare />
                     </button>
                     <button
-                      className="px-1 py-4 button"
+                      className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
                       data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
                       onClick={(event) => {
                         event.preventDefault();
@@ -225,6 +225,7 @@ const ExercisesList = forwardRef(
           })}
         <div className="mb-4">
           <LinkButton
+            name="custom-exercise-create"
             data-cy="custom-exercise-create"
             onClick={(event) => {
               event.preventDefault();

@@ -32,7 +32,9 @@ export function EditProgramConvertStateVariables(props: IEditProgramConvertState
         Some state variables or warmups of this exercise use <strong>{oppositeUnit}</strong>, but you set{" "}
         <strong>{unit}</strong> in settings.
         <br />
-        <LinkButton onClick={props.onConvert}>Change them to {unit}</LinkButton>
+        <LinkButton name="change-unit" onClick={props.onConvert}>
+          Change them to {unit}
+        </LinkButton>
       </div>
     </div>
   );

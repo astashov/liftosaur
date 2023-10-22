@@ -20,6 +20,7 @@
 - Copy plates for custom equipment from 'similar' equipment
 - Validation error for vars starting with a number
 - QR code for program sharing
+- Incorporate the latest RM into the RM calculator
 
 * Programs
   - 5/3/1s

@@ -59,12 +59,16 @@ export function ProgramPreview(props: IProps): JSX.Element {
           )}
         </h2>
         <div>
-          <button data-cy="program-show-fx" className="p-2 align-middle" onClick={() => setShowFx(!showFx)}>
+          <button
+            data-cy="program-show-fx"
+            className="p-2 align-middle nm-program-preview-fn"
+            onClick={() => setShowFx(!showFx)}
+          >
             <IconFx color={showFx ? "#FF8066" : "#171718"} />
           </button>
           <button
             data-cy="program-show-muscles"
-            className="p-2 align-middle"
+            className="p-2 align-middle nm-program-preview-muscles"
             onClick={() => setMusclesModal({ type: "program" })}
           >
             <IconMuscles2 />
@@ -98,7 +102,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
                 <button
                   style={{ marginRight: "-0.5rem" }}
                   data-cy="program-show-day-muscles"
-                  className="p-2"
+                  className="p-2 nm-program-preview-show-day-muscle"
                   onClick={() => setMusclesModal({ type: "day", dayIndex: dayIndex - 1 })}
                 >
                   <IconMuscles2 />
@@ -217,12 +221,16 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                 {programExerciseIndex + 1}. {programExercise.name}
               </h3>
               <div style={{ marginRight: "-0.5rem" }}>
-                <button data-cy="program-exercise-show-fx" className="p-2" onClick={() => setShowScripts(!showScripts)}>
+                <button
+                  data-cy="program-exercise-show-fx"
+                  className="p-2 nm-program-exercise-show-fx"
+                  onClick={() => setShowScripts(!showScripts)}
+                >
                   <IconFx color={showScripts ? "#FF8066" : "#171718"} />
                 </button>
                 <button
                   data-cy="program-exercise-show-playground"
-                  className="p-2"
+                  className="p-2 nm-program-exercise-show-playground"
                   onClick={() => setShowPlayground(!showPlayground)}
                 >
                   <IconSquare5 color={showPlayground ? "#FF8066" : "#171718"} />
@@ -272,6 +280,7 @@ function ProgramPreviewExercise(props: IProgramPreviewExerciseProps): JSX.Elemen
                   <>
                     Reused logic from{" "}
                     <LinkButton
+                      name="program-preview-exercise-reuse-link"
                       onClick={(e) => {
                         e.preventDefault();
                         const el = document.getElementById(reusedProgramExercise.id);

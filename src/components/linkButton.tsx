@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 
-type IProps = JSX.HTMLAttributes<HTMLButtonElement>;
+type IProps = JSX.HTMLAttributes<HTMLButtonElement> & { name: string };
 
 export function LinkButton(props: IProps): JSX.Element {
   const { className, children, ...otherProps } = props;
@@ -8,7 +8,7 @@ export function LinkButton(props: IProps): JSX.Element {
     <button
       className={`text-bluev2 border-none ${
         !className || className.indexOf("font-normal") === -1 ? "font-bold" : ""
-      } underline ${className}`}
+      } underline ${className} nm-${props.name}`}
       {...otherProps}
     >
       {children}

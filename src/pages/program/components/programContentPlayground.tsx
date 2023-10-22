@@ -147,6 +147,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       />
       <div className="text-xs">
         <LinkButton
+          name="program-content-playground-reset"
           onClick={() => {
             const state = ProgramExercise.getState(programExercise, allProgramExercises);
             const nextVariationIndex = Program.nextVariationIndex(

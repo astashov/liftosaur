@@ -102,6 +102,7 @@ function TrainingMaxExercise(props: IPropsExercise): JSX.Element {
       </div>
       <div>
         <LinkButton
+          name="calculate-training-max"
           data-cy={`${StringUtils.dashcase(props.name)}-calculate`}
           onClick={() => setShouldShowCalculator(!shouldShowCalculator)}
           className="text-blue-700 underline"

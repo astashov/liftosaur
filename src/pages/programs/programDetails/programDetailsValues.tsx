@@ -77,7 +77,7 @@ export const RepsAndWeight = memo(
             {!areEqual && forceShowFormula == null && (
               <div className="whitespace-no-wrap">
                 <button
-                  className="text-sm underline text-bluev2"
+                  className="text-sm underline text-bluev2 nm-program-details-show-formula "
                   onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
                 >
                   Show Formula
@@ -93,7 +93,7 @@ export const RepsAndWeight = memo(
               <div className="whitespace-no-wrap">
                 <button
                   onClick={() => setIsDisplayingFormula(!isDisplayingFormula)}
-                  className="text-sm text-blue-700 underline"
+                  className="text-sm text-blue-700 underline nm-program-details-show-values "
                 >
                   Show Values
                 </button>

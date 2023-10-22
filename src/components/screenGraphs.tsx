@@ -91,7 +91,11 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpGraphs />}
           rightButtons={[
-            <button data-cy="graphs-modify" className="p-2" onClick={() => setIsModalOpen(true)}>
+            <button
+              data-cy="graphs-modify"
+              className="p-2 nm-graphs-navbar-filter"
+              onClick={() => setIsModalOpen(true)}
+            >
               <IconFilter />
             </button>,
           ]}

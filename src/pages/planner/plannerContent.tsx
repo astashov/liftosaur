@@ -167,7 +167,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         <div>Workout Planner</div>
         {!showHelp && (
           <button
-            className="block ml-3"
+            className="block ml-3 nm-planner-help"
             onClick={() => {
               setShowHelp(true);
               window.localStorage.removeItem("hide-planner-help");
@@ -231,7 +231,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </p>
         </div>
         <button
-          className="absolute "
+          className="absolute nm-planner-help-close"
           style={{ top: "0.5rem", right: "0.5rem" }}
           onClick={() => {
             setShowHelp(false);
@@ -261,7 +261,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             client={props.client}
           />
           <div>
-            <button onClick={() => setIsSettingsModalOpen(true)} className="p-2">
+            <button onClick={() => setIsSettingsModalOpen(true)} className="p-2 nm-planner-settings">
               <IconCog2 />
             </button>
           </div>
@@ -335,6 +335,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       {program.weeks.length > 1 && (
                         <span className="mr-2">
                           <LinkButton
+                            name="planner-delete-week"
                             onClick={() => {
                               if (confirm("Are you sure you want to delete this week?")) {
                                 dispatch(
@@ -351,6 +352,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       )}
                       <span className="mr-2">
                         <LinkButton
+                          name="planner-add-week"
                           onClick={() => {
                             dispatch(
                               lbProgram.p("weeks").recordModify((weeks) => [
@@ -367,6 +369,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                         </LinkButton>
                       </span>
                       <LinkButton
+                        name="planner-duplicate-week"
                         onClick={() => {
                           dispatch(
                             lbProgram.p("weeks").recordModify((weeks) => [
@@ -402,6 +405,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     })}
                     <div>
                       <LinkButton
+                        name="planner-add-day"
                         onClick={() => {
                           dispatch(
                             lbProgram

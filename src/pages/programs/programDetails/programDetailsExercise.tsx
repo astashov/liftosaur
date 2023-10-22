@@ -59,7 +59,9 @@ export const ProgramDetailsExercise = memo(
             <div className="text-right program-details-exercise-switch">
               <button
                 onClick={() => setMode(mode === "details" ? "playground" : "details")}
-                className="text-sm text-blue-700 underline"
+                className={`text-sm text-blue-700 underline nm-program-details-exercise-${
+                  mode === "details" ? "playground" : "details"
+                }`}
               >
                 {mode === "details" ? "Playground" : "Details"}
               </button>

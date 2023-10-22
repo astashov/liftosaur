@@ -80,7 +80,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
         >
           <button
             data-cy="rest-timer-minus"
-            className="relative w-10 m-2 text-center"
+            className="relative w-10 m-2 text-center nm-rest-timer-minus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer - 15, timerSince)}
           >
@@ -89,14 +89,18 @@ export function RestTimer(props: IProps): JSX.Element | null {
           </button>
           <button
             data-cy="rest-timer-cancel"
-            className="relative w-10 my-2 text-center"
+            className="relative w-10 my-2 text-center nm-rest-timer-cancel"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => props.dispatch({ type: "StopTimer" })}
           >
             <div className="absolute inset-0 bg-white rounded-lg" style={{ opacity: 0.2 }} />
             <IconTrash color="white" style={{ display: "inline-block" }} />
           </button>
-          <button data-cy="rest-timer-expanded" className="flex-1" onClick={() => setIsExpanded(false)}>
+          <button
+            data-cy="rest-timer-expanded"
+            className="flex-1 nm-rest-timer-time"
+            onClick={() => setIsExpanded(false)}
+          >
             <span data-cy="rest-timer-current" className="font-bold text-white">
               {TimeUtils.formatMMSS(timeDifference)}
             </span>
@@ -106,7 +110,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           </button>
           <button
             data-cy="rest-timer-back"
-            className="relative w-10 my-2 text-center"
+            className="relative w-10 my-2 text-center nm-rest-timer-back"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => setIsExpanded(false)}
           >
@@ -115,7 +119,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           </button>
           <button
             data-cy="rest-timer-plus"
-            className="relative w-10 m-2 text-center"
+            className="relative w-10 m-2 text-center nm-rest-timer-plus"
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() => updateTimer(props.dispatch, progress, timer + 15, timerSince)}
           >

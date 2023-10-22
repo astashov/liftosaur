@@ -209,7 +209,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
               Weight.is(value) ? (
                 <button
                   data-cy={`state-${StringUtils.dashcase(stateKey)}-calculator`}
-                  className="p-2 ml-2"
+                  className="p-2 ml-2 nm-rm-calculator"
                   style={{ marginRight: "-0.25rem" }}
                   onClick={() => props.onOpenCalculator(stateKey, value.unit)}
                 >

@@ -214,7 +214,7 @@ const ExerciseContentView = memo(
         <header className="flex">
           <div style={{ width: "62px" }}>
             <button
-              className="w-full px-2"
+              className="w-full px-2 nm-workout-exercise-image"
               style={{ marginLeft: "-0.5rem" }}
               onClick={() => props.onExerciseInfoClick?.(exercise)}
             >
@@ -225,7 +225,7 @@ const ExerciseContentView = memo(
             <div className="flex items-center">
               <div className="flex-1 text-lg font-bold">
                 <button
-                  className="text-left"
+                  className="text-left nm-workout-exercise-name"
                   data-cy="exercise-name"
                   onClick={() => props.onExerciseInfoClick?.(exercise)}
                 >
@@ -238,7 +238,7 @@ const ExerciseContentView = memo(
                   {!isCurrentProgress && (
                     <button
                       data-cy="exercise-notes-toggle"
-                      className="p-2 leading-none align-middle"
+                      className="p-2 leading-none align-middle nm-workout-see-statvars"
                       onClick={() => setShowStateVariables(!showStateVariables)}
                     >
                       <IconPreview size={18} />
@@ -246,7 +246,7 @@ const ExerciseContentView = memo(
                   )}
                   <button
                     data-cy="exercise-edit-mode"
-                    className="box-content p-2 align-middle"
+                    className="box-content p-2 align-middle nm-workout-edit-mode"
                     style={{ width: "18px", height: "18px" }}
                     onClick={() => {
                       if (!isCurrentProgress || !programExercise) {
@@ -274,7 +274,7 @@ const ExerciseContentView = memo(
                   </button>
                   <button
                     data-cy="exercise-notes-toggle"
-                    className="p-2 leading-none align-middle"
+                    className="p-2 leading-none align-middle nm-workout-exercise-notes"
                     style={{ marginRight: "-0.5rem" }}
                     onClick={() => setShowNotes(!showNotes)}
                   >
@@ -335,7 +335,10 @@ const ExerciseContentView = memo(
                   {isSubscribed ? (
                     "Plates for each bar side"
                   ) : (
-                    <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}>
+                    <LinkButton
+                      name="see-plates-for-each-side"
+                      onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
+                    >
                       See plates for each side
                     </LinkButton>
                   )}
@@ -390,6 +393,7 @@ const ExerciseContentView = memo(
                     <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit
                     your bar and plates. Adjust your{" "}
                     <LinkButton
+                      name="nux-rounding-equipment-settings"
                       onClick={() => {
                         updateState(props.dispatch, [
                           lb<IState>().p("defaultEquipmentExpanded").record(props.entry.exercise.equipment),
@@ -632,7 +636,7 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
         </span>
         <button
           data-cy="change-weight"
-          className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal"
+          className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
           style={{ fontWeight: "inherit" }}
           onClick={() => {
             if (!isFriend) {

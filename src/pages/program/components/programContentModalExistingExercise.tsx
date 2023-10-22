@@ -58,7 +58,7 @@ export function ProgramContentModalExistingExercise(props: IProgramContentModalE
           return (
             <button
               onClick={() => props.onChange(programExercise.id)}
-              className="block w-full text-left cursor-pointer"
+              className="block w-full text-left cursor-pointer nm-program-content-modal-pick-exercise"
             >
               <ProgramContentExercise
                 selected={[]}

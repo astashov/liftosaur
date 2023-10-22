@@ -83,6 +83,7 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
       <div className="my-2 text-sm text-grayv2-main">
         Need inspiration? Check out{" "}
         <LinkButton
+          name="program-content-show-examples"
           className="cursor-pointer"
           onClick={() =>
             props.dispatch(
@@ -222,7 +223,11 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
             );
           })}
           {areVariationsEnabled && (
-            <LinkButton className="my-4" onClick={() => props.dispatch(EditProgramLenses.addVariation(lbe))}>
+            <LinkButton
+              name="program-content-add-variation"
+              className="my-4"
+              onClick={() => props.dispatch(EditProgramLenses.addVariation(lbe))}
+            >
               Add Variation
             </LinkButton>
           )}

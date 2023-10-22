@@ -26,7 +26,7 @@ export function ImporterStorage(props: IImporterStorageProps): JSX.Element {
       {(onClick) => {
         return (
           <MenuItemWrapper name="Import data from JSON file" onClick={onClick}>
-            <button className="py-3">Import data from file</button>
+            <button className="py-3 nm-import-data-from-file">Import data from file</button>
           </MenuItemWrapper>
         );
       }}

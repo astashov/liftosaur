@@ -121,7 +121,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               <div>
                 <div>
                   <button
-                    className="flex items-center w-full px-4 py-2 mt-2 rounded-lg"
+                    className="flex items-center w-full px-4 py-2 mt-2 rounded-lg nm-sign-in-with-google"
                     style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
                     data-cy="menu-item-login"
                     onClick={() => props.dispatch(Thunk.googleSignIn())}
@@ -134,7 +134,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 </div>
                 <div>
                   <button
-                    className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2"
+                    className="flex items-center w-full px-4 py-3 mt-2 text-white rounded-lg bg-blackv2 nm-sign-in-with-apple"
                     onClick={async () => {
                       props.dispatch(Thunk.appleSignIn());
                     }}
@@ -155,6 +155,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           rightAddOn={
             otherAccounts.length > 0 ? (
               <LinkButton
+                name="account-edit"
                 onClick={() => {
                   setIsOtherAccountsEditMode(!isOtherAccountsEditMode);
                 }}
@@ -183,7 +184,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 {isOtherAccountsEditMode ? (
                   <>
                     <button
-                      className="p-2 align-middle button"
+                      className="p-2 align-middle button nm-account-delete-account"
                       onClick={() => {
                         if (
                           prompt(
@@ -223,6 +224,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           />
         ))}
         <LinkButton
+          name="local-account-create"
           onClick={() => {
             if (
               confirm(

@@ -92,6 +92,7 @@ export function EditProgramWeek(props: IProps): JSX.Element {
             }}
           />
           <LinkButton
+            name="edit-week-add-day"
             className="mt-2 mb-6 ls-day-add-exercise"
             onClick={() => props.dispatch({ type: "CreateDayAction", weekIndex: props.weekIndex })}
           >

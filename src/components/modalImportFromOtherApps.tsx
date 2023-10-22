@@ -67,7 +67,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
         {(onClick) => (
           <div className="ls-import-hevy">
             <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onClick}>
-              <button className="py-3">Upload CSV file from Hevy</button>
+              <button className="py-3 nm-upload-csv-from-hevy">Upload CSV file from Hevy</button>
             </MenuItemWrapper>
           </div>
         )}

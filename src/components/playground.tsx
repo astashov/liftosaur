@@ -108,6 +108,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
       />
       <div className="text-xs" style={{ marginTop: "-0.5rem" }}>
         <LinkButton
+          name="playground-reset"
           onClick={() => {
             const state = ProgramExercise.getState(programExercise, allProgramExercises);
             const nextVariationIndex = Program.nextVariationIndex(

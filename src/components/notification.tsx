@@ -27,7 +27,7 @@ export function Notification(props: IProps): JSX.Element | null {
           notification.type === "error" ? "bg-red-300" : "bg-green-200"
         }`}
       >
-        <button className="box-content absolute top-0 right-0 p-3">
+        <button className="box-content absolute top-0 right-0 p-3 nm-notification-close">
           <IconClose size={16} />
         </button>
         <span className="text-sm">{notification.content}</span>

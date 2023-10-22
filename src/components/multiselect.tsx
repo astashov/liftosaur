@@ -50,7 +50,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
           <div className="inline-block px-2 mb-1 mr-1 text-xs bg-gray-300 rounded-full ">
             <span className="py-1 pl-1">{sm} </span>
             <button
-              className="p-1"
+              className="p-1 nm-multiselect"
               onClick={(e) => {
                 e.preventDefault();
                 const set = new Set(selectedValues);

@@ -95,6 +95,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
             {props.numberOfWeeks > 1 && (
               <div>
                 <LinkButton
+                  name="builder-delete-week"
                   onClick={() => {
                     if (confirm("Are you sure you want to delete this week?")) {
                       props.dispatch([
@@ -125,6 +126,7 @@ export function BuilderWeek(props: IBuilderWeekProps): JSX.Element {
             />
           ))}
           <LinkButton
+            name="builder-add-workout"
             onClick={() => {
               const lastDay = week.days[week.days.length - 1];
               const day = BuilderDayModel.build(StringUtils.nextName(lastDay.name));

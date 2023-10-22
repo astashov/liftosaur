@@ -47,7 +47,9 @@ export function EditProgramExerciseSimpleDescription(props: IEditProgramExercise
       <div className="flex text-xs leading-none">
         {onAdd && (
           <div className="flex-1 mr-4">
-            <LinkButton onClick={onAdd}>Enable conditional descriptions</LinkButton>
+            <LinkButton name="enable-conditional-descriptions" onClick={onAdd}>
+              Enable conditional descriptions
+            </LinkButton>
           </div>
         )}
         <div className="text-xs italic leading-none text-grayv2-main">
@@ -121,7 +123,9 @@ export function EditProgramExerciseAdvancedDescriptions(
             />
           </ul>
           <div className="leading-none">
-            <LinkButton onClick={() => props.onAdd()}>Add another description</LinkButton>
+            <LinkButton name="add-another-description" onClick={() => props.onAdd()}>
+              Add another description
+            </LinkButton>
           </div>
         </div>
       ) : (
@@ -194,7 +198,11 @@ export function IndexNumber(props: { index: number }): JSX.Element {
 
 function DeleteBtn(props: { onRemove: () => void }): JSX.Element {
   return (
-    <button className="p-3" style={{ top: 0, right: 0 }} onClick={() => props.onRemove()}>
+    <button
+      className="p-3 nm-program-exercise-delete-description"
+      style={{ top: 0, right: 0 }}
+      onClick={() => props.onRemove()}
+    >
       <IconTrash />
     </button>
   );

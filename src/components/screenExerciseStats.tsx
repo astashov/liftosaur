@@ -199,7 +199,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               name={`${props.exercise.name} History`}
               rightAddOn={
                 <button
-                  className="p-2"
+                  className="p-2 nm-exercise-stats-navbar-filter"
                   data-cy="exercise-stats-history-filter"
                   style={{ marginRight: "-0.5rem", marginTop: "-0.5rem" }}
                   onClick={() => setShowFilters(!showFilters)}

@@ -109,6 +109,7 @@ function labelSet(
   if (showLink && focusedExercise) {
     return (
       <LinkButton
+        name={`planner-stats-${label}`}
         className="font-normal"
         onClick={() => {
           dispatch(

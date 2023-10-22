@@ -24,7 +24,10 @@ export const FinishDayExprView = memo(
             />
           </pre>
         </div>
-        <button className="text-sm text-blue-700 underline" onClick={() => setIsVisible(!isVisible)}>
+        <button
+          className="text-sm text-blue-700 underline nm-program-details-finish-day-script-toggle"
+          onClick={() => setIsVisible(!isVisible)}
+        >
           {isVisible ? "Hide" : "Show"}
         </button>
       </div>

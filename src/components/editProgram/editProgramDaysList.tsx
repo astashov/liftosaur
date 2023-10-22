@@ -55,7 +55,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           helpContent={<HelpEditProgramDaysList />}
           screenStack={props.screenStack}
           rightButtons={[
-            <button data-cy="navbar-3-dot" className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
+            <button
+              data-cy="navbar-3-dot"
+              className="p-2 nm-edit-program-navbar-kebab"
+              onClick={() => setShouldShowBottomSheet(true)}
+            >
               <IconKebab />
             </button>,
           ]}
@@ -95,6 +99,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           <div>
             You can use{" "}
             <LinkButton
+              name="edit-program-copy-program-link"
               onClick={async () => {
                 props.dispatch(
                   Thunk.generateAndCopyLink(props.editProgram, props.settings, () => {
@@ -247,6 +252,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
               }}
             />
             <LinkButton
+              name="add-week"
               className="mt-2"
               data-cy="add-week"
               onClick={() => {
@@ -334,7 +340,12 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             );
           }}
         />
-        <LinkButton className="mt-2 mb-8" data-cy="add-day" onClick={() => props.dispatch({ type: "CreateDayAction" })}>
+        <LinkButton
+          name="edit-program-add-day"
+          className="mt-2 mb-8"
+          data-cy="add-day"
+          onClick={() => props.dispatch({ type: "CreateDayAction" })}
+        >
           Add New Day
         </LinkButton>
         <GroupHeader
@@ -401,6 +412,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           );
         })}
         <LinkButton
+          name="edit-program-add-exercise"
           className="mt-2 mb-6"
           data-cy="add-exercise"
           onClick={() => EditProgram.addProgramExercise(props.dispatch, props.settings.units)}

@@ -30,7 +30,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
                     <button
                       className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
-                      } ${isInvalid ? " text-redv2-main" : ""}`}
+                      } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`}
                       style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                       data-cy={nameClass}
                       onClick={() => setSelectedIndex(index)}

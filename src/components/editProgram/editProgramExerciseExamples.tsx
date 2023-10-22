@@ -247,7 +247,9 @@ export function EditProgramExerciseExamples(props: IEditProgramExerciseExamplesP
               </div>
             </div>
             <div>
-              <LinkButton onClick={() => props.onSelect(example)}>Use this example</LinkButton>
+              <LinkButton name="use-program-exercise-example" onClick={() => props.onSelect(example)}>
+                Use this example
+              </LinkButton>
             </div>
           </section>
         );

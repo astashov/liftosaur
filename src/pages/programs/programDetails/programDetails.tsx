@@ -28,7 +28,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
           onClick={() => {
             props.dispatch(lb<IProgramDetailsState>().p("muscles").record({ type: "program" }));
           }}
-          className="text-sm text-blue-700 underline"
+          className="text-sm text-blue-700 underline nm-program-details-show-muscles"
         >
           Show Muscles
         </button>
@@ -48,7 +48,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
                   onClick={() => {
                     props.dispatch(lb<IProgramDetailsState>().p("muscles").record({ type: "day", dayIndex }));
                   }}
-                  className="text-sm text-blue-700 underline"
+                  className="text-sm text-blue-700 underline nm-program-details-day-muscles"
                 >
                   Muscles
                 </button>

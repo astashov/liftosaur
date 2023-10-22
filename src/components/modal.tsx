@@ -67,7 +67,7 @@ export function Modal(props: IProps): JSX.Element {
           <button
             data-cy="modal-close"
             onClick={props.onClose}
-            className="absolute p-2"
+            className="absolute p-2 nm-modal-close"
             style={{ top: "-3px", right: "-3px" }}
           >
             <IconCloseCircleOutline />

@@ -62,7 +62,9 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           }
         })}
       <div className="m-4">
-        <LinkButton onClick={() => setModalNewEquipment(true)}>Add New Equipment Type</LinkButton>
+        <LinkButton name="add-new-equipment" onClick={() => setModalNewEquipment(true)}>
+          Add New Equipment Type
+        </LinkButton>
       </div>
       <ModalNewEquipment
         isHidden={!modalNewEquipment}
@@ -222,6 +224,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
         {props.equipmentData.name && (
           <div className="mt-2 text-right">
             <LinkButton
+              name="delete-equipment"
               onClick={() => {
                 if (confirm("Are you sure?")) {
                   const lensRecording = props.lensPrefix
@@ -265,6 +268,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
             name={Weight.display(weight)}
             value={
               <button
+                className="nm-remove-fixed-weight"
                 onClick={() => {
                   const newFixedWeights = equipmentData.fixed.filter((p) => !Weight.eqeq(p, weight));
                   const lensRecording = props.lensPrefix
@@ -279,7 +283,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
           />
         );
       })}
-      <LinkButton onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}>
+      <LinkButton name="add-new-fixed-weight" onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}>
         Add New Fixed Weight
       </LinkButton>
     </div>
@@ -372,7 +376,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           />
         );
       })}
-      <LinkButton onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}>Add New Plate Weight</LinkButton>
+      <LinkButton name="add-new-plate-weight" onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}>
+        Add New Plate Weight
+      </LinkButton>
     </div>
   );
 }

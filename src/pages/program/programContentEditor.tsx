@@ -106,7 +106,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
         <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-redv2-main">
           Made changes to the program, but the link still goes to the original version. If you want to share updated
           version, generate a new link.
-          <button className="p-2 align-middle" onClick={() => setClearHasChanges(true)}>
+          <button className="p-2 align-middle nm-clear-has-changes" onClick={() => setClearHasChanges(true)}>
             <IconCloseCircleOutline size={14} />
           </button>
         </div>
@@ -125,7 +125,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                 />
               </div>
               <button
-                className="text-xs font-normal text-grayv2-main"
+                className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
                 style={{ marginTop: "-0.5rem" }}
                 onClick={() => props.dispatch(lbProgram.p("id").record(UidFactory.generateUid(8)))}
               >
@@ -172,7 +172,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               <button
                 style={{ cursor: canUndo(state) ? "pointer" : "default" }}
                 title="Undo"
-                className="p-2"
+                className="p-2 nm-program-content-undo"
                 disabled={!canUndo(state)}
                 onClick={() => undo(dispatch, state)}
               >
@@ -181,7 +181,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               <button
                 style={{ cursor: canRedo(state) ? "pointer" : "default" }}
                 title="Redo"
-                className="p-2"
+                className="p-2 nm-program-content-redo"
                 disabled={!canRedo(state)}
                 onClick={() => redo(dispatch, state)}
               >
@@ -238,7 +238,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                             newCollapsedDays[i] = !newCollapsedDays[i];
                             setCollapsedDays(newCollapsedDays);
                           }}
-                          className="w-8 p-2 mr-1 text-center"
+                          className="w-8 p-2 mr-1 text-center nm-web-editor-expand-collapse-day"
                         >
                           {collapsedDays[i] ? (
                             <IconArrowRight className="inline-block" />
@@ -352,10 +352,14 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
                           }
                         />
                         <div>
-                          <LinkButton onClick={() => setShowAddExistingExerciseModal(i)}>
+                          <LinkButton
+                            name="program-content-add-existing-exercise"
+                            onClick={() => setShowAddExistingExerciseModal(i)}
+                          >
                             Add existing exercise to {day.name}
                           </LinkButton>
                           <LinkButton
+                            name="program-content-create-new-exercise-in-day"
                             className="ml-8"
                             onClick={() => {
                               const newExercise = Program.createExercise(state.settings.units);
@@ -389,6 +393,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
             }}
           />
           <LinkButton
+            name="program-content-add-new-day"
             onClick={() => {
               dispatch(
                 lbProgram.p("days").recordModify((days) => {

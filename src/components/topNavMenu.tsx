@@ -11,7 +11,7 @@ export function TopNavMenu(props: { maxWidth?: number; current?: string }): JSX.
     <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}>
       <div class="flex items-center cursor-pointer">
         <div className="mr-2 sm:hidden">
-          <button className="p-2" onClick={() => setIsMenuOpen(true)}>
+          <button className="p-2 nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
             <IconHamburger />
           </button>
         </div>

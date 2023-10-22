@@ -58,7 +58,11 @@ function Edit(props: IProps): JSX.Element {
         onClick={() => setShowModalExercise(true)}
         value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
       />
-      <LinkButton className="mb-4" onClick={() => setShowModalSubstitute(true)}>
+      <LinkButton
+        name="edit-program-simple-substitute-exercise"
+        className="mb-4"
+        onClick={() => setShowModalSubstitute(true)}
+      >
         Substitute Exercise
       </LinkButton>
       <MenuItemEditable

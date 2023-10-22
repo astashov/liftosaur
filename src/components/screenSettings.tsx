@@ -116,7 +116,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 <div style={{ marginTop: "-0.5rem" }} className="pb-1">
                   <div className="flex">
                     <button
-                      className="mr-auto text-xs text-left text-blue-700 underline"
+                      className="mr-auto text-xs text-left text-blue-700 underline nm-copy-profile-link-to-clipboard"
                       onClick={() => {
                         const text = Share.generateProfileLink(props.user!.id);
                         if (text != null) {
@@ -293,12 +293,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">
           <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
-            <button className="py-3">Export data to JSON file</button>
+            <button className="py-3 nm-export-data-to-json-file">Export data to JSON file</button>
           </MenuItemWrapper>
         </div>
         <div className="ls-export-history">
           <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
-            <button className="py-3">Export history to CSV file</button>
+            <button className="py-3 nm-export-history-to-csv-file">Export history to CSV file</button>
           </MenuItemWrapper>
         </div>
         <div className="ls-import-data">
@@ -309,7 +309,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         </div>
         <div className="ls-import-other-apps">
           <MenuItemWrapper name="Import history from other apps" onClick={() => setShowImportFromOtherAppsModal(true)}>
-            <button className="py-3">Import history from other apps</button>
+            <button className="py-3 nm-import-history-from-other-apps">Import history from other apps</button>
           </MenuItemWrapper>
         </div>
 

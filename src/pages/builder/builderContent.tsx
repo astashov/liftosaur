@@ -100,7 +100,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
             onShowInfo={setShowClipboardInfo}
           />
           <button
-            className="p-2 align-middle"
+            className="p-2 align-middle nm-builder-settings"
             onClick={() => dispatch([lb<IBuilderState>().p("ui").p("modalSettings").record(true)])}
           >
             <IconCog2 />
@@ -178,6 +178,7 @@ export function BuilderContent(props: IBuilderContentProps): JSX.Element {
         />
       ))}
       <LinkButton
+        name="builder-add-week"
         onClick={() => {
           const lastWeek = state.current.program.weeks[state.current.program.weeks.length - 1];
           const week = BuilderWeekModel.build(StringUtils.nextName(lastWeek.name));

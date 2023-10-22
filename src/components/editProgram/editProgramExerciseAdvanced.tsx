@@ -110,7 +110,11 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
     <div className="px-4">
       <div className="my-2 text-sm text-grayv2-main">
         Need inspiration? Check out{" "}
-        <LinkButton className="cursor-pointer" onClick={() => setShowModalExamples(true)}>
+        <LinkButton
+          name="edit-exercise-advanced-examples"
+          className="cursor-pointer"
+          onClick={() => setShowModalExamples(true)}
+        >
           examples
         </LinkButton>{" "}
         of different exercise logic
@@ -128,7 +132,11 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         onClick={() => setShowModalExercise(true)}
         value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
       />
-      <LinkButton className="mb-4" onClick={() => setShowModalSubstitute(true)}>
+      <LinkButton
+        name="edit-exercise-advanced-substitute"
+        className="mb-4"
+        onClick={() => setShowModalSubstitute(true)}
+      >
         Substitute Exercise
       </LinkButton>
       <MenuItemEditable
@@ -429,6 +437,7 @@ function Variations(props: IVariationsProps): JSX.Element {
       />
       <div className="flex justify-between">
         <LinkButton
+          name="add-variation"
           onClick={() => {
             EditProgram.addVariation(dispatch);
             props.onChangeVariation(props.variationIndex + 1);
@@ -438,6 +447,7 @@ function Variations(props: IVariationsProps): JSX.Element {
         </LinkButton>
         {programExercise.variations.length > 1 && (
           <LinkButton
+            name="delete-variation"
             onClick={() => {
               EditProgram.removeVariation(dispatch, props.variationIndex);
               props.onChangeVariation(Math.max(variationIndex - 1, 0));

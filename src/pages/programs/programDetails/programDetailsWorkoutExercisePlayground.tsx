@@ -84,7 +84,7 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
           style={{ right: -12, top: -18 }}
         >
           <button
-            className="inline-block mr-2"
+            className="inline-block mr-2 nm-program-details-playground-edit"
             onClick={() => {
               props.dispatch({
                 type: "UpdateProgress",
@@ -100,7 +100,7 @@ export const ProgramDetailsWorkoutExercisePlayground = memo((props: IProps): JSX
             <IconEditSquare />
           </button>
           <button
-            className="inline-block"
+            className="inline-block nm-program-details-playground-complete"
             onClick={() => {
               props.dispatch({
                 type: "UpdateProgress",

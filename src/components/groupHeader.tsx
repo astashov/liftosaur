@@ -37,7 +37,11 @@ export function GroupHeader(props: IProps): JSX.Element {
         <div className="flex items-center justify-center text-right">
           {props.rightAddOn}
           {props.help && (
-            <button style={{ marginRight: "-0.5rem" }} className="px-2" onClick={() => setIsHelpShown(!isHelpShown)}>
+            <button
+              style={{ marginRight: "-0.5rem" }}
+              className="px-2 nm-group-header-help"
+              onClick={() => setIsHelpShown(!isHelpShown)}
+            >
               <IconHelp size={20} color="#607284" />
             </button>
           )}

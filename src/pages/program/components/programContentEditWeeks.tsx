@@ -141,7 +141,9 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
                   />
                 </div>
                 <div>
-                  <LinkButton onClick={() => onShowManageDaysModal(i)}>Manage days in {week.name}</LinkButton>
+                  <LinkButton name="program-content-weeks-manage-days" onClick={() => onShowManageDaysModal(i)}>
+                    Manage days in {week.name}
+                  </LinkButton>
                 </div>
               </div>
             </section>
@@ -152,6 +154,7 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
         }}
       />
       <LinkButton
+        name="program-content-weeks-add-week"
         onClick={() => {
           dispatch(
             lbProgram.p("weeks").recordModify((weeks) => {

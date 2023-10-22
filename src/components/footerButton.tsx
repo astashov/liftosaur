@@ -15,7 +15,7 @@ export function FooterButton(props: IProps): JSX.Element {
   const isActive = Screen.tab(props.screen) === props.name;
   const dataCy = `footer-${StringUtils.dashcase(props.text)}`;
   return (
-    <button className="inline-block px-2 text-center" data-cy={dataCy} onClick={props.onClick}>
+    <button className={`inline-block px-2 text-center nm-${dataCy}`} data-cy={dataCy} onClick={props.onClick}>
       {props.icon(isActive)}
       <div style={{ fontSize: "10px" }} className={`pt-1 ${isActive ? "text-purplev2-main" : ""}`}>
         {props.text}

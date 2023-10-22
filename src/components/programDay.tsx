@@ -90,7 +90,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 ? []
                 : [
                     <button
-                      className="p-2"
+                      className="p-2 nm-delete-progress"
                       onClick={() => {
                         if (confirm("Are you sure?")) {
                           props.dispatch({ type: "DeleteProgress" });

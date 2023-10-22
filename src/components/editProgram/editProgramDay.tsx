@@ -56,7 +56,11 @@ export function EditProgramDay(props: IProps): JSX.Element {
           helpContent={<HelpEditProgramDay />}
           screenStack={props.screenStack}
           rightButtons={[
-            <button data-cy="navbar-3-dot" className="p-2" onClick={() => setShouldShowBottomSheet(true)}>
+            <button
+              data-cy="navbar-3-dot"
+              className="p-2 nm-edit-program-day-kebab"
+              onClick={() => setShouldShowBottomSheet(true)}
+            >
               <IconKebab />
             </button>,
           ]}
@@ -144,6 +148,7 @@ export function EditProgramDay(props: IProps): JSX.Element {
             }}
           />
           <LinkButton
+            name="program-day-create-new-exercise"
             className="mt-2 mb-6 ls-day-add-exercise"
             onClick={() => EditProgram.addProgramExercise(props.dispatch, props.settings.units)}
           >

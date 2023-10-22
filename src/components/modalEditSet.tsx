@@ -154,7 +154,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               <input data-cy="modal-edit-set-amrap-input" ref={isAmrapInput} type="checkbox" checked={set?.isAmrap} />
               <strong className="ml-2">
                 Is AMRAP?
-                <button className="ml-1" onClick={() => alert("As Many Reps As Possible.")}>
+                <button className="ml-1 nm-is-amrap" onClick={() => alert("As Many Reps As Possible.")}>
                   <IconQuestion width={12} height={12} />
                 </button>
               </strong>

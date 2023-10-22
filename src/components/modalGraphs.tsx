@@ -182,7 +182,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   <div>
                     <button
                       data-cy="remove-graph"
-                      className="align-middle"
+                      className="align-middle nm-remove-graph"
                       onClick={() => EditGraphs.removeGraph(props.dispatch, graph)}
                     >
                       <IconCloseCircle />

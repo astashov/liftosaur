@@ -127,6 +127,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
         {props.numberOfDays > 1 && (
           <div>
             <LinkButton
+              name="builder-day-delete-workout"
               onClick={() => {
                 if (confirm("Are you sure you want to delete this workout?")) {
                   props.dispatch([
@@ -187,6 +188,7 @@ export function BuilderDay(props: IBuilderDayProps): JSX.Element {
         ))}
       </div>
       <LinkButton
+        name="builder-day-add-exercise"
         onClick={() =>
           props.dispatch([
             lbe.p("exercises").recordModify((exercises) => [...exercises, ObjectUtils.clone(lastExercise)]),

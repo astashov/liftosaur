@@ -118,6 +118,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
           <div className="flex-1">
             <div>
               <LinkButton
+                name="builder-exercise-name"
                 onClick={() => {
                   props.dispatch([
                     lb<IBuilderState>().p("ui").p("modalExercise").record({
@@ -202,6 +203,7 @@ export function BuilderExercise(props: IBuilderExerciseProps): JSX.Element {
         </div>
         <div className="mt-2">
           <LinkButton
+            name="builder-exercise-substitute"
             onClick={() => {
               props.dispatch([
                 lb<IBuilderState>().p("ui").p("modalSubstitute").record({

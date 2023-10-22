@@ -146,7 +146,7 @@ function ExerciseSetBase(props: IExerciseSetBaseProps): JSX.Element {
       onMouseDown={onDown}
       onMouseMove={onMove}
       onMouseUp={onUp}
-      className={className}
+      className={`${className} nm-${props.cy}`}
       onClick={onClick}
       style={{ userSelect: "none", touchAction: "manipulation" }}
     >

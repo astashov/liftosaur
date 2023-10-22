@@ -92,7 +92,10 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
           </div>
           <div>
             <div className="inline-block">
-              Exercise: <LinkButton onClick={() => setShowModalExercise(true)}>{exercise.name}</LinkButton>
+              Exercise:{" "}
+              <LinkButton name="program-content-choose-exercise" onClick={() => setShowModalExercise(true)}>
+                {exercise.name}
+              </LinkButton>
             </div>
             <div className="inline-block ml-2">
               <select
@@ -114,7 +117,9 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
               </select>
             </div>
             <div className="inline-block ml-2">
-              <LinkButton onClick={() => setShowModalSubstitute(true)}>Substitute</LinkButton>
+              <LinkButton name="program-content-substitute-exercise" onClick={() => setShowModalSubstitute(true)}>
+                Substitute
+              </LinkButton>
             </div>
           </div>
         </div>
@@ -153,7 +158,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         ]}
       />
       <button
-        className="absolute p-2"
+        className="absolute p-2 nm-program-content-edit-exercise-close-button"
         style={{ top: "0.25rem", right: "0.25rem" }}
         onClick={() => {
           if (

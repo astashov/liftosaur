@@ -141,7 +141,7 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
       {highlightedResponse && (
         <div className="text-xs">
           <div>
-            <LinkButton onClick={() => setShowResponse(!showResponse)}>
+            <LinkButton name="freeform-show-response" onClick={() => setShowResponse(!showResponse)}>
               {showResponse ? "Hide" : "Show"} ChatGPT response
             </LinkButton>
           </div>

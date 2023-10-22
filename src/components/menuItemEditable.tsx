@@ -75,7 +75,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
               onClick={() => props.onChange && props.onChange(undefined)}
               style={{ marginRight: "-0.5rem" }}
-              className="p-2"
+              className={`p-2 nm-menu-item-delete-${StringUtils.dashcase(props.name)}`}
             >
               <IconTrash />
             </button>

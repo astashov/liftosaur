@@ -89,7 +89,9 @@ export function ProgramContentModalSettings(props: IProgramContentModalSettingsP
         </label>
       </div>
       <div className="mb-2 text-center">
-        <LinkButton onClick={props.onShowEquipment}>Edit Equipment</LinkButton>
+        <LinkButton name="program-content-settings-edit-equipment" onClick={props.onShowEquipment}>
+          Edit Equipment
+        </LinkButton>
       </div>
     </Modal>
   );

@@ -67,7 +67,7 @@ export const CardsView = memo(
               <div className="mr-2 align-middle">
                 {program && (
                   <button
-                    className="px-2 ml-1 align-middle"
+                    className="px-2 ml-1 align-middle nm-workout-edit-day"
                     onClick={() => {
                       const programDay = Program.getProgramDay(program, props.progress.day);
                       const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
@@ -86,7 +86,7 @@ export const CardsView = memo(
                       ]);
                       props.dispatch(Thunk.pushScreen("muscles"));
                     }}
-                    className="px-2 align-middle"
+                    className="px-2 align-middle nm-workout-day-muscles"
                   >
                     <IconMuscles2 />
                   </button>
@@ -146,6 +146,7 @@ export const CardsView = memo(
         })}
         <div style={{ marginTop: "-0.25rem" }} className="text-xs">
           <LinkButton
+            name="add-exercise-to-workout"
             data-cy="add-exercise-button"
             onClick={() => {
               Progress.showAddExerciseModal(props.dispatch, props.progress.id);

@@ -42,7 +42,7 @@ export function ModalShare(props: IProps): JSX.Element {
 
       <div className="m-1">
         <button
-          className="text-blue-700 underline ls-modal-share-copy"
+          className="text-blue-700 underline ls-modal-share-copy nm-modal-share-copy"
           onClick={() => {
             const text = linkRef.current.textContent;
             if (text != null) {

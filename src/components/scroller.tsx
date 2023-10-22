@@ -28,7 +28,7 @@ export function Scroller(props: IProps): JSX.Element {
     <div className="relative flex-1 min-w-0">
       {!atLeft && (
         <button
-          className="absolute left-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none"
+          className="absolute left-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none nm-scroller-left"
           style={{
             boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
             top: "50%",
@@ -44,7 +44,7 @@ export function Scroller(props: IProps): JSX.Element {
       )}
       {!atRight && (
         <button
-          className="absolute right-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none"
+          className="absolute right-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none nm-scroller-right"
           style={{
             boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
             top: "50%",

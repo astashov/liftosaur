@@ -71,7 +71,7 @@ function StatusButton(props: IStatusButtonProps): JSX.Element {
     return (
       <div className="text-right">
         <button
-          className="italic text-blue-700 underline bg-transparent border-none"
+          className="italic text-blue-700 underline bg-transparent border-none nm-remove-friend"
           data-cy="button-friend-remove"
           onClick={() => dispatch(Thunk.removeFriend(friend.user.id))}
         >

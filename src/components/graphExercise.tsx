@@ -173,7 +173,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                     }
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   } else {
@@ -181,7 +181,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       date
                     )}, Volume: <strong>${volume} ${units}s</strong>`;
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2">Workout</button>`;
+                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   }

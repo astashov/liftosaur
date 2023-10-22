@@ -48,6 +48,7 @@ export function ProgramListView(props: IProps): JSX.Element {
             name="Your Programs"
             rightAddOn={
               <LinkButton
+                name="edit-your-programs"
                 onClick={() => {
                   setIsEditMode(!isEditMode);
                 }}
@@ -68,7 +69,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                 isEditMode ? (
                   <Fragment>
                     <button
-                      className="p-2 align-middle button"
+                      className="p-2 align-middle button nm-program-list-edit-program"
                       onClick={() => {
                         if (props.editProgramId == null || props.editProgramId !== program.id) {
                           Program.editAction(props.dispatch, program.id);
@@ -80,7 +81,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                       <IconEditSquare />
                     </button>
                     <button
-                      className="p-2 align-middle button"
+                      className="p-2 align-middle button nm-program-list-delete-program"
                       onClick={() => {
                         if (customPrograms.length < 2) {
                           alert("You cannot delete all your programs, you should have at least one");
@@ -181,7 +182,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
 
   return (
     <button
-      className="relative flex items-center w-full p-3 mb-4 text-left bg-orange-100 rounded-lg"
+      className="relative flex items-center w-full p-3 mb-4 text-left bg-orange-100 rounded-lg nm-program-list-choose-program"
       style={{ boxShadow: "0 0 8px 0 rgb(142 140 0 / 25%)" }}
       onClick={props.onClick}
     >

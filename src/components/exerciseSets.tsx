@@ -254,7 +254,7 @@ function ExerciseSetContainer(props: IExerciseSetContainerProps): JSX.Element {
           <button
             data-cy="set-edit-mode-remove"
             style={{ top: "-12px", left: "-13px" }}
-            className="absolute z-10 p-1 ls-edit-set-remove"
+            className="absolute z-10 p-1 ls-edit-set-remove nm-edit-set-remove"
             onClick={() => {
               EditProgressEntry.removeSet(
                 props.dispatch,
@@ -299,7 +299,7 @@ function AddSetButton(props: IAddSetButtonProps): JSX.Element {
       <button
         data-cy={`add-${props.mode}-set`}
         onClick={props.onClick}
-        className={`${sizeClassNames} leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup ${
+        className={`${sizeClassNames} leading-7 text-center border border-gray-400 border-dashed rounded-lg bg-grayv2-100 ls-edit-set-open-modal-add-warmup nm-edit-set-open-modal-add-warmup ${
           props.quickAddSets ? "" : "is-edit-mode"
         }`}
       >

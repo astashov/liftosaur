@@ -22,7 +22,7 @@ export function Nux(props: IProps): JSX.Element | null {
       <div>{props.children}</div>
       <div>
         <button
-          className="p-2"
+          className="p-2 nm-nux-close"
           style={{ marginTop: "-0.25rem" }}
           onClick={() => {
             updateState(dispatch, [
