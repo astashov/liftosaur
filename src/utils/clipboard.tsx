@@ -1,6 +1,24 @@
 import { SendMessage } from "./sendMessage";
+import { IEither } from "./types";
 
 export namespace ClipboardUtils {
+  export async function paste(): Promise<string | undefined> {
+    if (!navigator.clipboard) {
+      return fallbackReadTextFromClipboard();
+    } else {
+      try {
+        const result = await readTextFromClipboard();
+        if (result.success) {
+          return result.data;
+        } else {
+          return fallbackReadTextFromClipboard();
+        }
+      } catch (e) {
+        return fallbackReadTextFromClipboard();
+      }
+    }
+  }
+
   export async function copy(text: string): Promise<void> {
     if (!SendMessage.toIos({ type: "copyToClipboard", value: text })) {
       if (!navigator.clipboard) {
@@ -33,18 +51,63 @@ export namespace ClipboardUtils {
   }
 
   function copyTextToClipboard(text: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      navigator.permissions
-        .query({ name: "clipboard-write" })
-        .then((result) => {
-          if (result.state === "granted" || result.state === "prompt") {
-            navigator.clipboard.writeText(text);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        })
-        .catch(() => resolve(false));
+    return new Promise(async (resolve, reject) => {
+      try {
+        navigator.permissions
+          .query({ name: "clipboard-write" })
+          .then(async (result) => {
+            if (result.state === "granted" || result.state === "prompt") {
+              await navigator.clipboard.writeText(text);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          })
+          .catch(async () => {
+            try {
+              await navigator.clipboard.writeText(text);
+              resolve(true);
+            } catch (e) {
+              resolve(false);
+            }
+          });
+      } catch (_) {
+        try {
+          await navigator.clipboard.writeText(text);
+          resolve(true);
+        } catch (e) {
+          resolve(false);
+        }
+      }
     });
+  }
+
+  async function readTextFromClipboard(): Promise<IEither<string | undefined, undefined>> {
+    try {
+      const queryResult = await navigator.permissions.query({ name: "clipboard-read" });
+      if (queryResult.state === "granted" || queryResult.state === "prompt") {
+        return { success: true, data: await navigator.clipboard.readText() };
+      } else {
+        throw new Error("Can't read from clipboard");
+      }
+    } catch (_) {
+      try {
+        return { success: true, data: await navigator.clipboard.readText() };
+      } catch {
+        return { success: false, error: undefined };
+      }
+    }
+  }
+
+  function fallbackReadTextFromClipboard(): string | undefined {
+    const contentEditableElement = document.createElement("div");
+    contentEditableElement.contentEditable = "true";
+    document.body.appendChild(contentEditableElement);
+    contentEditableElement.focus();
+
+    document.execCommand("paste");
+    const result = contentEditableElement.innerText;
+    document.body.removeChild(contentEditableElement);
+    return result;
   }
 }

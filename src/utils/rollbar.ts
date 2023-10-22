@@ -81,6 +81,7 @@ export namespace RollbarUtils {
           "The operation was aborted",
           "FetchEvent.respondWith received an error",
           "play() failed because the user",
+          "play() request was interrupted",
           "The request is not allowed by the user agent or the platform",
           "Load failed",
         ];
