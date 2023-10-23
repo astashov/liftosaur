@@ -1,51 +1,50 @@
 import { IProgram } from "../types";
 
 export const basicBeginnerProgram: IProgram = {
-  isMultiweek: false,
   weeks: [],
   exercises: [
     {
-      descriptions: [""],
       variationExpr: "1",
+      exerciseType: {
+        equipment: "barbell",
+        id: "bentOverRow",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: true,
+              weightExpr: "state.weight",
             },
           ],
         },
       ],
-      exerciseType: {
-        equipment: "barbell",
-        id: "bentOverRow",
-      },
       name: "Bent Over Row",
       id: "hsoqxnes",
+      finishDayExpr:
+        "if (sum(completedReps) >= 15) {\n  state.weight = weights[numberOfSets] +\n    state.increase * (completedReps[numberOfSets] > 10 ? 2 : 1)\n} else {\n  state.weight = state.weight * 0.9\n}",
       state: {
         weight: {
-          value: 65,
+          value: 95,
           unit: "lb",
         },
-        bump: {
+        increase: {
           value: 2.5,
           unit: "lb",
         },
       },
-      finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? (state.bump * 2) : state.bump)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -72,45 +71,46 @@ export const basicBeginnerProgram: IProgram = {
           value: 0.8,
         },
       ],
+      stateMetadata: {},
     },
     {
-      descriptions: [""],
       variationExpr: "1",
+      exerciseType: {
+        equipment: "barbell",
+        id: "benchPress",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: true,
+              weightExpr: "state.weight",
             },
           ],
         },
       ],
-      exerciseType: {
-        equipment: "barbell",
-        id: "benchPress",
-      },
       name: "Bench Press",
       id: "dfrqoklv",
+      finishDayExpr:
+        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
       state: {
         weight: {
           value: 45,
           unit: "lb",
         },
       },
-      finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -140,12 +140,18 @@ export const basicBeginnerProgram: IProgram = {
       reuseLogic: {
         selected: "hsoqxnes",
         states: {
+          cbehuuki: {
+            weight: {
+              value: 45,
+              unit: "lb",
+            },
+          },
           hsoqxnes: {
             weight: {
               value: 45,
               unit: "lb",
             },
-            bump: {
+            increase: {
               value: 2.5,
               unit: "lb",
             },
@@ -155,42 +161,42 @@ export const basicBeginnerProgram: IProgram = {
     },
     {
       variationExpr: "1",
-      descriptions: [""],
+      exerciseType: {
+        equipment: "barbell",
+        id: "squat",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: true,
+              weightExpr: "state.weight",
             },
           ],
         },
       ],
-      exerciseType: {
-        equipment: "barbell",
-        id: "squat",
-      },
       name: "Squat",
       id: "cbehuuki",
+      finishDayExpr:
+        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
       state: {
         weight: {
           value: 45,
           unit: "lb",
         },
       },
-      finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -225,7 +231,7 @@ export const basicBeginnerProgram: IProgram = {
               value: 45,
               unit: "lb",
             },
-            bump: {
+            increase: {
               value: 5,
               unit: "lb",
             },
@@ -234,37 +240,37 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
-      descriptions: [""],
       variationExpr: "1",
+      exerciseType: {
+        equipment: "bodyweight",
+        id: "chinUp",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "0lb",
               isAmrap: false,
+              weightExpr: "0lb",
             },
             {
               repsExpr: "5",
-              weightExpr: "0lb",
               isAmrap: false,
+              weightExpr: "0lb",
             },
             {
               repsExpr: "5",
-              weightExpr: "0lb",
               isAmrap: true,
+              weightExpr: "0lb",
             },
           ],
         },
       ],
-      exerciseType: {
-        id: "chinUp",
-        equipment: "bodyweight",
-      },
       name: "Chin Up",
       id: "xjvluydi",
-      state: {},
       finishDayExpr: "",
+      state: {},
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -292,14 +298,14 @@ export const basicBeginnerProgram: IProgram = {
         },
       ],
       reuseLogic: {
-        selected: undefined,
+        selected: "hsoqxnes",
         states: {
           hsoqxnes: {
             weight: {
               value: 0,
               unit: "lb",
             },
-            bump: {
+            increase: {
               value: 2.5,
               unit: "lb",
             },
@@ -308,43 +314,43 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
-      descriptions: [""],
       variationExpr: "1",
+      exerciseType: {
+        equipment: "barbell",
+        id: "overheadPress",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: true,
+              weightExpr: "state.weight",
             },
           ],
         },
       ],
-      exerciseType: {
-        equipment: "barbell",
-        id: "overheadPress",
-      },
       name: "Overhead Press",
       id: "wtygaluo",
+      finishDayExpr:
+        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
       state: {
         weight: {
           value: 45,
           unit: "lb",
         },
       },
-      finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 5lb : 2.5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -379,7 +385,7 @@ export const basicBeginnerProgram: IProgram = {
               value: 45,
               unit: "lb",
             },
-            bump: {
+            increase: {
               value: 2.5,
               unit: "lb",
             },
@@ -388,43 +394,43 @@ export const basicBeginnerProgram: IProgram = {
       },
     },
     {
-      descriptions: [""],
       variationExpr: "1",
+      exerciseType: {
+        equipment: "barbell",
+        id: "deadlift",
+      },
       variations: [
         {
           sets: [
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: false,
+              weightExpr: "state.weight",
             },
             {
               repsExpr: "5",
-              weightExpr: "state.weight",
               isAmrap: true,
+              weightExpr: "state.weight",
             },
           ],
         },
       ],
-      exerciseType: {
-        equipment: "barbell",
-        id: "deadlift",
-      },
       name: "Deadlift",
       id: "aclndsos",
+      finishDayExpr:
+        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
       state: {
         weight: {
           value: 95,
           unit: "lb",
         },
       },
-      finishDayExpr:
-        "if (cr[1] + cr[2] + cr[3] >= 15) {\n  state.weight = w[3] +\n    (cr[3] > 10 ? 10lb : 5lb)\n} else {\n  state.weight = state.weight * 0.9\n}",
+      descriptions: [""],
       warmupSets: [
         {
           reps: 5,
@@ -459,7 +465,7 @@ export const basicBeginnerProgram: IProgram = {
               value: 95,
               unit: "lb",
             },
-            bump: {
+            increase: {
               value: 5,
               unit: "lb",
             },
@@ -470,13 +476,8 @@ export const basicBeginnerProgram: IProgram = {
   ],
   author: "/r/fitness",
   name: "Basic Beginner Routine",
-  shortDescription: "Great first starter program.",
-  description:
-    "<div><p>This is a great starting routine for complete beginners.</p><p>It's a simple and easy to follow routine, which will introduce you to weight lifting.</p><p>You should run it for ~3 months, and then switch to some other routine, like '5/3/1 for beginners'.</p></div>",
   days: [
     {
-      id: "workouta",
-      name: "Workout A",
       exercises: [
         {
           id: "hsoqxnes",
@@ -488,10 +489,10 @@ export const basicBeginnerProgram: IProgram = {
           id: "cbehuuki",
         },
       ],
+      name: "Workout A",
+      id: "ehhdnjey",
     },
     {
-      name: "Workout B",
-      id: "workoutb",
       exercises: [
         {
           id: "xjvluydi",
@@ -503,10 +504,16 @@ export const basicBeginnerProgram: IProgram = {
           id: "aclndsos",
         },
       ],
+      name: "Workout B",
+      id: "cnftviov",
     },
   ],
+  description:
+    "<div><p>This is a great starting routine for complete beginners.</p><p>It's simple, easy to follow routine, which will introduce you to weight lifting.</p><p>You should run it for ~3 months, and then switch to some other routine, like '5/3/1 for beginners'.</p></div>",
   id: "basicBeginner",
-  url: "https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/",
+  shortDescription: "Great first starter program",
   nextDay: 1,
+  url: "https://thefitness.wiki/routines/r-fitness-basic-beginner-routine/",
   tags: ["first-starter", "barbell"],
+  isMultiweek: false,
 };
