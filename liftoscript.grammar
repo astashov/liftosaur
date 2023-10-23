@@ -61,7 +61,7 @@ UnaryExpression {
   LineComment { "//" ![\n]* }
   @precedence { LineComment, Times }
 
-  Keyword { @asciiLetter (@asciiLetter | @digit)* }
+  Keyword { @asciiLetter (@asciiLetter | @digit | "_")* }
   StateVariable { "state." Keyword }
   Unit { "lb" | "kg" }
   @precedence { StateVariable, Unit, Keyword }

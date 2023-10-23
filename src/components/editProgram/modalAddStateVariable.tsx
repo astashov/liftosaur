@@ -44,6 +44,10 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           ref={textInput}
           defaultValue=""
           type="text"
+          required={true}
+          requiredMessage="Variable name is required"
+          pattern="^[a-zA-Z][a-zA-Z0-9_]*$"
+          patternMessage="Variable name must start with a letter and contain only letters, numbers, and underscores"
           autofocus
         />
         <MenuItemEditable

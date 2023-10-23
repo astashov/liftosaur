@@ -13,7 +13,6 @@
 - Add an option to disable plates calculator
 - Disable Zoom in the app
 - Add integration with Apple Health
-- Fix the bug with clipboard in Safari
 - Add pushpress and lat pulldown images
 - Don't combine all equipment on graphs
 - Graphs per reps
@@ -38,7 +37,3 @@
 * Add next set / plates to push notifs
 * Widget on iOS lock screen
 * Add time spent on each exercise
-
-* Bug:
-  Assign lb to state var of type number
-  Underscores are not supported
