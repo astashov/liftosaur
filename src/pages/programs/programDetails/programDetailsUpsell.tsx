@@ -19,7 +19,7 @@ export function ProgramDetailsUpsell(): JSX.Element {
       <div className="flex items-center mt-2 ml-4">
         <div>
           <a
-            href="https://apps.apple.com/us/app/liftosaur/id1661880849?itsct=apps_box_badge&amp;itscg=30200"
+            href="https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8"
             target="_blank"
             style="display: inline-block; overflow: hidden; border-radius: 13px"
           >
