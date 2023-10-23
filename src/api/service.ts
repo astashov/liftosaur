@@ -15,6 +15,7 @@ type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_alread
 const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
+declare let __HOST__: string;
 
 export interface IRecordResponse {
   history: IHistoryRecord[];
@@ -346,7 +347,7 @@ export class Service {
     });
     if (result.ok) {
       const json: { url: string } = await result.json();
-      return UrlUtils.build(json.url, window.location.href).toString();
+      return UrlUtils.build(json.url, __HOST__).toString();
     } else {
       throw new Error("Couldn't shorten url");
     }
