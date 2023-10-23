@@ -344,7 +344,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           disabled={cannotSave}
           onClick={() => {
             if (!cannotSave) {
-              EditProgram.saveExercise(props.dispatch, props.programIndex);
+              setTimeout(() => {
+                EditProgram.saveExercise(props.dispatch, props.programIndex);
+              }, 50);
             }
           }}
         >

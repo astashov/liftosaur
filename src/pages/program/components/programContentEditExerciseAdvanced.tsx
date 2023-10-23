@@ -354,31 +354,35 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
         <Button
           name="save-edit-exercise-advanced"
           onClick={() => {
-            const container = containerRef.current;
-            if (container) {
-              window.scrollBy(0, -container.clientHeight);
+            if (!isSaveDisabled) {
+              setTimeout(() => {
+                const container = containerRef.current;
+                if (container) {
+                  window.scrollBy(0, -container.clientHeight);
+                }
+                const getters = {
+                  editExercise: lbe.get(),
+                };
+                props.dispatch([
+                  lbu<IProgramEditorState, typeof getters>(getters)
+                    .p("current")
+                    .p("program")
+                    .p("exercises")
+                    .recordModify((exercises, { editExercise }) => {
+                      if (editExercise) {
+                        return CollectionUtils.setBy(exercises, "id", programExercise.id, editExercise);
+                      } else {
+                        return exercises;
+                      }
+                    }),
+                  lb<IProgramEditorState>()
+                    .p("current")
+                    .p("editExercises")
+                    .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+                    .record(undefined),
+                ]);
+              }, 50);
             }
-            const getters = {
-              editExercise: lbe.get(),
-            };
-            props.dispatch([
-              lbu<IProgramEditorState, typeof getters>(getters)
-                .p("current")
-                .p("program")
-                .p("exercises")
-                .recordModify((exercises, { editExercise }) => {
-                  if (editExercise) {
-                    return CollectionUtils.setBy(exercises, "id", programExercise.id, editExercise);
-                  } else {
-                    return exercises;
-                  }
-                }),
-              lb<IProgramEditorState>()
-                .p("current")
-                .p("editExercises")
-                .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
-                .record(undefined),
-            ]);
           }}
           kind="orange"
           disabled={isSaveDisabled}

@@ -110,27 +110,29 @@ export function ProgramContentEditExerciseSimple(props: IProgramContentEditExerc
         <Button
           name="save-edit-exercise-simple"
           onClick={() => {
-            const getters = {
-              editExercise: lbe.get(),
-            };
-            props.dispatch([
-              lbu<IProgramEditorState, typeof getters>(getters)
-                .p("current")
-                .p("program")
-                .p("exercises")
-                .recordModify((exercises, { editExercise }) => {
-                  if (editExercise) {
-                    return CollectionUtils.setBy(exercises, "id", programExercise.id, editExercise);
-                  } else {
-                    return exercises;
-                  }
-                }),
-              lb<IProgramEditorState>()
-                .p("current")
-                .p("editExercises")
-                .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
-                .record(undefined),
-            ]);
+            setTimeout(() => {
+              const getters = {
+                editExercise: lbe.get(),
+              };
+              props.dispatch([
+                lbu<IProgramEditorState, typeof getters>(getters)
+                  .p("current")
+                  .p("program")
+                  .p("exercises")
+                  .recordModify((exercises, { editExercise }) => {
+                    if (editExercise) {
+                      return CollectionUtils.setBy(exercises, "id", programExercise.id, editExercise);
+                    } else {
+                      return exercises;
+                    }
+                  }),
+                lb<IProgramEditorState>()
+                  .p("current")
+                  .p("editExercises")
+                  .p(EditExerciseUtil.getKey(programExercise.id, props.dayIndex))
+                  .record(undefined),
+              ]);
+            }, 50);
           }}
           kind="orange"
         >
