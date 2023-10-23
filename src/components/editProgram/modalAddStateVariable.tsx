@@ -15,6 +15,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>();
   const [type, setType] = useState("");
   const [userPrompted, setUserPrompted] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
 
   function clear(): void {
     setUserPrompted(false);
@@ -49,6 +50,9 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           pattern="^[a-zA-Z][a-zA-Z0-9_]*$"
           patternMessage="Variable name must start with a letter and contain only letters, numbers, and underscores"
           autofocus
+          changeHandler={(result) => {
+            setIsEnabled(result.success);
+          }}
         />
         <MenuItemEditable
           type="select"
@@ -95,8 +99,9 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             data-cy="modal-add-state-variable-submit"
             kind="orange"
             type="submit"
+            disabled={!isEnabled}
             onClick={() => {
-              if (textInput.current?.value) {
+              if (isEnabled && textInput.current?.value) {
                 props.onDone(textInput.current!.value, type, userPrompted);
                 clear();
               }
