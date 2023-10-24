@@ -108,7 +108,7 @@ function SocialIcons(): JSX.Element {
                 backgroundSize: "60%",
                 backgroundImage: `url(/images/${img}.svg)`,
               }}
-              className="inline-block w-8 h-8 p-2 bg-no-repeat"
+              className="inline-block w-8 h-8 p-2 overflow-hidden bg-no-repeat"
             >
               <span>{text}</span>
             </a>

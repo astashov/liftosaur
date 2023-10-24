@@ -7,18 +7,14 @@
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
-- Figure out a different way to store URLs in programs
 - Autofocus for AMRAP / RPE
 - Import from Perseus
-- Add an option to disable plates calculator
 - Disable Zoom in the app
 - Add integration with Apple Health
 - Add pushpress and lat pulldown images
 - Don't combine all equipment on graphs
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
-- Validation error for vars starting with a number
-- QR code for program sharing
 - Incorporate the latest RM into the RM calculator
 
 * Programs
