@@ -35,6 +35,7 @@ export namespace ClipboardUtils {
   }
 
   function fallbackCopyTextToClipboard(text: string): void {
+    window.disableCopying = true;
     const textArea = document.createElement("textarea");
     textArea.value = text;
 
@@ -48,6 +49,7 @@ export namespace ClipboardUtils {
 
     document.execCommand("copy");
     document.body.removeChild(textArea);
+    window.disableCopying = false;
   }
 
   function copyTextToClipboard(text: string): Promise<boolean> {

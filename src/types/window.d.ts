@@ -2,6 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface Window {
   handleGapiLoad: () => void;
+  disableCopying?: boolean;
   AppleID: {
     auth: {
       signIn: () => Promise<{

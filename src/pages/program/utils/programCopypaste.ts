@@ -19,7 +19,7 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
   useEffect(() => {
     function onCopy(): void {
       const selectedExercises = state.ui.selected;
-      if (!window.getSelection()?.toString() && selectedExercises.length > 0) {
+      if (!window.disableCopying && !window.getSelection()?.toString() && selectedExercises.length > 0) {
         const copypaste: ICopyPaste[] = [];
         const program = state.current.program;
         for (const selected of selectedExercises) {
