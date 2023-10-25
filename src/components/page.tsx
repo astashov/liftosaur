@@ -35,7 +35,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <link rel="preconnect" href="https://api3.liftosaur.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icons/icons/icons/icon512.png" />
+        <link rel="apple-touch-icon" href="/icons/icon512.png" />
         <meta name="theme-color" content="#ffffff" />
         <meta
           name="description"
