@@ -27,7 +27,7 @@ export class ProgramDao {
     const programs: IProgramPayload[] = await this.di.dynamo.scan({ tableName: programTableNames[env].programs });
     return CollectionUtils.sortInOrder(programs, "id", [
       "basicBeginner",
-      "drswoleullowvolume",
+      "the5314b",
       "gzclp",
       "gzclp-blacknoir",
       "gzcl-the-rippler",
@@ -36,7 +36,6 @@ export class ProgramDao {
       "gzcl-uhf-5-weeks",
       "gzcl-vdip",
       "gzcl-general-gainz",
-      "the5314b",
       "dbPpl",
       "ss1",
       "ss2",
@@ -45,6 +44,7 @@ export class ProgramDao {
       "strongcurves2",
       "strongcurves3",
       "texasmethod",
+      "drswoleullowvolume",
     ]);
   }
 
