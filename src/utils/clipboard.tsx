@@ -84,6 +84,15 @@ export namespace ClipboardUtils {
     });
   }
 
+  export async function canReadTextFromClipboard(): Promise<boolean> {
+    try {
+      const queryResult = await navigator.permissions.query({ name: "clipboard-read" });
+      return queryResult.state === "granted" || queryResult.state === "prompt";
+    } catch (_) {
+      return false;
+    }
+  }
+
   async function readTextFromClipboard(): Promise<IEither<string | undefined, undefined>> {
     try {
       const queryResult = await navigator.permissions.query({ name: "clipboard-read" });

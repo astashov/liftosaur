@@ -18,31 +18,42 @@ type ICopyPaste = {
 export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch<IProgramEditorState>): void {
   useEffect(() => {
     function onCopy(): void {
-      const selectedExercises = state.ui.selected;
-      if (!window.disableCopying && !window.getSelection()?.toString() && selectedExercises.length > 0) {
-        const copypaste: ICopyPaste[] = [];
-        const program = state.current.program;
-        for (const selected of selectedExercises) {
-          const programExercise = Program.getProgramExercise(program, selected.exerciseId);
-          if (programExercise != null) {
-            const resolvedProgramExercise = ProgramExercise.resolveProgramExercise(programExercise, program.exercises);
-            const customExercise: ICustomExercise | undefined =
-              state.settings.exercises[programExercise.exerciseType.id];
-            const exerciseEquipment = programExercise.exerciseType.equipment;
-            const equipment = exerciseEquipment ? state.settings.equipment[exerciseEquipment] : undefined;
-            const customEquipment = equipment?.name ? { id: exerciseEquipment!, data: equipment! } : undefined;
+      new Promise(async (resolve, reject) => {
+        const selectedExercises = state.ui.selected;
+        if (
+          !window.disableCopying &&
+          !window.getSelection()?.toString() &&
+          selectedExercises.length > 0 &&
+          (await ClipboardUtils.canReadTextFromClipboard())
+        ) {
+          const copypaste: ICopyPaste[] = [];
+          const program = state.current.program;
+          for (const selected of selectedExercises) {
+            const programExercise = Program.getProgramExercise(program, selected.exerciseId);
+            if (programExercise != null) {
+              const resolvedProgramExercise = ProgramExercise.resolveProgramExercise(
+                programExercise,
+                program.exercises
+              );
+              const customExercise: ICustomExercise | undefined =
+                state.settings.exercises[programExercise.exerciseType.id];
+              const exerciseEquipment = programExercise.exerciseType.equipment;
+              const equipment = exerciseEquipment ? state.settings.equipment[exerciseEquipment] : undefined;
+              const customEquipment = equipment?.name ? { id: exerciseEquipment!, data: equipment! } : undefined;
 
-            copypaste.push({
-              app: "program",
-              type: "exercise",
-              exercise: resolvedProgramExercise,
-              customExercise,
-              customEquipment,
-            });
+              copypaste.push({
+                app: "program",
+                type: "exercise",
+                exercise: resolvedProgramExercise,
+                customExercise,
+                customEquipment,
+              });
+            }
           }
+          await ClipboardUtils.copy(JSON.stringify(copypaste));
         }
-        ClipboardUtils.copy(JSON.stringify(copypaste));
-      }
+        resolve(undefined);
+      });
     }
 
     function onPaste(): void {
