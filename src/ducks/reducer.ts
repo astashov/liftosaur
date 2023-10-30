@@ -462,7 +462,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
       const program = state.storage.programs[programIndex];
       Progress.stopTimer(progress);
-      const historyRecord = History.finishProgramDay(program, progress, state.storage.settings);
+      const historyRecord = History.finishProgramDay(progress, state.storage.settings, program);
       let newHistory;
       if (!Progress.isCurrent(progress)) {
         newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
@@ -473,7 +473,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         Progress.isCurrent(progress) && program != null
           ? Program.runAllFinishDayScripts(program, progress, settings)
           : program;
-      const newPrograms = lf(state.storage.programs).i(programIndex).set(newProgram);
+      const newPrograms =
+        newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
       return {
         ...state,
         storage: {

@@ -61,12 +61,12 @@ export namespace History {
     return { ...entry, sets: Reps.roundSets(entry.sets, settings, equipment) };
   }
 
-  export function finishProgramDay(program: IProgram, progress: IHistoryRecord, settings: ISettings): IHistoryRecord {
+  export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
-        const programExercise = program.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
+        const programExercise = program?.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
         if (Progress.isCurrent(progress)) {
           entry = {
             ...entry,
