@@ -38,12 +38,13 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
     );
 
     const editModalProgramExercise = props.progress.ui?.editModal?.programExercise;
+    const programDay = Program.getProgramDay(props.program, props.dayIndex);
 
     return (
       <div>
         <h3 className="mb-1 text-lg font-bold">
           {props.weekName ? `${props.weekName} - ` : ""}
-          {props.program.days[props.dayIndex - 1].name}
+          {programDay.name}
         </h3>
         {props.progress.entries.map((entry, index) => {
           const programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId)!;

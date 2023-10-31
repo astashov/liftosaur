@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram, IProgramState, ISettings, IWeight } from "../../../types";
+import { IProgram, ISettings, IWeight } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
@@ -22,7 +22,7 @@ export interface IProgramDetailsJackedAndTanProps {
 
 export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(props.settings, program);
+  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
   const t3Exercises = programForMuscles.exercises.filter((e) => /(T3|T2b)/.test(e.description || ""));
   for (const exercise of t3Exercises) {
@@ -236,31 +236,16 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
   );
 }
 
-function buildWeekSetup(settings: ISettings, program: IProgram): IPlaygroundDetailsWeekSetup[] {
+function buildWeekSetup(program: IProgram): IPlaygroundDetailsWeekSetup[] {
   const weekSetup: IPlaygroundDetailsWeekSetup[] = [];
-  for (let week = 1; week <= 12; week++) {
+  let dayIndex = 1;
+  for (const week of program.weeks) {
     const days = [];
-    for (let day = 1; day <= 4; day++) {
-      days.push({ dayIndex: day, states: buildStaticStates(settings, program, day, week) });
+    for (const _ of week.days) {
+      days.push({ dayIndex, states: {} });
+      dayIndex += 1;
     }
-    weekSetup.push({ name: `Week ${week}`, days });
+    weekSetup.push({ name: week.name, days });
   }
   return weekSetup;
-}
-
-function buildStaticStates(
-  settings: ISettings,
-  program: IProgram,
-  dayIndex: number,
-  week: number
-): Partial<Record<string, IProgramState>> {
-  const day = program.days[dayIndex - 1];
-
-  return program.exercises.reduce<Partial<Record<string, IProgramState>>>((acc, exercise) => {
-    if (day.exercises.map((e) => e.id).indexOf(exercise.id) !== -1) {
-      const staticState: IProgramState = { week };
-      acc[exercise.id] = staticState;
-    }
-    return acc;
-  }, {});
 }

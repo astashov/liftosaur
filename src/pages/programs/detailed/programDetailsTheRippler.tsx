@@ -1,13 +1,11 @@
 import { h, JSX } from "preact";
-import { IProgram, IProgramState, ISettings } from "../../../types";
+import { IProgram, ISettings } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { Program } from "../../../models/program";
-import { ProgramExercise } from "../../../models/programExercise";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
 import { IPlaygroundDetailsWeekSetup } from "../programDetails/programDetailsWeekSetup";
 import { Muscle } from "../../../models/muscle";
@@ -23,7 +21,7 @@ export interface IProgramDetailsTheRipplerProps {
 
 export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(props.settings, program);
+  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
   const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
   for (const exercise of t3Exercises) {
@@ -81,7 +79,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 11).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
-              weightInputs={[{ key: "rm2", label: "Enter your 2RM weight" }]}
+              weightInputs={[{ key: "weight", label: "Enter your 2RM weight" }]}
             />
           </div>
           <p>
@@ -97,7 +95,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
-              weightInputs={[{ key: "rm5", label: "Enter your 5RM weight" }]}
+              weightInputs={[{ key: "weight", label: "Enter your 5RM weight" }]}
             />
           </div>
           <p>
@@ -165,53 +163,16 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
   );
 }
 
-function buildWeekSetup(settings: ISettings, program: IProgram): IPlaygroundDetailsWeekSetup[] {
+function buildWeekSetup(program: IProgram): IPlaygroundDetailsWeekSetup[] {
   const weekSetup: IPlaygroundDetailsWeekSetup[] = [];
-  for (let week = 1; week <= 12; week++) {
+  let dayIndex = 1;
+  for (const week of program.weeks) {
     const days = [];
-    for (let day = 1; day <= 4; day++) {
-      days.push({ dayIndex: day, states: buildStaticStates(settings, program, day, week) });
+    for (const _ of week.days) {
+      days.push({ dayIndex, states: {} });
+      dayIndex += 1;
     }
-    weekSetup.push({ name: `Week ${week}`, days });
+    weekSetup.push({ name: week.name, days });
   }
   return weekSetup;
-}
-
-function buildStaticStates(
-  settings: ISettings,
-  program: IProgram,
-  dayIndex: number,
-  week: number
-): Partial<Record<string, IProgramState>> {
-  const day = program.days[dayIndex - 1];
-
-  return program.exercises.reduce<Partial<Record<string, IProgramState>>>((acc, exercise) => {
-    if (day.exercises.map((e) => e.id).indexOf(exercise.id) !== -1) {
-      const staticState: IProgramState = { week: week - 1 };
-      const dayData = Program.getDayData(program, dayIndex);
-      const script = ProgramExercise.getFinishDayScript(exercise, program.exercises);
-      const state = ProgramExercise.getState(exercise, program.exercises);
-      const entry = Program.programExerciseToHistoryEntry(exercise, program.exercises, dayData, settings, { week });
-      const newStaticState = Program.runExerciseFinishDayScript(
-        entry,
-        dayData,
-        settings,
-        state,
-        script,
-        entry.exercise.equipment,
-        staticState
-      );
-      if (newStaticState.success) {
-        for (const key of ["reps", "intensity"]) {
-          if (state[key] != null) {
-            staticState[key] = newStaticState.data[key];
-          }
-        }
-        staticState.week = week;
-      }
-
-      acc[exercise.id] = staticState;
-    }
-    return acc;
-  }, {});
 }

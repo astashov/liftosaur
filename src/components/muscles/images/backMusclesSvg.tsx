@@ -1,8 +1,6 @@
 import { h, JSX } from "preact";
 import { IScreenMuscle } from "../../../models/muscle";
 
-declare let __COMMIT_HASH__: string;
-
 export interface IMuscleStyle {
   fill?: string;
   opacity?: number;

@@ -41,11 +41,12 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     .join("-");
 
   const weeks = props.weekSetup.map((week, weekIndex) => {
+    const dayIndex = week.days[day].dayIndex;
     const staticState = {
       ...week.days[day].states[props.programExercise.id],
       ...props.staticStateBuilder?.(weekIndex + 1, day + 1, programExercise.state),
     };
-    const dayData = Program.getDayData(props.program, day + 1);
+    const dayData = Program.getDayData(props.program, dayIndex);
 
     return {
       label: week.name,

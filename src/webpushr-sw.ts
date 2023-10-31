@@ -1,7 +1,6 @@
 import { UrlUtils } from "./utils/url";
 
 declare let __COMMIT_HASH__: string;
-declare let __API_HOST__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
 
 const filesToCache = [

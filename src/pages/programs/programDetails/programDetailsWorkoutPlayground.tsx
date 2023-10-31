@@ -89,7 +89,7 @@ export const ProgramDetailsWorkoutPlayground = memo(
                         return {
                           ...wk,
                           days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
-                            const programDay = newProgram.days[day.dayIndex - 1];
+                            const programDay = Program.getProgramDay(newProgram, day.dayIndex);
                             const newProgress = Progress.applyProgramDay(
                               day.progress,
                               newProgram,
@@ -148,7 +148,7 @@ export const ProgramDetailsWorkoutPlayground = memo(
                                     return {
                                       ...wk,
                                       days: wk.days.map((day: IPlaygroundDetailsDayWithProgress) => {
-                                        const programDay = newProgram.days[day.dayIndex - 1];
+                                        const programDay = Program.getProgramDay(newProgram, day.dayIndex);
                                         const newProgress = Progress.applyProgramDay(
                                           day.progress,
                                           newProgram,
