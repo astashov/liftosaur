@@ -160,12 +160,13 @@ export class PlannerToProgram {
               }
 
               const minrep = set.repRange.minrep !== set.repRange.maxrep ? set.repRange.minrep : undefined;
+              const progression = ex.properties.find((p) => p.name === "progress");
               const programSet: IProgramSet = {
-                minRepsExpr: minrep ? `${minrep} + state.addreps` : undefined,
-                repsExpr: `${set.repRange.maxrep} + state.addreps`,
+                minRepsExpr: minrep ? `${minrep}${progression?.fnName === "dp" ? " + state.addreps" : ""}` : undefined,
+                repsExpr: `${set.repRange.maxrep}${progression?.fnName === "dp" ? " + state.addreps" : ""}`,
                 weightExpr: weightExpr,
                 isAmrap: !!set.repRange?.isAmrap,
-                rpeExpr: set.rpe ? `${set.rpe} + state.addrpe` : undefined,
+                rpeExpr: set.rpe ? `${set.rpe}` : undefined,
               };
               programSets.push(programSet);
             }
@@ -305,7 +306,9 @@ export class PlannerToProgram {
           const [increment, unit] = result;
           const finishDayExpr = Progression.setDoubleProgression(range, increment, unit);
           return {
-            additionalState: {},
+            additionalState: {
+              addreps: 0,
+            },
             finishDayExpr,
           };
         }
@@ -441,8 +444,6 @@ export class PlannerToProgram {
       let finishDayExpr = "";
       let state = {
         weight: this.unit === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb,
-        addreps: 0,
-        addrpe: 0,
       };
       if (progressionResult != null) {
         finishDayExpr = progressionResult.finishDayExpr;
