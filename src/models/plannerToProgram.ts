@@ -498,7 +498,9 @@ export class PlannerToProgram {
       const day: IProgramDay = {
         id,
         name: dayInWeekNames.join("/"),
-        exercises: value.exercises.map((e) => ({ id: exerciseNamesToIds[e.name][e.equipment || "default"] })),
+        exercises: value.exercises.map((e) => ({
+          id: exerciseNamesToIds[`${e.label ? `${e.label}_` : ""}${e.name}`][e.equipment || "default"],
+        })),
       };
       days.push(day);
       for (const dayData of value.dayData) {
