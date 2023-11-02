@@ -153,7 +153,7 @@ export class PlannerToProgram {
               if (set.weight) {
                 weightExpr = `${set.weight.value}${set.weight.unit}`;
               } else if (set.percentage) {
-                weightExpr = `state.weight * ${set.percentage / 100}`;
+                weightExpr = `state.weight${set.percentage !== 100 ? ` * ${set.percentage / 100}` : ""}`;
               } else {
                 const rpe = set.rpe || 10;
                 weightExpr = `state.weight * rpeMultiplier(${set.repRange.maxrep}${rpe < 10 ? `, ${rpe}` : ""})`;
