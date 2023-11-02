@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram, IProgramState, ISettings } from "../../../types";
+import { IProgram, ISettings } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
@@ -10,8 +10,6 @@ import { IPlaygroundDetailsWeekSetup } from "../programDetails/programDetailsWee
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
-import { ProgramExercise } from "../../../models/programExercise";
-import { Program } from "../../../models/program";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
 import { Weight } from "../../../models/weight";
 
@@ -24,7 +22,7 @@ export interface IProgramDetailsGzclUhf9wProps {
 
 export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): JSX.Element {
   const program = ObjectUtils.clone(props.program);
-  const weekSetup = buildWeekSetup(props.settings, program);
+  const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
   const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
 
@@ -86,7 +84,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               programExercise={t1Exercise}
               settings={props.settings}
               weekSetup={weekSetup}
-              weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
+              weightInputs={[{ key: "weight", label: "Enter your TM weight" }]}
             />
           </div>
           <h3>T2 Exercise</h3>
@@ -106,8 +104,8 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               program={props.program}
               programExercise={t2Exercise}
               settings={props.settings}
-              weekSetup={weekSetup}
-              weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
+              weekSetup={weekSetup.slice(0, 8)}
+              weightInputs={[{ key: "weight", label: "Enter your TM weight" }]}
             />
           </div>
           <h3>T3 Exercise</h3>
@@ -197,53 +195,16 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
   );
 }
 
-function buildWeekSetup(settings: ISettings, program: IProgram): IPlaygroundDetailsWeekSetup[] {
+function buildWeekSetup(program: IProgram): IPlaygroundDetailsWeekSetup[] {
   const weekSetup: IPlaygroundDetailsWeekSetup[] = [];
-  for (let week = 1; week <= 9; week++) {
+  let dayIndex = 1;
+  for (const week of program.weeks) {
     const days = [];
-    for (let day = 1; day <= 5; day++) {
-      days.push({ dayIndex: day, states: buildStaticStates(settings, program, day, week) });
+    for (const _ of week.days) {
+      days.push({ dayIndex, states: {} });
+      dayIndex += 1;
     }
-    weekSetup.push({ name: `Week ${week}`, days });
+    weekSetup.push({ name: week.name, days });
   }
   return weekSetup;
-}
-
-function buildStaticStates(
-  settings: ISettings,
-  program: IProgram,
-  dayIndex: number,
-  week: number
-): Partial<Record<string, IProgramState>> {
-  const day = program.days[dayIndex - 1];
-
-  return program.exercises.reduce<Partial<Record<string, IProgramState>>>((acc, exercise) => {
-    if (day.exercises.map((e) => e.id).indexOf(exercise.id) !== -1) {
-      const dayData = Program.getDayData(program, dayIndex);
-      const staticState: IProgramState = { week: week - 1 };
-      const script = ProgramExercise.getFinishDayScript(exercise, program.exercises);
-      const state = ProgramExercise.getState(exercise, program.exercises);
-      const entry = Program.programExerciseToHistoryEntry(exercise, program.exercises, dayData, settings, { week });
-      const newStaticState = Program.runExerciseFinishDayScript(
-        entry,
-        dayData,
-        settings,
-        state,
-        script,
-        entry.exercise.equipment,
-        staticState
-      );
-      if (newStaticState.success) {
-        for (const key of ["reps", "intensity"]) {
-          if (state[key] != null) {
-            staticState[key] = newStaticState.data[key];
-          }
-        }
-        staticState.week = week;
-      }
-
-      acc[exercise.id] = staticState;
-    }
-    return acc;
-  }, {});
 }
