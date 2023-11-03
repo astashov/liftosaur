@@ -1,4 +1,13 @@
-import { IStorage, IHistoryRecord, IProgram, IWeight, ILength, IStats, IPartialStorage } from "../../src/types";
+import {
+  IStorage,
+  IHistoryRecord,
+  IProgram,
+  IWeight,
+  ILength,
+  IStats,
+  IPartialStorage,
+  IPercentage,
+} from "../../src/types";
 import { Settings } from "../../src/models/settings";
 import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
@@ -52,9 +61,9 @@ export type IFriendUserDao = Pick<IUserDao, "id" | "nickname"> & {
 
 interface IStatDb {
   name: string;
-  value: IWeight | ILength;
+  value: IWeight | ILength | IPercentage;
   timestamp: number;
-  type: "length" | "weight";
+  type: "length" | "weight" | "percentage";
 }
 
 export class UserDao {
@@ -335,6 +344,12 @@ export class UserDao {
           newStatNames.add(`${v.timestamp}_${k}`);
         }
       }
+      for (const k of ObjectUtils.keys(statsObj.percentage)) {
+        const s = statsObj.percentage[k];
+        for (const v of s || []) {
+          newStatNames.add(`${v.timestamp}_${k}`);
+        }
+      }
       const statsToDelete = [];
       for (const k of ObjectUtils.keys(userStats.weight)) {
         const s = userStats.weight[k];
@@ -347,6 +362,15 @@ export class UserDao {
       }
       for (const k of ObjectUtils.keys(userStats.length)) {
         const s = userStats.length[k];
+        for (const v of s || []) {
+          const name = `${v.timestamp}_${k}`;
+          if (!newStatNames.has(name)) {
+            statsToDelete.push(name);
+          }
+        }
+      }
+      for (const k of ObjectUtils.keys(userStats.percentage)) {
+        const s = userStats.percentage[k];
         for (const v of s || []) {
           const name = `${v.timestamp}_${k}`;
           if (!newStatNames.has(name)) {
@@ -369,7 +393,11 @@ export class UserDao {
         const st = statsObj.weight[key] || [];
         return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "weight" }));
       });
-      const statsArray = statsLengthArray.concat(statsWeightArray);
+      const statsPercentageArray: IStatDb[] = ObjectUtils.keys(statsObj.percentage).flatMap((key) => {
+        const st = statsObj.percentage[key] || [];
+        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "percentage" }));
+      });
+      const statsArray = statsLengthArray.concat(statsWeightArray).concat(statsPercentageArray);
       statsUpdates = CollectionUtils.inGroupsOf(23, statsArray).map(async (group) => {
         await this.di.dynamo.batchPut({
           tableName: userTableNames[env].stats,
