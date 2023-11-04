@@ -485,6 +485,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
   },
+  gluteKickback: {
+    id: "gluteKickback",
+    name: "Glute Kickback",
+    defaultWarmup: 45,
+    defaultEquipment: "cable",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 35, unit: "lb" },
+    startingWeightKg: { value: 15, unit: "kg" },
+  },
   hackSquat: {
     id: "hackSquat",
     name: "Hack Squat",
@@ -548,9 +557,27 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
   },
+  highRow: {
+    id: "highRow",
+    name: "High Row",
+    defaultWarmup: 45,
+    defaultEquipment: "leverageMachine",
+    types: ["upper", "pull"],
+    startingWeightLb: { value: 65, unit: "lb" },
+    startingWeightKg: { value: 27.5, unit: "kg" },
+  },
   hipAbductor: {
     id: "hipAbductor",
     name: "Hip Abductor",
+    defaultWarmup: 10,
+    defaultEquipment: "leverageMachine",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 60, unit: "lb" },
+    startingWeightKg: { value: 26.25, unit: "kg" },
+  },
+  hipAdductor: {
+    id: "hipAdductor",
+    name: "Hip Adductor",
     defaultWarmup: 10,
     defaultEquipment: "leverageMachine",
     types: ["lower", "legs"],
@@ -1034,6 +1061,24 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 70, unit: "lb" },
     startingWeightKg: { value: 30, unit: "kg" },
   },
+  reverseLunge: {
+    id: "reverseLunge",
+    name: "Reverse Lunge",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
+  },
+  reverseWristCurl: {
+    id: "reverseWristCurl",
+    name: "Reverse Wrist Curl",
+    defaultWarmup: 10,
+    defaultEquipment: "barbell",
+    types: ["upper", "pull"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
+  },
   romanianDeadlift: {
     id: "romanianDeadlift",
     name: "Romanian Deadlift",
@@ -1340,6 +1385,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 85, unit: "lb" },
     startingWeightKg: { value: 37.5, unit: "kg" },
   },
+  splitSquat: {
+    id: "splitSquat",
+    name: "Split Squat",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
+  },
   splitJerk: {
     id: "splitJerk",
     name: "Split Jerk",
@@ -1573,6 +1627,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     types: ["upper", "pull"],
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
+  },
+  wristCurl: {
+    id: "wristCurl",
+    name: "Wrist Curl",
+    defaultWarmup: 10,
+    defaultEquipment: "barbell",
+    types: ["upper", "pull"],
+    startingWeightLb: { value: 25, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   wristRoller: {
     id: "wristRoller",
@@ -2078,6 +2141,12 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     bodyParts: ["Hips"],
     sortedEquipment: ["bodyweight"],
   },
+  gluteKickback: {
+    targetMuscles: ["Gluteus Maximus", "Gluteus Medius",],
+    synergistMuscles: ["Hamstrings", "Tensor Fasciae Latae", "Rectus Abdominis", "Obliques"],
+    bodyParts: ["Glute"],
+    sortedEquipment: ["leverageMachine", "bodyweight", "cable", "band"],
+  },
   frontSquat: {
     targetMuscles: ["Gluteus Maximus", "Quadriceps"],
     synergistMuscles: ["Adductor Magnus", "Soleus"],
@@ -2175,11 +2244,30 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     bodyParts: ["Thighs", "Hips"],
     sortedEquipment: ["bodyweight"],
   },
+  highRow: {
+    targetMuscles: ["Latissimus Dorsi", "Trapezius Lower Fibers", "Trapezius Middle Fibers"],
+    synergistMuscles: [
+      "Biceps Brachii",
+      "Brachialis",
+      "Brachioradialis",
+      "Deltoid Posterior",
+      "Infraspinatus",
+      "Teres Major",
+    ],
+    bodyParts: ["Back"],
+    sortedEquipment: ["leverageMachine"],
+  },
   hipAbductor: {
     targetMuscles: ["Gluteus Maximus", "Gluteus Medius"],
     synergistMuscles: ["Tensor Fasciae Latae"],
     bodyParts: ["Hips"],
     sortedEquipment: ["leverageMachine", "bodyweight", "cable", "band"],
+  },
+  hipAdductor: {
+    targetMuscles: ["Adductor Magnus", "Gluteus Maximus"],
+    synergistMuscles: ["Tensor Fasciae Latae", "Pectineous", "Adductor Brevis", "Adductor Longus", "Adductor Magnus"],
+    bodyParts: ["Hips"],
+    sortedEquipment: ["leverageMachine", "cable", "band", "bodyweight"],
   },
   hipThrust: {
     targetMuscles: ["Gluteus Maximus"],
@@ -2709,6 +2797,18 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     bodyParts: ["Back"],
     sortedEquipment: ["cable"],
   },
+  reverseLunge: {
+    targetMuscles: ["Gluteus Maximus", "Hamstrings"],
+    synergistMuscles: ["Adductor Magnus", "Soleus"],
+    bodyParts: ["Thighs"],
+    sortedEquipment: ["barbell", "dumbbell", "bodyweight", "cable"],
+  },
+  reverseWristCurl: {
+    targetMuscles: ["Wrist Extensors"],
+    synergistMuscles: [],
+    bodyParts: ["Forearms"],
+    sortedEquipment: ["barbell"],
+  },
   reversePlank: {
     targetMuscles: ["Gluteus Maximus", "Rectus Abdominis", "Erector Spinae"],
     synergistMuscles: [
@@ -2979,6 +3079,12 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     ],
     bodyParts: ["Back", "Hips", "Thighs"],
     sortedEquipment: ["barbell"],
+  },
+  splitSquat: {
+    targetMuscles: ["Gluteus Maximus", "Quadriceps"],
+    synergistMuscles: ["Adductor Magnus", "Soleus"],
+    bodyParts: ["Hips", "Thighs"],
+    sortedEquipment: ["dumbbell"],
   },
   splitJerk: {
     targetMuscles: [
@@ -3254,6 +3360,12 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     ],
     bodyParts: ["Back"],
     sortedEquipment: ["bodyweight"],
+  },
+  wristCurl: {
+    targetMuscles: ["Wrist Flexors"],
+    synergistMuscles: [],
+    bodyParts: ["Forearms"],
+    sortedEquipment: ["barbell"],
   },
   wristRoller: {
     targetMuscles: ["Wrist Extensors", "Wrist Flexors"],
