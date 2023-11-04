@@ -2142,7 +2142,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["bodyweight"],
   },
   gluteKickback: {
-    targetMuscles: ["Gluteus Maximus", "Gluteus Medius",],
+    targetMuscles: ["Gluteus Maximus", "Gluteus Medius"],
     synergistMuscles: ["Hamstrings", "Tensor Fasciae Latae", "Rectus Abdominis", "Obliques"],
     bodyParts: ["Glute"],
     sortedEquipment: ["leverageMachine", "bodyweight", "cable", "band"],
