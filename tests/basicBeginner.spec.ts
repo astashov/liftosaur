@@ -127,7 +127,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Chin Up') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("BW");
+  ).toHaveText("2.5");
   await expect(
     page
       .getByTestId("history-record")

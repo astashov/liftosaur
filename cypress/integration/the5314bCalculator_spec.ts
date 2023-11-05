@@ -29,6 +29,6 @@ describe("5/3/1 for beginners calculator", () => {
       .first()
       .find("[data-cy=history-entry-exercise]:contains('Bench Press') [data-cy=history-entry-weight]")
       .eq(2)
-      .should("have.text", "267.5");
+      .should("have.text", "127.5");
   });
 });

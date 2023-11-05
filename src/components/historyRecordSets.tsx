@@ -48,8 +48,9 @@ export function HistoryRecordProgramSetsView(props: { sets: IProgramSet[] }): JS
   const groups = ProgramSet.group(sets);
   const displayGroups = groups.map((g) => {
     return g.map((set) => {
+      const reps = set.minRepsExpr ? `${set.minRepsExpr}-${set.repsExpr}` : `${set.repsExpr}`;
       return {
-        reps: set.isAmrap ? `${set.repsExpr}+` : `${set.repsExpr}`,
+        reps: set.isAmrap ? `${reps}+` : `${reps}`,
         weight: set.weightExpr,
         isCompleted: true,
       };

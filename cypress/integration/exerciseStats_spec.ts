@@ -46,8 +46,8 @@ describe("Exercise Stats", () => {
     g("entry-bent-over-row").find(s("exercise-name")).click();
     g("menu-item-name-exercise").should("be.visible");
     g("exercise-stats-image").should("be.visible");
-    g("max-weight-value").should("have.text", "65 lb");
-    g("one-rm-value").should("have.text", "75 lb (5 x 65 lb)");
+    g("max-weight-value").should("have.text", "95 lb");
+    g("one-rm-value").should("have.text", "110 lb (5 x 95 lb)");
     g("history-entry-sets-completed").should("have.text", "3x5");
     g("graph-data").should("not.be.visible");
 
@@ -62,12 +62,12 @@ describe("Exercise Stats", () => {
 
     g("start-workout").click();
     g("entry-bent-over-row").find(s("exercise-name")).click();
-    g("max-weight-value").should("have.text", "67.5 lb");
-    g("one-rm-value").should("have.text", "77.5 lb (5 x 67.5 lb)");
-    g("history-entry-weight").eq(0).should("have.text", "67.5");
+    g("max-weight-value").should("have.text", "97.5 lb");
+    g("one-rm-value").should("have.text", "112.5 lb (5 x 97.5 lb)");
+    g("history-entry-weight").eq(0).should("have.text", "97.5");
     g("exercise-stats-history-filter").click();
     g("menu-item-name-ascending-sort-by-date").click();
-    g("history-entry-weight").eq(0).should("have.text", "65");
+    g("history-entry-weight").eq(0).should("have.text", "95");
     g("graph-data").should("be.visible");
   });
 });

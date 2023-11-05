@@ -6,9 +6,20 @@ import { Weight } from "../../../models/weight";
 import { IDayData, IProgramExercise, IProgramSet, ISet, ISettings, IWeight } from "../../../types";
 import { HistoryRecordProgramSetsView, HistoryRecordSetsView } from "../../../components/historyRecordSets";
 
-function getRepsValues(props: IRepsWeightsProps): number[] {
+function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [number | undefined, number][] {
   return props.sets.map((set) => {
-    return Progress.executeEntryScript(
+    const minReps =
+      minRepsEnabled && set.minRepsExpr
+        ? Progress.executeEntryScript(
+            set.minRepsExpr,
+            props.dayData,
+            ProgramExercise.getState(props.programExercise, props.allProgramExercises),
+            { equipment: props.programExercise.exerciseType.equipment },
+            props.settings,
+            "reps"
+          )
+        : undefined;
+    const reps = Progress.executeEntryScript(
       set.repsExpr,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
@@ -16,6 +27,7 @@ function getRepsValues(props: IRepsWeightsProps): number[] {
       props.settings,
       "reps"
     );
+    return [minReps, reps];
   }, []);
 }
 
@@ -55,12 +67,13 @@ export const RepsAndWeight = memo(
   (props: IRepsWeightsProps): JSX.Element => {
     const [isDisplayingFormula, setIsDisplayingFormula] = useState(props.shouldShowAllFormulas);
     const forceShowFormula = props.forceShowFormula;
-    const repsValues = getRepsValues(props);
+    const repsValues = getRepsValues(props, props.programExercise.enableRepRanges);
     const weightValues = getWeightsValues(props);
     const repsScripts = getRepsScripts(props);
     const weightsScripts = getWeightsScripts(props);
-    const sets: ISet[] = repsValues.map<ISet>((reps, i) => ({
-      reps: reps,
+    const sets: ISet[] = repsValues.map<ISet>(([minReps, reps], i) => ({
+      reps,
+      minReps,
       weight: weightValues[i],
       isAmrap: !!props.sets[i]?.isAmrap,
     }));

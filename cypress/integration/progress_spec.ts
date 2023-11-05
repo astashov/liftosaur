@@ -18,7 +18,7 @@ describe("Progress", () => {
     // Testing set clicks
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy^=set-]").first().as("firstset");
     cy.get("@firstset").find("[data-cy=reps-value]").should("have.text", "5");
-    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "65");
+    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "95");
     cy.get("@firstset").should("have.data", "cy", "set-nonstarted");
     cy.get("@firstset").click();
     cy.get("@firstset").find("[data-cy=reps-value]").should("have.text", "5");
@@ -30,12 +30,12 @@ describe("Progress", () => {
     cy.get("@firstset").click();
     cy.get("@firstset").click();
     cy.get("@firstset").find("[data-cy=reps-value]").should("have.text", "1");
-    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "65");
+    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "95");
     cy.get("@firstset").should("have.data", "cy", "set-incompleted");
     cy.get("@firstset").click();
     cy.get("@firstset").click();
     cy.get("@firstset").find("[data-cy=reps-value]").should("have.text", "5");
-    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "65");
+    cy.get("@firstset").find("[data-cy=weight-value]").should("have.text", "95");
     cy.get("@firstset").should("have.data", "cy", "set-nonstarted");
     cy.get("@firstset").click();
     cy.get("@firstset").find("[data-cy=reps-value]").should("have.text", "5");

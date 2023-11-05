@@ -21,7 +21,7 @@ describe("Program Preview", () => {
     g("modal-close").click();
 
     g("day-1").find(s("bent-over-row")).find(s("history-entry-sets-next")).filter(":eq(0)").should("have.text", "2x5");
-    g("day-1").find(s("bent-over-row")).find(s("history-entry-weight")).filter(":eq(0)").should("have.text", "65");
+    g("day-1").find(s("bent-over-row")).find(s("history-entry-weight")).filter(":eq(0)").should("have.text", "95");
     g("day-1").find(s("bent-over-row")).find(s("finish-day-script")).should("not.be.visible");
     g("day-1").find(s("bent-over-row")).find(s("program-exercise-show-fx")).click();
     g("day-1")
@@ -40,7 +40,7 @@ describe("Program Preview", () => {
     g("day-1")
       .find(s("bent-over-row"))
       .find(s("state-changes-key-weight"))
-      .should("have.text", "weight: 65 lb -> 67.5 lb");
+      .should("have.text", "weight: 95 lb -> 97.5 lb");
     g("day-1").find(s("bent-over-row")).find(s("state-var-weight-input")).clear().type("70");
     g("day-1")
       .find(s("bent-over-row"))

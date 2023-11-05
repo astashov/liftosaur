@@ -497,7 +497,7 @@ function ReuseLogic(props: IReuseLogicProps): JSX.Element {
         values={[
           ["", "None"],
           ...props.allProgramExercises
-            .filter((pe) => pe.id !== props.programExercise.id)
+            .filter((pe) => pe.id !== props.programExercise.id && pe.reuseLogic?.selected == null)
             .map<[string, string]>((e) => [e.id, e.name]),
         ]}
         onChange={(newValue) => {

@@ -44,6 +44,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
           id="add_state_variable"
           ref={textInput}
           defaultValue=""
+          changeType="oninput"
           type="text"
           required={true}
           requiredMessage="Variable name is required"

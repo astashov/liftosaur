@@ -12,6 +12,7 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
   label: string;
   identifier?: string;
   multiline?: number;
+  changeType?: "onblur" | "oninput";
   defaultValue?: number | string;
   labelSize?: "xs" | "sm";
   errorMessage?: string;
@@ -33,10 +34,11 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 export const Input = forwardRef(
   (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
     const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+    const changeType = props.changeType || "onblur";
     const identifier = props.identifier || StringUtils.dashcase(label.toLowerCase());
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
 
-    const onBlurHandler = useCallback(
+    const onInputHandler = useCallback(
       (e: Event) => {
         const target = e.target;
         if (target instanceof HTMLInputElement) {
@@ -100,7 +102,8 @@ export const Input = forwardRef(
                 <textarea
                   data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLTextAreaElement>}
-                  onBlur={onBlurHandler}
+                  onBlur={changeType === "onblur" ? onInputHandler : undefined}
+                  onInput={changeType === "oninput" ? onInputHandler : undefined}
                   onFocus={selectInputOnFocus}
                   className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
@@ -110,7 +113,8 @@ export const Input = forwardRef(
                 <input
                   data-cy={`${identifier}-input`}
                   ref={ref as Ref<HTMLInputElement>}
-                  onBlur={onBlurHandler}
+                  onBlur={changeType === "onblur" ? onInputHandler : undefined}
+                  onInput={changeType === "oninput" ? onInputHandler : undefined}
                   onFocus={selectInputOnFocus}
                   className="flex-1 min-w-0 text-base border-none focus:outline-none"
                   style={{ fontSize: "16px" }}
