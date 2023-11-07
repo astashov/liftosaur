@@ -212,7 +212,9 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>
                             <td>{item.freeUserExpires && DateUtils.format(item.freeUserExpires)}</td>
-                            <td>{item.referrer}</td>
+                            <td className="text-xs break-all" style={{ maxWidth: "12rem" }}>
+                              {item.referrer}
+                            </td>
                           </tr>
                         );
                       })}
