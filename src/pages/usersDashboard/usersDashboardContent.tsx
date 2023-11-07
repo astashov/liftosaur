@@ -21,6 +21,7 @@ export interface IUserDashboardData {
   affiliates: string[];
   referrer?: string;
   freeUserExpires?: number;
+  programNames?: string[];
   subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
   subscriptionDetails?: {
     product: "yearly" | "montly" | "lifetime";
@@ -106,6 +107,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>First</th>
                         <th>Workouts</th>
                         <th>Days</th>
+                        <th>Programs</th>
                         <th>Platforms</th>
                         <th>Affiliates</th>
                         <th>Review Reqs</th>
@@ -196,6 +198,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             </td>
                             <td>{item.workoutsCount}</td>
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>
+                            <td>
+                              {(item.programNames || []).map((name) => (
+                                <div>{name}</div>
+                              ))}
+                            </td>
                             <td>{item.platforms.join(", ")}</td>
                             <td>{item.affiliates.join(", ")}</td>
                             <td>

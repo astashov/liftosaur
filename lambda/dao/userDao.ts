@@ -214,6 +214,22 @@ export class UserDao {
     });
   }
 
+  public async getProgramsByUserIds(userIds: string[]): Promise<(IProgram & { userId: string })[]> {
+    const env = Utils.getEnv();
+    const groupedUserIdValues = CollectionUtils.inGroupsOf(100, userIds);
+    const result = await Promise.all(
+      groupedUserIdValues.map((group) => {
+        const userIdValues = Object.fromEntries(group.map((value, idx) => [`:val${idx}`, value]));
+        return this.di.dynamo.scan<IProgram & { userId: string }>({
+          tableName: userTableNames[env].programs,
+          filterExpression: `userId IN (${Object.keys(userIdValues).join(", ")})`,
+          values: userIdValues,
+        });
+      })
+    );
+    return result.flat();
+  }
+
   public async removeUser(userId: string): Promise<void> {
     const env = Utils.getEnv();
     const programs = await this.getProgramsByUserId(userId);

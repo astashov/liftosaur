@@ -686,6 +686,12 @@ const getDashboardsUsersHandler: RouteHandler<
       new Set(last3MonthslogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId))
     );
     const users = await new UserDao(di).getLimitedByIds(userIds);
+    const userPrograms = await new UserDao(di).getProgramsByUserIds(userIds);
+    const userIdToProgramNames = userPrograms.reduce<Record<string, { id: string; name: string }[]>>((memo, p) => {
+      memo[p.userId] = memo[p.userId] || [];
+      memo[p.userId].push({ id: p.id, name: p.name });
+      return memo;
+    }, {});
     const usersById = CollectionUtils.groupByKeyUniq(users, "id");
     const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
     const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
@@ -696,6 +702,10 @@ const getDashboardsUsersHandler: RouteHandler<
 
     const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
       const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
+      const programNames = CollectionUtils.sort(userIdToProgramNames[userId] || [], (a, b) => {
+        const user = usersById[userId];
+        return user != null ? (a.id === user.storage.currentProgramId ? -1 : 1) : -1;
+      }).map((p) => p.name);
       const lastAction = userLogRecords[0];
       const firstAction = userLogRecords[userLogRecords.length - 1];
       const workoutsCount = userLogRecords.filter((r) => r.action === "ls-finish-workout")[0]?.cnt || 0;
@@ -781,6 +791,7 @@ const getDashboardsUsersHandler: RouteHandler<
         lastAction: { name: lastAction.action, ts: lastAction.ts },
         workoutsCount,
         platforms,
+        programNames,
         affiliates,
         subscriptions: Array.from(subscriptions),
         subscriptionDetails,
