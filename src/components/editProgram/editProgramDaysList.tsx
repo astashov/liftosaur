@@ -125,6 +125,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
         />
+        <div className="px-2 mb-2 text-xs text-right">
+          <LinkButton onClick={() => props.dispatch(Thunk.pushScreen("programs"))} name="history-change-program">
+            Change Program
+          </LinkButton>
+        </div>
         <GroupHeader name="Program Details" topPadding={true} />
         <MenuItemEditable
           type="text"

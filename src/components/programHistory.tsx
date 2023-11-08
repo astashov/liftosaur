@@ -18,6 +18,7 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { useGradualList } from "../utils/useGradualList";
 import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   program: IProgram;
@@ -52,6 +53,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
   const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
+
+  const doesProgressNotMatchProgram =
+    nextHistoryRecord.programId !== props.program.id || nextHistoryRecord.day !== props.program.nextDay;
 
   return (
     <Surface
@@ -103,6 +107,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </BottomSheet>
       }
     >
+      {doesProgressNotMatchProgram && (
+        <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">
+          You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
+        </div>
+      )}
       <HistoryRecordsList
         comments={props.comments}
         history={history}
