@@ -5,6 +5,7 @@ import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 interface IProps {
   children: ComponentChildren;
   autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  preautofocus?: [RefObject<HTMLElement>, (el: HTMLElement) => void][];
   isHidden?: boolean;
   isFullWidth?: boolean;
   noPaddings?: boolean;
@@ -38,14 +39,16 @@ export function Modal(props: IProps): JSX.Element {
     };
   }, [props.isHidden]);
 
-  if (
-    modalRef.current != null &&
-    props.autofocusInputRef?.current != null &&
-    prevProps.current.isHidden &&
-    !props.isHidden
-  ) {
-    modalRef.current.classList.remove("invisible");
-    props.autofocusInputRef.current.focus();
+  if (modalRef.current != null && prevProps.current.isHidden && !props.isHidden) {
+    for (const [ref, callback] of props.preautofocus ?? []) {
+      if (ref.current != null) {
+        callback(ref.current);
+      }
+    }
+    if (props.autofocusInputRef?.current != null) {
+      modalRef.current.classList.remove("invisible");
+      props.autofocusInputRef.current.focus();
+    }
   }
 
   return (

@@ -1,3 +1,4 @@
 {
-  "watchForFileChanges": false
+  "watchForFileChanges": false,
+  "retries": { "runMode": 2, "openMode": 0 }
 }

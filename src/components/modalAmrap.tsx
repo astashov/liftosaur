@@ -24,8 +24,22 @@ interface IModalAmrapProps {
   onDone?: () => void;
 }
 
+function toggleElement(el: HTMLElement, isVisible: boolean, value?: string | number): void {
+  if (isVisible) {
+    el.classList.remove("invisible-and-shrunk");
+    const input = el.querySelector("input") as HTMLInputElement | undefined;
+    if (input != null) {
+      input.value = value == null ? "" : `${value}`;
+    }
+  } else {
+    el.classList.add("invisible-and-shrunk");
+  }
+}
+
 export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
+  const amrapContainer = useRef<HTMLDivElement>(null);
   const amrapInput = useRef<HTMLInputElement>(null);
+  const rpeContainer = useRef<HTMLDivElement>(null);
   const rpeInput = useRef<HTMLInputElement>(null);
   const userVarValues = useRef<Record<string, number | IWeight>>({});
 
@@ -48,36 +62,36 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
     <Modal
       isHidden={props.isHidden}
       autofocusInputRef={props.isAmrap ? amrapInput : props.logRpe ? rpeInput : undefined}
+      preautofocus={[
+        [amrapContainer, (el) => toggleElement(el, props.isAmrap, props.initialReps)],
+        [rpeContainer, (el) => toggleElement(el, props.logRpe, props.initialRpe)],
+      ]}
       shouldShowClose={true}
       onClose={() => onDone(undefined, undefined)}
     >
       <form onSubmit={(e) => e.preventDefault()}>
-        {props.isAmrap && (
-          <div className="mb-2">
-            <Input
-              label="Number of completed reps"
-              defaultValue={props.initialReps}
-              ref={amrapInput}
-              data-cy="modal-amrap-input"
-              data-name="modal-input-autofocus"
-              type="tel"
-              min="0"
-            />
-          </div>
-        )}
-        {props.logRpe && (
-          <div className="mb-2">
-            <Input
-              label="Completed RPE"
-              defaultValue={props.initialRpe}
-              ref={rpeInput}
-              data-cy="modal-rpe-input"
-              type="number"
-              min="0"
-              max="10"
-            />
-          </div>
-        )}
+        <div className="mb-2" ref={amrapContainer}>
+          <Input
+            label="Number of completed reps"
+            defaultValue={props.initialReps}
+            ref={amrapInput}
+            data-cy="modal-amrap-input"
+            data-name="modal-input-autofocus"
+            type="tel"
+            min="0"
+          />
+        </div>
+        <div className="mb-2" ref={rpeContainer}>
+          <Input
+            label="Completed RPE"
+            defaultValue={props.initialRpe}
+            ref={rpeInput}
+            data-cy="modal-rpe-input"
+            type="number"
+            min="0"
+            max="10"
+          />
+        </div>
         {props.programExercise && props.userVars && (
           <UserPromptedStateVars
             programExercise={props.programExercise}

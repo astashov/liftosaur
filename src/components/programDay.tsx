@@ -124,11 +124,15 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               allProgramExercises={props.program?.exercises || []}
               initialReps={
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.completedReps
+                  ?.completedReps ??
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+                  ?.reps
               }
               initialRpe={
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.completedRpe
+                  ?.completedRpe ??
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+                  ?.rpe
               }
               onDone={() => {
                 const amrapModal = progress.ui?.amrapModal;

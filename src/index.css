@@ -335,6 +335,11 @@ input[type="checkbox"].checkbox:disabled {
   }
 }
 
+.invisible-and-shrunk {
+  visibility: hidden;
+  height: 0;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

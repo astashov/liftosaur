@@ -23,9 +23,16 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLT
 
 export function selectInputOnFocus(e: Event): boolean | undefined {
   const target = e.target;
-  if (target instanceof HTMLInputElement && target.type !== "number") {
+  if (target instanceof HTMLInputElement) {
+    const handleNumber = target.type === "number";
+    if (handleNumber) {
+      target.type = "text";
+    }
     const value = (target as HTMLInputElement).value;
     target.setSelectionRange(0, value.length);
+    if (handleNumber) {
+      target.type = "number";
+    }
     return false;
   }
   return undefined;
