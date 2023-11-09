@@ -68,8 +68,8 @@ export class PlannerProgram {
           const excrs = day.data;
           const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
           for (const exercise of excrs) {
-            exercisesByName[exercise.name] = exercisesByName[exercise.name] || [];
-            exercisesByName[exercise.name].push(exercise);
+            exercisesByName[`${exercise.name}_${exercise.equipment}`] = exercisesByName[exercise.name] || [];
+            exercisesByName[`${exercise.name}_${exercise.equipment}`].push(exercise);
           }
           for (const groupedExercises of ObjectUtils.values(exercisesByName)) {
             const exercise = groupedExercises.reduce((memo, ex) => {
