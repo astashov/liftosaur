@@ -189,7 +189,6 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             />
             <ModalEditSet
               isHidden={progress.ui?.editSetModal == null}
-              key={progress.ui?.editSetModal?.setIndex}
               setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
               subscription={props.subscription}
               progressId={progress.id}

@@ -53,7 +53,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const rpeInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
   const initialWeight = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
-  const initialRpe = set?.completedRpe;
+  const initialRpe = set?.rpe;
   const classNames = inputClassName.replace(" px-4 ", " px-2 ");
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
@@ -112,8 +112,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                   setPlatesStr(oneside);
                 }
               }}
-              // @ts-ignore
-              defaultValue={
+              value={
                 Weight.round(Weight.build(initialWeight || 0, props.settings.units), props.settings, props.equipment)
                   .value
               }
@@ -199,8 +198,13 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
                     reps,
                     weight: Weight.build(w, props.settings.units),
                     isAmrap,
-                    completedReps: props.programExercise != null && quickAddSets ? reps : undefined,
-                    completedRpe: rpe && !isNaN(rpe) ? rpe : undefined,
+                    completedReps:
+                      props.programExercise != null && quickAddSets && props.setIndex == null ? reps : undefined,
+                    rpe: rpe && !isNaN(rpe) ? rpe : undefined,
+                    completedRpe:
+                      props.programExercise != null && quickAddSets && rpe && !isNaN(rpe) && props.setIndex == null
+                        ? rpe
+                        : undefined,
                   };
                   EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
                   if (!props.isTimerDisabled && quickAddSets && !props.isWarmup) {

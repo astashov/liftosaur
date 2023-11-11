@@ -24,7 +24,6 @@ describe("Edit Sets", () => {
     g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("20");
     g("modal-edit-set-weight-input").clear().type("200");
-    g("modal-edit-set-amrap-input").click();
     g("modal-edit-set-submit").click();
 
     g("set-edit-mode-remove").eq(2).click();

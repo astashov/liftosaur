@@ -7,7 +7,6 @@
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
-- Autofocus for AMRAP / RPE
 - Import from Perseus
 - Disable Zoom in the app
 - Add integration with Apple Health

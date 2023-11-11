@@ -73,11 +73,15 @@ export namespace EditProgressEntry {
 
   export function getEditSetData(progress: IHistoryRecord): ISet | undefined {
     const uiData = progress.ui?.editSetModal;
-    if (uiData != null && uiData.setIndex != null) {
+    if (uiData != null) {
       const entry = progress.entries[uiData.entryIndex];
       if (entry != null) {
-        const set = uiData.isWarmup ? entry.warmupSets[uiData.setIndex] : entry.sets[uiData.setIndex];
-        return set;
+        if (uiData.setIndex != null) {
+          const set = uiData.isWarmup ? entry.warmupSets[uiData.setIndex] : entry.sets[uiData.setIndex];
+          return set;
+        } else {
+          return entry.sets[entry.sets.length - 1];
+        }
       }
     }
     return undefined;
