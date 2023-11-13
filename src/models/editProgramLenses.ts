@@ -654,7 +654,13 @@ export namespace EditProgramLenses {
     value: string,
     index: number
   ): ILensRecordingPayload<T> {
-    return prefix.p("descriptions").recordModify((descriptions) => CollectionUtils.setAt(descriptions, index, value));
+    return prefix.p("descriptions").recordModify((descriptions) => {
+      let newDescriptions = [...descriptions];
+      if (newDescriptions.length === 0) {
+        newDescriptions = [""];
+      }
+      return CollectionUtils.setAt(newDescriptions, index, value);
+    });
   }
 
   export function changeDescriptionExpr<T>(

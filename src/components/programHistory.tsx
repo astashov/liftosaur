@@ -18,7 +18,6 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { useGradualList } from "../utils/useGradualList";
 import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
-import { LinkButton } from "./linkButton";
 
 interface IProps {
   program: IProgram;
