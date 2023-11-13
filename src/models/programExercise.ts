@@ -456,7 +456,7 @@ export namespace ProgramExercise {
           : { ...newExercise.stateMetadata, ...oldExercise.stateMetadata },
       timerExpr: v1("timerExpr"),
       warmupSets: v1("warmupSets"),
-      diffPaths: [],
+      diffPaths: enforceNew ? oldExercise.diffPaths : [],
     };
   }
 }

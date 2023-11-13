@@ -1,6 +1,7 @@
 import { getLatestMigrationVersion, migrations } from "./migrations";
 import { ObjectUtils } from "../utils/object";
-import { IStorage } from "../types";
+import { IPartialStorage, IStorage } from "../types";
+import { Storage } from "../models/storage";
 
 export function unrunMigrations(storage: { version: string }, maxVersion?: string): Array<keyof typeof migrations> {
   const currentVersion = storage.version != null ? parseInt(storage.version.toString(), 10) : 0;
@@ -15,11 +16,11 @@ export function unrunMigrations(storage: { version: string }, maxVersion?: strin
 
 export async function runMigrations(
   client: Window["fetch"],
-  storage: IStorage,
+  storage: IStorage | IPartialStorage,
   maxVersion?: string
 ): Promise<IStorage> {
   const newVersions = unrunMigrations(storage, maxVersion);
-  let result = storage;
+  let result = Storage.partialStorageToStorage(storage);
   for (const version of newVersions) {
     result = await migrations[version](client, result);
   }

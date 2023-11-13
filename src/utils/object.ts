@@ -71,6 +71,7 @@ export namespace ObjectUtils {
 
       if (Object(obj1) !== obj1 || Object(obj2) !== obj2) {
         if (obj1 !== obj2) {
+          // console.log("diffPath", path, obj1, obj2);
           result.push(path);
         }
         continue;

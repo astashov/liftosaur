@@ -30,6 +30,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       postHead={
         <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
       }
+      client={client}
     >
       <ProgramDetailsContent
         programs={props.programs}

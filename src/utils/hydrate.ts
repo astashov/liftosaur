@@ -18,6 +18,6 @@ export namespace HydrateUtils {
       parser.parseFromString(escapedPageWrapperProps, "text/html").documentElement.textContent || "{}";
     const data = JSON.parse(unescapedRawData) as T;
     const pageWrapperProps = JSON.parse(unescapedPageWrapperProps) as IPageWrapperProps;
-    hydrate(cb(pageWrapperProps, data), document.getElementById("app")!);
+    hydrate(cb({ ...pageWrapperProps, client: window.fetch.bind(window) }, data), document.getElementById("app")!);
   }
 }

@@ -1,12 +1,12 @@
 import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
-import { IProgramContentProps, ProgramContent } from "./pages/program/programContent";
+import { IProgramContentSyncerProps, ProgramContentSyncer } from "./pages/program/programContentSyncer";
 import { HydrateUtils } from "./utils/hydrate";
 
 function main(): void {
-  HydrateUtils.hydratePage<IProgramContentProps>((pageWrapperProps, data) => (
+  HydrateUtils.hydratePage<IProgramContentSyncerProps>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
-      <ProgramContent {...data} client={window.fetch.bind(window)} />
+      <ProgramContentSyncer {...data} client={window.fetch.bind(window)} />
     </PageWrapper>
   ));
 }

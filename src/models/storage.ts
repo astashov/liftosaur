@@ -143,6 +143,23 @@ export namespace Storage {
     }
   }
 
+  export function partialStorageToStorage(partialStorage: IPartialStorage): IStorage {
+    if (partialStorage.history != null && partialStorage.programs != null && partialStorage.stats != null) {
+      return partialStorage as IStorage;
+    } else {
+      return {
+        ...partialStorage,
+        history: partialStorage.history || [],
+        programs: partialStorage.programs || [],
+        stats: partialStorage.stats || {
+          length: {},
+          percentage: {},
+          weight: {},
+        },
+      };
+    }
+  }
+
   export function mergeStorage(oldStorage: IStorage, newStorage: IStorage, enforceNew: boolean = false): IStorage {
     const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
     const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
@@ -270,16 +287,19 @@ export namespace Storage {
         (el) => !deletedHistory.has(el.startTime)
       ),
       version: newStorage.version,
-      programs: newStorage.programs
-        .map((p) => {
+      programs: CollectionUtils.concatBy(
+        oldStorage.programs,
+        newStorage.programs.map((p) => {
           const oldProgram = oldStorage.programs.find((op) => op.id === p.id);
           if (oldProgram) {
-            return Program.mergePrograms(oldProgram, p, enforceNew);
+            const mergedProgram = Program.mergePrograms(oldProgram, p, enforceNew);
+            return mergedProgram;
           } else {
             return p;
           }
-        })
-        .filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt)),
+        }),
+        (e) => e.id
+      ).filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt)),
       helps: Array.from(new Set([...newStorage.helps, ...oldStorage.helps])),
       whatsNew: newStorage.whatsNew,
     };

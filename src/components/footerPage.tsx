@@ -1,7 +1,9 @@
 import { JSX, h } from "preact";
+import { IAccount } from "../models/account";
 
 interface IProps {
   maxWidth?: number;
+  account?: IAccount;
 }
 
 export function FooterPage(props: IProps): JSX.Element {
@@ -26,6 +28,7 @@ export function FooterPage(props: IProps): JSX.Element {
                   ["Docs", "/docs/docs.html"],
                   ["Web Editor", "/program"],
                   ["Workout Planner", "/planner"],
+                  ...(!!props.account ? [["Your Programs", "/user/programs"]] : []),
                 ].map(([text, link]) => {
                   return (
                     <li className="block mx-4 my-0 mb-2 leading-5 text-left">

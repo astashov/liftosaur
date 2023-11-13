@@ -2,6 +2,7 @@ import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { IScreen } from "./screen";
 import { IDispatch } from "../ducks/types";
+import { Storage } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
 import {
@@ -15,6 +16,7 @@ import {
   IEquipment,
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
+import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 
 export type IEnv = {
   service: Service;
@@ -150,6 +152,31 @@ export interface ILocalStorage {
   storage?: IStorage;
   progress?: IHistoryRecord;
   editDay?: IProgramDay;
+}
+
+export function buildState(args: {
+  storage?: IStorage;
+  shouldSkipIntro?: boolean;
+  notification?: INotification;
+  userId?: string;
+  nosync?: boolean;
+}): IState {
+  return {
+    screenStack: [args.shouldSkipIntro ? "programs" : "first"],
+    progress: {},
+    programs: [basicBeginnerProgram],
+    loading: { items: {} },
+    allFriends: { friends: {}, sortedIds: [], isLoading: false },
+    likes: { likes: {}, isLoading: false },
+    friendsHistory: {},
+    notification: args.notification,
+    comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
+    storage: args.storage || Storage.getDefault(),
+    user: args.userId ? { email: args.userId, id: args.userId } : undefined,
+    errors: {},
+    freshMigrations: false,
+    nosync: !!args.nosync,
+  };
 }
 
 export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc?: string): void {

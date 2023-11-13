@@ -8,10 +8,12 @@ export function RecordHtml({
   data,
   userId,
   recordId,
+  client,
 }: {
   data: IRecordResponse;
   userId: string;
   recordId: number;
+  client: Window["fetch"];
 }): JSX.Element {
   return (
     <Page
@@ -23,6 +25,7 @@ export function RecordHtml({
       ogUrl={`https://www.liftosaur.com/record?user=${userId}&id=${recordId}`}
       ogImage={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`}
       data={data}
+      client={client}
     >
       <RecordContent data={data} />
     </Page>

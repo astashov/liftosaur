@@ -11,8 +11,8 @@ import { StringUtils } from "../src/utils/string";
 import { Weight } from "../src/models/weight";
 import { IProfileImageGeneratorArgs, ProfileImageGenerator } from "./utils/profileImageGenerator";
 
-export function renderUserHtml(storage: IStorage, userId: string): string {
-  return renderPage(<UserHtml data={storage} userId={userId} />);
+export function renderUserHtml(client: Window["fetch"], storage: IStorage, userId: string): string {
+  return renderPage(<UserHtml client={client} data={storage} userId={userId} />);
 }
 
 export function userImage(storage: IStorage): Promise<Buffer> {

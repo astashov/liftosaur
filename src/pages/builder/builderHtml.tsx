@@ -21,6 +21,7 @@ export function BuilderHtml(props: IProps): JSX.Element {
       ogDescription="The weightlifting program builder, allowing to balance volume, time and muscles worked"
       ogUrl="https://www.liftosaur.com/planner"
       data={data}
+      client={client}
     >
       <BuilderContent client={client} {...data} />
     </Page>

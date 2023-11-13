@@ -52,7 +52,7 @@ export type IUserDao = {
 };
 
 export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
-  storage: Omit<IUserDao["storage"], "programs" | "history" | "stats">;
+  storage: IPartialStorage;
 };
 
 export type IFriendUserDao = Pick<IUserDao, "id" | "nickname"> & {
@@ -305,12 +305,19 @@ export class UserDao {
     }
   }
 
-  public async getById(userId: string): Promise<IUserDao | undefined> {
+  public async getById(
+    userId: string,
+    args?: {
+      skipHistory?: boolean;
+      skipPrograms?: boolean;
+      skipStats?: boolean;
+    }
+  ): Promise<IUserDao | undefined> {
     const userDao = await this.getLimitedById(userId);
     if (userDao != null) {
-      const history = await this.getHistoryByUserId(userId);
-      const programs = await this.getProgramsByUserId(userId);
-      const stats = await this.getStatsByUserId(userId);
+      const history = !args?.skipHistory ? await this.getHistoryByUserId(userId) : [];
+      const programs = !args?.skipPrograms ? await this.getProgramsByUserId(userId) : [];
+      const stats = !args?.skipStats ? await this.getStatsByUserId(userId) : { weight: {}, length: {}, percentage: {} };
 
       return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
     } else {

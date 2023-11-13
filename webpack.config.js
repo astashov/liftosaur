@@ -20,6 +20,7 @@ module.exports = {
     builder: ["./src/builder.tsx", "./src/builder.css", "./src/index.css"],
     planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
+    programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     about: ["./src/about.css"],
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
@@ -212,6 +213,18 @@ module.exports = {
     liveReload: false,
     host: "0.0.0.0",
     proxy: {
+      "/p/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/b/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/n/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
       "/record": {
         target: "https://local-api.liftosaur.com:3000/api",
         secure: false,
@@ -269,6 +282,10 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/user/*": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
       "/affiliates": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
@@ -277,20 +294,12 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
-      "/p/*": {
-        target: "https://local-api.liftosaur.com:3000/",
-        secure: false,
-      },
-      "/b/*": {
-        target: "https://local-api.liftosaur.com:3000/",
-        secure: false,
-      },
-      "/n/*": {
-        target: "https://local-api.liftosaur.com:3000/",
-        secure: false,
-      },
       "/programimage/*": {
         target: "https://local-api.liftosaur.com:3000/api",
+        secure: false,
+      },
+      "/user/programs": {
+        target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
     },

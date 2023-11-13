@@ -79,6 +79,21 @@ export namespace Program {
     return storage.programs.filter((p) => p.id === storage.currentProgramId)[0];
   }
 
+  export function storageToExportedProgram(storage: IStorage, programId: string): IExportedProgram | undefined {
+    const program = storage.programs.find((p) => p.id === programId);
+    if (!program) {
+      return undefined;
+    }
+    const settings = storage.settings;
+    return {
+      program: program,
+      customExercises: settings.exercises,
+      customEquipment: settings.equipment,
+      version: storage.version,
+      settings: settings,
+    };
+  }
+
   export function createDay(name: string): IProgramDay {
     return {
       id: UidFactory.generateUid(8),
@@ -937,16 +952,19 @@ export namespace Program {
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
       shortDescription: newProgram.shortDescription,
-      exercises: CollectionUtils.concatBy(oldProgram.exercises, newProgram.exercises, (e) => e.id)
-        .map((e) => {
+      exercises: CollectionUtils.concatBy(
+        oldProgram.exercises,
+        newProgram.exercises.map((e) => {
           const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
           if (oldExercise) {
-            return ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
+            const mergedExercise = ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
+            return mergedExercise;
           } else {
             return e;
           }
-        })
-        .filter((e) => !deletedExercises.has(e.id)),
+        }),
+        (e) => e.id
+      ).filter((e) => !deletedExercises.has(e.id)),
       deletedExercises: Array.from(deletedExercises),
       clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
     };

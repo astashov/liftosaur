@@ -340,6 +340,22 @@ input[type="checkbox"].checkbox:disabled {
   height: 0;
 }
 
+.fade {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity ease-in-out 0.2s, visibility ease-in-out 0.2s;
+}
+
+.fadein {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fadeout {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

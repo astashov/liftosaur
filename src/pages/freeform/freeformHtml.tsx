@@ -19,6 +19,7 @@ export function FreeformHtml(props: IProps): JSX.Element {
       ogDescription="The freeform program builder powered by GPT"
       ogUrl="https://www.liftosaur.com/freeform"
       data={data}
+      client={client}
     >
       <FreeformContent client={client} {...data} />
     </Page>

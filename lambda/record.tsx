@@ -11,8 +11,13 @@ import { StringUtils } from "../src/utils/string";
 import { Weight } from "../src/models/weight";
 import { RecordImageGenerator, IRecordImageGeneratorArgs } from "./utils/recordImageGenerator";
 
-export function renderRecordHtml(data: IRecordResponse, userId: string, recordId: number): string {
-  return renderPage(<RecordHtml data={data} userId={userId} recordId={recordId} />);
+export function renderRecordHtml(
+  client: Window["fetch"],
+  data: IRecordResponse,
+  userId: string,
+  recordId: number
+): string {
+  return renderPage(<RecordHtml client={client} data={data} userId={userId} recordId={recordId} />);
 }
 
 export async function recordImage(storage: IStorage, recordId: number): Promise<IEither<Buffer, string>> {

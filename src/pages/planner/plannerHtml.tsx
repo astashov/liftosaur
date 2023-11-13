@@ -2,9 +2,11 @@ import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
 import { IExportedPlannerProgram } from "./models/types";
+import { IAccount } from "../../models/account";
 
 interface IProps {
   initialProgram?: IExportedPlannerProgram;
+  account?: IAccount;
   client: Window["fetch"];
 }
 
@@ -13,6 +15,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
 
   return (
     <Page
+      account={props.account}
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}
@@ -22,6 +25,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       ogUrl="https://www.liftosaur.com/planner"
       data={data}
       url="/planner"
+      client={client}
     >
       <PlannerContent client={client} {...data} />
     </Page>

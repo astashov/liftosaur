@@ -231,6 +231,20 @@ export namespace CollectionUtils {
     return from.map((e) => (e[key] === value ? newItem : e));
   }
 
+  export function setOrAddBy<T extends {}, K extends keyof T, V extends T[K]>(
+    from: T[],
+    key: K,
+    value: V,
+    newItem: T
+  ): T[] {
+    const hasKeyValue = from.some((e) => e[key] === value);
+    if (hasKeyValue) {
+      return setBy(from, key, value, newItem);
+    } else {
+      return [...from, newItem];
+    }
+  }
+
   export function removeBy<T extends {}, K extends keyof T, V extends T[K]>(from: T[], key: K, value: V): T[] {
     return from.filter((t) => t[key] !== value);
   }

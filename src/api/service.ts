@@ -84,6 +84,20 @@ export class Service {
     });
   }
 
+  public async ping(originalId: number): Promise<boolean> {
+    try {
+      const result = await this.client(`${__API_HOST__}/api/ping/${originalId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const json = await result.json();
+      console.log("json.status", json.status);
+      return json.status === "stale";
+    } catch (e) {
+      return false;
+    }
+  }
+
   public async saveDebugStorage(
     prefix: string,
     oldStorage: IStorage,

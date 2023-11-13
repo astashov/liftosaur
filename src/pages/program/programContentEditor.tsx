@@ -46,6 +46,7 @@ export interface IProgramContentProps {
   dispatch: ILensDispatch<IProgramEditorState>;
   state: IProgramEditorState;
   selected: IProgramEditorUiSelected[];
+  isChangesWarningOn?: boolean;
   initialEncodedProgramUrl?: string;
   encodedProgramUrl?: string;
   onShowSettingsModal: () => void;
@@ -97,6 +98,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
     : undefined;
   const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
   const hasChanges =
+    props.isChangesWarningOn &&
     props.encodedProgramUrl != null &&
     props.initialEncodedProgramUrl != null &&
     props.encodedProgramUrl !== props.initialEncodedProgramUrl;

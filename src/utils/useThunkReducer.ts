@@ -34,7 +34,8 @@ export function useThunkReducer<TState, TAction extends Record<string, unknown>,
           }
         });
       } else {
-        setState(reduce(action));
+        const newState = reduce(action);
+        setState(newState);
         for (const onAction of onActions) {
           onAction(dispatch, action, oldState, state.current);
         }

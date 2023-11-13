@@ -33,7 +33,7 @@ import { renderBuilderHtml } from "./builder";
 import { NodeEncoder } from "./utils/nodeEncoder";
 import { IBuilderProgram } from "../src/pages/builder/models/types";
 import { renderProgramHtml } from "./program";
-import { IExportedProgram } from "../src/models/program";
+import { IExportedProgram, Program } from "../src/models/program";
 import { Storage } from "../src/models/storage";
 import { ImportExporter } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
@@ -58,6 +58,8 @@ import { PlannerReformatter } from "./utils/plannerReformatter";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
+import { Account, IAccount } from "../src/models/account";
+import { renderProgramsListHtml } from "./programsList";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -231,6 +233,17 @@ const saveDebugStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     await exceptionDao.storeStorages(prefix, userid, oldStorage, newStorage, mergedStorage);
   }
   return ResponseUtils.json(200, event, {});
+};
+
+const pingEndpoint = Endpoint.build("/api/ping/:originalid");
+const pingHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pingEndpoint> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  const originalid = parseInt(match.params.originalid, 10);
+  if (user?.storage.originalId != null && user.storage.id !== originalid) {
+    return ResponseUtils.json(200, event, { status: "stale" });
+  }
+  return ResponseUtils.json(200, event, { status: "ok" });
 };
 
 const saveStorageEndpoint = Endpoint.build("/api/storage");
@@ -490,6 +503,7 @@ const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
         return {
           statusCode: 200,
           body: renderRecordHtml(
+            di.fetch,
             { history, record: historyRecord, settings: storage.settings },
             params.user,
             params.id
@@ -663,7 +677,7 @@ const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     if (storage.settings.isPublicProfile) {
       return {
         statusCode: 200,
-        body: renderUserHtml(storage, params.user),
+        body: renderUserHtml(di.fetch, storage, params.user),
         headers: { "content-type": "text/html" },
       };
     } else {
@@ -1306,10 +1320,12 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
       di.log.log(e);
     }
   }
+  const userResult = await getUserAccount(payload);
+  const account = userResult.success ? userResult.data.account : undefined;
 
   return {
     statusCode: 200,
-    body: renderPlannerHtml(di.fetch, initialProgram),
+    body: renderPlannerHtml(di.fetch, initialProgram, account),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1341,6 +1357,13 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const data = params.data;
   let program: IExportedProgram | undefined;
   const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  let user: ILimitedUserDao | undefined;
+  let account: IAccount | undefined;
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  if (userResult.success) {
+    ({ user, account } = userResult.data);
+  }
+  const storage = user?.storage ? await runMigrations(di.fetch, user.storage) : undefined;
 
   if (data) {
     try {
@@ -1358,7 +1381,85 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, program),
+    body: renderProgramHtml(di.fetch, isMobile, false, program, account, storage),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+const getUserProgramsEndpoint = Endpoint.build("/user/programs");
+const getUserProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserProgramsEndpoint> = async ({
+  payload,
+}) => {
+  const di = payload.di;
+  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const { account, user } = userResult.data;
+  const storage = await runMigrations(di.fetch, user.storage);
+
+  return {
+    statusCode: 200,
+    body: renderProgramsListHtml(di.fetch, isMobile, account, storage),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+async function getUserAccount(
+  payload: IPayload,
+  args: { withPrograms?: boolean } = {}
+): Promise<IEither<{ user: ILimitedUserDao; account: IAccount }, APIGatewayProxyResult>> {
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId == null) {
+    const result: APIGatewayProxyResult = {
+      statusCode: 302,
+      body: "",
+      headers: { "content-type": "text/html", location: "/program" },
+    };
+    return { success: false, error: result };
+  }
+  const userDao = new UserDao(payload.di);
+  const user = await userDao.getLimitedById(currentUserId);
+  if (!user) {
+    const result = {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html" },
+    };
+    return { success: false, error: result };
+  }
+  const programs = args.withPrograms ? await userDao.getProgramsByUserId(user.id) : undefined;
+  user.storage.programs = programs;
+  const account = Account.getFromStorage(user.id, user.email, user.storage);
+  return { success: true, data: { user, account } };
+}
+
+const getUserProgramEndpoint = Endpoint.build("/user/p/:programid");
+const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const di = payload.di;
+  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const { account, user } = userResult.data;
+  const storage = await runMigrations(di.fetch, user.storage);
+  const exportedProgram = Program.storageToExportedProgram(storage, params.programid);
+  if (!exportedProgram) {
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html" },
+    };
+  }
+
+  return {
+    statusCode: 200,
+    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, storage),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1369,9 +1470,11 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   match,
 }) => {
   const di = payload.di;
+  const userResult = await getUserAccount(payload);
+  const account = userResult.success ? userResult.data.account : undefined;
   return {
     statusCode: 200,
-    body: renderAffiliatesHtml(di.fetch),
+    body: renderAffiliatesHtml(di.fetch, account),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1496,9 +1599,18 @@ const getProgramShorturlHandler: RouteHandler<
         const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
+
+          let user: ILimitedUserDao | undefined;
+          let account: IAccount | undefined;
+          const userResult = await getUserAccount(payload, { withPrograms: true });
+          if (userResult.success) {
+            ({ user, account } = userResult.data);
+          }
+          const storage = user?.storage ? await runMigrations(di.fetch, user.storage) : undefined;
+
           return {
             statusCode: 200,
-            body: renderProgramHtml(di.fetch, isMobile, program),
+            body: renderProgramHtml(di.fetch, isMobile, false, program, account, storage),
             headers: { "content-type": "text/html" },
           };
         } else {
@@ -1702,6 +1814,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getBuilderEndpoint, getBuilderHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
+      .get(getUserProgramsEndpoint, getUserProgramsHandler)
+      .get(getUserProgramEndpoint, getUserProgramHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
@@ -1734,6 +1848,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler)
+      .get(pingEndpoint, pingHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");

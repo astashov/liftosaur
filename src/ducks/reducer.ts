@@ -7,7 +7,7 @@ import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
 import { ILensRecordingPayload, lf } from "lens-shmens";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
+import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
@@ -125,22 +125,11 @@ export async function getInitialState(
       nosync,
     };
   }
-  const newState: IState = {
-    screenStack: [shouldSkipIntro ? "programs" : "first"],
-    progress: {},
-    programs: [basicBeginnerProgram],
-    loading: { items: {} },
-    allFriends: { friends: {}, sortedIds: [], isLoading: false },
-    likes: { likes: {}, isLoading: false },
-    friendsHistory: {},
+  const newState = buildState({
     notification,
-    comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
-    storage: Storage.getDefault(),
-    user: undefined,
-    errors: {},
-    freshMigrations: false,
+    shouldSkipIntro,
     nosync,
-  };
+  });
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;
 }
@@ -385,7 +374,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   ];
 }
 
-export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
+export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IAction> => (state, action) => {
   if (typeof window !== "undefined") {
     window.reducerLastState = state;
     window.reducerLastActions = [
@@ -431,7 +420,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).state = newState;
-    if (newState.errors.corruptedstorage == null) {
+    if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
       timerId = window.setTimeout(async () => {
         clearTimeout(timerId);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

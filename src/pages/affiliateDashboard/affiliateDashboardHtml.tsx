@@ -22,6 +22,7 @@ export function AffiliateDashboardHtml(props: IAffiliateDashboardHtmlProps): JSX
       ogDescription="The dashboard to see users' activity came from affiliate"
       ogUrl={`https://www.liftosaur.com/dashboards/affiliate/${props.affiliateId}`}
       data={data}
+      client={client}
     >
       <AffiliateDashboardContent client={client} {...data} />
     </Page>

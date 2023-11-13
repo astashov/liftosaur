@@ -6,6 +6,7 @@ import { IStorage } from "../../types";
 interface IProps {
   data: IStorage;
   userId: string;
+  client: Window["fetch"];
 }
 
 export function UserHtml(props: IProps): JSX.Element {
@@ -19,6 +20,7 @@ export function UserHtml(props: IProps): JSX.Element {
       ogUrl={`https://www.liftosaur.com/profile/${props.userId}`}
       ogImage={`https://www.liftosaur.com/profileimage/${props.userId}`}
       data={props.data}
+      client={props.client}
     >
       <UserContent data={props.data} />
     </Page>

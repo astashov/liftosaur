@@ -137,6 +137,27 @@ export namespace EditProgram {
     }
   }
 
+  export function deleteProgram(dispatch: IDispatch, program: IProgram, customPrograms: IProgram[]): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
+      lb<IState>()
+        .p("storage")
+        .p("deletedPrograms")
+        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
+      lb<IState>()
+        .p("storage")
+        .p("currentProgramId")
+        .recordModify((id) => (id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id)),
+      lb<IState>()
+        .p("storage")
+        .p("deletedPrograms")
+        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
+    ]);
+  }
+
   export function changeExerciseEquipment(dispatch: IDispatch, newEquipment?: IEquipment): void {
     updateState(dispatch, [EditProgramLenses.changeExerciseEquipment(lb<IState>().pi("editExercise"), newEquipment)]);
   }

@@ -1,16 +1,27 @@
 import { IndexedDBUtils } from "../utils/indexeddb";
-import { IStorage } from "../types";
+import { IStorage, IPartialStorage } from "../types";
 
 export interface IAccount {
   id: string;
   name?: string;
   email?: string;
-  numberOfPrograms: number;
-  numberOfWorkouts: number;
+  numberOfPrograms?: number;
+  numberOfWorkouts?: number;
   isCurrent: boolean;
 }
 
 export namespace Account {
+  export function getFromStorage(id: string, email: string, storage: IPartialStorage): IAccount {
+    return {
+      id,
+      email,
+      name: storage.settings.nickname,
+      numberOfPrograms: storage.programs?.length,
+      numberOfWorkouts: storage.history?.length,
+      isCurrent: true,
+    };
+  }
+
   export async function getAll(): Promise<IAccount[]> {
     const currentAccount = (await IndexedDBUtils.get("current_account")) as string;
     const allKeys = await IndexedDBUtils.getAllKeys();

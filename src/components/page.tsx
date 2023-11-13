@@ -1,4 +1,5 @@
 import { JSX, h } from "preact";
+import { IAccount } from "../models/account";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
 interface IProps<T> extends IPageWrapperProps {
@@ -11,6 +12,7 @@ interface IProps<T> extends IPageWrapperProps {
   ogImage?: string;
   data: T;
   postHead?: JSX.Element;
+  account?: IAccount;
 }
 
 export function Page<T>(props: IProps<T>): JSX.Element {
@@ -19,6 +21,8 @@ export function Page<T>(props: IProps<T>): JSX.Element {
     maxWidth: props.maxWidth,
     url: props.url,
     skipFooter: props.skipFooter,
+    account: props.account,
+    client: props.client,
   };
   return (
     <html lang="en">
@@ -41,6 +45,11 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           name="description"
           content="A weight lifting tracking app, that allows you to follow popular weight lifting routines"
         />
+        <script
+          async
+          type="text/javascript"
+          src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
+        ></script>
         {props.ogTitle && <meta property="og:title" content={props.ogTitle} />}
         {props.ogDescription && <meta property="og:description" content={props.ogDescription} />}
         <meta property="fb:app_id" content="3448767138535273" />

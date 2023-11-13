@@ -3,9 +3,7 @@ import { Program } from "../models/program";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IDispatch } from "../ducks/types";
-import { lb } from "lens-shmens";
 import { HtmlUtils } from "../utils/html";
-import { IState } from "../models/state";
 import { IProgram, ISettings, IEquipment } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { IconArrowRight } from "./icons/iconArrowRight";
@@ -19,6 +17,7 @@ import { ExerciseImage } from "./exerciseImage";
 import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
 import { ExerciseImageUtils } from "../models/exerciseImage";
+import { EditProgram } from "../models/editProgram";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -87,29 +86,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                           alert("You cannot delete all your programs, you should have at least one");
                         } else if (props.editProgramId == null || props.editProgramId !== program.id) {
                           if (confirm("Are you sure?")) {
-                            props.dispatch({
-                              type: "UpdateState",
-                              lensRecording: [
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("programs")
-                                  .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("deletedPrograms")
-                                  .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("currentProgramId")
-                                  .recordModify((id) =>
-                                    id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id
-                                  ),
-                                lb<IState>()
-                                  .p("storage")
-                                  .p("deletedPrograms")
-                                  .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
-                              ],
-                            });
+                            EditProgram.deleteProgram(props.dispatch, program, customPrograms);
                           }
                         } else {
                           alert("You cannot delete the program while that program's workout is in progress");

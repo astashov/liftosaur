@@ -141,7 +141,8 @@ export namespace Thunk {
     dispatch: IDispatch,
     getState: () => IState,
     env: IEnv,
-    additionalRequests: ("programs" | "history" | "stats")[] = []
+    additionalRequests: ("programs" | "history" | "stats")[] = [],
+    cb?: (storage: IStorage, type: "success" | "merged") => void
   ): Promise<void> {
     const state = getState();
     const storage: IPartialStorage = { ...state.storage };
@@ -174,21 +175,47 @@ export namespace Thunk {
       if (state.freshMigrations) {
         updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)], "Clean fresh migrations flag");
       }
+      if (cb != null) {
+        cb(getState().storage, "success");
+      }
     } else if (result.status === "request") {
-      await _sync(args, dispatch, getState, env, result.data);
+      await _sync(args, dispatch, getState, env, result.data, cb);
     } else if (result.status === "merged") {
       updateState(dispatch, [lb<IState>().p("storage").record(result.storage)], "Merge Storage");
+      if (cb != null) {
+        cb(getState().storage, "merged");
+      }
     }
   }
 
-  export function sync(args: { withHistory: boolean; withStats: boolean; withPrograms: boolean }): IThunk {
+  export function sync(
+    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean },
+    cb?: (storage: IStorage, status: "merged" | "success") => void
+  ): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
         await env.queue.enqueue(async () => {
           await load(dispatch, "Sync", async () => {
-            await _sync(args, dispatch, getState, env, []);
+            await _sync(args, dispatch, getState, env, [], cb);
           });
+        });
+      }
+    };
+  }
+
+  export function ping(): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      if (state.user?.id != null && getState().storage.originalId != null) {
+        await env.queue.enqueue(async () => {
+          const originalId = getState().storage.originalId;
+          if (originalId != null) {
+            const result = await env.service.ping(originalId);
+            if (result) {
+              dispatch(Thunk.fetchStorage());
+            }
+          }
         });
       }
     };

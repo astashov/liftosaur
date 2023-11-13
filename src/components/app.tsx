@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -56,7 +56,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const service = new Service(client);
   const env: IEnv = { service, audio, queue };
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
-    reducerWrapper,
+    reducerWrapper(true),
     props.initialState,
     env,
     defaultOnActions(env)
@@ -67,6 +67,14 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
+  const lastPingRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (lastPingRef.current < Date.now() - 10 * 1000) {
+      lastPingRef.current = Date.now();
+      dispatch(Thunk.ping());
+    }
+  });
 
   useEffect(() => {
     dispatch(Thunk.fetchStorage());
