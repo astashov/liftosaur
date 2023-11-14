@@ -58,6 +58,7 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                 <td className="px-2 align-top">
                   {user.history.map((record) => (
                     <HistoryRecordView
+                      isOngoing={false}
                       comments={{ comments: {}, isLoading: false, isPosting: false, isRemoving: {} }}
                       historyRecord={record}
                       settings={user.settings}
