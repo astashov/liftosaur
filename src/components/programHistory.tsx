@@ -114,6 +114,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       <HistoryRecordsList
         comments={props.comments}
         history={history}
+        progress={props.progress}
         settings={props.settings}
         dispatch={dispatch}
         likes={props.likes}

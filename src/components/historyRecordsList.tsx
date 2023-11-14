@@ -7,6 +7,7 @@ import { HistoryRecordView } from "./historyRecord";
 
 interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
+  progress?: IHistoryRecord;
   settings: ISettings;
   friendsHistory: Partial<Record<string, IFriendUser>>;
   currentUserId?: string;
@@ -50,6 +51,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
       {combinedHistory.map((historyRecord) =>
         historyRecord.user === "self" ? (
           <HistoryRecordView
+            isOngoing={!!(Progress.isCurrent(historyRecord.record) && props.progress)}
             settings={settings}
             historyRecord={historyRecord.record}
             userId={props.currentUserId}
@@ -59,6 +61,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
           />
         ) : (
           <HistoryRecordView
+            isOngoing={!!(Progress.isCurrent(historyRecord.record) && props.progress)}
             comments={props.comments}
             settings={historyRecord.user.storage.settings}
             nickname={historyRecord.user.nickname || historyRecord.user.id}

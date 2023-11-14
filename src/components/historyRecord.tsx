@@ -16,6 +16,7 @@ import { HistoryEntryView } from "./historyEntry";
 
 interface IProps {
   historyRecord: IHistoryRecord;
+  isOngoing: boolean;
   settings: ISettings;
   comments: IAllComments;
   dispatch: IDispatch;
@@ -33,7 +34,13 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
     <div
       data-cy="history-record"
       className={`history-record-${nickname} rounded-2xl mx-4 mb-4 px-4 text-sm ${
-        props.nickname ? "bg-orange-100" : Progress.isCurrent(historyRecord) ? "bg-purplev2-200" : "bg-grayv2-50"
+        props.nickname
+          ? "bg-orange-100"
+          : Progress.isCurrent(historyRecord)
+          ? props.isOngoing
+            ? "bg-yellow-100 border border-yellow-400"
+            : "bg-purplev2-200"
+          : "bg-grayv2-50"
       }`}
       style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
       onClick={(event) => {
@@ -60,7 +67,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         <div className="flex">
           <div className="flex-1 font-bold" data-cy="history-record-date">
             {Progress.isCurrent(historyRecord) ? (
-              Progress.isFullyEmptySet(historyRecord) ? (
+              !props.isOngoing ? (
                 <span data-cy="start-workout" className="underline">
                   Start
                 </span>
