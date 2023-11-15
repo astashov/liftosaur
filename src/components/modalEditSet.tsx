@@ -1,6 +1,6 @@
 import { IDispatch } from "../ducks/types";
 import { JSX, h, Fragment } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
@@ -52,7 +52,23 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const weightInput = useRef<HTMLInputElement>(null);
   const rpeInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
-  const initialWeight = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
+  const weightValue = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
+  const [roundedWeightValue, setRoundedWeightValue] = useState(
+    Weight.round(Weight.build(weightValue || 0, props.settings.units), props.settings, props.equipment).value
+  );
+  const prevProps = useRef<IModalWeightProps>(props);
+  useEffect(() => {
+    if (prevProps.current.isHidden && !props.isHidden) {
+      setRoundedWeightValue(
+        Weight.round(Weight.build(weightValue || 0, props.settings.units), props.settings, props.equipment).value
+      );
+    }
+  }, [props.isHidden, weightValue]);
+
+  useEffect(() => {
+    prevProps.current = props;
+  });
+
   const initialRpe = set?.rpe;
   const classNames = inputClassName.replace(" px-4 ", " px-2 ");
   const quickAddSets = props.programExercise
@@ -63,7 +79,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
     : false;
 
   const [platesStr, setPlatesStr] = useState<string | undefined>(
-    props.set ? getPlatesStr(props.subscription, initialWeight || 0, props.settings, props.equipment) : undefined
+    props.set ? getPlatesStr(props.subscription, weightValue || 0, props.settings, props.equipment) : undefined
   );
   return (
     <Modal
@@ -106,16 +122,15 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               onInput={(e) => {
                 const target = e.target;
                 if (Subscriptions.hasSubscription(props.subscription) && target instanceof HTMLInputElement) {
-                  const value = Weight.build(parseFloat(target.value), props.settings.units);
+                  const targetValue = parseFloat(target.value);
+                  const value = Weight.build(targetValue, props.settings.units);
                   const plates = Weight.calculatePlates(value, props.settings, props.equipment);
                   const oneside = Weight.formatOneSide(props.settings, plates.plates, props.equipment);
+                  setRoundedWeightValue(isNaN(targetValue) ? 0 : targetValue);
                   setPlatesStr(oneside);
                 }
               }}
-              value={
-                Weight.round(Weight.build(initialWeight || 0, props.settings.units), props.settings, props.equipment)
-                  .value
-              }
+              value={roundedWeightValue}
               required
               type={SendMessage.isIos() ? "number" : "tel"}
               step="0.05"
