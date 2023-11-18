@@ -29,6 +29,21 @@ describe("Weight", () => {
       ]);
     });
 
+    it("when naive subtracting doesnt work", () => {
+      const settings = buildSettings([
+        { weight: Weight.build(45, "lb"), num: 8 },
+        { weight: Weight.build(35, "lb"), num: 4 },
+        { weight: Weight.build(25, "lb"), num: 4 },
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(2.5, "lb"), num: 6 },
+      ]);
+      const result = Weight.calculatePlates(Weight.build(130, "lb"), settings, "barbell").plates;
+      expect(result).toEqual([
+        { weight: Weight.build(35, "lb"), num: 2 },
+        { weight: Weight.build(2.5, "lb"), num: 6 },
+      ]);
+    });
+
     it("when not enough pair plates", () => {
       const settings = buildSettings([
         { weight: Weight.build(45, "lb"), num: 4 },
@@ -56,7 +71,7 @@ describe("Weight", () => {
     });
   });
 
-  describe.only(".formatOneSide()", () => {
+  describe(".formatOneSide()", () => {
     it("returns a proper string", () => {
       const plates = [
         { weight: Weight.build(45, "lb"), num: 4 },
@@ -67,7 +82,7 @@ describe("Weight", () => {
       expect(Weight.formatOneSide(buildSettings(plates), plates, "barbell")).toEqual("45/45/25/3x10/5");
     });
 
-    it.only("returns a proper string 2", () => {
+    it("returns a proper string 2", () => {
       const plates = [
         { weight: Weight.build(45, "lb"), num: 10 },
         { weight: Weight.build(25, "lb"), num: 4 },
