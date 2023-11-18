@@ -127,7 +127,7 @@ export namespace Weight {
     const multiplier = equipmentType.multiplier || 1;
     const weight = Weight.subtract(allWeight, barWeight);
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
-    availablePlates.sort((a, b) => Weight.compare(a.weight, b.weight));
+    availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const plates: IPlate[] = calculatePlatesInternal(weight, availablePlates, multiplier);
     const total = plates.reduce(
       (memo, plate) => Weight.add(memo, Weight.multiply(plate.weight, plate.num)),
@@ -161,7 +161,7 @@ export namespace Weight {
       if (plate == null) {
         return;
       }
-      for (let count = 0; count <= plate.num; count += multiplier) {
+      for (let count = plate.num; count >= 0; count -= multiplier) {
         const weight = Weight.multiply(plate.weight, count);
         backtrack(index + 1, Weight.subtract(remainingWeight, weight), [
           ...currentResult,
