@@ -128,7 +128,58 @@ export namespace Weight {
     const weight = Weight.subtract(allWeight, barWeight);
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
-    let total = Weight.build(0, allWeight.unit);
+    const useFastMethod = availablePlates.length > 6 && availablePlates.reduce((memo, p) => memo + p.num, 0) > 100;
+    const plates: IPlate[] = useFastMethod
+      ? calculatePlatesInternalFast(weight, availablePlates, multiplier)
+      : calculatePlatesInternal(weight, availablePlates, multiplier);
+    const total = plates.reduce(
+      (memo, plate) => Weight.add(memo, Weight.multiply(plate.weight, plate.num)),
+      Weight.build(0, allWeight.unit)
+    );
+    return { plates, platesWeight: total, totalWeight: Weight.add(total, barWeight) };
+  }
+
+  function calculatePlatesInternal(targetWeight: IWeight, plates: IPlate[], multiplier: number): IPlate[] {
+    let result: IPlate[] = [];
+    let closestWeightDifference = Weight.build(Infinity, targetWeight.unit);
+    let exactMatchFound = false;
+
+    function backtrack(index: number, remainingWeight: IWeight, currentResult: IPlate[]): void {
+      if (Weight.lt(remainingWeight, 0) || exactMatchFound) {
+        return;
+      }
+
+      if (index !== 0 && remainingWeight.value === 0) {
+        exactMatchFound = true;
+        result = currentResult.map((plate) => ({ ...plate }));
+        return;
+      }
+
+      if (Weight.lt(remainingWeight, closestWeightDifference)) {
+        closestWeightDifference = remainingWeight;
+        result = currentResult.map((plate) => ({ ...plate }));
+      }
+
+      const plate = plates[index];
+      if (plate == null) {
+        return;
+      }
+      for (let count = plate.num; count >= 0; count -= multiplier) {
+        const weight = Weight.multiply(plate.weight, count);
+        backtrack(index + 1, Weight.subtract(remainingWeight, weight), [
+          ...currentResult,
+          { weight: plate.weight, num: count },
+        ]);
+      }
+    }
+
+    backtrack(0, targetWeight, []);
+    const resultWithoutZeroes = result.filter((p) => p.num > 0);
+    return CollectionUtils.sort(resultWithoutZeroes, (a, b) => b.weight.value - a.weight.value);
+  }
+
+  function calculatePlatesInternalFast(weight: IWeight, availablePlates: IPlate[], multiplier: number): IPlate[] {
+    let total = Weight.build(0, weight.unit);
     const plates: IPlate[] = [];
     while (true) {
       const availablePlate = availablePlates.find(
@@ -149,7 +200,7 @@ export namespace Weight {
         break;
       }
     }
-    return { plates, platesWeight: total, totalWeight: Weight.add(total, barWeight) };
+    return plates;
   }
 
   export function add(weight: IWeight, value: IWeight | number): IWeight {
