@@ -33,6 +33,27 @@ export interface IUserDashboardData {
   };
 }
 
+function getIsNew(item: IUserDashboardData): boolean {
+  const firstActionDate = new Date(item.firstAction.ts);
+  const lastActionDate = new Date(item.lastAction.ts);
+  return (
+    firstActionDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
+    firstActionDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
+    firstActionDate.getUTCDate() === lastActionDate.getUTCDate()
+  );
+}
+
+function getIsNewUser(item: IUserDashboardData): boolean {
+  const lastActionDate = new Date(item.lastAction.ts);
+  const userDate = item.userTs && new Date(item.userTs);
+  return !!(
+    userDate &&
+    userDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
+    userDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
+    userDate.getUTCDate() === lastActionDate.getUTCDate()
+  );
+}
+
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
   const data: IUserDashboardData[][][] = [];
   let lastMonth;
@@ -51,6 +72,25 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
     const monthGroup = data[data.length - 1];
     const dayGroup = monthGroup[monthGroup.length - 1];
     dayGroup.push(user);
+  }
+
+  for (const monthGroup of data) {
+    for (const dayGroup of monthGroup) {
+      dayGroup.sort((a, b) => {
+        const isANew = getIsNew(a);
+        const isANewUser = getIsNewUser(a);
+        const isBNew = getIsNew(b);
+        const isBNewUser = getIsNewUser(b);
+
+        if ((isANew || isANewUser) && !(isBNew || isANewUser)) {
+          return -1;
+        } else if (!(isANew || isANewUser) && (isBNew || isBNewUser)) {
+          return 1;
+        } else {
+          return b.lastAction.ts - a.lastAction.ts;
+        }
+      });
+    }
   }
 
   return (
@@ -118,19 +158,8 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                     </thead>
                     <tbody>
                       {dayGroup.map((item) => {
-                        const firstActionDate = new Date(item.firstAction.ts);
-                        const lastActionDate = new Date(item.lastAction.ts);
-                        const userDate = item.userTs && new Date(item.userTs);
-                        const isNew =
-                          firstActionDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
-                          firstActionDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
-                          firstActionDate.getUTCDate() === lastActionDate.getUTCDate();
-                        const isNewUser = !!(
-                          userDate &&
-                          userDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
-                          userDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
-                          userDate.getUTCDate() === lastActionDate.getUTCDate()
-                        );
+                        const isNew = getIsNew(item);
+                        const isNewUser = getIsNewUser(item);
                         return (
                           <tr>
                             <td>
