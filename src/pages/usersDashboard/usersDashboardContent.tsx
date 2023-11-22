@@ -82,7 +82,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
         const isBNew = getIsNew(b);
         const isBNewUser = getIsNewUser(b);
 
-        if ((isANew || isANewUser) && !(isBNew || isANewUser)) {
+        if ((isANew || isANewUser) && !(isBNew || isBNewUser)) {
           return -1;
         } else if (!(isANew || isANewUser) && (isBNew || isBNewUser)) {
           return 1;
