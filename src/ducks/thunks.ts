@@ -147,13 +147,11 @@ export namespace Thunk {
             storage.programs = undefined;
           }
         }
-        env.queue.enqueue(async () => {
-          await load(dispatch, "Sync", async () => {
-            await env.service.postStorage(storage);
-            if (state.freshMigrations) {
-              updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)]);
-            }
-          });
+        await load(dispatch, "Sync", async () => {
+          await env.service.postStorage(storage);
+          if (state.freshMigrations) {
+            updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)]);
+          }
         });
       }
     };
@@ -897,6 +895,7 @@ async function handleLogin(
     let storage: IStorage;
     const finalStorage = await runMigrations(client, result.storage);
     const storageResult = await Storage.get(client, finalStorage, true);
+    // const errors: IStateErrors = {};
     if (storageResult.success) {
       storage = storageResult.data;
     } else {
@@ -904,6 +903,20 @@ async function handleLogin(
       const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
       const service = new Service(client);
       await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
+      // errors.corruptedstorage = {
+      //   userid,
+      //   backup: await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" }),
+      //   confirmed: false,
+      //   local: false,
+      // };
+      // storage = Storage.getDefault();
+      // updateState(dispatch, [
+      //   lb<IState>()
+      //     .p("errors")
+      //     .recordModify((e) => ({ ...e, ...errors })),
+      // ]);
+      // await service.signout();
+      // return;
     }
     storage.tempUserId = result.user_id;
     storage.email = result.email;

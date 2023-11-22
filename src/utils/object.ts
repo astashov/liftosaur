@@ -16,37 +16,6 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
-  export function isChanged<T extends Record<string, any>>(oldObj: T, newObj: T): boolean {
-    return diffPaths(oldObj, newObj).length > 0;
-  }
-
-  export function diffPaths(obj1original: Record<string, unknown>, obj2original: Record<string, unknown>): string[] {
-    const result: string[] = [];
-    const queue: {
-      obj1: any;
-      obj2: any;
-      path: string;
-    }[] = [{ obj1: obj1original, obj2: obj2original, path: "" }];
-
-    while (queue.length > 0) {
-      const { obj1, obj2, path } = queue.shift()!;
-
-      if (Object(obj1) !== obj1 || Object(obj2) !== obj2) {
-        if (obj1 !== obj2) {
-          result.push(path);
-        }
-        continue;
-      }
-
-      for (const key of new Set([...Object.keys(obj1), ...Object.keys(obj2)])) {
-        const newPath = path ? `${path}.${key}` : key;
-        queue.push({ obj1: obj1[key], obj2: obj2[key], path: newPath });
-      }
-    }
-
-    return result;
-  }
-
   export function changedKeys<T extends {}>(
     oldObj: T,
     newObj: T

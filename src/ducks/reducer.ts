@@ -327,7 +327,7 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     ...(window.reducerLastActions || []).slice(0, 30),
   ];
   const newState = reducer(state, action);
-  if (ObjectUtils.isChanged(state.storage, newState.storage)) {
+  if (state.storage !== newState.storage) {
     newState.storage = {
       ...newState.storage,
       id: (newState.storage.id || 0) + 1,
