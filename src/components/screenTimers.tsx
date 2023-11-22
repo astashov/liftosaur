@@ -27,7 +27,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
           loading={props.loading}
           dispatch={props.dispatch}
           screenStack={props.screenStack}
-          title="Timers"
+          title="Rest Timers"
           helpContent={<HelpTimers />}
         />
       }
