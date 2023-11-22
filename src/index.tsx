@@ -14,6 +14,7 @@ import { DateUtils } from "./utils/date";
 import { IndexedDBUtils } from "./utils/indexeddb";
 import { Service } from "./api/service";
 import { UrlUtils } from "./utils/url";
+import { AsyncQueue } from "./utils/asyncQueue";
 
 IndexedDBUtils.initializeForSafari();
 
@@ -39,7 +40,11 @@ async function initialize(loadedData: unknown): Promise<void> {
   Rollbar.configure(RollbarUtils.config({ person: { id: uid } }));
   (window as any).state = initialState;
   (window as any).service = new Service(window.fetch.bind(window));
-  render(<AppView initialState={initialState} client={client} audio={audio} />, document.getElementById("app")!);
+  const queue = new AsyncQueue();
+  render(
+    <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
+    document.getElementById("app")!
+  );
 }
 
 IndexedDBUtils.getAllKeys();

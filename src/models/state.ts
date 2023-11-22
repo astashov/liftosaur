@@ -14,10 +14,12 @@ import {
   IExerciseType,
   IEquipment,
 } from "../types";
+import { AsyncQueue } from "../utils/asyncQueue";
 
 export type IEnv = {
   service: Service;
   audio: IAudioInterface;
+  queue: AsyncQueue;
 };
 
 export type IFriendStatus = "invited" | "active" | "pending" | "loading";

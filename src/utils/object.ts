@@ -16,6 +16,80 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function isEqual<T extends Record<string, any>>(obj1: T, obj2: T): boolean {
+    // Create a stack for comparing objects
+    const stack: Array<[any, any]> = [[obj1, obj2]];
+
+    while (stack.length > 0) {
+      // Pop a pair of items from the stack
+      const [currentObj1, currentObj2] = stack.pop()!;
+
+      // Check if both are objects
+      if (
+        typeof currentObj1 !== "object" ||
+        typeof currentObj2 !== "object" ||
+        currentObj1 == null ||
+        currentObj2 == null
+      ) {
+        if (currentObj1 !== currentObj2) {
+          return false;
+        }
+        continue;
+      }
+
+      // Get keys of both objects
+      const keys1 = Object.keys(currentObj1);
+      const keys2 = Object.keys(currentObj2);
+
+      // Check number of keys
+      if (keys1.length !== keys2.length) {
+        return false;
+      }
+
+      // Iterate over keys and add nested objects to the stack
+      for (const key of keys1) {
+        if (keys2.indexOf(key) === -1) {
+          return false;
+        }
+        stack.push([currentObj1[key], currentObj2[key]]);
+      }
+    }
+
+    // If all checks pass, the objects are equal
+    return true;
+  }
+
+  export function diffPaths(obj1original: Record<string, unknown>, obj2original: Record<string, unknown>): string[] {
+    const result: string[] = [];
+    const queue: {
+      obj1: any;
+      obj2: any;
+      path: string;
+    }[] = [{ obj1: obj1original, obj2: obj2original, path: "" }];
+
+    while (queue.length > 0) {
+      const { obj1, obj2, path } = queue.shift()!;
+
+      if (obj1 === obj2) {
+        continue;
+      }
+
+      if (Object(obj1) !== obj1 || Object(obj2) !== obj2) {
+        if (obj1 !== obj2) {
+          result.push(path);
+        }
+        continue;
+      }
+
+      for (const key of new Set([...Object.keys(obj1), ...Object.keys(obj2)])) {
+        const newPath = path ? `${path}.${key}` : key;
+        queue.push({ obj1: obj1[key], obj2: obj2[key], path: newPath });
+      }
+    }
+
+    return result;
+  }
+
   export function changedKeys<T extends {}>(
     oldObj: T,
     newObj: T

@@ -44,20 +44,22 @@ import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
 import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils } from "../utils/url";
+import { AsyncQueue } from "../utils/asyncQueue";
 
 interface IProps {
   client: Window["fetch"];
   audio: IAudioInterface;
   initialState: IState;
+  queue: AsyncQueue;
 }
 
 export function AppView(props: IProps): JSX.Element | null {
-  const { client, audio } = props;
+  const { client, audio, queue } = props;
   const service = new Service(client);
-  const env: IEnv = { service, audio };
+  const env: IEnv = { service, audio, queue };
   const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, env, [
     (action, oldState, newState) => {
-      if (oldState.storage !== newState.storage) {
+      if (!ObjectUtils.isEqual(oldState.storage, newState.storage)) {
         dispatch(
           Thunk.sync({
             withHistory: oldState.storage.history !== newState.storage.history,
