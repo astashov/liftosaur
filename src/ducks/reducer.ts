@@ -5,8 +5,6 @@ import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
-import deepmerge from "deepmerge";
-import { CollectionUtils } from "../utils/collection";
 import { ILensRecordingPayload, lf } from "lens-shmens";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
@@ -23,7 +21,6 @@ import {
   IProgramExercise,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
-import { Equipment } from "../models/equipment";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { LogUtils } from "../utils/log";
 import { ProgramExercise } from "../models/programExercise";
@@ -327,10 +324,25 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     ...(window.reducerLastActions || []).slice(0, 30),
   ];
   const newState = reducer(state, action);
-  if (!ObjectUtils.isEqual(state.storage, newState.storage)) {
+  if (Storage.isChanged(state.storage, newState.storage)) {
+    const dateNow = Date.now();
+    console.log("New id", dateNow);
+
+    const newPrograms = newState.storage.programs.map((program) => {
+      const oldProgram = state.storage.programs.find((p) => p.id === program.id);
+      if (oldProgram && Program.isChanged(oldProgram, program)) {
+        console.log("New version of", program.name, "is", dateNow);
+        return { ...program, version: dateNow, originalVersion: program.originalVersion ?? dateNow };
+      } else {
+        return program;
+      }
+    });
+
     newState.storage = {
       ...newState.storage,
-      id: (newState.storage.id || 0) + 1,
+      programs: newPrograms,
+      id: dateNow,
+      originalId: newState.storage.originalId ?? dateNow,
       version: getLatestMigrationVersion(),
     };
   }
@@ -586,130 +598,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return newState;
     }, state);
   } else if (action.type === "SyncStorage") {
-    const oldStorage = state.storage;
-    const newStorage = action.storage;
-    if (newStorage?.id != null && oldStorage?.id != null && newStorage.id > oldStorage.id) {
-      const storage: IStorage = {
-        id: newStorage.id,
-        email: newStorage.email,
-        reviewRequests: newStorage.reviewRequests,
-        signupRequests: newStorage.signupRequests,
-        affiliates: newStorage.affiliates,
-        deletedHistory: newStorage.deletedHistory,
-        deletedPrograms: newStorage.deletedPrograms,
-        deletedStats: newStorage.deletedStats,
-        stats: {
-          weight: {
-            weight: CollectionUtils.concatBy(
-              oldStorage.stats.weight.weight || [],
-              newStorage.stats.weight.weight || [],
-              (el) => `${el.timestamp}`
-            ),
-          },
-          length: {
-            neck: CollectionUtils.concatBy(
-              oldStorage.stats.length.neck || [],
-              newStorage.stats.length.neck || [],
-              (el) => `${el.timestamp}`
-            ),
-            shoulders: CollectionUtils.concatBy(
-              oldStorage.stats.length.shoulders || [],
-              newStorage.stats.length.shoulders || [],
-              (el) => `${el.timestamp}`
-            ),
-            bicepLeft: CollectionUtils.concatBy(
-              oldStorage.stats.length.bicepLeft || [],
-              newStorage.stats.length.bicepLeft || [],
-              (el) => `${el.timestamp}`
-            ),
-            bicepRight: CollectionUtils.concatBy(
-              oldStorage.stats.length.bicepRight || [],
-              newStorage.stats.length.bicepRight || [],
-              (el) => `${el.timestamp}`
-            ),
-            forearmLeft: CollectionUtils.concatBy(
-              oldStorage.stats.length.forearmLeft || [],
-              newStorage.stats.length.forearmLeft || [],
-              (el) => `${el.timestamp}`
-            ),
-            forearmRight: CollectionUtils.concatBy(
-              oldStorage.stats.length.forearmRight || [],
-              newStorage.stats.length.forearmRight || [],
-              (el) => `${el.timestamp}`
-            ),
-            chest: CollectionUtils.concatBy(
-              oldStorage.stats.length.chest || [],
-              newStorage.stats.length.chest || [],
-              (el) => `${el.timestamp}`
-            ),
-            waist: CollectionUtils.concatBy(
-              oldStorage.stats.length.waist || [],
-              newStorage.stats.length.waist || [],
-              (el) => `${el.timestamp}`
-            ),
-            hips: CollectionUtils.concatBy(
-              oldStorage.stats.length.hips || [],
-              newStorage.stats.length.hips || [],
-              (el) => `${el.timestamp}`
-            ),
-            thighLeft: CollectionUtils.concatBy(
-              oldStorage.stats.length.thighLeft || [],
-              newStorage.stats.length.thighLeft || [],
-              (el) => `${el.timestamp}`
-            ),
-            thighRight: CollectionUtils.concatBy(
-              oldStorage.stats.length.thighRight || [],
-              newStorage.stats.length.thighRight || [],
-              (el) => `${el.timestamp}`
-            ),
-            calfLeft: CollectionUtils.concatBy(
-              oldStorage.stats.length.calfLeft || [],
-              newStorage.stats.length.calfLeft || [],
-              (el) => `${el.timestamp}`
-            ),
-            calfRight: CollectionUtils.concatBy(
-              oldStorage.stats.length.calfRight || [],
-              newStorage.stats.length.calfRight || [],
-              (el) => `${el.timestamp}`
-            ),
-          },
-          percentage: {
-            bodyfat: CollectionUtils.concatBy(
-              oldStorage.stats.percentage.bodyfat || [],
-              newStorage.stats.percentage.bodyfat || [],
-              (el) => `${el.timestamp}`
-            ),
-          },
-        },
-        settings: {
-          equipment: Equipment.mergeEquipment(oldStorage.settings.equipment, newStorage.settings.equipment),
-          graphsSettings: newStorage.settings.graphsSettings,
-          graphOptions: newStorage.settings.graphOptions,
-          exerciseStatsSettings: newStorage.settings.exerciseStatsSettings,
-          lengthUnits: newStorage.settings.lengthUnits,
-          statsEnabled: newStorage.settings.statsEnabled,
-          exercises: newStorage.settings.exercises,
-          graphs: newStorage.settings.graphs || [],
-          timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
-          units: newStorage.settings.units,
-          isPublicProfile: newStorage.settings.isPublicProfile,
-          shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
-          nickname: newStorage.settings.nickname,
-          volume: newStorage.settings.volume,
-        },
-        subscription: {
-          apple: { ...oldStorage.subscription.apple, ...newStorage.subscription.apple },
-          google: { ...oldStorage.subscription.google, ...newStorage.subscription.google },
-        },
-        tempUserId: newStorage.tempUserId || UidFactory.generateUid(10),
-        currentProgramId: newStorage.currentProgramId,
-        history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date!),
-        version: newStorage.version,
-        programs: newStorage.programs,
-        helps: newStorage.helps,
-        whatsNew: newStorage.whatsNew,
-      };
-      return { ...state, storage };
+    const oldStorage = state.storage.id < action.storage.id ? state.storage : action.storage;
+    const newStorage = state.storage.id < action.storage.id ? action.storage : state.storage;
+    if (newStorage.id != null && oldStorage.id != null) {
+      return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage) };
     } else {
       return state;
     }

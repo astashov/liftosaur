@@ -124,7 +124,7 @@ export class UserDao {
         deletedPrograms: [],
         stats: { weight: {}, length: {}, percentage: {} },
         deletedStats: [],
-        id: 1,
+        id: Date.now(),
         currentProgramId: undefined,
         version: getLatestMigrationVersion(),
         helps: [],
@@ -185,36 +185,55 @@ export class UserDao {
 
   public getHistoryByUserId(userId: string): Promise<IHistoryRecord[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.query<IHistoryRecord>({
-      tableName: userTableNames[env].historyRecords,
-      indexName: userTableNames[env].historyRecordsDate,
-      expression: "#userId = :userId",
-      scanIndexForward: false,
-      attrs: { "#userId": "userId" },
-      values: { ":userId": userId },
-    });
+    return this.di.dynamo
+      .query<IHistoryRecord & { userId?: string }>({
+        tableName: userTableNames[env].historyRecords,
+        indexName: userTableNames[env].historyRecordsDate,
+        expression: "#userId = :userId",
+        scanIndexForward: false,
+        attrs: { "#userId": "userId" },
+        values: { ":userId": userId },
+      })
+      .then((arr) =>
+        arr.map((r) => {
+          delete r.userId;
+          return r;
+        })
+      );
   }
 
   public async getStatsByUserId(userId: string): Promise<IStats> {
     const env = Utils.getEnv();
-    const statsDb = await this.di.dynamo.query<IStatDb>({
+    const statsDb = await this.di.dynamo.query<IStatDb & { userId?: string }>({
       tableName: userTableNames[env].stats,
       expression: "#userId = :userId",
       scanIndexForward: false,
       attrs: { "#userId": "userId" },
       values: { ":userId": userId },
     });
-    return convertStatsFromDb(statsDb);
+    return convertStatsFromDb(
+      statsDb.map((s) => {
+        delete s.userId;
+        return s;
+      })
+    );
   }
 
   public getProgramsByUserId(userId: string): Promise<IProgram[]> {
     const env = Utils.getEnv();
-    return this.di.dynamo.query<IProgram>({
-      tableName: userTableNames[env].programs,
-      expression: "#userId = :userId",
-      attrs: { "#userId": "userId" },
-      values: { ":userId": userId },
-    });
+    return this.di.dynamo
+      .query<IProgram & { userId?: string }>({
+        tableName: userTableNames[env].programs,
+        expression: "#userId = :userId",
+        attrs: { "#userId": "userId" },
+        values: { ":userId": userId },
+      })
+      .then((arr) =>
+        arr.map((r) => {
+          delete r.userId;
+          return r;
+        })
+      );
   }
 
   public async getProgramsByUserIds(userIds: string[]): Promise<(IProgram & { userId: string })[]> {

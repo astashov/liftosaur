@@ -930,8 +930,8 @@ export const TStorage = t.intersection(
       whatsNew: t.union([t.string, t.undefined]),
     }),
     t.partial({
-      referrer: t.string,
       originalId: t.number,
+      referrer: t.string,
     }),
   ],
   "TStorage"

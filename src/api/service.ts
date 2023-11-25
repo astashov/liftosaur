@@ -10,6 +10,20 @@ export interface IGetStorageResponse {
   key?: string;
 }
 
+export type IPostStorageResponse =
+  | {
+      status: "success";
+      newOriginalId: number;
+    }
+  | {
+      status: "request";
+      data: ("programs" | "history" | "stats")[];
+    }
+  | {
+      status: "merged";
+      storage: IStorage;
+    };
+
 type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
 
 const cachePromises: Partial<Record<string, unknown>> = {};
@@ -70,12 +84,14 @@ export class Service {
     });
   }
 
-  public async postStorage(storage: IPartialStorage): Promise<void> {
-    await this.client(`${__API_HOST__}/api/storage`, {
+  public async postStorage(storage: IPartialStorage): Promise<IPostStorageResponse> {
+    const result = await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",
       body: JSON.stringify({ storage }),
       credentials: "include",
     });
+    const json = await result.json();
+    return json;
   }
 
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {

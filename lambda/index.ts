@@ -9,7 +9,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IStorage } from "../src/types";
+import { IHistoryRecord, IPartialStorage, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -36,6 +36,7 @@ import { NodeEncoder } from "./utils/nodeEncoder";
 import { IBuilderProgram } from "../src/pages/builder/models/types";
 import { renderProgramHtml } from "./program";
 import { IExportedProgram } from "../src/models/program";
+import { Storage } from "../src/models/storage";
 import { ImportExporter } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
@@ -211,13 +212,54 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   const user = await getCurrentLimitedUser(event, di);
   if (user != null) {
     const bodyJson = getBodyJson(event);
-    const storage: IStorage = bodyJson.storage;
+    const storage: IPartialStorage | IStorage = bodyJson.storage;
     const userDao = new UserDao(di);
+    console.log("storage.originalId", storage.originalId);
+    console.log("user.storage.id", user.storage.id);
+    if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
+      Storage.updateIds(storage);
+      await userDao.saveStorage(user, storage);
+      return ResponseUtils.json(200, event, { status: "success", newOriginalId: storage.originalId });
+    } else {
+      console.log("There's a conflict!");
+      if (storage.programs == null || storage.history == null || storage.stats == null) {
+        console.log("Requesting full storage");
+        return ResponseUtils.json(200, event, { status: "request", data: ["programs", "stats", "history"] });
+      } else if (Storage.isFullStorage(storage)) {
+        console.log("Merging the storages");
+        const fullUser = await userDao.getById(user.id);
+        if (fullUser != null) {
+          console.log("Old Storage");
+          console.log(fullUser.storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
+          console.log("\n\nNew Storage");
+          console.log(storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
+          const newStorage = Storage.mergeStorage(fullUser.storage, storage);
+          console.log("Merged Storage");
+          console.log(newStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
 
-    await userDao.saveStorage(user, storage);
+          Storage.updateIds(newStorage);
+          await userDao.saveStorage(fullUser, newStorage);
+          return ResponseUtils.json(200, event, { status: "merged", storage: newStorage });
+        } else {
+          throw new Error(`Can't find user ${user.id}`);
+        }
+      } else {
+        throw new Error(`Accepted storage wasn't a full storage for user ${user.id}`);
+      }
+    }
   }
   return ResponseUtils.json(200, event, {});
 };
+
+function printHistoryRecord(historyRecord: IHistoryRecord): string {
+  return (
+    historyRecord.entries
+      .map((entry) => {
+        return `${entry.exercise.id} - ${entry.sets.map((s) => s.completedReps).join("/")}`;
+      })
+      .join("\n") + "\n"
+  );
+}
 
 const saveDebugEndpoint = Endpoint.build("/api/debug");
 const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugEndpoint> = async ({

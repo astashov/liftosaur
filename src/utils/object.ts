@@ -41,16 +41,8 @@ export namespace ObjectUtils {
       const keys1 = Object.keys(currentObj1);
       const keys2 = Object.keys(currentObj2);
 
-      // Check number of keys
-      if (keys1.length !== keys2.length) {
-        return false;
-      }
-
       // Iterate over keys and add nested objects to the stack
-      for (const key of keys1) {
-        if (keys2.indexOf(key) === -1) {
-          return false;
-        }
+      for (const key of new Set([...keys1, ...keys2])) {
         stack.push([currentObj1[key], currentObj2[key]]);
       }
     }
@@ -59,7 +51,7 @@ export namespace ObjectUtils {
     return true;
   }
 
-  export function diffPaths(obj1original: Record<string, unknown>, obj2original: Record<string, unknown>): string[] {
+  export function diffPaths<T extends object>(obj1original: T, obj2original: T): string[] {
     const result: string[] = [];
     const queue: {
       obj1: any;

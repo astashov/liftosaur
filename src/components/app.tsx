@@ -26,6 +26,7 @@ import { ScreenFriends } from "./screenFriends";
 import { ScreenFriendsAdd } from "./screenFriendsAdd";
 import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
+import { Storage } from "../models/storage";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
 import { ScreenMeasurements } from "./screenMeasurements";
@@ -59,7 +60,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const env: IEnv = { service, audio, queue };
   const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, env, [
     (action, oldState, newState) => {
-      if (!ObjectUtils.isEqual(oldState.storage, newState.storage)) {
+      if (Storage.isChanged(oldState.storage, newState.storage)) {
         dispatch(
           Thunk.sync({
             withHistory: oldState.storage.history !== newState.storage.history,

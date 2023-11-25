@@ -38,6 +38,7 @@ import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
+import { CollectionUtils } from "../utils/collection";
 
 declare let __HOST__: string;
 
@@ -892,5 +893,47 @@ export namespace Program {
 
   export function switchToUnit(program: IProgram, settings: ISettings): IProgram {
     return { ...program, exercises: program.exercises.map((ex) => ProgramExercise.switchToUnit(ex, settings)) };
+  }
+
+  export function isChanged(aProgram: IProgram, bProgram: IProgram): boolean {
+    const { originalVersion: _aOriginalVersion, version: _aVersion, ...cleanedAProgram } = aProgram;
+    const { originalVersion: _bOriginalVersion, version: _bVersion, ...cleanedBProgram } = bProgram;
+    const changed = !ObjectUtils.isEqual(cleanedAProgram, cleanedBProgram);
+    if (changed) {
+      const paths = ObjectUtils.diffPaths(cleanedAProgram, cleanedBProgram);
+      console.log("Changed program paths", paths);
+      return paths.some((p) => {
+        return !p.match(/exercises.\d+.state/) && !p.match(/exercises.\d+.reuseLogic\.states/) && !p.match(/nextDay/);
+      });
+    }
+    return false;
+  }
+
+  export function mergePrograms(aProgram: IProgram, bProgram: IProgram): IProgram {
+    const oldProgram = (aProgram.version || 0) > (bProgram.version || 0) ? aProgram : bProgram;
+    const newProgram = (aProgram.version || 0) > (bProgram.version || 0) ? bProgram : aProgram;
+    return {
+      id: newProgram.id,
+      name: newProgram.name,
+      description: newProgram.description,
+      url: newProgram.url,
+      author: newProgram.author,
+      nextDay: newProgram.nextDay,
+      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id),
+      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id),
+      isMultiweek: newProgram.isMultiweek,
+      tags: newProgram.tags,
+      version: newProgram.version,
+      originalVersion: newProgram.originalVersion,
+      shortDescription: newProgram.shortDescription,
+      exercises: newProgram.exercises.map((e) => {
+        const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
+        if (oldExercise) {
+          return ProgramExercise.mergeExercises(oldExercise, e);
+        } else {
+          return e;
+        }
+      }),
+    };
   }
 }

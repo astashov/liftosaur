@@ -390,4 +390,27 @@ export namespace ProgramExercise {
       warmupSets: newWarmupSets,
     };
   }
+
+  export function mergeExercises(oldExercise: IProgramExercise, newExercise: IProgramExercise): IProgramExercise {
+    return {
+      state: { ...oldExercise.state, ...newExercise.state },
+
+      exerciseType: newExercise.exerciseType,
+      id: newExercise.id,
+      name: newExercise.name,
+      variations: newExercise.variations,
+      variationExpr: newExercise.variationExpr,
+      finishDayExpr: newExercise.finishDayExpr,
+      descriptions: newExercise.descriptions,
+      description: newExercise.description,
+      descriptionExpr: newExercise.descriptionExpr,
+      quickAddSets: newExercise.quickAddSets,
+      enableRepRanges: newExercise.enableRepRanges,
+      enableRpe: newExercise.enableRpe,
+      stateMetadata: newExercise.stateMetadata,
+      timerExpr: newExercise.timerExpr,
+      reuseLogic: newExercise.reuseLogic,
+      warmupSets: newExercise.warmupSets,
+    };
+  }
 }
