@@ -627,18 +627,19 @@ export namespace Program {
         .p("storage")
         .p("programs")
         .recordModify((programs) => {
+          const newProgram = { ...program, clonedAt: Date.now() };
           if (programs.some((p) => p.id === program.id)) {
             if (
               confirm(
                 "You already have this program cloned. Do you want to override? All your modifications of this program will be lost."
               )
             ) {
-              return programs.map((p) => (p.id === program.id ? program : p));
+              return programs.map((p) => (p.id === newProgram.id ? newProgram : p));
             } else {
               return programs;
             }
           } else {
-            return [...programs, program];
+            return [...programs, newProgram];
           }
         }),
       lb<IState>().p("storage").p("currentProgramId").record(program.id),
@@ -896,8 +897,8 @@ export namespace Program {
   }
 
   export function isChanged(aProgram: IProgram, bProgram: IProgram): boolean {
-    const { originalVersion: _aOriginalVersion, version: _aVersion, ...cleanedAProgram } = aProgram;
-    const { originalVersion: _bOriginalVersion, version: _bVersion, ...cleanedBProgram } = bProgram;
+    const { ...cleanedAProgram } = aProgram;
+    const { ...cleanedBProgram } = bProgram;
     const changed = !ObjectUtils.isEqual(cleanedAProgram, cleanedBProgram);
     if (changed) {
       const paths = ObjectUtils.diffPaths(cleanedAProgram, cleanedBProgram);
@@ -909,9 +910,7 @@ export namespace Program {
     return false;
   }
 
-  export function mergePrograms(aProgram: IProgram, bProgram: IProgram): IProgram {
-    const oldProgram = (aProgram.version || 0) > (bProgram.version || 0) ? aProgram : bProgram;
-    const newProgram = (aProgram.version || 0) > (bProgram.version || 0) ? bProgram : aProgram;
+  export function mergePrograms(oldProgram: IProgram, newProgram: IProgram): IProgram {
     return {
       id: newProgram.id,
       name: newProgram.name,
@@ -923,8 +922,6 @@ export namespace Program {
       weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id),
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
-      version: newProgram.version,
-      originalVersion: newProgram.originalVersion,
       shortDescription: newProgram.shortDescription,
       exercises: newProgram.exercises.map((e) => {
         const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);

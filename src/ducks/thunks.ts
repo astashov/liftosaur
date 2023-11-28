@@ -641,10 +641,11 @@ export namespace Thunk {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises, customEquipment } = result.data;
-        if (!confirm(`Do you want to import program ${program.name}?`)) {
+        const newProgram: IProgram = { ...program, clonedAt: Date.now() };
+        if (!confirm(`Do you want to import program ${newProgram.name}?`)) {
           return;
         }
-        const hasExistingProgram = getState().storage.programs.some((p) => p.id === program.id);
+        const hasExistingProgram = getState().storage.programs.some((p) => p.id === newProgram.id);
         if (hasExistingProgram && !confirm("Program with the same id already exists, do you want to overwrite it?")) {
           return;
         }
@@ -665,11 +666,11 @@ export namespace Thunk {
               .p("storage")
               .p("programs")
               .recordModify((programs) => {
-                const index = programs.findIndex((p) => p.id === program.id);
+                const index = programs.findIndex((p) => p.id === newProgram.id);
                 if (index !== -1) {
-                  return CollectionUtils.setAt(programs, index, program);
+                  return CollectionUtils.setAt(programs, index, newProgram);
                 } else {
-                  return [...programs, program];
+                  return [...programs, newProgram];
                 }
               }),
           ],

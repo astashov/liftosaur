@@ -76,6 +76,9 @@ export namespace Storage {
       currentProgramId: undefined,
       reviewRequests: [],
       signupRequests: [],
+      deletedHistory: [],
+      deletedPrograms: [],
+      deletedStats: [],
       tempUserId: UidFactory.generateUid(10),
       affiliates: {},
       stats: {
@@ -125,16 +128,16 @@ export namespace Storage {
 
   export function updateIds(storage: IStorage | IPartialStorage): void {
     storage.originalId = storage.id;
-    for (const program of storage.programs || []) {
-      if (program.version != null) {
-        program.originalVersion = program.version;
-      }
-    }
   }
 
   export function mergeStorage(aStorage: IStorage, bStorage: IStorage): IStorage {
     const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
     const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
+
+    const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
+    const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
+    const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
+
     const storage: IStorage = {
       id: newStorage.id,
       originalId: newStorage.originalId,
@@ -142,87 +145,90 @@ export namespace Storage {
       reviewRequests: newStorage.reviewRequests,
       signupRequests: newStorage.signupRequests,
       affiliates: newStorage.affiliates,
+      deletedHistory: Array.from(deletedHistory),
+      deletedPrograms: Array.from(deletedPrograms),
+      deletedStats: Array.from(deletedStats),
       stats: {
         weight: {
           weight: CollectionUtils.concatBy(
             oldStorage.stats.weight.weight || [],
             newStorage.stats.weight.weight || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
         },
         length: {
           neck: CollectionUtils.concatBy(
             oldStorage.stats.length.neck || [],
             newStorage.stats.length.neck || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           shoulders: CollectionUtils.concatBy(
             oldStorage.stats.length.shoulders || [],
             newStorage.stats.length.shoulders || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           bicepLeft: CollectionUtils.concatBy(
             oldStorage.stats.length.bicepLeft || [],
             newStorage.stats.length.bicepLeft || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           bicepRight: CollectionUtils.concatBy(
             oldStorage.stats.length.bicepRight || [],
             newStorage.stats.length.bicepRight || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           forearmLeft: CollectionUtils.concatBy(
             oldStorage.stats.length.forearmLeft || [],
             newStorage.stats.length.forearmLeft || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           forearmRight: CollectionUtils.concatBy(
             oldStorage.stats.length.forearmRight || [],
             newStorage.stats.length.forearmRight || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           chest: CollectionUtils.concatBy(
             oldStorage.stats.length.chest || [],
             newStorage.stats.length.chest || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           waist: CollectionUtils.concatBy(
             oldStorage.stats.length.waist || [],
             newStorage.stats.length.waist || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           hips: CollectionUtils.concatBy(
             oldStorage.stats.length.hips || [],
             newStorage.stats.length.hips || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           thighLeft: CollectionUtils.concatBy(
             oldStorage.stats.length.thighLeft || [],
             newStorage.stats.length.thighLeft || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           thighRight: CollectionUtils.concatBy(
             oldStorage.stats.length.thighRight || [],
             newStorage.stats.length.thighRight || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           calfLeft: CollectionUtils.concatBy(
             oldStorage.stats.length.calfLeft || [],
             newStorage.stats.length.calfLeft || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
           calfRight: CollectionUtils.concatBy(
             oldStorage.stats.length.calfRight || [],
             newStorage.stats.length.calfRight || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
         },
         percentage: {
           bodyfat: CollectionUtils.concatBy(
             oldStorage.stats.percentage.bodyfat || [],
             newStorage.stats.percentage.bodyfat || [],
             (el) => `${el.timestamp}`
-          ),
+          ).filter((el) => !deletedStats.has(el.timestamp)),
         },
       },
       settings: {
@@ -247,16 +253,20 @@ export namespace Storage {
       },
       tempUserId: newStorage.tempUserId || oldStorage.tempUserId || UidFactory.generateUid(10),
       currentProgramId: newStorage.currentProgramId,
-      history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date),
+      history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date).filter(
+        (el) => !deletedHistory.has(el.startTime)
+      ),
       version: newStorage.version,
-      programs: newStorage.programs.map((p) => {
-        const oldProgram = oldStorage.programs.find((op) => op.id === p.id);
-        if (oldProgram) {
-          return Program.mergePrograms(oldProgram, p);
-        } else {
-          return p;
-        }
-      }),
+      programs: newStorage.programs
+        .map((p) => {
+          const oldProgram = oldStorage.programs.find((op) => op.id === p.id);
+          if (oldProgram) {
+            return Program.mergePrograms(oldProgram, p);
+          } else {
+            return p;
+          }
+        })
+        .filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt)),
       helps: Array.from(new Set([...newStorage.helps, ...oldStorage.helps])),
       whatsNew: newStorage.whatsNew,
     };

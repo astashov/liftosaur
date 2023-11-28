@@ -230,10 +230,11 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
           console.log("Old Storage");
-          console.log(fullUser.storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
+          const oldStorage = await runMigrations(fetch, fullUser.storage as IStorage, storage.version);
+          console.log(oldStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
           console.log("\n\nNew Storage");
           console.log(storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
-          const newStorage = Storage.mergeStorage(fullUser.storage, storage);
+          const newStorage = Storage.mergeStorage(oldStorage, storage);
           console.log("Merged Storage");
           console.log(newStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
 

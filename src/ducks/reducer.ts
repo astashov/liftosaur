@@ -328,19 +328,8 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
     const dateNow = Date.now();
     console.log("New id", dateNow);
 
-    const newPrograms = newState.storage.programs.map((program) => {
-      const oldProgram = state.storage.programs.find((p) => p.id === program.id);
-      if (oldProgram && Program.isChanged(oldProgram, program)) {
-        console.log("New version of", program.name, "is", dateNow);
-        return { ...program, version: dateNow, originalVersion: program.originalVersion ?? dateNow };
-      } else {
-        return program;
-      }
-    });
-
     newState.storage = {
       ...newState.storage,
-      programs: newPrograms,
       id: dateNow,
       originalId: newState.storage.originalId ?? dateNow,
       version: getLatestMigrationVersion(),

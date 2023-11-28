@@ -115,6 +115,9 @@ export class UserDao {
       appleId: opts.appleId,
       createdAt: Date.now(),
       storage: {
+        deletedHistory: [],
+        deletedPrograms: [],
+        deletedStats: [],
         affiliates: {},
         signupRequests: [],
         reviewRequests: [],
