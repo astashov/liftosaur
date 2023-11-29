@@ -212,19 +212,18 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
     const bodyJson = getBodyJson(event);
     const storage: IPartialStorage | IStorage = bodyJson.storage;
     const userDao = new UserDao(di);
-    console.log("storage.originalId", storage.originalId);
-    console.log("user.storage.id", user.storage.id);
     if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
+      di.log.log("Appendable safe update");
       Storage.updateIds(storage);
       await userDao.saveStorage(user, storage);
       return ResponseUtils.json(200, event, { status: "success", newOriginalId: storage.originalId });
     } else {
-      console.log("There's a conflict!");
+      di.log.log("Dangerous update, merging");
       if (storage.programs == null || storage.history == null || storage.stats == null) {
-        console.log("Requesting full storage");
+        di.log.log("Requesting full storage");
         return ResponseUtils.json(200, event, { status: "request", data: ["programs", "stats", "history"] });
       } else if (Storage.isFullStorage(storage)) {
-        console.log("Merging the storages");
+        di.log.log("Merging the storages");
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
           console.log("Old Storage");

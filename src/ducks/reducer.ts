@@ -7,7 +7,7 @@ import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
 import { ILensRecordingPayload, lf } from "lens-shmens";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
+import { IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
@@ -29,6 +29,10 @@ import { unrunMigrations } from "../migrations/runner";
 import { ObjectUtils } from "../utils/object";
 import { UrlUtils } from "../utils/url";
 import { DateUtils } from "../utils/date";
+import { IReducerOnAction } from "./types";
+import { Thunk } from "./thunks";
+import { CollectionUtils } from "../utils/collection";
+import { Subscriptions } from "../utils/subscriptions";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -316,6 +320,70 @@ export type IAction =
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
+
+export function defaultOnActions(env: IEnv): IReducerOnAction[] {
+  return [
+    (dispatch, action, oldState, newState) => {
+      if (Storage.isChanged(oldState.storage, newState.storage)) {
+        dispatch(
+          Thunk.sync({
+            withHistory: oldState.storage.history !== newState.storage.history,
+            withStats: oldState.storage.stats !== newState.storage.stats,
+            withPrograms: oldState.storage.programs !== newState.storage.programs,
+          })
+        );
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const progress = newState.progress[0];
+      if (progress != null) {
+        const oldProgram = Program.getProgram(oldState, progress.programId);
+        const newProgram = Program.getProgram(newState, progress.programId);
+        if (oldProgram != null && newProgram != null && oldProgram !== newProgram) {
+          const changes = ObjectUtils.changedKeys(oldProgram, newProgram);
+          if (ObjectUtils.keys(changes).length === 1 && changes.exercises === "update") {
+            const changedExerciseIds = Array.from(
+              new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
+            );
+            const onlyState = changedExerciseIds.every((id) => {
+              const oldExercise = oldProgram.exercises.find((e) => e.id === id);
+              const newExercise = newProgram.exercises.find((e) => e.id === id);
+              const exerciseChanges =
+                oldExercise && newExercise ? ObjectUtils.changedKeys(oldExercise, newExercise) : {};
+              return ObjectUtils.keys(exerciseChanges).length === 1 && exerciseChanges.state === "update";
+            });
+            dispatch({
+              type: "ApplyProgramChangesToProgress",
+              programExerciseIds: changedExerciseIds,
+              checkReused: !onlyState,
+            });
+          } else {
+            dispatch({ type: "ApplyProgramChangesToProgress" });
+          }
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (oldState.screenStack !== newState.screenStack) {
+        setTimeout(() => {
+          window.scroll(0, 0);
+        }, 0);
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (oldState.storage.subscription.apple !== newState.storage.subscription.apple) {
+        const userId = newState.user?.id || newState.storage.tempUserId;
+        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, env.service, newState.storage.subscription);
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
+        const userId = newState.user?.id || newState.storage.tempUserId;
+        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
+      }
+    },
+  ];
+}
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   if (typeof window !== "undefined") {

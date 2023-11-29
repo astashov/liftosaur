@@ -1,4 +1,4 @@
-import { IGThunk } from "../ducks/types";
+import { IGDispatch, IGThunk } from "../ducks/types";
 import { useThunkReducer } from "./useThunkReducer";
 import { ILensRecordingPayload } from "lens-shmens";
 import { useCallback } from "preact/hooks";
@@ -33,7 +33,17 @@ export function useLensReducer<TState, TEnv>(
     ) => void | Promise<void>
   > = []
 ): [TState, ILensDispatch<TState>] {
-  const [hookState, thunkDispatch] = useThunkReducer(
+  const modifiedOnActions = onActions.map((onAction) => {
+    return (
+      dispatch: IGDispatch<TState, IAction<TState>, TEnv>,
+      action: IAction<TState> | IGThunk<TState, IAction<TState>, TEnv>,
+      oldState: TState,
+      newState: TState
+    ): void => {
+      onAction(action, oldState, newState);
+    };
+  });
+  const [hookState, thunkDispatch] = useThunkReducer<TState, IAction<TState>, TEnv>(
     (state, action) => {
       if (isLoggingEnabled) {
         console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");
@@ -51,7 +61,7 @@ export function useLensReducer<TState, TEnv>(
     },
     initialState,
     env,
-    onActions
+    modifiedOnActions
   );
 
   const dispatch = useCallback(

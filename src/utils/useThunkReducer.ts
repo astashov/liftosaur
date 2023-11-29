@@ -1,13 +1,11 @@
 import { useRef, useCallback, Reducer, useState } from "preact/hooks";
-import { IGDispatch, IGThunk } from "../ducks/types";
+import { IGDispatch, IGThunk, IReducerOnIGAction } from "../ducks/types";
 
 export function useThunkReducer<TState, TAction extends Record<string, unknown>, TEnv>(
   reducer: Reducer<TState, TAction>,
   initialState: TState,
   env: TEnv,
-  onActions: Array<
-    (action: TAction | IGThunk<TState, TAction, TEnv>, oldState: TState, newState: TState) => void | Promise<void>
-  > = []
+  onActions: IReducerOnIGAction<TState, TAction, TEnv>[] = []
 ): [TState, IGDispatch<TState, TAction, TEnv>] {
   const [hookState, setHookState] = useState(initialState);
 
@@ -32,13 +30,13 @@ export function useThunkReducer<TState, TAction extends Record<string, unknown>,
       if (typeof action === "function") {
         (action(dispatch, getState, env) as Promise<void>).then(() => {
           for (const onAction of onActions) {
-            onAction(action, oldState, state.current);
+            onAction(dispatch, action, oldState, state.current);
           }
         });
       } else {
         setState(reduce(action));
         for (const onAction of onActions) {
-          onAction(action, oldState, state.current);
+          onAction(dispatch, action, oldState, state.current);
         }
       }
     },

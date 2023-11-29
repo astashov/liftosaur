@@ -15,6 +15,7 @@ import deepmerge from "deepmerge";
 import { Equipment } from "./equipment";
 import { ObjectUtils } from "../utils/object";
 import { Program } from "./program";
+import { DateUtils } from "../utils/date";
 
 declare let Rollbar: RB;
 
@@ -82,9 +83,23 @@ export namespace Storage {
       tempUserId: UidFactory.generateUid(10),
       affiliates: {},
       stats: {
-        weight: {},
-        length: {},
-        percentage: {},
+        weight: { weight: [] },
+        length: {
+          neck: [],
+          shoulders: [],
+          bicepLeft: [],
+          bicepRight: [],
+          forearmLeft: [],
+          forearmRight: [],
+          chest: [],
+          waist: [],
+          hips: [],
+          thighLeft: [],
+          thighRight: [],
+          calfLeft: [],
+          calfRight: [],
+        },
+        percentage: { bodyfat: [] },
       },
       deletedStats: [],
       settings: Settings.build(),
@@ -96,7 +111,7 @@ export namespace Storage {
       deletedPrograms: [],
       helps: [],
       email: undefined,
-      whatsNew: undefined,
+      whatsNew: DateUtils.formatYYYYMMDD(Date.now(), ""),
     };
   }
 
@@ -116,7 +131,7 @@ export namespace Storage {
     const { originalId: _bOriginalId, id: _bId, ...cleanedBStorage } = bStorage;
     const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage);
     if (changed) {
-      console.log(cleanedAStorage, cleanedBStorage);
+      // console.log(cleanedAStorage, cleanedBStorage);
       console.log("Storage changed", ObjectUtils.diffPaths(cleanedAStorage, cleanedBStorage));
     }
     return changed;
@@ -245,6 +260,7 @@ export namespace Storage {
         isPublicProfile: newStorage.settings.isPublicProfile,
         shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
         nickname: newStorage.settings.nickname,
+        vibration: newStorage.settings.vibration,
         volume: newStorage.settings.volume,
       },
       subscription: {

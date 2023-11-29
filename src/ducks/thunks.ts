@@ -138,6 +138,7 @@ export namespace Thunk {
     env: IEnv,
     additionalRequests: ("programs" | "history" | "stats")[] = []
   ): Promise<void> {
+    console.log("SYNC!");
     const state = getState();
     const storage: IPartialStorage = { ...state.storage };
     if (!state.freshMigrations) {
@@ -176,7 +177,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
-        env.queue.enqueue(async () => {
+        await env.queue.enqueue(async () => {
           await load(dispatch, "Sync", async () => {
             await _sync(args, dispatch, getState, env, []);
           });

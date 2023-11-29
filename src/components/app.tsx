@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useEffect } from "preact/hooks";
-import { reducerWrapper } from "../ducks/reducer";
+import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
@@ -26,7 +26,6 @@ import { ScreenFriends } from "./screenFriends";
 import { ScreenFriendsAdd } from "./screenFriendsAdd";
 import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
-import { Storage } from "../models/storage";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenOnboarding } from "./screenOnboarding";
 import { ScreenMeasurements } from "./screenMeasurements";
@@ -41,8 +40,6 @@ import { ScreenFirst } from "./screenFirst";
 import { ImportExporter } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage } from "../utils/sendMessage";
-import { ObjectUtils } from "../utils/object";
-import { CollectionUtils } from "../utils/collection";
 import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
@@ -58,67 +55,12 @@ export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue } = props;
   const service = new Service(client);
   const env: IEnv = { service, audio, queue };
-  const [state, dispatch] = useThunkReducer(reducerWrapper, props.initialState, env, [
-    (action, oldState, newState) => {
-      if (Storage.isChanged(oldState.storage, newState.storage)) {
-        dispatch(
-          Thunk.sync({
-            withHistory: oldState.storage.history !== newState.storage.history,
-            withStats: oldState.storage.stats !== newState.storage.stats,
-            withPrograms: oldState.storage.programs !== newState.storage.programs,
-          })
-        );
-      }
-    },
-    (action, oldState, newState) => {
-      const progress = newState.progress[0];
-      if (progress != null) {
-        const oldProgram = Program.getProgram(oldState, progress.programId);
-        const newProgram = Program.getProgram(newState, progress.programId);
-        if (oldProgram != null && newProgram != null && oldProgram !== newProgram) {
-          const changes = ObjectUtils.changedKeys(oldProgram, newProgram);
-          if (ObjectUtils.keys(changes).length === 1 && changes.exercises === "update") {
-            const changedExerciseIds = Array.from(
-              new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
-            );
-            const onlyState = changedExerciseIds.every((id) => {
-              const oldExercise = oldProgram.exercises.find((e) => e.id === id);
-              const newExercise = newProgram.exercises.find((e) => e.id === id);
-              const exerciseChanges =
-                oldExercise && newExercise ? ObjectUtils.changedKeys(oldExercise, newExercise) : {};
-              return ObjectUtils.keys(exerciseChanges).length === 1 && exerciseChanges.state === "update";
-            });
-            dispatch({
-              type: "ApplyProgramChangesToProgress",
-              programExerciseIds: changedExerciseIds,
-              checkReused: !onlyState,
-            });
-          } else {
-            dispatch({ type: "ApplyProgramChangesToProgress" });
-          }
-        }
-      }
-    },
-    (action, oldState, newState) => {
-      if (oldState.screenStack !== newState.screenStack) {
-        setTimeout(() => {
-          window.scroll(0, 0);
-        }, 0);
-      }
-    },
-    (action, oldState, newState) => {
-      if (oldState.storage.subscription.apple !== newState.storage.subscription.apple) {
-        const userId = newState.user?.id || newState.storage.tempUserId;
-        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, newState.storage.subscription);
-      }
-    },
-    (action, oldState, newState) => {
-      if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
-        const userId = newState.user?.id || newState.storage.tempUserId;
-        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, newState.storage.subscription);
-      }
-    },
-  ]);
+  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
+    reducerWrapper,
+    props.initialState,
+    env,
+    defaultOnActions(env)
+  );
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
