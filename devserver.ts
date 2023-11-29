@@ -2,9 +2,12 @@ import http from "http";
 import https from "https";
 import * as path from "path";
 import * as fs from "fs";
-import { handler } from "./lambda/index";
+import { getHandler } from "./lambda/index";
 import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
 import { URL } from "url";
+import { buildDi } from "./lambda/utils/di";
+import { LogUtil } from "./lambda/utils/log";
+import fetch from "node-fetch";
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -43,6 +46,9 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   };
 }
 
+const log = new LogUtil();
+const di = buildDi(log, fetch);
+const handler = getHandler(di);
 const server = https.createServer(
   {
     key: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/privkey.pem")),

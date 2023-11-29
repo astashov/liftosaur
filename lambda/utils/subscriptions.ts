@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import { Utils } from "../utils";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 import JWT from "jsonwebtoken";
-import { SecretsUtil } from "./secrets";
+import { ISecretsUtil } from "./secrets";
 import { ILimitedUserDao } from "../dao/userDao";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
@@ -93,7 +93,7 @@ export interface IVerifyAppleReceiptResponse {
 }
 
 export class Subscriptions {
-  constructor(private readonly log: LogUtil, private readonly secretsUtil: SecretsUtil) {}
+  constructor(private readonly log: ILogUtil, private readonly secretsUtil: ISecretsUtil) {}
 
   public async verifyAppleReceipt(
     appleReceipt?: string,

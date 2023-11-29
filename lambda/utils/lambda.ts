@@ -1,10 +1,14 @@
 import { Lambda } from "aws-sdk";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 
-export class LambdaUtil {
+export interface ILambdaUtil {
+  invoke<T>(args: { name: string; invocationType: "RequestResponse" | "Event"; payload: T }): Promise<void>;
+}
+
+export class LambdaUtil implements ILambdaUtil {
   private _lambda?: Lambda;
 
-  constructor(private readonly log: LogUtil) {}
+  constructor(private readonly log: ILogUtil) {}
 
   private get lambda(): Lambda {
     if (this._lambda == null) {

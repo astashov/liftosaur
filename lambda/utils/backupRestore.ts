@@ -7,7 +7,7 @@ import { CollectionUtils } from "../../src/utils/collection";
 
 async function main(): Promise<void> {
   const log = new LogUtil();
-  const di = buildDi(log);
+  const di = buildDi(log, fetch);
   console.log(di);
   const file = fs.readFileSync(process.argv[2], "utf8");
   const records = csv.parse(file, {

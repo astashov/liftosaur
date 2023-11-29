@@ -1,10 +1,19 @@
 import { SES } from "aws-sdk";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 
-export class SesUtil {
+export interface ISesUtil {
+  sendEmail(args: {
+    destination: string;
+    source: string;
+    subject: string;
+    body: string;
+  }): Promise<AWS.SES.Types.SendEmailResponse | undefined>;
+}
+
+export class SesUtil implements ISesUtil {
   private _ses?: SES;
 
-  constructor(public readonly log: LogUtil) {}
+  constructor(public readonly log: ILogUtil) {}
 
   private get ses(): SES {
     if (this._ses == null) {

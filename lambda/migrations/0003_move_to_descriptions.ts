@@ -3,10 +3,11 @@ import { CollectionUtils } from "../../src/utils/collection";
 import { IProgramPayload, programTableNames } from "../dao/programDao";
 import { buildDi } from "../utils/di";
 import { LogUtil } from "../utils/log";
+import fetch from "node-fetch";
 
 async function main(): Promise<void> {
   const env = "dev"; // Utils.getEnv();
-  const di = buildDi(new LogUtil());
+  const di = buildDi(new LogUtil(), fetch);
   const allProgramPayloads = await di.dynamo.scan<IProgramPayload>({ tableName: programTableNames[env].programs });
   for (const programPayload of allProgramPayloads) {
     for (const exercise of programPayload.program.exercises) {

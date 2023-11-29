@@ -1,5 +1,4 @@
 import "source-map-support/register";
-import fetch from "node-fetch";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
@@ -19,8 +18,7 @@ import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import { CollectionUtils } from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
-import { buildDi, IDI } from "./utils/di";
-import { LogUtil } from "./utils/log";
+import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
 import { FriendDao } from "./dao/friendDao";
 import { IEither } from "../src/utils/types";
@@ -230,7 +228,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
           console.log("Old Storage");
-          const oldStorage = await runMigrations(fetch, fullUser.storage as IStorage, storage.version);
+          const oldStorage = await runMigrations(di.fetch, fullUser.storage as IStorage, storage.version);
           console.log(oldStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
           console.log("\n\nNew Storage");
           console.log(storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
@@ -292,7 +290,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   const env = Utils.getEnv();
   const bodyJson = getBodyJson(event);
   const { idToken, id } = bodyJson;
-  const keysResponse = await fetch("https://appleid.apple.com/auth/keys");
+  const keysResponse = await di.fetch("https://appleid.apple.com/auth/keys");
   const keysJson = (await keysResponse.json()) as IAppleKeysResponse;
   const decodedToken = JWT.decode(idToken!, { complete: true });
   if (decodedToken) {
@@ -364,14 +362,14 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     };
   } else {
     const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
-    const googleApiResponse = await fetch(url);
+    const googleApiResponse = await di.fetch(url);
     openIdJson = await googleApiResponse.json();
   }
   const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
     const url = `https://www.googleapis.com/oauth2/v1/tokeninfo?id_token=${token}`;
-    const googleApiResponse = await fetch(url);
+    const googleApiResponse = await di.fetch(url);
     const response = await googleApiResponse.json();
     if ("error" in response) {
       return ResponseUtils.json(403, event, openIdJson);
@@ -676,7 +674,7 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     const users = await new UserDao(di).getAll();
     const processedUsers = await Promise.all(
       users.map(async (u) => {
-        const storage = await runMigrations(fetch, u.storage);
+        const storage = await runMigrations(di.fetch, u.storage);
 
         return {
           id: u.id,
@@ -844,7 +842,7 @@ const getDashboardsUsersHandler: RouteHandler<
 
     return {
       statusCode: 200,
-      body: renderUsersDashboardHtml(fetch, apiKey, data),
+      body: renderUsersDashboardHtml(di.fetch, apiKey, data),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -884,7 +882,7 @@ const getDashboardsAffiliatesHandler: RouteHandler<
 
     return {
       statusCode: 200,
-      body: renderAffiliateDashboardHtml(fetch, match.params.id, affiliateData),
+      body: renderAffiliateDashboardHtml(di.fetch, match.params.id, affiliateData),
       headers: { "content-type": "text/html" },
     };
   } else {
@@ -1150,7 +1148,7 @@ const getProgramDetailsHandler: RouteHandler<
       body: renderProgramDetailsHtml(
         result.map((p) => p.program),
         params.id,
-        fetch
+        di.fetch
       ),
       headers: { "content-type": "text/html" },
     };
@@ -1164,9 +1162,10 @@ const getFreeformHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   payload,
   match: { params },
 }) => {
+  const di = payload.di;
   return {
     statusCode: 200,
-    body: renderFreeformHtml(fetch),
+    body: renderFreeformHtml(di.fetch),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1199,7 +1198,7 @@ const postFreeformGeneratorHandler: RouteHandler<
   const bodyJson = getBodyJson(event);
   const id = UidFactory.generateUid(8);
   if (process.env.LOCAL_CHATGPT === "true") {
-    freeformLambdaHandler({ prompt: bodyJson.prompt, id: id });
+    freeformLambdaHandler(di)({ prompt: bodyJson.prompt, id: id });
   } else {
     await di.lambda.invoke<ILftFreeformLambdaDevEvent>({
       name: `LftFreeformLambda${env === "dev" ? "Dev" : ""}`,
@@ -1262,7 +1261,7 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderPlannerHtml(fetch, initialProgram),
+    body: renderPlannerHtml(di.fetch, initialProgram),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1280,7 +1279,7 @@ async function _getBuilderHandler(di: IDI, data: string | undefined): Promise<AP
 
   return {
     statusCode: 200,
-    body: renderBuilderHtml(fetch, program),
+    body: renderBuilderHtml(di.fetch, program),
     headers: { "content-type": "text/html" },
   };
 }
@@ -1298,7 +1297,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (data) {
     try {
       const exportedProgramJson = await NodeEncoder.decode(data);
-      const result = await ImportExporter.getExportedProgram(fetch, exportedProgramJson);
+      const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
       if (result.success) {
         program = result.data;
       } else {
@@ -1311,7 +1310,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderProgramHtml(fetch, isMobile, program),
+    body: renderProgramHtml(di.fetch, isMobile, program),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1321,9 +1320,10 @@ const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   payload,
   match,
 }) => {
+  const di = payload.di;
   return {
     statusCode: 200,
-    body: renderAffiliatesHtml(fetch),
+    body: renderAffiliatesHtml(di.fetch),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1446,12 +1446,12 @@ const getProgramShorturlHandler: RouteHandler<
     if (data) {
       try {
         const exportedProgramJson = await NodeEncoder.decode(data);
-        const result = await ImportExporter.getExportedProgram(fetch, exportedProgramJson);
+        const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
           return {
             statusCode: 200,
-            body: renderProgramHtml(fetch, isMobile, program),
+            body: renderProgramHtml(di.fetch, isMobile, program),
             headers: { "content-type": "text/html" },
           };
         } else {
@@ -1572,52 +1572,60 @@ const rollbar = new Rollbar({
 
 type ILftFreeformLambdaDevEvent = { prompt: string; id: string };
 
-export const LftFreeformLambdaDev = rollbar.lambdaHandler(
-  async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(event)
-) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+export const getLftFreeformLambdaDev = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(di)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
 
-export const LftFreeformLambda = rollbar.lambdaHandler(
-  async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(event)
-) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+export const getLftFreeformLambda = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(di)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
 
-async function freeformLambdaHandler(event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> {
-  const log = new LogUtil();
-  log.log("Start generating freeform program");
-  const di = buildDi(log);
-  const freeformGenerator = new FreeformGenerator(di);
-  const result = await freeformGenerator.generate(event.prompt);
-  if (result.success) {
-    await new LogFreeformDao(di).put(event.id, "data", event.prompt, result.data.response, {
-      program: result.data.program,
-    });
-    log.log("Done generating freeform program");
-    return {
-      statusCode: 200,
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ data: "done" }),
-    };
-  } else {
-    await new LogFreeformDao(di).put(event.id, "error", event.prompt, result.error.response, {
-      error: result.error.error,
-    });
-    log.log("Error generating freeform program");
-    return {
-      statusCode: 400,
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ data: "error" }),
-    };
-  }
-}
+export const freeformLambdaHandler = (
+  di: IDI
+): ((event: ILftFreeformLambdaDevEvent) => Promise<APIGatewayProxyResult>) => {
+  return async (event) => {
+    di.log.log("Start generating freeform program");
+    const freeformGenerator = new FreeformGenerator(di);
+    const result = await freeformGenerator.generate(event.prompt);
+    if (result.success) {
+      await new LogFreeformDao(di).put(event.id, "data", event.prompt, result.data.response, {
+        program: result.data.program,
+      });
+      di.log.log("Done generating freeform program");
+      return {
+        statusCode: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ data: "done" }),
+      };
+    } else {
+      await new LogFreeformDao(di).put(event.id, "error", event.prompt, result.error.response, {
+        error: result.error.error,
+      });
+      di.log.log("Error generating freeform program");
+      return {
+        statusCode: 400,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ data: "error" }),
+      };
+    }
+  };
+};
 
-export const handler = rollbar.lambdaHandler(
-  async (event: APIGatewayProxyEvent, context): Promise<APIGatewayProxyResult> => {
+export type IHandler = (event: APIGatewayProxyEvent, context: unknown) => Promise<APIGatewayProxyResult>;
+type IRollbarHandler = Rollbar.LambdaHandler<APIGatewayProxyEvent, APIGatewayProxyResult, unknown>;
+export const getHandler = (di: IDI): IRollbarHandler => {
+  return rollbar.lambdaHandler(getRawHandler(di));
+};
+
+export const getRawHandler = (di: IDI): IHandler => {
+  return async (event: APIGatewayProxyEvent, context) => {
     if (event.httpMethod === "OPTIONS") {
       return { statusCode: 200, body: "", headers: ResponseUtils.getHeaders(event) };
     }
-    const log = new LogUtil();
     const time = Date.now();
-    log.log("--------> Starting request", event.httpMethod, event.path);
-    const di = buildDi(log);
+    di.log.log("--------> Starting request", event.httpMethod, event.path);
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
@@ -1688,7 +1696,7 @@ export const handler = rollbar.lambdaHandler(
       errorStatus = 500;
       resp = { success: false, error: "Internal Server Error" };
     }
-    log.log(
+    di.log.log(
       "<-------- Responding for",
       event.httpMethod,
       event.path,
@@ -1698,5 +1706,5 @@ export const handler = rollbar.lambdaHandler(
     return resp.success
       ? resp.data
       : { statusCode: errorStatus, headers: ResponseUtils.getHeaders(event), body: resp.error };
-  }
-) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+  };
+};

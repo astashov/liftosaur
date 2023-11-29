@@ -1,10 +1,24 @@
 import { S3 } from "aws-sdk";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 
-export class S3Util {
+export interface IS3Util {
+  listObjects(args: { bucket: string; prefix: string }): Promise<string[] | undefined>;
+  getObject(args: { bucket: string; key: string }): Promise<AWS.S3.GetObjectOutput["Body"] | undefined>;
+  putObject(args: {
+    bucket: string;
+    key: string;
+    body: AWS.S3.PutObjectRequest["Body"];
+    opts?: {
+      acl?: AWS.S3.ObjectCannedACL;
+      contentType?: AWS.S3.ContentType;
+    };
+  }): Promise<void>;
+}
+
+export class S3Util implements IS3Util {
   private _s3?: S3;
 
-  constructor(public readonly log: LogUtil) {}
+  constructor(public readonly log: ILogUtil) {}
 
   private get s3(): S3 {
     if (this._s3 == null) {

@@ -55,7 +55,12 @@ export namespace SendMessage {
   }
 
   export function toIos(obj: Record<string, string>): boolean {
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftosaurMessage) {
+    if (
+      typeof window !== "undefined" &&
+      window.webkit &&
+      window.webkit.messageHandlers &&
+      window.webkit.messageHandlers.liftosaurMessage
+    ) {
       window.webkit.messageHandlers.liftosaurMessage.postMessage(obj);
       return true;
     } else {
@@ -64,7 +69,7 @@ export namespace SendMessage {
   }
 
   export function toAndroid(obj: Record<string, string>): boolean {
-    if (window.JSAndroidBridge) {
+    if (typeof window !== "undefined" && window.JSAndroidBridge) {
       window.JSAndroidBridge.sendMessage(JSON.stringify(obj));
       return true;
     } else {
@@ -73,6 +78,6 @@ export namespace SendMessage {
   }
 
   export function isAndroid(): boolean {
-    return !!window.JSAndroidBridge;
+    return typeof window !== "undefined" && !!window.JSAndroidBridge;
   }
 }

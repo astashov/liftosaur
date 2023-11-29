@@ -1,22 +1,23 @@
-import { DynamoUtil } from "./dynamo";
-import { LogUtil } from "./log";
-import { SecretsUtil } from "./secrets";
-import { S3Util } from "./s3";
-import { SesUtil } from "./ses";
-import { LambdaUtil } from "./lambda";
-import { CloudwatchUtil } from "./cloudwatch";
+import { DynamoUtil, IDynamoUtil } from "./dynamo";
+import { ILogUtil } from "./log";
+import { ISecretsUtil, SecretsUtil } from "./secrets";
+import { IS3Util, S3Util } from "./s3";
+import { ISesUtil, SesUtil } from "./ses";
+import { ILambdaUtil, LambdaUtil } from "./lambda";
+import { CloudwatchUtil, ICloudwatchUtil } from "./cloudwatch";
 
 export interface IDI {
-  dynamo: DynamoUtil;
-  log: LogUtil;
-  s3: S3Util;
-  ses: SesUtil;
-  secrets: SecretsUtil;
-  lambda: LambdaUtil;
-  cloudwatch: CloudwatchUtil;
+  dynamo: IDynamoUtil;
+  log: ILogUtil;
+  s3: IS3Util;
+  ses: ISesUtil;
+  secrets: ISecretsUtil;
+  lambda: ILambdaUtil;
+  cloudwatch: ICloudwatchUtil;
+  fetch: Window["fetch"];
 }
 
-export function buildDi(log: LogUtil, fetch?: Window["fetch"]): IDI {
+export function buildDi(log: ILogUtil, fetch: Window["fetch"]): IDI {
   return {
     dynamo: new DynamoUtil(log),
     secrets: new SecretsUtil(log),
@@ -25,5 +26,6 @@ export function buildDi(log: LogUtil, fetch?: Window["fetch"]): IDI {
     lambda: new LambdaUtil(log),
     cloudwatch: new CloudwatchUtil(log),
     log: log,
+    fetch,
   };
 }

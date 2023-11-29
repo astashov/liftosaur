@@ -1,9 +1,9 @@
 import { SecretsManager } from "aws-sdk";
 
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 import { Utils } from "../utils";
 
-interface IGoogleServiceAccountPubsub {
+export interface IGoogleServiceAccountPubsub {
   type: string;
   project_id: string;
   private_key_id: string;
@@ -27,11 +27,22 @@ interface IAllSecrets {
   openAiKey: string;
 }
 
-export class SecretsUtil {
+export interface ISecretsUtil {
+  getCookieSecret(): Promise<string>;
+  getCryptoKey(): Promise<string>;
+  getApiKey(): Promise<string>;
+  getWebpushrKey(): Promise<string>;
+  getWebpushrAuthToken(): Promise<string>;
+  getAppleAppSharedSecret(): Promise<string>;
+  getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub>;
+  getOpenAiKey(): Promise<string>;
+}
+
+export class SecretsUtil implements ISecretsUtil {
   private _secrets?: SecretsManager;
   private readonly _cache: Partial<IAllSecrets> = {};
 
-  constructor(public readonly log: LogUtil) {}
+  constructor(public readonly log: ILogUtil) {}
 
   private get secrets(): SecretsManager {
     if (this._secrets == null) {

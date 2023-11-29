@@ -1,7 +1,7 @@
 import { CloudWatchLogs } from "aws-sdk";
 import { CollectionUtils } from "../../src/utils/collection";
 import { DateUtils } from "../../src/utils/date";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 import fs from "fs";
 import { Utils } from "../utils";
 
@@ -9,10 +9,14 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export class CloudwatchUtil {
+export interface ICloudwatchUtil {
+  getLogs(date: Date): Promise<void>;
+}
+
+export class CloudwatchUtil implements ICloudwatchUtil {
   private _cloudwatch?: CloudWatchLogs;
 
-  constructor(private readonly log: LogUtil) {}
+  constructor(private readonly log: ILogUtil) {}
 
   private get cloudwatch(): CloudWatchLogs {
     if (this._cloudwatch == null) {

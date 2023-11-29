@@ -248,7 +248,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       memorySize: 2048,
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(isDev ? 240 : 300),
-      handler: "lambda/index.handler",
+      handler: "lambda/run.handler",
       environment: {
         IS_DEV: `${isDev}`,
       },
@@ -261,7 +261,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       memorySize: 512,
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(300),
-      handler: `lambda/index.LftFreeformLambda${suffix}`,
+      handler: `lambda/run.LftFreeformLambda${suffix}`,
       environment: {
         IS_DEV: `${isDev}`,
       },

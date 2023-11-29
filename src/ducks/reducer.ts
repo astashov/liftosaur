@@ -318,11 +318,13 @@ export type IAction =
 let timerId: number | undefined = undefined;
 
 export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
-  window.reducerLastState = state;
-  window.reducerLastActions = [
-    { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
-    ...(window.reducerLastActions || []).slice(0, 30),
-  ];
+  if (typeof window !== "undefined") {
+    window.reducerLastState = state;
+    window.reducerLastActions = [
+      { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
+      ...(window.reducerLastActions || []).slice(0, 30),
+    ];
+  }
   const newState = reducer(state, action);
   if (Storage.isChanged(state.storage, newState.storage)) {
     const dateNow = Date.now();
@@ -335,29 +337,31 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
       version: getLatestMigrationVersion(),
     };
   }
-  if (timerId != null) {
-    window.clearTimeout(timerId);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).state = newState;
-  if (newState.errors.corruptedstorage == null) {
-    timerId = window.setTimeout(async () => {
-      clearTimeout(timerId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const newState2: IState = (window as any).state;
-      timerId = undefined;
-      const userId = newState2.user?.id || newState.storage.tempUserId;
-      const localStorage: ILocalStorage = {
-        storage: newState2.storage,
-        progress: newState2.progress[0],
-      };
-      try {
-        await IndexedDBUtils.set("current_account", userId);
-        await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-      } catch (e) {
-        console.error(e);
-      }
-    }, 100);
+  if (typeof window !== "undefined") {
+    if (timerId != null) {
+      window.clearTimeout(timerId);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).state = newState;
+    if (newState.errors.corruptedstorage == null) {
+      timerId = window.setTimeout(async () => {
+        clearTimeout(timerId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newState2: IState = (window as any).state;
+        timerId = undefined;
+        const userId = newState2.user?.id || newState.storage.tempUserId;
+        const localStorage: ILocalStorage = {
+          storage: newState2.storage,
+          progress: newState2.progress[0],
+        };
+        try {
+          await IndexedDBUtils.set("current_account", userId);
+          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+        } catch (e) {
+          console.error(e);
+        }
+      }, 100);
+    }
   }
   return newState;
 };

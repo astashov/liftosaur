@@ -1,14 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UidFactory } from "./generator";
 import { Utils } from "../utils";
 
-export class LogUtil {
+export interface ILogUtil {
+  log(...str: any[]): void;
+}
+
+export class LogUtil implements ILogUtil {
   private readonly id: string;
 
   constructor() {
     this.id = UidFactory.generateUid(4);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public log(...str: any[]): void {
     const env = Utils.getEnv();
     const time = new Date();

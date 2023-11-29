@@ -1,11 +1,41 @@
 import { Request, DynamoDB, AWSError } from "aws-sdk";
 import { CollectionUtils } from "../../src/utils/collection";
-import { LogUtil } from "./log";
+import { ILogUtil } from "./log";
 
-export class DynamoUtil {
+export interface IDynamoUtil {
+  query<T>(args: {
+    tableName: string;
+    expression: string;
+    filterExpression?: string;
+    indexName?: string;
+    scanIndexForward?: boolean;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, string | string[] | number>>;
+  }): Promise<T[]>;
+  scan<T>(args: {
+    tableName: string;
+    filterExpression?: string;
+    values?: Partial<Record<string, number | string | string[]>>;
+  }): Promise<T[]>;
+  get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined>;
+  put(args: { tableName: string; item: DynamoDB.DocumentClient.PutItemInputAttributeMap }): Promise<void>;
+  update(args: {
+    tableName: string;
+    key: DynamoDB.DocumentClient.Key;
+    expression: string;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, unknown>>;
+  }): Promise<void>;
+  remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void>;
+  batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]>;
+  batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void>;
+  batchPut(args: { tableName: string; items: DynamoDB.DocumentClient.PutItemInputAttributeMap[] }): Promise<void>;
+}
+
+export class DynamoUtil implements IDynamoUtil {
   private _dynamo?: DynamoDB.DocumentClient;
 
-  constructor(private readonly log: LogUtil) {}
+  constructor(private readonly log: ILogUtil) {}
 
   private get dynamo(): DynamoDB.DocumentClient {
     if (this._dynamo == null) {
