@@ -21,6 +21,32 @@ export class MockDynamoUtil implements IDynamoUtil {
     this.data = deepmerge(this.data, newData);
   }
 
+  private buildCondition<T>(args: {
+    filterExpression: string;
+    attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
+    values?: Partial<Record<string, string | string[] | number>>;
+  }): (item: T) => boolean {
+    let expression = args.filterExpression;
+    for (const [k, v] of ObjectUtils.entries(args.attrs || {})) {
+      expression = expression.replace(new RegExp(k, "g"), v);
+    }
+    for (const [k, v] of ObjectUtils.entries(args.values || {})) {
+      const value = Array.isArray(v) ? `IN (${v.map((x) => `${x}`).join(",")})` : `${v}`;
+      expression = expression.replace(new RegExp(k, "g"), value);
+    }
+    const equalMatch = expression.match(/(.*)\s*=\s*(.*)/);
+    if (equalMatch) {
+      const key = equalMatch[1].trim();
+      const value = equalMatch[2].trim();
+      return (item) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, eqeqeq
+        return (item as any)[key] == value;
+      };
+    } else {
+      return (_) => true;
+    }
+  }
+
   public async query<T>(args: {
     tableName: string;
     expression: string;
@@ -30,8 +56,11 @@ export class MockDynamoUtil implements IDynamoUtil {
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
     values?: Partial<Record<string, string | string[] | number>>;
   }): Promise<T[]> {
-    // console.log("query", args);
-    return Promise.resolve([]);
+    let values = (ObjectUtils.values(this.data[args.tableName] || {}) as unknown) as T[];
+    values = values.filter(
+      this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
+    );
+    return Promise.resolve(values);
   }
 
   public async scan<T>(args: {
@@ -39,12 +68,15 @@ export class MockDynamoUtil implements IDynamoUtil {
     filterExpression?: string;
     values?: Partial<Record<string, number | string | string[]>>;
   }): Promise<T[]> {
-    return Promise.resolve((ObjectUtils.values(this.data[args.tableName] || {}) as unknown) as T[]);
+    let values = ObjectUtils.values(this.data[args.tableName] || {}) as T[];
+    if (args.filterExpression) {
+      values = values.filter(this.buildCondition({ filterExpression: args.filterExpression, values: args.values }));
+    }
+    return Promise.resolve(values);
   }
 
   public async get<T>(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<T | undefined> {
     const value = this.data[args.tableName]?.[JSON.stringify(args.key)] as T | undefined;
-    // console.log("Get", args, "return", value);
     return value;
   }
 
@@ -54,7 +86,6 @@ export class MockDynamoUtil implements IDynamoUtil {
       const key = keyNames.reduce((memo, k) => ({ ...memo, [k]: args.item[k] }), {});
       this.data[args.tableName] = this.data[args.tableName] || {};
       this.data[args.tableName][JSON.stringify(key)] = args.item;
-      // console.log("put", args);
     } else {
       throw new Error(`MockDynamo: Missing put key mapping for ${args.tableName}`);
     }
