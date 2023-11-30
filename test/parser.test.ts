@@ -1,10 +1,13 @@
+import "mocha";
+import { expect } from "chai";
 import { Weight } from "../src/models/weight";
 import { ParserTestUtils } from "../src/utils/parserTestUtils";
+import { ObjectUtils } from "../src/utils/object";
 
 describe("Parser", () => {
   it("r[]", () => {
     const result = ParserTestUtils.run("r[state.foo]", { foo: 2 });
-    expect(result).toEqual(2);
+    expect(result).to.eql(2);
   });
 
   it("completedReps >= reps", () => {
@@ -15,13 +18,13 @@ describe("Parser", () => {
       }`,
       state
     );
-    expect(state.foo).toEqual(5);
+    expect(state.foo).to.eql(5);
   });
 
   it("ternary", () => {
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 2 })).toEqual(6);
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 4 })).toEqual(4);
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 8 })).toEqual(5);
+    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 2 })).to.eql(6);
+    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 4 })).to.eql(4);
+    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 8 })).to.eql(5);
   });
 
   it("Standard progression and deload", () => {
@@ -62,7 +65,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ successes: 1, failures: 0, weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ successes: 1, failures: 0, weight: Weight.build(150, "lb") });
 
     state = {
       successes: 2,
@@ -80,7 +83,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ successes: 0, failures: 0, weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight.build(155, "lb") });
 
     state = {
       successes: 1,
@@ -98,7 +101,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ successes: 0, failures: 0, weight: Weight.build(145, "lb") });
+    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight.build(145, "lb") });
   });
 
   it("Basic beginner", () => {
@@ -122,7 +125,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(152.5, "lb") });
+    expect(state).to.eql({ weight: Weight.build(152.5, "lb") });
 
     state = { weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -136,7 +139,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight.build(155, "lb") });
 
     state = { weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -150,7 +153,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(135, "lb") });
+    expect(state).to.eql({ weight: Weight.build(135, "lb") });
   });
 
   it("Basic beginner", () => {
@@ -174,7 +177,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(152.5, "lb") });
+    expect(state).to.eql({ weight: Weight.build(152.5, "lb") });
 
     state = { weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -188,7 +191,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight.build(155, "lb") });
 
     state = { weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -202,7 +205,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(135, "lb") });
+    expect(state).to.eql({ weight: Weight.build(135, "lb") });
   });
 
   it("GZCLP", () => {
@@ -230,7 +233,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ stage: 1, weight: Weight.build(160, "lb") });
+    expect(state).to.eql({ stage: 1, weight: Weight.build(160, "lb") });
 
     state = { stage: 1, weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -246,7 +249,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ stage: 2, weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ stage: 2, weight: Weight.build(150, "lb") });
 
     state = { stage: 3, weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -262,7 +265,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ stage: 1, weight: Weight.build(127.5, "lb") });
+    expect(state).to.eql({ stage: 1, weight: Weight.build(127.5, "lb") });
   });
 
   it("condition with numbers", () => {
@@ -283,7 +286,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight.build(155, "lb") });
 
     state = { weight: Weight.build(150, "lb") };
     ParserTestUtils.run(
@@ -299,7 +302,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ weight: Weight.build(150, "lb") });
   });
 
   it("SBS", () => {
@@ -395,13 +398,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toMatchObject({
+    expect(ObjectUtils.pick(state, ["week", "intensity", "reps", "lastrep"])).to.eql({
       week: 2,
       intensity: 72.5,
       reps: 9,
       lastrep: 11,
     });
-    expect(Math.round(state.tm.value)).toEqual(1005);
+    expect(Math.round(state.tm.value)).to.eql(1005);
   });
 
   it("oneliner", () => {
@@ -417,7 +420,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ lastsetrir: 3, reps: 6 });
+    expect(state).to.eql({ lastsetrir: 3, reps: 6 });
   });
 
   it("nested conditions", () => {
@@ -437,7 +440,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).toEqual({ reps: 6 });
+    expect(state).to.eql({ reps: 6 });
   });
 
   it("fn in if", () => {
@@ -454,8 +457,8 @@ if (!(completedReps >= reps)) {
         results: [[3, 5, 150]],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(322.5, "lb") });
-    expect(result).toEqual(Weight.build(322.5, "lb"));
+    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
+    expect(result).to.eql(Weight.build(322.5, "lb"));
   });
 
   it("fn in assignment", () => {
@@ -470,7 +473,7 @@ if (!(completedReps >= reps)) {
         results: [[3, 5, 150]],
       })
     );
-    expect(state).toEqual({ weight: Weight.build(322.5, "lb") });
+    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
   });
 
   it("nested conditions 2", () => {
@@ -487,7 +490,7 @@ if (!(completedReps >= reps)) {
         results: [[8, 5, 150]],
       })
     );
-    expect(state).toEqual({ failures: 1 });
+    expect(state).to.eql({ failures: 1 });
   });
 
   // it("precedence", () => {
@@ -504,6 +507,6 @@ if (!(completedReps >= reps)) {
   //       results: [[4, 5, 150]],
   //     })
   //   );
-  //   expect(state).toEqual({ foo: 4 });
+  //   expect(state).to.eql({ foo: 4 });
   // });
 });

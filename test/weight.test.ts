@@ -1,3 +1,5 @@
+import "mocha";
+import { expect } from "chai";
 import { Settings } from "../src/models/settings";
 import { Weight } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
@@ -21,7 +23,7 @@ describe("Weight", () => {
         { weight: Weight.build(2.5, "lb"), num: 4 },
       ]);
       const result = Weight.calculatePlates(Weight.build(215, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: Weight.build(45, "lb"), num: 2 },
         { weight: Weight.build(25, "lb"), num: 2 },
         { weight: Weight.build(10, "lb"), num: 2 },
@@ -38,7 +40,7 @@ describe("Weight", () => {
         { weight: Weight.build(2.5, "lb"), num: 6 },
       ]);
       const result = Weight.calculatePlates(Weight.build(130, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: Weight.build(35, "lb"), num: 2 },
         { weight: Weight.build(2.5, "lb"), num: 6 },
       ]);
@@ -56,7 +58,7 @@ describe("Weight", () => {
         { weight: Weight.build(0.5, "lb"), num: 8 },
       ]);
       const result = Weight.calculatePlates(Weight.build(83, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: { value: 10, unit: "lb" }, num: 2 },
         { weight: { value: 5, unit: "lb" }, num: 2 },
         { weight: { value: 2.5, unit: "lb" }, num: 2 },
@@ -79,7 +81,7 @@ describe("Weight", () => {
         { weight: { value: 0.25, unit: "lb" }, num: 200 },
       ]);
       const result = Weight.calculatePlates(Weight.build(82.3, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: { value: 10, unit: "lb" }, num: 2 },
         { weight: { value: 5, unit: "lb" }, num: 2 },
         { weight: { value: 3, unit: "lb" }, num: 2 },
@@ -97,7 +99,7 @@ describe("Weight", () => {
         { weight: { value: 1.5, unit: "lb" }, num: 10 },
       ]);
       const result = Weight.calculatePlates(Weight.build(82.3, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: { value: 10, unit: "lb" }, num: 2 },
         { weight: { value: 2.5, unit: "lb" }, num: 2 },
         { weight: { value: 1.5, unit: "lb" }, num: 8 },
@@ -111,7 +113,7 @@ describe("Weight", () => {
         { weight: Weight.build(2.5, "lb"), num: 4 },
       ]);
       const result = Weight.calculatePlates(Weight.build(215, "lb"), settings, "barbell").plates;
-      expect(result).toEqual([
+      expect(result).to.eql([
         { weight: Weight.build(45, "lb"), num: 2 },
         { weight: Weight.build(5, "lb"), num: 4 },
         { weight: Weight.build(2.5, "lb"), num: 4 },
@@ -127,7 +129,7 @@ describe("Weight", () => {
         { weight: Weight.build(10, "lb"), num: 2 },
         { weight: Weight.build(5, "lb"), num: 2 },
       ];
-      expect(Weight.platesWeight(plates)).toEqual(Weight.build(170, "lb"));
+      expect(Weight.platesWeight(plates)).to.eql(Weight.build(170, "lb"));
     });
   });
 
@@ -139,7 +141,7 @@ describe("Weight", () => {
         { weight: Weight.build(10, "lb"), num: 6 },
         { weight: Weight.build(5, "lb"), num: 2 },
       ];
-      expect(Weight.formatOneSide(buildSettings(plates), plates, "barbell")).toEqual("45/45/25/3x10/5");
+      expect(Weight.formatOneSide(buildSettings(plates), plates, "barbell")).to.eql("45/45/25/3x10/5");
     });
 
     it("returns a proper string 2", () => {

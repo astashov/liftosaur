@@ -1,3 +1,5 @@
+import "mocha";
+import { expect } from "chai";
 import { History } from "../src/models/history";
 import { IHistoryEntry } from "../src/types";
 
@@ -27,8 +29,8 @@ describe("History", () => {
         warmupSets: [],
       };
       const maxSet = History.getMaxSetFromEntry(entry);
-      expect(maxSet?.weight.value).toEqual(50);
-      expect(maxSet?.completedReps).toEqual(6);
+      expect(maxSet?.weight.value).to.eql(50);
+      expect(maxSet?.completedReps).to.eql(6);
     });
   });
 });

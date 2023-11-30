@@ -1,3 +1,5 @@
+import "mocha";
+import { expect } from "chai";
 import { getInitialState, IAction } from "../src/ducks/reducer";
 import { Storage } from "../src/models/storage";
 import { Service } from "../src/api/service";
@@ -14,9 +16,10 @@ import { Thunk } from "../src/ducks/thunks";
 import { IDispatch, IThunk } from "../src/ducks/types";
 import { Program } from "../src/models/program";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
-import { IHistoryRecord, IProgram } from "../src/types";
+import { IHistoryRecord, IProgram, ISettings } from "../src/types";
 import { userTableNames } from "../lambda/dao/userDao";
 import { ObjectUtils } from "../src/utils/object";
+import { lb } from "lens-shmens";
 
 function mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -71,17 +74,45 @@ async function initTheAppAndRecordWorkout(): Promise<{
   return { di, log, mockReducer, env };
 }
 
-describe("Sync", () => {
+before(() => {
+  // @ts-ignore
+  global.__API_HOST__ = "https://www.liftosaur.com";
+  // @ts-ignore
+  global.__ENV__ = "prod";
+  // @ts-ignore
+  global.Rollbar = {
+    configure: () => undefined,
+  };
+});
+
+describe("sync", () => {
   it("properly runs appendable safe syncs", async () => {
     const { di, mockReducer, log } = await initTheAppAndRecordWorkout();
 
-    expect(log.logs.filter((l) => l === "Appendable safe update")).toHaveLength(2);
-    expect(mockReducer.state.storage.currentProgramId).toEqual(basicBeginnerProgram.id);
-    expect(mockReducer.state.storage.programs).toHaveLength(1);
-    expect(mockReducer.state.storage.history).toHaveLength(1);
+    expect(log.logs.filter((l) => l === "Appendable safe update")).to.length(2);
+    expect(mockReducer.state.storage.currentProgramId).to.equal(basicBeginnerProgram.id);
+    expect(mockReducer.state.storage.programs).to.length(1);
+    expect(mockReducer.state.storage.history).to.length(1);
 
-    expect(await di.dynamo.scan({ tableName: userTableNames.prod.historyRecords })).toHaveLength(1);
-    expect(await di.dynamo.scan({ tableName: userTableNames.prod.programs })).toHaveLength(1);
+    expect(await di.dynamo.scan({ tableName: userTableNames.prod.historyRecords })).to.length(1);
+    expect(await di.dynamo.scan({ tableName: userTableNames.prod.programs })).to.length(1);
+  });
+
+  it("request full storage before merging", async () => {
+    const { mockReducer, log, env } = await initTheAppAndRecordWorkout();
+    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    await logWorkout(mockReducer2, basicBeginnerProgram, [
+      [5, 5, 5],
+      [5, 5, 5],
+      [5, 5, 5],
+    ]);
+    // await mockReducer.run([
+    //   { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true) },
+    // ]);
+    console.log(log.logs);
+
+    // expect(log.logs.filter((l) => l === "Appendable safe update")).toHaveLength(3);
+    // expect(log.logs.filter((l) => l === "Merging the storages")).toHaveLength(1);
   });
 
   it("merge runs appendable safe syncs", async () => {
@@ -97,8 +128,8 @@ describe("Sync", () => {
       [5, 4, 3],
       [5, 4, 3],
     ]);
-    expect(log.logs.filter((l) => l === "Appendable safe update")).toHaveLength(3);
-    expect(log.logs.filter((l) => l === "Merging the storages")).toHaveLength(1);
+    expect(log.logs.filter((l) => l === "Appendable safe update")).to.length(3);
+    expect(log.logs.filter((l) => l === "Merging the storages")).to.length(1);
   });
 });
 
