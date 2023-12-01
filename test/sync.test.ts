@@ -159,6 +159,21 @@ describe("sync", () => {
     await mockReducer.run([Thunk.fetchStorage()]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
   });
+
+  it("runs migrations before merging", async () => {
+    const { mockReducer, log, env } = await initTheAppAndRecordWorkout();
+    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    await logWorkout(mockReducer2, basicBeginnerProgram, [
+      [5, 5, 5],
+      [5, 5, 5],
+      [5, 5, 5],
+    ]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (mockReducer.state as any).storage.deletedHistory;
+    mockReducer.state.storage.version = "20231009191950";
+    await mockReducer.run([Thunk.sync({ withHistory: true, withPrograms: true, withStats: true })]);
+    expect(mockReducer.state.storage.deletedHistory).to.eql([]);
+  });
 });
 
 async function logWorkout(

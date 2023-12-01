@@ -150,6 +150,8 @@ export namespace Storage {
     const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
 
     const storage: IStorage = {
+      ...oldStorage,
+      ...newStorage,
       id: newStorage.id,
       originalId: newStorage.originalId,
       email: newStorage.email,

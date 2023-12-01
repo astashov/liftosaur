@@ -226,11 +226,12 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         di.log.log("Merging the storages");
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
-          const oldStorage = await runMigrations(di.fetch, fullUser.storage as IStorage, storage.version);
-          const newStorage = Storage.mergeStorage(oldStorage, storage);
-          Storage.updateIds(newStorage);
-          await userDao.saveStorage(fullUser, newStorage);
-          return ResponseUtils.json(200, event, { status: "merged", storage: newStorage });
+          const oldStorage = await runMigrations(di.fetch, fullUser.storage);
+          const newStorage = await runMigrations(di.fetch, storage);
+          const mergedSstorage = Storage.mergeStorage(oldStorage, newStorage);
+          Storage.updateIds(mergedSstorage);
+          await userDao.saveStorage(fullUser, mergedSstorage);
+          return ResponseUtils.json(200, event, { status: "merged", storage: mergedSstorage });
         } else {
           throw new Error(`Can't find user ${user.id}`);
         }
