@@ -138,24 +138,21 @@ export namespace Thunk {
     env: IEnv,
     additionalRequests: ("programs" | "history" | "stats")[] = []
   ): Promise<void> {
-    console.log("SYNC!");
     const state = getState();
     const storage: IPartialStorage = { ...state.storage };
     if (!state.freshMigrations) {
-      if (!args.withHistory && additionalRequests.indexOf("history") !== -1) {
+      if (!args.withHistory && additionalRequests.indexOf("history") === -1) {
         storage.history = undefined;
       }
-      if (!args.withStats && additionalRequests.indexOf("stats") !== -1) {
+      if (!args.withStats && additionalRequests.indexOf("stats") === -1) {
         storage.stats = undefined;
       }
       if (!args.withPrograms && additionalRequests.indexOf("programs") === -1) {
         storage.programs = undefined;
       }
     }
-    console.log("Sending id:", storage.id, "originalId:", storage.originalId);
     const result = await env.service.postStorage(storage);
     if (result.status === "success") {
-      console.log("Success, getting back original id:", result.newOriginalId);
       updateState(
         dispatch,
         [lb<IState>().p("storage").p("originalId").record(result.newOriginalId)],
@@ -165,10 +162,8 @@ export namespace Thunk {
         updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)], "Clean fresh migrations flag");
       }
     } else if (result.status === "request") {
-      console.log("Requesting full storage...");
       await _sync(args, dispatch, getState, env, result.data);
     } else if (result.status === "merged") {
-      console.log("Got back merged state, updating...");
       updateState(dispatch, [lb<IState>().p("storage").record(result.storage)], "Merge Storage");
     }
   }

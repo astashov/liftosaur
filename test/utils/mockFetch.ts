@@ -33,7 +33,6 @@ export class MockFetch {
       requestContext: {} as any,
       resource: "",
     };
-    console.log(`Making call to ${url}`);
     const response = await this.handler(request, { getRemainingTimeInMillis: () => 10000 });
     return {
       ok: response.statusCode === 200,

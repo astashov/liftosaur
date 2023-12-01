@@ -10,6 +10,7 @@ const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.users]: ["id"],
   [userTableNames.prod.historyRecords]: ["userId", "id"],
   [userTableNames.prod.programs]: ["userId", "id"],
+  [userTableNames.prod.stats]: ["userId", "name"],
 };
 
 export class MockDynamoUtil implements IDynamoUtil {

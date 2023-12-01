@@ -226,15 +226,8 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         di.log.log("Merging the storages");
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
-          console.log("Old Storage");
           const oldStorage = await runMigrations(di.fetch, fullUser.storage as IStorage, storage.version);
-          console.log(oldStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
-          console.log("\n\nNew Storage");
-          console.log(storage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
           const newStorage = Storage.mergeStorage(oldStorage, storage);
-          console.log("Merged Storage");
-          console.log(newStorage.history.map((h) => printHistoryRecord(h)).join("\n\n"));
-
           Storage.updateIds(newStorage);
           await userDao.saveStorage(fullUser, newStorage);
           return ResponseUtils.json(200, event, { status: "merged", storage: newStorage });

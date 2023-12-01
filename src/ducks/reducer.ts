@@ -396,7 +396,6 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   const newState = reducer(state, action);
   if (Storage.isChanged(state.storage, newState.storage)) {
     const dateNow = Date.now();
-    console.log("New id", dateNow);
 
     newState.storage = {
       ...newState.storage,

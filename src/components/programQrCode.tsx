@@ -12,7 +12,6 @@ export function ProgramQrCode(props: IProgramQrCodeProps): JSX.Element {
       if (error) {
         console.error(error);
       }
-      console.log("success!");
     });
   }, [props.url]);
   const ref = useRef<HTMLCanvasElement>(null);

@@ -20,6 +20,9 @@ import { IHistoryRecord, IProgram, ISettings } from "../src/types";
 import { userTableNames } from "../lambda/dao/userDao";
 import { ObjectUtils } from "../src/utils/object";
 import { lb } from "lens-shmens";
+import sinon from "sinon";
+import { EditStats } from "../src/models/editStats";
+import util from "util";
 
 function mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -83,6 +86,11 @@ before(() => {
   global.Rollbar = {
     configure: () => undefined,
   };
+  let ts = 0;
+  sinon.stub(Date, "now").callsFake(() => {
+    ts += 1;
+    return ts;
+  });
 });
 
 describe("sync", () => {
@@ -106,13 +114,12 @@ describe("sync", () => {
       [5, 5, 5],
       [5, 5, 5],
     ]);
-    // await mockReducer.run([
-    //   { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true) },
-    // ]);
-    console.log(log.logs);
+    await mockReducer.run([
+      { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true) },
+    ]);
 
-    // expect(log.logs.filter((l) => l === "Appendable safe update")).toHaveLength(3);
-    // expect(log.logs.filter((l) => l === "Merging the storages")).toHaveLength(1);
+    const filteredLogs = log.logs.filter((l) => l === "Requesting full storage" || l === "Merging the storages");
+    expect(filteredLogs).to.eql(["Requesting full storage", "Merging the storages"]);
   });
 
   it("merge runs appendable safe syncs", async () => {
@@ -131,6 +138,27 @@ describe("sync", () => {
     expect(log.logs.filter((l) => l === "Appendable safe update")).to.length(3);
     expect(log.logs.filter((l) => l === "Merging the storages")).to.length(1);
   });
+
+  it("deletes the stats properly during merging", async () => {
+    const { mockReducer, env } = await initTheAppAndRecordWorkout();
+    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    await logStat(mockReducer2, 100);
+    await logStat(mockReducer, 120);
+    await logStat(mockReducer2, 130);
+    await logStat(mockReducer, 140);
+
+    const weights = mockReducer.state.storage.stats.weight.weight || [];
+    const weight140Index = weights.findIndex((w) => w.value.value === 140) ?? 0;
+    const weight130Index = weights.findIndex((w) => w.value.value === 130) ?? 0;
+    await mockReducer.run([
+      mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight130Index, weights[weight130Index].timestamp)),
+      mockDispatch((ds) => EditStats.deleteWeightStat(ds, "weight", weight140Index, weights[weight140Index].timestamp)),
+    ]);
+    await logStat(mockReducer2, 150);
+    expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
+    await mockReducer.run([Thunk.fetchStorage()]);
+    expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
+  });
 });
 
 async function logWorkout(
@@ -141,6 +169,16 @@ async function logWorkout(
   await mockReducer.run([{ type: "StartProgramDayAction" }]);
   await mockReducer.run([...completeRepsActions(program, mockReducer.state.progress[0]!, reps)]);
   await mockReducer.run([{ type: "FinishProgramDayAction" }]);
+}
+
+async function logStat(mockReducer: MockReducer<IState, IAction, IEnv>, bodyweight: number): Promise<void> {
+  await mockReducer.run([
+    mockDispatch((ds) =>
+      EditStats.addWeightStats(ds, {
+        weight: { value: bodyweight, unit: "kg" },
+      })
+    ),
+  ]);
 }
 
 function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: number[][]): IAction[] {

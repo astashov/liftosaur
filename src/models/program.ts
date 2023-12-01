@@ -902,7 +902,6 @@ export namespace Program {
     const changed = !ObjectUtils.isEqual(cleanedAProgram, cleanedBProgram);
     if (changed) {
       const paths = ObjectUtils.diffPaths(cleanedAProgram, cleanedBProgram);
-      console.log("Changed program paths", paths);
       return paths.some((p) => {
         return !p.match(/exercises.\d+.state/) && !p.match(/exercises.\d+.reuseLogic\.states/) && !p.match(/nextDay/);
       });

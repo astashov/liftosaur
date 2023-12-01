@@ -130,9 +130,6 @@ export namespace Storage {
     const { originalId: _aOriginalId, id: _aId, ...cleanedAStorage } = aStorage;
     const { originalId: _bOriginalId, id: _bId, ...cleanedBStorage } = bStorage;
     const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage);
-    if (changed) {
-      console.log("Storage changed", ObjectUtils.diffPaths(cleanedAStorage, cleanedBStorage));
-    }
     return changed;
   }
 
