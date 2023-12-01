@@ -52,9 +52,15 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   }, new Set());
   const settings = props.settings;
   const hasBodyweight = settings.graphs.some((g) => g.id === "weight");
-  const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter((k) => !usedStats.has(k));
-  const statsLengthKeys = ObjectUtils.keys(props.stats.length).filter((k) => !usedStats.has(k));
-  const statsPercentageKeys = ObjectUtils.keys(props.stats.percentage).filter((k) => !usedStats.has(k));
+  const statsWeightKeys = ObjectUtils.keys(props.stats.weight).filter(
+    (k) => !usedStats.has(k) && (props.stats.weight[k] || []).length > 0
+  );
+  const statsLengthKeys = ObjectUtils.keys(props.stats.length).filter(
+    (k) => !usedStats.has(k) && (props.stats.length[k] || []).length > 0
+  );
+  const statsPercentageKeys = ObjectUtils.keys(props.stats.percentage).filter(
+    (k) => !usedStats.has(k) && (props.stats.percentage[k] || []).length > 0
+  );
   const availableMuscleGroups = [...screenMuscles, "total"].filter(
     (m) => !graphs.some((g) => g.type === "muscleGroup" && g.id === m)
   );

@@ -57,9 +57,9 @@ function getValues(stats: IStats, key: IStatsKey): IValue[] {
 
 export function StatsList(props: IProps): JSX.Element {
   const statsKeys: IStatsKey[] = [
-    ...ObjectUtils.keys(props.stats.weight),
-    ...ObjectUtils.keys(props.stats.percentage),
-    ...ObjectUtils.keys(props.stats.length),
+    ...ObjectUtils.keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
+    ...ObjectUtils.keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
+    ...ObjectUtils.keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
   ];
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;

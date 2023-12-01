@@ -78,7 +78,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           {shouldShowPostCloneModal && program && (
             <ModalPostClone
               settings={props.settings}
-              programIndex={props.customPrograms.indexOf(program)}
+              programIndex={props.customPrograms.findIndex((cp) => cp.id === program.id)}
               program={program}
               onClose={() => props.dispatch(Thunk.pushScreen("main"))}
               dispatch={props.dispatch}
