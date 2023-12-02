@@ -243,15 +243,15 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   return ResponseUtils.json(200, event, {});
 };
 
-function printHistoryRecord(historyRecord: IHistoryRecord): string {
-  return (
-    historyRecord.entries
-      .map((entry) => {
-        return `${entry.exercise.id} - ${entry.sets.map((s) => s.completedReps).join("/")}`;
-      })
-      .join("\n") + "\n"
-  );
-}
+// function printHistoryRecord(historyRecord: IHistoryRecord): string {
+//   return (
+//     historyRecord.entries
+//       .map((entry) => {
+//         return `${entry.exercise.id} - ${entry.sets.map((s) => s.completedReps).join("/")}`;
+//       })
+//       .join("\n") + "\n"
+//   );
+// }
 
 const saveDebugEndpoint = Endpoint.build("/api/debug");
 const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugEndpoint> = async ({
