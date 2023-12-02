@@ -356,4 +356,21 @@ export const migrations = {
     }
     return aStorage;
   },
+  "20231126225248_deleted_items": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.deletedHistory = storage.deletedHistory || [];
+    storage.deletedPrograms = storage.deletedPrograms || [];
+    storage.deletedStats = storage.deletedStats || [];
+    return storage;
+  },
+  "20231127190359_add_cloned_at_to_programs": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      program.clonedAt = program.clonedAt ?? Date.now() - Math.floor(Math.random() * 1000);
+    }
+    return storage;
+  },
 };

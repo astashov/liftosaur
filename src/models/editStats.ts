@@ -225,9 +225,10 @@ export namespace EditStats {
     });
   }
 
-  export function deleteWeightStat(dispatch: IDispatch, key: keyof IStatsWeight, index: number): void {
+  export function deleteWeightStat(dispatch: IDispatch, key: keyof IStatsWeight, index: number, ts: number): void {
     dispatch({
       type: "UpdateState",
+      desc: "Delete weight stat",
       lensRecording: [
         lb<IState>()
           .p("storage")
@@ -235,13 +236,18 @@ export namespace EditStats {
           .p("weight")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("deletedStats")
+          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }
 
-  export function deleteLengthStat(dispatch: IDispatch, key: keyof IStatsLength, index: number): void {
+  export function deleteLengthStat(dispatch: IDispatch, key: keyof IStatsLength, index: number, ts: number): void {
     dispatch({
       type: "UpdateState",
+      desc: "Delete length stat",
       lensRecording: [
         lb<IState>()
           .p("storage")
@@ -249,13 +255,23 @@ export namespace EditStats {
           .p("length")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("deletedStats")
+          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }
 
-  export function deletePercentageStat(dispatch: IDispatch, key: keyof IStatsPercentage, index: number): void {
+  export function deletePercentageStat(
+    dispatch: IDispatch,
+    key: keyof IStatsPercentage,
+    index: number,
+    ts: number
+  ): void {
     dispatch({
       type: "UpdateState",
+      desc: "Delete percentage stat",
       lensRecording: [
         lb<IState>()
           .p("storage")
@@ -263,6 +279,10 @@ export namespace EditStats {
           .p("percentage")
           .p(key)
           .recordModify((s) => [...(s || [])].filter((_, i) => i !== index)),
+        lb<IState>()
+          .p("storage")
+          .p("deletedStats")
+          .recordModify((deletedStats) => [...deletedStats, ts]),
       ],
     });
   }

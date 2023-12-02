@@ -16,7 +16,7 @@ export interface IDI {
   cloudwatch: CloudwatchUtil;
 }
 
-export function buildDi(log: LogUtil): IDI {
+export function buildDi(log: LogUtil, fetch?: Window["fetch"]): IDI {
   return {
     dynamo: new DynamoUtil(log),
     secrets: new SecretsUtil(log),

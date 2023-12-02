@@ -692,6 +692,7 @@ export const TProgram = t.intersection(
       tags: t.array(TProgramTag),
     }),
     t.partial({
+      clonedAt: t.number,
       shortDescription: t.string,
     }),
   ],
@@ -911,11 +912,14 @@ export const TStorage = t.intersection(
     t.interface({
       id: t.number,
       history: t.array(THistoryRecord),
+      deletedHistory: t.array(t.number),
       stats: TStats,
+      deletedStats: t.array(t.number),
       settings: TSettings,
       currentProgramId: t.union([t.string, t.undefined]),
       version: t.string,
       programs: t.array(TProgram),
+      deletedPrograms: t.array(t.number),
       reviewRequests: t.array(t.number),
       signupRequests: t.array(t.number),
       helps: t.array(t.string),
@@ -927,6 +931,7 @@ export const TStorage = t.intersection(
     }),
     t.partial({
       referrer: t.string,
+      originalId: t.number,
     }),
   ],
   "TStorage"

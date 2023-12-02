@@ -100,6 +100,10 @@ export function ProgramListView(props: IProps): JSX.Element {
                                   .recordModify((id) =>
                                     id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id
                                   ),
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("deletedPrograms")
+                                  .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
                               ],
                             });
                           }

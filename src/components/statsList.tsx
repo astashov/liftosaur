@@ -233,11 +233,11 @@ export function StatsList(props: IProps): JSX.Element {
                       onClick={() => {
                         if (confirm("Are you sure?")) {
                           if (selectedKey === "weight") {
-                            EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index);
+                            EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           } else if (selectedKey === "bodyfat") {
-                            EditStats.deletePercentageStat(props.dispatch, selectedKey, value.index);
+                            EditStats.deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           } else {
-                            EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index);
+                            EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
                           }
                         }
                       }}

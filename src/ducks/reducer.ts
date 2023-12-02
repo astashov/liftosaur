@@ -509,7 +509,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         ...state,
         currentHistoryRecord: undefined,
         screenStack: Screen.pull(state.screenStack),
-        storage: { ...state.storage, history },
+        storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.startTime], history },
         progress: Progress.stop(state.progress, progress.id),
       };
     } else {
@@ -595,6 +595,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         reviewRequests: newStorage.reviewRequests,
         signupRequests: newStorage.signupRequests,
         affiliates: newStorage.affiliates,
+        deletedHistory: newStorage.deletedHistory,
+        deletedPrograms: newStorage.deletedPrograms,
+        deletedStats: newStorage.deletedStats,
         stats: {
           weight: {
             weight: CollectionUtils.concatBy(
