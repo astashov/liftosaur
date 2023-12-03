@@ -57,6 +57,7 @@ import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { PlannerReformatter } from "./utils/plannerReformatter";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils } from "../src/utils/url";
+import { RollbarUtils } from "../src/utils/rollbar";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1561,6 +1562,7 @@ const rollbar = new Rollbar({
   payload: {
     environment: `${Utils.getEnv()}-lambda`,
   },
+  checkIgnore: RollbarUtils.config().checkIgnore,
 });
 
 type ILftFreeformLambdaDevEvent = { prompt: string; id: string };

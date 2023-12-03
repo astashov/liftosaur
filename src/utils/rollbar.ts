@@ -84,9 +84,10 @@ export namespace RollbarUtils {
           "play() request was interrupted",
           "The request is not allowed by the user agent or the platform",
           "Load failed",
+          "Function timed out",
         ];
         const firstArg = args[0];
-        if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) === 0)) {
+        if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) !== -1)) {
           return true;
         }
         return false;
