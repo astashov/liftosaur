@@ -11,6 +11,7 @@ import { EditProgramLenses } from "../../../models/editProgramLenses";
 import { Program } from "../../../models/program";
 import { IProgram, ISettings } from "../../../types";
 import { CollectionUtils } from "../../../utils/collection";
+import { UidFactory } from "../../../utils/generator";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -68,7 +69,7 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
                         dispatch(
                           lbProgram.p("weeks").recordModify((weeks) => {
                             const newWeeks = [...weeks];
-                            newWeeks.push({ ...ObjectUtils.clone(week), name: newName });
+                            newWeeks.push({ ...ObjectUtils.clone(week), name: newName, id: UidFactory.generateUid(8) });
                             return newWeeks;
                           })
                         );
