@@ -218,7 +218,11 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                                   .p("weeks")
                                   .recordModify((weeks) => {
                                     const newWeeks = [...weeks];
-                                    newWeeks.push({ ...ObjectUtils.clone(week), name: newName });
+                                    newWeeks.push({
+                                      ...ObjectUtils.clone(week),
+                                      name: newName,
+                                      id: UidFactory.generateUid(8),
+                                    });
                                     return newWeeks;
                                   }),
                               ],
