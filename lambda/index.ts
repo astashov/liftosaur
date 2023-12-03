@@ -1688,6 +1688,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       resp = await r.route(event.httpMethod as Method, url.pathname + url.search);
     } catch (e) {
       console.error(e);
+      di.log.log(e);
       errorStatus = 500;
       resp = { success: false, error: "Internal Server Error" };
     }

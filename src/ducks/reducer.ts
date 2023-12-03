@@ -371,7 +371,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (oldState.storage.subscription.apple !== newState.storage.subscription.apple) {
+      if (!ObjectUtils.isEqual(oldState.storage.subscription.apple, newState.storage.subscription.apple)) {
         const userId = newState.user?.id || newState.storage.tempUserId;
         Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, env.service, newState.storage.subscription);
       }

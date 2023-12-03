@@ -73,20 +73,26 @@ export namespace Subscriptions {
         return [key, await Subscriptions.verifyAppleReceipt(userId, service, key)];
       })
     ).then((results) => {
-      for (const [key, result] of results) {
-        if (!result) {
-          updateState(dispatch, [
+      const validReceipts = results.filter(([, result]) => result).map(([key]) => key);
+      const validReceipt = validReceipts[validReceipts.length - 1];
+      if (validReceipt) {
+        updateState(
+          dispatch,
+          [
             lb<IState>()
               .p("storage")
               .p("subscription")
               .p("apple")
-              .recordModify((r) => {
-                const copy = { ...r };
-                delete copy[key];
-                return copy;
-              }),
-          ]);
-        }
+              .record({ [validReceipt]: null }),
+          ],
+          "Clean up outdated Apple receipts - leave only the valid one"
+        );
+      } else {
+        updateState(
+          dispatch,
+          [lb<IState>().p("storage").p("subscription").p("apple").record({})],
+          "Clean up outdated Apple receipts - remove all"
+        );
       }
     });
   }
