@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import RB from "rollbar";
+import RB, { Dictionary, LogArgument } from "rollbar";
 import { Service } from "../api/service";
 import { IState } from "../models/state";
 import { UidFactory } from "./generator";
@@ -49,6 +49,27 @@ export namespace RollbarUtils {
     }
   }
 
+  export function checkIgnore(isUncaught: boolean, args: LogArgument[], item: Dictionary): boolean {
+    const ignores = [
+      "Script error",
+      "Failed to fetch",
+      "Failed to register a ServiceWorker",
+      "The element has no supported sources",
+      "The operation was aborted",
+      "FetchEvent.respondWith received an error",
+      "play() failed because the user",
+      "play() request was interrupted",
+      "The request is not allowed by the user agent or the platform",
+      "Load failed",
+      "Function timed out",
+    ];
+    const firstArg = args[0];
+    if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) !== -1)) {
+      return true;
+    }
+    return false;
+  }
+
   export function config(payload?: object): RB.Configuration {
     return {
       payload: {
@@ -72,26 +93,7 @@ export namespace RollbarUtils {
           credentials: "include",
         });
       },
-      checkIgnore: function (isUncaught, args, _payload) {
-        const ignores = [
-          "Script error",
-          "Failed to fetch",
-          "Failed to register a ServiceWorker",
-          "The element has no supported sources",
-          "The operation was aborted",
-          "FetchEvent.respondWith received an error",
-          "play() failed because the user",
-          "play() request was interrupted",
-          "The request is not allowed by the user agent or the platform",
-          "Load failed",
-          "Function timed out",
-        ];
-        const firstArg = args[0];
-        if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) !== -1)) {
-          return true;
-        }
-        return false;
-      },
+      checkIgnore: checkIgnore,
     };
   }
 }

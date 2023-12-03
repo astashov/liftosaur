@@ -1562,7 +1562,7 @@ const rollbar = new Rollbar({
   payload: {
     environment: `${Utils.getEnv()}-lambda`,
   },
-  checkIgnore: RollbarUtils.config().checkIgnore,
+  checkIgnore: RollbarUtils.checkIgnore,
 });
 
 type ILftFreeformLambdaDevEvent = { prompt: string; id: string };
