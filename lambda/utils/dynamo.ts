@@ -135,6 +135,8 @@ export class DynamoUtil implements IDynamoUtil {
       await this.dynamo.put({ TableName: args.tableName, Item: args.item }).promise();
     } catch (e) {
       this.log.log(`FAILED Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
+      this.log.log(e.message);
+      this.log.log(e.stack);
       throw e;
     }
     this.log.log(`Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
