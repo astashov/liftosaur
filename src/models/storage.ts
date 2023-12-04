@@ -138,10 +138,7 @@ export namespace Storage {
     storage.originalId = storage.id;
   }
 
-  export function mergeStorage(aStorage: IStorage, bStorage: IStorage): IStorage {
-    const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
-    const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
-
+  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {
     const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
     const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
     const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);

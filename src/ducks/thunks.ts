@@ -201,7 +201,9 @@ export namespace Thunk {
       if (getState().errors.corruptedstorage == null) {
         const result = await load(dispatch, "Loading from cloud", () => {
           const state = getState();
-          return env.service.getStorage(state.storage.tempUserId, state.user?.id, state.adminKey);
+          const url = typeof window !== "undefined" ? UrlUtils.build(window.location.href) : undefined;
+          const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
+          return env.service.getStorage(state.storage.tempUserId, userId || undefined, state.adminKey);
         });
         await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
       }

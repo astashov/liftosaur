@@ -178,8 +178,17 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const { event, di } = payload;
   const querystringParams = event.queryStringParameters || {};
   let userId;
+  let setCookie: string | undefined = undefined;
   if (match.params.key != null && match.params.userid != null && match.params.key === (await di.secrets.getApiKey())) {
     userId = querystringParams.userid;
+    const cookieSecret = await di.secrets.getCookieSecret();
+    const session = JWT.sign({ userId: userId }, cookieSecret);
+    setCookie = Cookie.serialize("session", session, {
+      httpOnly: true,
+      domain: ".liftosaur.com",
+      path: "/",
+      expires: new Date(new Date().getFullYear() + 10, 0, 1),
+    });
   } else {
     userId = await getCurrentUserId(event, di);
   }
@@ -192,12 +201,18 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     const userDao = new UserDao(di);
     const user = await userDao.getById(userId);
     if (user != null) {
-      return ResponseUtils.json(200, event, {
-        storage: user.storage,
-        email: user.email,
-        user_id: user.id,
-        key,
-      });
+      user.storage.originalId = user.storage.originalId || Date.now();
+      return ResponseUtils.json(
+        200,
+        event,
+        {
+          storage: user.storage,
+          email: user.email,
+          user_id: user.id,
+          key,
+        },
+        setCookie ? { "set-cookie": setCookie } : undefined
+      );
     }
   }
   return ResponseUtils.json(200, event, { key });
@@ -227,12 +242,14 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         di.log.log("Merging the storages");
         const fullUser = await userDao.getById(user.id);
         if (fullUser != null) {
-          const oldStorage = await runMigrations(di.fetch, fullUser.storage);
-          const newStorage = await runMigrations(di.fetch, storage);
-          const mergedSstorage = Storage.mergeStorage(oldStorage, newStorage);
-          Storage.updateIds(mergedSstorage);
-          await userDao.saveStorage(fullUser, mergedSstorage);
-          return ResponseUtils.json(200, event, { status: "merged", storage: mergedSstorage });
+          const aStorage = await runMigrations(di.fetch, fullUser.storage);
+          const bStorage = await runMigrations(di.fetch, storage);
+          const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
+          const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
+          const mergedStorage = Storage.mergeStorage(oldStorage, newStorage);
+          Storage.updateIds(mergedStorage);
+          await userDao.saveStorage(fullUser, mergedStorage);
+          return ResponseUtils.json(200, event, { status: "merged", storage: mergedStorage });
         } else {
           throw new Error(`Can't find user ${user.id}`);
         }

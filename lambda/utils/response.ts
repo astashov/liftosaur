@@ -4,12 +4,17 @@ import { UrlUtils } from "../../src/utils/url";
 const allowedHosts = ["local.liftosaur.com:8080", "www.liftosaur.com", "localhost:8080", "stage.liftosaur.com"];
 
 export namespace ResponseUtils {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  export function json(status: number, event: APIGatewayProxyEvent, body: string | object): APIGatewayProxyResult {
+  export function json(
+    status: number,
+    event: APIGatewayProxyEvent,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    body: string | object,
+    headers?: Record<string, string>
+  ): APIGatewayProxyResult {
     return {
       statusCode: status,
       body: typeof body === "string" ? body : JSON.stringify(body),
-      headers: getHeaders(event),
+      headers: { ...getHeaders(event), ...headers },
     };
   }
 

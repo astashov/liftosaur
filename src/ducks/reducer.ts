@@ -57,7 +57,6 @@ export async function getInitialState(
   args?: { url?: URL; rawStorage?: string; storage?: IStorage }
 ): Promise<IState> {
   const url = args?.url || UrlUtils.build(document.location.href);
-  const userId = url.searchParams.get("userid") || undefined;
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   let storage: ILocalStorage | undefined;
@@ -119,7 +118,7 @@ export async function getInitialState(
       currentHistoryRecord: 0,
       comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
-      user: userId ? { email: userId, id: userId } : undefined,
+      user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
       nosync: false,
@@ -136,7 +135,7 @@ export async function getInitialState(
     notification,
     comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
     storage: Storage.getDefault(),
-    user: userId ? { email: userId, id: userId } : undefined,
+    user: undefined,
     errors: {},
     freshMigrations: false,
     nosync: false,
