@@ -126,7 +126,7 @@ export namespace Storage {
   export function isChanged(aStorage: IStorage, bStorage: IStorage): boolean {
     const { originalId: _aOriginalId, id: _aId, ...cleanedAStorage } = aStorage;
     const { originalId: _bOriginalId, id: _bId, ...cleanedBStorage } = bStorage;
-    const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage);
+    const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["diffPaths", "version"]);
     return changed;
   }
 
@@ -136,6 +136,11 @@ export namespace Storage {
 
   export function updateIds(storage: IStorage | IPartialStorage): void {
     storage.originalId = storage.id;
+    for (const program of storage.programs || []) {
+      for (const exercise of program.exercises) {
+        exercise.diffPaths = [];
+      }
+    }
   }
 
   export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {

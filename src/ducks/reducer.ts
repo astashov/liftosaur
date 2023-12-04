@@ -396,9 +396,30 @@ export const reducerWrapper: Reducer<IState, IAction> = (state, action) => {
   if (Storage.isChanged(state.storage, newState.storage)) {
     const dateNow = Date.now();
 
+    const newPrograms = newState.storage.programs.map((p) => {
+      const oldProgram = state.storage.programs.find((op) => op.id === p.id);
+      if (oldProgram == null || !Program.isChanged(oldProgram, p)) {
+        return p;
+      }
+      return {
+        ...p,
+        version: Date.now(),
+        exercises: p.exercises.map((e) => {
+          const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
+          if (oldExercise && !ObjectUtils.isEqual(oldExercise, e)) {
+            const diffPaths = Array.from(new Set([...(e.diffPaths || []), ...ObjectUtils.diffPaths(oldExercise, e)]));
+            return { ...e, diffPaths };
+          } else {
+            return e;
+          }
+        }),
+      };
+    });
+
     newState.storage = {
       ...newState.storage,
       id: dateNow,
+      programs: newPrograms,
       originalId: newState.storage.originalId ?? dateNow,
       version: getLatestMigrationVersion(),
     };

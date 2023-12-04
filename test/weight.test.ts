@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { Settings } from "../src/models/settings";
 import { Weight } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
-import util from "util";
 
 function buildSettings(plates: IPlate[], bar: number = 45): ISettings {
   const settings = Settings.build();

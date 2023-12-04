@@ -83,7 +83,10 @@ export function ProgramContentEditWeeks(props: IProgramContentEditWeeksProps): J
                         data-cy={`menu-item-delete-${StringUtils.dashcase(week.name)}`}
                         className="px-2 align-middle ls-web-editor-delete-week button"
                         onClick={() => {
-                          dispatch(lbProgram.p("weeks").recordModify((days) => CollectionUtils.removeAt(days, i)));
+                          dispatch([
+                            lbProgram.p("weeks").recordModify((days) => CollectionUtils.removeAt(days, i)),
+                            lbProgram.p("deletedWeeks").recordModify((dw) => [...(dw || []), week.id]),
+                          ]);
                         }}
                       >
                         <IconTrash />

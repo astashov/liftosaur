@@ -910,6 +910,9 @@ export namespace Program {
   }
 
   export function mergePrograms(oldProgram: IProgram, newProgram: IProgram): IProgram {
+    const deletedWeeks = new Set([...(oldProgram.deletedWeeks || []), ...(newProgram.deletedWeeks || [])]);
+    const deletedDays = new Set([...(oldProgram.deletedDays || []), ...(newProgram.deletedDays || [])]);
+    const deletedExercises = new Set([...(oldProgram.deletedExercises || []), ...(newProgram.deletedExercises || [])]);
     return {
       id: newProgram.id,
       name: newProgram.name,
@@ -917,19 +920,28 @@ export namespace Program {
       url: newProgram.url,
       author: newProgram.author,
       nextDay: newProgram.nextDay,
-      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id),
-      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id),
+      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id).filter(
+        (d) => !deletedExercises.has(d.id)
+      ),
+      deletedDays: Array.from(deletedDays),
+      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id).filter(
+        (d) => !deletedWeeks.has(d.id)
+      ),
+      deletedWeeks: Array.from(deletedWeeks),
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
       shortDescription: newProgram.shortDescription,
-      exercises: newProgram.exercises.map((e) => {
-        const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
-        if (oldExercise) {
-          return ProgramExercise.mergeExercises(oldExercise, e);
-        } else {
-          return e;
-        }
-      }),
+      exercises: CollectionUtils.concatBy(oldProgram.exercises, newProgram.exercises, (e) => e.id)
+        .map((e) => {
+          const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
+          if (oldExercise) {
+            return ProgramExercise.mergeExercises(oldExercise, e);
+          } else {
+            return e;
+          }
+        })
+        .filter((e) => !deletedExercises.has(e.id)),
+      deletedExercises: Array.from(deletedExercises),
     };
   }
 }

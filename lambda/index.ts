@@ -8,7 +8,7 @@ import JWT from "jsonwebtoken";
 import { UidFactory } from "./utils/generator";
 import { Utils } from "./utils";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IHistoryRecord, IPartialStorage, IStorage } from "../src/types";
+import { IPartialStorage, IStorage } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";

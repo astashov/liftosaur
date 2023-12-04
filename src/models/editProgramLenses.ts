@@ -86,6 +86,7 @@ export namespace EditProgramLenses {
         .p("weeks")
         .recordModify((weeks) => weeks.map((w) => ({ ...w, days: CollectionUtils.removeBy(w.days, "id", dayId) }))),
       prefix.p("days").recordModify((days) => CollectionUtils.removeBy(days, "id", dayId)),
+      prefix.p("deletedDays").recordModify((dd) => [...(dd || []), dayId]),
     ];
   }
 
@@ -136,8 +137,11 @@ export namespace EditProgramLenses {
   export function removeProgramExercise<T>(
     prefix: LensBuilder<T, IProgram, {}>,
     exerciseId: string
-  ): ILensRecordingPayload<T> {
-    return prefix.p("exercises").recordModify((es) => es.filter((e) => e.id !== exerciseId));
+  ): ILensRecordingPayload<T>[] {
+    return [
+      prefix.p("exercises").recordModify((es) => es.filter((e) => e.id !== exerciseId)),
+      prefix.p("deletedExercises").recordModify((es) => [...(es || []), exerciseId]),
+    ];
   }
 
   export function setDescription<T>(

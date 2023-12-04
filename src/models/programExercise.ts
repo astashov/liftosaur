@@ -392,25 +392,64 @@ export namespace ProgramExercise {
   }
 
   export function mergeExercises(oldExercise: IProgramExercise, newExercise: IProgramExercise): IProgramExercise {
-    return {
-      state: { ...oldExercise.state, ...newExercise.state },
+    function v1<K1 extends keyof IProgramExercise>(key: K1): IProgramExercise[K1] {
+      return (newExercise.diffPaths || []).some((dp) => dp.startsWith(key))
+        ? newExercise[key] ?? oldExercise[key]
+        : oldExercise[key] ?? newExercise[key];
+    }
 
-      exerciseType: newExercise.exerciseType,
-      id: newExercise.id,
-      name: newExercise.name,
-      variations: newExercise.variations,
-      variationExpr: newExercise.variationExpr,
-      finishDayExpr: newExercise.finishDayExpr,
-      descriptions: newExercise.descriptions,
-      description: newExercise.description,
-      descriptionExpr: newExercise.descriptionExpr,
-      quickAddSets: newExercise.quickAddSets,
-      enableRepRanges: newExercise.enableRepRanges,
-      enableRpe: newExercise.enableRpe,
-      stateMetadata: newExercise.stateMetadata,
-      timerExpr: newExercise.timerExpr,
-      reuseLogic: newExercise.reuseLogic,
-      warmupSets: newExercise.warmupSets,
+    function v4<
+      K1 extends keyof IProgramExercise,
+      K2 extends keyof IProgramExercise[K1],
+      K3 extends keyof IProgramExercise[K1][K2],
+      K4 extends keyof IProgramExercise[K1][K2][K3]
+    >(key1: K1, key2: K2, key3: K3, key4: K4): IProgramExercise[K1][K2][K3][K4] {
+      const diffPath = `${key1}.${key2}.${key3}.${key4}`;
+      const oldValue = oldExercise[key1]?.[key2]?.[key3]?.[key4];
+      const newValue = newExercise[key1][key2][key3][key4];
+      return (newExercise.diffPaths || []).some((dp) => dp.startsWith(diffPath))
+        ? newValue ?? oldValue ?? newValue
+        : oldValue ?? newValue;
+    }
+
+    return {
+      ...oldExercise,
+      ...newExercise,
+      state: { ...oldExercise.state, ...newExercise.state },
+      reuseLogic: {
+        selected: newExercise.reuseLogic?.selected,
+        states: ObjectUtils.keys(newExercise.reuseLogic?.states || {}).reduce<Record<string, IProgramState>>(
+          (memo, key) => {
+            memo[key] = { ...oldExercise.reuseLogic?.states[key], ...newExercise.reuseLogic?.states[key] };
+            return memo;
+          },
+          {}
+        ),
+      },
+      exerciseType: v1("exerciseType"),
+      id: v1("id"),
+      name: v1("name"),
+      variations: newExercise.variations.map((variation, i) => {
+        return {
+          sets: variation.sets.map((_, j) => {
+            return v4("variations", i, "sets", j);
+          }),
+        };
+      }),
+      variationExpr: v1("variationExpr"),
+      finishDayExpr: v1("finishDayExpr"),
+      descriptions: v1("descriptions"),
+      description: v1("description"),
+      descriptionExpr: v1("descriptionExpr"),
+      quickAddSets: v1("quickAddSets"),
+      enableRepRanges: v1("enableRepRanges"),
+      enableRpe: v1("enableRpe"),
+      stateMetadata: (newExercise.diffPaths || []).some((dp) => dp.startsWith("stateMetadata"))
+        ? { ...oldExercise.stateMetadata, ...newExercise.stateMetadata }
+        : { ...newExercise.stateMetadata, ...oldExercise.stateMetadata },
+      timerExpr: v1("timerExpr"),
+      warmupSets: v1("warmupSets"),
+      diffPaths: [],
     };
   }
 }

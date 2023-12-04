@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "declaration": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,

@@ -246,6 +246,12 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
                                       .i(props.programIndex)
                                       .p("weeks")
                                       .recordModify((weeks) => weeks.filter((w) => w !== week)),
+                                    lb<IState>()
+                                      .p("storage")
+                                      .p("programs")
+                                      .i(props.programIndex)
+                                      .p("deletedWeeks")
+                                      .recordModify((dw) => [...(dw || []), week.id]),
                                   ],
                                 });
                               }

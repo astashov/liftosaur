@@ -306,12 +306,13 @@ export namespace EditProgram {
   }
 
   export function removeProgramExercise(dispatch: IDispatch, program: IProgram, exerciseId: string): void {
-    updateState(dispatch, [
+    updateState(
+      dispatch,
       EditProgramLenses.removeProgramExercise(
         lb<IState>().p("storage").p("programs").findBy("id", program.id),
         exerciseId
-      ),
-    ]);
+      )
+    );
   }
 
   export function copyProgramExercise(dispatch: IDispatch, program: IProgram, exercise: IProgramExercise): void {

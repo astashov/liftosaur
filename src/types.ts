@@ -517,6 +517,7 @@ export const TProgramExercise = t.intersection(
       descriptions: t.array(t.string),
     }),
     t.partial({
+      diffPaths: t.array(t.string),
       description: t.string,
       descriptionExpr: t.string,
       quickAddSets: t.boolean,
@@ -692,6 +693,9 @@ export const TProgram = t.intersection(
       tags: t.array(TProgramTag),
     }),
     t.partial({
+      deletedDays: t.array(t.string),
+      deletedWeeks: t.array(t.string),
+      deletedExercises: t.array(t.string),
       clonedAt: t.number,
       shortDescription: t.string,
     }),

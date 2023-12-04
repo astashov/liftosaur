@@ -33,7 +33,6 @@ import { RollbarUtils } from "../utils/rollbar";
 import { UrlUtils } from "../utils/url";
 
 declare let Rollbar: RB;
-declare let __ENV__: string;
 
 export namespace Thunk {
   export function googleSignIn(): IThunk {
@@ -155,8 +154,16 @@ export namespace Thunk {
     if (result.status === "success") {
       updateState(
         dispatch,
-        [lb<IState>().p("storage").p("originalId").record(result.newOriginalId)],
-        "Set original id"
+        [
+          lb<IState>().p("storage").p("originalId").record(result.newOriginalId),
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .recordModify((ps) =>
+              ps.map((p) => ({ ...p, exercises: p.exercises.map((e) => ({ ...e, diffPaths: [] })) }))
+            ),
+        ],
+        "Set original id and clean diffpaths"
       );
       if (state.freshMigrations) {
         updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)], "Clean fresh migrations flag");

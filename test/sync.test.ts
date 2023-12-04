@@ -5,7 +5,7 @@ import { Storage } from "../src/models/storage";
 import { Service } from "../src/api/service";
 import { MockAudioInterface } from "../src/lib/audioInterface";
 import { AsyncQueue } from "../src/utils/asyncQueue";
-import { IEnv, IState } from "../src/models/state";
+import { IEnv, IState, updateState } from "../src/models/state";
 import { UrlUtils } from "../src/utils/url";
 import { getRawHandler } from "../lambda";
 import { MockLogUtil } from "./utils/mockLogUtil";
@@ -22,7 +22,6 @@ import { ObjectUtils } from "../src/utils/object";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
 import { EditStats } from "../src/models/editStats";
-import util from "util";
 
 function mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -161,7 +160,7 @@ describe("sync", () => {
   });
 
   it("runs migrations before merging", async () => {
-    const { mockReducer, log, env } = await initTheAppAndRecordWorkout();
+    const { mockReducer, env } = await initTheAppAndRecordWorkout();
     const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
     await logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
@@ -173,6 +172,35 @@ describe("sync", () => {
     mockReducer.state.storage.version = "20231009191950";
     await mockReducer.run([Thunk.sync({ withHistory: true, withPrograms: true, withStats: true })]);
     expect(mockReducer.state.storage.deletedHistory).to.eql([]);
+  });
+
+  it("merges programs properly", async () => {
+    const { mockReducer, env } = await initTheAppAndRecordWorkout();
+    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    await mockReducer.run([
+      mockDispatch((ds) =>
+        updateState(ds, [
+          lb<IState>().p("storage").p("programs").i(0).p("exercises").i(0).p("name").record("New Name!"),
+        ])
+      ),
+    ]);
+    await mockReducer2.run([
+      mockDispatch((ds) =>
+        updateState(ds, [
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .i(0)
+            .p("exercises")
+            .i(0)
+            .p("exerciseType")
+            .p("equipment")
+            .record("band"),
+        ])
+      ),
+    ]);
+    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("New Name!");
+    expect(mockReducer2.state.storage.programs[0].exercises[0].exerciseType.equipment).to.equal("band");
   });
 });
 
