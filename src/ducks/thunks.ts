@@ -362,7 +362,11 @@ export namespace Thunk {
   export function fetchPrograms(): IThunk {
     return async (dispatch, getState, env) => {
       const programs = await load(dispatch, "Loading programs", () => env.service.programs());
-      dispatch({ type: "UpdateState", lensRecording: [lb<IState>().p("programs").record(programs)] });
+      dispatch({
+        type: "UpdateState",
+        lensRecording: [lb<IState>().p("programs").record(programs)],
+        desc: "Set loaded Programs",
+      });
     };
   }
 
@@ -876,30 +880,42 @@ function _load<T>(
   resolve: (arg: T) => void,
   reject: (arg: unknown) => void
 ): void {
-  updateState(dispatch, [
-    lb<IState>()
-      .p("loading")
-      .p("items")
-      .p(name)
-      .recordModify((i) => {
-        if (i == null) {
-          return { startTime: Date.now(), attempt, type };
-        } else {
-          return { ...i, attempt };
-        }
-      }),
-  ]);
+  updateState(
+    dispatch,
+    [
+      lb<IState>()
+        .p("loading")
+        .p("items")
+        .p(name)
+        .recordModify((i) => {
+          if (i == null) {
+            return { startTime: Date.now(), attempt, type };
+          } else {
+            return { ...i, attempt };
+          }
+        }),
+    ],
+    "Start loading"
+  );
   cb()
     .then((r) => {
-      updateState(dispatch, [lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now())]);
+      updateState(
+        dispatch,
+        [lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now())],
+        "End loading"
+      );
       resolve(r);
     })
     .catch((e) => {
       if (attempt >= 3) {
-        updateState(dispatch, [
-          lb<IState>().p("loading").p("items").pi(name).p("error").record(`${type} failed`),
-          lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
-        ]);
+        updateState(
+          dispatch,
+          [
+            lb<IState>().p("loading").p("items").pi(name).p("error").record(`${type} failed`),
+            lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now()),
+          ],
+          "Failed loading"
+        );
         reject(e);
       } else {
         setTimeout(() => {
