@@ -143,7 +143,7 @@ export namespace Storage {
     }
   }
 
-  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage): IStorage {
+  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage, enforceNew: boolean = false): IStorage {
     const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
     const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
     const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
@@ -274,7 +274,7 @@ export namespace Storage {
         .map((p) => {
           const oldProgram = oldStorage.programs.find((op) => op.id === p.id);
           if (oldProgram) {
-            return Program.mergePrograms(oldProgram, p);
+            return Program.mergePrograms(oldProgram, p, enforceNew);
           } else {
             return p;
           }

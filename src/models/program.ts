@@ -909,7 +909,7 @@ export namespace Program {
     return false;
   }
 
-  export function mergePrograms(oldProgram: IProgram, newProgram: IProgram): IProgram {
+  export function mergePrograms(oldProgram: IProgram, newProgram: IProgram, enforceNew: boolean = false): IProgram {
     const deletedWeeks = new Set([...(oldProgram.deletedWeeks || []), ...(newProgram.deletedWeeks || [])]);
     const deletedDays = new Set([...(oldProgram.deletedDays || []), ...(newProgram.deletedDays || [])]);
     const deletedExercises = new Set([...(oldProgram.deletedExercises || []), ...(newProgram.deletedExercises || [])]);
@@ -920,13 +920,13 @@ export namespace Program {
       url: newProgram.url,
       author: newProgram.author,
       nextDay: newProgram.nextDay,
-      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id).filter(
-        (d) => !deletedExercises.has(d.id)
-      ),
+      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id)
+        .map((d) => ({ ...d, exercises: d.exercises.filter((e) => !deletedExercises.has(e.id)) }))
+        .filter((d) => !deletedDays.has(d.id)),
       deletedDays: Array.from(deletedDays),
-      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id).filter(
-        (d) => !deletedWeeks.has(d.id)
-      ),
+      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id)
+        .map((d) => ({ ...d, days: d.days.filter((e) => !deletedDays.has(e.id)) }))
+        .filter((d) => !deletedWeeks.has(d.id)),
       deletedWeeks: Array.from(deletedWeeks),
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
@@ -935,7 +935,7 @@ export namespace Program {
         .map((e) => {
           const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
           if (oldExercise) {
-            return ProgramExercise.mergeExercises(oldExercise, e);
+            return ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
           } else {
             return e;
           }

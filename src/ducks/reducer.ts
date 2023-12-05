@@ -681,7 +681,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const oldStorage = state.storage.id < action.storage.id ? state.storage : action.storage;
     const newStorage = state.storage.id < action.storage.id ? action.storage : state.storage;
     if (newStorage.id != null && oldStorage.id != null) {
-      return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage) };
+      return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage, true) };
     } else {
       return state;
     }

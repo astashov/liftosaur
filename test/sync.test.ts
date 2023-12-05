@@ -202,6 +202,20 @@ describe("sync", () => {
     expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("New Name!");
     expect(mockReducer2.state.storage.programs[0].exercises[0].exerciseType.equipment).to.equal("band");
   });
+
+  it("ignores diff paths and uses new storage during storage fetching", async () => {
+    const { mockReducer, env } = await initTheAppAndRecordWorkout();
+    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
+    await mockReducer.run([
+      mockDispatch((ds) =>
+        updateState(ds, [
+          lb<IState>().p("storage").p("programs").i(0).p("exercises").i(0).p("name").record("New Name!"),
+        ])
+      ),
+    ]);
+    await mockReducer2.run([Thunk.fetchStorage()]);
+    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("New Name!");
+  });
 });
 
 async function logWorkout(

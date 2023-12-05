@@ -391,9 +391,13 @@ export namespace ProgramExercise {
     };
   }
 
-  export function mergeExercises(oldExercise: IProgramExercise, newExercise: IProgramExercise): IProgramExercise {
+  export function mergeExercises(
+    oldExercise: IProgramExercise,
+    newExercise: IProgramExercise,
+    enforceNew: boolean = false
+  ): IProgramExercise {
     function v1<K1 extends keyof IProgramExercise>(key: K1): IProgramExercise[K1] {
-      return (newExercise.diffPaths || []).some((dp) => dp.startsWith(key))
+      return enforceNew || (newExercise.diffPaths || []).some((dp) => dp.startsWith(key))
         ? newExercise[key] ?? oldExercise[key]
         : oldExercise[key] ?? newExercise[key];
     }
@@ -407,7 +411,7 @@ export namespace ProgramExercise {
       const diffPath = `${key1}.${key2}.${key3}.${key4}`;
       const oldValue = oldExercise[key1]?.[key2]?.[key3]?.[key4];
       const newValue = newExercise[key1][key2][key3][key4];
-      return (newExercise.diffPaths || []).some((dp) => dp.startsWith(diffPath))
+      return enforceNew || (newExercise.diffPaths || []).some((dp) => dp.startsWith(diffPath))
         ? newValue ?? oldValue ?? newValue
         : oldValue ?? newValue;
     }
@@ -444,9 +448,10 @@ export namespace ProgramExercise {
       quickAddSets: v1("quickAddSets"),
       enableRepRanges: v1("enableRepRanges"),
       enableRpe: v1("enableRpe"),
-      stateMetadata: (newExercise.diffPaths || []).some((dp) => dp.startsWith("stateMetadata"))
-        ? { ...oldExercise.stateMetadata, ...newExercise.stateMetadata }
-        : { ...newExercise.stateMetadata, ...oldExercise.stateMetadata },
+      stateMetadata:
+        enforceNew || (newExercise.diffPaths || []).some((dp) => dp.startsWith("stateMetadata"))
+          ? { ...oldExercise.stateMetadata, ...newExercise.stateMetadata }
+          : { ...newExercise.stateMetadata, ...oldExercise.stateMetadata },
       timerExpr: v1("timerExpr"),
       warmupSets: v1("warmupSets"),
       diffPaths: [],
