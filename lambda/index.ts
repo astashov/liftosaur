@@ -1637,6 +1637,10 @@ export const getRawHandler = (di: IDI): IHandler => {
       return { statusCode: 200, body: "", headers: ResponseUtils.getHeaders(event) };
     }
     const time = Date.now();
+    const userid = await getCurrentUserId(event, di);
+    if (userid) {
+      di.log.setUser(userid);
+    }
     di.log.log("--------> Starting request", event.httpMethod, event.path);
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)

@@ -4,13 +4,19 @@ import { Utils } from "../utils";
 
 export interface ILogUtil {
   log(...str: any[]): void;
+  setUser(userid: string): void;
 }
 
 export class LogUtil implements ILogUtil {
   private readonly id: string;
+  private userid: string | undefined;
 
   constructor() {
     this.id = UidFactory.generateUid(4);
+  }
+
+  public setUser(userid: string): void {
+    this.userid = userid;
   }
 
   public log(...str: any[]): void {
@@ -23,9 +29,13 @@ export class LogUtil implements ILogUtil {
           )}.${time.getMilliseconds().toString().padStart(3, "0")}`
         : "";
     if (env === "dev") {
-      console.log(this.colorize(timeStr, 36), `[${this.colorize(this.id, 33)}]`, ...str);
+      console.log(
+        this.colorize(timeStr, 36),
+        `[${this.colorize(this.id, 33)}]${this.userid ? `[${this.colorize(this.userid, 32)}]` : ""}`,
+        ...str
+      );
     } else {
-      console.log(`[${this.colorize(this.id, 33)}]`, ...str);
+      console.log(`[${this.colorize(this.id, 33)}]${this.userid ? `[${this.colorize(this.userid, 32)}]` : ""}`, ...str);
     }
   }
 
