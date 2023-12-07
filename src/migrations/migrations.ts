@@ -389,4 +389,20 @@ export const migrations = {
     }
     return storage;
   },
+  "20231207095636_fix_duplicated_ids_in_weeks_2": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs) {
+      const groupByIdWeeks = CollectionUtils.groupByKey(program.weeks, "id");
+      const hasDuplicatedIds = ObjectUtils.values(groupByIdWeeks).some((v) => (v?.length || 0) > 1);
+      if (hasDuplicatedIds) {
+        for (const week of program.weeks) {
+          week.id = UidFactory.generateUid(8);
+        }
+      }
+    }
+    return storage;
+  },
 };
