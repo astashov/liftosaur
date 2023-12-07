@@ -419,7 +419,7 @@ export class PlannerToProgram {
                 }
               }
               if (condDays.length > 0) {
-                cond.push(`(${condDays.join(" && ")})`);
+                cond.push(`(${condDays.join(" || ")})`);
               }
               return `(${cond.join(" && ")})`;
             })
