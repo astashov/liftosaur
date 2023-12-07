@@ -59,6 +59,7 @@ export async function getInitialState(
   const url = args?.url || UrlUtils.build(document.location.href);
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
+  const nosync = url.searchParams.get("nosync") === "true";
   let storage: ILocalStorage | undefined;
   if (args?.storage) {
     storage = { storage: args.storage };
@@ -121,7 +122,7 @@ export async function getInitialState(
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
-      nosync: false,
+      nosync,
     };
   }
   const newState: IState = {
@@ -138,7 +139,7 @@ export async function getInitialState(
     user: undefined,
     errors: {},
     freshMigrations: false,
-    nosync: false,
+    nosync,
   };
   LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
   return newState;
