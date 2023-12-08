@@ -10,7 +10,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export interface ICloudwatchUtil {
-  getLogs(date: Date): Promise<void>;
+  getLogs(date: Date, userid?: string): Promise<void>;
 }
 
 export class CloudwatchUtil implements ICloudwatchUtil {
@@ -25,8 +25,8 @@ export class CloudwatchUtil implements ICloudwatchUtil {
     return this._cloudwatch;
   }
 
-  public async getLogs(date: Date): Promise<void> {
-    this.log.log("Fetching logs for", date);
+  public async getLogs(date: Date, userid?: string): Promise<void> {
+    this.log.log(...["Fetching logs for", date, ...(userid ? ["for user", userid] : [])]);
     const env = Utils.getEnv();
     const logGroupsResponse = await this.cloudwatch.describeLogGroups().promise();
     const logGroupName = logGroupsResponse.logGroups?.find((r) =>
@@ -86,17 +86,25 @@ export class CloudwatchUtil implements ICloudwatchUtil {
       }, [])
       .sort();
 
-    const orderedLogs = this.orderLogs(processedLogEvents).join("\n");
-    fs.writeFileSync(`logs-${DateUtils.formatYYYYMMDD(date, "-")}.txt`, orderedLogs, { encoding: "utf8" });
+    const orderedLogs = this.orderLogs(processedLogEvents, userid);
+    fs.writeFileSync(
+      `logs-${DateUtils.formatYYYYMMDD(date, "-")}${userid ? `-${userid}` : ""}.txt`,
+      orderedLogs.join("\n"),
+      { encoding: "utf8" }
+    );
   }
 
-  private orderLogs(logs: string[]): string[] {
+  private orderLogs(logs: string[], userid?: string): string[] {
     const sortedResult = new Map<string, Map<string, string[]>>();
     for (const log of logs) {
       const hhmm = log.substr(0, 5);
-      const match = log.match(/\[(\w+)\]/);
+      const match = log.match(/\[(\w+)\](?:\[(\w+)\])?/);
       if (match) {
         const key = match[1];
+        const loguserid = match[2];
+        if (userid != null && userid !== loguserid) {
+          continue;
+        }
         let hours = sortedResult.get(hhmm);
         if (!hours) {
           hours = new Map<string, string[]>();
