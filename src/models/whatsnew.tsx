@@ -719,6 +719,18 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20231207": {
+    title: <span>You can now fully delete your account</span>,
+    body: (
+      <ul>
+        <li>Added deleting account on the cloud. It's available on the Settings - Account screen.</li>
+        <li>
+          Now you can be in control of your data, and fully wipe out all your data from the Liftosaur servers if
+          necessary!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

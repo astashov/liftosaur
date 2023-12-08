@@ -700,6 +700,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
       exercises: [],
       tags: [],
+      deletedDays: [],
+      deletedWeeks: [],
+      deletedExercises: [],
+      clonedAt: Date.now(),
     };
     let newState = lf(state)
       .p("storage")

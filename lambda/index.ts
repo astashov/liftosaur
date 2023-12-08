@@ -323,6 +323,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const userDao = new UserDao(di);
         let user = await userDao.getByAppleId(result.sub);
         let userId = user?.id;
+        const initialUserId = userId;
 
         if (userId == null) {
           userId = (id as string) || UidFactory.generateUid(12);
@@ -334,7 +335,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const resp = {
           email: email,
           user_id: userId,
-          storage: user!.storage,
+          storage: initialUserId == null ? undefined : user!.storage,
         };
 
         return {
@@ -396,6 +397,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const userDao = new UserDao(di);
   let user = await userDao.getByGoogleId(openIdJson.sub);
   let userId = user?.id;
+  const initialUserId = userId;
 
   if (userId == null) {
     userId = (id as string) || UidFactory.generateUid(12);
@@ -407,7 +409,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const resp = {
     email: openIdJson.email,
     user_id: userId,
-    storage: user!.storage,
+    storage: initialUserId == null ? undefined : user!.storage,
   };
 
   return {
@@ -1107,6 +1109,22 @@ const deleteCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+export const deleteAccountEndpoint = Endpoint.build("/api/deleteaccount");
+const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteAccountEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event } = payload;
+  const currentUserId = await getCurrentUserId(payload.event, payload.di);
+  if (currentUserId != null) {
+    const userDao = new UserDao(payload.di);
+    await userDao.removeUser(currentUserId);
+    return ResponseUtils.json(200, event, { data: "ok" });
+  } else {
+    return ResponseUtils.json(401, event, {});
+  }
+};
+
 export const getLikesEndpoint = Endpoint.build("/api/likes", {
   startdate: "string",
   enddate: "string?",
@@ -1406,7 +1424,6 @@ const postStoreExceptionDataHandler: RouteHandler<
   const { di, event } = payload;
   const bodyJson = getBodyJson(event);
   const { id, data } = bodyJson;
-  console.log(id, data);
   const exceptionDao = new ExceptionDao(di);
   await exceptionDao.store(id, JSON.stringify(data));
   return ResponseUtils.json(200, event, { data: { id } });
@@ -1696,7 +1713,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
-      .post(saveDebugEndpoint, saveDebugHandler);
+      .post(saveDebugEndpoint, saveDebugHandler)
+      .delete(deleteAccountEndpoint, deleteAccountHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

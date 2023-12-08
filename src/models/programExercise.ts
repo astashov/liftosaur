@@ -335,6 +335,8 @@ export namespace ProgramExercise {
       finishDayExpr: "",
       name: exercise.name,
       variationExpr,
+      stateMetadata: {},
+      reuseLogic: { selected: undefined, states: {} },
       variations: Object.keys(variations).map((variation) => {
         const sets = variation.split("|").map((set) => set.split("/").map(Number));
         return {

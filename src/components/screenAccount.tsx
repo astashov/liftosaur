@@ -263,6 +263,36 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 Delete Current Local Account
               </Button>
             </div>
+            {props.email && (
+              <div>
+                <Button
+                  name="account-delete-remote"
+                  kind="red"
+                  className="mt-4 ls-delete-account-remote"
+                  onClick={() => {
+                    if (
+                      prompt(
+                        "Are you sure? All the data for this account will be deleted from the cloud, and you won't be able to restore it unless you resignup and sync your data again. Type 'delete' to confirm."
+                      )?.toLocaleLowerCase() === "delete"
+                    ) {
+                      props.dispatch(
+                        Thunk.deleteAccountRemote((result) => {
+                          if (result) {
+                            alert("Account deleted from cloud.");
+                          } else {
+                            alert(
+                              "Couldn't delete the account from the cloud - error happened. Please send an email to info@liftosaur.com to delete it."
+                            );
+                          }
+                        })
+                      );
+                    }
+                  }}
+                >
+                  Delete Current Cloud Account
+                </Button>
+              </div>
+            )}
           </>
         )}
       </section>

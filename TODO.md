@@ -22,7 +22,6 @@
     - Building the monolith
   - Greyskull LP
   - nSuns LP
-* Add deleting remote accounts
 * Add achievements
 * Add ability to publish user programs
 * Versionize published programs

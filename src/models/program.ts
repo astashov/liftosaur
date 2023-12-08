@@ -608,6 +608,8 @@ export namespace Program {
       finishDayExpr: "",
       variationExpr: "1",
       descriptions: [""],
+      stateMetadata: {},
+      reuseLogic: { selected: undefined, states: {} },
     };
   }
 
@@ -876,6 +878,10 @@ export namespace Program {
       url: "",
       author: "",
       nextDay: 1,
+      deletedDays: [],
+      deletedExercises: [],
+      deletedWeeks: [],
+      clonedAt: Date.now(),
       weeks: [],
       isMultiweek: false,
       days: plan.weeks.flatMap((week) => {
@@ -942,6 +948,7 @@ export namespace Program {
         })
         .filter((e) => !deletedExercises.has(e.id)),
       deletedExercises: Array.from(deletedExercises),
+      clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
     };
   }
 }

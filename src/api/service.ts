@@ -5,7 +5,7 @@ import { UrlUtils } from "../utils/url";
 
 export interface IGetStorageResponse {
   email: string;
-  storage: IStorage;
+  storage?: IStorage;
   user_id: string;
   key?: string;
 }
@@ -334,6 +334,13 @@ export class Service {
   public async deleteComment(id: string): Promise<void> {
     const url = UrlUtils.build(`${__API_HOST__}/api/comments/${id}`);
     await this.client(url.toString(), { method: "DELETE", credentials: "include" });
+  }
+
+  public async deleteAccount(): Promise<boolean> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/deleteaccount`);
+    const response = await this.client(url.toString(), { method: "DELETE", credentials: "include" });
+    const json = await response.json();
+    return json.data === "ok";
   }
 
   public async getLikes(startDate: string, endDate?: string): Promise<Partial<Record<string, ILike[]>>> {

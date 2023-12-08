@@ -713,6 +713,24 @@ export namespace Thunk {
     };
   }
 
+  export function deleteAccountRemote(cb?: (result: boolean) => void): IThunk {
+    return async (dispatch, getState, env) => {
+      await load(dispatch, "Delete cloud account", () => {
+        return new Promise(async (resolve) => {
+          const result = await env.service.deleteAccount();
+          dispatch(
+            Thunk.logOut(() => {
+              if (cb) {
+                cb(result);
+                resolve(result);
+              }
+            })
+          );
+        });
+      });
+    };
+  }
+
   export function switchAccount(id: string): IThunk {
     return async (dispatch, getState, env) => {
       dispatch(
@@ -940,7 +958,7 @@ async function handleLogin(
   client: Window["fetch"],
   oldUserId?: string
 ): Promise<void> {
-  if (result.email != null) {
+  if (result.email != null && result.storage != null) {
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     let storage: IStorage;
     const finalStorage = await runMigrations(client, result.storage);
