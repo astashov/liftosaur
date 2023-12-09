@@ -218,6 +218,21 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   return ResponseUtils.json(200, event, { key });
 };
 
+const saveDebugStorageEndpoint = Endpoint.build("/api/debugstorage");
+const saveDebugStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveDebugStorageEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userid = await getCurrentUserId(event, di);
+  if (userid != null) {
+    const bodyJson = getBodyJson(event);
+    const { oldStorage, newStorage, mergedStorage, prefix } = bodyJson;
+    const exceptionDao = new ExceptionDao(di);
+    await exceptionDao.storeStorages(prefix, userid, oldStorage, newStorage, mergedStorage);
+  }
+  return ResponseUtils.json(200, event, {});
+};
+
 const saveStorageEndpoint = Endpoint.build("/api/storage");
 const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof saveStorageEndpoint> = async ({
   payload,
@@ -247,6 +262,10 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
           const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
           const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
           const mergedStorage = Storage.mergeStorage(oldStorage, newStorage);
+
+          const exceptionDao = new ExceptionDao(di);
+          await exceptionDao.storeStorages("Merge on lambda", user.id, oldStorage, newStorage, mergedStorage);
+
           Storage.updateIds(mergedStorage);
           await userDao.saveStorage(fullUser, mergedStorage);
           return ResponseUtils.json(200, event, { status: "merged", storage: mergedStorage });
@@ -1690,6 +1709,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(signoutEndpoint, signoutHandler)
       .get(getProgramsEndpoint, getProgramsHandler)
       .post(saveStorageEndpoint, saveStorageHandler)
+      .post(saveDebugStorageEndpoint, saveDebugStorageHandler)
       .get(getHistoryRecordEndpoint, getHistoryRecordHandler)
       .get(getHistoryRecordImageEndpoint, getHistoryRecordImageHandler)
       .post(logEndpoint, logHandler)

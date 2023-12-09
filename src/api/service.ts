@@ -84,6 +84,23 @@ export class Service {
     });
   }
 
+  public async saveDebugStorage(
+    prefix: string,
+    oldStorage: IStorage,
+    newStorage: IStorage,
+    mergedStorage: IStorage
+  ): Promise<void> {
+    try {
+      const result = await this.client(`${__API_HOST__}/api/debugstorage`, {
+        method: "POST",
+        body: JSON.stringify({ prefix, oldStorage, newStorage, mergedStorage }),
+        credentials: "include",
+      });
+      const json = await result.json();
+      return json;
+    } catch (e) {}
+  }
+
   public async postStorage(storage: IPartialStorage): Promise<IPostStorageResponse> {
     const result = await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",

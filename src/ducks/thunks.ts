@@ -47,14 +47,18 @@ export namespace Thunk {
           const result = await load(dispatch, "Logging in", async () =>
             env.service.googleSignIn(accessToken, userId, {})
           );
-          await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+          await load(dispatch, "Logging in", () =>
+            handleLogin("Google sign in", dispatch, getState, result, env.service.client, userId)
+          );
           dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
         }
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
-        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        await load(dispatch, "Logging in", () =>
+          handleLogin("Google Sign in", dispatch, getState, result, env.service.client, userId)
+        );
         dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
@@ -85,7 +89,9 @@ export namespace Thunk {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
-        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        await load(dispatch, "Logging in", () =>
+          handleLogin("Apple sign in", dispatch, getState, result, env.service.client, userId)
+        );
         dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
       }
     };
@@ -212,7 +218,14 @@ export namespace Thunk {
           const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
           return env.service.getStorage(state.storage.tempUserId, userId || undefined, state.adminKey);
         });
-        await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+        await handleLogin(
+          "Fetch Storage",
+          dispatch,
+          getState,
+          result,
+          env.service.client,
+          getState().user?.id || getState().storage.tempUserId
+        );
       }
     };
   }
@@ -953,7 +966,9 @@ function fetchAllFriendsThings(dispatch: IDispatch, storage: IStorage): void {
 }
 
 async function handleLogin(
+  prefix: string,
   dispatch: IDispatch,
+  getState: () => IState,
   result: IGetStorageResponse,
   client: Window["fetch"],
   oldUserId?: string
@@ -963,18 +978,20 @@ async function handleLogin(
     let storage: IStorage;
     const finalStorage = await runMigrations(client, result.storage);
     const storageResult = await Storage.get(client, finalStorage, true);
+    const service = new Service(client);
     if (storageResult.success) {
       storage = storageResult.data;
     } else {
       storage = finalStorage;
       const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
-      const service = new Service(client);
       await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
     }
     storage.tempUserId = result.user_id;
     storage.email = result.email;
     if (oldUserId === result.user_id) {
+      const oldStorage = getState().storage;
       dispatch({ type: "SyncStorage", storage });
+      service.saveDebugStorage(prefix, oldStorage, storage, getState().storage);
       dispatch({ type: "Login", email: result.email, userId: result.user_id });
       if (storage.subscription.key !== result.key) {
         updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
