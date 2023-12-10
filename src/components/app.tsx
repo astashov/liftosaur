@@ -70,7 +70,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const lastPingRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    if (lastPingRef.current < Date.now() - 10 * 1000) {
+    if (lastPingRef.current < Date.now() - 60 * 3 * 1000) {
       lastPingRef.current = Date.now();
       dispatch(Thunk.ping());
     }
