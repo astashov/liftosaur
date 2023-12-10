@@ -18,3 +18,5 @@
 /b/:id https://api3-dev.liftosaur.com/b/:id  200
 /n/:id https://api3-dev.liftosaur.com/n/:id  200
 /programimage/:id https://api3-dev.liftosaur.com/api/programimage/:id  200
+/user/programs https://api3-dev.liftosaur.com/user/programs  200
+/user/p/:id https://api3-dev.liftosaur.com/user/p/:id  200
