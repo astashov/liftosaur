@@ -266,6 +266,19 @@ export namespace CollectionUtils {
     return result;
   }
 
+  export function uniqByExpr<T extends {}, V>(from: T[], fn: (item: T) => V): T[] {
+    const set = new Set();
+    const result = [];
+    for (const el of from) {
+      const id = fn(el);
+      if (!set.has(id)) {
+        result.push(el);
+        set.add(id);
+      }
+    }
+    return result;
+  }
+
   export function findBy<T extends {}, K extends keyof T>(from: T[], key: K, value: T[K]): T | undefined {
     let result: T | undefined = undefined;
     for (const el of from) {

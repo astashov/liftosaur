@@ -18,6 +18,8 @@ import { Button } from "../../components/button";
 import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
 import { IconSpinner } from "../../components/icons/iconSpinner";
+import { CollectionUtils } from "../../utils/collection";
+import { Exercise } from "../../models/exercise";
 
 export interface IProgramContentListProps {
   env: IEnv;
@@ -131,7 +133,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                 </span>
               </div>
               <div className="pt-2">
-                {program.exercises
+                {CollectionUtils.uniqByExpr(program.exercises, (e) => Exercise.toKey(e.exerciseType))
                   .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small", state.storage.settings))
                   .map((e) => (
                     <ExerciseImage
