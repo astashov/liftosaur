@@ -137,7 +137,7 @@ export namespace Thunk {
   }
 
   async function _sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean },
+    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
     dispatch: IDispatch,
     getState: () => IState,
     env: IEnv,
@@ -157,7 +157,7 @@ export namespace Thunk {
         storage.programs = undefined;
       }
     }
-    const result = await env.service.postStorage(storage);
+    const result = await env.service.postStorage(storage, args.fields);
     if (result.status === "success") {
       updateState(
         dispatch,
@@ -189,7 +189,7 @@ export namespace Thunk {
   }
 
   export function sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean },
+    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
     cb?: (storage: IStorage, status: "merged" | "success") => void
   ): IThunk {
     return async (dispatch, getState, env) => {

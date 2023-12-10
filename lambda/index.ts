@@ -254,6 +254,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
   const user = await getCurrentLimitedUser(event, di);
   if (user != null) {
     const bodyJson = getBodyJson(event);
+    const fields: string[] | undefined = bodyJson.fields;
     const storage: IPartialStorage | IStorage = bodyJson.storage;
     const userDao = new UserDao(di);
     if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
@@ -274,7 +275,7 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
           const bStorage = await runMigrations(di.fetch, storage);
           const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
           const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
-          const mergedStorage = Storage.mergeStorage(oldStorage, newStorage);
+          const mergedStorage = Storage.mergeStorage(oldStorage, newStorage, false, fields);
 
           const exceptionDao = new ExceptionDao(di);
           await exceptionDao.storeStorages("Merge on lambda", user.id, oldStorage, newStorage, mergedStorage);

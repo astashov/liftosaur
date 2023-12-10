@@ -46,11 +46,14 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
     },
     (aDispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
+        const settingsFields: (keyof IStorage["settings"])[] = ["equipment", "exercises", "timers", "units"];
+        const storageFields: (keyof IStorage)[] = ["settings", "programs"];
+        const fields = [...settingsFields.map((f) => `${storageFields[0]}.${f}`), storageFields[1]];
         aDispatch(
-          Thunk.sync({ withHistory: false, withStats: false, withPrograms: true }, (newStorage, status) => {
+          Thunk.sync({ withHistory: false, withStats: false, withPrograms: true, fields }, (newStorage, status) => {
             const programId = props.exportedProgram?.program.id;
+
             if (status === "merged" && programId) {
-              console.log("Resetting");
               setExportedProgram(Program.storageToExportedProgram(newStorage, programId));
               setIsReset(!isReset);
             }

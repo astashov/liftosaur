@@ -115,10 +115,10 @@ export class Service {
     } catch (e) {}
   }
 
-  public async postStorage(storage: IPartialStorage): Promise<IPostStorageResponse> {
+  public async postStorage(storage: IPartialStorage, fields?: string[]): Promise<IPostStorageResponse> {
     const result = await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",
-      body: JSON.stringify({ storage }),
+      body: JSON.stringify({ storage, fields }),
       credentials: "include",
     });
     const json = await result.json();

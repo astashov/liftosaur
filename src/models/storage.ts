@@ -160,20 +160,52 @@ export namespace Storage {
     }
   }
 
-  export function mergeStorage(oldStorage: IStorage, newStorage: IStorage, enforceNew: boolean = false): IStorage {
+  export function mergeStorage(
+    oldStorage: IStorage,
+    newStorage: IStorage,
+    enforceNew: boolean = false,
+    fields?: string[]
+  ): IStorage {
     const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
     const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
     const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
 
+    function merge<T extends keyof IStorage>(key: T): IStorage[T] {
+      return fields && fields.indexOf(key) === -1 ? oldStorage[key] : newStorage[key];
+    }
+
+    function merge2<T extends keyof IStorage, V extends keyof IStorage[T]>(key: T, key2: V): IStorage[T][V] {
+      const k = `${key}.${key2}`;
+      return fields && fields.indexOf(k) === -1 ? oldStorage[key][key2] : newStorage[key][key2];
+    }
+
+    function mergeAs<T extends keyof IStorage>(
+      key: T,
+      cb: (a: IStorage[T], b: IStorage[T]) => IStorage[T]
+    ): IStorage[T] {
+      return fields && fields.indexOf(key) === -1 ? oldStorage[key] : cb(oldStorage[key], newStorage[key]);
+    }
+
+    function mergeAs2<T extends keyof IStorage, V extends keyof IStorage[T]>(
+      key: T,
+      key2: V,
+      cb: (a: IStorage[T][V], b: IStorage[T][V]) => IStorage[T][V]
+    ): IStorage[T][V] {
+      const k = `${key}.${key2}`;
+      return fields && fields.indexOf(k) === -1
+        ? oldStorage[key][key2]
+        : cb(oldStorage[key][key2], newStorage[key][key2]);
+    }
+
     const storage: IStorage = {
       ...oldStorage,
       ...newStorage,
-      id: newStorage.id,
-      originalId: newStorage.originalId,
-      email: newStorage.email,
-      reviewRequests: newStorage.reviewRequests,
-      signupRequests: newStorage.signupRequests,
-      affiliates: newStorage.affiliates,
+      id: merge("id"),
+      originalId: merge("originalId"),
+      email: merge("email"),
+      reviewRequests: merge("reviewRequests"),
+      signupRequests: merge("signupRequests"),
+      affiliates: merge("affiliates"),
       deletedHistory: Array.from(deletedHistory),
       deletedPrograms: Array.from(deletedPrograms),
       deletedStats: Array.from(deletedStats),
@@ -261,47 +293,49 @@ export namespace Storage {
         },
       },
       settings: {
-        equipment: Equipment.mergeEquipment(oldStorage.settings.equipment, newStorage.settings.equipment),
-        graphsSettings: newStorage.settings.graphsSettings,
-        graphOptions: newStorage.settings.graphOptions,
-        exerciseStatsSettings: newStorage.settings.exerciseStatsSettings,
-        lengthUnits: newStorage.settings.lengthUnits,
-        statsEnabled: newStorage.settings.statsEnabled,
-        exercises: newStorage.settings.exercises,
-        graphs: newStorage.settings.graphs || [],
+        equipment: mergeAs2("settings", "equipment", (a, b) => Equipment.mergeEquipment(a, b)),
+        graphsSettings: merge2("settings", "graphsSettings"),
+        graphOptions: merge2("settings", "graphOptions"),
+        exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
+        lengthUnits: merge2("settings", "lengthUnits"),
+        statsEnabled: merge2("settings", "statsEnabled"),
+        exercises: merge2("settings", "exercises"),
+        graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
-        units: newStorage.settings.units,
-        isPublicProfile: newStorage.settings.isPublicProfile,
-        shouldShowFriendsHistory: newStorage.settings.shouldShowFriendsHistory,
-        nickname: newStorage.settings.nickname,
-        vibration: newStorage.settings.vibration,
-        volume: newStorage.settings.volume,
+        units: merge2("settings", "units"),
+        isPublicProfile: merge2("settings", "isPublicProfile"),
+        shouldShowFriendsHistory: merge2("settings", "shouldShowFriendsHistory"),
+        nickname: merge2("settings", "nickname"),
+        vibration: merge2("settings", "vibration"),
+        volume: merge2("settings", "volume"),
       },
-      subscription: {
-        apple: { ...oldStorage.subscription.apple, ...newStorage.subscription.apple },
-        google: { ...oldStorage.subscription.google, ...newStorage.subscription.google },
-      },
-      tempUserId: newStorage.tempUserId || oldStorage.tempUserId || UidFactory.generateUid(10),
-      currentProgramId: newStorage.currentProgramId,
+      subscription: mergeAs("subscription", (a, b) => ({
+        apple: { ...a.apple, ...b.apple },
+        google: { ...a.google, ...b.google },
+      })),
+      tempUserId: mergeAs("tempUserId", (a, b) => b || a || UidFactory.generateUid(10)),
+      currentProgramId: merge("currentProgramId"),
       history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date).filter(
         (el) => !deletedHistory.has(el.startTime)
       ),
-      version: newStorage.version,
-      programs: CollectionUtils.concatBy(
-        oldStorage.programs,
-        newStorage.programs.map((p) => {
-          const oldProgram = oldStorage.programs.find((op) => op.id === p.id);
-          if (oldProgram) {
-            const mergedProgram = Program.mergePrograms(oldProgram, p, enforceNew);
-            return mergedProgram;
-          } else {
-            return p;
-          }
-        }),
-        (e) => e.id
-      ).filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt)),
+      version: merge("version"),
+      programs: mergeAs("programs", (a, b) =>
+        CollectionUtils.concatBy(
+          a,
+          b.map((p) => {
+            const oldProgram = a.find((op) => op.id === p.id);
+            if (oldProgram) {
+              const mergedProgram = Program.mergePrograms(oldProgram, p, enforceNew);
+              return mergedProgram;
+            } else {
+              return p;
+            }
+          }),
+          (e) => e.id
+        ).filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt))
+      ),
       helps: Array.from(new Set([...newStorage.helps, ...oldStorage.helps])),
-      whatsNew: newStorage.whatsNew,
+      whatsNew: merge("whatsNew"),
     };
     return storage;
   }
