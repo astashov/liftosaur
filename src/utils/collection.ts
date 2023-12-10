@@ -203,6 +203,20 @@ export namespace CollectionUtils {
     return arrCopy as any;
   }
 
+  export function sortByExpr<T extends {}>(arr: T[], fn: (item: T) => number, isReverse?: boolean): T[] {
+    const arrCopy = [...arr];
+    arrCopy.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const aVal = fn(a) as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bVal = fn(b) as any;
+      return isReverse ? bVal - aVal : aVal - bVal;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return arrCopy as any;
+  }
+
   export function diff<T>(from: T[], to: T[]): T[] {
     return from.filter((x) => !to.includes(x)).concat(to.filter((x) => !from.includes(x)));
   }

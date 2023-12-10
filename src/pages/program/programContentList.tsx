@@ -76,7 +76,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
         </div>
       </div>
       <ul>
-        {state.storage.programs.map((program) => {
+        {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
           const isCreating = creatingPrograms.has(program.name);
           return (
             <li className="mb-8">
@@ -84,7 +84,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                 <a
                   className={`text-lg font-bold ${isCreating ? "text-grayv2-main" : "text-bluev2 underline"}`}
                   target="_blank"
-                  href={`/user/p/${program.id}`}
+                  href={`/user/p/${encodeURIComponent(program.id)}`}
                   onClick={(event) => {
                     if (isCreating) {
                       event.preventDefault();
