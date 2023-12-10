@@ -10,7 +10,7 @@ import { Thunk } from "../../ducks/thunks";
 import { ProgramContent } from "./programContent";
 import { lb } from "lens-shmens";
 import { CollectionUtils } from "../../utils/collection";
-import { useRef, useState } from "preact/hooks";
+import { useRef, useState, useCallback } from "preact/hooks";
 import { AsyncQueue } from "../../utils/asyncQueue";
 import { MockAudioInterface } from "../../lib/audioInterface";
 import { Service } from "../../api/service";
@@ -83,7 +83,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
         account={props.account}
         exportedProgram={exportedProgram}
         shouldSync={props.shouldSyncProgram}
-        onUpdate={(args) => {
+        onUpdate={useCallback((args) => {
           if ("program" in args && args.program) {
             updateState(dispatch, [
               lb<IState>()
@@ -94,7 +94,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
           } else if ("settings" in args && args.settings) {
             updateState(dispatch, [lb<IState>().p("storage").p("settings").record(args.settings)]);
           }
-        }}
+        }, [])}
       />
     </div>
   );

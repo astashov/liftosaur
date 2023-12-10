@@ -21,6 +21,7 @@ import { Program } from "../../../models/program";
 import { ProgramContentEditExerciseSimple } from "./programContentEditExerciseSimple";
 import { EditExerciseUtil } from "../utils/editExerciseUtil";
 import { Progress } from "../../../models/progress";
+import { ObjectUtils } from "../../../utils/object";
 
 interface IProps {
   settings: ISettings;
@@ -46,7 +47,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const initialTab = isEligibleForSimple ? 0 : 1;
 
   useEffect(() => {
-    if (props.programExercise !== prevProps.current.programExercise) {
+    if (!ObjectUtils.isEqual(props.programExercise, prevProps.current.programExercise)) {
       setProgress(
         ProgramExercise.buildProgress(
           programExercise,
