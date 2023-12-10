@@ -10774,9 +10774,10 @@ yargs@~6.6.0:
     y18n "^3.2.1"
     yargs-parser "^4.2.0"
 
-yatro@^0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/yatro/-/yatro-0.2.3.tgz#92532ee0132850ece41fbddc546412b7e5d1d9d9"
+yatro@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/yatro/-/yatro-0.2.5.tgz#0404711915dddd90c84ec69f7f0bfea41ca6478c"
+  integrity sha512-31FnjLB57haZ44u7wSis7cLWJYe03RcTNx+wohDsgzwjunJAweXXOkXNrEov8S82L0suhpBzhoqWhJdBXIsWNg==
 
 yauzl@^2.10.0:
   version "2.10.0"
