@@ -40,6 +40,17 @@ export function TopNavMenu(props: {
         {isMenuOpen && (
           <BottomSheet isHidden={!isMenuOpen} onClose={() => setIsMenuOpen(false)}>
             <div className="p-4">
+              <MenuItemWrapper
+                name="Account"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsAccountModalOpen(true);
+                }}
+              >
+                <span className={`inline-block py-4 ${props.account ? "text-greenv2-main" : "text-redv2-main"}`}>
+                  Account
+                </span>
+              </MenuItemWrapper>
               {getMenuItemsList(!!props.account).map(([text, link]) => {
                 return (
                   <MenuItemWrapper name={text}>
