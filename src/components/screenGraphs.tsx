@@ -164,8 +164,8 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                 <div className="mb-2">
                   <GraphStats
                     isSameXAxis={isSameXAxis}
-                    minX={minX}
-                    maxX={maxX}
+                    minX={Math.round(minX / 1000)}
+                    maxX={Math.round(maxX / 1000)}
                     units={props.settings.lengthUnits}
                     key={graph.id}
                     settings={props.settings}
@@ -191,8 +191,8 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                 <div className="mb-2">
                   <GraphStats
                     isSameXAxis={isSameXAxis}
-                    minX={minX}
-                    maxX={maxX}
+                    minX={Math.round(minX / 1000)}
+                    maxX={Math.round(maxX / 1000)}
                     units="%"
                     key={graph.id}
                     settings={props.settings}
