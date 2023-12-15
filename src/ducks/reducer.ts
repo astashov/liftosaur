@@ -328,7 +328,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       if (progress != null) {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
-        if (oldProgram != null && newProgram != null && oldProgram !== newProgram) {
+        if (oldProgram != null && newProgram != null && !ObjectUtils.isEqual(oldProgram, newProgram)) {
           const changes = ObjectUtils.changedKeys(oldProgram, newProgram);
           if (ObjectUtils.keys(changes).length === 1 && changes.exercises === "update") {
             const changedExerciseIds = Array.from(
