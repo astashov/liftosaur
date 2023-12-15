@@ -746,7 +746,9 @@ export namespace Progress {
       for (let i = 0; i < newSetsNum; i++) {
         const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
         const programSet = sets[i];
-        if (programSet != null) {
+        if (progressSet?.completedReps != null) {
+          newSets.push(progressSet);
+        } else if (programSet != null) {
           const weight = executeEntryScript(
             programSet.weightExpr,
             dayData,
@@ -769,8 +771,6 @@ export namespace Progress {
             isAmrap: programSet.isAmrap,
             label: programSet.label,
           });
-        } else if (progressSet != null) {
-          newSets.push(progressSet);
         }
       }
       forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
