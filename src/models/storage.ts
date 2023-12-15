@@ -308,6 +308,7 @@ export namespace Storage {
         nickname: merge2("settings", "nickname"),
         vibration: merge2("settings", "vibration"),
         volume: merge2("settings", "volume"),
+        alwaysOnDisplay: merge2("settings", "alwaysOnDisplay"),
       },
       subscription: mergeAs("subscription", (a, b) => ({
         apple: { ...a.apple, ...b.apple },
