@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -43,6 +43,7 @@ import { SendMessage } from "../utils/sendMessage";
 import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
+import { useLoopCatcher } from "../utils/useLoopCatcher";
 
 interface IProps {
   client: Window["fetch"];
@@ -75,6 +76,8 @@ export function AppView(props: IProps): JSX.Element | null {
       dispatch(Thunk.ping());
     }
   });
+
+  useLoopCatcher();
 
   useEffect(() => {
     dispatch(Thunk.fetchStorage());
