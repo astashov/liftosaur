@@ -292,7 +292,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const [types, setTypes] = useState<IExerciseKind[]>(props.exercise?.types || []);
 
   return (
-    <form>
+    <form onSubmit={(e) => e.preventDefault()}>
       <LabelAndInput
         identifier="custom-exercise-name"
         label="Name"

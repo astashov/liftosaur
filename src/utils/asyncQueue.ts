@@ -1,16 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class AsyncQueue {
-  private queue: (() => Promise<unknown>)[] = [];
+  private queue: [string, any, (deps: any) => Promise<unknown>][] = [];
   private isProcessing = false;
 
-  public enqueue<T>(operation: () => Promise<T>): Promise<T> {
-    return new Promise<T>((resolve) => {
-      this.queue.push(async () => {
-        const result = await operation();
-        resolve(result);
-        return result;
+  public enqueue<T, V>(operation: (deps: V) => Promise<T>, deps?: V): Promise<void> {
+    const key = JSON.stringify(deps);
+    if (this.queue.length > 0 && this.queue[this.queue.length - 1][0] === key) {
+      console.log("Skip");
+      return Promise.resolve();
+    } else {
+      console.log("Enqueue");
+      return new Promise<void>((resolve) => {
+        this.queue.push([
+          key,
+          deps,
+          async (...d) => {
+            await operation(...d);
+            resolve();
+          },
+        ]);
+        this.processQueue();
       });
-      this.processQueue();
-    });
+    }
   }
 
   private async processQueue(): Promise<void> {
@@ -20,9 +32,10 @@ export class AsyncQueue {
 
     this.isProcessing = true;
     try {
-      const operation = this.queue.shift();
-      if (operation) {
-        await operation();
+      const pair = this.queue.shift();
+      if (pair) {
+        const [_, deps, operation] = pair;
+        await operation(deps);
       }
     } finally {
       this.isProcessing = false;

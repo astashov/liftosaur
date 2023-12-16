@@ -195,11 +195,11 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const state = getState();
       if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
-        await env.queue.enqueue(async () => {
+        await env.queue.enqueue(async (deps) => {
           await load(dispatch, "Sync", async () => {
-            await _sync(args, dispatch, getState, env, [], cb);
+            await _sync(deps, dispatch, getState, env, [], cb);
           });
-        });
+        }, args);
       }
     };
   }

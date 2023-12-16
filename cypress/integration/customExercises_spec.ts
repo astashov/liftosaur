@@ -74,8 +74,11 @@ describe("Custom Exercises", () => {
     g("custom-exercise-name-input").clear().type("My Exercise 3");
     g("custom-exercise-equipment-select").select("Band");
     g("multiselect-target_muscles").clear().type("Adductor Magnus");
+    g("multiselect-option-adductor-magnus").click();
     g("multiselect-target_muscles").clear().type("Deltoid Posterior");
+    g("multiselect-option-deltoid-posterior").click();
     g("multiselect-synergist_muscles").clear().type("Obliques");
+    g("multiselect-option-obliques").click();
     g("custom-exercise-create").click();
 
     g("menu-item-my-exercise-3").click();

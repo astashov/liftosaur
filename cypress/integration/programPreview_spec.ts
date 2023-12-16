@@ -41,10 +41,18 @@ describe("Program Preview", () => {
       .find(s("bent-over-row"))
       .find(s("state-changes-key-weight"))
       .should("have.text", "weight: 95 lb -> 97.5 lb");
+    g("day-1").find(s("bent-over-row")).find(s("set-completed")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-incompleted")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-incompleted")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-incompleted")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-incompleted")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-incompleted")).click({ multiple: true });
+    g("day-1").find(s("bent-over-row")).find(s("set-amrap-completed")).click();
+    g("modal-amrap-clear").click();
     g("day-1").find(s("bent-over-row")).find(s("state-var-weight-input")).clear().type("70");
     g("day-1")
       .find(s("bent-over-row"))
-      .find(s("set-completed"))
+      .find(s("set-nonstarted"))
       .filter(":eq(0)")
       .find(s("weight-value"))
       .should("have.text", "70");
