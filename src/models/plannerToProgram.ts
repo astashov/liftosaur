@@ -18,6 +18,7 @@ import { IProgramState } from "../types";
 import { Progression } from "./progression";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
+import { StringUtils } from "../utils/string";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
@@ -479,25 +480,23 @@ export class PlannerToProgram {
     for (const value of potentialWeeksAndDays) {
       const id = UidFactory.generateUid(8);
       const usedDayNames = new Set<string>();
-      let dayInWeekNames = Array.from(
+      const dayInWeekNames = Array.from(
         new Set(
           value.dayData.map((d) => {
-            let name = this.plannerProgram.weeks[d.week]?.days[d.dayInWeek]?.name ?? `Day ${d.dayInWeek + 1}`;
-            if (usedDayNames.has(name)) {
-              const weekName = this.plannerProgram.weeks[d.week]?.name ?? `Week ${d.week + 1}`;
-              name += ` (${weekName})`;
-            }
+            const name = this.plannerProgram.weeks[d.week]?.days[d.dayInWeek]?.name ?? `Day ${d.dayInWeek + 1}`;
             usedDayNames.add(name);
             return name;
           })
         )
       );
-      if (dayInWeekNames.length > 3) {
-        dayInWeekNames = [`Day ${UidFactory.generateUid(3)}`];
+      let dayName = dayInWeekNames.join(" / ");
+      while (days.some((d) => d.name === dayName)) {
+        dayName = StringUtils.nextName(dayName);
       }
+
       const day: IProgramDay = {
         id,
-        name: dayInWeekNames.join("/"),
+        name: dayName,
         exercises: value.exercises.map((e) => ({
           id: exerciseNamesToIds[`${e.label ? `${e.label}_` : ""}${e.name}`][e.equipment || "default"],
         })),
