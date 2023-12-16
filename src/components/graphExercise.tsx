@@ -11,6 +11,7 @@ import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
 import { HtmlUtils } from "../utils/html";
 import { Reps } from "../models/set";
+import { ObjectUtils } from "../utils/object";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -204,6 +205,27 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   }
                   text += "</div>";
                 }
+
+                const entries = historyRecord.entries.filter((e) => e.exercise.id === props.exercise.id);
+                const stateVars = [];
+                for (const entry of entries) {
+                  for (const key of ObjectUtils.keys(entry.state || {})) {
+                    const value = entry.state?.[key];
+                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
+                    stateVars.push(`${key}: <strong>${displayValue}</strong>`);
+                  }
+                }
+                const groups = CollectionUtils.inGroupsOf(2, stateVars);
+                if (groups.length > 0) {
+                  text += `<ul>${groups
+                    .map(([a, b]) => {
+                      return `<li class="flex flex-row gap-4 text-xs"><div class="flex-1">${a}</div><div class="flex-1">${
+                        b ?? ""
+                      }</div></li>`;
+                    })
+                    .join("")}</ul>`;
+                }
+
                 text += "</div>";
                 if (legendRef.current != null) {
                   legendRef.current.innerHTML = text;
