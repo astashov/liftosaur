@@ -26,7 +26,7 @@ export function ImporterProgram(props: IImporterProgramProps): JSX.Element {
       {(onClick) => {
         return (
           <MenuItemWrapper name="Import program from JSON file" onClick={onClick}>
-            <button className="py-3 nm-import-program-from-json">Import program from file</button>
+            <button className="py-3 nm-import-program-from-json">Import program from JSON file</button>
           </MenuItemWrapper>
         );
       }}

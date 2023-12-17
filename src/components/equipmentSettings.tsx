@@ -16,6 +16,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { equipmentName } from "../models/exercise";
 import { ModalNewEquipment } from "./modalNewEquipment";
 import { UidFactory } from "../utils/generator";
+import { Equipment } from "../models/equipment";
 
 interface IProps<T> {
   dispatch: ILensDispatch<T>;
@@ -76,20 +77,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                 const id = `equipment-${UidFactory.generateUid(8)}`;
                 return {
                   ...oldEquipment,
-                  [id]: {
-                    name,
-                    multiplier: 1,
-                    bar: {
-                      lb: Weight.build(0, "lb"),
-                      kg: Weight.build(0, "kg"),
-                    },
-                    plates: [
-                      { weight: Weight.build(10, "lb"), num: 4 },
-                      { weight: Weight.build(5, "kg"), num: 4 },
-                    ],
-                    fixed: [],
-                    isFixed: false,
-                  },
+                  [id]: Equipment.build(name),
                 };
               });
             props.dispatch(lensRecording);

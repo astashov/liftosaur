@@ -26,6 +26,7 @@ import { IconDiscord } from "./icons/iconDiscord";
 import { SendMessage } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
+import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 
 interface IProps {
   dispatch: IDispatch;
@@ -300,6 +301,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
           <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
             <button className="py-3 nm-export-history-to-csv-file">Export history to CSV file</button>
           </MenuItemWrapper>
+        </div>
+        <div className="ls-import-csv-data">
+          <ImporterLiftosaurCsv dispatch={props.dispatch} />
         </div>
         <div className="ls-import-data">
           <ImporterStorage dispatch={props.dispatch} />

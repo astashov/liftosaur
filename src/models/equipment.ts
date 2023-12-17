@@ -1,8 +1,26 @@
 import { IEquipment, IEquipmentData } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
+import { Weight } from "./weight";
 
 export namespace Equipment {
+  export function build(name: string): IEquipmentData {
+    return {
+      name,
+      multiplier: 1,
+      bar: {
+        lb: Weight.build(0, "lb"),
+        kg: Weight.build(0, "kg"),
+      },
+      plates: [
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(5, "kg"), num: 4 },
+      ],
+      fixed: [],
+      isFixed: false,
+    };
+  }
+
   export function mergeEquipment(
     oldEquipment: { [key in IEquipment]?: IEquipmentData },
     newEquipment: { [key in IEquipment]?: IEquipmentData }

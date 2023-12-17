@@ -151,6 +151,10 @@ module.exports = {
         to: `googleauthcallback.html`,
       },
       {
+        from: `src/liftosaur_example_csv.zip`,
+        to: `liftosaur_example_csv.zip`,
+      },
+      {
         from: `src/privacy.html`,
         to: `privacy.html`,
       },

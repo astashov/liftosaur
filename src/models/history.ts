@@ -487,7 +487,7 @@ export namespace History {
   export function exportAsCSV(history: IHistoryRecord[], settings: ISettings): (string | number | null)[][] {
     const lines: (string | number | null)[][] = [
       [
-        "DateTime",
+        "Workout DateTime",
         "Program",
         "Day Name",
         "Exercise",
@@ -495,12 +495,14 @@ export namespace History {
         "Is Warmup Set?",
         "Required Reps",
         "Completed Reps",
+        "RPE",
         "Is AMRAP?",
         "Weight Value",
         "Weight Unit",
         "Completed Reps Time",
         "Target Muscles",
         "Synergist Muscles",
+        "Notes",
       ],
     ];
 
@@ -517,12 +519,14 @@ export namespace History {
             1,
             warmupSet.reps,
             warmupSet.completedReps || null,
+            warmupSet.completedRpe || null,
             0,
             warmupSet.weight.value,
             warmupSet.weight.unit,
-            warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toUTCString() : null,
+            warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
             Exercise.targetMuscles(exercise, settings.exercises).join(","),
             Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+            entry.notes ?? "",
           ]);
         }
         for (const set of entry.sets) {
@@ -535,12 +539,14 @@ export namespace History {
             0,
             set.reps,
             set.completedReps || null,
+            set.completedRpe || null,
             set.isAmrap ? 1 : 0,
             set.weight.value,
             set.weight.unit,
-            set.timestamp != null ? new Date(set.timestamp || 0).toUTCString() : null,
+            set.timestamp != null ? new Date(set.timestamp || 0).toISOString() : null,
             Exercise.targetMuscles(exercise, settings.exercises).join(","),
             Exercise.synergistMuscles(exercise, settings.exercises).join(","),
+            entry.notes ?? "",
           ]);
         }
       }

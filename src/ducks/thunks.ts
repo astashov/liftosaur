@@ -31,6 +31,7 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils } from "../utils/log";
 import { RollbarUtils } from "../utils/rollbar";
 import { UrlUtils } from "../utils/url";
+import { ImportFromLiftosaur } from "../utils/importFromLiftosaur";
 
 declare let Rollbar: RB;
 
@@ -652,6 +653,46 @@ export namespace Thunk {
         alert("Successfully imported");
       } else {
         alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
+      }
+    };
+  }
+
+  export function importCsvData(rawCsv: string): IThunk {
+    return async (dispatch, getState, env) => {
+      try {
+        const {
+          historyRecords,
+          customExercises,
+          customEquipment,
+        } = ImportFromLiftosaur.convertLiftosaurCsvToHistoryRecords(rawCsv, getState().storage.settings);
+        updateState(dispatch, [
+          lb<IState>()
+            .p("storage")
+            .p("history")
+            .recordModify((oldHistoryRecords) => {
+              return CollectionUtils.sortBy(
+                CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
+                "id"
+              );
+            }),
+          lb<IState>()
+            .p("storage")
+            .p("settings")
+            .p("exercises")
+            .recordModify((oldExercises) => {
+              return { ...oldExercises, ...customExercises };
+            }),
+          lb<IState>()
+            .p("storage")
+            .p("settings")
+            .p("equipment")
+            .recordModify((oldEquipment) => {
+              return { ...oldEquipment, ...customEquipment };
+            }),
+        ]);
+      } catch (e) {
+        console.error(e);
+        alert("Couldn't parse the provided file");
       }
     };
   }
