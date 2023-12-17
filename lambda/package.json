@@ -26,6 +26,7 @@
     "micromark-extension-gfm": "^0.3.3",
     "node-fetch": "^2.6.1",
     "openai": "^3.2.1",
+    "papaparse": "^5.4.1",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
     "prismjs": "^1.25.0",
@@ -37,6 +38,7 @@
     "yatro": "^0.2.5"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.2"
+    "@types/node-fetch": "^2.6.2",
+    "@types/papaparse": "^5.3.14"
   }
 }
