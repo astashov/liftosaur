@@ -5,6 +5,7 @@ import { Thunk } from "../ducks/thunks";
 import { Importer } from "./importer";
 import { useCallback, useState } from "preact/hooks";
 import { IconHelp } from "./icons/iconHelp";
+import { InternalLink } from "../internalLink";
 
 interface IImporterLiftosaurCsvProps {
   dispatch: IDispatch;
@@ -42,10 +43,14 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
                 </div>
               </div>
               {showHelp && (
-                <div className="text-xs text-grayv2-main">
-                  <a href="/liftosaur_example_csv.zip" target="_blank" className="font-bold underline text-bluev2">
+                <div className="text-xs text-center text-grayv2-main">
+                  <InternalLink
+                    name="download-example-csv"
+                    href="/liftosaur_example_csv.zip"
+                    className="font-bold underline text-bluev2"
+                  >
                     Download an example and instructions
-                  </a>{" "}
+                  </InternalLink>{" "}
                   how to format a CSV file.
                 </div>
               )}
