@@ -161,7 +161,8 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
     props.onUpdate(
       ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight>>((memo, k) => {
         const value = textInputs[k].current?.value;
-        let numValue = value != null ? parseFloat(value) : undefined;
+        let numValue = value != null ? parseFloat(value) : 0;
+        numValue = isNaN(numValue) ? 0 : numValue;
         const previousValue = state[k];
         if (numValue == null) {
           numValue = Weight.is(previousValue) ? previousValue.value : previousValue;
