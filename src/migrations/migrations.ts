@@ -405,4 +405,21 @@ export const migrations = {
     }
     return storage;
   },
+  "20231216161503_fix_broken_storage_for_yrurftmdmt": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.tempUserId === "yrurftmdmt") {
+      try {
+        (storage as any).history[0].userPromptedStateVars.fpbazbvg.rir = 0;
+        (storage as any).programs[0].exercises[1].reuseLogic.states.iksjdlyj.rir = 0;
+      } catch (e) {
+        // noop
+      }
+      return storage;
+    } else {
+      return aStorage;
+    }
+  },
 };
