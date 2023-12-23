@@ -11,6 +11,7 @@ interface IProps {
   size?: "small" | "large";
   children?: ComponentChildren;
   rightAddOn?: JSX.Element;
+  leftExpandIcon?: boolean;
   isExpanded?: boolean;
   topPadding?: boolean;
 }
@@ -27,8 +28,13 @@ export function GroupHeader(props: IProps): JSX.Element {
       <div
         data-cy={testId}
         onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
-        className={`flex pb-1 text-sm text-grayv2-700 ${props.topPadding ? "mt-6 pt-4" : ""}`}
+        className={`flex pb-1 text-sm text-grayv2-700 ${props.children ? "cursor-pointer" : ""} ${
+          props.topPadding ? "mt-6 pt-4" : ""
+        }`}
       >
+        <div className="flex items-center justify-center mr-2 text-left">
+          {props.children && props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
+        </div>
         <div className="flex-1">
           <span className={`${size === "small" ? "text-xs" : "text-base font-bold"} align-middle text-grayv2-700`}>
             {name}
@@ -45,7 +51,7 @@ export function GroupHeader(props: IProps): JSX.Element {
               <IconHelp size={20} color="#607284" />
             </button>
           )}
-          {props.children ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
+          {props.children && !props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
         </div>
       </div>
       {isHelpShown && props.help}

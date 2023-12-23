@@ -1,24 +1,26 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useCallback } from "preact/hooks";
-import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
-import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../../types";
-import { IDispatch } from "../../../ducks/types";
-import { ProgramDetailsWorkoutExercisePlayground } from "./programDetailsWorkoutExercisePlayground";
-import { ModalAmrap } from "../../../components/modalAmrap";
-import { ModalWeight } from "../../../components/modalWeight";
-import { ProgramDetailsWorkoutExerciseEditModal } from "./programDetailsWorkoutExerciseEditModal";
+import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
+import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../types";
+import { IDispatch } from "../../ducks/types";
+import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
+import { ModalAmrap } from "../modalAmrap";
+import { ModalWeight } from "../modalWeight";
+import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
-import { EditProgramLenses } from "../../../models/editProgramLenses";
-import { Button } from "../../../components/button";
-import { ModalEditSet } from "../../../components/modalEditSet";
-import { EditProgressEntry } from "../../../models/editProgressEntry";
-import { Program } from "../../../models/program";
+import { EditProgramLenses } from "../../models/editProgramLenses";
+import { Button } from "../button";
+import { ModalEditSet } from "../modalEditSet";
+import { EditProgressEntry } from "../../models/editProgressEntry";
+import { Program } from "../../models/program";
+import { StringUtils } from "../../utils/string";
 
-interface IProgramDetailsPlaygroundDayProps {
+interface IProgramPreviewPlaygroundDayProps {
   program: IProgram;
   weekName?: string;
   dayIndex: number;
+  isPlayground: boolean;
   settings: ISettings;
   progress: IHistoryRecord;
   staticStates: Partial<Record<string, IProgramState>>;
@@ -27,8 +29,8 @@ interface IProgramDetailsPlaygroundDayProps {
   onFinish: () => void;
 }
 
-export const ProgramDetailsWorkoutDayPlayground = memo(
-  (props: IProgramDetailsPlaygroundDayProps): JSX.Element => {
+export const ProgramPreviewPlaygroundDay = memo(
+  (props: IProgramPreviewPlaygroundDayProps): JSX.Element => {
     const dispatch: IDispatch = useCallback(
       async (action) => {
         const newProgress = buildCardsReducer(props.settings)(props.progress, action as ICardsAction);
@@ -37,12 +39,15 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
       [props.settings, props.progress]
     );
 
-    const editModalProgramExercise = props.progress.ui?.editModal?.programExercise;
+    const editModalProgramExerciseId = props.progress.ui?.editModal?.programExercise.id;
+    const editModalProgramExercise = editModalProgramExerciseId
+      ? Program.getProgramExercise(props.program, editModalProgramExerciseId)
+      : undefined;
     const programDay = Program.getProgramDay(props.program, props.dayIndex);
 
     return (
-      <div>
-        <h3 className="mb-1 text-lg font-bold">
+      <div data-cy={`preview-day-${StringUtils.dashcase(programDay.name)}`}>
+        <h3 className="mb-1 text-lg font-bold" data-cy="preview-day-name">
           {props.weekName ? `${props.weekName} - ` : ""}
           {programDay.name}
         </h3>
@@ -50,11 +55,12 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           const programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId)!;
           const staticState = props.staticStates[programExercise.id];
           return (
-            <ProgramDetailsWorkoutExercisePlayground
+            <ProgramPreviewPlaygroundExercise
               entry={entry}
               dayIndex={props.dayIndex}
               progress={props.progress}
               staticState={staticState}
+              isPlayground={props.isPlayground}
               programExercise={programExercise}
               program={props.program}
               index={index}
@@ -63,11 +69,18 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
             />
           );
         })}
-        <div className="text-center">
-          <Button name="finish-day-details-playground" kind="orange" onClick={props.onFinish}>
-            Finish this day
-          </Button>
-        </div>
+        {props.isPlayground && (
+          <div className="text-center">
+            <Button
+              name="finish-day-details-playground"
+              kind="orange"
+              onClick={props.onFinish}
+              data-cy="finish-day-details-playground"
+            >
+              Finish this day
+            </Button>
+          </div>
+        )}
         <ModalAmrap
           isHidden={props.progress.ui?.amrapModal == null}
           dispatch={dispatch}
@@ -115,7 +128,7 @@ export const ProgramDetailsWorkoutDayPlayground = memo(
           setIndex={props.progress.ui?.editSetModal?.setIndex}
         />
         {editModalProgramExercise && (
-          <ProgramDetailsWorkoutExerciseEditModal
+          <ProgramPreviewPlaygroundExerciseEditModal
             onClose={() =>
               dispatch({
                 type: "UpdateProgress",

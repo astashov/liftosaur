@@ -1,20 +1,20 @@
 import { JSX, h, Fragment } from "preact";
-import { Button } from "../../../components/button";
-import { MenuItemEditable } from "../../../components/menuItemEditable";
-import { Modal } from "../../../components/modal";
-import { Weight } from "../../../models/weight";
-import { IProgramExercise, IProgramStateMetadata, ISettings } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { Button } from "../button";
+import { MenuItemEditable } from "../menuItemEditable";
+import { Modal } from "../modal";
+import { Weight } from "../../models/weight";
+import { IProgramExercise, IProgramStateMetadata, ISettings } from "../../types";
+import { ObjectUtils } from "../../utils/object";
 
-interface IProgramDetailsWorkoutExerciseEditModalProps {
+interface IProgramPreviewPlaygroundExerciseEditModalProps {
   programExercise: IProgramExercise;
   onClose: () => void;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
 }
 
-export function ProgramDetailsWorkoutExerciseEditModal(
-  props: IProgramDetailsWorkoutExerciseEditModalProps
+export function ProgramPreviewPlaygroundExerciseEditModal(
+  props: IProgramPreviewPlaygroundExerciseEditModalProps
 ): JSX.Element {
   const programExercise = props.programExercise;
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;

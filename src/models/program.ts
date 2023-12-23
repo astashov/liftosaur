@@ -39,6 +39,7 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 import { CollectionUtils } from "../utils/collection";
+import { StringUtils } from "../utils/string";
 
 declare let __HOST__: string;
 
@@ -674,6 +675,30 @@ export namespace Program {
 
   export function numberOfDays(program: IProgram): number {
     return program.isMultiweek ? program.weeks.reduce((memo, w) => memo + w.days.length, 0) : program.days.length;
+  }
+
+  export function daysRange(program: IProgram): string {
+    if (program.isMultiweek) {
+      const minDays = Math.min(...program.weeks.map((w) => w.days.length));
+      const maxDays = Math.max(...program.weeks.map((w) => w.days.length));
+      if (minDays === maxDays) {
+        return `${minDays} ${StringUtils.pluralize("day", minDays)} per week`;
+      } else {
+        return `${minDays}-${maxDays} days per week`;
+      }
+    } else {
+      return `${program.days.length} ${StringUtils.pluralize("day", program.days.length)}`;
+    }
+  }
+
+  export function exerciseRange(program: IProgram): string {
+    const minExs = Math.min(...program.days.map((w) => w.exercises.length));
+    const maxExs = Math.max(...program.days.map((w) => w.exercises.length));
+    if (minExs === maxExs) {
+      return `${minExs} ${StringUtils.pluralize("exercise", minExs)} per day`;
+    } else {
+      return `${minExs}-${maxExs} exercises per day`;
+    }
   }
 
   export function getWeekFromDay(program: IProgram, day: number): number {

@@ -49,6 +49,8 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
           />
 
           <ProgramPreview
+            key={props.selectedProgramId}
+            isMobile={true}
             dispatch={props.dispatch}
             settings={props.settings}
             program={program}

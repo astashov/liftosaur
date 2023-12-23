@@ -130,6 +130,7 @@ Then, 3 sets of 10 reps of leg extensions, and ab wheel rollouts for 3 sets of 1
                 to edit this program on your laptop, or import into <strong>Liftosaur</strong> on your phone.
               </h4>
               <ProgramPreview
+                isMobile={false}
                 program={state.program}
                 settings={state.settings}
                 subscription={{ google: { fake: null }, apple: {} }}

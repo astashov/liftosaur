@@ -40,6 +40,7 @@ import { ProgramQrCode } from "../../components/programQrCode";
 import { ProgramContentExport } from "./utils/programContentExport";
 import { UrlUtils } from "../../utils/url";
 import { Encoder } from "../../utils/encoder";
+import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -204,6 +205,9 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </div>
             </div>
           )}
+          <GroupHeader leftExpandIcon={true} size="large" name="Program preview" isExpanded={true}>
+            <ProgramPreviewOrPlayground program={program} settings={state.settings} isMobile={false} />
+          </GroupHeader>
           {program.isMultiweek && (
             <ProgramContentEditWeeks
               program={program}
