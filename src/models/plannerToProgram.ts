@@ -182,6 +182,9 @@ export class PlannerToProgram {
             if (programSet.isAmrap) {
               set += `+`;
             }
+            if (programSet.rpeExpr) {
+              set += `@${programSet.rpeExpr}`;
+            }
             return [...memo, set];
           }, [])
           .join("/");
