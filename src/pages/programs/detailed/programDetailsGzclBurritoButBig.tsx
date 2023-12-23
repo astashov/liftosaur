@@ -2,14 +2,14 @@ import { h, JSX } from "preact";
 import { IProgram, ISettings } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
-import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
-import { IPlaygroundDetailsWeekSetup } from "../programDetails/programDetailsWeekSetup";
+import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
+import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 
 export interface IProgramDetailsGzclBurritoButBigProps {
   settings: ISettings;
@@ -98,12 +98,7 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground
-        program={props.program}
-        settings={props.settings}
-        client={props.client}
-        weekSetup={weekSetup}
-      />
+      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
@@ -111,8 +106,8 @@ export function ProgramDetailsGzclBurritoButBig(props: IProgramDetailsGzclBurrit
   );
 }
 
-function buildWeekSetup(program: IProgram): IPlaygroundDetailsWeekSetup[] {
-  const weekSetup: IPlaygroundDetailsWeekSetup[] = [];
+function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
+  const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
   let dayIndex = 1;
   for (const week of program.weeks) {
     const days = [];

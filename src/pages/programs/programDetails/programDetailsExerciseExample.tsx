@@ -10,13 +10,13 @@ import { Reps } from "../../../models/set";
 import { IProgram, IProgramExercise, ISettings, IWeight, IProgramState } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
-import { IPlaygroundDetailsWeekSetup } from "./programDetailsWeekSetup";
+import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
   program: IProgram;
   programExercise: IProgramExercise;
-  weekSetup: IPlaygroundDetailsWeekSetup[];
+  weekSetup: IProgramPreviewPlaygroundWeekSetup[];
   staticStateBuilder?: (week: number, day: number, state: IProgramState) => IProgramState;
   weightInputs: { label: string; key: string }[];
 }

@@ -5,10 +5,10 @@ import { IAudioInterface } from "../../../lib/audioInterface";
 import { MusclesTypeView } from "../../../components/muscles/musclesView";
 import { Muscle } from "../../../models/muscle";
 import { ObjectUtils } from "../../../utils/object";
-import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
+import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 
 export interface IProgramDetailsArnoldGoldenSixProps {
   settings: ISettings;
@@ -132,7 +132,6 @@ export function ProgramDetailsArnoldGoldenSix(props: IProgramDetailsArnoldGolden
       <ProgramDetailsWorkoutPlayground
         program={props.program}
         settings={props.settings}
-        client={props.client}
         weekSetup={[{ name: "Week 1", days: [{ dayIndex: 1, states: {} }] }]}
       />
       <div className="mt-8">

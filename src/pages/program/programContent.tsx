@@ -203,7 +203,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       )}
       {props.isMobile ? (
         <>
-          <div className="sticky top-0 left-0 w-full px-4 py-2 bg-white border-b border-grayv2-100">
+          <div className="sticky top-0 left-0 z-10 w-full px-4 py-2 bg-white border-b border-grayv2-100">
             <div className="flex items-center">
               <div className="flex items-center">
                 <div className="mr-4">
@@ -254,6 +254,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               If you want to edit this program, open this page on a laptop
             </div>
             <ProgramPreview
+              isMobile={props.isMobile}
               program={state.current.program}
               settings={state.settings}
               subscription={{ google: { fake: null }, apple: {} }}
