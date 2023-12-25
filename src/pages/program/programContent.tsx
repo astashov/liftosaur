@@ -258,6 +258,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
               program={state.current.program}
               settings={state.settings}
               subscription={{ google: { fake: null }, apple: {} }}
+              hasNavbar={true}
             />
           </section>
         </>

@@ -10,6 +10,7 @@ interface IProgramPreviewOrPlaygroundProps {
   program: IProgram;
   settings: ISettings;
   isMobile: boolean;
+  hasNavbar?: boolean;
 }
 
 export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundProps): JSX.Element {
@@ -46,6 +47,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         </div>
       )}
       <ProgramPreviewPlayground
+        hasNavbar={props.hasNavbar}
         key={isPlayground ? "playground" : "preview"}
         isPlayground={isPlayground}
         program={props.program}

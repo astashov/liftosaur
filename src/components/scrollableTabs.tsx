@@ -10,6 +10,7 @@ interface IProps {
     isInvalid?: boolean;
   }[];
   defaultIndex?: number;
+  offsetY?: string;
 }
 
 export function ScrollableTabs(props: IProps): JSX.Element {
@@ -19,7 +20,10 @@ export function ScrollableTabs(props: IProps): JSX.Element {
   return (
     <div className="relative">
       {tabs.length > 1 && (
-        <div className="sticky top-0 left-0 z-10 bg-white" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
+        <div
+          className="sticky left-0 z-10 bg-white"
+          style={{ top: props.offsetY || "0", marginLeft: "-1rem", marginRight: "-1rem" }}
+        >
           <Scroller arrowYOffsetPct={0}>
             <div className="flex w-full pt-6 pb-2">
               {tabs.map(({ label, isInvalid }, index) => {

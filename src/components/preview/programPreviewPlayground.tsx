@@ -23,6 +23,7 @@ interface IProgramPreviewPlaygroundProps {
   settings: ISettings;
   isPlayground: boolean;
   weekSetup: IProgramPreviewPlaygroundWeekSetup[];
+  hasNavbar?: boolean;
 }
 
 interface IProgramPreviewPlaygroundState {
@@ -62,6 +63,7 @@ export const ProgramPreviewPlayground = memo(
 
     return (
       <ScrollableTabs
+        offsetY={props.hasNavbar ? "3rem" : undefined}
         tabs={state.progresses.map((week, weekIndex) => {
           return {
             label: week.name,

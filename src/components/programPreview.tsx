@@ -29,6 +29,7 @@ interface IProps {
   program: IProgram;
   isMobile: boolean;
   subscription: ISubscription;
+  hasNavbar?: boolean;
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
@@ -77,8 +78,15 @@ export function ProgramPreview(props: IProps): JSX.Element {
           {Program.daysRange(program)}, {Program.exerciseRange(program)}
         </span>
       </div>
-      {program.description && <div className="pt-2" dangerouslySetInnerHTML={{ __html: program.description }} />}
-      <ProgramPreviewOrPlayground program={program} settings={props.settings} isMobile={props.isMobile} />
+      {program.description && (
+        <div className="pt-2 program-description" dangerouslySetInnerHTML={{ __html: program.description }} />
+      )}
+      <ProgramPreviewOrPlayground
+        program={program}
+        settings={props.settings}
+        isMobile={props.isMobile}
+        hasNavbar={props.hasNavbar}
+      />
       {musclesModal && (
         <ProgramPreviewMusclesModal
           muscles={musclesModal}
