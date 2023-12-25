@@ -33,7 +33,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
               <div className="flex">
                 <div className="flex-1 text-left">
                   <button className="w-full py-2 text-left nm-import-data-from-csv-file" onClick={onClick}>
-                    Import data from CSV file
+                    Import history from CSV file
                   </button>
                 </div>
                 <div className="flex items-center ml-2">
