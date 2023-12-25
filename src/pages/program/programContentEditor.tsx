@@ -205,9 +205,16 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </div>
             </div>
           )}
-          <GroupHeader leftExpandIcon={true} size="large" name="Program preview" isExpanded={true}>
-            <ProgramPreviewOrPlayground program={program} settings={state.settings} isMobile={false} />
-          </GroupHeader>
+          {program.days.some((d) => d.exercises.length > 0) && (
+            <GroupHeader leftExpandIcon={true} size="large" name="Program preview" isExpanded={true}>
+              <ProgramPreviewOrPlayground
+                program={program}
+                settings={state.settings}
+                isMobile={false}
+                key={props.encodedProgramUrl}
+              />
+            </GroupHeader>
+          )}
           {program.isMultiweek && (
             <ProgramContentEditWeeks
               program={program}
