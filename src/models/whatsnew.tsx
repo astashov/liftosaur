@@ -731,6 +731,27 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20231225": {
+    title: <span>Improved Program Preview in the app and Web Editor</span>,
+    body: (
+      <ul>
+        <li>
+          🎄 Merry Christmas! I tweaked the program preview page in the app (both for built-in and your programs), and
+          also added Program Preview for the Web Editor.
+        </li>
+        <li>
+          You can use it to get a quick glance at the whole program, try your state var values (e.g. your weights)
+          there. You can also enable "Playground" mode, and try how finish day scripts work for various exercises when
+          you finish all sets.
+        </li>
+        <li>
+          It should be especially useful for the Web Editor, before it was sometimes pretty tricky to understand if your
+          program works properly, especially if it has a bunch of set variations. There was Exercise-level Playground,
+          but wasn't Program-level Playground, and now there is!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
