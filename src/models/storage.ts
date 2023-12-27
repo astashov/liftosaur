@@ -299,7 +299,7 @@ export namespace Storage {
         exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
         lengthUnits: merge2("settings", "lengthUnits"),
         statsEnabled: merge2("settings", "statsEnabled"),
-        exercises: merge2("settings", "exercises"),
+        exercises: deepmerge(oldStorage.settings.exercises, newStorage.settings.exercises),
         graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         units: merge2("settings", "units"),
