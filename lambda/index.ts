@@ -203,6 +203,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     const userDao = new UserDao(di);
     const user = await userDao.getById(userId);
     if (user != null) {
+      di.log.log(`Responding user data, id: ${user.storage.id}, original id: ${user.storage.originalId}`);
       user.storage.originalId = user.storage.originalId || Date.now();
       return ResponseUtils.json(
         200,
@@ -257,10 +258,12 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
     const fields: string[] | undefined = bodyJson.fields;
     const storage: IPartialStorage | IStorage = bodyJson.storage;
     const userDao = new UserDao(di);
+    di.log.log(
+      `IDS: storage.id: ${storage.id}, storage.originalId: ${storage.originalId}, user.storage.id: ${user.storage.id}, user.storage.originalId: ${user.storage.originalId}`
+    );
+
     if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
-      di.log.log(
-        `Appendable safe update, storage.originalId: ${storage.originalId}, user.storage.originalId: ${user.storage.originalId}`
-      );
+      di.log.log("Appendable safe update");
       Storage.updateIds(storage);
       await userDao.saveStorage(user, storage);
       return ResponseUtils.json(200, event, { status: "success", newOriginalId: storage.originalId });
