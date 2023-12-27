@@ -23,6 +23,9 @@ export namespace ObjectUtils {
     while (stack.length > 0) {
       // Pop a pair of items from the stack
       const [currentObj1, currentObj2] = stack.pop()!;
+      if (currentObj1 === currentObj2) {
+        continue;
+      }
 
       // Check if both are objects
       if (
