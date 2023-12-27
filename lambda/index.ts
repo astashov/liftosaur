@@ -258,7 +258,9 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
     const storage: IPartialStorage | IStorage = bodyJson.storage;
     const userDao = new UserDao(di);
     if (storage.originalId == null || user.storage.originalId == null || user.storage.id === storage.originalId) {
-      di.log.log("Appendable safe update");
+      di.log.log(
+        `Appendable safe update, storage.originalId: ${storage.originalId}, user.storage.originalId: ${user.storage.originalId}`
+      );
       Storage.updateIds(storage);
       await userDao.saveStorage(user, storage);
       return ResponseUtils.json(200, event, { status: "success", newOriginalId: storage.originalId });
@@ -1791,6 +1793,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       di.log.setUser(userid);
     }
     di.log.log("--------> Starting request", event.httpMethod, event.path);
+    di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
