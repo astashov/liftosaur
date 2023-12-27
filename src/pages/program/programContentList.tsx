@@ -104,7 +104,12 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                           .p("programs")
                           .recordModify((programs) => {
                             const newPrograms = [...programs];
-                            newPrograms.push({ ...program, name: newName, id: UidFactory.generateUid(8) });
+                            newPrograms.push({
+                              ...program,
+                              name: newName,
+                              id: UidFactory.generateUid(8),
+                              clonedAt: Date.now(),
+                            });
                             return newPrograms;
                           }),
                       ]);
