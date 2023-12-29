@@ -3923,7 +3923,9 @@ export namespace Exercise {
               newExercisesData.meta.bodyParts || [],
               oldExercisesData.meta.bodyParts || []
             ),
-            sortedEquipment: newExercisesData.meta.sortedEquipment,
+            sortedEquipment: newExercisesData.meta.sortedEquipment
+              ? CollectionUtils.merge(newExercisesData.meta.sortedEquipment, [])
+              : undefined,
           },
           types: CollectionUtils.merge(newExercisesData.types || [], oldExercisesData.types || []),
         };
