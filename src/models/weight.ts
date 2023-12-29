@@ -103,6 +103,10 @@ export namespace Weight {
     return CollectionUtils.compressArray(arr, 3).join("/");
   }
 
+  function roundTo005(weight: IWeight): IWeight {
+    return Weight.build(Math.round(weight.value / 0.05) * 0.05, weight.unit);
+  }
+
   export function calculatePlates(
     allWeight: IWeight,
     settings: ISettings,
@@ -111,7 +115,7 @@ export namespace Weight {
     const units = settings.units;
     const equipmentType = equipment ? settings.equipment[equipment] : undefined;
     if (!equipmentType) {
-      allWeight = Weight.build(parseFloat(allWeight.value.toFixed(2)), allWeight.unit);
+      allWeight = roundTo005(Weight.build(parseFloat(allWeight.value.toFixed(2)), allWeight.unit));
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
     if (equipmentType.isFixed) {
@@ -120,7 +124,8 @@ export namespace Weight {
         (a, b) => b.value - a.value
       );
       const weight = fixed.find((w) => Weight.lte(w, allWeight)) || fixed[fixed.length - 1] || allWeight;
-      return { plates: [], platesWeight: weight, totalWeight: weight };
+      const roundedWeight = roundTo005(weight);
+      return { plates: [], platesWeight: roundedWeight, totalWeight: roundedWeight };
     }
     const availablePlatesArr = equipmentType.plates.filter((p) => p.weight.unit === units);
     const barWeight = equipmentType.bar[units];
@@ -133,9 +138,11 @@ export namespace Weight {
     const plates: IPlate[] = useFastMethod
       ? calculatePlatesInternalFast(weight, availablePlates, multiplier)
       : calculatePlatesInternal(weight, availablePlates, multiplier);
-    const total = plates.reduce(
-      (memo, plate) => Weight.add(memo, Weight.multiply(plate.weight, plate.num)),
-      Weight.build(0, allWeight.unit)
+    const total = roundTo005(
+      plates.reduce(
+        (memo, plate) => Weight.add(memo, Weight.multiply(plate.weight, plate.num)),
+        Weight.build(0, allWeight.unit)
+      )
     );
     return { plates, platesWeight: total, totalWeight: Weight.add(total, barWeight) };
   }
