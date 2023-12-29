@@ -275,7 +275,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 const liftosaurProgram = new PlannerToProgram(
                   state.current.program,
                   state.settings.customExercises,
-                  state.settings.unit
+                  state.settings.unit,
+                  state.settings.restTimer
                 ).convert();
                 const exportedProgram: IExportedProgram = {
                   program: liftosaurProgram,

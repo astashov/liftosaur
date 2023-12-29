@@ -40,7 +40,14 @@ export interface IPlannerProgramExercise {
   sets: IPlannerProgramExerciseSet[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   description?: string;
+  reuse?: boolean;
   properties: IPlannerProgramProperty[];
+  globals: {
+    rpe?: number;
+    timer?: number;
+    percentage?: number;
+    weight?: IWeight;
+  };
 }
 
 export interface IPlannerProgramExerciseSet {

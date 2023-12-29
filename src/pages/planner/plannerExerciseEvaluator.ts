@@ -317,7 +317,7 @@ export class PlannerExerciseEvaluator {
 
   private evaluateSection(
     expr: SyntaxNode
-  ): IPlannerProgramExerciseSet[] | IPlannerProgramProperty | IPlannerProgramExerciseWarmupSet[] {
+  ): IPlannerProgramExerciseSet[] | IPlannerProgramProperty | IPlannerProgramExerciseWarmupSet[] | { reuse: true } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const setsNode = expr.getChild(PlannerNodeName.ExerciseSets);
       if (setsNode != null) {
@@ -325,6 +325,10 @@ export class PlannerExerciseEvaluator {
         if (sets.length > 0) {
           return sets.map((set) => this.evaluateSet(set));
         }
+      }
+      const reuseNode = expr.getChild(PlannerNodeName.ReuseSection);
+      if (reuseNode != null) {
+        return { reuse: true };
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
@@ -412,15 +416,11 @@ export class PlannerExerciseEvaluator {
             }
             allSets.push(...section);
           }
+        } else if ("reuse" in section) {
+          isReusing = true;
         } else {
-          if (section.name === "reuse") {
-            isReusing = true;
-          }
           allProperties.push(section);
         }
-      }
-      if (isReusing && (allSets.length > 0 || allProperties.length > 1)) {
-        this.error(`Exercises that reuse logic should not specify any sets or properties except 'reuse'`, expr);
       }
       const sets = allSets.filter((set) => set.repRange != null);
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
@@ -428,12 +428,6 @@ export class PlannerExerciseEvaluator {
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
       const [line] = this.getLineAndOffset(expr);
-      for (const set of sets) {
-        set.rpe = set.rpe ?? rpe;
-        set.timer = set.timer ?? timer;
-        set.percentage = set.percentage ?? percentage;
-        set.weight = set.weight ?? weight;
-      }
       let description: string | undefined;
       if (this.latestDescription) {
         description = this.latestDescription.trim();
@@ -447,8 +441,15 @@ export class PlannerExerciseEvaluator {
         line,
         sets,
         description,
+        reuse: isReusing,
         warmupSets: allWarmupSets,
         properties: allProperties,
+        globals: {
+          rpe,
+          timer,
+          percentage,
+          weight,
+        },
       };
     } else {
       this.error(`Unexpected node type ${expr.node.type.name}`, expr);

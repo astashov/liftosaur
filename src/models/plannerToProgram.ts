@@ -65,7 +65,8 @@ export class PlannerToProgram {
   constructor(
     private readonly plannerProgram: IPlannerProgram,
     private readonly customExercises: IAllCustomExercises,
-    private readonly unit: IUnit
+    private readonly unit: IUnit,
+    private readonly timer: number
   ) {}
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
@@ -212,13 +213,12 @@ export class PlannerToProgram {
     const timers: Record<string, Record<string, Array<Required<IDayData> & { setIndex?: number }>>> = {};
     this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
       timers[name] = timers[name] || {};
-      const globalTimer = exercise.sets.find((s) => s.repRange == null && s.timer != null)?.timer;
       let globalSetIndex = 0;
       for (let setIndex = 0; setIndex < exercise.sets.length; setIndex += 1) {
         const numberOfSets = exercise.sets[setIndex].repRange?.numberOfSets || 0;
-        const timer = (exercise.sets[setIndex].timer ?? globalTimer)?.toString();
+        const timer = exercise.sets[setIndex].timer;
         if (timer != null) {
-          const sameTimerForAllSets = exercise.sets.every((s) => s.timer != null && s.timer.toString() === timer);
+          const sameTimerForAllSets = exercise.sets.every((s) => s.timer != null && s.timer === timer);
           timers[name][timer] = timers[name][timer] || [];
           if (sameTimerForAllSets) {
             timers[name][timer].push(dayData);
@@ -241,7 +241,6 @@ export class PlannerToProgram {
     const descriptions: Record<string, Record<string, Array<Required<IDayData>>>> = {};
     this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
       const description = exercise.description || "";
-      console.log(exercise.name, description, dayData);
       if (description) {
         descriptions[name] = descriptions[name] || {};
         descriptions[name][description] = descriptions[name][description] || [];
@@ -338,7 +337,6 @@ export class PlannerToProgram {
     const exerciseNamesToIds: Record<string, Record<string, string>> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
     const exerciseTypeToDescriptions = this.buildProgramExerciseDescriptions();
-    console.log(exerciseTypeToDescriptions);
     const exerciseTypeToProperties = this.getExerciseTypeToProperties();
     const exerciseTypeToWarmupSets = this.getExerciseTypeToWarmupSets();
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
@@ -448,7 +446,7 @@ export class PlannerToProgram {
           acc += `${expr} ? ${timer} :\n`;
           return acc;
         }, "");
-        timerExpr += "180";
+        timerExpr += this.timer;
       }
 
       let descriptionExpr: string = "1";

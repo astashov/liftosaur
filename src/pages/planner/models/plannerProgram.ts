@@ -79,7 +79,30 @@ export class PlannerProgram {
     return exerciseTypeToWarmupSets;
   }
 
-  public static postProcess(program: IPlannerEvalResult[][]): IPlannerEvalResult[][] {
+  private static findLastWeekExercise(
+    program: IPlannerEvalResult[][],
+    weekIndex: number,
+    dayIndex: number,
+    exercise: IPlannerProgramExercise,
+    cond?: (ex: IPlannerProgramExercise) => boolean
+  ): IPlannerProgramExercise | undefined {
+    for (let i = weekIndex - 1, lastWeekDay = program[i]?.[dayIndex]; i >= 0 && lastWeekDay != null; i -= 1) {
+      if (lastWeekDay.success) {
+        const lastWeekExercise = lastWeekDay.data.find(
+          (ex) => ex.name === exercise.name && ex.label === exercise.label && ex.equipment === exercise.equipment
+        );
+        if (lastWeekExercise != null && (cond == null || cond(lastWeekExercise))) {
+          return lastWeekExercise;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private static iterateOverExercises(
+    program: IPlannerEvalResult[][],
+    cb: (weekIndex: number, dayIndex: number, exercise: IPlannerProgramExercise) => void
+  ): void {
     for (let weekIndex = 0; weekIndex < program.length; weekIndex += 1) {
       const week = program[weekIndex];
       for (let dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
@@ -87,27 +110,45 @@ export class PlannerProgram {
         if (day?.success) {
           const exercises = day.data;
           for (const exercise of exercises) {
-            if (exercise.description == null) {
-              for (
-                let i = weekIndex - 1, lastWeekDay = program[i]?.[dayIndex];
-                i >= 0 && lastWeekDay != null && exercise.description == null;
-                i -= 1, lastWeekDay = program[i]?.[dayIndex]
-              ) {
-                if (lastWeekDay.success) {
-                  const lastWeekExercise = lastWeekDay.data.find(
-                    (ex) =>
-                      ex.name === exercise.name && ex.label === exercise.label && ex.equipment === exercise.equipment
-                  );
-                  if (lastWeekExercise != null) {
-                    exercise.description = lastWeekExercise.description;
-                  }
-                }
-              }
-            }
+            cb(weekIndex, dayIndex, exercise);
           }
         }
       }
     }
+  }
+
+  public static postProcess(program: IPlannerEvalResult[][]): IPlannerEvalResult[][] {
+    this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      if (exercise.description == null) {
+        const lastWeekExercise = this.findLastWeekExercise(
+          program,
+          weekIndex,
+          dayIndex,
+          exercise,
+          (ex) => ex.description != null
+        );
+        exercise.description = lastWeekExercise?.description;
+      }
+      if (exercise.reuse) {
+        const lastWeekExercise = this.findLastWeekExercise(program, weekIndex, dayIndex, exercise);
+        if (lastWeekExercise != null) {
+          exercise.sets = exercise.sets.length === 0 ? ObjectUtils.clone(lastWeekExercise.sets) : exercise.sets;
+          exercise.warmupSets = exercise.warmupSets || ObjectUtils.clone(lastWeekExercise.warmupSets);
+          exercise.globals.rpe = exercise.globals.rpe || lastWeekExercise.globals.rpe;
+          exercise.globals.timer = exercise.globals.timer || lastWeekExercise.globals.timer;
+          exercise.globals.percentage = exercise.globals.percentage || lastWeekExercise.globals.percentage;
+          exercise.globals.weight = exercise.globals.weight || ObjectUtils.clone(lastWeekExercise.globals.weight);
+        }
+      }
+    });
+    this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      for (const set of exercise.sets) {
+        set.rpe = set.rpe ?? exercise.globals.rpe;
+        set.timer = set.timer ?? exercise.globals.timer;
+        set.weight = set.weight ?? exercise.globals.weight;
+        set.percentage = set.percentage ?? exercise.globals.percentage;
+      }
+    });
     return program;
   }
 
@@ -123,7 +164,6 @@ export class PlannerProgram {
       });
     });
     this.postProcess(evaluatedWeeks);
-    console.log("Post processed", evaluatedWeeks);
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, customExercises);

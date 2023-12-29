@@ -184,6 +184,9 @@ export namespace ObjectUtils {
   }
 
   export function clone<T>(obj: T): T {
+    if (obj == null) {
+      return obj;
+    }
     return JSON.parse(JSON.stringify(obj));
   }
 }
