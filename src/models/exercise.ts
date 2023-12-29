@@ -19,6 +19,7 @@ import {
 import { IScreenMuscle, Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
+import { CollectionUtils } from "../utils/collection";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -3889,5 +3890,45 @@ export namespace Exercise {
         return { ...allExercises, [id]: newExercise };
       }
     }
+  }
+
+  export function mergeExercises(
+    oldExercises: IAllCustomExercises,
+    newExercises: IAllCustomExercises
+  ): IAllCustomExercises {
+    const newKeys = Array.from(new Set([...ObjectUtils.keys(newExercises), ...ObjectUtils.keys(oldExercises)]));
+    return newKeys.reduce<IAllCustomExercises>((acc, name) => {
+      const newExercisesData = newExercises[name];
+      const oldExercisesData = oldExercises[name];
+      if (newExercisesData != null && oldExercisesData == null) {
+        acc[name] = newExercisesData;
+      } else if (newExercisesData == null && oldExercisesData != null) {
+        acc[name] = oldExercisesData;
+      } else if (newExercisesData != null && oldExercisesData != null) {
+        acc[name] = {
+          id: newExercisesData.id,
+          name: newExercisesData.name,
+          defaultEquipment: newExercisesData.defaultEquipment,
+          isDeleted: newExercisesData.isDeleted,
+          meta: {
+            targetMuscles: CollectionUtils.merge(
+              newExercisesData.meta.targetMuscles || [],
+              oldExercisesData.meta.targetMuscles || []
+            ),
+            synergistMuscles: CollectionUtils.merge(
+              newExercisesData.meta.synergistMuscles || [],
+              oldExercisesData.meta.synergistMuscles || []
+            ),
+            bodyParts: CollectionUtils.merge(
+              newExercisesData.meta.bodyParts || [],
+              oldExercisesData.meta.bodyParts || []
+            ),
+            sortedEquipment: newExercisesData.meta.sortedEquipment,
+          },
+          types: CollectionUtils.merge(newExercisesData.types || [], oldExercisesData.types || []),
+        };
+      }
+      return acc;
+    }, {});
   }
 }

@@ -16,6 +16,7 @@ import { Equipment } from "./equipment";
 import { ObjectUtils } from "../utils/object";
 import { Program } from "./program";
 import { DateUtils } from "../utils/date";
+import { Exercise } from "./exercise";
 
 declare let Rollbar: RB;
 
@@ -299,7 +300,7 @@ export namespace Storage {
         exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
         lengthUnits: merge2("settings", "lengthUnits"),
         statsEnabled: merge2("settings", "statsEnabled"),
-        exercises: deepmerge(oldStorage.settings.exercises, newStorage.settings.exercises),
+        exercises: mergeAs2("settings", "exercises", (a, b) => Exercise.mergeExercises(a, b)),
         graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         units: merge2("settings", "units"),

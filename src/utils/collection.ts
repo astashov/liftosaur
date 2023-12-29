@@ -304,6 +304,10 @@ export namespace CollectionUtils {
     return result;
   }
 
+  export function merge<T>(from: T[], to: T[]): T[] {
+    return Array.from(new Set([...from, ...to]));
+  }
+
   export function compressArray(arr: number[], threshold: number): string[] {
     const result: string[] = [];
     let count = 1;
