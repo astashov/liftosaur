@@ -86,7 +86,11 @@ export class PlannerProgram {
     exercise: IPlannerProgramExercise,
     cond?: (ex: IPlannerProgramExercise) => boolean
   ): IPlannerProgramExercise | undefined {
-    for (let i = weekIndex - 1, lastWeekDay = program[i]?.[dayIndex]; i >= 0 && lastWeekDay != null; i -= 1) {
+    for (
+      let i = weekIndex - 1, lastWeekDay = program[i]?.[dayIndex];
+      i >= 0 && lastWeekDay != null;
+      i -= 1, lastWeekDay = program[i]?.[dayIndex]
+    ) {
       if (lastWeekDay.success) {
         const lastWeekExercise = lastWeekDay.data.find(
           (ex) => ex.name === exercise.name && ex.label === exercise.label && ex.equipment === exercise.equipment
