@@ -12,6 +12,7 @@ import {
 import { IAllCustomExercises, IWeight, equipments } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
+import { PlannerNodeName } from "./plannerExerciseStyles";
 
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -29,45 +30,6 @@ export class PlannerSyntaxError extends SyntaxError {
 }
 
 export type IPlannerEvalResult = IEither<IPlannerProgramExercise[], PlannerSyntaxError>;
-
-// eslint-disable-next-line no-shadow
-export enum PlannerNodeName {
-  Program = "Program",
-  LineComment = "LineComment",
-  TripleLineComment = "TripleLineComment",
-  Week = "Week",
-  Day = "Day",
-  ExerciseExpression = "ExerciseExpression",
-  ExerciseName = "ExerciseName",
-  NonSeparator = "NonSeparator",
-  SectionSeparator = "SectionSeparator",
-  ExerciseSection = "ExerciseSection",
-  ReuseSection = "ReuseSection",
-  ExerciseProperty = "ExerciseProperty",
-  ExercisePropertyName = "ExercisePropertyName",
-  Keyword = "Keyword",
-  FunctionExpression = "FunctionExpression",
-  FunctionName = "FunctionName",
-  FunctionArgument = "FunctionArgument",
-  Rep = "Rep",
-  Int = "Int",
-  Weight = "Weight",
-  Number = "Number",
-  Float = "Float",
-  Percentage = "Percentage",
-  Rpe = "Rpe",
-  RepRange = "RepRange",
-  WarmupExerciseSets = "WarmupExerciseSets",
-  WarmupExerciseSet = "WarmupExerciseSet",
-  WarmupSetPart = "WarmupSetPart",
-  Set = "Set",
-  None = "None",
-  ExerciseSets = "ExerciseSets",
-  ExerciseSet = "ExerciseSet",
-  Timer = "Timer",
-  SetPart = "SetPart",
-  EmptyExpression = "EmptyExpression",
-}
 
 function getChildren(node: SyntaxNode): SyntaxNode[] {
   const cur = node.cursor();
