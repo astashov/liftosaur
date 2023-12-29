@@ -164,6 +164,7 @@ export class PlannerToProgram {
                 weightExpr: weightExpr,
                 isAmrap: !!set.repRange?.isAmrap,
                 rpeExpr: set.rpe ? `${set.rpe}` : undefined,
+                logRpe: !!set.logRpe,
               };
               programSets.push(programSet);
             }

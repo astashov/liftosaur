@@ -43,6 +43,7 @@ export interface IPlannerProgramExercise {
   reuse?: boolean;
   properties: IPlannerProgramProperty[];
   globals: {
+    logRpe?: boolean;
     rpe?: number;
     timer?: number;
     percentage?: number;
@@ -54,6 +55,7 @@ export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
   rpe?: number;
+  logRpe?: boolean;
   percentage?: number;
   weight?: IWeight;
 }

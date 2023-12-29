@@ -183,7 +183,8 @@ export class PlannerExerciseEvaluator {
       const timerNode = expr.getChild(PlannerNodeName.Timer);
       const percentageNode = expr.getChild(PlannerNodeName.Percentage);
       const weightNode = expr.getChild(PlannerNodeName.Weight);
-      const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", ""));
+      const logRpe = rpeNode == null ? undefined : this.getValue(rpeNode).indexOf("+") !== -1;
+      const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", "").replace("+", ""));
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
@@ -191,6 +192,7 @@ export class PlannerExerciseEvaluator {
       return {
         repRange,
         timer,
+        logRpe,
         rpe,
         weight,
         percentage,
@@ -427,6 +429,7 @@ export class PlannerExerciseEvaluator {
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
+      const logRpe = allSets.find((set) => set.repRange == null && set.logRpe != null)?.logRpe;
       const [line] = this.getLineAndOffset(expr);
       let description: string | undefined;
       if (this.latestDescription) {
@@ -446,6 +449,7 @@ export class PlannerExerciseEvaluator {
         properties: allProperties,
         globals: {
           rpe,
+          logRpe,
           timer,
           percentage,
           weight,
