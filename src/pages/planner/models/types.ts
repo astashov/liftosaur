@@ -38,6 +38,7 @@ export interface IPlannerProgramExercise {
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
+  warmupSets?: IPlannerProgramExerciseWarmupSet[];
   properties: IPlannerProgramProperty[];
 }
 
@@ -45,6 +46,14 @@ export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
   rpe?: number;
+  percentage?: number;
+  weight?: IWeight;
+}
+
+export interface IPlannerProgramExerciseWarmupSet {
+  type: "warmup";
+  numberOfSets: number;
+  reps: number;
   percentage?: number;
   weight?: IWeight;
 }

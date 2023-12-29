@@ -29,6 +29,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       onLineChange: props.onLineChange,
       onBlur: props.onBlur,
       value: props.value,
+      result: props.result,
     });
     ce.attach(divRef.current!);
     codeEditor.current = ce;
@@ -45,6 +46,12 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       codeEditor.current.args.onLineChange = props.onLineChange;
     }
   }, [props.onLineChange]);
+
+  useEffect(() => {
+    if (codeEditor.current) {
+      codeEditor.current.setResult(props.result);
+    }
+  }, [props.result]);
 
   useEffect(() => {
     if (window.isUndoing) {

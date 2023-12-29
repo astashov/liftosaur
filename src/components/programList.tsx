@@ -80,7 +80,7 @@ export function ProgramListView(props: IProps): JSX.Element {
                       <IconEditSquare />
                     </button>
                     <button
-                      className="p-2 align-middle button nm-program-list-delete-program"
+                      className="p-2 align-middle button nm-program-list-delete-program ls-delete-program"
                       onClick={() => {
                         if (customPrograms.length < 2) {
                           alert("You cannot delete all your programs, you should have at least one");

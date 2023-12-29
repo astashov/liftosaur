@@ -1,40 +1,52 @@
 @top Program { expression* }
 
-expression { ExerciseExpression | EmptyExpression }
+expression { LineComment | Week | Day | ExerciseExpression | EmptyExpression }
 
-ExerciseExpression { (ExerciseLabel ":")? ExerciseName (SectionSeparator ExerciseSection)* linebreakOrEof }
+ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection?)* linebreakOrEof }
 EmptyExpression { linebreak }
 
-ExerciseLabel { Word+ }
-ExerciseName { Word+ }
-ExerciseSets {  ExerciseSet ("," ExerciseSet)* }
-ExerciseSection { ExerciseProperty | ExerciseSets }
+ExerciseName { NonSeparator+ }
+ExerciseSets { ExerciseSet ("," ExerciseSet)* }
+WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
+ExerciseSection { ReuseSection | ExerciseProperty | ExerciseSets }
+ReuseSection { "..." }
 ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage)+ }
-ExerciseProperty { ExercisePropertyName ":" FunctionExpression }
-ExercisePropertyName { Word }
+WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
+ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets ) }
+ExercisePropertyName { Keyword }
+None { @specialize<Keyword, "none"> }
 
-FunctionExpression { FunctionName ("(" FunctionArgument ("," FunctionArgument)* ")")* }
-FunctionName { FnName+ }
-FunctionArgument { FnArg }
+FunctionExpression { FunctionName ("(" FunctionArgument ("," FunctionArgument)* ")")? }
+FunctionName { Keyword }
+FunctionArgument { Rep | Weight | Percentage | Rpe | RepRange }
 
-@skip { space | LineComment }
+Number { Float | Int }
+Set { Int }
+RepRange { Rep "-" Rep }
+Rep { Int }
+
+Rpe { "@" Number "+"? }
+Percentage { Number "%" }
+Weight { Number ("kg" | "lb") }
+Timer { Int "s" }
+SetPart { (Set "x")? (RepRange | Rep) "+"? }
+
+WarmupSetPart { (Set "x")? Rep }
+
+@skip { space }
 
 @tokens {
-  @precedence { Rpe, Timer, Weight, Percentage, SetPart, Word, PropName }
-  @precedence { LineComment, SectionSeparator }
-  LineComment { "//" ![\n]* linebreak }
+  @precedence { Float, Int }
+  @precedence { Day, Week }
+  LineComment { "//" ![\n]* linebreakOrEof }
+  Week { "#" ![\n]* linebreakOrEof }
+  Day { "##" ![\n]* linebreakOrEof }
   space { $[ \t]+ }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\n" | "\r" | "\r\n" }
-  Word { $[a-zA-Z0-9,_\-]+ }
-  Alphanumeric { $[0-9a-zA-Z_%\.]+ }
-  FnArg { Alphanumeric }
-  FnName { Alphanumeric }
-  Float { $[0-9\.] }
-  Rpe { "@" Float+ }
-  Percentage { Float+ "%" }
-  Weight { Float+ ("kg" | "lb") }
-  Timer { @digit+ "s" }
-  SetPart { $[0-9\-x]+ "+"? }
+  NonSeparator { ![/ \t\n\r#]+ }
+  Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
+  Int { @digit+ }
+  Float { @digit* "." @digit+ }
 }

@@ -1,4 +1,9 @@
-import { IPlannerProgram, IPlannerProgramExercise, IPlannerProgramProperty } from "../pages/planner/models/types";
+import {
+  IPlannerProgram,
+  IPlannerProgramExercise,
+  IPlannerProgramProperty,
+  IPlannerProgramExerciseWarmupSet,
+} from "../pages/planner/models/types";
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
@@ -7,18 +12,26 @@ import {
   IProgramDay,
   IProgramExercise,
   IProgramExerciseVariation,
+  IProgramExerciseWarmupSet,
   IProgramSet,
   IProgramWeek,
   IUnit,
+  IWeight,
 } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, IExercise } from "./exercise";
 import { IProgramState } from "../types";
 import { Progression } from "./progression";
-import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import {
+  IExerciseTypeToProperties,
+  IExerciseTypeToWarmupSets,
+  PlannerProgram,
+} from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
+import { Weight } from "./weight";
+import { MathUtils } from "../utils/math";
 
 interface IPotentialWeeksAndDays {
   dayData: Required<IDayData>[];
@@ -45,8 +58,6 @@ type IExerciseTypeToPotentialVariations = Record<
     }
   >
 >;
-
-type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 
 export class PlannerToProgram {
   private _evaluatedWeeks?: IPlannerEvalResult[][];
@@ -101,27 +112,11 @@ export class PlannerToProgram {
   }
 
   private getExerciseTypeToProperties(): IExerciseTypeToProperties {
-    const exerciseTypeToProperties: IExerciseTypeToProperties = {};
-    this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
-      exerciseTypeToProperties[name] = exerciseTypeToProperties[name] || [];
-      const properties = exerciseTypeToProperties[name];
-      for (const property of exercise.properties) {
-        const existingProperty = properties.find((p) => p.name === property.name);
-        if (
-          existingProperty != null &&
-          (existingProperty.fnName !== property.fnName ||
-            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a))
-        ) {
-          throw new Error(
-            `Same property '${property.name}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
-              `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
-              `and week ${dayData.week + 1}, day ${dayData.dayInWeek + 1}`
-          );
-        }
-        properties.push({ ...property, dayData });
-      }
-    });
-    return exerciseTypeToProperties;
+    return PlannerProgram.getExerciseTypeToProperties(this.getEvaluatedWeeks(), this.customExercises);
+  }
+
+  private getExerciseTypeToWarmupSets(): IExerciseTypeToWarmupSets {
+    return PlannerProgram.getExerciseTypeToWarmupSets(this.getEvaluatedWeeks(), this.customExercises);
   }
 
   public getExerciseTypeToDayData(): IExerciseTypeToDayData {
@@ -329,6 +324,7 @@ export class PlannerToProgram {
     const exerciseNamesToIds: Record<string, Record<string, string>> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
     const exerciseTypeToProperties = this.getExerciseTypeToProperties();
+    const exerciseTypeToWarmupSets = this.getExerciseTypeToWarmupSets();
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
       const potentialVariations = ObjectUtils.values(exerciseTypeToPotentialVariations[exerciseType]);
       const exercise = potentialVariations[0].exercise;
@@ -454,6 +450,9 @@ export class PlannerToProgram {
         state = { ...state, ...progressionResult.additionalState };
       }
 
+      const plannerWarmupSets = exerciseTypeToWarmupSets[exerciseType];
+      const warmupSets = plannerWarmupSets ? this.plannerWarmupSetsToWarmupSets(plannerWarmupSets) : undefined;
+
       const programExercise: IProgramExercise = {
         id,
         name: exercise.name,
@@ -461,6 +460,7 @@ export class PlannerToProgram {
         variations,
         finishDayExpr,
         exerciseType: { id: exercise.id, equipment: exercise.equipment },
+        warmupSets,
         state,
         descriptions: [],
         enableRpe: isWithRpe,
@@ -471,6 +471,31 @@ export class PlannerToProgram {
     });
 
     return { programExercises, exerciseNamesToIds };
+  }
+
+  private plannerWarmupSetsToWarmupSets(
+    plannerWarmupSets: IPlannerProgramExerciseWarmupSet[]
+  ): IProgramExerciseWarmupSet[] {
+    const warmupSets: IProgramExerciseWarmupSet[] = [];
+    for (const plannerWarmupSet of plannerWarmupSets) {
+      for (let i = 0; i < plannerWarmupSet.numberOfSets; i += 1) {
+        let value: IWeight | number | undefined = plannerWarmupSet.percentage
+          ? plannerWarmupSet.percentage / 100
+          : undefined;
+        if (value == null) {
+          value = plannerWarmupSet.weight;
+        }
+        if (value == null) {
+          value = MathUtils.roundTo0005(Weight.rpeMultiplier(plannerWarmupSet.reps, 4));
+        }
+        warmupSets.push({
+          reps: plannerWarmupSet.reps,
+          value,
+          threshold: Weight.build(0, this.unit),
+        });
+      }
+    }
+    return warmupSets;
   }
 
   public convert(): IProgram {

@@ -283,6 +283,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   version: getLatestMigrationVersion(),
                   settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
                 };
+                console.log(exportedProgram);
                 const programBuilderUrl = UrlUtils.build("/program", __HOST__);
                 const fullurl = await Encoder.encodeIntoUrl(
                   JSON.stringify(exportedProgram),

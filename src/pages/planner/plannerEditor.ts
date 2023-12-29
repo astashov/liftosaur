@@ -1,6 +1,7 @@
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
-import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";
+import { linter } from "@codemirror/lint";
 import { EditorState, Extension } from "@codemirror/state";
 import { drawSelection, EditorView, keymap } from "@codemirror/view";
 import { highlightSelectionMatches } from "@codemirror/search";
@@ -10,6 +11,7 @@ import { Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { StringUtils } from "../../utils/string";
 import { IAllCustomExercises } from "../../types";
+import { IPlannerEvalResult } from "./plannerExerciseEvaluator";
 
 const highlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: "#708" },
@@ -223,6 +225,37 @@ function getEditorSetup(plannerEditor: PlannerEditor): Extension[] {
     }),
     syntaxHighlighting(highlightStyle),
     highlightSelectionMatches(),
+    linter((view) => {
+      const { state } = view;
+      const tree = syntaxTree(state);
+      if (tree.length === state.doc.length) {
+        let from: number | undefined = undefined;
+        let to: number | undefined = undefined;
+        tree.iterate({
+          enter: (n) => {
+            if (from == null && n.type.isError) {
+              from = n.from;
+              to = n.to;
+              console.log(n.from, n.to, n.type.name, n.type.isError);
+              return false;
+            }
+            return;
+          },
+        });
+
+        if (from != null && to != null) {
+          return [{ from: from, to: to, severity: "error", message: "Syntax Error" }];
+        }
+      }
+
+      const result = plannerEditor.args.result;
+      if (result != null && !result.success) {
+        const error = result.error;
+        return [{ from: error.from, to: error.to, severity: "error", message: result.error.message }];
+      }
+
+      return [];
+    }),
     keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap]),
   ];
 }
@@ -234,6 +267,7 @@ interface IArgs {
   value?: string;
   customExercises?: IAllCustomExercises;
   height?: number;
+  result?: IPlannerEvalResult;
 }
 
 export class PlannerEditor {
@@ -254,6 +288,10 @@ export class PlannerEditor {
 
   public setCustomExercises(customExercises: IAllCustomExercises): void {
     this.args.customExercises = customExercises;
+  }
+
+  public setResult(result?: IPlannerEvalResult): void {
+    this.args.result = result;
   }
 
   public attach(container: HTMLElement): void {
