@@ -1,14 +1,83 @@
-import { IPlannerProgram, IPlannerProgramExercise, IPlannerProgramProperty } from "./types";
+import {
+  IPlannerProgram,
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseWarmupSet,
+  IPlannerProgramProperty,
+} from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { IPlannerEvalResult, PlannerExerciseEvaluator, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { IAllCustomExercises, IDayData } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 
+export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
+export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
+
+export class PlannerDayDataError extends Error {
+  constructor(message: string, public readonly dayData: Required<IDayData>) {
+    super(message);
+  }
+}
+
 export class PlannerProgram {
   public static isValid(program: IPlannerProgram, customExercises: IAllCustomExercises): boolean {
     const evaluatedWeeks = PlannerProgram.evaluate(program, customExercises);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
+  }
+
+  public static getExerciseTypeToProperties(
+    evaluatedWeeks: IPlannerEvalResult[][],
+    customExercises: IAllCustomExercises
+  ): IExerciseTypeToProperties {
+    const exerciseTypeToProperties: IExerciseTypeToProperties = {};
+    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, customExercises, (exercise, name, dayData) => {
+      exerciseTypeToProperties[name] = exerciseTypeToProperties[name] || [];
+      const properties = exerciseTypeToProperties[name];
+      for (const property of exercise.properties) {
+        const existingProperty = properties.find((p) => p.name === property.name);
+        if (
+          existingProperty != null &&
+          (existingProperty.fnName !== property.fnName ||
+            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a))
+        ) {
+          throw new PlannerDayDataError(
+            `Same property '${property.name}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
+              `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
+              `and week ${dayData.week + 1}, day ${dayData.dayInWeek + 1}`,
+            dayData
+          );
+        }
+        properties.push({ ...property, dayData });
+      }
+    });
+    return exerciseTypeToProperties;
+  }
+
+  public static getExerciseTypeToWarmupSets(
+    evaluatedWeeks: IPlannerEvalResult[][],
+    customExercises: IAllCustomExercises
+  ): IExerciseTypeToWarmupSets {
+    const exerciseTypeToWarmupSets: IExerciseTypeToWarmupSets = {};
+    const warmupSetSchemes: Partial<Record<string, { dayData: Required<IDayData>; scheme: string }>> = {};
+    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, customExercises, (exercise, name, dayData) => {
+      if (exercise.warmupSets == null) {
+        return;
+      }
+      const scheme = JSON.stringify(exercise.warmupSets);
+      const ws = warmupSetSchemes[name];
+      console.log(ws);
+      if (ws != null && ws.scheme !== scheme) {
+        throw new PlannerDayDataError(
+          `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
+            `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
+            `and week ${dayData.week + 1}, day ${dayData.dayInWeek + 1}`,
+          dayData
+        );
+      }
+      warmupSetSchemes[name] = { scheme, dayData };
+      exerciseTypeToWarmupSets[name] = exercise.warmupSets;
+    });
+    return exerciseTypeToWarmupSets;
   }
 
   public static evaluate(
@@ -22,29 +91,18 @@ export class PlannerProgram {
         return evaluator.evaluate(tree.topNode);
       });
     });
+    console.log(evaluatedWeeks);
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
-    const exerciseTypeToProperties: Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]> = {};
-    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, customExercises, (exercise, name, dayData) => {
-      exerciseTypeToProperties[name] = exerciseTypeToProperties[name] || [];
-      const properties = exerciseTypeToProperties[name];
-      for (const property of exercise.properties) {
-        const existingProperty = properties.find((p) => p.name === property.name);
-        if (
-          existingProperty != null &&
-          (existingProperty.fnName !== property.fnName ||
-            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a))
-        ) {
-          errors.push({
-            dayData,
-            error:
-              `Same property '${property.name}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
-              `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
-              `and week ${dayData.week + 1}, day ${dayData.dayInWeek + 1}`,
-          });
-        }
-        properties.push({ ...property, dayData });
+    try {
+      PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, customExercises);
+      PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, customExercises);
+    } catch (e) {
+      if (e instanceof PlannerDayDataError) {
+        errors.push({ error: e.message, dayData: e.dayData });
+      } else {
+        throw e;
       }
-    });
+    }
     for (const error of errors) {
       evaluatedWeeks[error.dayData.week][error.dayData.dayInWeek] = {
         success: false,

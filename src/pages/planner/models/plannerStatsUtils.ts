@@ -114,6 +114,7 @@ export class PlannerStatsUtils {
         }
       }
     }
+    console.log(results);
     return results;
   }
 }
@@ -161,6 +162,7 @@ function addMuscleGroup(
   synergistMultiplier: number,
   exercise: IExercise
 ): void {
+  synergistMultiplier = synergistMultiplier ?? 0.5;
   let isStrength = false;
   if (repRange.maxrep < 8) {
     isStrength = true;
