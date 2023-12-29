@@ -103,7 +103,7 @@ export namespace Weight {
     return CollectionUtils.compressArray(arr, 3).join("/");
   }
 
-  function roundTo005(weight: IWeight): IWeight {
+  export function roundTo005(weight: IWeight): IWeight {
     return Weight.build(Math.round(weight.value / 0.05) * 0.05, weight.unit);
   }
 

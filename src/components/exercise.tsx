@@ -434,7 +434,7 @@ const ExerciseContentView = memo(
         </section>
         {!isCurrentProgress && volume.value > 0 && (
           <div className="mb-1 text-xs text-left" style={{ marginTop: "-1rem" }}>
-            Volume: <strong>{Weight.print(volume)}</strong>
+            Volume: <strong>{Weight.print(Weight.roundTo005(volume))}</strong>
           </div>
         )}
         {isEditModeRef.current && (
