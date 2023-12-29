@@ -18,6 +18,7 @@ const highlightStyle = HighlightStyle.define([
   { tag: [tags.literal, tags.inserted], color: "#164" },
   { tag: tags.variableName, color: "#171718", fontWeight: "bold" },
   { tag: tags.comment, color: "#8B9BAB" },
+  { tag: tags.blockComment, color: "#5a8e7b" },
   { tag: tags.atom, color: "#940" },
   { tag: tags.propertyName, color: "#8B9BAB" },
   { tag: tags.attributeName, color: "#940" },
@@ -236,7 +237,6 @@ function getEditorSetup(plannerEditor: PlannerEditor): Extension[] {
             if (from == null && n.type.isError) {
               from = n.from;
               to = n.to;
-              console.log(n.from, n.to, n.type.name, n.type.isError);
               return false;
             }
             return;

@@ -39,6 +39,7 @@ export interface IPlannerProgramExercise {
   line: number;
   sets: IPlannerProgramExerciseSet[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
+  description?: string;
   properties: IPlannerProgramProperty[];
 }
 

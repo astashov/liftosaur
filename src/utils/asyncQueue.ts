@@ -7,10 +7,8 @@ export class AsyncQueue {
   public enqueue<T, V>(operation: (deps: V) => Promise<T>, deps?: V): Promise<void> {
     const key = JSON.stringify(deps);
     if (this.queue.length > 0 && this.queue[this.queue.length - 1][0] === key) {
-      console.log("Skip");
       return Promise.resolve();
     } else {
-      console.log("Enqueue");
       return new Promise<void>((resolve) => {
         this.queue.push([
           key,

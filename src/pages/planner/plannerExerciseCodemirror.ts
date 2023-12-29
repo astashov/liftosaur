@@ -17,6 +17,7 @@ const parserWithMetadata = plannerExerciseParser.configure({
       [`${[PlannerNodeName.Weight]}/...`]: t.number,
       [`${[PlannerNodeName.Percentage]}/...`]: t.number,
       [PlannerNodeName.LineComment]: t.lineComment,
+      [PlannerNodeName.TripleLineComment]: t.blockComment,
       [PlannerNodeName.SectionSeparator]: t.lineComment,
       [`${[PlannerNodeName.ExercisePropertyName]}/...`]: t.keyword,
       [`${[PlannerNodeName.FunctionName]}/...`]: t.attributeName,
@@ -25,16 +26,6 @@ const parserWithMetadata = plannerExerciseParser.configure({
     }),
   ],
 });
-
-// Word: t.variableName,
-// Rpe: t.number,
-// Timer: t.keyword,
-// SetPart: t.atom,
-// LineComment: t.lineComment,
-// SectionSeparator: t.lineComment,
-// PropName: t.propertyName,
-// FnName: t.attributeName,
-// FnArg: t.attributeValue,
 
 const language = LRLanguage.define({
   name: "plannerExercise",

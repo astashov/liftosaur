@@ -91,7 +91,6 @@ export class Service {
         credentials: "include",
       });
       const json = await result.json();
-      console.log("json.status", json.status);
       return json.status === "stale";
     } catch (e) {
       return false;

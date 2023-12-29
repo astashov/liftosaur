@@ -114,7 +114,6 @@ export class PlannerStatsUtils {
         }
       }
     }
-    console.log(results);
     return results;
   }
 }

@@ -34,6 +34,7 @@ export type IPlannerEvalResult = IEither<IPlannerProgramExercise[], PlannerSynta
 export enum PlannerNodeName {
   Program = "Program",
   LineComment = "LineComment",
+  TripleLineComment = "TripleLineComment",
   Week = "Week",
   Day = "Day",
   ExerciseExpression = "ExerciseExpression",
@@ -87,6 +88,7 @@ function assert(name: string): never {
 export class PlannerExerciseEvaluator {
   private readonly script: string;
   private readonly customExercises: IAllCustomExercises;
+  private latestDescription: string | undefined = undefined;
 
   constructor(script: string, customExercises: IAllCustomExercises) {
     this.script = script;
@@ -94,7 +96,11 @@ export class PlannerExerciseEvaluator {
   }
 
   private getValue(node: SyntaxNode): string {
-    return this.script.slice(node.from, node.to).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+    return this.getValueTrim(node).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+  }
+
+  private getValueTrim(node: SyntaxNode): string {
+    return this.script.slice(node.from, node.to);
   }
 
   private error(message: string, node: SyntaxNode): never {
@@ -393,12 +399,22 @@ export class PlannerExerciseEvaluator {
         parts.pop();
       }
     }
-    const name = parts.join(",");
+    const name = parts.join(",").trim();
     return { name, label: label ? label : undefined, equipment };
   }
 
+  private addLineComment(value: string): void {
+    value = value.replace(/^\/\//, "").trim();
+    this.latestDescription = this.latestDescription || "";
+    this.latestDescription += value + "\n";
+  }
+
   private evaluateExercise(expr: SyntaxNode): IPlannerProgramExercise | undefined {
-    if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.LineComment) {
+    if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
+      return undefined;
+    } else if (expr.type.name === PlannerNodeName.LineComment) {
+      const value = this.getValueTrim(expr);
+      this.addLineComment(value);
       return undefined;
     } else if (expr.type.name === PlannerNodeName.ExerciseExpression) {
       const nameNode = expr.getChild(PlannerNodeName.ExerciseName);
@@ -456,12 +472,19 @@ export class PlannerExerciseEvaluator {
         set.percentage = set.percentage ?? percentage;
         set.weight = set.weight ?? weight;
       }
+      let description: string | undefined;
+      if (this.latestDescription) {
+        description = this.latestDescription.trim();
+        this.latestDescription = undefined;
+      }
+
       return {
         label,
         name,
         equipment,
         line,
         sets,
+        description,
         warmupSets: allWarmupSets,
         properties: allProperties,
       };
@@ -481,7 +504,8 @@ export class PlannerExerciseEvaluator {
   public evaluate(programNode: SyntaxNode): IPlannerEvalResult {
     try {
       this.parse(programNode);
-      return { data: this.evaluateProgram(programNode), success: true };
+      const program = this.evaluateProgram(programNode);
+      return { data: program, success: true };
     } catch (e) {
       if (e instanceof PlannerSyntaxError) {
         return { error: e, success: false };

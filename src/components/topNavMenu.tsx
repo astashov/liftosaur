@@ -24,7 +24,6 @@ export function TopNavMenu(props: {
   account?: IAccount;
   client: Window["fetch"];
 }): JSX.Element {
-  console.log("Account", props.account);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const service = new Service(props.client);

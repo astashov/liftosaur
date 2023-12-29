@@ -237,6 +237,20 @@ export class PlannerToProgram {
     return timers;
   }
 
+  private buildProgramExerciseDescriptions(): Record<string, Record<string, Array<Required<IDayData>>>> {
+    const descriptions: Record<string, Record<string, Array<Required<IDayData>>>> = {};
+    this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
+      const description = exercise.description || "";
+      console.log(exercise.name, description, dayData);
+      if (description) {
+        descriptions[name] = descriptions[name] || {};
+        descriptions[name][description] = descriptions[name][description] || [];
+        descriptions[name][description].push(dayData);
+      }
+    });
+    return descriptions;
+  }
+
   private getIncrementAndUnit(raw: string): [number, "%" | IUnit] | undefined {
     const match = raw.match(/lb|kg/);
     const unit = (match ? match[0] : "%") as "%" | IUnit;
@@ -323,6 +337,8 @@ export class PlannerToProgram {
     const exerciseTypeToPotentialVariations = this.getExerciseTypeToPotentialVariations();
     const exerciseNamesToIds: Record<string, Record<string, string>> = {};
     const exerciseTypeToTimers = this.buildProgramExerciseTimers();
+    const exerciseTypeToDescriptions = this.buildProgramExerciseDescriptions();
+    console.log(exerciseTypeToDescriptions);
     const exerciseTypeToProperties = this.getExerciseTypeToProperties();
     const exerciseTypeToWarmupSets = this.getExerciseTypeToWarmupSets();
     const programExercises = Object.keys(exerciseTypeToPotentialVariations).map((exerciseType) => {
@@ -330,12 +346,17 @@ export class PlannerToProgram {
       const exercise = potentialVariations[0].exercise;
       const variationIndexToDayDatas: Record<number, Required<IDayData>[]> = {};
       const timersForExercise = exerciseTypeToTimers[exerciseType];
+      const descriptionsForExercise = exerciseTypeToDescriptions[exerciseType];
       const variations: IProgramExerciseVariation[] = potentialVariations.map((v, i) => {
         variationIndexToDayDatas[i] = v.dayDatas;
         return {
           sets: v.programSets,
         };
       });
+      let descriptions: string[] = [""];
+      if (descriptionsForExercise) {
+        descriptions = descriptions.concat(ObjectUtils.keys(descriptionsForExercise));
+      }
       const weekToDayInWeeks = ObjectUtils.values(variationIndexToDayDatas).reduce<Record<number, number[]>>(
         (memo, v) => {
           for (const dayData of v) {
@@ -430,6 +451,55 @@ export class PlannerToProgram {
         timerExpr += "180";
       }
 
+      let descriptionExpr: string = "1";
+      if (descriptionsForExercise && ObjectUtils.keys(descriptionsForExercise).length > 0) {
+        const weekToDayInWeeks2 = ObjectUtils.values(descriptionsForExercise).reduce<Record<number, number[]>>(
+          (memo, v) => {
+            for (const dayData of v) {
+              memo[dayData.week] = memo[dayData.week] || [];
+              if (memo[dayData.week].indexOf(dayData.dayInWeek) === -1) {
+                memo[dayData.week].push(dayData.dayInWeek);
+              }
+            }
+            return memo;
+          },
+          {}
+        );
+        descriptionExpr = ObjectUtils.keys(descriptionsForExercise).reduce((acc, desc, i) => {
+          const dayDatas = descriptionsForExercise[desc];
+          const groupByWeek = dayDatas.reduce<Record<number, number[]>>((memo, dayData) => {
+            memo[dayData.week] = memo[dayData.week] || [];
+            memo[dayData.week].push(dayData.dayInWeek);
+            return memo;
+          }, {});
+          const expr = ObjectUtils.keys(groupByWeek)
+            .map((week) => {
+              const days = groupByWeek[week];
+              const cond = [`week == ${Number(week) + 1}`];
+              const daysInWeek = weekToDayInWeeks2[week];
+              const useDayInWeek = daysInWeek.length > 1;
+              const condDays = [];
+              for (const dayInWeekStr of Object.keys(days)) {
+                const dayInWeek = Number(dayInWeekStr);
+                if (isNaN(dayInWeek)) {
+                  continue;
+                }
+                if (useDayInWeek) {
+                  condDays.push(`dayInWeek == ${dayInWeek + 1}`);
+                }
+              }
+              if (condDays.length > 0) {
+                cond.push(`(${condDays.join(" || ")})`);
+              }
+              return `(${cond.join(" && ")})`;
+            })
+            .join(" || ");
+          acc += `${expr} ? ${i + 2} :\n`;
+          return acc;
+        }, "");
+        descriptionExpr += "1";
+      }
+
       const id = UidFactory.generateUid(8);
       const plannerExercise = potentialVariations[0].plannerExercise;
       const name = CollectionUtils.compact([plannerExercise.label, plannerExercise.name]).join("_");
@@ -460,9 +530,10 @@ export class PlannerToProgram {
         variations,
         finishDayExpr,
         exerciseType: { id: exercise.id, equipment: exercise.equipment },
+        descriptionExpr: descriptionExpr || "1",
+        descriptions,
         warmupSets,
         state,
-        descriptions: [],
         enableRpe: isWithRpe,
         enableRepRanges: iwWithRepRanges,
         timerExpr,

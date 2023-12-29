@@ -65,7 +65,6 @@ export class PlannerProgram {
       }
       const scheme = JSON.stringify(exercise.warmupSets);
       const ws = warmupSetSchemes[name];
-      console.log(ws);
       if (ws != null && ws.scheme !== scheme) {
         throw new PlannerDayDataError(
           `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
@@ -80,6 +79,38 @@ export class PlannerProgram {
     return exerciseTypeToWarmupSets;
   }
 
+  public static postProcess(program: IPlannerEvalResult[][]): IPlannerEvalResult[][] {
+    for (let weekIndex = 0; weekIndex < program.length; weekIndex += 1) {
+      const week = program[weekIndex];
+      for (let dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        if (day?.success) {
+          const exercises = day.data;
+          for (const exercise of exercises) {
+            if (exercise.description == null) {
+              for (
+                let i = weekIndex - 1, lastWeekDay = program[i]?.[dayIndex];
+                i >= 0 && lastWeekDay != null && exercise.description == null;
+                i -= 1, lastWeekDay = program[i]?.[dayIndex]
+              ) {
+                if (lastWeekDay.success) {
+                  const lastWeekExercise = lastWeekDay.data.find(
+                    (ex) =>
+                      ex.name === exercise.name && ex.label === exercise.label && ex.equipment === exercise.equipment
+                  );
+                  if (lastWeekExercise != null) {
+                    exercise.description = lastWeekExercise.description;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return program;
+  }
+
   public static evaluate(
     plannerProgram: IPlannerProgram,
     customExercises: IAllCustomExercises
@@ -91,7 +122,8 @@ export class PlannerProgram {
         return evaluator.evaluate(tree.topNode);
       });
     });
-    console.log(evaluatedWeeks);
+    this.postProcess(evaluatedWeeks);
+    console.log("Post processed", evaluatedWeeks);
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, customExercises);
@@ -126,8 +158,9 @@ export class PlannerProgram {
           const excrs = day.data;
           const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
           for (const exercise of excrs) {
-            exercisesByName[`${exercise.name}_${exercise.equipment}`] = exercisesByName[exercise.name] || [];
-            exercisesByName[`${exercise.name}_${exercise.equipment}`].push(exercise);
+            const key = `${exercise.label}_${exercise.name}_${exercise.equipment}`;
+            exercisesByName[key] = exercisesByName[key] || [];
+            exercisesByName[key].push(exercise);
           }
           for (const groupedExercises of ObjectUtils.values(exercisesByName)) {
             const exercise = groupedExercises.reduce((memo, ex) => {

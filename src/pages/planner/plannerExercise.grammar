@@ -1,6 +1,6 @@
 @top Program { expression* }
 
-expression { LineComment | Week | Day | ExerciseExpression | EmptyExpression }
+expression { LineComment | TripleLineComment | Week | Day | ExerciseExpression | EmptyExpression }
 
 ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection?)* linebreakOrEof }
 EmptyExpression { linebreak }
@@ -38,6 +38,8 @@ WarmupSetPart { (Set "x")? Rep }
 @tokens {
   @precedence { Float, Int }
   @precedence { Day, Week }
+  @precedence { TripleLineComment, LineComment }
+  TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }
