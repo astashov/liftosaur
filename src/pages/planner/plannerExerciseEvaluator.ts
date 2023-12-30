@@ -298,7 +298,11 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateProperty(expr: SyntaxNode): IPlannerProgramProperty | IPlannerProgramExerciseWarmupSet[] {
+  private evaluateProperty(
+    expr: SyntaxNode
+  ):
+    | { type: "progress"; data: IPlannerProgramProperty }
+    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
       if (nameNode == null) {
@@ -306,9 +310,9 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       if (name === "progress") {
-        return this.evaluateProgress(expr);
+        return { type: "progress", data: this.evaluateProgress(expr) };
       } else if (name === "warmup") {
-        return this.evaluateWarmup(expr);
+        return { type: "warmup", data: this.evaluateWarmup(expr) };
       } else {
         this.error(`There's no such property exists - '${name}'`, nameNode);
       }
@@ -319,7 +323,11 @@ export class PlannerExerciseEvaluator {
 
   private evaluateSection(
     expr: SyntaxNode
-  ): IPlannerProgramExerciseSet[] | IPlannerProgramProperty | IPlannerProgramExerciseWarmupSet[] | { reuse: true } {
+  ):
+    | IPlannerProgramExerciseSet[]
+    | { type: "progress"; data: IPlannerProgramProperty }
+    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
+    | { type: "reuse" } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const setsNode = expr.getChild(PlannerNodeName.ExerciseSets);
       if (setsNode != null) {
@@ -330,7 +338,7 @@ export class PlannerExerciseEvaluator {
       }
       const reuseNode = expr.getChild(PlannerNodeName.ReuseSection);
       if (reuseNode != null) {
-        return { reuse: true };
+        return { type: "reuse" };
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
@@ -341,12 +349,6 @@ export class PlannerExerciseEvaluator {
     } else {
       assert(PlannerNodeName.ExerciseSection);
     }
-  }
-
-  private isWarmupSets(
-    sets: IPlannerProgramExerciseSet[] | IPlannerProgramExerciseWarmupSet[]
-  ): sets is IPlannerProgramExerciseWarmupSet[] {
-    return sets.length > 0 && "type" in sets[0] && sets[0].type === "warmup";
   }
 
   private extractNameParts(str: string): { name: string; label?: string; equipment?: string } {
@@ -404,24 +406,26 @@ export class PlannerExerciseEvaluator {
       let isReusing = false;
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode);
-        if (Array.isArray(section)) {
-          if (this.isWarmupSets(section)) {
+        if ("type" in section) {
+          if (section.type === "warmup") {
             allWarmupSets = allWarmupSets || [];
-            allWarmupSets.push(...section);
+            allWarmupSets.push(...section.data);
+          } else if (section.type === "progress") {
+            allProperties.push(section.data);
+          } else if (section.type === "reuse") {
+            isReusing = true;
           } else {
-            const sectionHasRepRange = section.some((set) => set.repRange != null);
-            if (sectionHasRepRange) {
-              if (hadRepRange) {
-                this.error(`Exercise should only have rep range in one section`, sectionNode);
-              }
-              hadRepRange = true;
-            }
-            allSets.push(...section);
+            throw new Error(`Unexpected section type`);
           }
-        } else if ("reuse" in section) {
-          isReusing = true;
         } else {
-          allProperties.push(section);
+          const sectionHasRepRange = section.some((set) => set.repRange != null);
+          if (sectionHasRepRange) {
+            if (hadRepRange) {
+              this.error(`Exercise should only have rep range in one section`, sectionNode);
+            }
+            hadRepRange = true;
+          }
+          allSets.push(...section);
         }
       }
       const sets = allSets.filter((set) => set.repRange != null);
@@ -436,6 +440,8 @@ export class PlannerExerciseEvaluator {
         description = this.latestDescription.trim();
         this.latestDescription = undefined;
       }
+
+      console.log("allWarmupSets", allWarmupSets);
 
       return {
         label,
