@@ -61,11 +61,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
   for (const user of props.usersData) {
     const month = new Date(user.lastAction.ts).getUTCMonth();
     const day = new Date(user.lastAction.ts).getUTCDate();
-    if (!lastMonth || lastMonth !== month) {
+    if (lastMonth == null || lastMonth !== month) {
       data.push([]);
       lastMonth = month;
     }
-    if (!lastDay || lastDay !== day) {
+    if (lastDay == null || lastDay !== day) {
       data[data.length - 1].push([]);
       lastDay = day;
     }
