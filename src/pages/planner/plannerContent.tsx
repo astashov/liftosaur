@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { useLensReducer } from "../../utils/useLensReducer";
 import {
   IPlannerProgram,
@@ -11,14 +11,8 @@ import {
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
-import { ScrollableTabs } from "../../components/scrollableTabs";
-import { LinkButton } from "../../components/linkButton";
-import { ObjectUtils } from "../../utils/object";
-import { CollectionUtils } from "../../utils/collection";
-import { PlannerWeekStats } from "./components/plannerWeekStats";
-import { PlannerDay } from "./components/plannerDay";
 import { Encoder } from "../../utils/encoder";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
@@ -39,6 +33,10 @@ import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOu
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
 import { UrlUtils } from "../../utils/url";
+import { IconDoc } from "../../components/icons/iconDoc";
+import { PlannerContentPerDay } from "./plannerContentPerDay";
+import { ObjectUtils } from "../../utils/object";
+import { PlannerContentFull } from "./plannerContentFull";
 
 declare let __HOST__: string;
 
@@ -140,7 +138,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       (window as any).state = newState;
     },
   ]);
-  useUndoRedo(state, dispatch);
+  useUndoRedo(state, dispatch, [!!state.fulltext], () => state.fulltext == null);
   useEffect(() => {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
   }, []);
@@ -151,10 +149,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const program = state.current.program;
-
-  const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluate(state.current.program, state.settings.customExercises);
-  }, [state.current.program, state.settings.customExercises]);
 
   const modalExerciseUi = state.ui.modalExercise;
   const isInvalid = !PlannerProgram.isValid(state.current.program, state.settings.customExercises);
@@ -253,51 +247,77 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           />
         </h2>
         <div className="flex items-center">
-          <BuilderCopyLink
-            suppressShowInfo={true}
-            onShowInfo={setShowClipboardInfo}
-            type="n"
-            program={program}
-            client={props.client}
-          />
-          <div>
-            <button onClick={() => setIsSettingsModalOpen(true)} className="p-2 nm-planner-settings">
-              <IconCog2 />
-            </button>
-          </div>
-          <div className="ml-2">
-            <Button
-              name="planner-convert-to-liftosaur"
-              kind="purple"
-              disabled={isInvalid}
-              title={isInvalid ? "Fix the errors in the program before converting" : undefined}
-              onClick={async () => {
-                const liftosaurProgram = new PlannerToProgram(
-                  state.current.program,
-                  state.settings.customExercises,
-                  state.settings.unit,
-                  state.settings.restTimer
-                ).convert();
-                const exportedProgram: IExportedProgram = {
-                  program: liftosaurProgram,
-                  customExercises: state.settings.customExercises,
-                  version: getLatestMigrationVersion(),
-                  settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
-                };
-                console.log(exportedProgram);
-                const programBuilderUrl = UrlUtils.build("/program", __HOST__);
-                const fullurl = await Encoder.encodeIntoUrl(
-                  JSON.stringify(exportedProgram),
-                  programBuilderUrl.toString()
-                );
-                const url = await service.postShortUrl(fullurl.toString(), "p");
-                ClipboardUtils.copy(url);
-                setShowLiftosaurConvertInfo(url);
-              }}
-            >
-              Convert to Liftosaur program
-            </Button>
-          </div>
+          {state.fulltext == null && (
+            <>
+              <div>
+                <button
+                  disabled={isInvalid}
+                  title={
+                    isInvalid ? "Fix errors in all weeks/days to switch to Full Program mode" : "Edit Full Program"
+                  }
+                  onClick={() =>
+                    dispatch(
+                      lb<IPlannerState>()
+                        .p("fulltext")
+                        .record({ text: PlannerProgram.generateFullText(program.weeks) })
+                    )
+                  }
+                  className={`p-2 nm-edit-full-program ${isInvalid ? "cursor-not-allowed" : ""}`}
+                >
+                  <IconDoc color={isInvalid ? "#BAC4CD" : "#3C5063"} />
+                </button>
+              </div>
+              <BuilderCopyLink
+                suppressShowInfo={true}
+                onShowInfo={setShowClipboardInfo}
+                type="n"
+                program={program}
+                client={props.client}
+              />
+              <div>
+                <button
+                  title="Settings"
+                  onClick={() => setIsSettingsModalOpen(true)}
+                  className="p-2 nm-planner-settings"
+                >
+                  <IconCog2 />
+                </button>
+              </div>
+              <div className="ml-2">
+                <Button
+                  name="planner-convert-to-liftosaur"
+                  kind="purple"
+                  disabled={isInvalid}
+                  title={isInvalid ? "Fix the errors in the program before converting" : undefined}
+                  onClick={async () => {
+                    const liftosaurProgram = new PlannerToProgram(
+                      state.current.program,
+                      state.settings.customExercises,
+                      state.settings.unit,
+                      state.settings.restTimer
+                    ).convert();
+                    const exportedProgram: IExportedProgram = {
+                      program: liftosaurProgram,
+                      customExercises: state.settings.customExercises,
+                      version: getLatestMigrationVersion(),
+                      settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
+                    };
+                    console.log(exportedProgram);
+                    const programBuilderUrl = UrlUtils.build("/program", __HOST__);
+                    const fullurl = await Encoder.encodeIntoUrl(
+                      JSON.stringify(exportedProgram),
+                      programBuilderUrl.toString()
+                    );
+                    const url = await service.postShortUrl(fullurl.toString(), "p");
+                    ClipboardUtils.copy(url);
+                    setShowLiftosaurConvertInfo(url);
+                  }}
+                >
+                  Convert to Liftosaur program
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
       {showClipboardInfo && (
@@ -317,129 +337,25 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </div>
       )}
       <div>
-        <ScrollableTabs
-          tabs={program.weeks.map((week, weekIndex) => {
-            return {
-              label: week.name,
-              isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
-              children: (
-                <div key={weekIndex} className="flex flex-col md:flex-row">
-                  <div className="flex-1">
-                    <h3 className="mr-2 text-xl font-bold">
-                      <BuilderLinkInlineInput
-                        value={week.name}
-                        onInputString={(v) => {
-                          dispatch(lbProgram.p("weeks").i(weekIndex).p("name").record(v));
-                        }}
-                      />
-                    </h3>
-                    <div className="mt-1 mb-4">
-                      {program.weeks.length > 1 && (
-                        <span className="mr-2">
-                          <LinkButton
-                            name="planner-delete-week"
-                            onClick={() => {
-                              if (confirm("Are you sure you want to delete this week?")) {
-                                dispatch(
-                                  lbProgram
-                                    .p("weeks")
-                                    .recordModify((weeks) => CollectionUtils.removeAt(weeks, weekIndex))
-                                );
-                              }
-                            }}
-                          >
-                            Delete Week
-                          </LinkButton>
-                        </span>
-                      )}
-                      <span className="mr-2">
-                        <LinkButton
-                          name="planner-add-week"
-                          onClick={() => {
-                            dispatch(
-                              lbProgram.p("weeks").recordModify((weeks) => [
-                                ...weeks,
-                                {
-                                  ...ObjectUtils.clone(initialWeek),
-                                  name: `Week ${weeks.length + 1}`,
-                                },
-                              ])
-                            );
-                          }}
-                        >
-                          Add New Week
-                        </LinkButton>
-                      </span>
-                      <LinkButton
-                        name="planner-duplicate-week"
-                        onClick={() => {
-                          dispatch(
-                            lbProgram.p("weeks").recordModify((weeks) => [
-                              ...weeks,
-                              {
-                                ...ObjectUtils.clone(week),
-                                name: `Week ${weeks.length + 1}`,
-                              },
-                            ])
-                          );
-                        }}
-                      >
-                        Duplicate Week
-                      </LinkButton>
-                    </div>
-                    {week.days.map((day, dayIndex) => {
-                      return (
-                        <div key={dayIndex}>
-                          <PlannerDay
-                            evaluatedWeeks={evaluatedWeeks}
-                            settings={state.settings}
-                            program={program}
-                            dispatch={dispatch}
-                            day={day}
-                            weekIndex={weekIndex}
-                            dayIndex={dayIndex}
-                            ui={state.ui}
-                            lbProgram={lbProgram}
-                            service={service}
-                          />
-                        </div>
-                      );
-                    })}
-                    <div>
-                      <LinkButton
-                        name="planner-add-day"
-                        onClick={() => {
-                          dispatch(
-                            lbProgram
-                              .p("weeks")
-                              .i(weekIndex)
-                              .p("days")
-                              .recordModify((days) => [
-                                ...days,
-                                {
-                                  ...ObjectUtils.clone(initialDay),
-                                  name: `Day ${days.length + 1}`,
-                                },
-                              ])
-                          );
-                        }}
-                      >
-                        Add Day
-                      </LinkButton>
-                    </div>
-                  </div>
-                  <div className="mt-2 ml-0 sm:ml-4 sm:mt-0" style={{ width: "14rem" }}>
-                    <PlannerWeekStats
-                      dispatch={dispatch}
-                      evaluatedDays={evaluatedWeeks[weekIndex]}
-                      settings={state.settings}
-                    />
-                  </div>
-                </div>
-              ),
-            };
-          })}
-        />
+        {state.fulltext != null ? (
+          <PlannerContentFull
+            fullText={state.fulltext}
+            settings={state.settings}
+            dispatch={dispatch}
+            service={service}
+            lbProgram={lbProgram}
+          />
+        ) : (
+          <PlannerContentPerDay
+            program={program}
+            settings={state.settings}
+            ui={state.ui}
+            service={service}
+            initialWeek={initialWeek}
+            initialDay={initialDay}
+            dispatch={dispatch}
+          />
+        )}
       </div>
       {isSettingsModalOpen && (
         <ModalPlannerSettings
@@ -456,19 +372,36 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             dispatch([
               lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
               lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-              lbProgram
-                .p("weeks")
-                .i(modalExerciseUi.focusedExercise.weekIndex)
-                .p("days")
-                .i(modalExerciseUi.focusedExercise.dayIndex)
-                .p("exerciseText")
-                .recordModify((exerciseText) => {
-                  if (!exerciseId) {
-                    return exerciseText;
-                  }
-                  const exercise = Exercise.getById(exerciseId, {});
-                  return exerciseText + `\n${exercise.name}`;
-                }),
+              state.fulltext
+                ? lb<IPlannerState>()
+                    .pi("fulltext")
+                    .p("text")
+                    .recordModify((text) => {
+                      if (!exerciseId) {
+                        return text;
+                      }
+                      const line = state.fulltext?.currentLine;
+                      if (line == null) {
+                        return text;
+                      }
+                      const exercise = Exercise.getById(exerciseId, state.settings.customExercises);
+                      const lines = text.split("\n");
+                      lines.splice(line, 0, exercise.name);
+                      return lines.join("\n");
+                    })
+                : lbProgram
+                    .p("weeks")
+                    .i(modalExerciseUi.focusedExercise.weekIndex)
+                    .p("days")
+                    .i(modalExerciseUi.focusedExercise.dayIndex)
+                    .p("exerciseText")
+                    .recordModify((exerciseText) => {
+                      if (!exerciseId) {
+                        return exerciseText;
+                      }
+                      const exercise = Exercise.getById(exerciseId, state.settings.customExercises);
+                      return exerciseText + `\n${exercise.name}`;
+                    }),
             ]);
             dispatch(
               [

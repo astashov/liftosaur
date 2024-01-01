@@ -29,6 +29,15 @@ body {
   overflow: hidden;
 }
 
+.planner-editor-view .cm-errorLineGutter {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.planner-editor-view .cm-panels-top {
+  z-index: 40;
+}
+
 .planner-editor-view .cm-editor .cm-tooltip-autocomplete ul {
   border: none;
   color: #171718;
@@ -63,6 +72,39 @@ body {
   height: auto;
   min-height: 6rem;
   font-size: 22px;
+}
+
+.planner-editor-view .cm-line {
+  height: 31px;
+}
+
+.planner-stats-tooltip {
+  top: 30px;
+  right: 0;
+}
+
+.planner-editor-error {
+  top: 0px;
+}
+
+@media (max-width: 640px) {
+  .planner-editor-view .cm-editor {
+    font-size: 16px;
+  }
+
+  .planner-editor-view .cm-line {
+    height: 22px;
+  }
+
+  .planner-stats-tooltip {
+    top: 30px;
+    left: 0;
+    right: auto;
+  }
+
+  .planner-editor-error {
+    top: 45px;
+  }
 }
 
 .planner-editor-view .cm-scroller {

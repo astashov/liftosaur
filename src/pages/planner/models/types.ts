@@ -87,6 +87,8 @@ export interface IPlannerUiFocusedExercise {
   exerciseLine: number;
 }
 
+export type IPlannerUiMode = "full" | "perday";
+
 export interface IPlannerUi {
   focusedExercise?: IPlannerUiFocusedExercise;
   modalExercise?: {
@@ -97,8 +99,14 @@ export interface IPlannerUi {
   };
 }
 
+export interface IPlannerFullText {
+  text: string;
+  currentLine?: number;
+}
+
 export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
   ui: IPlannerUi;
+  fulltext?: IPlannerFullText;
   settings: IPlannerSettings;
 }
 

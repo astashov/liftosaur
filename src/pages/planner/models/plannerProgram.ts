@@ -3,12 +3,19 @@ import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseWarmupSet,
   IPlannerProgramProperty,
+  IPlannerProgramWeek,
 } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
-import { IPlannerEvalResult, PlannerExerciseEvaluator, PlannerSyntaxError } from "../plannerExerciseEvaluator";
+import {
+  IPlannerEvalFullResult,
+  IPlannerEvalResult,
+  PlannerExerciseEvaluator,
+  PlannerSyntaxError,
+} from "../plannerExerciseEvaluator";
 import { IAllCustomExercises, IDayData } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
+import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -160,11 +167,12 @@ export class PlannerProgram {
     plannerProgram: IPlannerProgram,
     customExercises: IAllCustomExercises
   ): IPlannerEvalResult[][] {
-    const evaluatedWeeks = plannerProgram.weeks.map((week) => {
+    const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week) => {
       return week.days.map((day) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises);
-        return evaluator.evaluate(tree.topNode);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises, "perday");
+        const result = evaluator.evaluate(tree.topNode);
+        return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
     });
     this.postProcess(evaluatedWeeks);
@@ -186,6 +194,37 @@ export class PlannerProgram {
       };
     }
     return evaluatedWeeks;
+  }
+
+  public static evaluateFull(fullProgramText: string, customExercises: IAllCustomExercises): IPlannerEvalFullResult {
+    const evaluator = new PlannerExerciseEvaluator(fullProgramText, customExercises, "full");
+    const tree = plannerExerciseParser.parse(fullProgramText);
+    return evaluator.evaluate(tree.topNode);
+  }
+
+  public static evaluateText(fullProgramText: string): IPlannerExerciseEvaluatorTextWeek[] {
+    const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
+    const tree = plannerExerciseParser.parse(fullProgramText);
+    return evaluator.evaluate(tree.topNode);
+  }
+
+  public static fullToWeekEvalResult(fullResult: IPlannerEvalFullResult): IPlannerEvalResult[][] {
+    return fullResult.success
+      ? fullResult.data.map((week) => week.days.map((d) => ({ success: true, data: d.exercises })))
+      : [[fullResult]];
+  }
+
+  public static generateFullText(weeks: IPlannerProgramWeek[]): string {
+    let fullText = "";
+    for (const week of weeks) {
+      fullText += `# ${week.name}\n`;
+      for (const day of week.days) {
+        fullText += `## ${day.name}\n`;
+        fullText += `${day.exerciseText}\n\n`;
+      }
+      fullText += "\n";
+    }
+    return fullText;
   }
 
   public static generateExerciseTypeAndDayData(

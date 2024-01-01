@@ -304,6 +304,15 @@ export namespace CollectionUtils {
     return result;
   }
 
+  export function findIndexReverse<T>(from: T[], cb: (item: T) => boolean): number {
+    for (let i = from.length - 1; i >= 0; i -= 1) {
+      if (cb(from[i])) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   export function merge<T>(from: T[], to: T[]): T[] {
     return Array.from(new Set([...from, ...to]));
   }

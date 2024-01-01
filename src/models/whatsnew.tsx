@@ -752,6 +752,39 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240103": {
+    title: (
+      <span>
+        Added <strong>"Full Program"</strong> mode to the Workout Planner
+      </span>
+    ),
+    body: (
+      <ul>
+        <li>
+          Now there's a new "Full Program" mode in the{" "}
+          <a href="https://www.liftosaur.com/planner" target="_blank" className="font-bold underline text-bluev2">
+            Workout Planner
+          </a>
+          . It represents the planner program as one big text blob. That could be pretty convenient for editing
+          programs, especially multi-week ones. You can save those programs as text files, edit them in any text editor,
+          share them as text blobs.
+        </li>
+        <li>
+          It adds 2 new syntax constructions you need to use in the "Full Program" mode - for weeks and for days. To
+          create a week, you type a week name from a new line, starting with a hash sign. Like <strong># Week 1</strong>
+          . To create a week - same thing, just starting with 2 hash signs, like <strong>## Day 1</strong>.
+        </li>
+        <li>There's also a bunch of features built-in into the Workout Planner editor:</li>
+        <li>
+          <strong>Find &amp; Replace</strong> - you can even use regular expressions for powerful replacing
+        </li>
+        <li>
+          <strong>Multicursor typing</strong> - you can set several cursors (by Cmd+click or Ctrl+click), and type in
+          multiple places simultaneously.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
