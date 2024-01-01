@@ -1255,6 +1255,23 @@ const postPlannerReformatterHandler: RouteHandler<
   }
 };
 
+const postPlannerReformatterFullEndpoint = Endpoint.build("/api/plannerreformatterfull");
+const postPlannerReformatterFullHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postPlannerReformatterEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const { prompt } = getBodyJson(event);
+  const plannerReformatter = new PlannerReformatter(di);
+  const result = await plannerReformatter.generateFull(prompt);
+  if (result.success) {
+    return ResponseUtils.json(200, event, { data: result.data });
+  } else {
+    return ResponseUtils.json(400, event, { error: result.error });
+  }
+};
+
 const postFreeformGeneratorEndpoint = Endpoint.build("/api/freeform");
 const postFreeformGeneratorHandler: RouteHandler<
   IPayload,
@@ -1811,6 +1828,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getFreeformEndpoint, getFreeformHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
+      .post(postPlannerReformatterFullEndpoint, postPlannerReformatterFullHandler)
       .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)

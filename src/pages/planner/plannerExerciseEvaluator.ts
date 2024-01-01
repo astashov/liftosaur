@@ -30,6 +30,7 @@ export class PlannerSyntaxError extends SyntaxError {
 }
 
 export type IPlannerEvalResult = IEither<IPlannerProgramExercise[], PlannerSyntaxError>;
+export type IPlannerEvalFullResult = IEither<IPlannerExerciseEvaluatorWeek[], PlannerSyntaxError>;
 
 function getChildren(node: SyntaxNode): SyntaxNode[] {
   const cur = node.cursor();
@@ -47,14 +48,24 @@ function assert(name: string): never {
   throw new PlannerSyntaxError(`Missing required nodes for ${name}, this should never happen`, 0, 0, 0, 1);
 }
 
+export interface IPlannerExerciseEvaluatorWeek {
+  name: string;
+  line: number;
+  days: { name: string; line: number; exercises: IPlannerProgramExercise[] }[];
+}
+
 export class PlannerExerciseEvaluator {
   private readonly script: string;
   private readonly customExercises: IAllCustomExercises;
+  private readonly mode: "perday" | "full";
+  private weeks: IPlannerExerciseEvaluatorWeek[] = [];
+
   private latestDescription: string | undefined = undefined;
 
-  constructor(script: string, customExercises: IAllCustomExercises) {
+  constructor(script: string, customExercises: IAllCustomExercises, mode: "perday" | "full") {
     this.script = script;
     this.customExercises = customExercises;
+    this.mode = mode;
   }
 
   private getValue(node: SyntaxNode): string {
@@ -379,14 +390,42 @@ export class PlannerExerciseEvaluator {
     this.latestDescription += value + "\n";
   }
 
-  private evaluateExercise(expr: SyntaxNode): IPlannerProgramExercise | undefined {
+  private evaluateExercise(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
-      return undefined;
+      return;
+    } else if (expr.type.name === PlannerNodeName.Week) {
+      if (this.mode === "perday") {
+        this.error(
+          `You cannot specify weeks in the per-day exercise lists. Switch to the full program mode for that.`,
+          expr
+        );
+      }
+      const weekName = this.getValueTrim(expr).replace(/^#+/, "").trim();
+      const [line] = this.getLineAndOffset(expr);
+      this.weeks.push({ name: weekName, line, days: [] });
+    } else if (expr.type.name === PlannerNodeName.Day) {
+      if (this.mode === "perday") {
+        this.error(
+          `You cannot specify days in the per-day exercise lists. Switch to the full program mode for that.`,
+          expr
+        );
+      }
+      if (this.weeks.length === 0) {
+        this.error(`You need to specify a week before a day`, expr);
+      }
+      const dayName = this.getValueTrim(expr).replace(/^#+/, "").trim();
+      const [line] = this.getLineAndOffset(expr);
+      this.weeks[this.weeks.length - 1].days.push({ name: dayName, line, exercises: [] });
     } else if (expr.type.name === PlannerNodeName.LineComment) {
       const value = this.getValueTrim(expr);
       this.addLineComment(value);
       return undefined;
     } else if (expr.type.name === PlannerNodeName.ExerciseExpression) {
+      if (this.mode === "full" && (this.weeks.length === 0 || this.weeks[this.weeks.length - 1].days.length === 0)) {
+        this.error(`You should first define a week and a day before listing exercises.`, expr);
+      } else if (this.weeks.length === 0) {
+        this.weeks.push({ name: "Week 1", line: 1, days: [{ name: "Day 1", line: 1, exercises: [] }] });
+      }
       const nameNode = expr.getChild(PlannerNodeName.ExerciseName);
       if (nameNode == null) {
         assert("ExerciseName");
@@ -441,9 +480,7 @@ export class PlannerExerciseEvaluator {
         this.latestDescription = undefined;
       }
 
-      console.log("allWarmupSets", allWarmupSets);
-
-      return {
+      const plannerExercise = {
         label,
         name,
         equipment,
@@ -461,20 +498,27 @@ export class PlannerExerciseEvaluator {
           weight,
         },
       };
+      this.weeks[this.weeks.length - 1].days[this.weeks[this.weeks.length - 1].days.length - 1].exercises.push(
+        plannerExercise
+      );
     } else {
       this.error(`Unexpected node type ${expr.node.type.name}`, expr);
     }
   }
 
-  private evaluateProgram(expr: SyntaxNode): IPlannerProgramExercise[] {
+  private evaluateProgram(expr: SyntaxNode): IPlannerExerciseEvaluatorWeek[] {
     if (expr.type.name === PlannerNodeName.Program) {
-      return CollectionUtils.compact(getChildren(expr).map((child) => this.evaluateExercise(child)));
+      this.weeks = [];
+      for (const child of CollectionUtils.compact(getChildren(expr))) {
+        this.evaluateExercise(child);
+      }
+      return this.weeks;
     } else {
       this.error(`Unexpected node type ${expr.node.type.name}`, expr);
     }
   }
 
-  public evaluate(programNode: SyntaxNode): IPlannerEvalResult {
+  public evaluate(programNode: SyntaxNode): IPlannerEvalFullResult {
     try {
       this.parse(programNode);
       const program = this.evaluateProgram(programNode);

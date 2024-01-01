@@ -21,6 +21,7 @@ import { Service } from "../../../api/service";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { useState } from "preact/hooks";
 import { IconHelp } from "../../../components/icons/iconHelp";
+import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -86,7 +87,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           )}
         </div>
         <div className="flex">
-          <div className="w-10">
+          <div className="hidden w-10 sm:block">
             <ul className="pt-2">
               {exerciseImageUrls.map((imageUrl) => {
                 return (
@@ -110,39 +111,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <PlannerEditorView
               name="Exercises"
               customExercises={customExercises}
-              result={evaluatedDay}
+              error={evaluatedDay.success ? undefined : evaluatedDay.error}
               value={day.exerciseText}
-              onCustomErrorCta={(err) => {
-                const match = err.match(/Unknown exercise ([^\(]+)/);
-                if (match) {
-                  const customExerciseName = match[1].trim();
-                  return (
-                    <LinkButton
-                      name="planner-add-custom-exercise"
-                      onClick={() => {
-                        dispatch(
-                          lb<IPlannerState>()
-                            .p("ui")
-                            .p("modalExercise")
-                            .record({
-                              focusedExercise: {
-                                weekIndex,
-                                dayIndex,
-                                exerciseLine: 0,
-                              },
-                              types: [],
-                              muscleGroups: [],
-                              customExerciseName,
-                            })
-                        );
-                      }}
-                    >
-                      Add custom exercise
-                    </LinkButton>
-                  );
-                }
-                return undefined;
-              }}
+              onCustomErrorCta={(err) => <PlannerEditorCustomCta dispatch={props.dispatch} err={err} />}
               onChange={(e) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
               }}
@@ -197,14 +168,15 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           </div>
         </div>
         {isFocused && focusedExercise?.exerciseLine != null && (
-          <PlannerExerciseStats
-            settings={props.settings}
-            program={props.program}
-            evaluatedWeeks={props.evaluatedWeeks}
-            weekIndex={weekIndex}
-            dayIndex={dayIndex}
-            exerciseLine={focusedExercise?.exerciseLine}
-          />
+          <div className="p-4 mt-2 bg-yellow-100 border border-yellow-800 rounded-lg">
+            <PlannerExerciseStats
+              settings={props.settings}
+              evaluatedWeeks={props.evaluatedWeeks}
+              weekIndex={weekIndex}
+              dayIndex={dayIndex}
+              exerciseLine={focusedExercise?.exerciseLine}
+            />
+          </div>
         )}
         <div className="mb-6">
           <LinkButton

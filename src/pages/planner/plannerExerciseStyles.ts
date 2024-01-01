@@ -53,4 +53,6 @@ export const plannerExerciseStyles = {
   [`${[PlannerNodeName.FunctionName]}/...`]: t.attributeName,
   [`${[PlannerNodeName.FunctionArgument]}/...`]: t.attributeValue,
   [PlannerNodeName.None]: t.atom,
+  [PlannerNodeName.Week]: t.annotation,
+  [PlannerNodeName.Day]: t.docComment,
 };

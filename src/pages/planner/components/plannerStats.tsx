@@ -75,11 +75,9 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         <PlannerSetSplit split={setResults.legs} settings={settings} shouldIncludeFrequency={frequency} />
       </div>
 
-      {props.frequency && (
-        <div className="w-32 mb-2">
-          <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
-        </div>
-      )}
+      <div className="w-32 mb-2">
+        <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
+      </div>
 
       {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
@@ -230,10 +228,7 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   }
 
   return (
-    <div
-      style={{ top: "30px", right: "0" }}
-      className="absolute z-10 px-3 py-2 text-xs bg-white border border-grayv2-400 rounded-xl text-blackv2"
-    >
+    <div className="absolute z-10 px-3 py-2 text-xs bg-white border border-grayv2-400 rounded-xl text-blackv2 planner-stats-tooltip">
       <ul style={{ minWidth: "14rem" }}>
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;

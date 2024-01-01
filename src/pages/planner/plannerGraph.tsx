@@ -8,6 +8,7 @@ interface IPlannerGraphProps {
   title: string;
   yAxisLabel: string;
   color: string;
+  height?: string;
   data: [number[], number[]];
 }
 
@@ -82,7 +83,7 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
 
   return (
     <div className="relative z-0" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "10em" }} ref={graphRef}></div>
+      <div className="w-full" data-cy="graph-data" style={{ height: props.height || "10em" }} ref={graphRef}></div>
       <div data-cy="graph-legend" className="box-content px-8 text-sm" ref={legendRef}></div>
     </div>
   );

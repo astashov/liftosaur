@@ -93,6 +93,8 @@
     "@codemirror/autocomplete": "^6.8.1",
     "@codemirror/commands": "^6.2.4",
     "@codemirror/language": "^6.8.0",
+    "@codemirror/lint": "^6.4.2",
+    "@codemirror/search": "^6.5.5",
     "@codemirror/state": "^6.2.1",
     "@codemirror/view": "^6.14.0",
     "@lezer/highlight": "^1.1.6",

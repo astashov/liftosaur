@@ -178,6 +178,17 @@ export class Service {
     return json.data;
   }
 
+  public async postPlannerReformatterFull(prompt: string): Promise<string> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatterfull`);
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+      credentials: "include",
+    });
+    const json = await result.json();
+    return json.data;
+  }
+
   public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
     const url = UrlUtils.build(`${__API_HOST__}/api/coupon/claim/${code}`);
     const result = await this.client(url.toString(), {

@@ -6,6 +6,54 @@ import { parser as plannerExerciseParser } from "../../src/pages/planner/planner
 import { PlannerExerciseEvaluator } from "../../src/pages/planner/plannerExerciseEvaluator";
 import { Exercise } from "../../src/models/exercise";
 
+function plannerReformatterFullPrompt(): string {
+  return `Given the weightlifting program, potentially consisting of weeks and days, and also lists of exercises, sets and reps, reformat it in the way that:
+* It always starts with a week name, on a new line. Week name is always prefixed with pound character, like "# Week 1".
+* After week name there goes day name, also on a new line. Day name is always prefixed with double pound character, like "## Day 1".
+* After day name, there goes a list of exercises for that day.
+* Each exercise starts with a new line
+* First always goes the exercise name
+* Then, after slash (/) - sets x reps. E.g. 5x5, 3x1, 1x3, etc. If there's a range of reps, use dash (-) to separate them. E.g. 3x3-5, 2x4-8.
+* If there are multiple sets of different reps, separate them with comma. E.g. "3x3, 2x4-8, 1x10-12", or "3, 4, 5", or "1x3, 1x4, 1x5" or "3x3-6, 5, 5, 5".
+* If there are RPEs specified, add them to sets x reps, after a space, prefixed with "@" character. For example 3 sets of 4 reps with 7 RPE would be "3x4 @7"
+* If there is rest timer specified, add it to sets x reps, after a space, suffixes with "s" character. For example: "3x5 60s", or "3x7 @8 60s"
+* After the list of exercises, there go more days (again, starting with the day name with double pound), or more weeks.
+* Set x reps section format is VERY strict. DO NOT ADD WORDS OR PHRASES THERE!!!. Only set numbers x reps numbers, RPE and timer are allowed to be there. Things like "3 x failure", "3 til failure", etc are FORBIDDEN!
+* For AMRAP or sets to failure, add "+" after the reps. For example: "3x8+", or "5, 3, 1+" (in this case last set is AMRAP)
+
+Example:
+# Week 1
+## Day 1
+Bench Press / 3x3
+Bicep Curl / 3x8
+Bicep Curl / 3x8 @8
+Incline Bench Press / 3x8 @8
+
+## Day 2
+Squat / 5x5 @9 120s
+Leg Press / 1x8 @9 120s, 4x4 @8 60s
+
+There's a list of built-in exercises. If user provided exercise has slightly different name, but means the same
+exercise - use the exercise from the list. Usually you can drop the equipment name from the exercise name,
+or add it after the exercise name.
+Examples:
+* if user entered "Incline DB Press", use "Incline Bench Press, dumbbell".
+* if user typed "Pull-ups" - use "Pull Up".
+* if user entered "Barbell Rows" - use "Bent Over Row"
+* if user entered "Calf Raise" - use "Standing Calf Raise"
+* if user entered "DB Bench Press" - use "Bench Press, dumbbell"
+* etc - try to find the similar exercise in the list below and use it.
+
+IT IS VERY VERY IMPORTANT THAT YOU TRY TO FIND SIMILAR EXERCISES FROM THE LIST AND USE THEM IN THE OUTPUT!!!
+
+The list of built-in exercises is case sensitive, so change the case if necessary.
+If user entered something like "Double Rope Pushdown" - we don't have such exercise in the list, so you keep it as is. The list of built-in exercises:
+
+${exerciseList}.
+
+Only output the list of exercises, nothing else, no explanation text. This is the text that you need to reformat:`;
+}
+
 function plannerReformatterPrompt(): string {
   return `Given the list of exercises, sets and reps, reformat it in the way that:
 * Each exercise starts with a new line
@@ -31,6 +79,12 @@ IT IS VERY VERY IMPORTANT THAT YOU TRY TO FIND SIMILAR EXERCISES FROM THE LIST A
 The list of built-in exercises is case sensitive, so change the case if necessary.
 If user entered something like "Double Rope Pushdown" - we don't have such exercise in the list, so you keep it as is. The list of built-in exercises:
 
+${exerciseList}.
+
+Only output the list of exercises, nothing else, no explanation text. This is the text that you need to reformat:`;
+}
+
+const exerciseList = `
 "Ab Wheel
 Arnold Press
 Around The World
@@ -205,17 +259,21 @@ Upright Row
 V Up
 Wide Pull Up
 Wrist Roller
-Zercher Squat".
-
-Only output the list of exercises, nothing else, no explanation text. This is the text that you need to reformat:`;
-}
+Zercher Squat"
+`;
 
 export class PlannerReformatter {
   constructor(private readonly di: IDI) {}
 
   public async generate(prompt: string): Promise<IEither<string, string>> {
     const system = plannerReformatterPrompt();
-    const result = await this.getResponseFromChatGPT(system, prompt);
+    const result = await this.getResponseFromChatGPT(system, prompt, "perday");
+    return result;
+  }
+
+  public async generateFull(prompt: string): Promise<IEither<string, string>> {
+    const system = plannerReformatterFullPrompt();
+    const result = await this.getResponseFromChatGPT(system, prompt, "full");
     return result;
   }
 
@@ -244,7 +302,11 @@ export class PlannerReformatter {
     }
   }
 
-  private async getResponseFromChatGPT(system: string, prompt: string): Promise<IEither<string, string>> {
+  private async getResponseFromChatGPT(
+    system: string,
+    prompt: string,
+    mode: "full" | "perday"
+  ): Promise<IEither<string, string>> {
     const requestMessages: ChatCompletionRequestMessage[] = [
       {
         role: "system",
@@ -273,7 +335,7 @@ export class PlannerReformatter {
         }
 
         const tree = plannerExerciseParser.parse(message);
-        const evaluator = new PlannerExerciseEvaluator(message, {});
+        const evaluator = new PlannerExerciseEvaluator(message, {}, mode);
         const result = evaluator.evaluate(tree.topNode);
         if (result.success) {
           this.di.log.log("Evaluated successfully, returning GPT response");
@@ -323,7 +385,7 @@ export class PlannerReformatter {
   private coarseValidate(message: string): boolean {
     const lines = message.split("\n");
     return lines.every((line) => {
-      return /\//.test(line);
+      return line.trim() === "" || /\//.test(line) || /#/.test(line);
     });
   }
 

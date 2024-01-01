@@ -1,14 +1,11 @@
 import { h, JSX, Fragment } from "preact";
-import { ExerciseImage } from "../../../components/exerciseImage";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
-import { StringUtils } from "../../../utils/string";
-import { PlannerProgramExercise } from "../models/plannerProgramExercise";
-import { IPlannerProgramExercise, IPlannerSettings } from "../models/types";
+import { IPlannerProgram, IPlannerProgramExercise, IPlannerSettings } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 
-interface IPlannerExerciseStatsProps {
+interface IPlannerExerciseStatsFullProps {
   settings: IPlannerSettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   weekIndex: number;
@@ -16,7 +13,7 @@ interface IPlannerExerciseStatsProps {
   exerciseLine: number;
 }
 
-export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Element {
+export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps): JSX.Element {
   const evaluatedWeek = props.evaluatedWeeks[props.weekIndex];
   const evaluatedDay = evaluatedWeek[props.dayIndex];
 
@@ -39,70 +36,39 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
     return <></>;
   }
 
-  const targetMuscles = Exercise.targetMuscles(exercise, customExercises);
-  const synergeticMuscles = Exercise.synergistMuscles(exercise, customExercises);
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises).map((w) =>
-    StringUtils.capitalize(w)
-  );
-  const synergeticMuscleGroups = Exercise.synergistMusclesGroups(exercise, customExercises)
-    .map((w) => StringUtils.capitalize(w))
-    .filter((w) => targetMuscleGroups.indexOf(w) === -1);
-
   const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
   const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
 
   return (
-    <div>
+    <div className="py-1 bg-white shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
       <div className="flex mb-2">
-        <div className="w-12 mr-4">
-          <ExerciseImage exerciseType={exercise} size="small" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-bold">{evaluatedExercise.name}: </h3>
-          <div>
-            <span className="text-grayv2-main">Sets this day: </span>
-            <span>{PlannerProgramExercise.numberOfSets(evaluatedExercise)}</span>
+        {intensityGraphData[0].length > 1 && (
+          <div className="flex-1" style={{ marginTop: "-14px" }}>
+            <PlannerGraph
+              key={intensityKey}
+              title="Intensity w/w"
+              color="red"
+              height="8rem"
+              yAxisLabel="Intensity"
+              data={intensityGraphData}
+            />
           </div>
-          <div>
-            <span className="text-grayv2-main">Sets this week: </span>
-            <span>{PlannerProgramExercise.numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</span>
+        )}
+        {volumeGraphData[0].length > 1 && (
+          <div className="flex-1" style={{ marginTop: "-14px" }}>
+            <PlannerGraph
+              key={volumeKey}
+              title="Volume w/w"
+              color="orange"
+              height="8rem"
+              yAxisLabel="Volume"
+              data={volumeGraphData}
+            />
           </div>
-        </div>
+        )}
       </div>
-      <div className="mt-1">
-        <span className="text-grayv2-main">Target Muscles: </span>
-        <span className="font-bold">{targetMuscles.join(", ")}</span>
-      </div>
-      <div>
-        <span className="text-grayv2-main">Synergist Muscles: </span>
-        <span className="font-bold">{synergeticMuscles.join(", ")}</span>
-      </div>
-      <div className="mt-1">
-        <span className="text-grayv2-main">Target Muscles Groups: </span>
-        <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
-      </div>
-      <div>
-        <span className="text-grayv2-main">Synergist Muscle Groups: </span>
-        <span className="font-bold">{synergeticMuscleGroups.join(", ")}</span>
-      </div>
-      {intensityGraphData[0].length > 1 && (
-        <div style={{ marginTop: "-14px" }}>
-          <PlannerGraph
-            key={intensityKey}
-            title="Intensity w/w"
-            color="red"
-            yAxisLabel="Intensity"
-            data={intensityGraphData}
-          />
-        </div>
-      )}
-      {volumeGraphData[0].length > 1 && (
-        <div style={{ marginTop: "-14px" }}>
-          <PlannerGraph key={volumeKey} title="Volume w/w" color="orange" yAxisLabel="Volume" data={volumeGraphData} />
-        </div>
-      )}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
   );
 
   return (
-    <div className="sticky" style={{ top: "3rem" }}>
+    <div>
       <h3 className="mb-2 text-xl font-bold">Week Stats</h3>
       <PlannerStats
         dispatch={props.dispatch}
