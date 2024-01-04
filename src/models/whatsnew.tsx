@@ -763,9 +763,9 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           Now there's a new "Full Program" mode in the{" "}
-          <a href="https://www.liftosaur.com/planner" target="_blank" className="font-bold underline text-bluev2">
+          <InternalLink name="web-editor" className="font-bold underline text-bluev2" href="/planner">
             Workout Planner
-          </a>
+          </InternalLink>
           . You can activate it by clicking on the <IconDoc /> icon near the "Convert to Liftosaur program" button. It
           represents the planner program as one big text blob. That could be pretty convenient for editing programs,
           especially multi-week ones. You can save those programs as text files, edit them in any text editor, share
