@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
-import { IPlannerProgram, IPlannerProgramExercise, IPlannerSettings } from "../models/types";
+import { IPlannerProgramExercise, IPlannerSettings } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 
