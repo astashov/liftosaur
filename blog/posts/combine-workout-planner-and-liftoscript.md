@@ -158,12 +158,12 @@ t3: Bent Over Row / ...t3: Lat Pulldown
 ## Day 3
 t1: Bench Press / ...t1: Squat / progress: custom(increase: 5lb)
 t2: Squat / ...t2: Bench Press / progress: custom(state1weight: 0lb, increase: 10lb, state3increase: 15lb)
-t3: Lat Pulldown
+t3: Lat Pulldown / ...
 
 ## Day 4
 t1: Deadlift / ...t1: Squat / progress: custom(increase: 5lb)
 t2: Overhead Press / ...t2: Bench Press / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb)
-t3: Bent Over Row
+t3: Bent Over Row / ...
 ```
 
 Note that reusing exercises can define their values for the state variables via the same `custom(foo: 3)` syntax, just without the block withing the curly braces - it'll be reused from the original exercise.
