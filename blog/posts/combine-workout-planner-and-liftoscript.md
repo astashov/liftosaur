@@ -5,6 +5,7 @@ og_title: Combine Workout Planner and Liftoscript
 og_description: Integrating Liftoscript into Workout Planner syntax to make the planner as powerful as a regular Liftosaur editor
 og_image: /images/combine-workout-planner-and-liftoscript-intro.jpg
 tags: ["weightlifting", "tech"]
+reddit: https://www.reddit.com/r/liftosaur/comments/18zc357/blogpost_combine_workout_planner_and_liftoscript/
 ---
 
 <div><img src="../../images/combine-workout-planner-and-liftoscript-intro.jpg" width="100%" alt="Midjourney generated book and some barbell plates" /></div>
