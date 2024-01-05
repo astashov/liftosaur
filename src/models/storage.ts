@@ -60,7 +60,12 @@ export namespace Storage {
     shouldReportError?: boolean
   ): Promise<IEither<IStorage, string[]>> {
     if (maybeStorage) {
-      const finalStorage = await runMigrations(client, maybeStorage as IStorage);
+      let finalStorage = await runMigrations(client, maybeStorage as IStorage);
+      const firstValidateResult = validate(finalStorage, TStorage, "storage");
+      if (!firstValidateResult.success) {
+        maybeStorage.version = "20230612190339";
+        finalStorage = await runMigrations(client, maybeStorage as IStorage);
+      }
       const result = shouldReportError
         ? validateAndReport(finalStorage, TStorage, "storage")
         : validate(finalStorage, TStorage, "storage");
