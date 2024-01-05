@@ -763,7 +763,11 @@ const whatsNew: Record<string, IWhatsNew> = {
       <ul>
         <li>
           Now there's a new "Full Program" mode in the{" "}
-          <InternalLink name="web-editor" className="font-bold underline text-bluev2" href="/planner">
+          <InternalLink
+            name="web-editor"
+            className="font-bold underline text-bluev2"
+            href="https://www.liftosaur.com/planner"
+          >
             Workout Planner
           </InternalLink>
           . You can activate it by clicking on the <IconDoc /> icon near the "Convert to Liftosaur program" button. It

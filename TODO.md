@@ -15,6 +15,7 @@
 - Copy plates for custom equipment from 'similar' equipment
 - Incorporate the latest RM into the RM calculator
 - Single vs double side weights (???)
+- Add rounding up/down/middle setting
 
 * Programs
   - 5/3/1s
