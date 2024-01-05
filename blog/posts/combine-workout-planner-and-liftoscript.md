@@ -127,9 +127,9 @@ t1: Squat / 5x3 100% / 6x2 100% / 10x1 100% / progress: custom(increase: 10lb) {
   if (completedReps >= reps) {
     state.weight += state.increase
   } else if (sets == 3) {
-    setVariation = 1
+    state.setVariation = 1
   } else {
-    setVariation += 1
+    state.setVariation += 1
   }
 }
 t2: Bench Press / 3x10 100% / 3x8 100% / 3x6 100% / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb) {
