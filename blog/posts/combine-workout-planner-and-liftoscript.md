@@ -173,10 +173,10 @@ And that's it! That pretty much would be the whole GZCLP program, with all the a
 
 All that stuff makes the Workout Planner pretty much as powerful as the regular Liftosaur's program editor. And a big advantage is that you don't really need to know/use all of that, you still can do simple programs like:
 
-```
+{% plannercode %}
 Squat / 5x5
 Bench Press / 3x8 @8 / progress: lp(5lb)
-```
+{% endplannercode %}
 
 But if you really want something very custom and unusual for you progression, you can use this new `custom() { }` syntax
 to do whatever you want realy.
