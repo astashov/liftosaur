@@ -54,7 +54,7 @@ UnaryExpression {
   !unary Not expression
 }
 
-@skip { space | LineComment | ";" }
+@skip { space | LineComment | ";" | "{~" | "~}" }
 
 @tokens {
   space { @whitespace+ }

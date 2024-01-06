@@ -4,7 +4,7 @@ import { styleTags, tags as t } from "@lezer/highlight";
 import { completeFromList, CompletionContext } from "@codemirror/autocomplete";
 import { CodeEditor } from "./editor";
 
-const liftoscriptParserWithMetadata = liftoscriptParser.configure({
+export const liftoscriptParserWithMetadata = liftoscriptParser.configure({
   props: [
     styleTags({
       StateVariable: t.variableName,

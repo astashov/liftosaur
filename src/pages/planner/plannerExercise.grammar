@@ -9,19 +9,18 @@ ExerciseName { NonSeparator+ }
 ExerciseSets { ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
 ExerciseSection { ReuseSection | ExerciseProperty | ExerciseSets }
-ReuseSection { "..." }
+ReuseSection { "..." ExerciseName? }
 ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage)+ }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets ) }
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
 
-FunctionExpression { FunctionName ("(" FunctionArgument ("," FunctionArgument)* ")")? }
+FunctionExpression { FunctionName ("(" FunctionArgument? ("," FunctionArgument)* ")")? Liftoscript? }
 FunctionName { Keyword }
-FunctionArgument { Rep | Weight | Percentage | Rpe | RepRange }
+FunctionArgument { Rep | Weight | Percentage | Rpe | RepRange | KeyValue }
 
 Number { Float | Int }
-Set { Int }
 RepRange { Rep "-" Rep }
 Rep { Int }
 
@@ -29,9 +28,10 @@ Rpe { "@" Number "+"? }
 Percentage { Number "%" }
 Weight { Number ("kg" | "lb") }
 Timer { Int "s" }
-SetPart { (Set "x")? (RepRange | Rep) "+"? }
+SetPart { (Rep "+"? "x")? (RepRange | Rep) "+"? }
+KeyValue { Keyword ":" (Float | Int | Weight) }
 
-WarmupSetPart { (Set "x")? Rep }
+WarmupSetPart { (Rep "x")? Rep }
 
 @skip { space }
 
@@ -41,6 +41,7 @@ WarmupSetPart { (Set "x")? Rep }
   @precedence { TripleLineComment, LineComment }
   TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
+  Liftoscript { "{~" ![~]* "~}" }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }
   space { $[ \t]+ }

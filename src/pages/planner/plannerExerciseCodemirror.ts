@@ -6,9 +6,14 @@ import { Exercise } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
 import { equipments } from "../../types";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
+import { parseMixed } from "@lezer/common";
+import { liftoscriptParserWithMetadata } from "../../liftoscriptCodemirror";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
+  wrap: parseMixed((node) => {
+    return node.name === "Liftoscript" ? { parser: liftoscriptParserWithMetadata } : null;
+  }),
 });
 
 const language = LRLanguage.define({
