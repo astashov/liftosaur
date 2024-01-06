@@ -1,6 +1,6 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
-import { Exercise } from "../../models/exercise";
+import { Exercise, equipmentName } from "../../models/exercise";
 import { CollectionUtils } from "../../utils/collection";
 import { IEither } from "../../utils/types";
 import {
@@ -9,10 +9,12 @@ import {
   IPlannerProgramExerciseSet,
   IPlannerProgramProperty,
 } from "./models/types";
-import { IAllCustomExercises, IWeight, equipments } from "../../types";
+import { IAllCustomExercises, IWeight, IAllEquipment } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
+import { ObjectUtils } from "../../utils/object";
+import { Equipment } from "../../models/equipment";
 
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -57,15 +59,17 @@ export interface IPlannerExerciseEvaluatorWeek {
 export class PlannerExerciseEvaluator {
   private readonly script: string;
   private readonly customExercises: IAllCustomExercises;
+  private readonly equipment: IAllEquipment;
   private readonly mode: "perday" | "full";
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
 
   private latestDescription: string | undefined = undefined;
 
-  constructor(script: string, customExercises: IAllCustomExercises, mode: "perday" | "full") {
+  constructor(script: string, customExercises: IAllCustomExercises, equipment: IAllEquipment, mode: "perday" | "full") {
     this.script = script;
     this.customExercises = customExercises;
     this.mode = mode;
+    this.equipment = equipment;
   }
 
   private getValue(node: SyntaxNode): string {
@@ -375,8 +379,13 @@ export class PlannerExerciseEvaluator {
     const parts = nameEquipment.split(",");
     if (parts.length > 1) {
       const potentialEquipment = parts[parts.length - 1]?.trim();
-      if (potentialEquipment != null && (equipments as readonly string[]).indexOf(potentialEquipment) !== -1) {
-        equipment = potentialEquipment;
+      const allowedEquipments = [
+        ...ObjectUtils.keys(this.equipment),
+        ...ObjectUtils.keys(this.equipment).map((e) => equipmentName(e, this.equipment)),
+      ];
+      if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment) !== -1) {
+        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.equipment);
+        equipment = equipmentKey;
         parts.pop();
       }
     }

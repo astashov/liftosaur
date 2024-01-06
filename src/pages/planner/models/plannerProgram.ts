@@ -12,7 +12,7 @@ import {
   PlannerExerciseEvaluator,
   PlannerSyntaxError,
 } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IDayData } from "../../../types";
+import { IAllCustomExercises, IDayData, IAllEquipment } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
@@ -27,8 +27,12 @@ export class PlannerDayDataError extends Error {
 }
 
 export class PlannerProgram {
-  public static isValid(program: IPlannerProgram, customExercises: IAllCustomExercises): boolean {
-    const evaluatedWeeks = PlannerProgram.evaluate(program, customExercises);
+  public static isValid(
+    program: IPlannerProgram,
+    customExercises: IAllCustomExercises,
+    equipment: IAllEquipment
+  ): boolean {
+    const evaluatedWeeks = PlannerProgram.evaluate(program, customExercises, equipment);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
   }
 
@@ -165,12 +169,13 @@ export class PlannerProgram {
 
   public static evaluate(
     plannerProgram: IPlannerProgram,
-    customExercises: IAllCustomExercises
+    customExercises: IAllCustomExercises,
+    equipment: IAllEquipment
   ): IPlannerEvalResult[][] {
     const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week) => {
       return week.days.map((day) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises, "perday");
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises, equipment, "perday");
         const result = evaluator.evaluate(tree.topNode);
         return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
@@ -196,8 +201,12 @@ export class PlannerProgram {
     return evaluatedWeeks;
   }
 
-  public static evaluateFull(fullProgramText: string, customExercises: IAllCustomExercises): IPlannerEvalFullResult {
-    const evaluator = new PlannerExerciseEvaluator(fullProgramText, customExercises, "full");
+  public static evaluateFull(
+    fullProgramText: string,
+    customExercises: IAllCustomExercises,
+    equipment: IAllEquipment
+  ): IPlannerEvalFullResult {
+    const evaluator = new PlannerExerciseEvaluator(fullProgramText, customExercises, equipment, "full");
     const tree = plannerExerciseParser.parse(fullProgramText);
     return evaluator.evaluate(tree.topNode);
   }

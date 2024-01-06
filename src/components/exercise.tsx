@@ -286,7 +286,7 @@ const ExerciseContentView = memo(
             {equipment &&
               (programExercise ? (
                 <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
-                  {equipmentName(equipment, props.settings)}
+                  {equipmentName(equipment, props.settings.equipment)}
                 </div>
               ) : (
                 <div className="text-sm text-grayv2-600">
@@ -309,7 +309,7 @@ const ExerciseContentView = memo(
                     {Exercise.sortedEquipments(props.entry.exercise.id, props.settings).map((eq) => {
                       return (
                         <option value={eq} selected={eq === props.entry.exercise.equipment}>
-                          {equipmentName(eq, props.settings)}
+                          {equipmentName(eq, props.settings.equipment)}
                         </option>
                       );
                     })}

@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { IAllCustomExercises } from "../../../types";
+import { IAllCustomExercises, IAllEquipment } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
 
@@ -13,6 +13,7 @@ interface IProps {
   lineNumbers?: boolean;
   onCustomErrorCta?: (error: string) => JSX.Element | undefined;
   customExercises: IAllCustomExercises;
+  equipment: IAllEquipment;
   value?: string;
 }
 
@@ -32,6 +33,8 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       value: props.value,
       error: props.error,
       lineNumbers: props.lineNumbers,
+      customExercises: props.customExercises,
+      equipment: props.equipment,
     });
     ce.attach(divRef.current!);
     codeEditor.current = ce;

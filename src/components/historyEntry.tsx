@@ -32,7 +32,9 @@ export const HistoryEntryView = memo(
               <div data-cy="history-entry-exercise-name" className="font-bold">
                 {exercise.name}
               </div>
-              <div className="text-xs text-grayv2-main">{equipmentName(exercise.equipment, props.settings)}</div>
+              <div className="text-xs text-grayv2-main">
+                {equipmentName(exercise.equipment, props.settings.equipment)}
+              </div>
             </div>
             <div className="flex-1">
               <HistoryRecordSetsView

@@ -282,7 +282,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const customExercises = props.settings.exercises;
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments("squat", props.settings).map((e) => [
     e,
-    equipmentName(e, props.settings),
+    equipmentName(e, props.settings.equipment),
   ]);
   const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);

@@ -20,6 +20,7 @@ import { IScreenMuscle, Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";
+import { IAllEquipment } from "../types";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -3395,8 +3396,8 @@ export function equipmentToBarKey(equipment?: IEquipment): IBarKey | undefined {
   }
 }
 
-export function equipmentName(equipment: IEquipment | undefined, settings?: ISettings): string {
-  const equipmentData = equipment && settings ? settings.equipment[equipment] : undefined;
+export function equipmentName(equipment: IEquipment | undefined, equipmentSettings?: IAllEquipment): string {
+  const equipmentData = equipment && equipmentSettings ? equipmentSettings[equipment] : undefined;
   if (equipmentData?.name) {
     return equipmentData.name;
   }

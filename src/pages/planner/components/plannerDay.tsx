@@ -38,7 +38,7 @@ interface IPlannerDayProps {
 
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
-  const { customExercises } = props.settings;
+  const { customExercises, customEquipment } = props.settings;
   const [reformatterSpinner, setReformatterSpinner] = useState(false);
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
@@ -111,6 +111,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <PlannerEditorView
               name="Exercises"
               customExercises={customExercises}
+              equipment={customEquipment}
               error={evaluatedDay.success ? undefined : evaluatedDay.error}
               value={day.exerciseText}
               onCustomErrorCta={(err) => <PlannerEditorCustomCta dispatch={props.dispatch} err={err} />}

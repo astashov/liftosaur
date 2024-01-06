@@ -848,6 +848,7 @@ export const TEquipmentData = t.intersection(
   "TEquipmentData"
 );
 export type IEquipmentData = t.TypeOf<typeof TEquipmentData>;
+export type IAllEquipment = Partial<Record<string, IEquipmentData>>;
 
 export const TGraphOptions = t.partial({
   movingAverageWindowSize: t.number,

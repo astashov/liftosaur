@@ -335,7 +335,7 @@ export class PlannerReformatter {
         }
 
         const tree = plannerExerciseParser.parse(message);
-        const evaluator = new PlannerExerciseEvaluator(message, {}, mode);
+        const evaluator = new PlannerExerciseEvaluator(message, {}, {}, mode);
         const result = evaluator.evaluate(tree.topNode);
         if (result.success) {
           this.di.log.log("Evaluated successfully, returning GPT response");

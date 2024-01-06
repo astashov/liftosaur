@@ -21,7 +21,7 @@ import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
-import { ICustomExercise, IEquipment, IExerciseKind, IMuscle } from "../../types";
+import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, IPartialStorage } from "../../types";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IExportedProgram } from "../../models/program";
@@ -37,12 +37,14 @@ import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { ObjectUtils } from "../../utils/object";
 import { PlannerContentFull } from "./plannerContentFull";
+import { Equipment } from "../../models/equipment";
 
 declare let __HOST__: string;
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
   initialProgram?: IExportedPlannerProgram;
+  partialStorage?: IPartialStorage;
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
@@ -63,7 +65,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   };
 
   const initialSettings: IPlannerSettings = props.initialProgram?.settings || {
-    unit: "lb",
+    unit: props.partialStorage?.settings.units || "lb",
     strengthSetsPct: 30,
     hypertrophySetsPct: 70,
     weeklyRangeSets: {
@@ -94,8 +96,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     },
     synergistMultiplier: 0.5,
     customExercises: {},
-    restTimer: 180,
+    customEquipment: {},
+    restTimer: props.partialStorage?.settings.timers.workout ?? 180,
   };
+  initialSettings.customExercises = { ...initialSettings.customExercises, ...props.partialStorage?.settings.exercises };
+  initialSettings.customEquipment = { ...initialSettings.customEquipment, ...props.partialStorage?.settings.equipment };
 
   const initialState: IPlannerState = {
     settings: initialSettings,
@@ -151,7 +156,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const program = state.current.program;
 
   const modalExerciseUi = state.ui.modalExercise;
-  const isInvalid = !PlannerProgram.isValid(state.current.program, state.settings.customExercises);
+  const isInvalid = !PlannerProgram.isValid(
+    state.current.program,
+    state.settings.customExercises,
+    state.settings.customEquipment
+  );
 
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
 
@@ -293,14 +302,44 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     const liftosaurProgram = new PlannerToProgram(
                       state.current.program,
                       state.settings.customExercises,
+                      state.settings.customEquipment,
                       state.settings.unit,
                       state.settings.restTimer
                     ).convert();
+                    const usedCustomExercises = ObjectUtils.keys(state.settings.customExercises).reduce<
+                      typeof state.settings.customExercises
+                    >((memo, id) => {
+                      const exercise = state.settings.customExercises[id];
+                      if (exercise && liftosaurProgram.exercises.some((e) => e.exerciseType.id === exercise.id)) {
+                        memo[id] = exercise;
+                      }
+                      return memo;
+                    }, {});
+                    const usedCustomEquipment = ObjectUtils.keys(state.settings.customEquipment).reduce<
+                      typeof state.settings.customEquipment
+                    >((memo, id) => {
+                      if (
+                        !Equipment.isBuiltIn(id) &&
+                        liftosaurProgram.exercises.some((e) => e.exerciseType.equipment === id)
+                      ) {
+                        memo[id] = state.settings.customEquipment[id];
+                      }
+                      return memo;
+                    }, {});
+                    console.log("used custom ex", usedCustomExercises);
+                    console.log("used custom eq", usedCustomEquipment);
                     const exportedProgram: IExportedProgram = {
                       program: liftosaurProgram,
-                      customExercises: state.settings.customExercises,
+                      customExercises: usedCustomExercises,
+                      customEquipment: usedCustomEquipment,
                       version: getLatestMigrationVersion(),
-                      settings: { timers: { workout: 180, warmup: 90 }, units: state.settings.unit },
+                      settings: {
+                        timers: {
+                          workout: state.settings.restTimer ?? 180,
+                          warmup: props.partialStorage?.settings.timers.warmup ?? 90,
+                        },
+                        units: state.settings.unit,
+                      },
                     };
                     console.log(exportedProgram);
                     const programBuilderUrl = UrlUtils.build("/program", __HOST__);

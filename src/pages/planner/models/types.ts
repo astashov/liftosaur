@@ -1,7 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises, IUnit, IWeight } from "../../../types";
+import { IAllCustomExercises, IEquipmentData, IUnit, IWeight } from "../../../types";
 
 export interface IPlannerProgram {
   name: string;
@@ -30,6 +30,7 @@ export interface IPlannerSettings {
   weeklyFrequency: IPlannerWeeklyFrequency;
   restTimer: number;
   customExercises: IAllCustomExercises;
+  customEquipment: Partial<Record<string, IEquipmentData>>;
 }
 
 export interface IPlannerProgramExercise {

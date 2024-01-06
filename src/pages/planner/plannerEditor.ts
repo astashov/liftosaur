@@ -20,7 +20,7 @@ import { buildPlannerExerciseLanguageSupport } from "./plannerExerciseCodemirror
 import { Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { StringUtils } from "../../utils/string";
-import { IAllCustomExercises } from "../../types";
+import { IAllCustomExercises, IAllEquipment } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 
 const highlightStyle = HighlightStyle.define([
@@ -311,6 +311,7 @@ interface IArgs {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   value?: string;
   customExercises?: IAllCustomExercises;
+  equipment?: IAllEquipment;
   height?: number;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
@@ -336,6 +337,11 @@ export class PlannerEditor {
 
   public setCustomExercises(customExercises: IAllCustomExercises): void {
     this.args.customExercises = customExercises;
+    this.relint();
+  }
+
+  public setEquipment(equipment: IAllEquipment): void {
+    this.args.equipment = equipment;
     this.relint();
   }
 

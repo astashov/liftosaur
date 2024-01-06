@@ -1,6 +1,7 @@
-import { IEquipment, IEquipmentData } from "../types";
+import { IEquipment, IEquipmentData, equipments, IAllEquipment } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
+import { equipmentName } from "./exercise";
 import { Weight } from "./weight";
 
 export namespace Equipment {
@@ -53,5 +54,31 @@ export namespace Equipment {
       }
       return acc;
     }, {});
+  }
+
+  export function isBuiltIn(key: string): boolean {
+    return ((equipments as unknown) as string[]).indexOf(key) !== -1;
+  }
+
+  export function availableEquipmentNames(equipmentSettings?: IAllEquipment): string[] {
+    const equipmentIds = Array.from(new Set([...equipments, ...ObjectUtils.keys(equipmentSettings || {})]));
+    return Array.from(new Set([...equipmentIds.map((e) => equipmentName(e, equipmentSettings || {}))]));
+  }
+
+  export function equipmentKeyByName(name: string, equipmentSettings?: IAllEquipment): string | undefined {
+    const builtInEquipmentKey = equipments.find((eq) => eq === name);
+    if (builtInEquipmentKey) {
+      return builtInEquipmentKey;
+    }
+
+    const builtInEquipmentName = equipments.find((eq) => equipmentName(eq, equipmentSettings) === name);
+    if (builtInEquipmentName) {
+      return builtInEquipmentName;
+    }
+
+    const customEquipmentKey = ObjectUtils.keys(equipmentSettings || {}).find((eq) => {
+      return equipmentName(eq, equipmentSettings) === name;
+    });
+    return customEquipmentKey;
   }
 }

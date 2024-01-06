@@ -3,10 +3,12 @@ import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
 import { IExportedPlannerProgram } from "./models/types";
 import { IAccount } from "../../models/account";
+import { IPartialStorage } from "../../types";
 
 interface IProps {
   initialProgram?: IExportedPlannerProgram;
   account?: IAccount;
+  partialStorage?: IPartialStorage;
   client: Window["fetch"];
 }
 

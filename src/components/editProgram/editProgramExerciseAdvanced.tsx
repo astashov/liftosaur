@@ -101,7 +101,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id,
     props.settings
-  ).map((e) => [e, equipmentName(e, props.settings)]);
+  ).map((e) => [e, equipmentName(e, props.settings.equipment)]);
 
   const cannotSave = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
   const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);

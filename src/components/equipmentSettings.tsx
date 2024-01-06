@@ -144,7 +144,11 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   return (
     <div>
-      <GroupHeader size="large" name={equipmentName(props.equipment, props.settings)} isExpanded={props.isExpanded}>
+      <GroupHeader
+        size="large"
+        name={equipmentName(props.equipment, props.settings.equipment)}
+        isExpanded={props.isExpanded}
+      >
         {props.equipmentData.name && (
           <MenuItemEditable
             name="Name"
@@ -169,7 +173,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
               ["", "None"],
               ...ObjectUtils.keys(props.settings.equipment)
                 .filter((e) => props.settings.equipment[e]?.name == null)
-                .map<[string, string]>((e) => [e, equipmentName(e, props.settings)]),
+                .map<[string, string]>((e) => [e, equipmentName(e, props.settings.equipment)]),
             ]}
             onChange={(newValue?: string) => {
               const lensRecording = props.lensPrefix
@@ -248,7 +252,10 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
   );
   return (
     <div className="mb-4">
-      <GroupHeader topPadding={true} name={`Available fixed weight for ${equipmentName(props.name, props.settings)}`} />
+      <GroupHeader
+        topPadding={true}
+        name={`Available fixed weight for ${equipmentName(props.name, props.settings.equipment)}`}
+      />
       {fixed.map((weight, i) => {
         return (
           <MenuItem
@@ -337,7 +344,10 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           }
         }}
       />
-      <GroupHeader topPadding={true} name={`Number of ${equipmentName(props.name, props.settings)} plates available`} />
+      <GroupHeader
+        topPadding={true}
+        name={`Number of ${equipmentName(props.name, props.settings.equipment)} plates available`}
+      />
       {plates.map((plate) => {
         return (
           <MenuItemEditable

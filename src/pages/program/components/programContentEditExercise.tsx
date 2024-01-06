@@ -64,7 +64,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
     programExercise.exerciseType.id,
     props.settings
-  ).map((e) => [e, equipmentName(e, props.settings)]);
+  ).map((e) => [e, equipmentName(e, props.settings.equipment)]);
   const lbe = lb<IProgramEditorState>()
     .p("current")
     .p("editExercises")

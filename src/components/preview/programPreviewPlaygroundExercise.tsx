@@ -140,7 +140,9 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           <div className="flex items-center">
             <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
           </div>
-          {equipment && <div className="text-sm text-grayv2-600">{equipmentName(equipment, props.settings)}</div>}
+          {equipment && (
+            <div className="text-sm text-grayv2-600">{equipmentName(equipment, props.settings.equipment)}</div>
+          )}
         </div>
         <section className="flex flex-wrap mt-1 ml-1">
           {props.isPlayground ? (

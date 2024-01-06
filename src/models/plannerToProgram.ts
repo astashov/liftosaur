@@ -7,6 +7,7 @@ import {
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
+  IAllEquipment,
   IDayData,
   IProgram,
   IProgramDay,
@@ -65,13 +66,14 @@ export class PlannerToProgram {
   constructor(
     private readonly plannerProgram: IPlannerProgram,
     private readonly customExercises: IAllCustomExercises,
+    private readonly equipment: IAllEquipment,
     private readonly unit: IUnit,
     private readonly timer: number
   ) {}
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
     if (this._evaluatedWeeks == null) {
-      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.customExercises);
+      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.customExercises, this.equipment);
     }
     return this._evaluatedWeeks;
   }

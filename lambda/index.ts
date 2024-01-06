@@ -1345,10 +1345,11 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   }
   const userResult = await getUserAccount(payload);
   const account = userResult.success ? userResult.data.account : undefined;
+  const user = userResult.success ? userResult.data.user : undefined;
 
   return {
     statusCode: 200,
-    body: renderPlannerHtml(di.fetch, initialProgram, account),
+    body: renderPlannerHtml(di.fetch, initialProgram, account, user?.storage),
     headers: { "content-type": "text/html" },
   };
 };

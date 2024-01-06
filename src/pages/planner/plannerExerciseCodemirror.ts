@@ -4,10 +4,10 @@ import { styleTags } from "@lezer/highlight";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { Exercise } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
-import { equipments } from "../../types";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
 import { liftoscriptParserWithMetadata } from "../../liftoscriptCodemirror";
+import { Equipment } from "../../models/equipment";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
@@ -31,7 +31,8 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
           const offsetMatch = text.match(/(,\s*)(\w*)/);
           const offset = offsetMatch ? text.length - offsetMatch[2].length : text.length;
           text = text.substring(offset);
-          const equipment = equipments.filter((eq) => eq.startsWith(text));
+          const availableEquipment = Equipment.availableEquipmentNames(plannerEditor.args.equipment);
+          const equipment = availableEquipment.filter((eq) => eq.startsWith(text));
           return {
             from: exerciseMatch.from + offset,
             options: equipment.map((eq) => ({ label: eq as string, type: "method" })),

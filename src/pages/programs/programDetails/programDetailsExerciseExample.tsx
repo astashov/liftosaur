@@ -93,7 +93,9 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                   <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
                 </div>
                 {exercise.equipment && (
-                  <div className="text-sm text-grayv2-600">{equipmentName(exercise.equipment, props.settings)}</div>
+                  <div className="text-sm text-grayv2-600">
+                    {equipmentName(exercise.equipment, props.settings.equipment)}
+                  </div>
                 )}
               </div>
             </div>

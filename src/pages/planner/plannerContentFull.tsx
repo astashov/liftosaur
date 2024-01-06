@@ -79,7 +79,11 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [reformatterSpinner, setReformatterSpinner] = useState(false);
 
   const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fullText.text, props.settings.customExercises);
+    return PlannerProgram.evaluateFull(
+      props.fullText.text,
+      props.settings.customExercises,
+      props.settings.customEquipment
+    );
   }, [props.fullText.text, props.settings.customExercises]);
 
   const weekIndex =
@@ -248,6 +252,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           <PlannerEditorView
             name="Program"
             customExercises={props.settings.customExercises}
+            equipment={props.settings.customEquipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fullText.text}
             onCustomErrorCta={(err) => (
