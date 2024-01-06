@@ -28,6 +28,7 @@ import { lb } from "lens-shmens";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
 import { screenMuscles } from "../models/muscle";
+import { CollectionUtils } from "../utils/collection";
 
 interface IModalGraphsProps {
   isHidden: boolean;
@@ -41,9 +42,12 @@ interface IModalGraphsProps {
 
 export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const graphs = props.graphs;
-  const exercises = props.exerciseTypes
-    .filter((et) => !graphs.some((g) => g.type === "exercise" && g.id === Exercise.toKey(et)))
-    .map((et) => Exercise.get(et, props.settings.exercises));
+  const exercises = CollectionUtils.sort(
+    props.exerciseTypes
+      .filter((et) => !graphs.some((g) => g.type === "exercise" && g.id === Exercise.toKey(et)))
+      .map((et) => Exercise.get(et, props.settings.exercises)),
+    (a, b) => a.name.localeCompare(b.name)
+  );
   const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
     if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
       memo.add(g.id);
