@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { Modal } from "./modal";
-import { Exercise } from "../models/exercise";
+import { Exercise, equipmentName } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { IDispatch } from "../ducks/types";
 import { GroupHeader } from "./groupHeader";
@@ -17,6 +17,7 @@ import {
   IGraphExerciseSelectedType,
   graphMuscleGroupSelectedTypes,
   IGraphMuscleGroupSelectedType,
+  IExerciseType,
 } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
@@ -30,7 +31,7 @@ import { screenMuscles } from "../models/muscle";
 
 interface IModalGraphsProps {
   isHidden: boolean;
-  exerciseIds: IExerciseId[];
+  exerciseTypes: IExerciseType[];
   graphs: IGraph[];
   stats: IStats;
   settings: ISettings;
@@ -40,10 +41,9 @@ interface IModalGraphsProps {
 
 export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const graphs = props.graphs;
-  const exercises = Exercise.getByIds(
-    props.exerciseIds.filter((e) => props.graphs.every((g) => g.id !== e)),
-    props.settings.exercises
-  );
+  const exercises = props.exerciseTypes
+    .filter((et) => !graphs.some((g) => g.type === "exercise" && g.id === Exercise.toKey(et)))
+    .map((et) => Exercise.get(et, props.settings.exercises));
   const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
     if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
       memo.add(g.id);
@@ -179,7 +179,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                     </span>
                   </div>
                   {graph.type === "exercise" ? (
-                    <ExercisePreview exercise={graph.id} settings={props.settings} />
+                    <ExercisePreview exerciseKey={graph.id} settings={props.settings} />
                   ) : graph.type === "muscleGroup" ? (
                     <MuscleGroupPreview muscleGroup={graph.id} />
                   ) : (
@@ -210,7 +210,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
                   className="flex w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={() => EditGraphs.addExerciseGraph(props.dispatch, e)}
                 >
-                  <ExercisePreview exercise={e.id} settings={props.settings} />
+                  <ExercisePreview exerciseKey={Exercise.toKey(e)} settings={props.settings} />
                 </section>
               );
             })}
@@ -267,14 +267,19 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   );
 }
 
-function ExercisePreview(props: { exercise: IExerciseId; settings: ISettings }): JSX.Element {
-  const e = Exercise.getById(props.exercise, props.settings.exercises);
+function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): JSX.Element {
+  const e = Exercise.get(Exercise.fromKey(props.exerciseKey), props.settings.exercises);
   return (
     <Fragment>
       <div className="w-12 pr-4" style={{ minHeight: "2rem" }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
       </div>
-      <div className="flex items-center flex-1 py-2 text-left">{e.name}</div>
+      <div className="flex items-center flex-1 py-2 text-left">
+        <div>
+          <div>{e.name}</div>
+          <div className="text-xs text-grayv2-main">{equipmentName(e.equipment, props.settings.equipment)}</div>
+        </div>
+      </div>
     </Fragment>
   );
 }

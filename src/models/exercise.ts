@@ -3574,6 +3574,11 @@ export namespace Exercise {
     return !!exercise;
   }
 
+  export function fullName(exercise: IExercise, equipmentSettings: IAllEquipment): string {
+    const eqName = exercise.equipment ? equipmentName(exercise.equipment, equipmentSettings) : undefined;
+    return `${exercise.name}${eqName ? `, ${eqName}` : ""}`;
+  }
+
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
     const exerciseNames = ObjectUtils.values(exercises)
       .filter((exercise) => StringUtils.fuzzySearch(query.toLowerCase(), exercise.name.toLowerCase()))

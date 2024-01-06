@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
-import { IHistoryRecord, ISettings, ISubscription } from "../types";
+import { IExerciseType, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { ILoading, IState, updateState, updateSettings } from "../models/state";
 import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { Exercise, IExercise } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { MenuItemEditable } from "./menuItemEditable";
 import { CollectionUtils } from "../utils/collection";
 import { lb } from "lens-shmens";
@@ -30,7 +30,7 @@ import { ObjectUtils } from "../utils/object";
 import { Reps } from "../models/set";
 
 interface IProps {
-  exercise: IExercise;
+  exerciseType: IExerciseType;
   screenStack: IScreen[];
   history: IHistoryRecord[];
   dispatch: IDispatch;
@@ -41,12 +41,14 @@ interface IProps {
 
 export function ScreenExerciseStats(props: IProps): JSX.Element {
   const [showFilters, setShowFilters] = useState(false);
+  const exerciseType = props.exerciseType;
+  const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
   const historyCollector = Collector.build(props.history)
     .addFn(History.collectMinAndMaxTime())
     .addFn(History.collectAllUsedExerciseTypes())
-    .addFn(History.collectAllHistoryRecordsOfExerciseType(props.exercise))
-    .addFn(History.collectWeightPersonalRecord(props.exercise, props.settings.units))
-    .addFn(History.collect1RMPersonalRecord(props.exercise, props.settings));
+    .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
+    .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
+    .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
 
   const [
     { maxTime: maxX, minTime: minX },
@@ -82,7 +84,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       if (e != null) {
         const exercise = Exercise.find(e, props.settings.exercises);
         if (exercise != null) {
-          return [Exercise.toKey(e), exercise.name];
+          return [Exercise.toKey(e), Exercise.fullName(exercise, props.settings.equipment)];
         }
       }
       return undefined;
@@ -99,7 +101,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           helpContent={<HelpExerciseStats />}
           screenStack={props.screenStack}
           title="Exercise Stats"
-          subtitle={StringUtils.truncate(props.exercise.name, 35)}
+          subtitle={StringUtils.truncate(fullExercise.name, 35)}
         />
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
@@ -109,19 +111,19 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           <MenuItemEditable
             type="select"
             name="Exercise"
-            value={Exercise.toKey(props.exercise)}
+            value={Exercise.toKey(exerciseType)}
             values={exercises}
             onChange={(value) => {
-              const exerciseType = value ? Exercise.fromKey(value) : undefined;
-              updateState(props.dispatch, [lb<IState>().p("viewExerciseType").record(exerciseType)]);
+              const exType = value ? Exercise.fromKey(value) : undefined;
+              updateState(props.dispatch, [lb<IState>().p("viewExerciseType").record(exType)]);
             }}
           />
         )}
         <div data-cy="exercise-stats-image">
           <ExerciseImage
             settings={props.settings}
-            key={Exercise.toKey(props.exercise)}
-            exerciseType={props.exercise}
+            key={Exercise.toKey(exerciseType)}
+            exerciseType={exerciseType}
             size="large"
           />
         </div>
@@ -133,11 +135,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               minX={Math.round(minX / 1000)}
               maxX={Math.round(maxX / 1000)}
               isWithOneRm={true}
-              key={Exercise.toKey(props.exercise)}
+              key={Exercise.toKey(exerciseType)}
               settings={props.settings}
               isWithProgramLines={true}
               history={props.history}
-              exercise={props.exercise}
+              exercise={exerciseType}
               initialType={props.settings.graphsSettings.defaultType}
               dispatch={props.dispatch}
             />
@@ -196,7 +198,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           <section data-cy="exercise-stats-history">
             <GroupHeader
               topPadding={true}
-              name={`${props.exercise.name} History`}
+              name={`${Exercise.fullName(fullExercise, props.settings.equipment)} History`}
               rightAddOn={
                 <button
                   className="p-2 nm-exercise-stats-navbar-filter"
@@ -255,7 +257,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               </section>
             )}
             {history.slice(0, visibleRecords).map((historyRecord) => {
-              const exerciseEntries = historyRecord.entries.filter((e) => Exercise.eq(e.exercise, props.exercise));
+              const exerciseEntries = historyRecord.entries.filter((e) => Exercise.eq(e.exercise, fullExercise));
               const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
               return (
                 <MenuItemWrapper

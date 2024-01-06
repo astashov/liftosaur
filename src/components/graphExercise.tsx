@@ -4,7 +4,7 @@ import UPlot from "uplot";
 import { useRef, useEffect, useState } from "preact/hooks";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
-import { Exercise, equipmentToBarKey } from "../models/exercise";
+import { Exercise, equipmentToBarKey, equipmentName } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
@@ -20,6 +20,7 @@ interface IGraphProps {
   exercise: IExerciseType;
   settings: ISettings;
   title?: string;
+  subtitle?: string;
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
@@ -49,7 +50,7 @@ function getData(
       currentProgram = i.programName;
       changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
     }
-    const entry = i.entries.filter((e) => e.exercise.id === exerciseType.id)[0];
+    const entry = i.entries.filter((e) => Exercise.eq(e.exercise, exerciseType))[0];
     if (entry != null) {
       const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
         return b.weight !== a.weight
@@ -105,9 +106,13 @@ function getData(
 
 export function GraphExercise(props: IGraphProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
+  const eqName = equipmentName(props.exercise.equipment, props.settings.equipment);
 
   return (
     <div className="relative mx-1">
+      <div className="absolute z-10 text-xs text-grayv2-main" style={{ top: "2rem", left: "0.75rem" }}>
+        {props.subtitle || eqName}
+      </div>
       <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
         <select
           className="p-2 text-right"

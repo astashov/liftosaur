@@ -311,17 +311,18 @@ export namespace History {
     };
   }
 
-  export function findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<IExerciseId, ISet>> {
-    const maxSets: Partial<Record<IExerciseId, ISet>> = {};
+  export function findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<string, ISet>> {
+    const maxSets: Partial<Record<string, ISet>> = {};
     for (const r of history) {
       for (const e of r.entries) {
         const entryMaxSet = getMaxSetFromEntry(e);
+        const key = Exercise.toKey(e.exercise);
         if (
           entryMaxSet != null &&
           (entryMaxSet.completedReps || 0) > 0 &&
-          Weight.lt(maxSets[e.exercise.id]?.weight || 0, entryMaxSet.weight)
+          Weight.lt(maxSets[key]?.weight || 0, entryMaxSet.weight)
         ) {
-          maxSets[e.exercise.id] = entryMaxSet;
+          maxSets[key] = entryMaxSet;
         }
       }
     }

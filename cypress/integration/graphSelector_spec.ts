@@ -54,7 +54,7 @@ describe("Graphs", () => {
 
     g("graphs-modify").click();
 
-    g("item-graph-exercise-bentoverrow").find("[data-cy=remove-graph]").click();
+    g("item-graph-exercise-bentoverrow_barbell").find("[data-cy=remove-graph]").click();
     g("item-graph-squat").click();
 
     g("modal-close").filter(":visible").click();

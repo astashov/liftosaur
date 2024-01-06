@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
-import { IExercise } from "./exercise";
+import { Exercise, IExercise } from "./exercise";
 import { IGraph, ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
 
 export namespace EditGraphs {
@@ -47,7 +47,7 @@ export namespace EditGraphs {
           .p("settings")
           .p("graphs")
           .recordModify((ex) => {
-            return Array.from(new Set([...ex, { type: "exercise", id: exercise.id }]));
+            return Array.from(new Set([...ex, { type: "exercise", id: Exercise.toKey(exercise) }]));
           }),
       ],
     });

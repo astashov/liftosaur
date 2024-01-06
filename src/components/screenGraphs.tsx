@@ -5,7 +5,7 @@ import { History } from "../models/history";
 import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils } from "../utils/object";
-import { ISettings, IHistoryRecord, IExerciseId, IEquipment, IStats } from "../types";
+import { ISettings, IHistoryRecord, IStats } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
@@ -18,6 +18,7 @@ import { Collector } from "../utils/collector";
 import { IScreenMuscle } from "../models/muscle";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
 import { CollectionUtils } from "../utils/collection";
+import { Exercise } from "../models/exercise";
 
 interface IProps {
   dispatch: IDispatch;
@@ -33,7 +34,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const maxSets = History.findAllMaxSetsPerId(props.history);
-  const exerciseIds = ObjectUtils.keys(maxSets);
+  const exerciseTypes = ObjectUtils.keys(maxSets).map(Exercise.fromKey);
   const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
 
@@ -47,20 +48,14 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   }
   let maxX = 0;
   let minX = Infinity;
-  const exerciseTypes = props.history.reduce<Partial<Record<IExerciseId, IEquipment>>>((memo, hr) => {
-    for (const entry of hr.entries) {
-      if (exerciseIds.indexOf(entry.exercise.id)) {
-        if (maxX < hr.startTime) {
-          maxX = hr.startTime;
-        }
-        if (minX > hr.startTime) {
-          minX = hr.startTime;
-        }
-        memo[entry.exercise.id] = entry.exercise.equipment;
-      }
+  for (const hr of props.history) {
+    if (maxX < hr.startTime) {
+      maxX = hr.startTime;
     }
-    return memo;
-  }, {});
+    if (minX > hr.startTime) {
+      minX = hr.startTime;
+    }
+  }
   if (isSameXAxis) {
     for (const key of ObjectUtils.keys(props.stats.weight)) {
       for (const value of props.stats.weight[key] || []) {
@@ -108,7 +103,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         <ModalGraphs
           settings={props.settings}
           isHidden={!isModalOpen}
-          exerciseIds={exerciseIds}
+          exerciseTypes={exerciseTypes}
           stats={props.stats}
           graphs={props.settings.graphs}
           onClose={() => setIsModalOpen(false)}
@@ -137,7 +132,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     settings={props.settings}
                     isWithProgramLines={isWithProgramLines}
                     history={props.history}
-                    exercise={{ id: graph.id, equipment: exerciseTypes[graph.id] }}
+                    exercise={Exercise.fromKey(graph.id)}
                     dispatch={props.dispatch}
                   />
                 </div>

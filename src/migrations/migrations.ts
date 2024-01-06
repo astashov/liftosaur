@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils, sortByExpr } from "../utils/collection";
 import { History } from "../models/history";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { IStorage, IExerciseId } from "../types";
 import { Weight } from "../models/weight";
 import { SendMessage } from "../utils/sendMessage";
+import { Exercise, eq } from "../models/exercise";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -421,5 +422,36 @@ export const migrations = {
     } else {
       return aStorage;
     }
+  },
+  "20240106145047_split_graphs_by_equipment": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    let equipmentMap: Record<string, Record<string, number>> | undefined = undefined;
+    for (const graph of storage.settings.graphs) {
+      if (graph.type === "exercise") {
+        const exerciseId = graph.id;
+        if (exerciseId.indexOf("_") !== -1) {
+          continue;
+        }
+        equipmentMap =
+          equipmentMap ||
+          storage.history.reduce<Record<string, Record<string, number>>>((memo, hr) => {
+            for (const entry of hr.entries) {
+              const id = entry.exercise.id;
+              const equipment = entry.exercise.equipment || "bodyweight";
+              memo[id] = memo[id] || {};
+              memo[id]![equipment] = memo[id][equipment] || 0;
+              memo[id]![equipment] += 1;
+            }
+            return memo;
+          }, {});
+        const usage = equipmentMap[graph.id];
+        const popularEquipment = CollectionUtils.sortByExpr(ObjectUtils.entries(usage), (i) => i[1], true)[0]?.[0];
+        graph.id = `${graph.id}_${popularEquipment}`;
+      }
+    }
+    return storage;
   },
 };
