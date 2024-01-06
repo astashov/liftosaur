@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { CollectionUtils, sortByExpr } from "../utils/collection";
+import { CollectionUtils } from "../utils/collection";
 import { History } from "../models/history";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { IStorage, IExerciseId } from "../types";
 import { Weight } from "../models/weight";
 import { SendMessage } from "../utils/sendMessage";
-import { Exercise, eq } from "../models/exercise";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
