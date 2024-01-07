@@ -127,7 +127,18 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             exercise={fullExercise}
             exerciseData={props.settings.exerciseData}
             units={props.settings.units}
-            dispatch={props.dispatch}
+            onEditVariable={(value) => {
+              updateState(props.dispatch, [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("exerciseData")
+                  .recordModify((data) => {
+                    const k = Exercise.toKey(fullExercise);
+                    return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                  }),
+              ]);
+            }}
           />
         </section>
 

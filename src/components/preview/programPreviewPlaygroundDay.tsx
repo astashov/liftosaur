@@ -15,6 +15,8 @@ import { ModalEditSet } from "../modalEditSet";
 import { EditProgressEntry } from "../../models/editProgressEntry";
 import { Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
+import { Exercise } from "../../models/exercise";
+import { Weight } from "../../models/weight";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IProgram;
@@ -26,6 +28,7 @@ interface IProgramPreviewPlaygroundDayProps {
   staticStates: Partial<Record<string, IProgramState>>;
   onProgressChange: (newProgress: IHistoryRecord) => void;
   onProgramChange: (newProgram: IProgram) => void;
+  onSettingsChange: (newSettings: ISettings) => void;
   onFinish: () => void;
 }
 
@@ -146,6 +149,20 @@ export const ProgramPreviewPlaygroundDay = memo(
               );
               const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
               props.onProgramChange(newProgram);
+            }}
+            onEditVariable={(variableKey, newValue) => {
+              const exerciseType = Exercise.toKey(editModalProgramExercise.exerciseType);
+              const newSettings = {
+                ...props.settings,
+                exerciseData: {
+                  ...props.settings.exerciseData,
+                  [exerciseType]: {
+                    ...props.settings.exerciseData[exerciseType],
+                    [variableKey]: Weight.build(newValue, props.settings.units),
+                  },
+                },
+              };
+              props.onSettingsChange(newSettings);
             }}
             programExercise={editModalProgramExercise}
             settings={props.settings}

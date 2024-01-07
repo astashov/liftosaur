@@ -1,8 +1,5 @@
-import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
-import { IState, updateState } from "../models/state";
 import { MenuItemEditable } from "./menuItemEditable";
-import { IDispatch } from "../ducks/types";
 import { Exercise, IExercise } from "../models/exercise";
 import { IUnit, IExerciseData, IExerciseDataValue } from "../types";
 import { Weight } from "../models/weight";
@@ -17,7 +14,7 @@ interface IExerciseRMProps {
   exercise: IExercise;
   exerciseData: IExerciseData;
   units: IUnit;
-  dispatch: IDispatch;
+  onEditVariable: (value: number) => void;
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
@@ -25,24 +22,6 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
   rm = rm || (props.units === "kg" ? props.exercise.startingWeightKg : props.exercise.startingWeightLb);
   rm = Weight.convertTo(rm, props.units);
   const [showCalculator, setShowCalculator] = useState(false);
-
-  function setRM(value: number): void {
-    updateState(props.dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("settings")
-        .p("exerciseData")
-        .recordModify((data) => {
-          return {
-            ...data,
-            [Exercise.toKey(props.exercise)]: {
-              ...data[Exercise.toKey(props.exercise)],
-              [props.rmKey]: Weight.build(value, props.units),
-            },
-          };
-        }),
-    ]);
-  }
 
   return (
     <section data-cy="exercise-stats-1rm-set" className="px-4 py-1 mt-2 font-bold bg-purple-100 rounded-2xl">
@@ -53,7 +32,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
         onChange={(v) => {
           const value = v ? parseFloat(v) : undefined;
           if (value && !isNaN(value)) {
-            setRM(value);
+            props.onEditVariable(value);
           }
         }}
         value={`${rm.value}`}
@@ -80,7 +59,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
             unit={props.units}
             onSelect={(weightValue) => {
               if (weightValue != null) {
-                setRM(weightValue);
+                props.onEditVariable(weightValue);
               }
               setShowCalculator(false);
             }}

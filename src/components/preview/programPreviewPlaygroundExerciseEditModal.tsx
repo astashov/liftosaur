@@ -3,13 +3,17 @@ import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";
 import { Weight } from "../../models/weight";
-import { IProgramExercise, IProgramStateMetadata, ISettings } from "../../types";
+import { IProgramExercise, IProgramStateMetadata, ISettings, IExerciseDataValue } from "../../types";
 import { ObjectUtils } from "../../utils/object";
+import { ProgramExercise } from "../../models/programExercise";
+import { ExerciseRM } from "../exerciseRm";
+import { Exercise } from "../../models/exercise";
 
 interface IProgramPreviewPlaygroundExerciseEditModalProps {
   programExercise: IProgramExercise;
   onClose: () => void;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
+  onEditVariable: (variableKey: keyof IExerciseDataValue, newValue: number) => void;
   settings: ISettings;
 }
 
@@ -18,19 +22,39 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
 ): JSX.Element {
   const programExercise = props.programExercise;
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
-  if (!hasStateVariables) {
+  const hasRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
+  if (!hasStateVariables && !hasRm1) {
     return <></>;
   }
+  const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "15rem" }}>
-        <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
-        <ProgramStateVariables
-          settings={props.settings}
-          programExercise={programExercise}
-          stateMetadata={programExercise.stateMetadata}
-          onEditStateVariable={props.onEditStateVariable}
-        />
+        {hasRm1 && (
+          <>
+            <ExerciseRM
+              name="1 Rep Max"
+              rmKey="rm1"
+              exercise={exercise}
+              exerciseData={props.settings.exerciseData}
+              units={props.settings.units}
+              onEditVariable={(value) => {
+                props.onEditVariable("rm1", value);
+              }}
+            />
+          </>
+        )}
+        {hasStateVariables && (
+          <>
+            <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
+            <ProgramStateVariables
+              settings={props.settings}
+              programExercise={programExercise}
+              stateMetadata={programExercise.stateMetadata}
+              onEditStateVariable={props.onEditStateVariable}
+            />
+          </>
+        )}
         <div className="mt-4 text-center">
           <Button
             name="details-workout-playground-save-statvars"

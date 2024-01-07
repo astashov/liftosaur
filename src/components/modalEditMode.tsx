@@ -51,7 +51,18 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   name="1 Rep Max"
                   exerciseData={props.settings.exerciseData}
                   units={props.settings.units}
-                  dispatch={props.dispatch}
+                  onEditVariable={(value) => {
+                    updateState(props.dispatch, [
+                      lb<IState>()
+                        .p("storage")
+                        .p("settings")
+                        .p("exerciseData")
+                        .recordModify((data) => {
+                          const k = Exercise.toKey(exercise);
+                          return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                        }),
+                    ]);
+                  }}
                 />
               </div>
             )}

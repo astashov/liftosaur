@@ -122,6 +122,34 @@ export const ProgramPreviewPlayground = memo(
                             lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
                           ]);
                         }}
+                        onSettingsChange={(newSettings) => {
+                          dispatch([
+                            lb<IProgramPreviewPlaygroundState>()
+                              .p("progresses")
+                              .recordModify((progresses) => {
+                                return progresses.map((wk) => {
+                                  return {
+                                    ...wk,
+                                    days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
+                                      const programDay = Program.getProgramDay(program, day.dayIndex);
+                                      const newProgress = Progress.applyProgramDay(
+                                        day.progress,
+                                        program,
+                                        programDay,
+                                        newSettings,
+                                        day.states
+                                      );
+                                      return {
+                                        ...day,
+                                        progress: newProgress,
+                                      };
+                                    }),
+                                  };
+                                });
+                              }),
+                            lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
+                          ]);
+                        }}
                         onFinish={() => {
                           const { program: newProgram } = Program.runAllFinishDayScripts(
                             state.program,
