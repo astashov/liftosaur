@@ -301,6 +301,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                         <div>
                           {exerciseEntries.map((entry) => {
                             const state = entry.state || {};
+                            const vars = entry.vars || {};
+                            for (const key of ObjectUtils.keys(vars)) {
+                              const name = { rm1: "1 Rep Max" }[key] || key;
+                              state[name] = vars[key];
+                            }
                             const volume = Reps.volume(entry.sets);
                             return (
                               <div className="pt-1">

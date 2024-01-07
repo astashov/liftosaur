@@ -219,6 +219,12 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                     const displayValue = Weight.is(value) ? Weight.display(value) : value;
                     stateVars.push(`${key}: <strong>${displayValue}</strong>`);
                   }
+                  for (const key of ObjectUtils.keys(entry.vars || {})) {
+                    const name = { rm1: "1 Rep Max" }[key] || key;
+                    const value = entry.vars?.[key];
+                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
+                    stateVars.push(`${name}: <strong>${displayValue}</strong>`);
+                  }
                 }
                 const groups = CollectionUtils.inGroupsOf(2, stateVars);
                 if (groups.length > 0) {

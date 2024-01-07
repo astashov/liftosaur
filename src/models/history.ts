@@ -19,6 +19,7 @@ import {
 import { ICollectorFn } from "../utils/collector";
 import { IScreenMuscle, screenMuscles } from "./muscle";
 import { Reps } from "./set";
+import { ProgramExercise } from "./programExercise";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -74,17 +75,20 @@ export namespace History {
               return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment) };
             }),
           };
+          if (programExercise != null) {
+            const reuseLogicId = programExercise.reuseLogic?.selected;
+            const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
+            const useRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
+            entry = {
+              ...entry,
+              state: { ...state },
+              vars: useRm1
+                ? { rm1: Exercise.rm1(programExercise.exerciseType, settings.exerciseData, settings.units) }
+                : {},
+            };
+          }
         }
-        if (programExercise != null) {
-          const reuseLogicId = programExercise.reuseLogic?.selected;
-          const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
-          return {
-            ...entry,
-            state: { ...state },
-          };
-        } else {
-          return entry;
-        }
+        return entry;
       }),
       id: Progress.isCurrent(progress) ? Date.now() : progress.id,
       timerSince: undefined,

@@ -10,6 +10,11 @@ interface IWorkoutStateVariablesProps {
 
 export function WorkoutStateVariables(props: IWorkoutStateVariablesProps): JSX.Element {
   const state = props.entry.state || {};
+  const vars = props.entry.vars || {};
+  for (const key of ObjectUtils.keys(vars)) {
+    const name = { rm1: "1 Rep Max" }[key] || key;
+    state[name] = vars[key];
+  }
   return (
     <section>
       <h4 className="mt-2 text-xs font-bold">State Variables</h4>
