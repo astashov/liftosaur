@@ -329,33 +329,56 @@ export class LiftoscriptEvaluator {
       const [stateVar, incAssignmentExpr, expression] = getChildren(expr);
       if (
         stateVar == null ||
-        stateVar.type.name !== NodeName.StateVariable ||
+        (stateVar.type.name !== NodeName.StateVariable && stateVar.type.name !== NodeName.Keyword) ||
         expression == null ||
         incAssignmentExpr == null
       ) {
         assert(NodeName.IncAssignmentExpression);
       }
-      const stateKey = this.getValue(stateVar).replace("state.", "");
-      if (stateKey in this.state) {
-        let value = this.evaluate(expression);
-        if (!(Weight.is(value) || typeof value === "number")) {
-          value = value ? 1 : 0;
-        }
-        const op = this.getValue(incAssignmentExpr);
-        if (op === "+=") {
-          this.state[stateKey] = this.add(this.state[stateKey], value);
-        } else if (op === "-=") {
-          this.state[stateKey] = this.subtract(this.state[stateKey], value);
-        } else if (op === "*=") {
-          this.state[stateKey] = this.multiply(this.state[stateKey], value);
-        } else if (op === "/=") {
-          this.state[stateKey] = this.divide(this.state[stateKey], value);
+      if (stateVar.type.name === NodeName.Keyword) {
+        const variable = this.getValue(stateVar);
+        if (variable === "rm1") {
+          const value = this.evaluate(expression);
+          const rm1 = Weight.is(value) ? value : typeof value === "number" ? value : 0;
+          const op = this.getValue(incAssignmentExpr);
+          if (op === "+=") {
+            this.variables.rm1 = Weight.add(this.bindings.rm1, rm1);
+          } else if (op === "-=") {
+            this.variables.rm1 = Weight.subtract(this.bindings.rm1, rm1);
+          } else if (op === "*=") {
+            this.variables.rm1 = Weight.multiply(this.bindings.rm1, rm1);
+          } else if (op === "/=") {
+            this.variables.rm1 = Weight.divide(this.bindings.rm1, rm1);
+          } else {
+            throw new SyntaxError(`Unknown operator ${op} after ${variable}`);
+          }
+          return rm1;
         } else {
-          throw new SyntaxError(`Unknown operator ${op} after state.${stateKey}`);
+          this.error(`Unknown variable '${variable}'`, stateVar);
         }
-        return this.state[stateKey];
       } else {
-        this.error(`There's no state variable '${stateKey}'`, stateVar);
+        const stateKey = this.getValue(stateVar).replace("state.", "");
+        if (stateKey in this.state) {
+          let value = this.evaluate(expression);
+          if (!(Weight.is(value) || typeof value === "number")) {
+            value = value ? 1 : 0;
+          }
+          const op = this.getValue(incAssignmentExpr);
+          if (op === "+=") {
+            this.state[stateKey] = this.add(this.state[stateKey], value);
+          } else if (op === "-=") {
+            this.state[stateKey] = this.subtract(this.state[stateKey], value);
+          } else if (op === "*=") {
+            this.state[stateKey] = this.multiply(this.state[stateKey], value);
+          } else if (op === "/=") {
+            this.state[stateKey] = this.divide(this.state[stateKey], value);
+          } else {
+            throw new SyntaxError(`Unknown operator ${op} after state.${stateKey}`);
+          }
+          return this.state[stateKey];
+        } else {
+          this.error(`There's no state variable '${stateKey}'`, stateVar);
+        }
       }
     } else if (expr.type.name === NodeName.FunctionExpression) {
       const fns = this.fns;
