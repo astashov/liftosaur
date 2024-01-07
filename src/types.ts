@@ -855,6 +855,15 @@ export const TGraphOptions = t.partial({
 });
 export type IGraphOptions = t.TypeOf<typeof TGraphOptions>;
 
+export const TExerciseDataValue = t.partial(
+  {
+    rm1: TWeight,
+  },
+  "TExerciseDataValue"
+);
+export type IExerciseDataValue = t.TypeOf<typeof TExerciseDataValue>;
+export type IExerciseData = Partial<Record<string, IExerciseDataValue>>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
@@ -881,6 +890,7 @@ export const TSettings = t.intersection(
       lengthUnits: TLengthUnit,
       shouldShowFriendsHistory: t.boolean,
       volume: t.number,
+      exerciseData: dictionary(t.string, TExerciseDataValue),
     }),
     t.partial({
       isPublicProfile: t.boolean,

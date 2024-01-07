@@ -12,6 +12,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
       minRepsEnabled && set.minRepsExpr
         ? Progress.executeEntryScript(
             set.minRepsExpr,
+            props.programExercise.exerciseType,
             props.dayData,
             ProgramExercise.getState(props.programExercise, props.allProgramExercises),
             { equipment: props.programExercise.exerciseType.equipment },
@@ -21,6 +22,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
         : undefined;
     const reps = Progress.executeEntryScript(
       set.repsExpr,
+      props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },
@@ -35,6 +37,7 @@ function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
   return props.sets.map((set) => {
     const value = Progress.executeEntryScript(
       set.weightExpr,
+      props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
       { equipment: props.programExercise.exerciseType.equipment },

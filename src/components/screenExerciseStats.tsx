@@ -28,6 +28,7 @@ import { StringUtils } from "../utils/string";
 import { useGradualList } from "../utils/useGradualList";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "../models/set";
+import { ExerciseRM } from "./exerciseRm";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -119,6 +120,17 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             }}
           />
         )}
+        <section className="my-2">
+          <ExerciseRM
+            name="1 Rep Max"
+            rmKey="rm1"
+            exercise={fullExercise}
+            exerciseData={props.settings.exerciseData}
+            units={props.settings.units}
+            dispatch={props.dispatch}
+          />
+        </section>
+
         <div data-cy="exercise-stats-image">
           <ExerciseImage
             settings={props.settings}

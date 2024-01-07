@@ -35,6 +35,7 @@ export namespace ProgramSet {
   ): number {
     const reps = Progress.executeEntryScript(
       set.repsExpr,
+      programExercise.exerciseType,
       dayData,
       ProgramExercise.getState(programExercise, allProgramExercises),
       { equipment: programExercise.exerciseType.equipment },

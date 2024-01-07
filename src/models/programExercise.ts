@@ -20,6 +20,8 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { IBuilderExercise } from "../pages/builder/models/types";
 import { Exercise } from "./exercise";
+import { CollectionUtils } from "../utils/collection";
+import { ScriptRunner } from "../parser";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -115,13 +117,7 @@ export namespace ProgramExercise {
       return reusedProgramExercise.descriptions[0] || "";
     } else {
       const script = reusedProgramExercise.descriptionExpr || "1";
-      const resultIndex = Program.runDescriptionScript(
-        script,
-        programExercise.exerciseType.equipment,
-        state,
-        dayData,
-        settings
-      );
+      const resultIndex = Program.runDescriptionScript(script, programExercise.exerciseType, state, dayData, settings);
       if (resultIndex.success) {
         return reusedProgramExercise.descriptions[resultIndex.data - 1] || "";
       } else {
@@ -391,6 +387,21 @@ export namespace ProgramExercise {
       reuseLogic: newReuseLogic,
       warmupSets: newWarmupSets,
     };
+  }
+
+  export function isUsingVariable(programExercise: IProgramExercise, name: string): boolean {
+    const expressions = CollectionUtils.compact(
+      [
+        programExercise.timerExpr,
+        programExercise.descriptionExpr,
+        programExercise.finishDayExpr,
+        programExercise.variationExpr,
+        programExercise.variations.map((v) => {
+          return v.sets.map((s) => [s.repsExpr, s.rpeExpr, s.weightExpr, s.minRepsExpr]);
+        }),
+      ].flat(4)
+    );
+    return expressions.some((e) => ScriptRunner.hasKeyword(e, name));
   }
 
   export function mergeExercises(

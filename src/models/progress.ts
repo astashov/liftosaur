@@ -40,6 +40,7 @@ export interface IScriptBindings {
   week: number;
   dayInWeek: number;
   weights: IWeight[];
+  rm1: IWeight;
   reps: number[];
   minReps: number[];
   RPE: number[];
@@ -140,7 +141,12 @@ function max(vals: IWeight[] | number[]): IWeight | number {
 }
 
 export namespace Progress {
-  export function createEmptyScriptBindings(dayData: IDayData): IScriptBindings {
+  export function createEmptyScriptBindings(
+    dayData: IDayData,
+    settings: ISettings,
+    exercise?: IExerciseType
+  ): IScriptBindings {
+    const rm1 = exercise ? Exercise.rm1(exercise, settings.exerciseData, settings.units) : Weight.build(0, "lb");
     return {
       day: dayData.day,
       week: dayData.week ?? 1,
@@ -158,11 +164,17 @@ export namespace Progress {
       numberOfSets: 0,
       ns: 0,
       setIndex: 1,
+      rm1,
     };
   }
 
-  export function createScriptBindings(dayData: IDayData, entry: IHistoryEntry, setIndex?: number): IScriptBindings {
-    const bindings = createEmptyScriptBindings(dayData);
+  export function createScriptBindings(
+    dayData: IDayData,
+    entry: IHistoryEntry,
+    settings: ISettings,
+    setIndex?: number
+  ): IScriptBindings {
+    const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
       bindings.reps.push(set.reps);
@@ -241,7 +253,7 @@ export namespace Progress {
       const exercise = programExercise.exerciseType;
       const timerExpr = ProgramExercise.getTimerExpr(programExercise, program.exercises);
       const state = ProgramExercise.getState(programExercise, program.exercises);
-      const bindings = Progress.createScriptBindings(Progress.getDayData(progress), entry, setIndex + 1);
+      const bindings = Progress.createScriptBindings(Progress.getDayData(progress), entry, settings, setIndex + 1);
       if (timerExpr?.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
@@ -732,6 +744,7 @@ export namespace Progress {
       firstWeightExpr != null
         ? executeEntryScript(
             firstWeightExpr,
+            programExercise.exerciseType,
             dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
@@ -751,6 +764,7 @@ export namespace Progress {
         } else if (programSet != null) {
           const weight = executeEntryScript(
             programSet.weightExpr,
+            programExercise.exerciseType,
             dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
@@ -761,6 +775,7 @@ export namespace Progress {
             ...progressSet,
             reps: executeEntryScript(
               programSet.repsExpr,
+              programExercise.exerciseType,
               dayData,
               state,
               { equipment: programExercise.exerciseType.equipment },
@@ -792,6 +807,7 @@ export namespace Progress {
         sets: sets.map((set) => {
           const weight = executeEntryScript(
             set.weightExpr,
+            programExercise.exerciseType,
             dayData,
             state,
             { equipment: programExercise.exerciseType.equipment },
@@ -801,6 +817,7 @@ export namespace Progress {
           return {
             reps: executeEntryScript(
               set.repsExpr,
+              programExercise.exerciseType,
               dayData,
               state,
               { equipment: programExercise.exerciseType.equipment },
@@ -811,6 +828,7 @@ export namespace Progress {
             rpe: set.rpeExpr
               ? executeEntryScript(
                   set.rpeExpr,
+                  programExercise.exerciseType,
                   dayData,
                   state,
                   { equipment: programExercise.exerciseType.equipment },
@@ -922,6 +940,7 @@ export namespace Progress {
 
   export function executeEntryScript(
     expr: string,
+    exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
@@ -930,6 +949,7 @@ export namespace Progress {
   ): IWeight;
   export function executeEntryScript(
     expr: string,
+    exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
@@ -938,6 +958,7 @@ export namespace Progress {
   ): number;
   export function executeEntryScript(
     expr: string,
+    exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
@@ -946,6 +967,7 @@ export namespace Progress {
   ): number;
   export function executeEntryScript(
     expr: string,
+    exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
     context: IScriptContext,
@@ -955,7 +977,7 @@ export namespace Progress {
     const runner = new ScriptRunner(
       expr,
       state,
-      createEmptyScriptBindings(dayData),
+      createEmptyScriptBindings(dayData, settings, exerciseType),
       createScriptFunctions(settings),
       settings.units,
       context

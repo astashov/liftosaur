@@ -453,4 +453,9 @@ export const migrations = {
     }
     return storage;
   },
+  "20240106161121_add_exercise_data": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.exerciseData = storage.settings.exerciseData || {};
+    return storage;
+  },
 };

@@ -16,6 +16,14 @@ export namespace ObjectUtils {
     return ObjectUtils.keys(obj).map((key) => [key, obj[key]]);
   }
 
+  export function isEmpty<T extends {}>(obj: T): boolean {
+    return ObjectUtils.keys(obj).length === 0;
+  }
+
+  export function isNotEmpty<T extends {}>(obj: T): boolean {
+    return !ObjectUtils.isEmpty(obj);
+  }
+
   export function isEqual<T extends Record<string, any>>(obj1: T, obj2: T, ignoreKeys: string[] = []): boolean {
     // Create a stack for comparing objects
     const stack: Array<[any, any]> = [[obj1, obj2]];

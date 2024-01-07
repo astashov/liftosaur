@@ -71,7 +71,7 @@ export function EditProgramExerciseAdvancedDescriptions(
   const isMultiple = props.programExercise.descriptions.length > 1;
   const exprResult = Program.runDescriptionScript(
     script,
-    props.programExercise.exerciseType.equipment,
+    props.programExercise.exerciseType,
     state,
     props.dayData,
     props.settings

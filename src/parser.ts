@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
-import { LiftoscriptEvaluator } from "./liftoscriptEvaluator";
+import { LiftoscriptEvaluator, ILiftoscriptEvaluatorVariables, NodeName } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
@@ -19,6 +19,7 @@ export class ScriptRunner {
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
   private readonly context: IScriptContext;
+  private variables: ILiftoscriptEvaluatorVariables;
 
   constructor(
     script: string,
@@ -34,6 +35,7 @@ export class ScriptRunner {
     this.fns = fns;
     this.units = units;
     this.context = context;
+    this.variables = {};
   }
 
   public parse(): [LiftoscriptEvaluator, Tree] {
@@ -43,10 +45,24 @@ export class ScriptRunner {
       this.state,
       this.bindings,
       this.fns,
-      this.context
+      this.context,
+      this.units
     );
     liftoscriptEvaluator.parse(liftoscriptTree.topNode);
     return [liftoscriptEvaluator, liftoscriptTree];
+  }
+
+  public static hasKeyword(script: string, name: string): boolean {
+    const expr = LiftoscriptParser.parse(script);
+    const cursor = expr.cursor();
+    do {
+      if (cursor.node.type.name === NodeName.Keyword) {
+        if (LiftoscriptEvaluator.getValue(script, cursor.node) === name) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
   }
 
   public static safe<T>(cb: () => T, errorMsg: (e: Error) => string, defaultValue: T, disabled?: boolean): T {
@@ -83,8 +99,13 @@ export class ScriptRunner {
       result = 0;
     }
     const output = this.convertResult(type, result);
+    this.variables = liftoscriptEvaluator.variables;
 
     return output;
+  }
+
+  public getVariables(): ILiftoscriptEvaluatorVariables {
+    return this.variables;
   }
 
   private convertResult(

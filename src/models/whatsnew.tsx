@@ -791,6 +791,27 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240106": {
+    title: <span>Added ability to set 1 Rep Max for exercises</span>,
+    body: (
+      <ul>
+        <li>
+          1RM would be reused across programs, and is tied to exercise themselves, not programs. You still can access it
+          in the Liftoscript scripts via <strong>rm1</strong> variable, and you can set it in the Finish Day Script too.
+        </li>
+        <li>
+          I.e. you can do things like <code>rm1 * 0.9</code> in your Weight Liftoscript expressions, or things like
+          <code>rm1 += 5lb</code> in your Finish Day Scripts
+        </li>
+        <li>
+          You can edit 1RM on the Exercise Stats screen (when you tap on the exercise name on the workout screen). Also,
+          it'll show up on the "Edit" modal (when you tap on the Edit icon on the working screen) in case it was used
+          anywhere in the program exercise scripts.
+        </li>
+        <li>That should be a good way to make 1RM of the exercises transferrable between programs.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

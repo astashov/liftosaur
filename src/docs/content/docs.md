@@ -15,12 +15,12 @@ Each set consists of:
 - weight to lift
 - whether it's an AMRAP exercise (As Many Reps As Possible).
 
-There's a special scripting language called Liftoscript. You can use it to describe the logic for the number of reps 
+There's a special scripting language called Liftoscript. You can use it to describe the logic for the number of reps
 in a set and for the set weights. It will allow you to express almost any possible progression and deload variant.
 
 ## Liftoscript tutorial
 
-If you have ever written scripts in JavaScript, Python, or a similar programming language (or even Excel!), 
+If you have ever written scripts in JavaScript, Python, or a similar programming language (or even Excel!),
 Liftoscript will look very familiar. If not, no worries, it's a pretty simple and small language.
 
 <div style="text-align: center">
@@ -97,6 +97,7 @@ The list of available variables you can use in your Finish Day Scripts:
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `RPE[n]` - if exercise enabled RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise enabled RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
+- `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
@@ -151,6 +152,28 @@ day == 1 ? 1 : 2;
 ```
 
 And for the Day 1 it will use `Variation 1`, for all other days it will use `Variation 2` Sets x Reps scheme.
+
+### 1 Rep Max
+
+You can use 1 Rep Max (1RM) of a current exercise in your scripts. It's a special variable, that lives outside of
+programs, so if you change it, it's changed for an exercise across all the programs. You can also modify it per exercise
+if you go to `Exercise Stats` screen (if you tap on exercise name on the workout screen).
+
+You can use and assign it exactly the same way as the state variables. For example you can use it in the weight expressions:
+
+```javascript
+rm1 * 0.7;
+```
+
+Or you can change it in your Finish Day Scripts
+
+```javascript
+if (completedReps >= reps) {
+  rm1 += 5lb
+}
+```
+
+If you use it in any of the program exercise expressions, it also will be available for quick editing on the Edit modal (when you tap on the Edit exercise icon on the workout screen)
 
 ## Language Reference
 
@@ -209,7 +232,7 @@ You can assign values only to state variables, by `=` operator:
 state.someVar = (10 + 15) * 2;
 ```
 
-### Predefined variables
+### Predefined read-only variables
 
 You cannot assign values to them, but you can use their values. They are:
 
@@ -223,6 +246,12 @@ You cannot assign values to them, but you can use their values. They are:
 - `dayInWeek` - current index of day in week, starting from 1.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
 - `setIndex` - available only in **Timer Expressions**. Index of the just completed set.
+
+### Predefined read-write variables
+
+You can read them, and assign values to them in the finish day script. They are:
+
+- `rm1` - 1 Rep Max of a current exercise.
 
 ### State variables
 

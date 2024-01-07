@@ -3,7 +3,16 @@ import { useRef, useState } from "preact/hooks";
 import { Progress } from "../../models/progress";
 import { Weight } from "../../models/weight";
 import { ScriptRunner } from "../../parser";
-import { IDayData, IEquipment, IProgramExercise, IProgramSet, IProgramState, ISettings, IWeight } from "../../types";
+import {
+  IDayData,
+  IEquipment,
+  IExerciseType,
+  IProgramExercise,
+  IProgramSet,
+  IProgramState,
+  ISettings,
+  IWeight,
+} from "../../types";
 import { IEither } from "../../utils/types";
 import { DraggableList } from "../draggableList";
 import { GroupHeader } from "../groupHeader";
@@ -93,6 +102,7 @@ export function EditProgramSets(props: IEditProgramSets): JSX.Element {
               handleTouchStart={handleTouchStart}
               dayData={dayData}
               set={set}
+              exerciseType={programExercise.exerciseType}
               state={programExercise.state}
               variationIndex={variationIndex}
               setIndex={setIndex}
@@ -128,6 +138,7 @@ interface ISetFieldsProps {
   state: IProgramState;
   set: IProgramSet;
   dayData: IDayData;
+  exerciseType: IExerciseType;
   settings: ISettings;
   variationIndex: number;
   setIndex: number;
@@ -160,7 +171,11 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         const scriptRunnerResult = new ScriptRunner(
           script,
           propsRef.current.state,
-          Progress.createEmptyScriptBindings(propsRef.current.dayData),
+          Progress.createEmptyScriptBindings(
+            propsRef.current.dayData,
+            propsRef.current.settings,
+            propsRef.current.exerciseType
+          ),
           Progress.createScriptFunctions(settings),
           settings.units,
           { equipment }

@@ -10,7 +10,6 @@
 - Import from Perseus
 - Disable Zoom in the app
 - Add integration with Apple Health
-- Don't combine all equipment on graphs
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
 - Incorporate the latest RM into the RM calculator

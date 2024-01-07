@@ -315,6 +315,7 @@ export namespace Storage {
         vibration: merge2("settings", "vibration"),
         volume: merge2("settings", "volume"),
         alwaysOnDisplay: merge2("settings", "alwaysOnDisplay"),
+        exerciseData: merge2("settings", "exerciseData"),
       },
       subscription: mergeAs("subscription", (a, b) => ({
         apple: { ...a.apple, ...b.apple },

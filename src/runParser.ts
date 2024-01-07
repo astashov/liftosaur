@@ -2,6 +2,7 @@ import "./models/state";
 import { ScriptRunner } from "./parser";
 import { Progress, IScriptBindings } from "./models/progress";
 import { Settings } from "./models/settings";
+import { Weight } from "./models/weight";
 
 const program = `r[state.foo]`;
 
@@ -30,6 +31,7 @@ const bindings: IScriptBindings = {
   ns: 3,
   numberOfSets: 3,
   setIndex: 1,
+  rm1: Weight.build(100, "lb"),
 };
 
 const fns = Progress.createScriptFunctions(Settings.build());

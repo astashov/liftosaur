@@ -28,6 +28,7 @@ import {
   IEquipmentData,
   IProgramWeek,
   IDayData,
+  IExerciseData,
 } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
@@ -40,6 +41,7 @@ import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
+import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
 
 declare let __HOST__: string;
 
@@ -154,7 +156,7 @@ export namespace Program {
           return new ScriptRunner(
             set.repsExpr,
             state,
-            Progress.createEmptyScriptBindings(dayData),
+            Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
             { equipment: exercise.equipment }
@@ -171,7 +173,7 @@ export namespace Program {
           return new ScriptRunner(
             set.weightExpr,
             state,
-            Progress.createEmptyScriptBindings(dayData),
+            Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
             { equipment: exercise.equipment }
@@ -191,7 +193,7 @@ export namespace Program {
                 return new ScriptRunner(
                   rpeExpr,
                   state,
-                  Progress.createEmptyScriptBindings(dayData),
+                  Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
                   { equipment: exercise.equipment }
@@ -212,7 +214,7 @@ export namespace Program {
                 return new ScriptRunner(
                   minRepsExpr,
                   state,
-                  Progress.createEmptyScriptBindings(dayData),
+                  Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
                   { equipment: exercise.equipment }
@@ -323,7 +325,7 @@ export namespace Program {
     const scriptRunner = new ScriptRunner(
       script,
       state,
-      Progress.createEmptyScriptBindings(dayData),
+      Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
       { equipment }
@@ -346,15 +348,19 @@ export namespace Program {
     settings: ISettings,
     state: IProgramState,
     script: string,
-    equipment?: IEquipment,
     staticState?: IProgramState
-  ): IEither<IProgramState, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry);
+  ): IEither<{ state: IProgramState; variables: ILiftoscriptEvaluatorVariables }, string> {
+    const bindings = Progress.createScriptBindings(dayData, entry, settings);
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
+    let variables: ILiftoscriptEvaluatorVariables = {};
 
     try {
-      new ScriptRunner(script, newState, bindings, fns, settings.units, { equipment }).execute();
+      const runner = new ScriptRunner(script, newState, bindings, fns, settings.units, {
+        equipment: entry.exercise.equipment,
+      });
+      runner.execute();
+      variables = runner.getVariables();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -366,12 +372,12 @@ export namespace Program {
       newState[key] = state[key];
     }
 
-    return { success: true, data: newState };
+    return { success: true, data: { state: newState, variables } };
   }
 
   export function runDescriptionScript(
     script: string,
-    equipment: IEquipment | undefined,
+    exercise: IExerciseType,
     state: IProgramState,
     dayData: IDayData,
     settings: ISettings
@@ -381,10 +387,10 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           state,
-          Progress.createEmptyScriptBindings(dayData),
+          Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment }
+          { equipment: exercise.equipment }
         );
         return { success: true, data: scriptRunnerResult.execute("reps") };
       } else {
@@ -415,7 +421,7 @@ export namespace Program {
             return new ScriptRunner(
               script,
               state,
-              Progress.createEmptyScriptBindings(dayData),
+              Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
               { equipment: programExercise.exerciseType.equipment }
@@ -470,7 +476,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           ProgramExercise.getState(programExercise, allProgramExercises),
-          Progress.createEmptyScriptBindings(dayData),
+          Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
           { equipment: programExercise.exerciseType.equipment }
@@ -496,8 +502,8 @@ export namespace Program {
     settings: ISettings,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
-  ): IEither<IProgramState, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry);
+  ): IEither<{ state: IProgramState; variables?: ILiftoscriptEvaluatorVariables }, string> {
+    const bindings = Progress.createScriptBindings(dayData, entry, settings);
     const fns = Progress.createScriptFunctions(settings);
 
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
@@ -508,8 +514,9 @@ export namespace Program {
       ...staticState,
     };
 
+    let variables: ILiftoscriptEvaluatorVariables | undefined;
     try {
-      new ScriptRunner(
+      const runner = new ScriptRunner(
         ProgramExercise.getFinishDayScript(programExercise, allProgramExercises),
         newState,
         bindings,
@@ -518,7 +525,9 @@ export namespace Program {
         {
           equipment: programExercise.exerciseType.equipment,
         }
-      ).execute();
+      );
+      runner.execute();
+      variables = runner.getVariables();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -531,7 +540,7 @@ export namespace Program {
       newState[key] = (staticState || {})[key];
     }
 
-    return { success: true, data: newState };
+    return { success: true, data: { state: newState, variables } };
   }
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
@@ -559,7 +568,8 @@ export namespace Program {
     progress: IHistoryRecord,
     settings: ISettings,
     staticStates?: Partial<Record<string, IProgramState>>
-  ): IProgram {
+  ): { program: IProgram; exerciseData: IExerciseData } {
+    const exerciseData: IExerciseData = {};
     const newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
@@ -577,11 +587,15 @@ export namespace Program {
               staticState
             );
             if (newStateResult.success) {
+              const { state, variables } = newStateResult.data;
+              if (variables?.rm1 != null) {
+                exerciseData[Exercise.toKey(entry.exercise)] = { rm1: variables.rm1 };
+              }
               const reuseLogicId = e.reuseLogic?.selected;
               if (reuseLogicId) {
-                return lf(e).pi("reuseLogic").p("states").p(reuseLogicId).set(newStateResult.data);
+                return lf(e).pi("reuseLogic").p("states").p(reuseLogicId).set(state);
               } else {
-                return lf(e).p("state").set(newStateResult.data);
+                return lf(e).p("state").set(state);
               }
             } else {
               alert(
@@ -592,7 +606,10 @@ export namespace Program {
           return e;
         })
       );
-    return lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day));
+    return {
+      program: lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day)),
+      exerciseData,
+    };
   }
 
   export function createVariation(useStateWeight?: boolean): IProgramExerciseVariation {

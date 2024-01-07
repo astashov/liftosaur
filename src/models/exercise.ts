@@ -15,6 +15,7 @@ import {
   IProgramExerciseWarmupSet,
   IUnit,
   ICustomExercise,
+  IExerciseData,
 } from "../types";
 import { IScreenMuscle, Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
@@ -3606,6 +3607,15 @@ export namespace Exercise {
   export function get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
     const exercise = getExercise(type.id, customExercises);
     return { ...exercise, equipment: type.equipment };
+  }
+
+  export function rm1(type: IExerciseType, exerciseData: IExerciseData, unit: IUnit): IWeight {
+    const weight = exerciseData[Exercise.toKey(type)]?.rm1;
+    if (weight != null) {
+      return weight;
+    }
+    const exercise = Exercise.get(type, {});
+    return unit === "lb" ? exercise.startingWeightLb : exercise.startingWeightKg;
   }
 
   export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {

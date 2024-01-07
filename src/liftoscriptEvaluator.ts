@@ -5,7 +5,7 @@ import { Weight } from "./models/weight";
 import { IProgramState, IWeight, IUnit } from "./types";
 
 // eslint-disable-next-line no-shadow
-enum NodeName {
+export enum NodeName {
   LineComment = "LineComment",
   Program = "Program",
   BinaryExpression = "BinaryExpression",
@@ -84,29 +84,41 @@ function assert(name: string): never {
   throw new SyntaxError(`Missing required nodes for ${name}, this should never happen`);
 }
 
+export interface ILiftoscriptEvaluatorVariables {
+  rm1?: IWeight;
+}
+
 export class LiftoscriptEvaluator {
   private readonly script: string;
   private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
   private readonly context: IScriptContext;
+  private readonly unit: IUnit;
+  public readonly variables: ILiftoscriptEvaluatorVariables = {};
 
   constructor(
     script: string,
     state: IProgramState,
     bindings: IScriptBindings,
     fns: IScriptFunctions,
-    context: IScriptContext
+    context: IScriptContext,
+    unit: IUnit
   ) {
     this.script = script;
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
     this.context = context;
+    this.unit = unit;
+  }
+
+  public static getValue(script: string, node: SyntaxNode): string {
+    return script.slice(node.from, node.to).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
   }
 
   private getValue(node: SyntaxNode): string {
-    return this.script.slice(node.from, node.to).replace(/\n/g, "\\n").replace(/\t/g, "\\t");
+    return LiftoscriptEvaluator.getValue(this.script, node);
   }
 
   private error(message: string, node: SyntaxNode): never {
@@ -125,6 +137,18 @@ export class LiftoscriptEvaluator {
       offset += lineLength;
     }
     return [linesLengths.length, linesLengths[linesLengths.length - 1]];
+  }
+
+  public hasKeyword(expr: SyntaxNode, name: string): boolean {
+    const cursor = expr.cursor();
+    do {
+      if (cursor.node.type.name === NodeName.Keyword) {
+        if (this.getValue(cursor.node) === name) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
   }
 
   public parse(expr: SyntaxNode): void {
@@ -265,21 +289,41 @@ export class LiftoscriptEvaluator {
       }
       return this.evaluate(node);
     } else if (expr.type.name === NodeName.AssignmentExpression) {
-      const [stateVar, expression] = getChildren(expr);
-      if (stateVar == null || stateVar.type.name !== NodeName.StateVariable || expression == null) {
+      const [variableNode, expression] = getChildren(expr);
+      if (
+        variableNode == null ||
+        (variableNode.type.name !== NodeName.StateVariable && variableNode.type.name !== NodeName.Keyword) ||
+        expression == null
+      ) {
         assert(NodeName.AssignmentExpression);
       }
-      const stateKey = this.getValue(stateVar).replace("state.", "");
-      if (stateKey in this.state) {
-        const value = this.evaluate(expression);
-        if (Weight.is(value) || typeof value === "number") {
-          this.state[stateKey] = value;
+      if (variableNode.type.name === NodeName.Keyword) {
+        const variable = this.getValue(variableNode);
+        if (variable === "rm1") {
+          const value = this.evaluate(expression);
+          const rm1 = Weight.is(value)
+            ? value
+            : typeof value === "number"
+            ? Weight.build(value, this.unit)
+            : Weight.build(0, this.unit);
+          this.variables.rm1 = rm1;
+          return rm1;
         } else {
-          this.state[stateKey] = value ? 1 : 0;
+          this.error(`Unknown variable '${variable}'`, variableNode);
         }
-        return this.state[stateKey];
       } else {
-        this.error(`There's no state variable '${stateKey}'`, stateVar);
+        const stateKey = this.getValue(variableNode).replace("state.", "");
+        if (stateKey in this.state) {
+          const value = this.evaluate(expression);
+          if (Weight.is(value) || typeof value === "number") {
+            this.state[stateKey] = value;
+          } else {
+            this.state[stateKey] = value ? 1 : 0;
+          }
+          return this.state[stateKey];
+        } else {
+          this.error(`There's no state variable '${stateKey}'`, variableNode);
+        }
       }
     } else if (expr.type.name === NodeName.IncAssignmentExpression) {
       const [stateVar, incAssignmentExpr, expression] = getChildren(expr);

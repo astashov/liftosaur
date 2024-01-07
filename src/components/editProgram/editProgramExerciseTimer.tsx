@@ -24,8 +24,8 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
         let index = props.entry?.sets.findIndex((s) => s.completedReps == null) ?? 0;
         index = index === -1 ? 0 : index;
         const bindings = props.entry
-          ? Progress.createScriptBindings(props.dayData, props.entry, index + 1)
-          : Progress.createEmptyScriptBindings(props.dayData);
+          ? Progress.createScriptBindings(props.dayData, props.entry, props.settings, index + 1)
+          : Progress.createEmptyScriptBindings(props.dayData, props.settings);
         const scriptRunnerResult = new ScriptRunner(
           script,
           props.state,

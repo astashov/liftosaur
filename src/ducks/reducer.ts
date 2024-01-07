@@ -33,6 +33,7 @@ import { IReducerOnAction } from "./types";
 import { Thunk } from "./thunks";
 import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
+import deepmerge from "deepmerge";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -551,18 +552,24 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       } else {
         newHistory = [historyRecord, ...state.storage.history];
       }
-      const newProgram =
+      const exerciseData = state.storage.settings.exerciseData;
+      const { program: newProgram, exerciseData: newExerciseData } =
         Progress.isCurrent(progress) && program != null
           ? Program.runAllFinishDayScripts(program, progress, settings)
-          : program;
+          : { program, exerciseData };
       const newPrograms =
         newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
+      const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
       return {
         ...state,
         storage: {
           ...state.storage,
           history: newHistory,
           programs: newPrograms,
+          settings: {
+            ...state.storage.settings,
+            exerciseData: newSettingsExerciseData,
+          },
         },
         screenStack: Progress.isCurrent(progress) ? ["finishDay"] : Screen.pull(state.screenStack),
         currentHistoryRecord: undefined,

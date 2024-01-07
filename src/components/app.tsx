@@ -350,7 +350,7 @@ export function AppView(props: IProps): JSX.Element | null {
           screenStack={state.screenStack}
           loading={state.loading}
           dispatch={dispatch}
-          exerciseType={state.viewExerciseType}
+          exerciseType={exercise}
           settings={state.storage.settings}
           subscription={state.storage.subscription}
         />

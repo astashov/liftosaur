@@ -15,6 +15,8 @@ import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
+import { ExerciseRM } from "./exerciseRm";
+import { ProgramExercise } from "../models/programExercise";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -41,9 +43,21 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
         {!showCalculator ? (
           <>
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
+            {ProgramExercise.isUsingVariable(programExercise, "rm1") && (
+              <div className="my-2">
+                <ExerciseRM
+                  exercise={exercise}
+                  rmKey="rm1"
+                  name="1 Rep Max"
+                  exerciseData={props.settings.exerciseData}
+                  units={props.settings.units}
+                  dispatch={props.dispatch}
+                />
+              </div>
+            )}
             {hasStateVariables ? (
               <>
-                <h2 className="mb-2 text-lg text-center">Edit state variables only</h2>
+                <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
                 <ProgramStateVariables
                   settings={props.settings}
                   programExercise={programExercise}

@@ -123,7 +123,7 @@ export const ProgramPreviewPlayground = memo(
                           ]);
                         }}
                         onFinish={() => {
-                          const newProgram = Program.runAllFinishDayScripts(
+                          const { program: newProgram } = Program.runAllFinishDayScripts(
                             state.program,
                             d.progress,
                             state.settings,

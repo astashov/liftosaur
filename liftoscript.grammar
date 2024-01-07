@@ -35,8 +35,8 @@ IfExpression {
   BlockExpression
   (@specialize<Keyword, "else"> @specialize<Keyword, "if"> ParenthesisExpression BlockExpression)*
   (@specialize<Keyword, "else"> BlockExpression)? }
-AssignmentExpression { StateVariable !assign "=" expression }
-IncAssignmentExpression { StateVariable !assign IncAssignment expression }
+AssignmentExpression { (StateVariable | Keyword ) !assign "=" expression }
+IncAssignmentExpression { (StateVariable | Keyword) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" expression "]")? }
 FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
