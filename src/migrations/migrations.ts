@@ -447,6 +447,9 @@ export const migrations = {
             return memo;
           }, {});
         const usage = equipmentMap[graph.id];
+        if (usage == null) {
+          continue;
+        }
         const popularEquipment = CollectionUtils.sortByExpr(ObjectUtils.entries(usage), (i) => i[1], true)[0]?.[0];
         graph.id = `${graph.id}_${popularEquipment}`;
       }
