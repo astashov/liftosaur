@@ -2,6 +2,7 @@ import { JSX, h } from "preact";
 import { ObjectUtils } from "../utils/object";
 import { IHistoryEntry, ISettings } from "../types";
 import { Weight } from "../models/weight";
+import { StringUtils } from "../utils/string";
 
 interface IWorkoutStateVariablesProps {
   entry: IHistoryEntry;
@@ -16,14 +17,14 @@ export function WorkoutStateVariables(props: IWorkoutStateVariablesProps): JSX.E
     state[name] = vars[key];
   }
   return (
-    <section>
+    <section data-cy="workout-state-variables">
       <h4 className="mt-2 text-xs font-bold">State Variables</h4>
       <ul>
         {ObjectUtils.keys(state).map((stateKey, i) => {
           const value = state[stateKey];
           const displayValue = Weight.is(value) ? Weight.display(value) : value;
           return (
-            <li className="text-xs">
+            <li className="text-xs" data-cy={`workout-state-variable-${StringUtils.dashcase(stateKey)}`}>
               <span>{stateKey}</span> - <strong>{displayValue}</strong>
             </li>
           );

@@ -34,6 +34,7 @@ import { Thunk } from "./thunks";
 import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
+import { Exercise } from "../models/exercise";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -330,8 +331,8 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         const oldProgram = Program.getProgram(oldState, progress.programId);
         const newProgram = Program.getProgram(newState, progress.programId);
         if (oldProgram != null && newProgram != null && !ObjectUtils.isEqual(oldProgram, newProgram)) {
-          const changes = ObjectUtils.changedKeys(oldProgram, newProgram);
-          if (ObjectUtils.keys(changes).length === 1 && changes.exercises === "update") {
+          const programChanges = ObjectUtils.changedKeys(oldProgram, newProgram);
+          if (ObjectUtils.keys(programChanges).length === 1 && programChanges.exercises === "update") {
             const changedExerciseIds = Array.from(
               new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
             );
@@ -349,6 +350,34 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
             });
           } else {
             dispatch({ type: "ApplyProgramChangesToProgress" });
+          }
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const progress = newState.progress[0];
+      if (progress != null) {
+        const oldExerciseData = oldState.storage.settings.exerciseData;
+        const newExerciseData = newState.storage.settings.exerciseData;
+        if (
+          oldExerciseData != null &&
+          newExerciseData != null &&
+          !ObjectUtils.isEqual(oldExerciseData, newExerciseData)
+        ) {
+          const changes = ObjectUtils.changedKeys(oldExerciseData, newExerciseData);
+          if (ObjectUtils.isNotEmpty(changes)) {
+            const changedExercises = ObjectUtils.keys(changes);
+            const affectedEntries = progress.entries.filter((entry) => {
+              const key = Exercise.toKey(entry.exercise);
+              return changedExercises.indexOf(key) !== -1;
+            });
+            if (affectedEntries.length > 0) {
+              dispatch({
+                type: "ApplyProgramChangesToProgress",
+                programExerciseIds: CollectionUtils.compact(affectedEntries.map((e) => e.programExerciseId)),
+                checkReused: false,
+              });
+            }
           }
         }
       }

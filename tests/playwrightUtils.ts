@@ -2,8 +2,14 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 export class PlaywrightUtils {
-  public static clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {
-    return page.evaluate(
+  public static async clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {
+    await expect(
+      page
+        .getByTestId(dataCy)
+        .locator("css=.cm-content")
+        .nth(index ?? 0)
+    ).toBeVisible();
+    await page.evaluate(
       ([theDataCy, theIndex]) => {
         const i = parseInt(`${theIndex ?? "0"}`, 10);
         const cmContent = document.querySelectorAll(`[data-cy=${theDataCy}] .cm-content`)[i] as any;
