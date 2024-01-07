@@ -800,7 +800,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           in the Liftoscript scripts via <strong>rm1</strong> variable, and you can set it in the Finish Day Script too.
         </li>
         <li>
-          I.e. you can do things like <code>rm1 * 0.9</code> in your Weight Liftoscript expressions, or things like
+          I.e. you can do things like <code>rm1 * 0.9</code> in your Weight Liftoscript expressions, or things like{" "}
           <code>rm1 += 5lb</code> in your Finish Day Scripts
         </li>
         <li>
