@@ -78,7 +78,9 @@ export class ScriptRunner {
         const lastAlertTs = lastAlertDisplayedTs[e.message];
         console.error(e);
         if (lastAlertTs == null || lastAlertTs < Date.now() - 1000 * 60 * 1) {
-          alert(errorMsg(e));
+          if (typeof window !== "undefined") {
+            alert(errorMsg(e));
+          }
           this.reportError("Error during Liftoscript execution", e);
           lastAlertDisplayedTs[e.message] = Date.now();
         }
