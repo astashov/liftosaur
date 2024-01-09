@@ -7,6 +7,7 @@ import { aws_s3 as s3 } from "aws-cdk-lib";
 import { aws_certificatemanager as acm } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import { LftS3Buckets } from "../lambda/dao/buckets";
+import childProcess from "child_process";
 
 export class LiftosaurCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, isDev: boolean, props?: cdk.StackProps) {
@@ -242,6 +243,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
     });
 
+    const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset("dist-lambda"),
@@ -251,6 +253,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       handler: "lambda/run.handler",
       environment: {
         IS_DEV: `${isDev}`,
+        COMMIT_HASH: commitHash,
       },
     });
 

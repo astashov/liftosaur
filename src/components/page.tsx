@@ -15,7 +15,10 @@ interface IProps<T> extends IPageWrapperProps {
   account?: IAccount;
 }
 
+declare let __COMMIT_HASH__: string;
+
 export function Page<T>(props: IProps<T>): JSX.Element {
+  const commitHash = process.env.COMMIT_HASH || __COMMIT_HASH__;
   const pageWrapperProps: IPageWrapperProps = {
     skipTopNavMenu: props.skipTopNavMenu,
     maxWidth: props.maxWidth,
@@ -29,7 +32,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
       <head>
         <title>Liftosaur: Weight Lifting Tracking App | {props.title}</title>
         {props.css.map((c) => (
-          <link rel="stylesheet" type="text/css" href={`/${c}.css?version=xxxxxxxx`} />
+          <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
         <link
           href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&display=swap"
@@ -71,7 +74,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           {JSON.stringify(props.data)}
         </div>
         {props.js.map((js) => (
-          <script src={`/${js}.js?version=xxxxxxxx`}></script>
+          <script src={`/${js}.js?version=${commitHash}`}></script>
         ))}
       </body>
     </html>

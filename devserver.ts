@@ -8,6 +8,16 @@ import { URL } from "url";
 import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
+import childProcess from "child_process";
+
+declare global {
+  namespace NodeJS {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    interface Global {
+      __COMMIT_HASH__: string;
+    }
+  }
+}
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -74,6 +84,9 @@ const server = https.createServer(
     }
   }
 );
+// eslint-disable-next-line prefer-const
+global.__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+
 server.listen(3000, "0.0.0.0", () => {
   console.log(`--------- Server is running ----------`);
 });
