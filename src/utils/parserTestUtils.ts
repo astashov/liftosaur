@@ -64,7 +64,7 @@ export namespace ParserTestUtils {
     state: IProgramState,
     bindings: IScriptBindings = defaultBindings
   ): number | IWeight | boolean {
-    const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {});
+    const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {}, "regular");
     return scriptRunner.execute();
   }
 }

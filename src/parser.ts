@@ -19,6 +19,7 @@ export class ScriptRunner {
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
   private readonly context: IScriptContext;
+  private readonly mode: "planner" | "regular";
   private variables: ILiftoscriptEvaluatorVariables;
 
   constructor(
@@ -27,7 +28,8 @@ export class ScriptRunner {
     bindings: IScriptBindings,
     fns: IScriptFunctions,
     units: IUnit,
-    context: IScriptContext
+    context: IScriptContext,
+    mode: "planner" | "regular"
   ) {
     this.script = script;
     this.state = state;
@@ -36,6 +38,7 @@ export class ScriptRunner {
     this.units = units;
     this.context = context;
     this.variables = {};
+    this.mode = mode;
   }
 
   public parse(): [LiftoscriptEvaluator, Tree] {
@@ -46,7 +49,8 @@ export class ScriptRunner {
       this.bindings,
       this.fns,
       this.context,
-      this.units
+      this.units,
+      this.mode
     );
     liftoscriptEvaluator.parse(liftoscriptTree.topNode);
     return [liftoscriptEvaluator, liftoscriptTree];

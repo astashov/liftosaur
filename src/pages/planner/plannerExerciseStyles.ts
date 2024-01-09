@@ -29,6 +29,7 @@ export enum PlannerNodeName {
   RepRange = "RepRange",
   KeyValue = "KeyValue",
   Liftoscript = "Liftoscript",
+  ReuseLiftoscript = "ReuseLiftoscript",
   WarmupExerciseSets = "WarmupExerciseSets",
   WarmupExerciseSet = "WarmupExerciseSet",
   WarmupSetPart = "WarmupSetPart",

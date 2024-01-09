@@ -38,7 +38,7 @@ const fns = Progress.createScriptFunctions(Settings.build());
 
 const state = { foo: 2 };
 
-const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {});
+const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {}, "regular");
 console.log("\n\nRunning...\n\n");
 const result = scriptRunner.execute();
 console.log("\n\nResult:\n\n");

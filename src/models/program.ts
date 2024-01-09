@@ -159,7 +159,8 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
-            { equipment: exercise.equipment }
+            { equipment: exercise.equipment },
+            "regular"
           ).execute("reps");
         },
         (e) => {
@@ -176,7 +177,8 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
-            { equipment: exercise.equipment }
+            { equipment: exercise.equipment },
+            "regular"
           ).execute("weight");
         },
         (e) => {
@@ -196,7 +198,8 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { equipment: exercise.equipment }
+                  { equipment: exercise.equipment },
+                  "regular"
                 ).execute("rpe");
               },
               (e) => {
@@ -217,7 +220,8 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { equipment: exercise.equipment }
+                  { equipment: exercise.equipment },
+                  "regular"
                 ).execute("reps");
               },
               (e) => {
@@ -328,7 +332,8 @@ export namespace Program {
       Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
-      { equipment }
+      { equipment },
+      "regular"
     );
 
     try {
@@ -356,9 +361,17 @@ export namespace Program {
     let variables: ILiftoscriptEvaluatorVariables = {};
 
     try {
-      const runner = new ScriptRunner(script, newState, bindings, fns, settings.units, {
-        equipment: entry.exercise.equipment,
-      });
+      const runner = new ScriptRunner(
+        script,
+        newState,
+        bindings,
+        fns,
+        settings.units,
+        {
+          equipment: entry.exercise.equipment,
+        },
+        "regular"
+      );
       runner.execute();
       variables = runner.getVariables();
     } catch (e) {
@@ -390,7 +403,8 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment: exercise.equipment }
+          { equipment: exercise.equipment },
+          "regular"
         );
         return { success: true, data: scriptRunnerResult.execute("reps") };
       } else {
@@ -424,7 +438,8 @@ export namespace Program {
               Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
-              { equipment: programExercise.exerciseType.equipment }
+              { equipment: programExercise.exerciseType.equipment },
+              "regular"
             ).execute("reps");
           },
           (e) => {
@@ -479,7 +494,8 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment: programExercise.exerciseType.equipment }
+          { equipment: programExercise.exerciseType.equipment },
+          "regular"
         );
         return { success: true, data: scriptRunnerResult.execute(type as "reps") };
       } else {
@@ -524,7 +540,8 @@ export namespace Program {
         settings.units,
         {
           equipment: programExercise.exerciseType.equipment,
-        }
+        },
+        "regular"
       );
       runner.execute();
       variables = runner.getVariables();

@@ -32,7 +32,8 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
           bindings,
           Progress.createScriptFunctions(props.settings),
           props.settings.units,
-          { equipment: props.equipment }
+          { equipment: props.equipment },
+          "regular"
         );
         return { success: true, data: scriptRunnerResult.execute("timer") };
       } else {

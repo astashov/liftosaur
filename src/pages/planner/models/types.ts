@@ -39,6 +39,7 @@ export interface IPlannerProgramExercise {
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
+  setVariations: IPlannerProgramExerciseSet[][];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   description?: string;
   reuse?: boolean;
@@ -73,6 +74,8 @@ export interface IPlannerProgramProperty {
   name: string;
   fnName: string;
   fnArgs: string[];
+  script?: string;
+  body?: string;
 }
 
 export interface IPlannerProgramExerciseRepRange {

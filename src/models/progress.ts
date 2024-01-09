@@ -257,9 +257,17 @@ export namespace Progress {
       if (timerExpr?.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
-            new ScriptRunner(timerExpr, state, bindings, Progress.createScriptFunctions(settings), settings.units, {
-              equipment: exercise.equipment,
-            }).execute("timer"),
+            new ScriptRunner(
+              timerExpr,
+              state,
+              bindings,
+              Progress.createScriptFunctions(settings),
+              settings.units,
+              {
+                equipment: exercise.equipment,
+              },
+              "regular"
+            ).execute("timer"),
           (e) => {
             return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
           },
@@ -980,7 +988,8 @@ export namespace Progress {
       createEmptyScriptBindings(dayData, settings, exerciseType),
       createScriptFunctions(settings),
       settings.units,
-      context
+      context,
+      "regular"
     );
     if (type === "reps") {
       return ScriptRunner.safe(

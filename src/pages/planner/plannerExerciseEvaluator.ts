@@ -228,10 +228,12 @@ export class PlannerExerciseEvaluator {
         assert(PlannerNodeName.FunctionName);
       }
       const fnName = this.getValue(fnNameNode);
-      if (["lp", "sum", "dp"].indexOf(fnName) === -1) {
+      if (["lp", "sum", "dp", "custom"].indexOf(fnName) === -1) {
         this.error(`There's no such progression exists - '${fnName}'`, fnNameNode);
       }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
+      let script: string | undefined;
+      let body: string | undefined;
       if (fnName === "lp") {
         if (fnArgs.length > 4) {
           this.error(`Linear Progression 'lp' only has 4 arguments max`, valueNode);
@@ -283,11 +285,27 @@ export class PlannerExerciseEvaluator {
             valueNode
           );
         }
+      } else if (fnName === "custom") {
+        const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
+        script = liftoscriptNode ? this.getValue(liftoscriptNode) : undefined;
+        const reuseLiftoscriptNode = valueNode
+          .getChild(PlannerNodeName.ReuseLiftoscript)
+          ?.getChild(PlannerNodeName.ReuseSection)
+          ?.getChild(PlannerNodeName.ExerciseName);
+        body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+        if (!script && !body) {
+          this.error(
+            `'custom' progression requires either to specify Liftoscript block or specify which one to reuse`,
+            valueNode
+          );
+        }
       }
       return {
         name: "progress",
         fnName,
         fnArgs: fnArgs,
+        script,
+        body,
       };
     } else {
       assert(PlannerNodeName.ExerciseProperty);
@@ -447,8 +465,7 @@ export class PlannerExerciseEvaluator {
       }
       equipment = equipment || exercise.defaultEquipment;
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);
-      let hadRepRange = false;
-      const allSets: IPlannerProgramExerciseSet[] = [];
+      const setVariations: IPlannerProgramExerciseSet[][] = [];
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
       const allProperties: IPlannerProgramProperty[] = [];
       let isReusing = false;
@@ -466,17 +483,10 @@ export class PlannerExerciseEvaluator {
             throw new Error(`Unexpected section type`);
           }
         } else {
-          const sectionHasRepRange = section.some((set) => set.repRange != null);
-          if (sectionHasRepRange) {
-            if (hadRepRange) {
-              this.error(`Exercise should only have rep range in one section`, sectionNode);
-            }
-            hadRepRange = true;
-          }
-          allSets.push(...section);
+          setVariations.push(section);
         }
       }
-      const sets = allSets.filter((set) => set.repRange != null);
+      const allSets = setVariations.flat();
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
@@ -489,12 +499,13 @@ export class PlannerExerciseEvaluator {
         this.latestDescription = undefined;
       }
 
-      const plannerExercise = {
+      const plannerExercise: IPlannerProgramExercise = {
         label,
         name,
         equipment,
         line,
-        sets,
+        sets: allSets,
+        setVariations,
         description,
         reuse: isReusing,
         warmupSets: allWarmupSets,

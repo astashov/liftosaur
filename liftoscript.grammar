@@ -35,9 +35,12 @@ IfExpression {
   BlockExpression
   (@specialize<Keyword, "else"> @specialize<Keyword, "if"> ParenthesisExpression BlockExpression)*
   (@specialize<Keyword, "else"> BlockExpression)? }
-AssignmentExpression { (StateVariable | Keyword ) !assign "=" expression }
-IncAssignmentExpression { (StateVariable | Keyword) !assign IncAssignment expression }
-VariableExpression { Keyword (!arrindex "[" expression "]")? }
+AssignmentExpression { (StateVariable | VariableExpression) !assign "=" expression }
+IncAssignmentExpression { (StateVariable | VariableExpression) !assign IncAssignment expression }
+VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
+VariableIndex { expression | Wildcard | Current }
+Wildcard { "*" }
+Current { "_" }
 FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
 NumberExpression { !unary Plus? Number }

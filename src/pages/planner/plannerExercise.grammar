@@ -16,7 +16,12 @@ ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExercise
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
 
-FunctionExpression { FunctionName ("(" FunctionArgument? ("," FunctionArgument)* ")")? Liftoscript? }
+FunctionExpression { 
+  FunctionName
+  ("(" FunctionArgument? ("," FunctionArgument)* ")")?
+  (Liftoscript | ReuseLiftoscript)?
+}
+ReuseLiftoscript { "{" ReuseSection "}" }
 FunctionName { Keyword }
 FunctionArgument { Rep | Weight | Percentage | Rpe | RepRange | KeyValue }
 
@@ -48,7 +53,7 @@ WarmupSetPart { (Rep "x")? Rep }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\n" | "\r" | "\r\n" }
-  NonSeparator { ![/ \t\n\r#]+ }
+  NonSeparator { ![/{} \t\n\r#]+ }
   Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
   Int { @digit+ }
   Float { @digit* "." @digit+ }
