@@ -2,7 +2,7 @@ const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 const path = require("path");
 const fs = require("fs");
-const { DefinePlugin } = require("webpack");
+const { DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
@@ -34,7 +34,7 @@ module.exports = {
     publicPath: "/",
     path: path.resolve(__dirname, "dist"),
   },
-  devtool: "source-map",
+  devtool: false,
   module: {
     rules: [
       {
@@ -79,6 +79,10 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
   plugins: [
+    new SourceMapDevToolPlugin({
+      append: `\n//# sourceMappingURL=[file].map?version=${commitHash}`,
+      filename: "[file].map",
+    }),
     new MiniCssExtractPlugin(),
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
