@@ -20,11 +20,20 @@ export function userImage(storage: IStorage): Promise<Buffer> {
   const program = Program.getCurrentProgram(storage);
   const maxSets = History.findAllMaxSetsPerId(history);
   const order: IExerciseId[] = ["benchPress", "overheadPress", "squat", "deadlift", "bentOverRow", "pullUp", "chinUp"];
+  const mainLifts = ObjectUtils.keys(maxSets).filter((k) => order.some((i) => k.indexOf(i) !== -1));
+
+  const exercises = mainLifts
+    .map((id) => [Exercise.get(Exercise.fromKey(id), storage.settings.exercises), maxSets[id]] as const)
+    .concat(
+      ObjectUtils.keys(maxSets)
+        .filter((k) => mainLifts.indexOf(k) === -1)
+        .map((id) => [Exercise.get(Exercise.fromKey(id), storage.settings.exercises), maxSets[id]] as const)
+    );
+
   const json: IProfileImageGeneratorArgs = {
     programName: program?.name || "",
     userName: storage.settings.nickname || "",
-    exercises: ObjectUtils.sortedByKeys(maxSets, order).map(([id, set]) => {
-      const exercise = Exercise.getById(id, storage.settings.exercises);
+    exercises: exercises.map(([exercise, set]) => {
       const value = `${set?.completedReps || 0} ${StringUtils.pluralize(
         "rep",
         set?.completedReps || 0
