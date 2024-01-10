@@ -2,7 +2,7 @@
 
 import { h, JSX } from "preact";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
-import { IPlannerProgram, IPlannerProgramDay, IPlannerSettings, IPlannerState, IPlannerUi } from "../models/types";
+import { IPlannerSettings, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
@@ -22,6 +22,7 @@ import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { useState } from "preact/hooks";
 import { IconHelp } from "../../../components/icons/iconHelp";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
+import { IPlannerProgram, IPlannerProgramDay } from "../../../types";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -59,7 +60,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         exerciseImageUrls[plannerExercise.line - 1] = imageUrl;
       }
     }
-    approxDayTime = TimeUtils.formatHHMM(PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings));
+    approxDayTime = TimeUtils.formatHHMM(
+      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.restTimer)
+    );
   }
   for (let i = 0; i < exerciseImageUrls.length; i++) {
     if (!exerciseImageUrls[i]) {

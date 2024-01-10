@@ -13,6 +13,7 @@ import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
 import { Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { IPlannerProgram } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
@@ -22,13 +23,7 @@ import { PlannerExerciseStats } from "./components/plannerExerciseStats";
 import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerProgram } from "./models/plannerProgram";
-import {
-  IPlannerFullText,
-  IPlannerProgram,
-  IPlannerSettings,
-  IPlannerState,
-  IPlannerUiFocusedExercise,
-} from "./models/types";
+import { IPlannerFullText, IPlannerSettings, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
 
 export interface IPlannerContentFullProps {
   fullText: IPlannerFullText;

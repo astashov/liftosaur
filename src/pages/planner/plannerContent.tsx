@@ -1,13 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useLensReducer } from "../../utils/useLensReducer";
-import {
-  IPlannerProgram,
-  IPlannerState,
-  IPlannerSettings,
-  IPlannerProgramWeek,
-  IPlannerProgramDay,
-  IExportedPlannerProgram,
-} from "./models/types";
+import { IPlannerState, IPlannerSettings, IExportedPlannerProgram } from "./models/types";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
@@ -21,7 +14,16 @@ import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
-import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, IPartialStorage } from "../../types";
+import {
+  ICustomExercise,
+  IEquipment,
+  IExerciseKind,
+  IMuscle,
+  IPartialStorage,
+  IPlannerProgram,
+  IPlannerProgramDay,
+  IPlannerProgramWeek,
+} from "../../types";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IExportedProgram } from "../../models/program";
@@ -107,7 +109,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     current: {
       program: initialProgram,
     },
-    ui: {},
+    ui: { weekIndex: 0 },
     history: {
       past: [],
       future: [],

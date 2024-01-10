@@ -1,10 +1,4 @@
-import {
-  IPlannerProgram,
-  IPlannerProgramExercise,
-  IPlannerProgramExerciseWarmupSet,
-  IPlannerProgramProperty,
-  IPlannerProgramWeek,
-} from "./types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseWarmupSet, IPlannerProgramProperty } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import {
   IPlannerEvalFullResult,
@@ -12,7 +6,7 @@ import {
   PlannerExerciseEvaluator,
   PlannerSyntaxError,
 } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IDayData, IAllEquipment } from "../../../types";
+import { IAllCustomExercises, IDayData, IAllEquipment, IPlannerProgram, IPlannerProgramWeek } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";

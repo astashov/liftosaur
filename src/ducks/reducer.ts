@@ -401,6 +401,13 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
       }
     },
+    (dispatch, action, oldState, newState) => {
+      if ("type" in action && action.type === "UpdateState" && action.desc === "stop-is-undoing") {
+        setTimeout(() => {
+          window.isUndoing = false;
+        }, 200);
+      }
+    },
   ];
 }
 

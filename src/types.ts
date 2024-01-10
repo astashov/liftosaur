@@ -678,6 +678,24 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
 
+export const TPlannerProgramDay = t.type({
+  name: t.string,
+  exerciseText: t.string,
+});
+export type IPlannerProgramDay = Readonly<t.TypeOf<typeof TPlannerProgramDay>>;
+
+export const TPlannerProgramWeek = t.type({
+  name: t.string,
+  days: t.array(TPlannerProgramDay),
+});
+export type IPlannerProgramWeek = Readonly<t.TypeOf<typeof TPlannerProgramWeek>>;
+
+export const TPlannerProgram = t.type({
+  name: t.string,
+  weeks: t.array(TPlannerProgramWeek),
+});
+export type IPlannerProgram = Readonly<t.TypeOf<typeof TPlannerProgram>>;
+
 export const TProgram = t.intersection(
   [
     t.interface({
@@ -699,6 +717,7 @@ export const TProgram = t.intersection(
       deletedExercises: t.array(t.string),
       clonedAt: t.number,
       shortDescription: t.string,
+      planner: TPlannerProgram,
     }),
   ],
   "TProgram"

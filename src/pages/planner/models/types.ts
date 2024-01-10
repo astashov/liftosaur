@@ -1,22 +1,7 @@
 import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises, IEquipmentData, IUnit, IWeight } from "../../../types";
-
-export interface IPlannerProgram {
-  name: string;
-  weeks: IPlannerProgramWeek[];
-}
-
-export interface IPlannerProgramWeek {
-  name: string;
-  days: IPlannerProgramDay[];
-}
-
-export interface IPlannerProgramDay {
-  name: string;
-  exerciseText: string;
-}
+import { IAllCustomExercises, IEquipmentData, IPlannerProgram, IUnit, IWeight } from "../../../types";
 
 export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number] };
 export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
@@ -101,6 +86,12 @@ export interface IPlannerUi {
     muscleGroups: IScreenMuscle[];
     customExerciseName?: string;
   };
+  editDayModal?: { weekIndex: number; dayIndex: number };
+  weekIndex: number;
+  subscreen?: "weeks" | "full";
+  showWeekStats?: boolean;
+  showDayStats?: boolean;
+  showExerciseStats?: boolean;
 }
 
 export interface IPlannerFullText {

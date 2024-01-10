@@ -11,14 +11,8 @@ import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput
 import { PlannerDay } from "./components/plannerDay";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerProgram } from "./models/plannerProgram";
-import {
-  IPlannerProgram,
-  IPlannerProgramDay,
-  IPlannerProgramWeek,
-  IPlannerSettings,
-  IPlannerState,
-  IPlannerUi,
-} from "./models/types";
+import { IPlannerSettings, IPlannerState, IPlannerUi } from "./models/types";
+import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek } from "../../types";
 
 export interface IPlannerContentPerDayProps {
   program: IPlannerProgram;

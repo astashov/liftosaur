@@ -5,7 +5,7 @@ import { useRef } from "preact/hooks";
 import { Input } from "./input";
 
 interface IProps {
-  onSelect: (name: string) => void;
+  onSelect: (name: string, isV2: boolean) => void;
   onClose: () => void;
   isHidden: boolean;
 }
@@ -43,13 +43,28 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           className="ls-modal-create-program"
           onClick={() => {
             if (textInput.current.value) {
-              props.onSelect(textInput.current.value);
+              props.onSelect(textInput.current.value, false);
             }
           }}
         >
           Create
         </Button>
       </p>
+      <div className="mt-2 text-center">
+        <Button
+          name="modal-create-experimental-program-submit"
+          data-cy="modal-create-experimental-program-submit"
+          kind="purple"
+          className="ls-modal-create-experimental-program"
+          onClick={() => {
+            if (textInput.current.value) {
+              props.onSelect(textInput.current.value, true);
+            }
+          }}
+        >
+          Create experimental program
+        </Button>
+      </div>
     </Modal>
   );
 }

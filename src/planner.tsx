@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
-import { IPlannerProgram } from "./pages/planner/models/types";
 import { PlannerContent } from "./pages/planner/plannerContent";
+import { IPlannerProgram } from "./types";
 import { HydrateUtils } from "./utils/hydrate";
 
 function main(): void {

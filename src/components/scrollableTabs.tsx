@@ -11,6 +11,7 @@ interface IProps {
   }[];
   defaultIndex?: number;
   offsetY?: string;
+  onChange?: (index: number) => void;
 }
 
 export function ScrollableTabs(props: IProps): JSX.Element {
@@ -37,7 +38,12 @@ export function ScrollableTabs(props: IProps): JSX.Element {
                       } ${isInvalid ? " text-redv2-main" : ""} nm-tab-${nameClass}`}
                       style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
                       data-cy={nameClass}
-                      onClick={() => setSelectedIndex(index)}
+                      onClick={() => {
+                        if (props.onChange) {
+                          props.onChange(index);
+                        }
+                        setSelectedIndex(index);
+                      }}
                     >
                       {isInvalid ? " ⚠️" : ""}
                       {label}

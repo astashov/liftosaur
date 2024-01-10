@@ -7,6 +7,10 @@ import { EditProgramExercise } from "./editProgram/editProgramExercise";
 import { IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
 import { ILoading } from "../models/state";
 import { EditProgramWeek } from "./editProgram/editProgramWeek";
+import { EditProgramV2 } from "./editProgram/editProgramV2";
+import { useEffect } from "preact/hooks";
+import { EditProgram } from "../models/editProgram";
+import { IPlannerState } from "../pages/planner/models/types";
 
 interface IProps {
   editProgram: IProgram;
@@ -20,22 +24,47 @@ interface IProps {
   settings: ISettings;
   adminKey?: string;
   loading: ILoading;
+  plannerState?: IPlannerState;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
   const screen = Screen.current(props.screenStack);
+  useEffect(() => {
+    if (screen === "editProgram" && props.editProgram.planner != null && props.plannerState == null) {
+      EditProgram.initializePlanner(props.dispatch, props.editProgram.planner, props.settings);
+    }
+  }, [screen, props.editProgram.planner, props.plannerState]);
   if (screen === "editProgram") {
-    return (
-      <EditProgramDaysList
-        settings={props.settings}
-        screenStack={props.screenStack}
-        loading={props.loading}
-        dispatch={props.dispatch}
-        programIndex={props.programIndex}
-        editProgram={props.editProgram}
-        adminKey={props.adminKey}
-      />
-    );
+    if (props.editProgram.planner != null) {
+      if (props.plannerState == null) {
+        return <div />;
+      } else {
+        return (
+          <EditProgramV2
+            settings={props.settings}
+            screenStack={props.screenStack}
+            loading={props.loading}
+            dispatch={props.dispatch}
+            programIndex={props.programIndex}
+            editProgram={props.editProgram}
+            plannerState={props.plannerState}
+            adminKey={props.adminKey}
+          />
+        );
+      }
+    } else {
+      return (
+        <EditProgramDaysList
+          settings={props.settings}
+          screenStack={props.screenStack}
+          loading={props.loading}
+          dispatch={props.dispatch}
+          programIndex={props.programIndex}
+          editProgram={props.editProgram}
+          adminKey={props.adminKey}
+        />
+      );
+    }
   } else if (screen === "editProgramDay") {
     if (props.dayIndex !== -1) {
       return (

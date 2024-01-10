@@ -15,9 +15,12 @@ import {
   ISettings,
   IProgramExerciseWarmupSet,
   IExerciseType,
+  IPlannerProgram,
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
+import { UidFactory } from "../utils/generator";
+import { IPlannerSettings, IPlannerState } from "../pages/planner/models/types";
 
 interface I531Tms {
   squat: IWeight;
@@ -589,5 +592,90 @@ export namespace EditProgram {
 
   export function reuseLogic(dispatch: IDispatch, allProgramExercises: IProgramExercise[], id: string): void {
     updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
+  }
+
+  export function initializePlanner(dispatch: IDispatch, plannerProgram: IPlannerProgram, settings: ISettings): void {
+    const initialSettings: IPlannerSettings = {
+      strengthSetsPct: 30,
+      hypertrophySetsPct: 70,
+      weeklyRangeSets: {
+        shoulders: [10, 12],
+        triceps: [10, 12],
+        back: [10, 12],
+        abs: [10, 12],
+        glutes: [10, 12],
+        hamstrings: [10, 12],
+        quadriceps: [10, 12],
+        chest: [10, 12],
+        biceps: [10, 12],
+        calves: [10, 12],
+        forearms: [10, 12],
+      },
+      weeklyFrequency: {
+        shoulders: 2,
+        triceps: 2,
+        back: 2,
+        abs: 2,
+        glutes: 2,
+        hamstrings: 2,
+        quadriceps: 2,
+        chest: 2,
+        biceps: 2,
+        calves: 2,
+        forearms: 2,
+      },
+      synergistMultiplier: 0.5,
+      restTimer: settings.timers.workout ?? 180,
+      customEquipment: settings.equipment,
+      customExercises: settings.exercises,
+      unit: settings.units,
+    };
+
+    const initialState: IPlannerState = {
+      settings: initialSettings,
+      current: { program: plannerProgram },
+      ui: { weekIndex: 0 },
+      history: { past: [], future: [] },
+    };
+
+    updateState(dispatch, [lb<IState>().p("editProgramV2").record(initialState)]);
+  }
+
+  export function createExperimental(dispatch: IDispatch, name: string, settings: ISettings): void {
+    const newProgram: IProgram = {
+      id: UidFactory.generateUid(8),
+      name,
+      url: "",
+      author: "",
+      shortDescription: "",
+      description: "",
+      nextDay: 1,
+      weeks: [],
+      isMultiweek: false,
+      days: [{ name: "Day 1", id: UidFactory.generateUid(8), exercises: [] }],
+      exercises: [],
+      tags: [],
+      deletedDays: [],
+      deletedWeeks: [],
+      deletedExercises: [],
+      clonedAt: Date.now(),
+      planner: {
+        name,
+        weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+      },
+    };
+
+    initializePlanner(dispatch, newProgram.planner!, settings);
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => [...pgms, newProgram]),
+      lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((stack) => Screen.push(stack, "editProgram")),
+      lb<IState>().p("editProgram").record({ id: newProgram.id }),
+    ]);
   }
 }

@@ -1,5 +1,4 @@
 import {
-  IPlannerProgram,
   IPlannerProgramExercise,
   IPlannerProgramProperty,
   IPlannerProgramExerciseWarmupSet,
@@ -9,6 +8,7 @@ import {
   IAllCustomExercises,
   IAllEquipment,
   IDayData,
+  IPlannerProgram,
   IProgram,
   IProgramDay,
   IProgramExercise,

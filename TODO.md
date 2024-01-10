@@ -15,6 +15,7 @@
 - Incorporate the latest RM into the RM calculator
 - Single vs double side weights (???)
 - Add rounding up/down/middle setting
+- Add reps/volume PR
 
 * Programs
   - 5/3/1s
