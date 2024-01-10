@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import "../../models/state";
-import { Exercise } from "../../models/exercise";
+import { Exercise, equipmentName } from "../../models/exercise";
 import { History } from "../../models/history";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
@@ -16,7 +16,8 @@ export function UserContent(props: IProps): JSX.Element {
   const { history, settings } = props.data;
   const maxSets = History.findAllMaxSetsPerId(props.data.history);
   const order: IExerciseId[] = ["benchPress", "overheadPress", "squat", "deadlift"];
-  const hasMainLifts = ObjectUtils.keys(maxSets).some((k) => order.indexOf(k) !== -1);
+  const mainLifts = ObjectUtils.keys(maxSets).filter((k) => order.some((i) => k.indexOf(i) !== -1));
+  const hasMainLifts = mainLifts.length > 0;
 
   const currentProgram = Program.getCurrentProgram(props.data);
 
@@ -41,9 +42,9 @@ export function UserContent(props: IProps): JSX.Element {
       {hasMainLifts && (
         <div className="mb-16">
           <h2 className="my-4 text-xl font-bold">Main Lifts Progress</h2>
-          {order.map((id) =>
+          {mainLifts.map((id) =>
             maxSets[id] != null ? (
-              <Entry exerciseId={id} maxSet={maxSets[id]!} history={history} settings={settings} />
+              <Entry exerciseTypeStr={id} maxSet={maxSets[id]!} history={history} settings={settings} />
             ) : undefined
           )}
         </div>
@@ -51,8 +52,8 @@ export function UserContent(props: IProps): JSX.Element {
       <Fragment>
         <h2 className="my-4 text-xl font-bold">{hasMainLifts ? "Rest Lifts Progress" : "Lifts Progress"}</h2>
         {ObjectUtils.keys(maxSets).map((id) =>
-          order.indexOf(id) === -1 ? (
-            <Entry exerciseId={id} maxSet={maxSets[id]!} history={history} settings={settings} />
+          mainLifts.indexOf(id) === -1 ? (
+            <Entry exerciseTypeStr={id} maxSet={maxSets[id]!} history={history} settings={settings} />
           ) : undefined
         )}
       </Fragment>
@@ -62,18 +63,20 @@ export function UserContent(props: IProps): JSX.Element {
 
 interface IEntryProps {
   history: IHistoryRecord[];
-  exerciseId: IExerciseId;
+  exerciseTypeStr: string;
   maxSet: ISet;
   settings: ISettings;
 }
 
 function Entry(props: IEntryProps): JSX.Element {
   const { history, maxSet, settings } = props;
-  const exercise = Exercise.getById(props.exerciseId, props.settings.exercises);
+  const exerciseType = Exercise.fromKey(props.exerciseTypeStr);
+  const exercise = Exercise.get(exerciseType, props.settings.exercises);
 
   return (
     <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">
       <h4 className="text-lg font-bold">{exercise.name}</h4>
+      <h5 className="text-sm text-grayv2-main">{equipmentName(exercise.equipment, props.settings.equipment)}</h5>
       <div>
         <p>
           <span dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted reps x weight: " }} />
