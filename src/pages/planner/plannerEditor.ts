@@ -217,8 +217,9 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                     "<ul>" +
                     "<li><strong><code>lp(5lb)</code></strong> - increment by 5lb if you hit all the required reps</li>" +
                     "<li><strong><code>lp(5lb, 3)</code></strong> - increment by 5lb if you hit all the required reps 3 times</li>" +
-                    "<li><strong><code>lp(5lb, 3, 10%)</code></strong> - increment by 5lb after 3 times, and decrement by 10% if you didn't hit all the required reps.</li>" +
-                    "<li><strong><code>lp(5lb, 2, 15lb, 4)</code></strong> - increment by 5lb after 2 times, and decrement by 15lb after 4 times</li>" +
+                    "<li><strong><code>lp(5lb, 3, 1)</code></strong> - increment by 5lb if you hit all the required reps 3 times, and start with 1 success</li>" +
+                    "<li><strong><code>lp(5lb, 3, 0, 10%, 1)</code></strong> - increment by 5lb after 3 times, and decrement by 10% of 1RM if you didn't hit all the required reps.</li>" +
+                    "<li><strong><code>lp(5lb, 2, 0, 15lb, 4, 0)</code></strong> - increment by 5lb after 2 times, and decrement by 15lb after 4 times</li>" +
                     "</ul>" +
                     "<p>You can use lb or kg units, and also percentages (%)</p>";
                 } else if (completion.label === "sum") {
@@ -235,7 +236,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                     "<p><strong>Double Progression</strong>. Increases reps within a range, and after that resets the reps and increase weight.</p>" +
                     "<p>For example:</p>" +
                     "<ul>" +
-                    "<li><strong><code>dp(4, 5lb)</code></strong> - It'll keep adding reps if you hit all required reps, until it adds 4 max, then it resets to the initial reps and adds 5lb</li>." +
+                    "<li><strong><code>dp(5lb, 8, 12)</code></strong> - It'll keep adding reps if you hit all required reps, until it adds 4 max (from 8 to 12), then it resets to the initial reps and adds 5lb</li>." +
                     "</ul>" +
                     "<p>You can use lb or kg units, and also percentages (%)</p>";
                 }

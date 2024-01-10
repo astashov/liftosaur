@@ -25,6 +25,7 @@ import { LinkButton } from "./linkButton";
 import { Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { Features } from "../utils/features";
+import { EditProgram } from "../models/editProgram";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -69,9 +70,15 @@ export const CardsView = memo(
                   <button
                     className="px-2 ml-1 align-middle nm-workout-edit-day"
                     onClick={() => {
-                      const programDay = Program.getProgramDay(program, props.progress.day);
-                      const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
-                      Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
+                      if (program.planner) {
+                        const dayData = Program.getDayData(program, props.progress.day);
+                        EditProgram.initializePlanner(props.dispatch, program.planner, dayData);
+                        Program.editAction(props.dispatch, program.id);
+                      } else {
+                        const programDay = Program.getProgramDay(program, props.progress.day);
+                        const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
+                        Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
+                      }
                     }}
                   >
                     <IconEditSquare />
@@ -122,6 +129,7 @@ export const CardsView = memo(
 
           return (
             <ExerciseView
+              programMode={Program.programMode(props.program)}
               history={props.history}
               helps={props.helps}
               showHelp={true}

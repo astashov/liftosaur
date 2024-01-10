@@ -1,10 +1,4 @@
-import {
-  IPlannerProgram,
-  IPlannerProgramExercise,
-  IPlannerProgramExerciseWarmupSet,
-  IPlannerProgramProperty,
-  IPlannerProgramWeek,
-} from "./types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseWarmupSet, IPlannerProgramProperty } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import {
   IPlannerEvalFullResult,
@@ -12,10 +6,12 @@ import {
   PlannerExerciseEvaluator,
   PlannerSyntaxError,
 } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IDayData, IAllEquipment } from "../../../types";
+import { IAllCustomExercises, IDayData, IPlannerProgram, IPlannerProgramWeek, ISettings } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
+import { Equipment } from "../../../models/equipment";
+import { lf } from "lens-shmens";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -27,12 +23,8 @@ export class PlannerDayDataError extends Error {
 }
 
 export class PlannerProgram {
-  public static isValid(
-    program: IPlannerProgram,
-    customExercises: IAllCustomExercises,
-    equipment: IAllEquipment
-  ): boolean {
-    const evaluatedWeeks = PlannerProgram.evaluate(program, customExercises, equipment);
+  public static isValid(program: IPlannerProgram, settings: ISettings): boolean {
+    const evaluatedWeeks = PlannerProgram.evaluate(program, settings);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
   }
 
@@ -135,27 +127,21 @@ export class PlannerProgram {
     }
   }
 
-  public static postProcess(program: IPlannerEvalResult[][]): IPlannerEvalResult[][] {
+  public static postProcess(
+    program: IPlannerEvalResult[][],
+    args?: { skipDescriptionPostProcess?: boolean }
+  ): IPlannerEvalResult[][] {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
-      if (exercise.description == null) {
-        const lastWeekExercise = this.findLastWeekExercise(
-          program,
-          weekIndex,
-          dayIndex,
-          exercise,
-          (ex) => ex.description != null
-        );
-        exercise.description = lastWeekExercise?.description;
-      }
-      if (exercise.reuse) {
-        const lastWeekExercise = this.findLastWeekExercise(program, weekIndex, dayIndex, exercise);
-        if (lastWeekExercise != null) {
-          exercise.sets = exercise.sets.length === 0 ? ObjectUtils.clone(lastWeekExercise.sets) : exercise.sets;
-          exercise.warmupSets = exercise.warmupSets || ObjectUtils.clone(lastWeekExercise.warmupSets);
-          exercise.globals.rpe = exercise.globals.rpe || lastWeekExercise.globals.rpe;
-          exercise.globals.timer = exercise.globals.timer || lastWeekExercise.globals.timer;
-          exercise.globals.percentage = exercise.globals.percentage || lastWeekExercise.globals.percentage;
-          exercise.globals.weight = exercise.globals.weight || ObjectUtils.clone(lastWeekExercise.globals.weight);
+      if (!args?.skipDescriptionPostProcess) {
+        if (exercise.description == null) {
+          const lastWeekExercise = this.findLastWeekExercise(
+            program,
+            weekIndex,
+            dayIndex,
+            exercise,
+            (ex) => ex.description != null
+          );
+          exercise.description = lastWeekExercise?.description;
         }
       }
     });
@@ -172,22 +158,41 @@ export class PlannerProgram {
 
   public static evaluate(
     plannerProgram: IPlannerProgram,
-    customExercises: IAllCustomExercises,
-    equipment: IAllEquipment
+    settings: ISettings,
+    args?: { skipDescriptionPostProcess?: boolean }
   ): IPlannerEvalResult[][] {
-    const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week) => {
-      return week.days.map((day) => {
+    let dayIndex = 0;
+    let evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
+      return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, customExercises, equipment, "perday");
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
+          day: dayIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          week: weekIndex + 1,
+        });
         const result = evaluator.evaluate(tree.topNode);
+        dayIndex += 1;
         return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
     });
-    this.postProcess(evaluatedWeeks);
+    dayIndex = 0;
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
+    plannerProgram.weeks.forEach((week, weekIndex) => {
+      week.days.forEach((day, dayInWeekIndex) => {
+        if (evaluatedWeeks[weekIndex][dayInWeekIndex].success) {
+          const tree = plannerExerciseParser.parse(day.exerciseText);
+          const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
+          const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
+          if (error) {
+            evaluatedWeeks = lf(evaluatedWeeks).i(weekIndex).i(dayInWeekIndex).set({ success: false, error });
+          }
+        }
+      });
+    });
+    this.postProcess(evaluatedWeeks, args);
     try {
-      PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, customExercises);
-      PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, customExercises);
+      PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);
+      PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, settings.exercises);
     } catch (e) {
       if (e instanceof PlannerDayDataError) {
         errors.push({ error: e.message, dayData: e.dayData });
@@ -204,14 +209,20 @@ export class PlannerProgram {
     return evaluatedWeeks;
   }
 
-  public static evaluateFull(
-    fullProgramText: string,
-    customExercises: IAllCustomExercises,
-    equipment: IAllEquipment
-  ): IPlannerEvalFullResult {
-    const evaluator = new PlannerExerciseEvaluator(fullProgramText, customExercises, equipment, "full");
+  public static evaluateFull(fullProgramText: string, settings: ISettings): IPlannerEvalFullResult {
+    const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
     const tree = plannerExerciseParser.parse(fullProgramText);
-    return evaluator.evaluate(tree.topNode);
+    const result = evaluator.evaluate(tree.topNode);
+    if (result.success) {
+      const evaluatedWeeks = result.data.map((week) =>
+        week.days.map((d) => ({ success: true as const, data: d.exercises }))
+      );
+      const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
+      if (error) {
+        return { success: false, error };
+      }
+    }
+    return result;
   }
 
   public static evaluateText(fullProgramText: string): IPlannerExerciseEvaluatorTextWeek[] {
@@ -280,8 +291,37 @@ export class PlannerProgram {
     }
   }
 
+  public static nameToKey(labelNameAndEquipment: string, settings: ISettings): string {
+    let equip: string | undefined;
+    const parts = labelNameAndEquipment.split(",");
+    if (parts.length > 1) {
+      equip = parts.pop();
+    }
+    equip = equip?.trim();
+    if (equip) {
+      equip = Equipment.equipmentKeyByName(equip, settings.equipment);
+    }
+    const nameAndLabel = parts.join(",").trim();
+    const [labelOrName, ...nameParts] = nameAndLabel.split(":");
+    let label: string | undefined;
+    let name: string;
+    if (nameParts.length === 0) {
+      name = labelOrName;
+      label = undefined;
+    } else {
+      label = labelOrName.trim();
+      name = nameParts.join(":").trim();
+    }
+    if (equip == null) {
+      const exercise = Exercise.findByName(name, settings.exercises);
+      equip = exercise?.defaultEquipment;
+    }
+    const key = `${label ? `${label}-` : ""}${name}-${equip}`.toLowerCase();
+    return key;
+  }
+
   public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
     const equipment = plannerExercise.equipment ?? exercise.defaultEquipment;
-    return `${plannerExercise.label ? `${plannerExercise.label}_` : ""}${exercise.id}_${equipment}`.toLowerCase();
+    return `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${exercise.id}-${equipment}`.toLowerCase();
   }
 }

@@ -1,13 +1,16 @@
 import { CollectionUtils } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types";
+import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate, IPercentage } from "../types";
+import { MathUtils } from "../utils/math";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
 export namespace Weight {
-  export function display(weight: IWeight | number, withUnit: boolean = true): string {
+  export function display(weight: IWeight | IPercentage | number, withUnit: boolean = true): string {
     if (typeof weight === "number") {
       return `${weight}`;
+    } else if (Weight.isPct(weight)) {
+      return `${weight.value}${withUnit ? "%" : ""}`;
     } else {
       return weight.value === 0
         ? "BW"
@@ -15,8 +18,25 @@ export namespace Weight {
     }
   }
 
-  export function print(weight: IWeight): string {
+  export function print(weight: IWeight | IPercentage): string {
     return `${weight.value}${weight.unit}`;
+  }
+
+  export function parse(str: string): IWeight | undefined {
+    const match = str.match(/^([0-9.]+)\s*(kg|lb)$/);
+    if (match) {
+      return build(MathUtils.roundFloat(parseFloat(match[1]), 2), match[2] as IUnit);
+    } else {
+      return undefined;
+    }
+  }
+
+  export function printOrNumber(weight: IWeight | IPercentage | number): string {
+    return typeof weight === "number" ? `${weight}` : print(weight);
+  }
+
+  export function buildPct(value: number): IPercentage {
+    return { value, unit: "%" };
   }
 
   export function build(value: number, unit: IUnit): IWeight {
@@ -43,6 +63,17 @@ export namespace Weight {
       "unit" in objWeight &&
       "value" in objWeight &&
       (objWeight.unit === "kg" || objWeight.unit === "lb")
+    );
+  }
+
+  export function isPct(object: unknown): object is IPercentage {
+    const objWeight = object as IPercentage;
+    return (
+      objWeight &&
+      typeof objWeight === "object" &&
+      "unit" in objWeight &&
+      "value" in objWeight &&
+      objWeight.unit === "%"
     );
   }
 
@@ -104,7 +135,7 @@ export namespace Weight {
   }
 
   export function roundTo005(weight: IWeight): IWeight {
-    return Weight.build(Math.round(weight.value / 0.05) * 0.05, weight.unit);
+    return Weight.build(MathUtils.roundTo005(weight.value), weight.unit);
   }
 
   export function calculatePlates(
@@ -220,30 +251,30 @@ export namespace Weight {
   }
 
   export function multiply(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => a * b);
+    return operation(weight, value, (a, b) => MathUtils.roundTo005(a * b));
   }
 
   export function divide(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => a / b);
+    return operation(weight, value, (a, b) => MathUtils.roundTo005(a / b));
   }
 
-  export function gt(weight: IWeight | number, value: IWeight | number): boolean {
+  export function gt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a > b);
   }
 
-  export function lt(weight: IWeight | number, value: IWeight | number): boolean {
+  export function lt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a < b);
   }
 
-  export function gte(weight: IWeight | number, value: IWeight | number): boolean {
+  export function gte(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a >= b);
   }
 
-  export function lte(weight: IWeight | number, value: IWeight | number): boolean {
+  export function lte(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a <= b);
   }
 
-  export function eq(weight: IWeight | number, value: IWeight | number): boolean {
+  export function eq(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a === b);
   }
 
@@ -259,10 +290,23 @@ export namespace Weight {
     return round(convertTo(weight, settings.units), settings, equipment);
   }
 
+  export function type(value: number | IWeight | IPercentage): "weight" | "percentage" | "number" {
+    if (typeof value === "number") {
+      return "number";
+    } else if (Weight.isPct(value)) {
+      return "percentage";
+    } else {
+      return "weight";
+    }
+  }
+
   export function convertTo(weight: IWeight, unit: IUnit): IWeight;
+  export function convertTo(weight: IPercentage, unit: "%" | IUnit): IPercentage;
   export function convertTo(weight: number, unit: IUnit): number;
-  export function convertTo(weight: IWeight | number, unit: IUnit): IWeight | number {
+  export function convertTo(weight: IWeight | number | IPercentage, unit: IUnit | "%"): IWeight | number | IPercentage {
     if (typeof weight === "number") {
+      return weight;
+    } else if (weight.unit === "%" || unit === "%") {
       return weight;
     } else {
       if (weight.unit === unit) {
@@ -284,36 +328,81 @@ export namespace Weight {
   }
 
   function comparison(
-    weight: IWeight | number,
-    value: IWeight | number,
-    op: (a: number, b: number) => boolean
+    weight: IWeight | number | IPercentage,
+    value: IWeight | number | IPercentage,
+    o: (a: number, b: number) => boolean
   ): boolean {
     if (typeof weight === "number" && typeof value === "number") {
-      return op(weight, value);
+      return o(weight, value);
     } else if (typeof weight === "number" && typeof value !== "number") {
-      return op(weight, value.value);
+      return o(weight, value.value);
     } else if (typeof weight !== "number" && typeof value === "number") {
-      return op(weight.value, value);
+      return o(weight.value, value);
     } else if (typeof weight !== "number" && typeof value !== "number") {
-      return op(weight.value, convertTo(value, weight.unit).value);
+      if (weight.unit === "%" || value.unit === "%") {
+        return o(weight.value, value.value);
+      } else {
+        return o(weight.value, convertTo(value, weight.unit).value);
+      }
     } else {
       return false;
     }
   }
 
-  export function operation(weight: IWeight, value: IWeight | number, op: (a: number, b: number) => number): IWeight;
-  export function operation(weight: IWeight | number, value: IWeight, op: (a: number, b: number) => number): IWeight;
+  export function op(
+    onerm: IWeight | undefined,
+    a: IWeight | number | IPercentage,
+    b: IWeight | number | IPercentage,
+    o: (x: number, y: number) => number
+  ): IWeight | number | IPercentage {
+    if (typeof a === "number" && typeof b === "number") {
+      return o(a, b);
+    }
+    if (typeof a === "number" && Weight.isPct(b)) {
+      return Weight.buildPct(o(a, b.value));
+    }
+    if (typeof a === "number" && Weight.is(b)) {
+      return Weight.operation(a, b, o);
+    }
+
+    if (Weight.isPct(a) && typeof b === "number") {
+      return Weight.buildPct(o(a.value, b));
+    }
+    if (Weight.isPct(a) && Weight.isPct(b)) {
+      return Weight.buildPct(o(a.value, b.value));
+    }
+    if (Weight.isPct(a) && Weight.is(b)) {
+      const aWeight = onerm ? Weight.multiply(onerm, a.value / 100) : MathUtils.roundFloat(a.value / 100, 4);
+      return Weight.operation(aWeight, b, o);
+    }
+
+    if (Weight.is(a) && typeof b === "number") {
+      return Weight.operation(a, b, o);
+    }
+    if (Weight.is(a) && Weight.isPct(b)) {
+      const bWeight = onerm ? Weight.multiply(onerm, b.value / 100) : MathUtils.roundFloat(b.value / 100, 4);
+      return Weight.operation(a, bWeight, o);
+    }
+    if (Weight.is(a) && Weight.is(b)) {
+      return Weight.operation(a, b, o);
+    }
+
+    throw new Error(`Can't apply operation to ${a} and ${b}`);
+  }
+
+  export function operation(weight: IWeight, value: IWeight | number, o: (a: number, b: number) => number): IWeight;
+  export function operation(weight: IWeight | number, value: IWeight, o: (a: number, b: number) => number): IWeight;
   export function operation(
     weight: IWeight | number,
     value: IWeight | number,
-    op: (a: number, b: number) => number
+    o: (a: number, b: number) => number
   ): IWeight {
     if (typeof weight === "number" && typeof value !== "number") {
-      return Weight.build(op(weight, value.value), value.unit);
+      return Weight.build(o(weight, value.value), value.unit);
     } else if (typeof weight !== "number" && typeof value === "number") {
-      return Weight.build(op(weight.value, value), weight.unit);
+      return Weight.build(o(weight.value, value), weight.unit);
     } else if (typeof weight !== "number" && typeof value !== "number") {
-      return Weight.build(op(weight.value, convertTo(value, weight.unit).value), weight.unit);
+      return Weight.build(o(weight.value, convertTo(value, weight.unit).value), weight.unit);
     } else {
       throw new Error("Weight.operation should never work with numbers only");
     }

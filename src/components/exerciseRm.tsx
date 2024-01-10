@@ -1,8 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Exercise, IExercise } from "../models/exercise";
-import { IUnit, IExerciseData, IExerciseDataValue } from "../types";
-import { Weight } from "../models/weight";
+import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { Modal } from "./modal";
@@ -12,15 +11,12 @@ interface IExerciseRMProps {
   name: string;
   rmKey: keyof IExerciseDataValue;
   exercise: IExercise;
-  exerciseData: IExerciseData;
-  units: IUnit;
+  settings: ISettings;
   onEditVariable: (value: number) => void;
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
-  let rm = props.exerciseData[Exercise.toKey(props.exercise)]?.[props.rmKey];
-  rm = rm || (props.units === "kg" ? props.exercise.startingWeightKg : props.exercise.startingWeightLb);
-  rm = Weight.convertTo(rm, props.units);
+  const rm = Exercise.onerm(props.exercise, props.settings);
   const [showCalculator, setShowCalculator] = useState(false);
 
   return (
@@ -56,7 +52,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
         <Modal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
           <RepMaxCalculator
             backLabel="Close"
-            unit={props.units}
+            unit={props.settings.units}
             onSelect={(weightValue) => {
               if (weightValue != null) {
                 props.onEditVariable(weightValue);

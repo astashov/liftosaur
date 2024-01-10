@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { inputClassName } from "../../../components/input";
 import { Weight } from "../../../models/weight";
-import { IProgramState, ISettings, IWeight } from "../../../types";
+import { IPercentage, IProgramState, ISettings, IWeight } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { SendMessage } from "../../../utils/sendMessage";
 
@@ -10,7 +10,7 @@ interface IStateVarsProps {
   id: string;
   stateVars: IProgramState;
   settings: ISettings;
-  onChange: (key: string, value: number | IWeight) => void;
+  onChange: (key: string, value: number | IWeight | IPercentage) => void;
 }
 
 export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
@@ -38,7 +38,12 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
             const newValStr = (e.target as HTMLInputElement).value;
             const newVal = newValStr ? parseInt(newValStr, 10) : undefined;
             if (newVal != null && !isNaN(newVal)) {
-              const newValue = typeof variable === "number" ? newVal : Weight.build(newVal, variable.unit);
+              const newValue =
+                typeof variable === "number"
+                  ? newVal
+                  : Weight.isPct(variable)
+                  ? Weight.buildPct(newVal)
+                  : Weight.build(newVal, variable.unit);
               props.onChange(key, newValue);
             }
           }}

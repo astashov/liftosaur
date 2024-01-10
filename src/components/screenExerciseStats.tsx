@@ -125,8 +125,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             name="1 Rep Max"
             rmKey="rm1"
             exercise={fullExercise}
-            exerciseData={props.settings.exerciseData}
-            units={props.settings.units}
+            settings={props.settings}
             onEditVariable={(value) => {
               updateState(props.dispatch, [
                 lb<IState>()

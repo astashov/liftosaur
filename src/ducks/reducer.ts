@@ -19,6 +19,7 @@ import {
   IHistoryRecord,
   IProgram,
   IProgramExercise,
+  IPercentage,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -202,7 +203,7 @@ export type IChangeAMRAPAction = {
   isAmrap?: boolean;
   logRpe?: boolean;
   programExerciseId?: string;
-  userVars?: Record<string, number | IWeight>;
+  userVars?: Record<string, number | IWeight | IPercentage>;
 };
 
 export type IChangeWeightAction = {
@@ -399,6 +400,13 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
         const userId = newState.user?.id || newState.storage.tempUserId;
         Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if ("type" in action && action.type === "UpdateState" && action.desc === "stop-is-undoing") {
+        setTimeout(() => {
+          window.isUndoing = false;
+        }, 200);
       }
     },
   ];

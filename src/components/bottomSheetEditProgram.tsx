@@ -29,7 +29,7 @@ export function BottomSheetEditProgram(props: IProps): JSX.Element {
           className="ls-preview-program"
           title="Preview Program"
           isFirst={true}
-          icon={<IconPreview />}
+          icon={<IconPreview className="inline-block" />}
           description="Preview the current program."
           onClick={() => Program.previewProgram(props.dispatch, props.editProgramId, true)}
         />

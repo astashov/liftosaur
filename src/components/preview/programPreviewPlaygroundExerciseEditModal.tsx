@@ -14,6 +14,7 @@ interface IProgramPreviewPlaygroundExerciseEditModalProps {
   onClose: () => void;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   onEditVariable: (variableKey: keyof IExerciseDataValue, newValue: number) => void;
+  isPlanner: boolean;
   settings: ISettings;
 }
 
@@ -23,21 +24,20 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   const programExercise = props.programExercise;
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
   const hasRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
-  if (!hasStateVariables && !hasRm1) {
+  if (!hasStateVariables && !hasRm1 && !props.isPlanner) {
     return <></>;
   }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <div style={{ minWidth: "15rem" }}>
-        {hasRm1 && (
+        {(props.isPlanner || hasRm1) && (
           <>
             <ExerciseRM
               name="1 Rep Max"
               rmKey="rm1"
               exercise={exercise}
-              exerciseData={props.settings.exerciseData}
-              units={props.settings.units}
+              settings={props.settings}
               onEditVariable={(value) => {
                 props.onEditVariable("rm1", value);
               }}

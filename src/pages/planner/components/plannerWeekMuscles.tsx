@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { h, JSX } from "preact";
 import { ObjectUtils } from "../../../utils/object";
-import { IScreenMuscle } from "../../../models/muscle";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";
-import { IMuscleGroupSetSplit, IPlannerSettings } from "../models/types";
+import { IMuscleGroupSetSplit } from "../models/types";
+import { ISettings, IScreenMuscle } from "../../../types";
 
 interface IPlannerMusclesProps {
-  settings: IPlannerSettings;
+  settings: ISettings;
   data: IMuscleGroupSetSplit;
 }
 
 export function PlannerWeekMuscles(props: IPlannerMusclesProps): JSX.Element {
   const muscleData = ObjectUtils.keys(props.data).reduce<Partial<Record<IScreenMuscle, IMuscleStyle>>>((memo, key) => {
     const setNumber = props.data[key].strength + props.data[key].hypertrophy;
-    const [, max] = props.settings.weeklyRangeSets[key];
+    const [, max] = props.settings.planner.weeklyRangeSets[key] ?? [0, 0];
     const value = setNumber / max;
     memo[key] = { opacity: value, fill: "#28839F" };
     return memo;

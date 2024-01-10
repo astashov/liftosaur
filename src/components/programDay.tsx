@@ -154,6 +154,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 programExerciseId={editModalProgramExercise}
                 entryIndex={progress.ui?.editModal?.entryIndex || 0}
                 progressId={props.progress.id}
+                day={props.progress.day}
                 settings={props.settings}
                 dispatch={props.dispatch}
               />
@@ -166,7 +167,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             <ModalExercise
               isHidden={progress.ui?.addExerciseModal == null}
               settings={props.settings}
-              onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
+              onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
                 EditCustomExercise.createOrUpdate(
                   props.dispatch,
                   name,

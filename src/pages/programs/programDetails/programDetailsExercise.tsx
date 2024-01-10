@@ -3,7 +3,7 @@ import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { useState } from "preact/hooks";
 import { ExerciseImage } from "../../../components/exerciseImage";
-import { Program } from "../../../models/program";
+import { IProgramMode, Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progression } from "../../../models/progression";
 import { IDayData, IProgramExercise, ISettings, ISubscription } from "../../../types";
@@ -17,6 +17,7 @@ import { IProgramDetailsDispatch, IProgramDetailsState } from "./types";
 interface IProgramDetailsExerciseProps {
   programId: string;
   programExercise: IProgramExercise;
+  programMode: IProgramMode;
   allProgramExercises: IProgramExercise[];
   programExerciseIndex: number;
   subscription: ISubscription;
@@ -90,6 +91,7 @@ export const ProgramDetailsExercise = memo(
               </div>
               <div className="flex-1 program-details-exercise-playground">
                 <Playground
+                  programMode={props.programMode}
                   programId={props.programId}
                   subscription={props.subscription}
                   programExercise={programExercise}

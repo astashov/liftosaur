@@ -316,6 +316,7 @@ export namespace Storage {
         volume: merge2("settings", "volume"),
         alwaysOnDisplay: merge2("settings", "alwaysOnDisplay"),
         exerciseData: merge2("settings", "exerciseData"),
+        planner: merge2("settings", "planner"),
       },
       subscription: mergeAs("subscription", (a, b) => ({
         apple: { ...a.apple, ...b.apple },

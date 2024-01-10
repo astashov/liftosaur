@@ -15,7 +15,8 @@
 expression {
   BinaryExpression |
   NumberExpression |
-  WeightExpression | 
+  WeightExpression |
+  Percentage |
   ParenthesisExpression |
   BlockExpression |
   Ternary |
@@ -38,9 +39,8 @@ IfExpression {
 AssignmentExpression { (StateVariable | VariableExpression) !assign "=" expression }
 IncAssignmentExpression { (StateVariable | VariableExpression) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
-VariableIndex { expression | Wildcard | Current }
+VariableIndex { Wildcard | expression }
 Wildcard { "*" }
-Current { "_" }
 FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
 NumberExpression { !unary Plus? Number }
@@ -71,8 +71,9 @@ UnaryExpression {
 
   Number { (@digit+ ("." @digit+)*) | "." @digit+ | @digit+ "." }
   Plus { ("+" | "-") }
+  Percentage { Number "%" }
   IncAssignment { ("+=" | "-=" | "*=" | "/=") }
-  @precedence { Number, Plus }
+  @precedence { Percentage, Number, Plus }
 
   Times { ("*" | "/" | "%") }
   Cmp { ( ">" "="? | "==" | "!=" | "<" "="? ) }

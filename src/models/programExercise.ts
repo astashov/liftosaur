@@ -11,17 +11,24 @@ import {
   IProgramExerciseReuseLogic,
   IDayData,
   IProgram,
+  IPercentage,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
-import { IProgramStateMetadata, IWeight } from "../types";
+import { IProgramStateMetadata, IWeight, IPlannerProgram } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { IBuilderExercise } from "../pages/builder/models/types";
 import { Exercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
+import { IAssignmentOp, ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerToProgram2 } from "./plannerToProgram2";
+import { ProgramToPlanner } from "./programToPlanner";
+import { Progress } from "./progress";
+import { MathUtils } from "../utils/math";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -75,7 +82,11 @@ export namespace ProgramExercise {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
   ): string {
-    return getProgramExercise(programExercise, allProgramExercises).finishDayExpr;
+    if (programExercise.reuseFinishDayScript) {
+      return allProgramExercises.find((pe) => pe.id === programExercise.reuseFinishDayScript)?.finishDayExpr || "";
+    } else {
+      return getProgramExercise(programExercise, allProgramExercises).finishDayExpr;
+    }
   }
 
   export function getVariationScript(
@@ -221,7 +232,7 @@ export namespace ProgramExercise {
     );
   }
 
-  export function getStateVariableType(value: number | IWeight): "number" | "kg" | "lb" {
+  export function getStateVariableType(value: number | IWeight | IPercentage): "number" | "kg" | "lb" | "%" {
     if (typeof value === "number") {
       return "number";
     } else {
@@ -469,5 +480,178 @@ export namespace ProgramExercise {
       warmupSets: v1("warmupSets"),
       diffPaths: enforceNew ? oldExercise.diffPaths : [],
     };
+  }
+
+  export function applyVariables(
+    dayData: IDayData,
+    programExercise: IProgramExercise,
+    plannerProgram: IPlannerProgram,
+    variables: ILiftoscriptEvaluatorVariables,
+    settings: ISettings
+  ): IProgramExercise {
+    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).map((w) =>
+      CollectionUtils.compact(
+        w.map((d) => {
+          if (d.success) {
+            return d.data.filter(
+              (e) =>
+                PlannerToProgram2.plannerExerciseKey(e, settings) ===
+                ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings)
+            );
+          } else {
+            return undefined;
+          }
+        })
+      )
+    );
+    const exerciseKey = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings);
+    const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
+    const variationsMap = allVariationsMap[exerciseKey];
+
+    const keys = ["RPE", "reps", "weights", "minReps", "timer"] as const;
+    for (const key of keys) {
+      const values = variables[key];
+      if (values != null) {
+        for (const value of values) {
+          const target = normalizeTarget(value.target, 4);
+          const [week, day, variation, set] = target;
+          let dayIndex = 0;
+          for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
+            for (let dayInWeekIndex = 0; dayInWeekIndex < evaluatedWeeks[weekIndex].length; dayInWeekIndex += 1) {
+              if (variationsMap[dayIndex]) {
+                const [from, to] = variationsMap[dayIndex];
+                const variations = programExercise.variations.slice(from, to);
+                for (let variationIndex = 0; variationIndex < variations.length; variationIndex += 1) {
+                  const sets = variations[variationIndex].sets;
+                  for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
+                    if (
+                      (week === "*" || week === weekIndex + 1) &&
+                      (day === "*" || day === dayInWeekIndex + 1) &&
+                      (variation === "*" || variation === variationIndex + 1) &&
+                      (set === "*" || set === setIndex + 1)
+                    ) {
+                      if (key === "RPE") {
+                        operation(programExercise, sets[setIndex], dayData, settings, "rpeExpr", value.value, value.op);
+                      } else if (key === "reps") {
+                        operation(
+                          programExercise,
+                          sets[setIndex],
+                          dayData,
+                          settings,
+                          "repsExpr",
+                          value.value,
+                          value.op
+                        );
+                      } else if (key === "minReps") {
+                        operation(
+                          programExercise,
+                          sets[setIndex],
+                          dayData,
+                          settings,
+                          "minRepsExpr",
+                          value.value,
+                          value.op
+                        );
+                      } else if (key === "timer") {
+                        operation(
+                          programExercise,
+                          sets[setIndex],
+                          dayData,
+                          settings,
+                          "timerExpr",
+                          value.value,
+                          value.op
+                        );
+                      } else if (key === "weights") {
+                        operation(
+                          programExercise,
+                          sets[setIndex],
+                          dayData,
+                          settings,
+                          "weightExpr",
+                          value.value,
+                          value.op
+                        );
+                      }
+                    }
+                  }
+                }
+              }
+              dayIndex += 1;
+            }
+          }
+        }
+      }
+    }
+    return programExercise;
+  }
+
+  function runScript(
+    script: string,
+    programExercise: IProgramExercise,
+    dayData: IDayData,
+    settings: ISettings
+  ): ScriptRunner {
+    return new ScriptRunner(
+      script,
+      programExercise.state,
+      Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
+      Progress.createScriptFunctions(settings),
+      settings.units,
+      { equipment: programExercise.exerciseType.equipment },
+      "planner"
+    );
+  }
+
+  function safe<T>(defaultValue: T, cb: () => T): T {
+    return ScriptRunner.safe(cb, (e) => `There's an error while executing the script.`, defaultValue, false);
+  }
+
+  function operation(
+    programExercise: IProgramExercise,
+    set: IProgramSet,
+    dayData: IDayData,
+    settings: ISettings,
+    key: "repsExpr" | "weightExpr" | "rpeExpr" | "minRepsExpr" | "timerExpr",
+    value: IWeight | IPercentage | number,
+    op: IAssignmentOp
+  ): void {
+    if (op === "=") {
+      set[key] = Weight.printOrNumber(value);
+    } else {
+      const script = set[key] ?? "";
+      const onerm = Exercise.onerm(programExercise.exerciseType, settings);
+      const oldValue =
+        key === "repsExpr"
+          ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("reps"))
+          : key === "minRepsExpr"
+          ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("reps"))
+          : key === "timerExpr"
+          ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("timer"))
+          : key === "rpeExpr"
+          ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("rpe"))
+          : key === "weightExpr"
+          ? safe(Weight.build(0, settings.units), () =>
+              runScript(script, programExercise, dayData, settings).execute("weight")
+            )
+          : 0;
+      if (op === "+=") {
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => a + b));
+      } else if (op === "-=") {
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => a - b));
+      } else if (op === "*=") {
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a * b)));
+      } else if (op === "/=") {
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a / b)));
+      }
+    }
+  }
+
+  export function normalizeTarget(target: (number | "*" | "_")[], length: number): (number | "*" | "_")[] {
+    const newTarget = [...target];
+    for (let i = 0; i < length - target.length; i += 1) {
+      newTarget.unshift("*");
+    }
+    return newTarget;
   }
 }

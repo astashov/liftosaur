@@ -11,6 +11,7 @@ import {
   ISettings,
   exerciseKinds,
   IExerciseKind,
+  screenMuscles,
 } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { forwardRef } from "preact/compat";
@@ -26,7 +27,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { ExerciseImage } from "./exerciseImage";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
-import { Muscle, screenMuscles } from "../models/muscle";
+import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 
 interface IModalExerciseProps {
@@ -36,6 +37,7 @@ interface IModalExerciseProps {
   initialFilterTypes?: string[];
   onChange: (value?: IExerciseId) => void;
   onCreateOrUpdate: (
+    shouldClose: boolean,
     name: string,
     equipment: IEquipment,
     targetMuscles: IMuscle[],
@@ -268,6 +270,7 @@ interface IEditCustomExerciseProps {
   exercise?: ICustomExercise;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   onCreateOrUpdate: (
+    shouldClose: boolean,
     name: string,
     equipment: IEquipment,
     targetMuscles: IMuscle[],
@@ -370,7 +373,15 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
                 setNameError("Name already taken");
               } else {
                 setNameError(undefined);
-                props.onCreateOrUpdate(name, equipment, targetMuscles, synergistMuscles, types, props.exercise);
+                props.onCreateOrUpdate(
+                  !!props.customExerciseName,
+                  name,
+                  equipment,
+                  targetMuscles,
+                  synergistMuscles,
+                  types,
+                  props.exercise
+                );
                 props.setIsCustomExerciseDisplayed(false);
               }
             }}

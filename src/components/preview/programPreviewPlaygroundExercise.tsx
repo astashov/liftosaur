@@ -193,10 +193,11 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           forceShow={false}
           settings={props.settings}
           dayData={dayData}
-          state={ProgramExercise.getState(props.programExercise, props.program.exercises)}
           userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
-          script={ProgramExercise.getFinishDayScript(props.programExercise, props.program.exercises)}
+          programExercise={props.programExercise}
+          allProgramExercises={props.program.exercises}
           staticState={props.staticState}
+          mode={Program.programMode(props.program)}
         />
       )}
     </div>

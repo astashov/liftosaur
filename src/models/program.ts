@@ -41,7 +41,10 @@ import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
-import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { ILiftoscriptEvaluatorVariables, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
+import { ProgramToPlanner } from "./programToPlanner";
+import { MathUtils } from "../utils/math";
+import { PlannerToProgram2 } from "./plannerToProgram2";
 
 declare let __HOST__: string;
 
@@ -52,6 +55,8 @@ export interface IExportedProgram {
   version: string;
   settings: IProgramContentSettings;
 }
+
+export type IProgramMode = "planner" | "regular";
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
@@ -171,7 +176,7 @@ export namespace Program {
       );
       const weightValue = ScriptRunner.safe(
         () => {
-          return new ScriptRunner(
+          let weight = new ScriptRunner(
             set.weightExpr,
             state,
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
@@ -180,6 +185,10 @@ export namespace Program {
             { equipment: exercise.equipment },
             "regular"
           ).execute("weight");
+          if (Weight.isPct(weight)) {
+            weight = Weight.multiply(Exercise.onerm(exercise, settings), MathUtils.roundFloat(weight.value / 100, 4));
+          }
+          return weight;
         },
         (e) => {
           return `There's an error while calculating weight for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's weight script.`;
@@ -347,15 +356,30 @@ export namespace Program {
     }
   }
 
+  export function programMode(program?: IProgram): IProgramMode {
+    return program?.planner != null ? "planner" : "regular";
+  }
+
   export function runExerciseFinishDayScript(
     entry: IHistoryEntry,
     dayData: IDayData,
     settings: ISettings,
     state: IProgramState,
-    script: string,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    mode: IProgramMode,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables: ILiftoscriptEvaluatorVariables }, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry, settings);
+    const script = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
+    const setVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
     let variables: ILiftoscriptEvaluatorVariables = {};
@@ -370,7 +394,7 @@ export namespace Program {
         {
           equipment: entry.exercise.equipment,
         },
-        "regular"
+        mode
       );
       runner.execute();
       variables = runner.getVariables();
@@ -516,13 +540,21 @@ export namespace Program {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
+    mode: IProgramMode,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables?: ILiftoscriptEvaluatorVariables }, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry, settings);
-    const fns = Progress.createScriptFunctions(settings);
-
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const setVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
+    const fns = Progress.createScriptFunctions(settings);
 
     const newState: IProgramState = {
       ...state,
@@ -541,7 +573,7 @@ export namespace Program {
         {
           equipment: programExercise.exerciseType.equipment,
         },
-        "regular"
+        mode
       );
       runner.execute();
       variables = runner.getVariables();
@@ -587,7 +619,9 @@ export namespace Program {
     staticStates?: Partial<Record<string, IProgramState>>
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
-    const newProgram = lf(program)
+    const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
+    const dayData = Progress.getDayData(progress);
+    let newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
         es.map((e) => {
@@ -597,23 +631,42 @@ export namespace Program {
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
-              Progress.getDayData(progress),
+              dayData,
               entry,
               settings,
+              Program.programMode(program),
               progress.userPromptedStateVars?.[e.id],
               staticState
             );
             if (newStateResult.success) {
               const { state, variables } = newStateResult.data;
+              const exerciseKey = Exercise.toKey(entry.exercise);
               if (variables?.rm1 != null) {
-                exerciseData[Exercise.toKey(entry.exercise)] = { rm1: variables.rm1 };
+                exerciseData[exerciseKey] = { rm1: Weight.roundTo005(variables.rm1) };
               }
               const reuseLogicId = e.reuseLogic?.selected;
-              if (reuseLogicId) {
-                return lf(e).pi("reuseLogic").p("states").p(reuseLogicId).set(state);
-              } else {
-                return lf(e).p("state").set(state);
+              let newExercise = ObjectUtils.clone(e);
+
+              if (Program.programMode(program) === "planner" && variables != null) {
+                newExercise = ProgramExercise.applyVariables(
+                  dayData,
+                  newExercise,
+                  program.planner!,
+                  variables,
+                  settings
+                );
+                if (variables.setVariationIndex?.length) {
+                  setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
+                    variables.setVariationIndex;
+                }
               }
+
+              if (reuseLogicId && newExercise.reuseLogic) {
+                newExercise.reuseLogic.states[reuseLogicId] = state;
+              } else {
+                newExercise.state = state;
+              }
+              return newExercise;
             } else {
               alert(
                 `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
@@ -623,6 +676,21 @@ export namespace Program {
           return e;
         })
       );
+    if (program.planner) {
+      newProgram.planner = new ProgramToPlanner(
+        newProgram,
+        program.planner,
+        settings,
+        setVariationIndexMap
+      ).convertToPlanner();
+      newProgram = new PlannerToProgram2(
+        newProgram.id,
+        newProgram.exercises,
+        newProgram.planner,
+        settings
+      ).convertToProgram();
+    }
+
     return {
       program: lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day)),
       exerciseData,
@@ -831,6 +899,7 @@ export namespace Program {
   export function editAction(dispatch: IDispatch, id: string): void {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id }),
+      lb<IState>().p("editProgramV2").record(undefined),
       lb<IState>()
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "editProgram")),

@@ -428,7 +428,21 @@ export const TSet = t.intersection(
 );
 export type ISet = t.TypeOf<typeof TSet>;
 
-export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
+export const percentageUnits = ["%"] as const;
+
+export const TPercentageUnit = t.keyof(
+  percentageUnits.reduce<Record<IArrayElement<typeof percentageUnits>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof percentageUnits>, null>),
+  "TUnit"
+);
+export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
+
+export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
+export type IPercentage = t.TypeOf<typeof TPercentage>;
+
+export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight, TPercentage]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
 
 export const THistoryEntry = t.intersection(
@@ -472,6 +486,7 @@ export const TProgramSet = t.intersection(
       minRepsExpr: t.string,
       logRpe: t.boolean,
       label: t.string,
+      timerExpr: t.string,
     }),
   ],
   "TProgramSet"
@@ -528,11 +543,12 @@ export const TProgramExercise = t.intersection(
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
+      reuseFinishDayScript: t.string,
     }),
   ],
   "TProgramExercise"
 );
-export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
+export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
 export const TProgressUi = t.partial(
   {
@@ -678,6 +694,24 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
 
+export const TPlannerProgramDay = t.type({
+  name: t.string,
+  exerciseText: t.string,
+});
+export type IPlannerProgramDay = t.TypeOf<typeof TPlannerProgramDay>;
+
+export const TPlannerProgramWeek = t.type({
+  name: t.string,
+  days: t.array(TPlannerProgramDay),
+});
+export type IPlannerProgramWeek = Readonly<t.TypeOf<typeof TPlannerProgramWeek>>;
+
+export const TPlannerProgram = t.type({
+  name: t.string,
+  weeks: t.array(TPlannerProgramWeek),
+});
+export type IPlannerProgram = Readonly<t.TypeOf<typeof TPlannerProgram>>;
+
 export const TProgram = t.intersection(
   [
     t.interface({
@@ -699,11 +733,12 @@ export const TProgram = t.intersection(
       deletedExercises: t.array(t.string),
       clonedAt: t.number,
       shortDescription: t.string,
+      planner: TPlannerProgram,
     }),
   ],
   "TProgram"
 );
-export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;
+export type IProgram = t.TypeOf<typeof TProgram>;
 
 export const lengthUnits = ["in", "cm"] as const;
 
@@ -718,20 +753,6 @@ export type ILengthUnit = t.TypeOf<typeof TLengthUnit>;
 
 export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength");
 export type ILength = t.TypeOf<typeof TLength>;
-
-export const percentageUnits = ["%"] as const;
-
-export const TPercentageUnit = t.keyof(
-  percentageUnits.reduce<Record<IArrayElement<typeof percentageUnits>, null>>((memo, exerciseType) => {
-    memo[exerciseType] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof percentageUnits>, null>),
-  "TUnit"
-);
-export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
-
-export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
-export type IPercentage = t.TypeOf<typeof TPercentage>;
 
 export const TStatsWeightValue = t.type({ value: TWeight, timestamp: t.number }, "TStatsWeightValue");
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
@@ -865,6 +886,41 @@ export const TExerciseDataValue = t.partial(
 export type IExerciseDataValue = t.TypeOf<typeof TExerciseDataValue>;
 export type IExerciseData = Partial<Record<string, IExerciseDataValue>>;
 
+export const screenMuscles = [
+  "shoulders",
+  "triceps",
+  "back",
+  "abs",
+  "glutes",
+  "hamstrings",
+  "quadriceps",
+  "chest",
+  "biceps",
+  "calves",
+  "forearms",
+] as const;
+
+export const TScreenMuscle = t.keyof(
+  screenMuscles.reduce<Record<IArrayElement<typeof screenMuscles>, null>>((memo, muscle) => {
+    memo[muscle] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof screenMuscles>, null>),
+  "TScreenMuscle"
+);
+export type IScreenMuscle = t.TypeOf<typeof TScreenMuscle>;
+
+export const TPlannerSettings = t.type(
+  {
+    synergistMultiplier: t.number,
+    strengthSetsPct: t.number,
+    hypertrophySetsPct: t.number,
+    weeklyRangeSets: dictionary(TScreenMuscle, t.tuple([t.number, t.number])),
+    weeklyFrequency: dictionary(TScreenMuscle, t.number),
+  },
+  "TPlannerSettings"
+);
+export type IPlannerSettings = t.TypeOf<typeof TPlannerSettings>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
@@ -892,6 +948,7 @@ export const TSettings = t.intersection(
       shouldShowFriendsHistory: t.boolean,
       volume: t.number,
       exerciseData: dictionary(t.string, TExerciseDataValue),
+      planner: TPlannerSettings,
     }),
     t.partial({
       isPublicProfile: t.boolean,

@@ -1,37 +1,6 @@
-import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises, IEquipmentData, IUnit, IWeight } from "../../../types";
-
-export interface IPlannerProgram {
-  name: string;
-  weeks: IPlannerProgramWeek[];
-}
-
-export interface IPlannerProgramWeek {
-  name: string;
-  days: IPlannerProgramDay[];
-}
-
-export interface IPlannerProgramDay {
-  name: string;
-  exerciseText: string;
-}
-
-export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number] };
-export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
-
-export interface IPlannerSettings {
-  unit: IUnit;
-  synergistMultiplier: number;
-  strengthSetsPct: number;
-  hypertrophySetsPct: number;
-  weeklyRangeSets: IPlannerWeeklyRangeSets;
-  weeklyFrequency: IPlannerWeeklyFrequency;
-  restTimer: number;
-  customExercises: IAllCustomExercises;
-  customEquipment: Partial<Record<string, IEquipmentData>>;
-}
+import { IDayData, IPlannerProgram, IPlannerSettings, IScreenMuscle, IWeight } from "../../../types";
 
 export interface IPlannerProgramExercise {
   label?: string;
@@ -39,10 +8,9 @@ export interface IPlannerProgramExercise {
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
-  setVariations: IPlannerProgramExerciseSet[][];
+  setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   description?: string;
-  reuse?: boolean;
   properties: IPlannerProgramProperty[];
   globals: {
     logRpe?: boolean;
@@ -53,6 +21,11 @@ export interface IPlannerProgramExercise {
   };
 }
 
+export interface IPlannerProgramExerciseSetVariation {
+  sets: IPlannerProgramExerciseSet[];
+  isCurrent: boolean;
+}
+
 export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
@@ -60,6 +33,7 @@ export interface IPlannerProgramExerciseSet {
   logRpe?: boolean;
   percentage?: number;
   weight?: IWeight;
+  label?: string;
 }
 
 export interface IPlannerProgramExerciseWarmupSet {
@@ -83,6 +57,7 @@ export interface IPlannerProgramExerciseRepRange {
   maxrep: number;
   minrep: number;
   isAmrap: boolean;
+  isQuickAddSet: boolean;
 }
 
 export interface IPlannerUiFocusedExercise {
@@ -101,6 +76,15 @@ export interface IPlannerUi {
     muscleGroups: IScreenMuscle[];
     customExerciseName?: string;
   };
+  editWeekDayModal?: { weekIndex: number; dayIndex?: number };
+  weekIndex: number;
+  subscreen?: "weeks" | "full";
+  showWeekStats?: boolean;
+  showDayStats?: boolean;
+  showExerciseStats?: boolean;
+  showPreview?: boolean;
+  focusedDay?: IDayData;
+  showSettingsModal?: boolean;
 }
 
 export interface IPlannerFullText {
@@ -111,7 +95,6 @@ export interface IPlannerFullText {
 export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;
-  settings: IPlannerSettings;
 }
 
 export interface IExportedPlannerProgram {

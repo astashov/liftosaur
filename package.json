@@ -110,7 +110,7 @@
     "fp-ts": "^2.6.2",
     "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
-    "lens-shmens": "^1.0.3",
+    "lens-shmens": "^1.2.0",
     "micromark": "^2.11.4",
     "micromark-extension-gfm": "^0.3.3",
     "mock-match-media": "^0.4.2",

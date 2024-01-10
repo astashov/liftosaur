@@ -4,6 +4,8 @@ import {
   IEquipment,
   IExerciseId,
   IExerciseType,
+  IPercentage,
+  IPercentageUnit,
   IProgram,
   IProgramExercise,
   IProgramExerciseWarmupSet,
@@ -26,15 +28,17 @@ export namespace EditProgramLenses {
   export function addStateVariable<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     newName: string,
-    newType: IUnit,
+    newType: IUnit | IPercentageUnit,
     newUserPrompted?: boolean
   ): ILensRecordingPayload<T>[] {
     return [
       prefix.p("state").recordModify((state) => {
         const newState = { ...state };
-        let newValue: IWeight | number;
+        let newValue: IWeight | IPercentage | number;
         if (newType === "lb" || newType === "kg") {
           newValue = Weight.build(0, newType);
+        } else if (newType === "%") {
+          newValue = Weight.buildPct(0);
         } else {
           newValue = 0;
         }
@@ -754,7 +758,11 @@ function updateStateVariable(state: IProgramState, stateKey: string, newValue?: 
     v = 0;
   }
   if (v != null) {
-    newState[stateKey] = Weight.is(value) ? Weight.build(v || 0, value.unit) : v;
+    newState[stateKey] = Weight.is(value)
+      ? Weight.build(v || 0, value.unit)
+      : Weight.isPct(value)
+      ? Weight.buildPct(v)
+      : v;
   } else {
     delete newState[stateKey];
   }

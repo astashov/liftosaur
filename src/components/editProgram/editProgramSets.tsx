@@ -7,6 +7,7 @@ import {
   IDayData,
   IEquipment,
   IExerciseType,
+  IPercentage,
   IProgramExercise,
   IProgramSet,
   IProgramState,
@@ -165,7 +166,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
   function validate(
     script: string | undefined,
     type: "reps" | "weight" | "rpe"
-  ): IEither<number | IWeight | undefined, string> {
+  ): IEither<number | IWeight | undefined | IPercentage, string> {
     try {
       if (script) {
         const scriptRunnerResult = new ScriptRunner(
@@ -186,9 +187,10 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         } else if (type === "rpe") {
           return { success: true, data: scriptRunnerResult.execute(type) };
         } else {
+          const result = scriptRunnerResult.execute(type);
           return {
             success: true,
-            data: Weight.convertTo(scriptRunnerResult.execute(type), settings.units),
+            data: Weight.isPct(result) ? result : Weight.convertTo(result, settings.units),
           };
         }
       } else {
@@ -350,7 +352,7 @@ interface IRepsInputProps {
   state: IProgramState;
   label: string;
   set: IProgramSet;
-  repsResult: IEither<number | IWeight | undefined, string>;
+  repsResult: IEither<number | IWeight | undefined | IPercentage, string>;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   variationIndex: number;
   setIndex: number;
@@ -374,7 +376,7 @@ function RepsInput(props: IRepsInputProps): JSX.Element {
 interface IMinRepsInputProps {
   state: IProgramState;
   set: IProgramSet;
-  repsResult?: IEither<number | IWeight | undefined, string>;
+  repsResult?: IEither<number | IWeight | IPercentage | undefined, string>;
   onChangeReps: (reps: string, variationIndex: number, setIndex: number) => void;
   variationIndex: number;
   setIndex: number;
@@ -398,7 +400,7 @@ function MinRepsInput(props: IMinRepsInputProps): JSX.Element {
 interface IWeightInputProps {
   state: IProgramState;
   set: IProgramSet;
-  weightResult: IEither<number | IWeight | undefined, string>;
+  weightResult: IEither<number | IWeight | undefined | IPercentage, string>;
   onChangeWeight: (weight: string, variationIndex: number, setIndex: number) => void;
   variationIndex: number;
   setIndex: number;
@@ -422,7 +424,7 @@ function WeightInput(props: IWeightInputProps): JSX.Element {
 interface IRpeInputProps {
   state: IProgramState;
   set: IProgramSet;
-  rpeResult?: IEither<number | IWeight | undefined, string>;
+  rpeResult?: IEither<number | IWeight | undefined | IPercentage, string>;
   onChangeRpe: (reps: string, variationIndex: number, setIndex: number) => void;
   variationIndex: number;
   setIndex: number;

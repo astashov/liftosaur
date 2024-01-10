@@ -195,7 +195,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, types, ex) => {
+        onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, ex) => {
           props.dispatch(
             EditCustomExerciseLenses.createOrUpdate(
               lb<IProgramEditorState>().p("settings"),

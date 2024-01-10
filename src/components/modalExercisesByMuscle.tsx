@@ -4,8 +4,8 @@ import { Modal } from "./modal";
 import { Exercise, IExercise } from "../models/exercise";
 import { StringUtils } from "../utils/string";
 import { inputClassName } from "./input";
-import { IExerciseId, IAllCustomExercises } from "../types";
-import { IScreenMuscle, Muscle } from "../models/muscle";
+import { IExerciseId, IAllCustomExercises, IScreenMuscle } from "../types";
+import { Muscle } from "../models/muscle";
 import { ExerciseImage } from "./exerciseImage";
 
 interface IModalSubstituteProps {

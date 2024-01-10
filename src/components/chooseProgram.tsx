@@ -17,6 +17,7 @@ import { HelpChooseProgram } from "./help/helpChooseProgram";
 import { Button } from "./button";
 import { Footer2View } from "./footer2";
 import { ModalImportFromLink } from "./modalImportFromLink";
+import { EditProgram } from "../models/editProgram";
 
 interface IProps {
   dispatch: IDispatch;
@@ -71,8 +72,12 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           <ModalCreateProgram
             isHidden={!shouldCreateProgram}
             onClose={() => setShouldCreateProgram(false)}
-            onSelect={(name) => {
-              props.dispatch({ type: "CreateProgramAction", name });
+            onSelect={(name, isV2) => {
+              if (isV2) {
+                EditProgram.createExperimental(props.dispatch, name, props.settings);
+              } else {
+                props.dispatch({ type: "CreateProgramAction", name });
+              }
             }}
           />
           {shouldShowPostCloneModal && program && (

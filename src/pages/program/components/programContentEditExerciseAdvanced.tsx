@@ -49,7 +49,15 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
 
   const finishScriptResult =
     entry != null
-      ? Program.runExerciseFinishDayScript(entry, dayData, props.settings, state, programExercise.finishDayExpr)
+      ? Program.runExerciseFinishDayScript(
+          entry,
+          dayData,
+          props.settings,
+          state,
+          programExercise,
+          program.exercises,
+          Program.programMode(program)
+        )
       : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }

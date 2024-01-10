@@ -80,6 +80,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         }}
       />
       <ExerciseView
+        programMode={Program.programMode(props.program)}
         showEditButtons={false}
         history={[]}
         helps={[]}

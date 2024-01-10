@@ -11,18 +11,12 @@ import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput
 import { PlannerDay } from "./components/plannerDay";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerProgram } from "./models/plannerProgram";
-import {
-  IPlannerProgram,
-  IPlannerProgramDay,
-  IPlannerProgramWeek,
-  IPlannerSettings,
-  IPlannerState,
-  IPlannerUi,
-} from "./models/types";
+import { IPlannerState, IPlannerUi } from "./models/types";
+import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
 
 export interface IPlannerContentPerDayProps {
   program: IPlannerProgram;
-  settings: IPlannerSettings;
+  settings: ISettings;
   ui: IPlannerUi;
   service: Service;
   initialWeek: IPlannerProgramWeek;
@@ -33,8 +27,8 @@ export interface IPlannerContentPerDayProps {
 export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Element {
   const { program, settings, ui, initialWeek, initialDay, service, dispatch } = props;
   const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluate(program, settings.customExercises, settings.customEquipment);
-  }, [program, settings.customExercises]);
+    return PlannerProgram.evaluate(program, settings);
+  }, [program, settings]);
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   return (

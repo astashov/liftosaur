@@ -1,8 +1,8 @@
 import { Exercise } from "../../../models/exercise";
-import { IScreenMuscle, IScreenMusclePointsColl, Muscle } from "../../../models/muscle";
+import { IScreenMusclePointsColl, Muscle } from "../../../models/muscle";
 import { Weight } from "../../../models/weight";
 import { IBuilderExercise } from "./types";
-import { IExerciseType } from "../../../types";
+import { IExerciseType, IScreenMuscle } from "../../../types";
 
 export class BuilderExerciseModel {
   public static build(exerciseType?: IExerciseType): IBuilderExercise {

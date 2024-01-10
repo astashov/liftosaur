@@ -3,7 +3,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { IEither } from "../../utils/types";
 import { EvalResultInEditor } from "../evalResultInEditor";
 import type { CodeEditor } from "../../editor";
-import { IWeight, IProgramState } from "../../types";
+import { IWeight, IProgramState, IPercentage } from "../../types";
 
 interface IProps {
   name: string;
@@ -11,7 +11,7 @@ interface IProps {
   onChange?: (newValue: string) => void;
   onBlur?: (newValue: string) => void;
   value?: string;
-  result?: IEither<number | undefined | IWeight, string>;
+  result?: IEither<number | undefined | IWeight | IPercentage, string>;
   state: IProgramState;
 }
 

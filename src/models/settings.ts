@@ -1,4 +1,4 @@
-import { ISettings, IProgramContentSettings } from "../types";
+import { ISettings, IProgramContentSettings, IPlannerSettings } from "../types";
 import { Weight } from "./weight";
 
 export namespace Settings {
@@ -233,6 +233,41 @@ export namespace Settings {
       shouldShowFriendsHistory: true,
       exercises: {},
       graphs: [],
+      planner: buildPlannerSettings(),
+    };
+  }
+
+  export function buildPlannerSettings(): IPlannerSettings {
+    return {
+      strengthSetsPct: 30,
+      hypertrophySetsPct: 70,
+      weeklyRangeSets: {
+        shoulders: [10, 12],
+        triceps: [10, 12],
+        back: [10, 12],
+        abs: [10, 12],
+        glutes: [10, 12],
+        hamstrings: [10, 12],
+        quadriceps: [10, 12],
+        chest: [10, 12],
+        biceps: [10, 12],
+        calves: [10, 12],
+        forearms: [10, 12],
+      },
+      weeklyFrequency: {
+        shoulders: 2,
+        triceps: 2,
+        back: 2,
+        abs: 2,
+        glutes: 2,
+        hamstrings: 2,
+        quadriceps: 2,
+        chest: 2,
+        biceps: 2,
+        calves: 2,
+        forearms: 2,
+      },
+      synergistMultiplier: 0.5,
     };
   }
 }

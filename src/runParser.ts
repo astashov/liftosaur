@@ -31,6 +31,7 @@ const bindings: IScriptBindings = {
   ns: 3,
   numberOfSets: 3,
   setIndex: 1,
+  setVariationIndex: 1,
   rm1: Weight.build(100, "lb"),
 };
 

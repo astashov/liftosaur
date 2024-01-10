@@ -13,6 +13,7 @@ import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
 import { Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { IPlannerProgram, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
@@ -22,17 +23,11 @@ import { PlannerExerciseStats } from "./components/plannerExerciseStats";
 import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerProgram } from "./models/plannerProgram";
-import {
-  IPlannerFullText,
-  IPlannerProgram,
-  IPlannerSettings,
-  IPlannerState,
-  IPlannerUiFocusedExercise,
-} from "./models/types";
+import { IPlannerFullText, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
 
 export interface IPlannerContentFullProps {
   fullText: IPlannerFullText;
-  settings: IPlannerSettings;
+  settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   service: Service;
@@ -79,12 +74,8 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [reformatterSpinner, setReformatterSpinner] = useState(false);
 
   const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluateFull(
-      props.fullText.text,
-      props.settings.customExercises,
-      props.settings.customEquipment
-    );
-  }, [props.fullText.text, props.settings.customExercises]);
+    return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
+  }, [props.fullText.text, props.settings.exercises]);
 
   const weekIndex =
     evaluatedWeeks.success && currentLine != null
@@ -251,8 +242,8 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         <div className="flex-1 min-w-0" ref={editorRef}>
           <PlannerEditorView
             name="Program"
-            customExercises={props.settings.customExercises}
-            equipment={props.settings.customEquipment}
+            customExercises={props.settings.exercises}
+            equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fullText.text}
             onCustomErrorCta={(err) => (

@@ -1,6 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { IPlannerSettings, IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
-import { IScreenMuscle } from "../../../models/muscle";
+import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils } from "../../../utils/object";
 import { StringUtils } from "../../../utils/string";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
@@ -10,12 +9,13 @@ import { LinkButton } from "../../../components/linkButton";
 import { lb } from "lens-shmens";
 import { useState } from "preact/hooks";
 import { CollectionUtils } from "../../../utils/collection";
+import { IScreenMuscle, ISettings } from "../../../types";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
   colorize: boolean;
   frequency: boolean;
-  settings: IPlannerSettings;
+  settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
   focusedExercise?: IPlannerUiFocusedExercise;
 }
@@ -32,7 +32,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         <span className="text-grayv2-main">Strength Sets: </span>
         <span
           className={
-            props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.strengthSetsPct) : ""
+            props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
           }
         >
           {setResults.strength}
@@ -43,7 +43,9 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         <span className="text-grayv2-main">Hypertrophy Sets: </span>
         <span
           className={
-            props.colorize ? colorPctValue(setResults.total, setResults.hypertrophy, settings.hypertrophySetsPct) : ""
+            props.colorize
+              ? colorPctValue(setResults.total, setResults.hypertrophy, settings.planner.hypertrophySetsPct)
+              : ""
           }
         >
           {setResults.hypertrophy}
@@ -129,7 +131,7 @@ function labelSet(
 
 function PlannerSetSplit(props: {
   split: ISetSplit;
-  settings: IPlannerSettings;
+  settings: ISettings;
   shouldIncludeFrequency: boolean;
   muscle?: IScreenMuscle;
 }): JSX.Element {
@@ -138,12 +140,20 @@ function PlannerSetSplit(props: {
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
   const setColor = muscle
-    ? colorRangeValue(total, settings.weeklyRangeSets[muscle][0], settings.weeklyRangeSets[muscle][1])
+    ? colorRangeValue(
+        total,
+        settings.planner.weeklyRangeSets[muscle]?.[0] ?? 0,
+        settings.planner.weeklyRangeSets[muscle]?.[1] ?? 0
+      )
     : "";
   const setDirection = muscle
-    ? directionValue(total, settings.weeklyRangeSets[muscle][0], settings.weeklyRangeSets[muscle][1])
+    ? directionValue(
+        total,
+        settings.planner.weeklyRangeSets[muscle]?.[0] ?? 0,
+        settings.planner.weeklyRangeSets[muscle]?.[1] ?? 0
+      )
     : "";
-  const frequencyColor = muscle ? colorThresholdValue(frequency, settings.weeklyFrequency[muscle]) : "";
+  const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
 
   return (
     <span onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>

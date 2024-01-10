@@ -6,7 +6,7 @@ URL_PREFIX="//www.liftosaur.com"
 DIST_DIR="./dist"
 MAX_CONCURRENT_UPLOADS=3
 MAX_RETRIES=3
-CURL_TIMEOUT=60
+CURL_TIMEOUT=20
 
 function limit_jobs() {
     while [ "$(jobs -r | wc -l)" -ge "$MAX_CONCURRENT_UPLOADS" ]; do

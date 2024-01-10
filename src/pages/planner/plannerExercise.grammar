@@ -6,15 +6,16 @@ ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection?)* linebreak
 EmptyExpression { linebreak }
 
 ExerciseName { NonSeparator+ }
-ExerciseSets { ExerciseSet ("," ExerciseSet)* }
+ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
-ExerciseSection { ReuseSection | ExerciseProperty | ExerciseSets }
+ExerciseSection {  ExerciseProperty | ExerciseSets }
 ReuseSection { "..." ExerciseName? }
-ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage)+ }
+ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage | SetLabel)+ }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets ) }
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
+CurrentVariation { "!" }
 
 FunctionExpression { 
   FunctionName
@@ -33,8 +34,9 @@ Rpe { "@" Number "+"? }
 Percentage { Number "%" }
 Weight { Number ("kg" | "lb") }
 Timer { Int "s" }
-SetPart { (Rep "+"? "x")? (RepRange | Rep) "+"? }
-KeyValue { Keyword ":" (Float | Int | Weight) }
+SetPart { Rep "+"? "x" (RepRange | Rep) "+"? }
+KeyValue { Keyword ":" (Float | Int | Weight | Percentage) }
+SetLabel { "(" NonSeparator+ ")" }
 
 WarmupSetPart { (Rep "x")? Rep }
 
@@ -53,7 +55,7 @@ WarmupSetPart { (Rep "x")? Rep }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\n" | "\r" | "\r\n" }
-  NonSeparator { ![/{} \t\n\r#]+ }
+  NonSeparator { ![/{}() \t\n\r#]+ }
   Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
   Int { @digit+ }
   Float { @digit* "." @digit+ }

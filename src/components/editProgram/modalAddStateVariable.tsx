@@ -61,6 +61,7 @@ export function ModalAddStateVariable(props: IProps): JSX.Element {
             ["", "number"],
             ["kg", "kg"],
             ["lb", "lb"],
+            ["%", "%"],
           ]}
           value={type}
           onChange={(v) => {

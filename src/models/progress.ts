@@ -31,9 +31,10 @@ import {
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
-import { IExerciseId } from "../types";
+import { IExerciseId, IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
+import { MathUtils } from "../utils/math";
 
 export interface IScriptBindings {
   day: number;
@@ -52,6 +53,7 @@ export interface IScriptBindings {
   cr: number[];
   ns: number;
   numberOfSets: number;
+  setVariationIndex: number;
   setIndex: number;
 }
 
@@ -175,6 +177,7 @@ export namespace Progress {
       mr: [],
       numberOfSets: 0,
       ns: 0,
+      setVariationIndex: 1,
       setIndex: 1,
       rm1,
     };
@@ -184,11 +187,12 @@ export namespace Progress {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
-    setIndex?: number
+    setIndex?: number,
+    setVariationIndex?: number
   ): IScriptBindings {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
-      bindings.weights.push(set.weight);
+      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment));
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps != null ? set.minReps : set.reps);
       bindings.completedReps.push(set.completedReps || 0);
@@ -202,6 +206,7 @@ export namespace Progress {
     bindings.ns = entry.sets.length;
     bindings.numberOfSets = entry.sets.length;
     bindings.setIndex = setIndex ?? 1;
+    bindings.setVariationIndex = setVariationIndex ?? 1;
     return bindings;
   }
 
@@ -264,9 +269,24 @@ export namespace Progress {
       entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
     if (programExercise != null && program != null) {
       const exercise = programExercise.exerciseType;
-      const timerExpr = ProgramExercise.getTimerExpr(programExercise, program.exercises);
       const state = ProgramExercise.getState(programExercise, program.exercises);
-      const bindings = Progress.createScriptBindings(Progress.getDayData(progress), entry, settings, setIndex + 1);
+      const setVariationIndexResult = Program.runVariationScript(
+        programExercise,
+        program.exercises,
+        state,
+        Progress.getDayData(progress),
+        settings
+      );
+      const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+      const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
+      const timerExpr = setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises);
+      const bindings = Progress.createScriptBindings(
+        Progress.getDayData(progress),
+        entry,
+        settings,
+        setIndex + 1,
+        setVariationIndex
+      );
       if (timerExpr?.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
@@ -994,7 +1014,7 @@ export namespace Progress {
     context: IScriptContext,
     settings: ISettings,
     type: "reps" | "weight" | "timer" | "rpe"
-  ): IWeight | number | undefined {
+  ): IWeight | IPercentage | number | undefined {
     const runner = new ScriptRunner(
       expr,
       state,
@@ -1027,7 +1047,16 @@ export namespace Progress {
       );
     } else {
       return ScriptRunner.safe(
-        () => runner.execute(type),
+        () => {
+          let weight = runner.execute(type);
+          if (Weight.isPct(weight)) {
+            weight = Weight.multiply(
+              Exercise.onerm(exerciseType, settings),
+              MathUtils.roundFloat(weight.value / 100, 4)
+            );
+          }
+          return weight;
+        },
         (e) =>
           `There's an error while executing script ${expr}:\n\n${e.message}.\n\nWe fallback to 100. Please fix the exercise's script.`,
         Weight.build(100, settings.units)

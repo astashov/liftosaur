@@ -15,9 +15,14 @@ import {
   ISettings,
   IProgramExerciseWarmupSet,
   IExerciseType,
+  IPlannerProgram,
+  IDayData,
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
+import { UidFactory } from "../utils/generator";
+import { IPlannerState } from "../pages/planner/models/types";
+import { IPercentageUnit } from "../types";
 
 interface I531Tms {
   squat: IWeight;
@@ -30,7 +35,7 @@ export namespace EditProgram {
   export function addStateVariable(
     dispatch: IDispatch,
     newName?: string,
-    newType?: IUnit,
+    newType?: IUnit | IPercentageUnit,
     newUserPrompted?: boolean
   ): void {
     if (newName != null && newType != null) {
@@ -589,5 +594,53 @@ export namespace EditProgram {
 
   export function reuseLogic(dispatch: IDispatch, allProgramExercises: IProgramExercise[], id: string): void {
     updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
+  }
+
+  export function initializePlanner(dispatch: IDispatch, plannerProgram: IPlannerProgram, focusedDay?: IDayData): void {
+    const initialState: IPlannerState = {
+      current: { program: plannerProgram },
+      ui: { weekIndex: 0, focusedDay },
+      history: { past: [], future: [] },
+    };
+
+    updateState(dispatch, [lb<IState>().p("editProgramV2").record(initialState)]);
+  }
+
+  export function createExperimental(dispatch: IDispatch, name: string, settings: ISettings): void {
+    const newProgram: IProgram = {
+      id: UidFactory.generateUid(8),
+      name,
+      url: "",
+      author: "",
+      shortDescription: "",
+      description: "",
+      nextDay: 1,
+      weeks: [],
+      isMultiweek: false,
+      days: [{ name: "Day 1", id: UidFactory.generateUid(8), exercises: [] }],
+      exercises: [],
+      tags: [],
+      deletedDays: [],
+      deletedWeeks: [],
+      deletedExercises: [],
+      clonedAt: Date.now(),
+      planner: {
+        name,
+        weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+      },
+    };
+
+    initializePlanner(dispatch, newProgram.planner!);
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => [...pgms, newProgram]),
+      lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
+      lb<IState>()
+        .p("screenStack")
+        .recordModify((stack) => Screen.push(stack, "editProgram")),
+      lb<IState>().p("editProgram").record({ id: newProgram.id }),
+    ]);
   }
 }

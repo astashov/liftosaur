@@ -1,28 +1,40 @@
 import { h, JSX, Fragment } from "preact";
-import { Program } from "../models/program";
+import { IProgramMode, Program } from "../models/program";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData } from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IProgramExercise } from "../types";
 import { Exercise } from "../models/exercise";
+import { ProgramExercise } from "../models/programExercise";
 
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
   dayData: IDayData;
-  state: IProgramState;
-  script: string;
+  programExercise: IProgramExercise;
+  allProgramExercises: IProgramExercise[];
   userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
   staticState?: IProgramState;
+  mode: IProgramMode;
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const { entry, settings, state, script, dayData } = props;
+  const state = ProgramExercise.getState(props.programExercise, props.allProgramExercises);
+  const { entry, settings, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
-  const result = Program.runExerciseFinishDayScript(entry, dayData, settings, mergedState, script, props.staticState);
+  const result = Program.runExerciseFinishDayScript(
+    entry,
+    dayData,
+    settings,
+    mergedState,
+    props.programExercise,
+    props.allProgramExercises,
+    props.mode,
+    props.staticState
+  );
   const isFinished = Reps.isFinished(entry.sets);
 
   if ((props.forceShow || isFinished) && result.success) {
@@ -31,9 +43,9 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
       const oldValue = state[key];
       const newValue = newState[key];
       if (!Weight.eq(oldValue, newValue)) {
-        memo[key] = `${Weight.display(Weight.convertTo(oldValue as number, units))} -> ${Weight.display(
-          Weight.convertTo(newValue as number, units)
-        )}`;
+        const oldValueStr = Weight.display(Weight.convertTo(oldValue as number, units));
+        const newValueStr = Weight.display(Weight.convertTo(newValue as number, units));
+        memo[key] = `${oldValueStr} -> ${newValueStr}`;
       }
       return memo;
     }, {});
@@ -46,6 +58,14 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
         )}`;
       }
     }
+    for (const key of ["reps", "weights", "RPE", "minReps", "timer", "setVariationIndex"] as const) {
+      if (variables[key] != null) {
+        for (const value of variables[key] || []) {
+          const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
+          diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
+        }
+      }
+    }
 
     if (ObjectUtils.isNotEmpty(diffState) || ObjectUtils.isNotEmpty(diffVars)) {
       return (
@@ -56,7 +76,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
         >
           {ObjectUtils.isNotEmpty(diffVars) && (
             <>
-              <header className="font-bold">Exercise Variables changes</header>
+              <header className="font-bold">Exercise Changes</header>
               <ul data-cy="variable-changes">
                 {ObjectUtils.keys(diffVars).map((key) => (
                   <li data-cy={`variable-changes-key-${StringUtils.dashcase(key)}`}>

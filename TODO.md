@@ -15,6 +15,9 @@
 - Incorporate the latest RM into the RM calculator
 - Single vs double side weights (???)
 - Add rounding up/down/middle setting
+- Add reps/volume PR
+- Add 'bodyweight' variable
+- Add a way to create "similar" exercise
 
 * Programs
   - 5/3/1s
@@ -30,3 +33,7 @@
 * Add descriptions to all exercises
 * Widget on iOS lock screen
 * Add time spent on each exercise
+
+- Planner
+
+* Show errors if target is wrong

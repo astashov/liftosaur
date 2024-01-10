@@ -17,10 +17,12 @@ import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
 import { ExerciseRM } from "./exerciseRm";
 import { ProgramExercise } from "../models/programExercise";
+import { Program } from "../models/program";
 
 interface IModalEditModeProps {
   programExerciseId: string;
   program: IProgram;
+  day: number;
   entryIndex: number;
   progressId: number;
   settings: ISettings;
@@ -43,14 +45,13 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
         {!showCalculator ? (
           <>
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
-            {ProgramExercise.isUsingVariable(programExercise, "rm1") && (
+            {(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1")) && (
               <div className="my-2">
                 <ExerciseRM
                   exercise={exercise}
                   rmKey="rm1"
                   name="1 Rep Max"
-                  exerciseData={props.settings.exerciseData}
-                  units={props.settings.units}
+                  settings={props.settings}
                   onEditVariable={(value) => {
                     updateState(props.dispatch, [
                       lb<IState>()
@@ -147,8 +148,14 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   kind="purple"
                   buttonSize="md"
                   onClick={() => {
-                    updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);
-                    EditProgram.editProgramExercise(props.dispatch, programExercise);
+                    if (props.program.planner) {
+                      const dayData = Program.getDayData(props.program, props.day);
+                      EditProgram.initializePlanner(props.dispatch, props.program.planner, dayData);
+                      Program.editAction(props.dispatch, props.program.id);
+                    } else {
+                      updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);
+                      EditProgram.editProgramExercise(props.dispatch, programExercise);
+                    }
                     onClose();
                   }}
                   data-cy="modal-edit-mode-program"
@@ -213,7 +220,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
       />
       {ObjectUtils.keys(state).map((stateKey, i) => {
         const value = state[stateKey];
-        const displayValue = Weight.is(value) ? value.value : value;
+        const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
 
         return (
           <MenuItemEditable
@@ -229,7 +236,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             isNameBold={true}
             type="number"
             value={displayValue.toString()}
-            valueUnits={Weight.is(value) ? value.unit : undefined}
+            valueUnits={Weight.is(value) || Weight.isPct(value) ? value.unit : undefined}
             after={
               Weight.is(value) ? (
                 <button

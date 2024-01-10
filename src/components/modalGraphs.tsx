@@ -18,6 +18,7 @@ import {
   graphMuscleGroupSelectedTypes,
   IGraphMuscleGroupSelectedType,
   IExerciseType,
+  screenMuscles,
 } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats } from "../models/stats";
@@ -27,7 +28,6 @@ import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { ExerciseImage } from "./exerciseImage";
-import { screenMuscles } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 
 interface IModalGraphsProps {

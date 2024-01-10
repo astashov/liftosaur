@@ -13,7 +13,16 @@ import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
-import { ISettings, IProgramExercise, IHistoryRecord, IEquipment, IUnit, ISubscription, IProgram } from "../../types";
+import {
+  ISettings,
+  IProgramExercise,
+  IHistoryRecord,
+  IEquipment,
+  IUnit,
+  ISubscription,
+  IProgram,
+  IPercentageUnit,
+} from "../../types";
 import { Playground } from "../playground";
 import { LinkButton } from "../linkButton";
 import { ProgramExercise } from "../../models/programExercise";
@@ -76,7 +85,15 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   const finishScriptResult =
     entry != null
-      ? Program.runExerciseFinishDayScript(entry, dayData, props.settings, state, programExercise.finishDayExpr)
+      ? Program.runExerciseFinishDayScript(
+          entry,
+          dayData,
+          props.settings,
+          state,
+          programExercise,
+          props.program.exercises,
+          props.program.planner ? "planner" : "regular"
+        )
       : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }
@@ -349,7 +366,12 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
         onDone={(newName, newType, newUserPrompted) => {
-          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined, newUserPrompted);
+          EditProgram.addStateVariable(
+            props.dispatch,
+            newName,
+            newType as IUnit | IPercentageUnit | undefined,
+            newUserPrompted
+          );
           setShouldShowAddStateVariable(false);
         }}
       />
@@ -368,7 +390,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
+        onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
           EditCustomExercise.createOrUpdate(
             props.dispatch,
             name,

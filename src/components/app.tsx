@@ -403,6 +403,7 @@ export function AppView(props: IProps): JSX.Element | null {
           dayIndex={Math.min(state.editProgram?.dayIndex ?? state.progress[0]?.day ?? 0, editProgram.days.length - 1)}
           weekIndex={state.editProgram?.weekIndex}
           editProgram={editProgram}
+          plannerState={state.editProgramV2}
         />
       );
     } else {

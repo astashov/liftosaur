@@ -45,6 +45,7 @@ import { ExerciseImage } from "./exerciseImage";
 import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
 import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
+import { IProgramMode } from "../models/program";
 
 interface IProps {
   showHelp: boolean;
@@ -62,6 +63,7 @@ interface IProps {
   forceShowStateChanges?: boolean;
   subscription: ISubscription;
   hidePlatesCalculator?: boolean;
+  programMode: IProgramMode;
   dispatch: IDispatch;
   onStartSetChanging?: (
     isWarmup: boolean,
@@ -139,13 +141,14 @@ export const ExerciseView = memo(
           <ExerciseContentView {...props} />
           {props.programExercise && props.allProgramExercises && (
             <ProgressStateChanges
+              mode={props.programMode}
               entry={props.entry}
               forceShow={props.forceShowStateChanges}
               settings={props.settings}
               dayData={props.dayData}
-              state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
+              programExercise={props.programExercise}
+              allProgramExercises={props.allProgramExercises}
               userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
-              script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
             />
           )}
         </section>
@@ -241,7 +244,7 @@ const ExerciseContentView = memo(
                       className="p-2 leading-none align-middle nm-workout-see-statvars"
                       onClick={() => setShowStateVariables(!showStateVariables)}
                     >
-                      <IconPreview size={18} />
+                      <IconPreview size={18} className="inline-block" />
                     </button>
                   )}
                   <button

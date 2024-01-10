@@ -3,7 +3,6 @@ import { h, JSX } from "preact";
 import { IBuilderWeek } from "../models/types";
 import { IBuilderDispatch, IBuilderState } from "../models/builderReducer";
 import { ObjectUtils } from "../../../utils/object";
-import { IScreenMuscle } from "../../../models/muscle";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";
 import { CollectionUtils } from "../../../utils/collection";
@@ -11,6 +10,7 @@ import { MenuItem } from "../../../components/menuItem";
 import { StringUtils } from "../../../utils/string";
 import { BuilderWeekModel } from "../models/builderWeekModel";
 import { lb } from "lens-shmens";
+import { IScreenMuscle } from "../../../types";
 
 interface IBuilderWeekMusclesProps {
   week: IBuilderWeek;

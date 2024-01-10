@@ -17,6 +17,7 @@ import {
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { IPlannerState } from "../pages/planner/models/types";
 
 export type IEnv = {
   service: Service;
@@ -133,6 +134,7 @@ export interface IState {
     dayIndex?: number;
     weekIndex?: number;
   };
+  editProgramV2?: IPlannerState;
   muscleView?: {
     type: "program" | "day";
     programId?: string;
