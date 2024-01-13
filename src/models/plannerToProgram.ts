@@ -284,7 +284,7 @@ export class PlannerToProgram {
         let deload: { decrement: number; unit: IUnit | "%"; attempts: number } | undefined = undefined;
         const rawDecrement = fnArgs[2];
         if (rawDecrement != null) {
-          const result = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement);
+          const result = this.getIncrementAndUnit(fnArgs[2] || defaultIncrement);
           if (result != null) {
             const [decrement, unitDecrement] = result;
             const decrementAttempts = parseInt(fnArgs[3] ?? 1, 10);
