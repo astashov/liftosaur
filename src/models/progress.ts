@@ -76,6 +76,7 @@ export interface IScriptFunctions {
   min(vals: IWeight[]): IWeight;
   max(vals: number[]): number;
   max(vals: IWeight[]): IWeight;
+  zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
 }
 
 function floor(num: number): number;
@@ -138,6 +139,17 @@ function max(vals: IWeight[] | number[]): IWeight | number {
     const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(b, a));
     return sortedWeights[0];
   }
+}
+
+function zeroOrGte(a: IWeight[] | number[], b: IWeight[] | number[]): boolean {
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const aVal = a[i];
+    const bVal = b[i];
+    if (aVal != null && bVal != null && !Weight.eq(aVal, 0) && Weight.lt(aVal, bVal)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export namespace Progress {
@@ -231,6 +243,7 @@ export namespace Progress {
       sum,
       min,
       max,
+      zeroOrGte,
     };
   }
 

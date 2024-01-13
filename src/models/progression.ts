@@ -30,7 +30,7 @@ export namespace Progression {
   export function setDoubleProgression(range: number, increment: number, unit: "%" | IUnit): string {
     return StringUtils.unindent(`
       // Double Progression progression script '${range},${increment}${unit}'
-      if (completedReps >= reps) {
+      if (completedReps >= reps && zeroOrGte(completedRPE, RPE)) {
         state.addreps += 1
       }
       if (state.addreps > ${range}) {
@@ -53,7 +53,7 @@ export namespace Progression {
       finishDayExpr.push(
         StringUtils.unindent(`
           // Simple Exercise Progression script '${progression.increment}${progression.unit},${progression.attempts}'
-          if (completedReps >= reps) {
+          if (completedReps >= reps && zeroOrGte(completedRPE, RPE)) {
             state.successes += 1
             if (state.successes >= ${progression.attempts}) {
               ${
@@ -73,7 +73,7 @@ export namespace Progression {
       finishDayExpr.push(
         StringUtils.unindent(`
           // Simple Exercise Deload script '${deload.decrement}${deload.unit},${deload.attempts}'
-          if (!(completedReps >= reps)) {
+          if (!(completedReps >= reps && zeroOrGte(completedRPE, RPE))) {
             state.failures = state.failures + 1
             if (state.failures >= ${deload.attempts}) {
               ${
