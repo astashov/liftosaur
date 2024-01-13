@@ -6,6 +6,7 @@ const { DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
+const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
@@ -86,6 +87,7 @@ module.exports = {
     new MiniCssExtractPlugin(),
     new DefinePlugin({
       __COMMIT_HASH__: JSON.stringify(commitHash),
+      __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production"
           ? process.env.STAGE

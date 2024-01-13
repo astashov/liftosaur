@@ -15,6 +15,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     interface Global {
       __COMMIT_HASH__: string;
+      __FULL_COMMIT_HASH__: string;
     }
   }
 }
@@ -86,6 +87,7 @@ const server = https.createServer(
 );
 // eslint-disable-next-line prefer-const
 global.__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+global.__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 
 server.listen(3000, "0.0.0.0", () => {
   console.log(`--------- Server is running ----------`);

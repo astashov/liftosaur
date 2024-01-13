@@ -1750,6 +1750,13 @@ const rollbar = new Rollbar({
   captureUnhandledRejections: true,
   payload: {
     environment: `${Utils.getEnv()}-lambda`,
+    client: {
+      javascript: {
+        source_map_enabled: true,
+        code_version: process.env.FULL_COMMIT_HASH,
+        guess_uncaught_frames: true,
+      },
+    },
   },
   checkIgnore: RollbarUtils.checkIgnore,
 });

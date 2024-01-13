@@ -5,6 +5,7 @@ import { IState } from "../models/state";
 import { UidFactory } from "./generator";
 
 declare let __ENV__: string;
+declare let __FULL_COMMIT_HASH__: string;
 
 interface IOccurenceResponse {
   err: number;
@@ -77,6 +78,13 @@ export namespace RollbarUtils {
     return {
       payload: {
         environment: __ENV__,
+        client: {
+          javascript: {
+            source_map_enabled: true,
+            code_version: __FULL_COMMIT_HASH__,
+            guess_uncaught_frames: true,
+          },
+        },
         ...(payload || {}),
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

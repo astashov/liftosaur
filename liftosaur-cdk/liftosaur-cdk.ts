@@ -244,6 +244,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+    const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset("dist-lambda"),
@@ -254,6 +255,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       environment: {
         IS_DEV: `${isDev}`,
         COMMIT_HASH: commitHash,
+        FULL_COMMIT_HASH: fullCommitHash,
       },
     });
 
