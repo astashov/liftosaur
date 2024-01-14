@@ -24,7 +24,7 @@ export interface IPlannerProgramExercise {
   name: string;
   line: number;
   sets: IPlannerProgramExerciseSet[];
-  setVariations: IPlannerProgramExerciseSet[][];
+  setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   description?: string;
   reuse?: boolean;
@@ -36,6 +36,11 @@ export interface IPlannerProgramExercise {
     percentage?: number;
     weight?: IWeight;
   };
+}
+
+export interface IPlannerProgramExerciseSetVariation {
+  sets: IPlannerProgramExerciseSet[];
+  isCurrent: boolean;
 }
 
 export interface IPlannerProgramExerciseSet {

@@ -472,6 +472,7 @@ export const TProgramSet = t.intersection(
       minRepsExpr: t.string,
       logRpe: t.boolean,
       label: t.string,
+      timerExpr: t.string,
     }),
   ],
   "TProgramSet"
@@ -532,7 +533,7 @@ export const TProgramExercise = t.intersection(
   ],
   "TProgramExercise"
 );
-export type IProgramExercise = Readonly<t.TypeOf<typeof TProgramExercise>>;
+export type IProgramExercise = t.TypeOf<typeof TProgramExercise>;
 
 export const TProgressUi = t.partial(
   {
@@ -682,7 +683,7 @@ export const TPlannerProgramDay = t.type({
   name: t.string,
   exerciseText: t.string,
 });
-export type IPlannerProgramDay = Readonly<t.TypeOf<typeof TPlannerProgramDay>>;
+export type IPlannerProgramDay = t.TypeOf<typeof TPlannerProgramDay>;
 
 export const TPlannerProgramWeek = t.type({
   name: t.string,

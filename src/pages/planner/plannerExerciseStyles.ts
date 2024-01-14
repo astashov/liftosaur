@@ -35,6 +35,7 @@ export enum PlannerNodeName {
   WarmupSetPart = "WarmupSetPart",
   None = "None",
   ExerciseSets = "ExerciseSets",
+  CurrentVariation = "CurrentVariation",
   ExerciseSet = "ExerciseSet",
   Timer = "Timer",
   SetPart = "SetPart",

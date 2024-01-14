@@ -42,6 +42,7 @@ import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { PlannerToProgram2 } from "./plannerToProgram2";
 
 declare let __HOST__: string;
 
@@ -268,6 +269,12 @@ export namespace Program {
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
+    if (program.planner != null) {
+      const newProgram = new PlannerToProgram2(program, program.planner, settings).convertToProgram();
+      const planner = new PlannerToProgram2(newProgram, program.planner, settings).convertToPlanner();
+      program = newProgram;
+    }
+
     const programDay = getProgramDay(program, day);
     const week = getWeekFromDay(program, day);
     const dayInWeek = getDayInWeek(program, day);

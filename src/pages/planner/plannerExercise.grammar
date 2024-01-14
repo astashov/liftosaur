@@ -6,7 +6,7 @@ ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection?)* linebreak
 EmptyExpression { linebreak }
 
 ExerciseName { NonSeparator+ }
-ExerciseSets { ExerciseSet ("," ExerciseSet)* }
+ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
 ExerciseSection { ReuseSection | ExerciseProperty | ExerciseSets }
 ReuseSection { "..." ExerciseName? }
@@ -15,6 +15,7 @@ WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets ) }
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
+CurrentVariation { "!" }
 
 FunctionExpression { 
   FunctionName
