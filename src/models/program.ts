@@ -42,7 +42,7 @@ import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
-import { PlannerToProgram2 } from "./plannerToProgram2";
+import { ProgramToPlanner } from "./programToPlanner";
 
 declare let __HOST__: string;
 
@@ -53,6 +53,8 @@ export interface IExportedProgram {
   version: string;
   settings: IProgramContentSettings;
 }
+
+export type IProgramMode = "planner" | "regular";
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
@@ -268,13 +270,8 @@ export namespace Program {
     dayIndex?: number,
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
+    console.log("Program", program);
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
-    if (program.planner != null) {
-      const newProgram = new PlannerToProgram2(program, program.planner, settings).convertToProgram();
-      const planner = new PlannerToProgram2(newProgram, program.planner, settings).convertToPlanner();
-      program = newProgram;
-    }
-
     const programDay = getProgramDay(program, day);
     const week = getWeekFromDay(program, day);
     const dayInWeek = getDayInWeek(program, day);
@@ -354,12 +351,17 @@ export namespace Program {
     }
   }
 
+  export function programMode(program?: IProgram): IProgramMode {
+    return program?.planner != null ? "planner" : "regular";
+  }
+
   export function runExerciseFinishDayScript(
     entry: IHistoryEntry,
     dayData: IDayData,
     settings: ISettings,
     state: IProgramState,
     script: string,
+    mode: IProgramMode,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables: ILiftoscriptEvaluatorVariables }, string> {
     const bindings = Progress.createScriptBindings(dayData, entry, settings);
@@ -377,7 +379,7 @@ export namespace Program {
         {
           equipment: entry.exercise.equipment,
         },
-        "regular"
+        mode
       );
       runner.execute();
       variables = runner.getVariables();
@@ -523,6 +525,7 @@ export namespace Program {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
+    mode: IProgramMode,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables?: ILiftoscriptEvaluatorVariables }, string> {
@@ -548,7 +551,7 @@ export namespace Program {
         {
           equipment: programExercise.exerciseType.equipment,
         },
-        "regular"
+        mode
       );
       runner.execute();
       variables = runner.getVariables();
@@ -607,6 +610,7 @@ export namespace Program {
               Progress.getDayData(progress),
               entry,
               settings,
+              Program.programMode(program),
               progress.userPromptedStateVars?.[e.id],
               staticState
             );
@@ -616,11 +620,18 @@ export namespace Program {
                 exerciseData[Exercise.toKey(entry.exercise)] = { rm1: variables.rm1 };
               }
               const reuseLogicId = e.reuseLogic?.selected;
-              if (reuseLogicId) {
-                return lf(e).pi("reuseLogic").p("states").p(reuseLogicId).set(state);
-              } else {
-                return lf(e).p("state").set(state);
+              let newExercise = ObjectUtils.clone(e);
+
+              if (Program.programMode(program) === "planner" && variables != null) {
+                newExercise = ProgramExercise.applyVariables(newExercise, program.planner!, variables, settings);
               }
+
+              if (reuseLogicId && newExercise.reuseLogic) {
+                newExercise.reuseLogic.states[reuseLogicId] = state;
+              } else {
+                newExercise.state = state;
+              }
+              return newExercise;
             } else {
               alert(
                 `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
@@ -630,6 +641,10 @@ export namespace Program {
           return e;
         })
       );
+    if (program.planner) {
+      newProgram.planner = new ProgramToPlanner(newProgram, program.planner, settings).convertToPlanner();
+    }
+
     return {
       program: lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day)),
       exerciseData,

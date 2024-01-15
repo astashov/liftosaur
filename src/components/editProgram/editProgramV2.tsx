@@ -25,6 +25,8 @@ import { EditProgramV2PerDay } from "./editProgramV2PerDay";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { EditProgramV2Full } from "./editProgramV2Full";
+import { PlannerToProgram2 } from "../../models/plannerToProgram2";
+import { CollectionUtils } from "../../utils/collection";
 
 interface IProps {
   editProgram: IProgram;
@@ -192,13 +194,20 @@ export function EditProgramV2(props: IProps): JSX.Element {
             settings={props.settings}
             plannerDispatch={plannerDispatch}
             onSave={() => {
+              const newProgram = new PlannerToProgram2(
+                props.editProgram.id,
+                props.plannerState.current.program,
+                props.settings
+              ).convertToProgram();
+              newProgram.planner = props.plannerState.current.program;
               updateState(props.dispatch, [
                 lb<IState>()
                   .p("storage")
                   .p("programs")
-                  .find((p) => p.id === props.editProgram.id)
-                  .p("planner")
-                  .record(props.plannerState.current.program),
+                  .recordModify((programs) => {
+                    return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
+                  }),
+                lb<IState>().p("editProgramV2").record(undefined),
               ]);
               props.dispatch(Thunk.pullScreen());
             }}

@@ -141,6 +141,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <ProgressStateChanges
         entry={entry}
         settings={props.settings}
+        mode={Program.programMode(props.program)}
         dayData={props.dayData}
         state={ProgramExercise.getState(props.programExercise, allProgramExercises)}
         script={ProgramExercise.getFinishDayScript(props.programExercise, allProgramExercises)}

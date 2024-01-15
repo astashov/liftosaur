@@ -60,6 +60,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
                 const dayData = Program.getDayData(props.program, dayIndex + 1);
                 return (
                   <ProgramDetailsExercise
+                    programMode={Program.programMode(props.program)}
                     programId={props.program.id}
                     programExercise={programExercise}
                     subscription={props.subscription}

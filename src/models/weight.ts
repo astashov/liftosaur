@@ -1,6 +1,7 @@
 import { CollectionUtils } from "../utils/collection";
 
 import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types";
+import { MathUtils } from "../utils/math";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
@@ -17,6 +18,19 @@ export namespace Weight {
 
   export function print(weight: IWeight): string {
     return `${weight.value}${weight.unit}`;
+  }
+
+  export function parse(str: string): IWeight | undefined {
+    const match = str.match(/^([0-9.]+)\s*(kg|lb)$/);
+    if (match) {
+      return build(MathUtils.roundFloat(parseFloat(match[1]), 2), match[2] as IUnit);
+    } else {
+      return undefined;
+    }
+  }
+
+  export function printOrNumber(weight: IWeight | number): string {
+    return typeof weight === "number" ? `${weight}` : print(weight);
   }
 
   export function build(value: number, unit: IUnit): IWeight {

@@ -16,6 +16,7 @@
 - Single vs double side weights (???)
 - Add rounding up/down/middle setting
 - Add reps/volume PR
+- Add 'bodyweight' variable
 
 * Programs
   - 5/3/1s

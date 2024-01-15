@@ -723,7 +723,7 @@ export const TProgram = t.intersection(
   ],
   "TProgram"
 );
-export type IProgram = Readonly<t.TypeOf<typeof TProgram>>;
+export type IProgram = t.TypeOf<typeof TProgram>;
 
 export const lengthUnits = ["in", "cm"] as const;
 

@@ -76,7 +76,14 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
 
   const finishScriptResult =
     entry != null
-      ? Program.runExerciseFinishDayScript(entry, dayData, props.settings, state, programExercise.finishDayExpr)
+      ? Program.runExerciseFinishDayScript(
+          entry,
+          dayData,
+          props.settings,
+          state,
+          programExercise.finishDayExpr,
+          props.program.planner ? "planner" : "regular"
+        )
       : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);
   const finishEditorResult: IEither<number | undefined, string> = finishScriptResult.success
     ? { success: true, data: undefined }

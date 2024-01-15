@@ -7,6 +7,7 @@ import { IUnit, IWeight, IProgramState } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IState } from "./models/state";
+import { IProgramMode } from "./models/program";
 
 declare let Rollbar: RB;
 
@@ -19,7 +20,7 @@ export class ScriptRunner {
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
   private readonly context: IScriptContext;
-  private readonly mode: "planner" | "regular";
+  private readonly mode: IProgramMode;
   private variables: ILiftoscriptEvaluatorVariables;
 
   constructor(
@@ -29,7 +30,7 @@ export class ScriptRunner {
     fns: IScriptFunctions,
     units: IUnit,
     context: IScriptContext,
-    mode: "planner" | "regular"
+    mode: IProgramMode
   ) {
     this.script = script;
     this.state = state;

@@ -15,13 +15,17 @@ import {
 import { Program } from "./program";
 import { History } from "./history";
 import { ProgramSet } from "./programSet";
-import { IProgramStateMetadata, IWeight } from "../types";
+import { IProgramStateMetadata, IWeight, IPlannerProgram } from "../types";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "./weight";
 import { IBuilderExercise } from "../pages/builder/models/types";
 import { Exercise } from "./exercise";
 import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
+import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerToProgram2 } from "./plannerToProgram2";
+import { ProgramToPlanner } from "./programToPlanner";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -469,5 +473,78 @@ export namespace ProgramExercise {
       warmupSets: v1("warmupSets"),
       diffPaths: enforceNew ? oldExercise.diffPaths : [],
     };
+  }
+
+  export function applyVariables(
+    programExercise: IProgramExercise,
+    plannerProgram: IPlannerProgram,
+    variables: ILiftoscriptEvaluatorVariables,
+    settings: ISettings
+  ): IProgramExercise {
+    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings.exercises, settings.equipment).map((w) =>
+      CollectionUtils.compact(
+        w.map((d) => {
+          if (d.success) {
+            return d.data.filter(
+              (e) => PlannerToProgram2.plannerExerciseKey(e) === ProgramToPlanner.exerciseKey(programExercise)
+            );
+          } else {
+            return undefined;
+          }
+        })
+      )
+    );
+    const variationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings)[
+      ProgramToPlanner.exerciseKey(programExercise)
+    ];
+
+    const keys = ["RPE", "reps", "weights"] as const;
+    for (const key of keys) {
+      const values = variables[key];
+      if (values != null) {
+        for (const value of values) {
+          const target = normalizeTarget(value.target);
+          const [week, day, variation, set] = target;
+          let dayIndex = 0;
+          for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
+            for (let dayInWeekIndex = 0; dayInWeekIndex < evaluatedWeeks.length; dayInWeekIndex += 1) {
+              if (variationsMap[dayIndex]) {
+                const [from, to] = variationsMap[dayIndex];
+                const variations = programExercise.variations.slice(from, to);
+                for (let variationIndex = 0; variationIndex < variations.length; variationIndex += 1) {
+                  const sets = variations[variationIndex].sets;
+                  for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
+                    if (
+                      (week === "*" || week === weekIndex + 1) &&
+                      (day === "*" || day === dayInWeekIndex + 1) &&
+                      (variation === "*" || variation === variationIndex + 1) &&
+                      (set === "*" || set === setIndex + 1)
+                    ) {
+                      if (key === "RPE") {
+                        sets[setIndex].rpeExpr = Weight.printOrNumber(value.value);
+                      } else if (key === "reps") {
+                        sets[setIndex].repsExpr = Weight.printOrNumber(value.value);
+                      } else if (key === "weights") {
+                        sets[setIndex].weightExpr = Weight.printOrNumber(value.value);
+                      }
+                    }
+                  }
+                }
+              }
+              dayIndex += 1;
+            }
+          }
+        }
+      }
+    }
+    return programExercise;
+  }
+
+  function normalizeTarget(target: (number | "*" | "_")[]): (number | "*" | "_")[] {
+    const newTarget = [...target];
+    for (let i = 0; i < 4 - target.length; i += 1) {
+      newTarget.unshift("*");
+    }
+    return newTarget;
   }
 }

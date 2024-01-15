@@ -122,6 +122,7 @@ export const CardsView = memo(
 
           return (
             <ExerciseView
+              programMode={Program.programMode(props.program)}
               history={props.history}
               helps={props.helps}
               showHelp={true}

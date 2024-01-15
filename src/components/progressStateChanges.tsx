@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { Program } from "../models/program";
+import { IProgramMode, Program } from "../models/program";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
@@ -16,13 +16,22 @@ interface IProps {
   userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
   staticState?: IProgramState;
+  mode: IProgramMode;
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const { entry, settings, state, script, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
-  const result = Program.runExerciseFinishDayScript(entry, dayData, settings, mergedState, script, props.staticState);
+  const result = Program.runExerciseFinishDayScript(
+    entry,
+    dayData,
+    settings,
+    mergedState,
+    script,
+    props.mode,
+    props.staticState
+  );
   const isFinished = Reps.isFinished(entry.sets);
 
   if ((props.forceShow || isFinished) && result.success) {

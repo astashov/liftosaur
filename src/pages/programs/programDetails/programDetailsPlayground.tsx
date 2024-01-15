@@ -5,7 +5,7 @@ import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
 import { IDayData, IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
-import { Program } from "../../../models/program";
+import { IProgramMode, Program } from "../../../models/program";
 import { IDispatch } from "../../../ducks/types";
 import { ICardsAction } from "../../../ducks/reducer";
 import { ExerciseView } from "../../../components/exercise";
@@ -22,6 +22,7 @@ interface IPlaygroundProps {
   variationIndex: number;
   settings: ISettings;
   dayData: IDayData;
+  programMode: IProgramMode;
   hidePlatesCalculator?: boolean;
   onProgramExerciseUpdate: (programExercise: IProgramExercise) => void;
 }
@@ -90,6 +91,7 @@ export const Playground = memo(
     return (
       <>
         <ExerciseView
+          programMode={props.programMode}
           history={historyRef.current}
           showHelp={false}
           helps={[]}

@@ -45,6 +45,7 @@ import { ExerciseImage } from "./exerciseImage";
 import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
 import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
+import { IProgramMode } from "../models/program";
 
 interface IProps {
   showHelp: boolean;
@@ -62,6 +63,7 @@ interface IProps {
   forceShowStateChanges?: boolean;
   subscription: ISubscription;
   hidePlatesCalculator?: boolean;
+  programMode: IProgramMode;
   dispatch: IDispatch;
   onStartSetChanging?: (
     isWarmup: boolean,
@@ -139,6 +141,7 @@ export const ExerciseView = memo(
           <ExerciseContentView {...props} />
           {props.programExercise && props.allProgramExercises && (
             <ProgressStateChanges
+              mode={props.programMode}
               entry={props.entry}
               forceShow={props.forceShowStateChanges}
               settings={props.settings}

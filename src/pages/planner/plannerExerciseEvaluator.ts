@@ -288,7 +288,7 @@ export class PlannerExerciseEvaluator {
         }
       } else if (fnName === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
-        script = liftoscriptNode ? this.getValue(liftoscriptNode) : undefined;
+        script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
         const reuseLiftoscriptNode = valueNode
           .getChild(PlannerNodeName.ReuseLiftoscript)
           ?.getChild(PlannerNodeName.ReuseSection)

@@ -14,4 +14,8 @@ export namespace MathUtils {
   export function roundTo00005(value: number): number {
     return round(value, 0.0005);
   }
+
+  export function roundFloat(value: number, precision: number): number {
+    return +value.toFixed(precision);
+  }
 }
