@@ -88,7 +88,7 @@ export class PlannerToProgram {
         if (result.success) {
           const exs = result.data;
           const names = exs.map((e) => CollectionUtils.compact([e.label, e.name, e.equipment]).join("_"));
-          const key = names.join("|");
+          const key = names.join("|").toLowerCase();
           exercisesToWeeksDays[key] = exercisesToWeeksDays[key] || {};
           exercisesToWeeksDays[key].dayData = exercisesToWeeksDays[key].dayData || [];
           exercisesToWeeksDays[key].exercises =
@@ -503,7 +503,7 @@ export class PlannerToProgram {
 
       const id = UidFactory.generateUid(8);
       const plannerExercise = potentialVariations[0].plannerExercise;
-      const name = CollectionUtils.compact([plannerExercise.label, plannerExercise.name]).join("_");
+      const name = CollectionUtils.compact([plannerExercise.label, plannerExercise.name]).join("_").toLowerCase();
       exerciseNamesToIds[name] = exerciseNamesToIds[name] || {};
       exerciseNamesToIds[name][plannerExercise.equipment || "default"] = id;
 
@@ -597,9 +597,12 @@ export class PlannerToProgram {
       const day: IProgramDay = {
         id,
         name: dayName,
-        exercises: value.exercises.map((e) => ({
-          id: exerciseNamesToIds[`${e.label ? `${e.label}_` : ""}${e.name}`][e.equipment || "default"],
-        })),
+        exercises: value.exercises.map((e) => {
+          const key = `${e.label ? `${e.label}_` : ""}${e.name}`.toLowerCase();
+          return {
+            id: exerciseNamesToIds[key][e.equipment || "default"],
+          };
+        }),
       };
       days.push(day);
       for (const dayData of value.dayData) {

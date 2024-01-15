@@ -104,7 +104,10 @@ export class PlannerProgram {
     ) {
       if (lastWeekDay.success) {
         const lastWeekExercise = lastWeekDay.data.find(
-          (ex) => ex.name === exercise.name && ex.label === exercise.label && ex.equipment === exercise.equipment
+          (ex) =>
+            ex.name.toLowerCase() === exercise.name.toLowerCase() &&
+            ex.label?.toLowerCase() === exercise.label?.toLowerCase() &&
+            ex.equipment?.toLowerCase() === exercise.equipment?.toLowerCase()
         );
         if (lastWeekExercise != null && (cond == null || cond(lastWeekExercise))) {
           return lastWeekExercise;
@@ -250,7 +253,7 @@ export class PlannerProgram {
           const excrs = day.data;
           const exercisesByName: Record<string, IPlannerProgramExercise[]> = {};
           for (const exercise of excrs) {
-            const key = `${exercise.label}_${exercise.name}_${exercise.equipment}`;
+            const key = `${exercise.label}_${exercise.name}_${exercise.equipment}`.toLowerCase();
             exercisesByName[key] = exercisesByName[key] || [];
             exercisesByName[key].push(exercise);
           }
@@ -279,6 +282,6 @@ export class PlannerProgram {
 
   public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
     const equipment = plannerExercise.equipment ?? exercise.defaultEquipment;
-    return `${plannerExercise.label ? `${plannerExercise.label}_` : ""}${exercise.id}_${equipment}`;
+    return `${plannerExercise.label ? `${plannerExercise.label}_` : ""}${exercise.id}_${equipment}`.toLowerCase();
   }
 }
