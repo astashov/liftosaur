@@ -110,7 +110,7 @@ export class PlannerToProgram2 {
               }
             );
             const state: IProgramState = {};
-            let finishDayExpr: string = "";
+            let finishDayExpr = programExercise.finishDayExpr;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
                 if (property.fnName === "custom") {

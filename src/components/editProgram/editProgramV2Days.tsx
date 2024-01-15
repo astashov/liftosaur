@@ -20,6 +20,7 @@ import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats"
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { IconDoc } from "../icons/iconDoc";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { IconPreview } from "../icons/iconPreview";
 
 export interface IEditProgramV2DaysProps {
   plannerProgram: IPlannerProgram;
@@ -105,6 +106,17 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               }}
             >
               <IconGraphsE width={16} height={22} color={enabledDayStats ? "#3C5063" : "#D2D8DE"} />
+            </button>
+            <button
+              disabled={isInvalid}
+              className="p-2"
+              onClick={() => {
+                if (!isInvalid) {
+                  props.plannerDispatch(props.lbUi.p("showPreview").record(true));
+                }
+              }}
+            >
+              <IconPreview />
             </button>
           </div>
         </div>

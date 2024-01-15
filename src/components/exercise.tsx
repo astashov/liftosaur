@@ -244,7 +244,7 @@ const ExerciseContentView = memo(
                       className="p-2 leading-none align-middle nm-workout-see-statvars"
                       onClick={() => setShowStateVariables(!showStateVariables)}
                     >
-                      <IconPreview size={18} />
+                      <IconPreview size={18} className="inline-block" />
                     </button>
                   )}
                   <button

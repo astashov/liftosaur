@@ -16,8 +16,6 @@ import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
-import { IconKebab } from "../icons/iconKebab";
-import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -27,6 +25,8 @@ import { IPlannerState } from "../../pages/planner/models/types";
 import { EditProgramV2Full } from "./editProgramV2Full";
 import { PlannerToProgram2 } from "../../models/plannerToProgram2";
 import { CollectionUtils } from "../../utils/collection";
+import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
+import { Modal } from "../modal";
 
 interface IProps {
   editProgram: IProgram;
@@ -41,8 +41,6 @@ interface IProps {
 
 export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
-  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
-  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const plannerState = props.plannerState;
   console.log(
@@ -75,35 +73,12 @@ export function EditProgramV2(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpEditProgramDaysList />}
           screenStack={props.screenStack}
-          rightButtons={[
-            <button
-              data-cy="navbar-3-dot"
-              className="p-2 nm-edit-program-navbar-kebab"
-              onClick={() => setShouldShowBottomSheet(true)}
-            >
-              <IconKebab />
-            </button>,
-          ]}
           title="Edit Program"
         />
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <>
-          <BottomSheetEditProgram
-            onExportProgramToFile={() => {
-              setShouldShowBottomSheet(false);
-              props.dispatch(Thunk.exportProgramToFile(props.editProgram));
-            }}
-            onExportProgramToLink={() => {
-              setShouldShowBottomSheet(false);
-              props.dispatch(Thunk.exportProgramToLink(props.editProgram));
-            }}
-            editProgramId={props.editProgram.id}
-            dispatch={props.dispatch}
-            isHidden={!shouldShowBottomSheet}
-            onClose={() => setShouldShowBottomSheet(false)}
-          />
           <ModalPublishProgram
             isHidden={!shouldShowPublishModal}
             program={props.editProgram}
@@ -112,33 +87,29 @@ export function EditProgramV2(props: IProps): JSX.Element {
               setShouldShowPublishModal(false);
             }}
           />
+          {plannerState.ui.showPreview && (
+            <Modal
+              isFullWidth={true}
+              shouldShowClose={true}
+              onClose={() => plannerDispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
+            >
+              <ProgramPreviewOrPlayground
+                program={new PlannerToProgram2(
+                  props.editProgram.id,
+                  plannerState.current.program,
+                  props.settings
+                ).convertToProgram()}
+                isMobile={true}
+                hasNavbar={false}
+                settings={props.settings}
+              />
+            </Modal>
+          )}
         </>
       }
     >
       <section>
         <div className="px-4">
-          <div className="mb-2 text-sm text-grayv2-main">
-            <div>
-              You can use{" "}
-              <LinkButton
-                name="edit-program-copy-program-link"
-                onClick={async () => {
-                  props.dispatch(
-                    Thunk.generateAndCopyLink(props.editProgram, props.settings, () => {
-                      setIsCopied(true);
-                      setTimeout(() => {
-                        setIsCopied(false);
-                      }, 3000);
-                    })
-                  );
-                }}
-              >
-                this link
-              </LinkButton>{" "}
-              to edit this program on your laptop
-            </div>
-            {isCopied && <div className="font-bold">Copied to clipboard!</div>}
-          </div>
           <GroupHeader name="Current Program" />
           <MenuItem
             name="Program"

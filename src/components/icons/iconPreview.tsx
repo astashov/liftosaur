@@ -3,6 +3,7 @@ import { h, JSX } from "preact";
 interface IProps {
   size?: number;
   color?: string;
+  className?: string;
 }
 
 export function IconPreview(props: IProps): JSX.Element {
@@ -10,7 +11,7 @@ export function IconPreview(props: IProps): JSX.Element {
   const color = props.color ?? "#171718";
   return (
     <svg
-      className="inline-block"
+      className={props.className}
       width={size}
       height={size}
       viewBox="0 0 101 101"

@@ -494,9 +494,9 @@ export namespace ProgramExercise {
         })
       )
     );
-    const variationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings)[
-      ProgramToPlanner.exerciseKey(programExercise)
-    ];
+    const exerciseKey = ProgramToPlanner.exerciseKey(programExercise);
+    const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
+    const variationsMap = allVariationsMap[exerciseKey];
 
     const keys = ["RPE", "reps", "weights"] as const;
     for (const key of keys) {
@@ -507,7 +507,7 @@ export namespace ProgramExercise {
           const [week, day, variation, set] = target;
           let dayIndex = 0;
           for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
-            for (let dayInWeekIndex = 0; dayInWeekIndex < evaluatedWeeks.length; dayInWeekIndex += 1) {
+            for (let dayInWeekIndex = 0; dayInWeekIndex < evaluatedWeeks[weekIndex].length; dayInWeekIndex += 1) {
               if (variationsMap[dayIndex]) {
                 const [from, to] = variationsMap[dayIndex];
                 const variations = programExercise.variations.slice(from, to);

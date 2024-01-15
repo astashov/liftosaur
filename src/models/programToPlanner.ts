@@ -80,6 +80,7 @@ export class ProgramToPlanner {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
     let dayIndex = 0;
+    const addedProgressMap: Record<string, boolean> = {};
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
       const week = this.program.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
@@ -137,7 +138,10 @@ export class ProgramToPlanner {
             plannerExercise += ` / ${globals.timer}s`;
           }
 
-          if (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state)) {
+          if (
+            !addedProgressMap[key] &&
+            (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state))
+          ) {
             const stateVars = ObjectUtils.keys(programExercise.state).map(
               (k) => `${k}: ${this.printVal(programExercise.state[k])}`
             );
@@ -145,6 +149,7 @@ export class ProgramToPlanner {
             if (programExercise.finishDayExpr) {
               plannerExercise += " " + programExercise.finishDayExpr;
             }
+            addedProgressMap[key] = true;
           }
           exerciseTextArr.push(plannerExercise);
         }
@@ -203,7 +208,8 @@ export class ProgramToPlanner {
       setStr += `${set.repsExpr}`;
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {
-        setStr = this.weightExprToStr(set.weightExpr);
+        const weightValue = this.weightExprToStr(set.weightExpr);
+        setStr += weightValue ? ` ${weightValue}` : "";
       }
       if (globals.rpe == null) {
         setStr += set.rpeExpr ? ` @${set.rpeExpr}` : "";
@@ -214,7 +220,7 @@ export class ProgramToPlanner {
       }
       result.push(setStr);
     }
-    return result.join(", ");
+    return result.map((r) => r.trim()).join(", ");
   }
 
   private setToKey(set: IProgramSet): string {

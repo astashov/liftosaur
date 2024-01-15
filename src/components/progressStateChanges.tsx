@@ -55,6 +55,14 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
         )}`;
       }
     }
+    for (const key of ["reps", "weights", "RPE"] as const) {
+      if (variables[key] != null) {
+        for (const value of variables[key] || []) {
+          const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
+          diffVars[keyStr] = `${Weight.printOrNumber(value.value)}`;
+        }
+      }
+    }
 
     if (ObjectUtils.isNotEmpty(diffState) || ObjectUtils.isNotEmpty(diffVars)) {
       return (
@@ -65,7 +73,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
         >
           {ObjectUtils.isNotEmpty(diffVars) && (
             <>
-              <header className="font-bold">Exercise Variables changes</header>
+              <header className="font-bold">Exercise Changes</header>
               <ul data-cy="variable-changes">
                 {ObjectUtils.keys(diffVars).map((key) => (
                   <li data-cy={`variable-changes-key-${StringUtils.dashcase(key)}`}>

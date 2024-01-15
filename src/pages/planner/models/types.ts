@@ -97,6 +97,7 @@ export interface IPlannerUi {
   showWeekStats?: boolean;
   showDayStats?: boolean;
   showExerciseStats?: boolean;
+  showPreview?: boolean;
 }
 
 export interface IPlannerFullText {
