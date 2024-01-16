@@ -184,6 +184,21 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             }}
           />
         </div>
+        <div className="mt-2 mb-8 text-center">
+          <Button
+            disabled={!evaluatedWeeks.success}
+            title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
+            name="save-full-planner-bottom"
+            kind="orange"
+            onClick={() => {
+              if (evaluatedWeeks.success) {
+                save();
+              }
+            }}
+          >
+            Save
+          </Button>
+        </div>
       </div>
       {props.ui.showExerciseStats && (
         <Modal

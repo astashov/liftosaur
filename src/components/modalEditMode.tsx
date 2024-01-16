@@ -17,10 +17,12 @@ import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
 import { ExerciseRM } from "./exerciseRm";
 import { ProgramExercise } from "../models/programExercise";
+import { Program } from "../models/program";
 
 interface IModalEditModeProps {
   programExerciseId: string;
   program: IProgram;
+  day: number;
   entryIndex: number;
   progressId: number;
   settings: ISettings;
@@ -147,8 +149,14 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   kind="purple"
                   buttonSize="md"
                   onClick={() => {
-                    updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);
-                    EditProgram.editProgramExercise(props.dispatch, programExercise);
+                    if (props.program.planner) {
+                      const dayData = Program.getDayData(props.program, props.day);
+                      EditProgram.initializePlanner(props.dispatch, props.program.planner, props.settings, dayData);
+                      Program.editAction(props.dispatch, props.program.id);
+                    } else {
+                      updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);
+                      EditProgram.editProgramExercise(props.dispatch, programExercise);
+                    }
                     onClose();
                   }}
                   data-cy="modal-edit-mode-program"

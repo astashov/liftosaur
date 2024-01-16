@@ -2,6 +2,7 @@
 
 import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
+import { useState } from "preact/hooks";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -12,6 +13,8 @@ import { HtmlUtils } from "../../utils/html";
 import { StringUtils } from "../../utils/string";
 import { TimeUtils } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
+import { IconArrowDown2 } from "../icons/iconArrowDown2";
+import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconHandle } from "../icons/iconHandle";
@@ -22,7 +25,7 @@ import { applyChangesInEditor } from "./editProgramV2Utils";
 interface IEditProgramV2DayProps {
   weekIndex: number;
   dayIndex: number;
-  day: IPlannerProgramDay;
+  plannerDay: IPlannerProgramDay;
   showDelete: boolean;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   ui: IPlannerUi;
@@ -34,7 +37,7 @@ interface IEditProgramV2DayProps {
 }
 
 export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
-  const { day, plannerDispatch, lbProgram, weekIndex, dayIndex } = props;
+  const { plannerDay, plannerDispatch, lbProgram, weekIndex, dayIndex } = props;
   const { exercises: customExercises, equipment: customEquipment } = props.settings;
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
@@ -44,6 +47,9 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
     );
   }
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(
+    !!(props.ui.focusedDay && props.ui.focusedDay.dayInWeek !== dayIndex + 1)
+  );
 
   return (
     <div className="flex flex-col pb-4 md:flex-row">
@@ -54,7 +60,15 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
               <IconHandle />
             </span>
           </div>
-          <h3 className="flex-1 mr-2 text-xl font-bold">{day.name}</h3>
+          <div>
+            <button
+              className="w-8 p-2 mr-1 text-center nm-web-editor-expand-collapse-day"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+              {isCollapsed ? <IconArrowRight className="inline-block" /> : <IconArrowDown2 className="inline-block" />}
+            </button>
+          </div>
+          <h3 className="flex-1 mr-2 text-xl font-bold">{plannerDay.name}</h3>
           <div className="">
             <button
               data-cy="edit-day-v2"
@@ -67,8 +81,8 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
               data-cy="clone-day"
               className="px-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
               onClick={() => {
-                const newName = StringUtils.nextName(day.name);
-                const newDay = { name: newName, exerciseText: day.exerciseText };
+                const newName = StringUtils.nextName(plannerDay.name);
+                const newDay = { name: newName, exerciseText: plannerDay.exerciseText };
                 applyChangesInEditor(plannerDispatch, () => {
                   plannerDispatch(
                     lbProgram
@@ -110,45 +124,50 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
           </div>
         </div>
         <div className="flex">
-          <div className="flex-1 w-0">
-            <PlannerEditorView
-              name="Exercises"
-              customExercises={customExercises}
-              lineNumbers={true}
-              equipment={customEquipment}
-              error={evaluatedDay.success ? undefined : evaluatedDay.error}
-              value={day.exerciseText}
-              onCustomErrorCta={(err) => undefined}
-              onChange={(e) => {
-                console.log("On Change", e);
-                plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
-              }}
-              onBlur={(e, text) => {
-                const relatedTarget = e.relatedTarget as HTMLElement;
-                if (!relatedTarget || !HtmlUtils.someInParents(relatedTarget, (el) => el.tagName === "BUTTON")) {
-                  plannerDispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined));
-                }
-              }}
-              onLineChange={(line) => {
-                if (
-                  !focusedExercise ||
-                  focusedExercise.weekIndex !== weekIndex ||
-                  focusedExercise.dayIndex !== dayIndex ||
-                  focusedExercise.exerciseLine !== line
-                ) {
-                  plannerDispatch(
-                    lb<IPlannerState>().p("ui").p("focusedExercise").record({ weekIndex, dayIndex, exerciseLine: line })
-                  );
-                }
-              }}
-            />
-            {approxDayTime && (
-              <div className="text-xs text-right text-grayv2-main">
-                <IconWatch className="mb-1 align-middle" />
-                <span className="pl-1 align-middle">{approxDayTime}</span>
-              </div>
-            )}
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1 w-0">
+              <PlannerEditorView
+                name="Exercises"
+                customExercises={customExercises}
+                lineNumbers={true}
+                equipment={customEquipment}
+                error={evaluatedDay.success ? undefined : evaluatedDay.error}
+                value={plannerDay.exerciseText}
+                onCustomErrorCta={(err) => undefined}
+                onChange={(e) => {
+                  console.log("On Change", e);
+                  plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
+                }}
+                onBlur={(e, text) => {
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (!relatedTarget || !HtmlUtils.someInParents(relatedTarget, (el) => el.tagName === "BUTTON")) {
+                    plannerDispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined));
+                  }
+                }}
+                onLineChange={(line) => {
+                  if (
+                    !focusedExercise ||
+                    focusedExercise.weekIndex !== weekIndex ||
+                    focusedExercise.dayIndex !== dayIndex ||
+                    focusedExercise.exerciseLine !== line
+                  ) {
+                    plannerDispatch(
+                      lb<IPlannerState>()
+                        .p("ui")
+                        .p("focusedExercise")
+                        .record({ weekIndex, dayIndex, exerciseLine: line })
+                    );
+                  }
+                }}
+              />
+              {approxDayTime && (
+                <div className="text-xs text-right text-grayv2-main">
+                  <IconWatch className="mb-1 align-middle" />
+                  <span className="pl-1 align-middle">{approxDayTime}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

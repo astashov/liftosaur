@@ -48,7 +48,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
         <div className="flex items-center">
           <div className="mr-2">
             <Button
-              name="back-to-editor"
+              name="editor-save-v2-top"
               kind="orange"
               buttonSize="sm"
               disabled={isInvalid}
@@ -124,6 +124,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
       <div>
         <ScrollableTabs
           offsetY="6rem"
+          defaultIndex={ui.focusedDay?.week ? ui.focusedDay.week - 1 : undefined}
           onChange={(index) => props.plannerDispatch(props.lbUi.p("weekIndex").record(index))}
           tabs={plannerProgram.weeks.map((week, weekIndex) => {
             return {
@@ -150,7 +151,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                           ]);
                         });
                       }}
-                      element={(day, dayIndex, handleTouchStart) => {
+                      element={(plannerDay, dayIndex, handleTouchStart) => {
                         return (
                           <div key={dayIndex}>
                             <EditProgramV2Day
@@ -162,7 +163,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                               }}
                               plannerDispatch={plannerDispatch}
                               handleTouchStart={handleTouchStart}
-                              day={day}
+                              plannerDay={plannerDay}
                               weekIndex={weekIndex}
                               dayIndex={dayIndex}
                               ui={ui}
@@ -200,6 +201,20 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             };
           })}
         />
+        <div className="mb-8 text-center">
+          <Button
+            name="save-editor-v2"
+            kind="orange"
+            disabled={isInvalid}
+            onClick={() => {
+              if (!isInvalid) {
+                props.onSave();
+              }
+            }}
+          >
+            Save
+          </Button>
+        </div>
       </div>
       {props.ui.showExerciseStats && props.ui.focusedExercise && (
         <Modal

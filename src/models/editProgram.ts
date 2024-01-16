@@ -16,6 +16,7 @@ import {
   IProgramExerciseWarmupSet,
   IExerciseType,
   IPlannerProgram,
+  IDayData,
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
@@ -594,7 +595,12 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
   }
 
-  export function initializePlanner(dispatch: IDispatch, plannerProgram: IPlannerProgram, settings: ISettings): void {
+  export function initializePlanner(
+    dispatch: IDispatch,
+    plannerProgram: IPlannerProgram,
+    settings: ISettings,
+    focusedDay?: IDayData
+  ): void {
     const initialSettings: IPlannerSettings = {
       strengthSetsPct: 30,
       hypertrophySetsPct: 70,
@@ -634,7 +640,7 @@ export namespace EditProgram {
     const initialState: IPlannerState = {
       settings: initialSettings,
       current: { program: plannerProgram },
-      ui: { weekIndex: 0 },
+      ui: { weekIndex: 0, focusedDay },
       history: { past: [], future: [] },
     };
 

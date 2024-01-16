@@ -154,6 +154,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 programExerciseId={editModalProgramExercise}
                 entryIndex={progress.ui?.editModal?.entryIndex || 0}
                 progressId={props.progress.id}
+                day={props.progress.day}
                 settings={props.settings}
                 dispatch={props.dispatch}
               />

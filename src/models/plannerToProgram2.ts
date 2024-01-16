@@ -170,8 +170,8 @@ export class PlannerToProgram2 {
       weeks: programWeeks,
       isMultiweek: true,
       tags: [],
+      planner: this.plannerProgram,
     };
-    console.log(program);
     return program;
   }
 }
