@@ -1,5 +1,6 @@
 import { lf } from "lens-shmens";
 import { h, JSX } from "preact";
+import { GroupHeader } from "../../../components/groupHeader";
 import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
@@ -50,7 +51,8 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
-      <form style={{ minWidth: props.inApp ? "auto" : "32rem" }}>
+      <GroupHeader size="large" name="Muscle Settings" />
+      <form className="mt-2" style={{ minWidth: props.inApp ? "auto" : "32rem" }}>
         {!props.inApp && (
           <div className="mb-1">
             <label>

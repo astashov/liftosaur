@@ -84,6 +84,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               shouldShowClose={true}
               onClose={() => plannerDispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
             >
+              <GroupHeader size="large" name="Program Preview" />
               <ProgramPreviewOrPlayground
                 program={new PlannerToProgram2(
                   props.editProgram.id,

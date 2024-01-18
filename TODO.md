@@ -35,9 +35,6 @@
 
 - Planner
 
-* Check errors inside Liftoscript
-* Add settings
-* Add ability to set percentages for weights
 * Add inc assignments
 * Add lp, dp, sum progressions
 * Add warmup sets
@@ -47,6 +44,7 @@
 * Fix equipment selection
 * Add timers
 * Remove ability to reuse exercises in planner
+* Remove ability to omit sets count
 * Add quick sets
 * Edit week/day names on the edit weeks subscreen
 * Show errors if target is wrong
