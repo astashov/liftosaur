@@ -151,7 +151,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   onClick={() => {
                     if (props.program.planner) {
                       const dayData = Program.getDayData(props.program, props.day);
-                      EditProgram.initializePlanner(props.dispatch, props.program.planner, props.settings, dayData);
+                      EditProgram.initializePlanner(props.dispatch, props.program.planner, dayData);
                       Program.editAction(props.dispatch, props.program.id);
                     } else {
                       updateState(props.dispatch, [lb<IState>().p("editProgram").record({ id: props.program.id })]);

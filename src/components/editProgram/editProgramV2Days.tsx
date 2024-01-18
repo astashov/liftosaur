@@ -21,6 +21,7 @@ import { PlannerExerciseStats } from "../../pages/planner/components/plannerExer
 import { IconDoc } from "../icons/iconDoc";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { IconPreview } from "../icons/iconPreview";
+import { IconCog2 } from "../icons/iconCog2";
 
 export interface IEditProgramV2DaysProps {
   plannerProgram: IPlannerProgram;
@@ -116,6 +117,13 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               }}
             >
               <IconPreview />
+            </button>
+            <button
+              title="Settings"
+              onClick={() => props.plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
+              className="p-2 nm-planner-settings"
+            >
+              <IconCog2 style={{ display: "block" }} />
             </button>
           </div>
         </div>

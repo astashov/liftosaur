@@ -595,14 +595,8 @@ export namespace EditProgram {
     updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
   }
 
-  export function initializePlanner(
-    dispatch: IDispatch,
-    plannerProgram: IPlannerProgram,
-    settings: ISettings,
-    focusedDay?: IDayData
-  ): void {
+  export function initializePlanner(dispatch: IDispatch, plannerProgram: IPlannerProgram, focusedDay?: IDayData): void {
     const initialState: IPlannerState = {
-      settings,
       current: { program: plannerProgram },
       ui: { weekIndex: 0, focusedDay },
       history: { past: [], future: [] },
@@ -635,7 +629,7 @@ export namespace EditProgram {
       },
     };
 
-    initializePlanner(dispatch, newProgram.planner!, settings);
+    initializePlanner(dispatch, newProgram.planner!);
     updateState(dispatch, [
       lb<IState>()
         .p("storage")

@@ -26,6 +26,7 @@ import { PlannerToProgram2 } from "../../models/plannerToProgram2";
 import { CollectionUtils } from "../../utils/collection";
 import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
 import { Modal } from "../modal";
+import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
 
 interface IProps {
   editProgram: IProgram;
@@ -94,6 +95,16 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 settings={props.settings}
               />
             </Modal>
+          )}
+          {plannerState.ui.showSettingsModal && (
+            <ModalPlannerSettings
+              inApp={true}
+              onNewSettings={(newSettings) =>
+                updateState(props.dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)])
+              }
+              settings={props.settings}
+              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
+            />
           )}
         </>
       }

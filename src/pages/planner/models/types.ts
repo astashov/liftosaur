@@ -1,6 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IDayData, IPlannerProgram, IPlannerSettings, IScreenMuscle, ISettings, IWeight } from "../../../types";
+import { IDayData, IPlannerProgram, IPlannerSettings, IScreenMuscle, IWeight } from "../../../types";
 
 export interface IPlannerProgramExercise {
   label?: string;
@@ -83,6 +83,7 @@ export interface IPlannerUi {
   showExerciseStats?: boolean;
   showPreview?: boolean;
   focusedDay?: IDayData;
+  showSettingsModal?: boolean;
 }
 
 export interface IPlannerFullText {
@@ -93,7 +94,6 @@ export interface IPlannerFullText {
 export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;
-  settings: ISettings;
 }
 
 export interface IExportedPlannerProgram {
