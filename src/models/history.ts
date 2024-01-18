@@ -15,9 +15,10 @@ import {
   IProgram,
   IEquipment,
   IDayData,
+  IScreenMuscle,
+  screenMuscles,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
-import { IScreenMuscle, screenMuscles } from "./muscle";
 import { Reps } from "./set";
 import { ProgramExercise } from "./programExercise";
 

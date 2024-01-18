@@ -4,7 +4,7 @@ import { useState, useMemo } from "preact/hooks";
 import { LinkButton } from "../../components/linkButton";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IPlannerSettings, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { EditProgramV2EditDayModal } from "./editProgramV2EditDayModal";
 import { EditProgramV2Days } from "./editProgramV2Days";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
@@ -12,21 +12,20 @@ import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 
 export interface IPlannerContentPerDayProps {
   plannerProgram: IPlannerProgram;
-  plannerSettings: IPlannerSettings;
-  ui: IPlannerUi;
   settings: ISettings;
+  ui: IPlannerUi;
   onSave: () => void;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
 export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Element {
-  const { plannerProgram, settings, ui, plannerDispatch, plannerSettings } = props;
+  const { plannerProgram, settings, ui, plannerDispatch } = props;
   const lbProgram = lb<IPlannerState>().p("current").pi("program");
   const [editDayModal, setEditDayModal] = useState<{ weekIndex: number; dayIndex: number } | undefined>(undefined);
   const dayNameModal =
     plannerProgram.weeks[editDayModal?.weekIndex || 0]?.days[editDayModal?.dayIndex || 0]?.name ?? "";
   const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluate(plannerProgram, settings.exercises, settings.equipment);
+    return PlannerProgram.evaluate(plannerProgram, settings);
   }, [plannerProgram, settings]);
 
   return (
@@ -55,7 +54,6 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
         <EditProgramV2Days
           plannerProgram={plannerProgram}
           evaluatedWeeks={evaluatedWeeks}
-          plannerSettings={plannerSettings}
           lbUi={lb<IPlannerState>().pi("ui")}
           ui={ui}
           settings={settings}

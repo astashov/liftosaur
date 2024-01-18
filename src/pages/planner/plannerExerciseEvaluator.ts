@@ -10,12 +10,17 @@ import {
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramProperty,
 } from "./models/types";
-import { IAllCustomExercises, IWeight, IAllEquipment } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, IEquipment } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ObjectUtils } from "../../utils/object";
 import { Equipment } from "../../models/equipment";
+import { ScriptRunner } from "../../parser";
+import { Progress } from "../../models/progress";
+import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
+import { Weight } from "../../models/weight";
+import { MathUtils } from "../../utils/math";
 
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -59,18 +64,18 @@ export interface IPlannerExerciseEvaluatorWeek {
 
 export class PlannerExerciseEvaluator {
   private readonly script: string;
-  private readonly customExercises: IAllCustomExercises;
-  private readonly equipment: IAllEquipment;
   private readonly mode: "perday" | "full";
+  private dayData: IDayData;
+  private readonly settings: ISettings;
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
 
   private latestDescription: string | undefined = undefined;
 
-  constructor(script: string, customExercises: IAllCustomExercises, equipment: IAllEquipment, mode: "perday" | "full") {
+  constructor(script: string, settings: ISettings, mode: "perday" | "full", dayData?: IDayData) {
     this.script = script;
-    this.customExercises = customExercises;
+    this.settings = settings;
+    this.dayData = dayData || { day: 1, week: 1, dayInWeek: 1 };
     this.mode = mode;
-    this.equipment = equipment;
   }
 
   private getValue(node: SyntaxNode): string {
@@ -190,6 +195,18 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private fnArgsToStateVars(fnArgs: string[]): IProgramState {
+    const state: IProgramState = {};
+    for (const value of fnArgs) {
+      const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
+      const fnArgVal = fnArgValStr.match(/(lb|kg)/)
+        ? Weight.parse(fnArgValStr)
+        : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
+      state[fnArgKey] = fnArgVal ?? 0;
+    }
+    return state;
+  }
+
   private evaluateSet(expr: SyntaxNode): IPlannerProgramExerciseSet {
     if (expr.type.name === PlannerNodeName.ExerciseSet) {
       const setPartNodes = expr.getChildren(PlannerNodeName.SetPart);
@@ -218,7 +235,7 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateProgress(expr: SyntaxNode): IPlannerProgramProperty {
+  private evaluateProgress(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -289,6 +306,34 @@ export class PlannerExerciseEvaluator {
       } else if (fnName === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
         script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
+        if (script) {
+          const liftoscriptEvaluator = new ScriptRunner(
+            script,
+            this.fnArgsToStateVars(fnArgs),
+            Progress.createEmptyScriptBindings(this.dayData, this.settings),
+            Progress.createScriptFunctions(this.settings),
+            "lb",
+            { equipment },
+            "planner"
+          );
+          try {
+            liftoscriptEvaluator.parse();
+          } catch (e) {
+            if (e instanceof LiftoscriptSyntaxError && liftoscriptNode) {
+              const [line] = this.getLineAndOffset(liftoscriptNode);
+              throw new PlannerSyntaxError(
+                e.message,
+                line + e.line,
+                e.offset,
+                liftoscriptNode.from + e.from,
+                liftoscriptNode.from + e.to
+              );
+            } else {
+              throw e;
+            }
+          }
+          console.log("Parsed");
+        }
         const reuseLiftoscriptNode = valueNode
           .getChild(PlannerNodeName.ReuseLiftoscript)
           ?.getChild(PlannerNodeName.ReuseSection)
@@ -333,7 +378,8 @@ export class PlannerExerciseEvaluator {
   }
 
   private evaluateProperty(
-    expr: SyntaxNode
+    expr: SyntaxNode,
+    equipment?: IEquipment
   ):
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
@@ -344,7 +390,7 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       if (name === "progress") {
-        return { type: "progress", data: this.evaluateProgress(expr) };
+        return { type: "progress", data: this.evaluateProgress(expr, equipment) };
       } else if (name === "warmup") {
         return { type: "warmup", data: this.evaluateWarmup(expr) };
       } else {
@@ -356,7 +402,8 @@ export class PlannerExerciseEvaluator {
   }
 
   private evaluateSection(
-    expr: SyntaxNode
+    expr: SyntaxNode,
+    equipment?: IEquipment
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
@@ -377,7 +424,7 @@ export class PlannerExerciseEvaluator {
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
-        return this.evaluateProperty(property);
+        return this.evaluateProperty(property, equipment);
       } else {
         assert(PlannerNodeName.ExerciseProperty);
       }
@@ -400,11 +447,11 @@ export class PlannerExerciseEvaluator {
     if (parts.length > 1) {
       const potentialEquipment = parts[parts.length - 1]?.trim();
       const allowedEquipments = [
-        ...ObjectUtils.keys(this.equipment),
-        ...ObjectUtils.keys(this.equipment).map((e) => equipmentName(e, this.equipment)),
+        ...ObjectUtils.keys(this.settings.equipment),
+        ...ObjectUtils.keys(this.settings.equipment).map((e) => equipmentName(e, this.settings.equipment)),
       ];
       if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment) !== -1) {
-        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.equipment);
+        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.settings.equipment);
         equipment = equipmentKey;
         parts.pop();
       }
@@ -432,6 +479,7 @@ export class PlannerExerciseEvaluator {
       const weekName = this.getValueTrim(expr).replace(/^#+/, "").trim();
       const [line] = this.getLineAndOffset(expr);
       this.weeks.push({ name: weekName, line, days: [] });
+      this.dayData = { day: this.dayData.day, week: this.weeks.length + 1, dayInWeek: 0 };
     } else if (expr.type.name === PlannerNodeName.Day) {
       if (this.mode === "perday") {
         this.error(
@@ -445,6 +493,11 @@ export class PlannerExerciseEvaluator {
       const dayName = this.getValueTrim(expr).replace(/^#+/, "").trim();
       const [line] = this.getLineAndOffset(expr);
       this.weeks[this.weeks.length - 1].days.push({ name: dayName, line, exercises: [] });
+      this.dayData = {
+        day: this.dayData.day + 1,
+        week: this.dayData.week,
+        dayInWeek: (this.dayData.dayInWeek || 0) + 1,
+      };
     } else if (expr.type.name === PlannerNodeName.LineComment) {
       const value = this.getValueTrim(expr);
       this.addLineComment(value);
@@ -461,7 +514,7 @@ export class PlannerExerciseEvaluator {
       }
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = this.extractNameParts(this.getValue(nameNode));
-      const exercise = Exercise.findByName(name, this.customExercises);
+      const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }
@@ -473,7 +526,7 @@ export class PlannerExerciseEvaluator {
       const allProperties: IPlannerProgramProperty[] = [];
       let isReusing = false;
       for (const sectionNode of sectionNodes) {
-        const section = this.evaluateSection(sectionNode);
+        const section = this.evaluateSection(sectionNode, equipment);
         if (section.type === "sets") {
           allSets.push(...section.data);
           if (section.data.some((set) => set.repRange != null)) {
@@ -549,6 +602,7 @@ export class PlannerExerciseEvaluator {
       return { data: program, success: true };
     } catch (e) {
       if (e instanceof PlannerSyntaxError) {
+        console.log("PlannerExerciseEvaluator.exeture", e.from, e.to);
         return { error: e, success: false };
       } else {
         throw e;

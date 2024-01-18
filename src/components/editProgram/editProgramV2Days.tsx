@@ -6,7 +6,7 @@ import { ScrollableTabs } from "../../components/scrollableTabs";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramV2Day } from "./editProgramV2Day";
-import { IPlannerSettings, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { DraggableList } from "../draggableList";
 import { applyChangesInEditor } from "./editProgramV2Utils";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -24,7 +24,6 @@ import { IconPreview } from "../icons/iconPreview";
 
 export interface IEditProgramV2DaysProps {
   plannerProgram: IPlannerProgram;
-  plannerSettings: IPlannerSettings;
   ui: IPlannerUi;
   settings: ISettings;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
@@ -223,7 +222,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           onClose={() => props.plannerDispatch(props.lbUi.p("showExerciseStats").record(false))}
         >
           <PlannerExerciseStats
-            settings={props.plannerSettings}
+            settings={props.settings}
             evaluatedWeeks={evaluatedWeeks}
             weekIndex={props.ui.focusedExercise.weekIndex}
             dayIndex={props.ui.focusedExercise.dayIndex}
@@ -240,7 +239,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           <PlannerDayStats
             dispatch={props.plannerDispatch}
             focusedExercise={props.ui.focusedExercise}
-            settings={props.plannerSettings}
+            settings={props.settings}
             evaluatedDay={evaluatedWeeks[props.ui.weekIndex][props.ui.focusedExercise.dayIndex]}
           />
         </Modal>
@@ -255,7 +254,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             <PlannerWeekStats
               dispatch={props.plannerDispatch}
               evaluatedDays={evaluatedWeeks[props.ui.weekIndex]}
-              settings={props.plannerSettings}
+              settings={props.settings}
             />
           ) : (
             <div className="font-bold">Week Stats</div>

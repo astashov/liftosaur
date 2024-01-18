@@ -32,3 +32,21 @@
 * Add descriptions to all exercises
 * Widget on iOS lock screen
 * Add time spent on each exercise
+
+- Planner
+
+* Check errors inside Liftoscript
+* Add settings
+* Add ability to set percentages for weights
+* Add inc assignments
+* Add lp, dp, sum progressions
+* Add warmup sets
+* Add descriptions
+* Add set variation switcher
+* Add custom exercise adder
+* Fix equipment selection
+* Add timers
+* Remove ability to reuse exercises in planner
+* Add quick sets
+* Edit week/day names on the edit weeks subscreen
+* Show errors if target is wrong

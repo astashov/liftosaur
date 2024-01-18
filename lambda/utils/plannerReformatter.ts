@@ -5,6 +5,7 @@ import { IEither } from "../../src/utils/types";
 import { parser as plannerExerciseParser } from "../../src/pages/planner/plannerExerciseParser";
 import { PlannerExerciseEvaluator } from "../../src/pages/planner/plannerExerciseEvaluator";
 import { Exercise } from "../../src/models/exercise";
+import { Settings } from "../../src/models/settings";
 
 function plannerReformatterFullPrompt(): string {
   return `Given the weightlifting program, potentially consisting of weeks and days, and also lists of exercises, sets and reps, reformat it in the way that:
@@ -335,7 +336,7 @@ export class PlannerReformatter {
         }
 
         const tree = plannerExerciseParser.parse(message);
-        const evaluator = new PlannerExerciseEvaluator(message, {}, {}, mode);
+        const evaluator = new PlannerExerciseEvaluator(message, Settings.build(), mode);
         const result = evaluator.evaluate(tree.topNode);
         if (result.success) {
           this.di.log.log("Evaluated successfully, returning GPT response");

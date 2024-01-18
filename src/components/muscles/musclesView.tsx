@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { Exercise } from "../../models/exercise";
-import { IPoints, IScreenMuscle, Muscle } from "../../models/muscle";
-import { ISettings } from "../../types";
+import { IPoints, Muscle } from "../../models/muscle";
+import { IScreenMuscle, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ObjectUtils } from "../../utils/object";
 import { StringUtils } from "../../utils/string";

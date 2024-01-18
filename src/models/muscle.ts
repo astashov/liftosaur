@@ -1,34 +1,7 @@
 import { Program } from "./program";
 import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
-import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle, IDayData } from "../types";
-
-export type IScreenMuscle =
-  | "shoulders"
-  | "triceps"
-  | "back"
-  | "abs"
-  | "glutes"
-  | "hamstrings"
-  | "quadriceps"
-  | "chest"
-  | "biceps"
-  | "calves"
-  | "forearms";
-
-export const screenMuscles: IScreenMuscle[] = [
-  "shoulders",
-  "triceps",
-  "back",
-  "abs",
-  "glutes",
-  "hamstrings",
-  "quadriceps",
-  "chest",
-  "biceps",
-  "calves",
-  "forearms",
-];
+import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle, IDayData, IScreenMuscle } from "../types";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 

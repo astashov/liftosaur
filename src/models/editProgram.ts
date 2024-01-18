@@ -21,7 +21,7 @@ import {
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
 import { UidFactory } from "../utils/generator";
-import { IPlannerSettings, IPlannerState } from "../pages/planner/models/types";
+import { IPlannerState } from "../pages/planner/models/types";
 
 interface I531Tms {
   squat: IWeight;
@@ -601,44 +601,8 @@ export namespace EditProgram {
     settings: ISettings,
     focusedDay?: IDayData
   ): void {
-    const initialSettings: IPlannerSettings = {
-      strengthSetsPct: 30,
-      hypertrophySetsPct: 70,
-      weeklyRangeSets: {
-        shoulders: [10, 12],
-        triceps: [10, 12],
-        back: [10, 12],
-        abs: [10, 12],
-        glutes: [10, 12],
-        hamstrings: [10, 12],
-        quadriceps: [10, 12],
-        chest: [10, 12],
-        biceps: [10, 12],
-        calves: [10, 12],
-        forearms: [10, 12],
-      },
-      weeklyFrequency: {
-        shoulders: 2,
-        triceps: 2,
-        back: 2,
-        abs: 2,
-        glutes: 2,
-        hamstrings: 2,
-        quadriceps: 2,
-        chest: 2,
-        biceps: 2,
-        calves: 2,
-        forearms: 2,
-      },
-      synergistMultiplier: 0.5,
-      restTimer: settings.timers.workout ?? 180,
-      customEquipment: settings.equipment,
-      customExercises: settings.exercises,
-      unit: settings.units,
-    };
-
     const initialState: IPlannerState = {
-      settings: initialSettings,
+      settings,
       current: { program: plannerProgram },
       ui: { weekIndex: 0, focusedDay },
       history: { past: [], future: [] },

@@ -2,14 +2,15 @@ import { h, JSX, Fragment } from "preact";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
+import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
 import { PlannerProgramExercise } from "../models/plannerProgramExercise";
-import { IPlannerProgramExercise, IPlannerSettings } from "../models/types";
+import { IPlannerProgramExercise } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 
 interface IPlannerExerciseStatsProps {
-  settings: IPlannerSettings;
+  settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   weekIndex: number;
   dayIndex: number;
@@ -29,7 +30,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
     return <></>;
   }
 
-  const customExercises = props.settings.customExercises;
+  const customExercises = props.settings.exercises;
   let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
     return <></>;

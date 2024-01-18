@@ -1,8 +1,7 @@
 import { Exercise, IExercise } from "../../../models/exercise";
-import { IScreenMuscle } from "../../../models/muscle";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises } from "../../../types";
+import { IAllCustomExercises, IScreenMuscle } from "../../../types";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup">;
 

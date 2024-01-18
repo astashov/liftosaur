@@ -885,6 +885,41 @@ export const TExerciseDataValue = t.partial(
 export type IExerciseDataValue = t.TypeOf<typeof TExerciseDataValue>;
 export type IExerciseData = Partial<Record<string, IExerciseDataValue>>;
 
+export const screenMuscles = [
+  "shoulders",
+  "triceps",
+  "back",
+  "abs",
+  "glutes",
+  "hamstrings",
+  "quadriceps",
+  "chest",
+  "biceps",
+  "calves",
+  "forearms",
+] as const;
+
+export const TScreenMuscle = t.keyof(
+  screenMuscles.reduce<Record<IArrayElement<typeof screenMuscles>, null>>((memo, muscle) => {
+    memo[muscle] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof screenMuscles>, null>),
+  "TScreenMuscle"
+);
+export type IScreenMuscle = t.TypeOf<typeof TScreenMuscle>;
+
+export const TPlannerSettings = t.type(
+  {
+    synergistMultiplier: t.number,
+    strengthSetsPct: t.number,
+    hypertrophySetsPct: t.number,
+    weeklyRangeSets: dictionary(TScreenMuscle, t.tuple([t.number, t.number])),
+    weeklyFrequency: dictionary(TScreenMuscle, t.number),
+  },
+  "TPlannerSettings"
+);
+export type IPlannerSettings = t.TypeOf<typeof TPlannerSettings>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
@@ -912,6 +947,7 @@ export const TSettings = t.intersection(
       shouldShowFriendsHistory: t.boolean,
       volume: t.number,
       exerciseData: dictionary(t.string, TExerciseDataValue),
+      planner: TPlannerSettings,
     }),
     t.partial({
       isPublicProfile: t.boolean,

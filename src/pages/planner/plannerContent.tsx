@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { useLensReducer } from "../../utils/useLensReducer";
-import { IPlannerState, IPlannerSettings, IExportedPlannerProgram } from "./models/types";
+import { IPlannerState, IExportedPlannerProgram } from "./models/types";
 import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput";
 import { lb } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
@@ -23,6 +23,7 @@ import {
   IPlannerProgram,
   IPlannerProgramDay,
   IPlannerProgramWeek,
+  ISettings,
 } from "../../types";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
@@ -66,43 +67,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     weeks: [initialWeek],
   };
 
-  const initialSettings: IPlannerSettings = props.initialProgram?.settings || {
-    unit: props.partialStorage?.settings.units || "lb",
-    strengthSetsPct: 30,
-    hypertrophySetsPct: 70,
-    weeklyRangeSets: {
-      shoulders: [10, 12],
-      triceps: [10, 12],
-      back: [10, 12],
-      abs: [10, 12],
-      glutes: [10, 12],
-      hamstrings: [10, 12],
-      quadriceps: [10, 12],
-      chest: [10, 12],
-      biceps: [10, 12],
-      calves: [10, 12],
-      forearms: [10, 12],
-    },
-    weeklyFrequency: {
-      shoulders: 2,
-      triceps: 2,
-      back: 2,
-      abs: 2,
-      glutes: 2,
-      hamstrings: 2,
-      quadriceps: 2,
-      chest: 2,
-      biceps: 2,
-      calves: 2,
-      forearms: 2,
-    },
-    synergistMultiplier: 0.5,
-    customExercises: {},
-    customEquipment: {},
-    restTimer: props.partialStorage?.settings.timers.workout ?? 180,
-  };
-  initialSettings.customExercises = { ...initialSettings.customExercises, ...props.partialStorage?.settings.exercises };
-  initialSettings.customEquipment = { ...initialSettings.customEquipment, ...props.partialStorage?.settings.equipment };
+  const initialSettings: ISettings = Settings.build();
+  initialSettings.exercises = { ...initialSettings.exercises, ...props.partialStorage?.settings.exercises };
+  initialSettings.equipment = { ...initialSettings.equipment, ...props.partialStorage?.settings.equipment };
 
   const initialState: IPlannerState = {
     settings: initialSettings,
@@ -120,7 +87,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       if (oldState.current.program !== newState.current.program || oldState.settings !== newState.settings) {
         const exportedProgram: IExportedPlannerProgram = {
           program: newState.current.program,
-          settings: newState.settings,
+          settings: newState.settings.planner,
         };
         await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }
@@ -158,11 +125,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const program = state.current.program;
 
   const modalExerciseUi = state.ui.modalExercise;
-  const isInvalid = !PlannerProgram.isValid(
-    state.current.program,
-    state.settings.customExercises,
-    state.settings.customEquipment
-  );
+  const isInvalid = !PlannerProgram.isValid(state.current.program, state.settings);
 
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
 
@@ -301,35 +264,27 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   disabled={isInvalid}
                   title={isInvalid ? "Fix the errors in the program before converting" : undefined}
                   onClick={async () => {
-                    const liftosaurProgram = new PlannerToProgram(
-                      state.current.program,
-                      state.settings.customExercises,
-                      state.settings.customEquipment,
-                      state.settings.unit,
-                      state.settings.restTimer
-                    ).convert();
-                    const usedCustomExercises = ObjectUtils.keys(state.settings.customExercises).reduce<
-                      typeof state.settings.customExercises
+                    const liftosaurProgram = new PlannerToProgram(state.current.program, state.settings).convert();
+                    const usedCustomExercises = ObjectUtils.keys(state.settings.exercises).reduce<
+                      typeof state.settings.exercises
                     >((memo, id) => {
-                      const exercise = state.settings.customExercises[id];
+                      const exercise = state.settings.exercises[id];
                       if (exercise && liftosaurProgram.exercises.some((e) => e.exerciseType.id === exercise.id)) {
                         memo[id] = exercise;
                       }
                       return memo;
                     }, {});
-                    const usedCustomEquipment = ObjectUtils.keys(state.settings.customEquipment).reduce<
-                      typeof state.settings.customEquipment
+                    const usedCustomEquipment = ObjectUtils.keys(state.settings.equipment).reduce<
+                      typeof state.settings.equipment
                     >((memo, id) => {
                       if (
                         !Equipment.isBuiltIn(id) &&
                         liftosaurProgram.exercises.some((e) => e.exerciseType.equipment === id)
                       ) {
-                        memo[id] = state.settings.customEquipment[id];
+                        memo[id] = state.settings.equipment[id];
                       }
                       return memo;
                     }, {});
-                    console.log("used custom ex", usedCustomExercises);
-                    console.log("used custom eq", usedCustomEquipment);
                     const exportedProgram: IExportedProgram = {
                       program: liftosaurProgram,
                       customExercises: usedCustomExercises,
@@ -337,10 +292,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       version: getLatestMigrationVersion(),
                       settings: {
                         timers: {
-                          workout: state.settings.restTimer ?? 180,
+                          workout: state.settings.timers.workout ?? 180,
                           warmup: props.partialStorage?.settings.timers.warmup ?? 90,
                         },
-                        units: state.settings.unit,
+                        units: state.settings.units,
                       },
                     };
                     console.log(exportedProgram);
@@ -425,7 +380,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       if (line == null) {
                         return text;
                       }
-                      const exercise = Exercise.getById(exerciseId, state.settings.customExercises);
+                      const exercise = Exercise.getById(exerciseId, state.settings.exercises);
                       const lines = text.split("\n");
                       lines.splice(line, 0, exercise.name);
                       return lines.join("\n");
@@ -440,7 +395,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       if (!exerciseId) {
                         return exerciseText;
                       }
-                      const exercise = Exercise.getById(exerciseId, state.settings.customExercises);
+                      const exercise = Exercise.getById(exerciseId, state.settings.exercises);
                       return exerciseText + `\n${exercise.name}`;
                     }),
             ]);
@@ -462,7 +417,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             exercise?: ICustomExercise
           ) => {
             const exercises = Exercise.createOrUpdateCustomExercise(
-              state.settings.customExercises,
+              state.settings.exercises,
               name,
               equipment,
               targetMuscles,
@@ -470,17 +425,17 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               types,
               exercise
             );
-            dispatch(lb<IPlannerState>().p("settings").p("customExercises").record(exercises));
+            dispatch(lb<IPlannerState>().p("settings").p("exercises").record(exercises));
           }}
           onDelete={(id) => {
             dispatch(
               lb<IPlannerState>()
                 .p("settings")
-                .p("customExercises")
+                .p("exercises")
                 .recordModify((exercises) => ObjectUtils.omit(exercises, [id]))
             );
           }}
-          settings={{ ...Settings.build(), exercises: state.settings.customExercises }}
+          settings={{ ...Settings.build(), exercises: state.settings.exercises }}
           customExerciseName={modalExerciseUi.customExerciseName}
           initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
         />

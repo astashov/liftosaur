@@ -1,5 +1,4 @@
-import { IExerciseType, IWeight } from "../../../types";
-import { IScreenMuscle } from "../../../models/muscle";
+import { IExerciseType, IScreenMuscle, IWeight } from "../../../types";
 
 export interface IBuilderSet {
   reps: number;

@@ -2,7 +2,7 @@
 
 import { h, JSX } from "preact";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
-import { IPlannerSettings, IPlannerState, IPlannerUi } from "../models/types";
+import { IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
@@ -22,7 +22,7 @@ import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { useState } from "preact/hooks";
 import { IconHelp } from "../../../components/icons/iconHelp";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
-import { IPlannerProgram, IPlannerProgramDay } from "../../../types";
+import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -32,14 +32,14 @@ interface IPlannerDayProps {
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   ui: IPlannerUi;
   evaluatedWeeks: IPlannerEvalResult[][];
-  settings: IPlannerSettings;
+  settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
   service: Service;
 }
 
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
-  const { customExercises, customEquipment } = props.settings;
+  const { exercises, equipment } = props.settings;
   const [reformatterSpinner, setReformatterSpinner] = useState(false);
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
@@ -61,7 +61,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       }
     }
     approxDayTime = TimeUtils.formatHHMM(
-      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.restTimer)
+      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
   for (let i = 0; i < exerciseImageUrls.length; i++) {
@@ -113,8 +113,8 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           <div className="flex-1 w-0">
             <PlannerEditorView
               name="Exercises"
-              customExercises={customExercises}
-              equipment={customEquipment}
+              customExercises={exercises}
+              equipment={equipment}
               error={evaluatedDay.success ? undefined : evaluatedDay.error}
               value={day.exerciseText}
               onCustomErrorCta={(err) => <PlannerEditorCustomCta dispatch={props.dispatch} err={err} />}

@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IScreenMuscle } from "../../../models/muscle";
+import { IScreenMuscle } from "../../../types";
 
 interface IMuscleStyle {
   fill?: string;

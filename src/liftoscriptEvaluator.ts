@@ -37,6 +37,21 @@ export enum NodeName {
   Unit = "Unit",
 }
 
+export class LiftoscriptSyntaxError extends SyntaxError {
+  public readonly line: number;
+  public readonly offset: number;
+  public readonly from: number;
+  public readonly to: number;
+
+  constructor(message: string, line: number, offset: number, from: number, to: number) {
+    super(message);
+    this.line = line;
+    this.offset = offset;
+    this.from = from;
+    this.to = to;
+  }
+}
+
 function getChildren(node: SyntaxNode): SyntaxNode[] {
   const cur = node.cursor();
   const result: SyntaxNode[] = [];
@@ -142,7 +157,7 @@ export class LiftoscriptEvaluator {
 
   private error(message: string, node: SyntaxNode): never {
     const [line, offset] = this.getLineAndOffset(node);
-    throw new SyntaxError(`${message} (${line}:${offset})`);
+    throw new LiftoscriptSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to);
   }
 
   private getLineAndOffset(node: SyntaxNode): [number, number] {
@@ -432,7 +447,7 @@ export class LiftoscriptEvaluator {
           } else if (op === "/=") {
             this.variables.rm1 = Weight.divide(this.bindings.rm1, rm1);
           } else {
-            throw new SyntaxError(`Unknown operator ${op} after ${variable}`);
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
           return rm1;
         } else if (["reps", "weights", "RPE"].indexOf(variable) !== -1) {
@@ -457,7 +472,7 @@ export class LiftoscriptEvaluator {
           } else if (op === "/=") {
             this.state[stateKey] = this.divide(this.state[stateKey], value);
           } else {
-            throw new SyntaxError(`Unknown operator ${op} after state.${stateKey}`);
+            this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
           }
           return this.state[stateKey];
         } else {

@@ -1,22 +1,6 @@
-import { IScreenMuscle } from "../../../models/muscle";
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IAllCustomExercises, IDayData, IEquipmentData, IPlannerProgram, IUnit, IWeight } from "../../../types";
-
-export type IPlannerWeeklyRangeSets = { [key in IScreenMuscle]: [number, number] };
-export type IPlannerWeeklyFrequency = { [key in IScreenMuscle]: number };
-
-export interface IPlannerSettings {
-  unit: IUnit;
-  synergistMultiplier: number;
-  strengthSetsPct: number;
-  hypertrophySetsPct: number;
-  weeklyRangeSets: IPlannerWeeklyRangeSets;
-  weeklyFrequency: IPlannerWeeklyFrequency;
-  restTimer: number;
-  customExercises: IAllCustomExercises;
-  customEquipment: Partial<Record<string, IEquipmentData>>;
-}
+import { IDayData, IPlannerProgram, IPlannerSettings, IScreenMuscle, ISettings, IWeight } from "../../../types";
 
 export interface IPlannerProgramExercise {
   label?: string;
@@ -109,7 +93,7 @@ export interface IPlannerFullText {
 export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;
-  settings: IPlannerSettings;
+  settings: ISettings;
 }
 
 export interface IExportedPlannerProgram {

@@ -5,8 +5,6 @@ import {
 } from "../pages/planner/models/types";
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import {
-  IAllCustomExercises,
-  IAllEquipment,
   IDayData,
   IPlannerProgram,
   IProgram,
@@ -16,6 +14,7 @@ import {
   IProgramExerciseWarmupSet,
   IProgramSet,
   IProgramWeek,
+  ISettings,
   IUnit,
   IWeight,
 } from "../types";
@@ -63,17 +62,11 @@ type IExerciseTypeToPotentialVariations = Record<
 export class PlannerToProgram {
   private _evaluatedWeeks?: IPlannerEvalResult[][];
 
-  constructor(
-    private readonly plannerProgram: IPlannerProgram,
-    private readonly customExercises: IAllCustomExercises,
-    private readonly equipment: IAllEquipment,
-    private readonly unit: IUnit,
-    private readonly timer: number
-  ) {}
+  constructor(private readonly plannerProgram: IPlannerProgram, private readonly settings: ISettings) {}
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
     if (this._evaluatedWeeks == null) {
-      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.customExercises, this.equipment);
+      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.settings);
     }
     return this._evaluatedWeeks;
   }
@@ -111,15 +104,15 @@ export class PlannerToProgram {
     cb: (exercise: IPlannerProgramExercise, name: string, dayData: Required<IDayData>) => void
   ): void {
     const evaluatedWeeks = this.getEvaluatedWeeks();
-    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, this.customExercises, cb);
+    PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, this.settings.exercises, cb);
   }
 
   private getExerciseTypeToProperties(): IExerciseTypeToProperties {
-    return PlannerProgram.getExerciseTypeToProperties(this.getEvaluatedWeeks(), this.customExercises);
+    return PlannerProgram.getExerciseTypeToProperties(this.getEvaluatedWeeks(), this.settings.exercises);
   }
 
   private getExerciseTypeToWarmupSets(): IExerciseTypeToWarmupSets {
-    return PlannerProgram.getExerciseTypeToWarmupSets(this.getEvaluatedWeeks(), this.customExercises);
+    return PlannerProgram.getExerciseTypeToWarmupSets(this.getEvaluatedWeeks(), this.settings.exercises);
   }
 
   public getExerciseTypeToDayData(): IExerciseTypeToDayData {
@@ -135,7 +128,7 @@ export class PlannerToProgram {
     const exerciseTypeToDayData = this.getExerciseTypeToDayData();
     const potentialVariations: IExerciseTypeToPotentialVariations = {};
     for (const dayDatas of ObjectUtils.values(exerciseTypeToDayData)) {
-      const exercise = Exercise.findByName(dayDatas[0].exercise.name, this.customExercises);
+      const exercise = Exercise.findByName(dayDatas[0].exercise.name, this.settings.exercises);
       if (!exercise) {
         continue;
       }
@@ -270,7 +263,7 @@ export class PlannerToProgram {
     | undefined {
     const progress = properties.find((p) => p.name === "progress");
     if (progress) {
-      const defaultIncrement = this.unit === "kg" ? "2.5kg" : "5lb";
+      const defaultIncrement = this.settings.units === "kg" ? "2.5kg" : "5lb";
       const { fnName, fnArgs } = progress;
       if (fnName === "lp") {
         const [increment, unitIncrement] = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement) || [5, "lb"];
@@ -449,7 +442,7 @@ export class PlannerToProgram {
           acc += `${expr} ? ${timer} :\n`;
           return acc;
         }, "");
-        timerExpr += this.timer;
+        timerExpr += this.settings.timers.workout;
       }
 
       let descriptionExpr: string = "1";
@@ -514,7 +507,7 @@ export class PlannerToProgram {
       const progressionResult = this.addProgression(properties);
       let finishDayExpr = "";
       let state = {
-        weight: this.unit === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb,
+        weight: this.settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb,
       };
       if (progressionResult != null) {
         finishDayExpr = progressionResult.finishDayExpr;
@@ -563,7 +556,7 @@ export class PlannerToProgram {
         warmupSets.push({
           reps: plannerWarmupSet.reps,
           value,
-          threshold: Weight.build(0, this.unit),
+          threshold: Weight.build(0, this.settings.units),
         });
       }
     }

@@ -6,7 +6,7 @@ import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ILoading, IState, updateState } from "../../models/state";
 import { Button } from "../button";
-import { useMemo, useState, useCallback } from "preact/hooks";
+import { useState, useCallback } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { IProgram, ISettings } from "../../types";
@@ -17,7 +17,6 @@ import { Footer2View } from "../footer2";
 import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramV2PerDay } from "./editProgramV2PerDay";
 import { ILensRecordingPayload, lb } from "lens-shmens";
@@ -43,13 +42,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
 
   const plannerState = props.plannerState;
-  console.log(
-    "New planner state",
-    plannerState.current.program.weeks.map((w) => w.days.map((d) => d.exerciseText)).flat(2)
-  );
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
       const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
+      console.log("lr", lensRecordings);
       updateState(
         props.dispatch,
         lensRecordings.map((recording) => recording.prepend(lb<IState>().pi("editProgramV2"))),
@@ -58,12 +54,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
     },
     [plannerState]
   );
-
-  const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluate(plannerState.current.program, props.settings.exercises, props.settings.equipment);
-  }, [plannerState.current.program, props.settings]);
-
-  console.log(evaluatedWeeks);
 
   return (
     <Surface
@@ -154,13 +144,12 @@ export function EditProgramV2(props: IProps): JSX.Element {
             ui={plannerState.ui}
             lbUi={lb<IPlannerState>().pi("ui")}
             fulltext={props.plannerState.fulltext}
-            settings={plannerState.settings}
+            settings={props.settings}
             plannerDispatch={plannerDispatch}
           />
         ) : (
           <EditProgramV2PerDay
             plannerProgram={plannerState.current.program}
-            plannerSettings={plannerState.settings}
             ui={plannerState.ui}
             settings={props.settings}
             plannerDispatch={plannerDispatch}

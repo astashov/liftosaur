@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { JSX, h } from "preact";
-import { IPlannerProgram } from "../../types";
+import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import {
   IPlannerFullText,
-  IPlannerSettings,
   IPlannerState,
   IPlannerUi,
   IPlannerUiFocusedExercise,
@@ -25,7 +24,7 @@ import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStat
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
-  settings: IPlannerSettings;
+  settings: ISettings;
   fulltext: IPlannerFullText;
   ui: IPlannerUi;
   lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
@@ -68,12 +67,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
 
   const currentLine = props.fulltext.currentLine;
   const evaluatedWeeks = useMemo(() => {
-    return PlannerProgram.evaluateFull(
-      props.fulltext.text,
-      props.settings.customExercises,
-      props.settings.customEquipment
-    );
-  }, [props.fulltext.text, props.settings.customExercises]);
+    return PlannerProgram.evaluateFull(props.fulltext.text, props.settings);
+  }, [props.fulltext.text, props.settings.exercises]);
 
   const weekIndex =
     evaluatedWeeks.success && currentLine != null
@@ -171,8 +166,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
         <div className="flex-1 min-w-0">
           <PlannerEditorView
             name="Program"
-            customExercises={props.settings.customExercises}
-            equipment={props.settings.customEquipment}
+            customExercises={props.settings.exercises}
+            equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fulltext.text}
             onCustomErrorCta={(err) => undefined}

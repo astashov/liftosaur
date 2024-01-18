@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
-import { LiftoscriptEvaluator, ILiftoscriptEvaluatorVariables, NodeName } from "./liftoscriptEvaluator";
+import {
+  LiftoscriptEvaluator,
+  ILiftoscriptEvaluatorVariables,
+  NodeName,
+  LiftoscriptSyntaxError,
+} from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
@@ -75,7 +80,7 @@ export class ScriptRunner {
     try {
       value = cb();
     } catch (e) {
-      if (!disabled && e instanceof SyntaxError) {
+      if (!disabled && e instanceof LiftoscriptSyntaxError) {
         const lastAlertTs = lastAlertDisplayedTs[e.message];
         console.error(e);
         if (lastAlertTs == null || lastAlertTs < Date.now() - 1000 * 60 * 1) {
@@ -121,7 +126,7 @@ export class ScriptRunner {
   ): number | IWeight | boolean {
     if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
-        throw new SyntaxError("Expected to get number as a result");
+        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0);
       } else if (result < 0) {
         return 0;
       } else {
@@ -129,13 +134,13 @@ export class ScriptRunner {
       }
     } else if (type === "rpe") {
       if (typeof result !== "number") {
-        throw new SyntaxError("Expected to get number as a result");
+        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0);
       } else {
         return Math.round(Math.min(10, Math.max(0, result)) / 0.5) * 0.5;
       }
     } else if (type === "weight") {
       if (typeof result === "boolean") {
-        throw new SyntaxError("Expected to get number or weight as a result");
+        throw new LiftoscriptSyntaxError("Expected to get number or weight as a result", 0, 0, 0, 0);
       } else {
         if (!Weight.is(result)) {
           result = Weight.build(result, this.units);

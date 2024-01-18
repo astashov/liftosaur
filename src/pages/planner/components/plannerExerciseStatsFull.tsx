@@ -1,12 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { Exercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
-import { IPlannerProgramExercise, IPlannerSettings } from "../models/types";
+import { ISettings } from "../../../types";
+import { IPlannerProgramExercise } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 
 interface IPlannerExerciseStatsFullProps {
-  settings: IPlannerSettings;
+  settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   weekIndex: number;
   dayIndex: number;
@@ -26,7 +27,7 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
     return <></>;
   }
 
-  const customExercises = props.settings.customExercises;
+  const customExercises = props.settings.exercises;
   let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
     return <></>;

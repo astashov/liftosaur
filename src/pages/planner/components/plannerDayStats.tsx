@@ -1,12 +1,13 @@
 import { h, JSX, Fragment } from "preact";
-import { IPlannerSettings, IPlannerState, IPlannerUiFocusedExercise } from "../models/types";
+import { IPlannerState, IPlannerUiFocusedExercise } from "../models/types";
 import { PlannerStats } from "./plannerStats";
 import { PlannerStatsUtils } from "../models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ILensDispatch } from "../../../utils/useLensReducer";
+import { ISettings } from "../../../types";
 
 interface IPlannerDayStatsProps {
-  settings: IPlannerSettings;
+  settings: ISettings;
   evaluatedDay: IPlannerEvalResult;
   dispatch: ILensDispatch<IPlannerState>;
   focusedExercise?: IPlannerUiFocusedExercise;
@@ -21,8 +22,8 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
   }
   const setResults = PlannerStatsUtils.calculateSetResults(
     [evaluatedDay],
-    settings.customExercises,
-    settings.synergistMultiplier
+    settings.exercises,
+    settings.planner.synergistMultiplier
   );
 
   return (

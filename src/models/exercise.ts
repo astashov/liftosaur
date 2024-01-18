@@ -16,8 +16,9 @@ import {
   IUnit,
   ICustomExercise,
   IExerciseData,
+  IScreenMuscle,
 } from "../types";
-import { IScreenMuscle, Muscle } from "./muscle";
+import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";

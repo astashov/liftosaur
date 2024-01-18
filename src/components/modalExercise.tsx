@@ -11,6 +11,7 @@ import {
   ISettings,
   exerciseKinds,
   IExerciseKind,
+  screenMuscles,
 } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { forwardRef } from "preact/compat";
@@ -26,7 +27,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { ExerciseImage } from "./exerciseImage";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
-import { Muscle, screenMuscles } from "../models/muscle";
+import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 
 interface IModalExerciseProps {

@@ -481,7 +481,7 @@ export namespace ProgramExercise {
     variables: ILiftoscriptEvaluatorVariables,
     settings: ISettings
   ): IProgramExercise {
-    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings.exercises, settings.equipment).map((w) =>
+    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).map((w) =>
       CollectionUtils.compact(
         w.map((d) => {
           if (d.success) {
