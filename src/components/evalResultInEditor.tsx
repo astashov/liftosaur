@@ -1,9 +1,11 @@
 import { IEither } from "../utils/types";
 import { h, JSX } from "preact";
 import { Weight } from "../models/weight";
-import { IWeight } from "../types";
+import { IPercentage, IWeight } from "../types";
 
-export function EvalResultInEditor(props: { result: IEither<number | IWeight | undefined, string> }): JSX.Element {
+export function EvalResultInEditor(props: {
+  result: IEither<number | IWeight | IPercentage | undefined, string>;
+}): JSX.Element {
   if (props.result.success) {
     return (
       <span className="text-sm">

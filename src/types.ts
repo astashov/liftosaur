@@ -428,7 +428,21 @@ export const TSet = t.intersection(
 );
 export type ISet = t.TypeOf<typeof TSet>;
 
-export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight]), "TProgramState");
+export const percentageUnits = ["%"] as const;
+
+export const TPercentageUnit = t.keyof(
+  percentageUnits.reduce<Record<IArrayElement<typeof percentageUnits>, null>>((memo, exerciseType) => {
+    memo[exerciseType] = null;
+    return memo;
+  }, {} as Record<IArrayElement<typeof percentageUnits>, null>),
+  "TUnit"
+);
+export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
+
+export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
+export type IPercentage = t.TypeOf<typeof TPercentage>;
+
+export const TProgramState = t.dictionary(t.string, t.union([t.number, TWeight, TPercentage]), "TProgramState");
 export type IProgramState = t.TypeOf<typeof TProgramState>;
 
 export const THistoryEntry = t.intersection(
@@ -738,20 +752,6 @@ export type ILengthUnit = t.TypeOf<typeof TLengthUnit>;
 
 export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength");
 export type ILength = t.TypeOf<typeof TLength>;
-
-export const percentageUnits = ["%"] as const;
-
-export const TPercentageUnit = t.keyof(
-  percentageUnits.reduce<Record<IArrayElement<typeof percentageUnits>, null>>((memo, exerciseType) => {
-    memo[exerciseType] = null;
-    return memo;
-  }, {} as Record<IArrayElement<typeof percentageUnits>, null>),
-  "TUnit"
-);
-export type IPercentageUnit = t.TypeOf<typeof TPercentageUnit>;
-
-export const TPercentage = t.type({ value: t.number, unit: TPercentageUnit }, "TPercentage");
-export type IPercentage = t.TypeOf<typeof TPercentage>;
 
 export const TStatsWeightValue = t.type({ value: TWeight, timestamp: t.number }, "TStatsWeightValue");
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;

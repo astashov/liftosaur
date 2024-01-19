@@ -1,5 +1,6 @@
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import {
+  IPercentage,
   IPlannerProgram,
   IPlannerProgramDay,
   IPlannerProgramWeek,
@@ -164,8 +165,8 @@ export class ProgramToPlanner {
     return result;
   }
 
-  private printVal(val: number | IWeight): string {
-    return Weight.is(val) ? `${val.value}${val.unit}` : `${val}`;
+  private printVal(val: number | IWeight | IPercentage): string {
+    return Weight.is(val) || Weight.isPct(val) ? `${val.value}${val.unit}` : `${val}`;
   }
 
   private groupVariationSets(sets: IProgramSet[]): [IProgramSet, number][] {

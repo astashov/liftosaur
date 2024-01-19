@@ -11,6 +11,7 @@ import {
   IProgramExerciseReuseLogic,
   IDayData,
   IProgram,
+  IPercentage,
 } from "../types";
 import { Program } from "./program";
 import { History } from "./history";
@@ -225,7 +226,7 @@ export namespace ProgramExercise {
     );
   }
 
-  export function getStateVariableType(value: number | IWeight): "number" | "kg" | "lb" {
+  export function getStateVariableType(value: number | IWeight | IPercentage): "number" | "kg" | "lb" | "%" {
     if (typeof value === "number") {
       return "number";
     } else {

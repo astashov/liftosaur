@@ -2,8 +2,9 @@
 import { SyntaxNode } from "@lezer/common";
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
-import { IProgramState, IWeight, IUnit } from "./types";
+import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
 import { CollectionUtils } from "./utils/collection";
+import { MathUtils } from "./utils/math";
 
 // eslint-disable-next-line no-shadow
 export enum NodeName {
@@ -16,6 +17,7 @@ export enum NodeName {
   AndOr = "AndOr",
   NumberExpression = "NumberExpression",
   Number = "Number",
+  Percentage = "Percentage",
   WeightExpression = "WeightExpression",
   ParenthesisExpression = "ParenthesisExpression",
   BlockExpression = "BlockExpression",
@@ -65,11 +67,11 @@ function getChildren(node: SyntaxNode): SyntaxNode[] {
 }
 
 function comparing(
-  left: number | IWeight | (number | IWeight)[],
-  right: number | IWeight | (number | IWeight)[],
+  left: number | IWeight | IPercentage | (number | IWeight)[],
+  right: number | IWeight | IPercentage | (number | IWeight)[],
   operator: ">" | "<" | ">=" | "<=" | "==" | "!="
 ): boolean {
-  function comparator(l: number | IWeight, r: number | IWeight): boolean {
+  function comparator(l: number | IWeight | IPercentage, r: number | IWeight | IPercentage): boolean {
     switch (operator) {
       case ">":
         return Weight.gt(l, r);
@@ -274,9 +276,9 @@ export class LiftoscriptEvaluator {
     return result;
   }
 
-  public evaluate(expr: SyntaxNode): number | boolean | IWeight | number[] | IWeight[] {
+  public evaluate(expr: SyntaxNode): number | boolean | IWeight | IPercentage | number[] | IWeight[] {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
-      let result: number | boolean | IWeight | number[] | IWeight[] = 0;
+      let result: number | boolean | IWeight | number[] | IWeight[] | IPercentage = 0;
       for (const child of getChildren(expr)) {
         if (!child.type.isSkipped) {
           result = this.evaluate(child);
@@ -337,6 +339,9 @@ export class LiftoscriptEvaluator {
       const plusNode = expr.getChild(NodeName.Plus);
       const sign = plusNode ? this.getValue(plusNode) : undefined;
       return sign === "-" ? -value : value;
+    } else if (expr.type.name === NodeName.Percentage) {
+      const value = MathUtils.roundFloat(parseFloat(this.getValue(expr)), 2);
+      return Weight.buildPct(value);
     } else if (expr.type.name === NodeName.Ternary) {
       const [condition, then, or] = getChildren(expr);
       return this.evaluate(condition) ? this.evaluate(then) : this.evaluate(or);
@@ -404,7 +409,7 @@ export class LiftoscriptEvaluator {
         const stateKey = this.getValue(variableNode).replace("state.", "");
         if (stateKey in this.state) {
           const value = this.evaluate(expression);
-          if (Weight.is(value) || typeof value === "number") {
+          if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
             this.state[stateKey] = value;
           } else {
             this.state[stateKey] = value ? 1 : 0;
@@ -459,7 +464,7 @@ export class LiftoscriptEvaluator {
         const stateKey = this.getValue(stateVar).replace("state.", "");
         if (stateKey in this.state) {
           let value = this.evaluate(expression);
-          if (!(Weight.is(value) || typeof value === "number")) {
+          if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
             value = value ? 1 : 0;
           }
           const op = this.getValue(incAssignmentExpr);
@@ -532,7 +537,7 @@ export class LiftoscriptEvaluator {
         }
         const indexEval = this.evaluate(indexNode);
         let index: number;
-        if (Weight.is(indexEval)) {
+        if (Weight.is(indexEval) || Weight.isPct(indexEval)) {
           index = indexEval.value;
         } else if (typeof indexEval === "number") {
           index = indexEval;
@@ -563,30 +568,76 @@ export class LiftoscriptEvaluator {
     }
   }
 
-  private add(one: IWeight | number, two: IWeight | number): IWeight | number {
+  private add(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
     return this.operation(one, two, (a, b) => a + b);
   }
 
-  private subtract(one: IWeight | number, two: IWeight | number): IWeight | number {
+  private subtract(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
     return this.operation(one, two, (a, b) => a - b);
   }
 
-  private multiply(one: IWeight | number, two: IWeight | number): IWeight | number {
+  private multiply(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
     return this.operation(one, two, (a, b) => a * b);
   }
 
-  private divide(one: IWeight | number, two: IWeight | number): IWeight | number {
+  private divide(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
     return this.operation(one, two, (a, b) => a / b);
   }
-  private modulo(one: IWeight | number, two: IWeight | number): IWeight | number {
+
+  private modulo(
+    one: IWeight | number | IPercentage,
+    two: IWeight | number | IPercentage
+  ): IWeight | number | IPercentage {
     return this.operation(one, two, (a, b) => a % b);
   }
 
-  private operation(a: IWeight | number, b: IWeight | number, op: (x: number, y: number) => number): IWeight | number {
+  private operation(
+    a: IWeight | number | IPercentage,
+    b: IWeight | number | IPercentage,
+    op: (x: number, y: number) => number
+  ): IWeight | number | IPercentage {
     if (typeof a === "number" && typeof b === "number") {
       return op(a, b);
-    } else {
-      return Weight.operation(a as IWeight, b, op);
     }
+    if (typeof a === "number" && Weight.isPct(b)) {
+      return Weight.buildPct(op(a, b.value));
+    }
+    if (typeof a === "number" && Weight.is(b)) {
+      return Weight.operation(a, b, op);
+    }
+
+    if (Weight.isPct(a) && typeof b === "number") {
+      return Weight.buildPct(op(a.value, b));
+    }
+    if (Weight.isPct(a) && Weight.isPct(b)) {
+      return Weight.buildPct(op(a.value, b.value));
+    }
+    if (Weight.isPct(a) && Weight.is(b)) {
+      return Weight.operation(MathUtils.roundFloat(a.value / 100, 4), b, op);
+    }
+
+    if (Weight.is(a) && typeof b === "number") {
+      return Weight.operation(a, b, op);
+    }
+    if (Weight.is(a) && Weight.isPct(b)) {
+      return Weight.operation(a, MathUtils.roundFloat(b.value / 100, 4), op);
+    }
+    if (Weight.is(a) && Weight.is(b)) {
+      return Weight.operation(a, b, op);
+    }
+
+    throw new LiftoscriptSyntaxError(`Can't apply operation to ${a} and ${b}`, 0, 0, 0, 0);
   }
 }

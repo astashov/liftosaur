@@ -46,7 +46,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
       />
       {ObjectUtils.keys(state).map((stateKey) => {
         const value = state[stateKey];
-        const displayValue = Weight.is(value) ? value.value : value;
+        const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
 
         return (
           <MenuItemEditable
@@ -61,7 +61,7 @@ export function EditProgramStateVariables(props: IStateProps): JSX.Element {
             isNameBold={true}
             type="number"
             value={displayValue.toString()}
-            valueUnits={Weight.is(value) ? value.unit : undefined}
+            valueUnits={Weight.is(value) || Weight.isPct(value) ? value.unit : undefined}
             hasClear={!reuseLogicId}
             after={
               Weight.is(value) ? (

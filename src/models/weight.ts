@@ -1,14 +1,16 @@
 import { CollectionUtils } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate } from "../types";
+import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate, IPercentage } from "../types";
 import { MathUtils } from "../utils/math";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
 export namespace Weight {
-  export function display(weight: IWeight | number, withUnit: boolean = true): string {
+  export function display(weight: IWeight | IPercentage | number, withUnit: boolean = true): string {
     if (typeof weight === "number") {
       return `${weight}`;
+    } else if (Weight.isPct(weight)) {
+      return `${weight.value}${withUnit ? "%" : ""}`;
     } else {
       return weight.value === 0
         ? "BW"
@@ -31,6 +33,10 @@ export namespace Weight {
 
   export function printOrNumber(weight: IWeight | number): string {
     return typeof weight === "number" ? `${weight}` : print(weight);
+  }
+
+  export function buildPct(value: number): IPercentage {
+    return { value, unit: "%" };
   }
 
   export function build(value: number, unit: IUnit): IWeight {
@@ -57,6 +63,17 @@ export namespace Weight {
       "unit" in objWeight &&
       "value" in objWeight &&
       (objWeight.unit === "kg" || objWeight.unit === "lb")
+    );
+  }
+
+  export function isPct(object: unknown): object is IPercentage {
+    const objWeight = object as IPercentage;
+    return (
+      objWeight &&
+      typeof objWeight === "object" &&
+      "unit" in objWeight &&
+      "value" in objWeight &&
+      objWeight.unit === "%"
     );
   }
 
@@ -241,23 +258,23 @@ export namespace Weight {
     return operation(weight, value, (a, b) => a / b);
   }
 
-  export function gt(weight: IWeight | number, value: IWeight | number): boolean {
+  export function gt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a > b);
   }
 
-  export function lt(weight: IWeight | number, value: IWeight | number): boolean {
+  export function lt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a < b);
   }
 
-  export function gte(weight: IWeight | number, value: IWeight | number): boolean {
+  export function gte(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a >= b);
   }
 
-  export function lte(weight: IWeight | number, value: IWeight | number): boolean {
+  export function lte(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a <= b);
   }
 
-  export function eq(weight: IWeight | number, value: IWeight | number): boolean {
+  export function eq(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {
     return comparison(weight, value, (a, b) => a === b);
   }
 
@@ -274,9 +291,12 @@ export namespace Weight {
   }
 
   export function convertTo(weight: IWeight, unit: IUnit): IWeight;
+  export function convertTo(weight: IPercentage, unit: "%" | IUnit): IPercentage;
   export function convertTo(weight: number, unit: IUnit): number;
-  export function convertTo(weight: IWeight | number, unit: IUnit): IWeight | number {
+  export function convertTo(weight: IWeight | number | IPercentage, unit: IUnit | "%"): IWeight | number | IPercentage {
     if (typeof weight === "number") {
+      return weight;
+    } else if (weight.unit === "%" || unit === "%") {
       return weight;
     } else {
       if (weight.unit === unit) {
@@ -298,8 +318,8 @@ export namespace Weight {
   }
 
   function comparison(
-    weight: IWeight | number,
-    value: IWeight | number,
+    weight: IWeight | number | IPercentage,
+    value: IWeight | number | IPercentage,
     op: (a: number, b: number) => boolean
   ): boolean {
     if (typeof weight === "number" && typeof value === "number") {
@@ -309,7 +329,11 @@ export namespace Weight {
     } else if (typeof weight !== "number" && typeof value === "number") {
       return op(weight.value, value);
     } else if (typeof weight !== "number" && typeof value !== "number") {
-      return op(weight.value, convertTo(value, weight.unit).value);
+      if (weight.unit === "%" || value.unit === "%") {
+        return op(weight.value, value.value);
+      } else {
+        return op(weight.value, convertTo(value, weight.unit).value);
+      }
     } else {
       return false;
     }

@@ -13,7 +13,16 @@ import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { ExerciseImage } from "../exerciseImage";
 import { ModalSubstitute } from "../modalSubstitute";
-import { ISettings, IProgramExercise, IHistoryRecord, IEquipment, IUnit, ISubscription, IProgram } from "../../types";
+import {
+  ISettings,
+  IProgramExercise,
+  IHistoryRecord,
+  IEquipment,
+  IUnit,
+  ISubscription,
+  IProgram,
+  IPercentageUnit,
+} from "../../types";
 import { Playground } from "../playground";
 import { LinkButton } from "../linkButton";
 import { ProgramExercise } from "../../models/programExercise";
@@ -356,7 +365,12 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ModalAddStateVariable
         isHidden={!shouldShowAddStateVariable}
         onDone={(newName, newType, newUserPrompted) => {
-          EditProgram.addStateVariable(props.dispatch, newName, newType as IUnit | undefined, newUserPrompted);
+          EditProgram.addStateVariable(
+            props.dispatch,
+            newName,
+            newType as IUnit | IPercentageUnit | undefined,
+            newUserPrompted
+          );
           setShouldShowAddStateVariable(false);
         }}
       />

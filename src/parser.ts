@@ -8,7 +8,7 @@ import {
 import { parser as LiftoscriptParser } from "./liftoscript";
 import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
-import { IUnit, IWeight, IProgramState } from "./types";
+import { IUnit, IWeight, IProgramState, IPercentage } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IState } from "./models/state";
@@ -100,10 +100,10 @@ export class ScriptRunner {
 
   public execute(type: "reps"): number;
   public execute(type: "rpe"): number;
-  public execute(type: "weight"): IWeight;
+  public execute(type: "weight"): IWeight | IPercentage;
   public execute(type: "timer"): number;
   public execute(type?: undefined): number | IWeight | boolean;
-  public execute(type?: "reps" | "weight" | "timer" | "rpe"): number | IWeight | boolean {
+  public execute(type?: "reps" | "weight" | "timer" | "rpe"): number | IWeight | IPercentage | boolean {
     const [liftoscriptEvaluator, liftoscriptTree] = this.parse();
     const rawResult = liftoscriptEvaluator.evaluate(liftoscriptTree.topNode);
     let result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
@@ -122,8 +122,8 @@ export class ScriptRunner {
 
   private convertResult(
     type: "reps" | "weight" | "timer" | "rpe" | undefined,
-    result: number | IWeight | boolean
-  ): number | IWeight | boolean {
+    result: number | IWeight | IPercentage | boolean
+  ): number | IWeight | IPercentage | boolean {
     if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
         throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0);
@@ -140,12 +140,11 @@ export class ScriptRunner {
       }
     } else if (type === "weight") {
       if (typeof result === "boolean") {
-        throw new LiftoscriptSyntaxError("Expected to get number or weight as a result", 0, 0, 0, 0);
+        throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0);
+      } else if (typeof result === "number") {
+        return Weight.build(result, this.units);
       } else {
-        if (!Weight.is(result)) {
-          result = Weight.build(result, this.units);
-        }
-        if (Weight.lt(result, 0)) {
+        if (result.value < 0) {
           return Weight.build(0, this.units);
         } else {
           return result;

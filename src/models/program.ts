@@ -43,6 +43,7 @@ import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
+import { MathUtils } from "../utils/math";
 
 declare let __HOST__: string;
 
@@ -174,7 +175,7 @@ export namespace Program {
       );
       const weightValue = ScriptRunner.safe(
         () => {
-          return new ScriptRunner(
+          let weight = new ScriptRunner(
             set.weightExpr,
             state,
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
@@ -183,6 +184,13 @@ export namespace Program {
             { equipment: exercise.equipment },
             "regular"
           ).execute("weight");
+          if (Weight.isPct(weight)) {
+            weight = Weight.multiply(
+              settings.exerciseData[Exercise.toKey(exercise)]?.rm1 ?? Weight.build(0, settings.units),
+              MathUtils.roundFloat(weight.value / 100, 4)
+            );
+          }
+          return weight;
         },
         (e) => {
           return `There's an error while calculating weight for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's weight script.`;

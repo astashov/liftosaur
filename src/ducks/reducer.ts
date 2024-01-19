@@ -19,6 +19,7 @@ import {
   IHistoryRecord,
   IProgram,
   IProgramExercise,
+  IPercentage,
 } from "../types";
 import { IndexedDBUtils } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -202,7 +203,7 @@ export type IChangeAMRAPAction = {
   isAmrap?: boolean;
   logRpe?: boolean;
   programExerciseId?: string;
-  userVars?: Record<string, number | IWeight>;
+  userVars?: Record<string, number | IWeight | IPercentage>;
 };
 
 export type IChangeWeightAction = {

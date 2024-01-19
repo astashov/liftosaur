@@ -4,7 +4,7 @@ import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { Input } from "./input";
-import { IProgramExercise, IWeight } from "../types";
+import { IPercentage, IProgramExercise, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
@@ -41,7 +41,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const amrapInput = useRef<HTMLInputElement>(null);
   const rpeContainer = useRef<HTMLDivElement>(null);
   const rpeInput = useRef<HTMLInputElement>(null);
-  const userVarValues = useRef<Record<string, number | IWeight>>({});
+  const userVarValues = useRef<Record<string, number | IWeight | IPercentage>>({});
 
   function onDone(amrapValue?: number, rpeValue?: number): void {
     props.dispatch({
@@ -144,7 +144,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
 interface IUserPromptedStateVarsProps {
   programExercise: IProgramExercise;
   allProgramExercises: IProgramExercise[];
-  onUpdate: (newStateVars: Record<string, number | IWeight>) => void;
+  onUpdate: (newStateVars: Record<string, number | IWeight | IPercentage>) => void;
 }
 
 export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.Element {
@@ -159,15 +159,19 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
 
   function onInput(): void {
     props.onUpdate(
-      ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight>>((memo, k) => {
+      ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight | IPercentage>>((memo, k) => {
         const value = textInputs[k].current?.value;
         let numValue = value != null ? parseFloat(value) : 0;
         numValue = isNaN(numValue) ? 0 : numValue;
         const previousValue = state[k];
         if (numValue == null) {
-          numValue = Weight.is(previousValue) ? previousValue.value : previousValue;
+          numValue = Weight.is(previousValue) || Weight.isPct(previousValue) ? previousValue.value : previousValue;
         }
-        const typedValue = Weight.is(previousValue) ? Weight.build(numValue, previousValue.unit) : numValue;
+        const typedValue = Weight.is(previousValue)
+          ? Weight.build(numValue, previousValue.unit)
+          : Weight.isPct(previousValue)
+          ? Weight.buildPct(numValue)
+          : numValue;
         memo[k] = typedValue;
         return memo;
       }, {})
@@ -179,7 +183,7 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
       <GroupHeader size="large" name="Enter new state variables values" />
       {ObjectUtils.keys(textInputs).map((key, i) => {
         const value = state[key];
-        const num = Weight.is(value) ? value.value : value;
+        const num = Weight.is(value) || Weight.isPct(value) ? value.value : value;
         const textInput = textInputs[key];
         const label = Weight.is(value) ? `${key}, ${value.unit}` : key;
         return (

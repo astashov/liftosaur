@@ -40,9 +40,9 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
       const oldValue = state[key];
       const newValue = newState[key];
       if (!Weight.eq(oldValue, newValue)) {
-        memo[key] = `${Weight.display(Weight.convertTo(oldValue as number, units))} -> ${Weight.display(
-          Weight.convertTo(newValue as number, units)
-        )}`;
+        const oldValueStr = Weight.display(Weight.convertTo(oldValue as number, units));
+        const newValueStr = Weight.display(Weight.convertTo(newValue as number, units));
+        memo[key] = `${oldValueStr} -> ${newValueStr}`;
       }
       return memo;
     }, {});

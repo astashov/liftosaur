@@ -31,7 +31,7 @@ import {
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
-import { IExerciseId } from "../types";
+import { IExerciseId, IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
 
@@ -994,7 +994,7 @@ export namespace Progress {
     context: IScriptContext,
     settings: ISettings,
     type: "reps" | "weight" | "timer" | "rpe"
-  ): IWeight | number | undefined {
+  ): IWeight | IPercentage | number | undefined {
     const runner = new ScriptRunner(
       expr,
       state,

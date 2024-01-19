@@ -22,6 +22,7 @@ import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
 import { UidFactory } from "../utils/generator";
 import { IPlannerState } from "../pages/planner/models/types";
+import { IPercentageUnit } from "../types";
 
 interface I531Tms {
   squat: IWeight;
@@ -34,7 +35,7 @@ export namespace EditProgram {
   export function addStateVariable(
     dispatch: IDispatch,
     newName?: string,
-    newType?: IUnit,
+    newType?: IUnit | IPercentageUnit,
     newUserPrompted?: boolean
   ): void {
     if (newName != null && newType != null) {

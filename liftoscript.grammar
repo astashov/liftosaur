@@ -15,7 +15,8 @@
 expression {
   BinaryExpression |
   NumberExpression |
-  WeightExpression | 
+  WeightExpression |
+  Percentage |
   ParenthesisExpression |
   BlockExpression |
   Ternary |
@@ -71,8 +72,9 @@ UnaryExpression {
 
   Number { (@digit+ ("." @digit+)*) | "." @digit+ | @digit+ "." }
   Plus { ("+" | "-") }
+  Percentage { Number "%" }
   IncAssignment { ("+=" | "-=" | "*=" | "/=") }
-  @precedence { Number, Plus }
+  @precedence { Percentage, Number, Plus }
 
   Times { ("*" | "/" | "%") }
   Cmp { ( ">" "="? | "==" | "!=" | "<" "="? ) }
