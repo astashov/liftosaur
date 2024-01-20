@@ -612,10 +612,11 @@ export namespace Program {
           const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
           if (entry != null) {
             const staticState = (staticStates || {})[e.id];
+            const dayData = Progress.getDayData(progress);
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
-              Progress.getDayData(progress),
+              dayData,
               entry,
               settings,
               Program.programMode(program),
@@ -631,7 +632,13 @@ export namespace Program {
               let newExercise = ObjectUtils.clone(e);
 
               if (Program.programMode(program) === "planner" && variables != null) {
-                newExercise = ProgramExercise.applyVariables(newExercise, program.planner!, variables, settings);
+                newExercise = ProgramExercise.applyVariables(
+                  dayData,
+                  newExercise,
+                  program.planner!,
+                  variables,
+                  settings
+                );
               }
 
               if (reuseLogicId && newExercise.reuseLogic) {

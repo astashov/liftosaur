@@ -3716,6 +3716,10 @@ export namespace Exercise {
     return Array.from(allMuscleGroups);
   }
 
+  export function onerm(type: IExerciseType, exerciseData: IExerciseData): IWeight | undefined {
+    return exerciseData[Exercise.toKey(type)]?.rm1;
+  }
+
   export function synergistMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {
     const customExercise = customExercises[type.id];
     if (customExercise) {

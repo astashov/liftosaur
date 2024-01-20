@@ -35,7 +35,7 @@ Percentage { Number "%" }
 Weight { Number ("kg" | "lb") }
 Timer { Int "s" }
 SetPart { (Rep "+"? "x")? (RepRange | Rep) "+"? }
-KeyValue { Keyword ":" (Float | Int | Weight) }
+KeyValue { Keyword ":" (Float | Int | Weight | Percentage) }
 
 WarmupSetPart { (Rep "x")? Rep }
 

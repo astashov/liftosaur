@@ -36,7 +36,6 @@
 
 - Planner
 
-* Add inc assignments
 * Add lp, dp, sum progressions
 * Add warmup sets
 * Add descriptions
@@ -49,3 +48,4 @@
 * Add quick sets
 * Edit week/day names on the edit weeks subscreen
 * Show errors if target is wrong
+* Add unsaved checks

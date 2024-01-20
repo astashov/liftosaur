@@ -1,5 +1,5 @@
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerProgramProperty } from "../pages/planner/models/types";
 import {
   IPlannerProgram,
   IProgram,
@@ -78,10 +78,10 @@ export class PlannerToProgram2 {
                     if (set.weight) {
                       weightExpr = `${set.weight.value}${set.weight.unit}`;
                     } else if (set.percentage) {
-                      weightExpr = `rm1${set.percentage !== 100 ? ` * ${set.percentage / 100}` : ""}`;
+                      weightExpr = `${set.percentage}%`;
                     } else {
                       const rpe = set.rpe || 10;
-                      weightExpr = `rm1 * rpeMultiplier(${set.repRange.maxrep}${rpe < 10 ? `, ${rpe}` : ""})`;
+                      weightExpr = `${MathUtils.roundFloat(Weight.rpeMultiplier(set.repRange.maxrep, rpe) * 100, 2)}%`;
                     }
                     for (let i = 0; i < range.numberOfSets; i++) {
                       sets.push({
@@ -105,7 +105,7 @@ export class PlannerToProgram2 {
                 return { sets };
               }
             );
-            const state: IProgramState = {};
+            let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
@@ -114,10 +114,14 @@ export class PlannerToProgram2 {
                     const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
                     const fnArgVal = fnArgValStr.match(/(lb|kg)/)
                       ? Weight.parse(fnArgValStr)
+                      : fnArgValStr.match(/%/)
+                      ? Weight.buildPct(parseFloat(fnArgValStr))
                       : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
                     state[fnArgKey] = fnArgVal ?? 0;
                   }
                   finishDayExpr = property.script ?? "";
+                } else if (property.fnName === "lp") {
+                  ({ state, finishDayExpr } = this.addLp(property, this.settings));
                 }
               }
             }
@@ -169,5 +173,51 @@ export class PlannerToProgram2 {
       planner: this.plannerProgram,
     };
     return program;
+  }
+
+  private addLp(
+    property: IPlannerProgramProperty,
+    settings: ISettings
+  ): { state: IProgramState; finishDayExpr: string } {
+    console.log("Property", property);
+    const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
+    const successes = parseInt(property.fnArgs[1] ?? "1", 10);
+    const decrement = property.fnArgs[2] ?? (settings.units === "kg" ? "5kg" : "10lb");
+    const failures = parseInt(property.fnArgs[3] ?? "1", 10);
+    const state: IProgramState = {};
+    if (successes > 1) {
+      state.successes = 0;
+    }
+    if (failures > 1) {
+      state.failures = 0;
+    }
+    let finishDayExpr = `// ${property.fnName}(${property.fnArgs.join(", ")})\n`;
+    if (successes <= 1) {
+      finishDayExpr += `if (completedReps >= reps && completedRPE <= RPE) {
+        weights += ${increment}${failures > 1 ? `\n    state.failures = 0;` : ""}
+      }`;
+    } else {
+      finishDayExpr += `if (completedReps >= reps && completedRPE <= RPE) {
+  state.successes += 1;
+  if (state.successes >= ${successes}) {
+    weights += ${increment}
+    state.successes = 0${failures > 1 ? `\n    state.failures = 0;` : ""}
+  }
+}`;
+    }
+    if (failures <= 1) {
+      finishDayExpr += `\nif (!(completedReps >= reps && completedRPE <= RPE)) {
+        weights -= ${decrement}${successes > 1 ? `\n    state.successes = 0;` : ""}
+      }`;
+    } else {
+      finishDayExpr += `\nif (!(completedReps >= reps && completedRPE <= RPE)) {
+  state.failures += 1;
+  if (state.failures >= ${failures}) {
+    weights -= ${decrement}
+    state.failures = 0${successes > 1 ? `\n    state.successes = 0;` : ""}
+  }
+}`;
+    }
+    return { state, finishDayExpr };
   }
 }

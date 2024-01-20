@@ -59,7 +59,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
       if (variables[key] != null) {
         for (const value of variables[key] || []) {
           const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
-          diffVars[keyStr] = `${Weight.printOrNumber(value.value)}`;
+          diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
         }
       }
     }

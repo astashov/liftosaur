@@ -18,7 +18,7 @@ export namespace Weight {
     }
   }
 
-  export function print(weight: IWeight): string {
+  export function print(weight: IWeight | IPercentage): string {
     return `${weight.value}${weight.unit}`;
   }
 
@@ -31,7 +31,7 @@ export namespace Weight {
     }
   }
 
-  export function printOrNumber(weight: IWeight | number): string {
+  export function printOrNumber(weight: IWeight | IPercentage | number): string {
     return typeof weight === "number" ? `${weight}` : print(weight);
   }
 
@@ -320,38 +320,79 @@ export namespace Weight {
   function comparison(
     weight: IWeight | number | IPercentage,
     value: IWeight | number | IPercentage,
-    op: (a: number, b: number) => boolean
+    o: (a: number, b: number) => boolean
   ): boolean {
     if (typeof weight === "number" && typeof value === "number") {
-      return op(weight, value);
+      return o(weight, value);
     } else if (typeof weight === "number" && typeof value !== "number") {
-      return op(weight, value.value);
+      return o(weight, value.value);
     } else if (typeof weight !== "number" && typeof value === "number") {
-      return op(weight.value, value);
+      return o(weight.value, value);
     } else if (typeof weight !== "number" && typeof value !== "number") {
       if (weight.unit === "%" || value.unit === "%") {
-        return op(weight.value, value.value);
+        return o(weight.value, value.value);
       } else {
-        return op(weight.value, convertTo(value, weight.unit).value);
+        return o(weight.value, convertTo(value, weight.unit).value);
       }
     } else {
       return false;
     }
   }
 
-  export function operation(weight: IWeight, value: IWeight | number, op: (a: number, b: number) => number): IWeight;
-  export function operation(weight: IWeight | number, value: IWeight, op: (a: number, b: number) => number): IWeight;
+  export function op(
+    onerm: IWeight | undefined,
+    a: IWeight | number | IPercentage,
+    b: IWeight | number | IPercentage,
+    o: (x: number, y: number) => number
+  ): IWeight | number | IPercentage {
+    if (typeof a === "number" && typeof b === "number") {
+      return o(a, b);
+    }
+    if (typeof a === "number" && Weight.isPct(b)) {
+      return Weight.buildPct(o(a, b.value));
+    }
+    if (typeof a === "number" && Weight.is(b)) {
+      return Weight.operation(a, b, o);
+    }
+
+    if (Weight.isPct(a) && typeof b === "number") {
+      return Weight.buildPct(o(a.value, b));
+    }
+    if (Weight.isPct(a) && Weight.isPct(b)) {
+      return Weight.buildPct(o(a.value, b.value));
+    }
+    if (Weight.isPct(a) && Weight.is(b)) {
+      const aWeight = onerm ? Weight.multiply(onerm, a.value / 100) : MathUtils.roundFloat(a.value / 100, 4);
+      return Weight.operation(aWeight, b, o);
+    }
+
+    if (Weight.is(a) && typeof b === "number") {
+      return Weight.operation(a, b, o);
+    }
+    if (Weight.is(a) && Weight.isPct(b)) {
+      const bWeight = onerm ? Weight.multiply(onerm, b.value / 100) : MathUtils.roundFloat(b.value / 100, 4);
+      return Weight.operation(a, bWeight, o);
+    }
+    if (Weight.is(a) && Weight.is(b)) {
+      return Weight.operation(a, b, o);
+    }
+
+    throw new Error(`Can't apply operation to ${a} and ${b}`);
+  }
+
+  export function operation(weight: IWeight, value: IWeight | number, o: (a: number, b: number) => number): IWeight;
+  export function operation(weight: IWeight | number, value: IWeight, o: (a: number, b: number) => number): IWeight;
   export function operation(
     weight: IWeight | number,
     value: IWeight | number,
-    op: (a: number, b: number) => number
+    o: (a: number, b: number) => number
   ): IWeight {
     if (typeof weight === "number" && typeof value !== "number") {
-      return Weight.build(op(weight, value.value), value.unit);
+      return Weight.build(o(weight, value.value), value.unit);
     } else if (typeof weight !== "number" && typeof value === "number") {
-      return Weight.build(op(weight.value, value), weight.unit);
+      return Weight.build(o(weight.value, value), weight.unit);
     } else if (typeof weight !== "number" && typeof value !== "number") {
-      return Weight.build(op(weight.value, convertTo(value, weight.unit).value), weight.unit);
+      return Weight.build(o(weight.value, convertTo(value, weight.unit).value), weight.unit);
     } else {
       throw new Error("Weight.operation should never work with numbers only");
     }

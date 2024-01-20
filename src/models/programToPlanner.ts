@@ -143,12 +143,17 @@ export class ProgramToPlanner {
             !addedProgressMap[key] &&
             (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state))
           ) {
-            const stateVars = ObjectUtils.keys(programExercise.state).map(
-              (k) => `${k}: ${this.printVal(programExercise.state[k])}`
-            );
-            plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
-            if (programExercise.finishDayExpr) {
-              plannerExercise += " " + programExercise.finishDayExpr;
+            const progressLp = this.getProgressLp(programExercise.finishDayExpr);
+            if (progressLp != null) {
+              plannerExercise += ` / progress: ${progressLp}`;
+            } else {
+              const stateVars = ObjectUtils.keys(programExercise.state).map(
+                (k) => `${k}: ${this.printVal(programExercise.state[k])}`
+              );
+              plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
+              if (programExercise.finishDayExpr) {
+                plannerExercise += " " + programExercise.finishDayExpr;
+              }
             }
             addedProgressMap[key] = true;
           }
@@ -183,12 +188,16 @@ export class ProgramToPlanner {
     return groups;
   }
 
+  private getProgressLp(finishDayExpr?: string): string | undefined {
+    return (finishDayExpr || "").split("\n")?.[0]?.match(/\/\/ (lp.*)$/)?.[1];
+  }
+
   private weightExprToStr(weightExpr?: string): string {
-    if (weightExpr != null && weightExpr.indexOf("rm1 * rpeMultiplier") === -1) {
-      const percentageMatch = weightExpr.match(/rm1 \* (.*)/);
+    if (weightExpr != null) {
+      const percentageMatch = weightExpr.match(/(.*)%/);
       console.log(percentageMatch);
       if (percentageMatch != null) {
-        const percentage = MathUtils.roundFloat(parseFloat(percentageMatch[1]) * 100, 2);
+        const percentage = MathUtils.roundFloat(parseFloat(percentageMatch[1]), 2);
         console.log(percentage);
         return `${percentage}%`;
       } else {
