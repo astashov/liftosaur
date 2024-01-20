@@ -114,6 +114,11 @@ export interface ILiftoscriptEvaluatorVariables {
     op: IAssignmentOp;
     target: ("*" | "_" | number)[];
   }[];
+  minReps?: {
+    value: number;
+    op: IAssignmentOp;
+    target: ("*" | "_" | number)[];
+  }[];
   weights?: {
     value: number | IWeight | IPercentage;
     op: IAssignmentOp;
@@ -253,7 +258,7 @@ export class LiftoscriptEvaluator {
   }
 
   private assignToVariable(
-    key: "reps" | "weights" | "RPE",
+    key: "reps" | "weights" | "RPE" | "minReps",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -402,7 +407,7 @@ export class LiftoscriptEvaluator {
             : Weight.build(0, this.unit);
           this.variables.rm1 = rm1;
           return rm1;
-        } else if (variable === "reps" || variable === "weights" || variable === "RPE") {
+        } else if (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps") {
           if (this.mode === "planner") {
             return this.assignToVariable(variable, expression, indexExprs, "=");
           } else {
@@ -461,7 +466,7 @@ export class LiftoscriptEvaluator {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
           return rm1;
-        } else if (variable === "reps" || variable === "weights" || variable === "RPE") {
+        } else if (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps") {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);

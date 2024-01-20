@@ -27,13 +27,13 @@ export namespace Progression {
     `);
   }
 
-  export function setDoubleProgression(range: number, increment: number, unit: "%" | IUnit): string {
+  export function setDoubleProgression(minReps: number, maxReps: number, increment: number, unit: "%" | IUnit): string {
     return StringUtils.unindent(`
-      // Double Progression progression script '${range},${increment}${unit}'
+      // Double Progression progression script '${minReps},${maxReps},${increment}${unit}'
       if (completedReps >= reps && completedRPE <= RPE) {
         state.addreps += 1
       }
-      if (state.addreps > ${range}) {
+      if (state.addreps > ${maxReps - minReps}) {
         state.addreps = 0
         ${
           unit === "%"

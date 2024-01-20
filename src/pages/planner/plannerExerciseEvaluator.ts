@@ -253,7 +253,7 @@ export class PlannerExerciseEvaluator {
       let script: string | undefined;
       let body: string | undefined;
       if (fnName === "lp") {
-        if (fnArgs.length > 4) {
+        if (fnArgs.length > 6) {
           this.error(`Linear Progression 'lp' only has 4 arguments max`, valueNode);
         } else if (fnArgs[0] && !fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%")) {
           this.error(
@@ -262,18 +262,28 @@ export class PlannerExerciseEvaluator {
           );
         } else if (fnArgs[1] != null && isNaN(parseInt(fnArgs[1], 10))) {
           this.error(`2nd argument of 'lp' should be a number of attempts - i.e. a number`, valueNode);
-        } else if (
-          fnArgs[2] != null &&
-          !fnArgs[2].endsWith("lb") &&
-          !fnArgs[2].endsWith("kg") &&
-          !fnArgs[2].endsWith("%")
-        ) {
+        } else if (fnArgs[2] != null && isNaN(parseInt(fnArgs[2], 10))) {
           this.error(
-            `3rd argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            `3rd argument of 'lp' should be a current number of successful attempts up to date - i.e. a number`,
             valueNode
           );
-        } else if (fnArgs[3] != null && isNaN(parseInt(fnArgs[3], 10))) {
-          this.error(`4th argument of 'lp' should be a number of attempts - i.e. a number`, valueNode);
+        } else if (
+          fnArgs[3] != null &&
+          !fnArgs[3].endsWith("lb") &&
+          !fnArgs[3].endsWith("kg") &&
+          !fnArgs[3].endsWith("%")
+        ) {
+          this.error(
+            `4th argument of 'lp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            valueNode
+          );
+        } else if (fnArgs[4] != null && isNaN(parseInt(fnArgs[4], 10))) {
+          this.error(`5th argument of 'lp' should be a number of failed attempts - i.e. a number`, valueNode);
+        } else if (fnArgs[5] != null && isNaN(parseInt(fnArgs[5], 10))) {
+          this.error(
+            `6th argument of 'lp' should be a current number of failed attempts up to date - i.e. a number`,
+            valueNode
+          );
         }
       } else if (fnName === "sum") {
         if (fnArgs.length > 2) {
@@ -290,18 +300,20 @@ export class PlannerExerciseEvaluator {
           );
         }
       } else if (fnName === "dp") {
-        if (fnArgs.length > 2) {
-          this.error(`Double Progression 'dp' only has 2 arguments max`, valueNode);
-        } else if (fnArgs[0] == null || isNaN(parseInt(fnArgs[0], 10))) {
-          this.error(`1st argument of 'dp' should be a range of reps - i.e. a number`, valueNode);
+        if (fnArgs.length !== 3) {
+          this.error(`Double Progression 'dp' should have 3 arguments`, valueNode);
         } else if (
-          fnArgs[1] == null ||
-          (!fnArgs[1].endsWith("lb") && !fnArgs[1].endsWith("kg") && !fnArgs[1].endsWith("%"))
+          fnArgs[0] == null ||
+          (!fnArgs[0].endsWith("lb") && !fnArgs[0].endsWith("kg") && !fnArgs[0].endsWith("%"))
         ) {
           this.error(
-            `2nd argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
+            `1st argument of 'dp' should be weight (ending with 'lb' or 'kg') or percentage (ending with '%'). For example '10lb' or '30%'.`,
             valueNode
           );
+        } else if (fnArgs[1] == null || isNaN(parseInt(fnArgs[1], 10))) {
+          this.error(`2nd argument of 'dp' should be min reps in the range - i.e. a number, like 8`, valueNode);
+        } else if (fnArgs[2] == null || isNaN(parseInt(fnArgs[2], 10))) {
+          this.error(`3rd argument of 'dp' should be max reps in the range - i.e. a number, like 12`, valueNode);
         }
       } else if (fnName === "custom") {
         const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);

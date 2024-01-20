@@ -501,7 +501,7 @@ export namespace ProgramExercise {
     const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
     const variationsMap = allVariationsMap[exerciseKey];
 
-    const keys = ["RPE", "reps", "weights"] as const;
+    const keys = ["RPE", "reps", "weights", "minReps"] as const;
     for (const key of keys) {
       const values = variables[key];
       if (values != null) {
@@ -532,6 +532,16 @@ export namespace ProgramExercise {
                           dayData,
                           settings,
                           "repsExpr",
+                          value.value,
+                          value.op
+                        );
+                      } else if (key === "minReps") {
+                        operation(
+                          programExercise,
+                          sets[setIndex],
+                          dayData,
+                          settings,
+                          "minRepsExpr",
                           value.value,
                           value.op
                         );
@@ -585,7 +595,7 @@ export namespace ProgramExercise {
     set: IProgramSet,
     dayData: IDayData,
     settings: ISettings,
-    key: "repsExpr" | "weightExpr" | "rpeExpr",
+    key: "repsExpr" | "weightExpr" | "rpeExpr" | "minRepsExpr",
     value: IWeight | IPercentage | number,
     op: IAssignmentOp
   ): void {
@@ -596,6 +606,8 @@ export namespace ProgramExercise {
       const onerm = Exercise.onerm(programExercise.exerciseType, settings.exerciseData);
       const oldValue =
         key === "repsExpr"
+          ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("reps"))
+          : key === "minRepsExpr"
           ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("reps"))
           : key === "rpeExpr"
           ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("rpe"))

@@ -122,6 +122,10 @@ export class PlannerToProgram2 {
                   finishDayExpr = property.script ?? "";
                 } else if (property.fnName === "lp") {
                   ({ state, finishDayExpr } = this.addLp(property, this.settings));
+                } else if (property.fnName === "dp") {
+                  ({ state, finishDayExpr } = this.addDp(property, this.settings));
+                } else if (property.fnName === "sum") {
+                  ({ state, finishDayExpr } = this.addSum(property, this.settings));
                 }
               }
             }
@@ -181,43 +185,69 @@ export class PlannerToProgram2 {
   ): { state: IProgramState; finishDayExpr: string } {
     console.log("Property", property);
     const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
-    const successes = parseInt(property.fnArgs[1] ?? "1", 10);
-    const decrement = property.fnArgs[2] ?? (settings.units === "kg" ? "5kg" : "10lb");
-    const failures = parseInt(property.fnArgs[3] ?? "1", 10);
+    const totalSuccesses = parseInt(property.fnArgs[1] ?? "1", 10);
+    const currentSuccesses = parseInt(property.fnArgs[2] ?? "0", 10);
+    const decrement = property.fnArgs[3] ?? (settings.units === "kg" ? "5kg" : "10lb");
+    const totalFailures = parseInt(property.fnArgs[4] ?? "0", 10);
+    const currentFailures = parseInt(property.fnArgs[5] ?? "0", 10);
     const state: IProgramState = {};
-    if (successes > 1) {
-      state.successes = 0;
-    }
-    if (failures > 1) {
-      state.failures = 0;
-    }
-    let finishDayExpr = `// ${property.fnName}(${property.fnArgs.join(", ")})\n`;
-    if (successes <= 1) {
-      finishDayExpr += `if (completedReps >= reps && completedRPE <= RPE) {
-        weights += ${increment}${failures > 1 ? `\n    state.failures = 0;` : ""}
-      }`;
-    } else {
+    state.successes = currentSuccesses;
+    state.failures = currentFailures;
+    let finishDayExpr = `// progress: lp(${increment}, ${totalSuccesses}, ${currentSuccesses}, ${decrement}, ${totalFailures}, ${currentFailures})\n`;
+    if (totalSuccesses > 0) {
       finishDayExpr += `if (completedReps >= reps && completedRPE <= RPE) {
   state.successes += 1;
-  if (state.successes >= ${successes}) {
+  if (state.successes >= ${totalSuccesses}) {
     weights += ${increment}
-    state.successes = 0${failures > 1 ? `\n    state.failures = 0;` : ""}
+    state.successes = 0
+    state.failures = 0
   }
 }`;
     }
-    if (failures <= 1) {
-      finishDayExpr += `\nif (!(completedReps >= reps && completedRPE <= RPE)) {
-        weights -= ${decrement}${successes > 1 ? `\n    state.successes = 0;` : ""}
-      }`;
-    } else {
+    if (totalFailures > 0) {
       finishDayExpr += `\nif (!(completedReps >= reps && completedRPE <= RPE)) {
   state.failures += 1;
-  if (state.failures >= ${failures}) {
+  if (state.failures >= ${totalFailures}) {
     weights -= ${decrement}
-    state.failures = 0${successes > 1 ? `\n    state.successes = 0;` : ""}
+    state.failures = 0
+    state.successes = 0
   }
 }`;
     }
     return { state, finishDayExpr };
+  }
+
+  private addDp(
+    property: IPlannerProgramProperty,
+    settings: ISettings
+  ): { state: IProgramState; finishDayExpr: string } {
+    console.log("Property", property);
+    const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
+    const minReps = parseInt(property.fnArgs[1], 10);
+    const maxReps = parseInt(property.fnArgs[2], 10);
+    let finishDayExpr = `// progress: ${property.fnName}(${property.fnArgs.join(", ")})\n`;
+    finishDayExpr += `if (completedReps >= reps && completedRPE <= RPE) {
+  if (reps[ns] < ${maxReps}) {
+    reps += 1
+  } else {
+    reps = ${minReps}
+    weights += ${increment}
+  }
+}`;
+    return { state: {}, finishDayExpr };
+  }
+
+  private addSum(
+    property: IPlannerProgramProperty,
+    settings: ISettings
+  ): { state: IProgramState; finishDayExpr: string } {
+    console.log("Property", property);
+    const sumReps = parseInt(property.fnArgs[0], 10);
+    const increment = property.fnArgs[1] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
+    let finishDayExpr = `// progress: ${property.fnName}(${property.fnArgs.join(", ")})\n`;
+    finishDayExpr += `if (sum(completedReps) >= ${sumReps}) {
+    weights += ${increment}
+  }`;
+    return { state: {}, finishDayExpr };
   }
 }

@@ -268,6 +268,7 @@ export class PlannerToProgram {
       if (fnName === "lp") {
         const [increment, unitIncrement] = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement) || [5, "lb"];
         const incrementAttempts = parseInt(fnArgs[1] ?? 1, 10);
+        const currentSuccesses = parseInt(fnArgs[2] ?? 0, 10);
         const progression = {
           attempts: incrementAttempts,
           increment: increment,
@@ -275,12 +276,14 @@ export class PlannerToProgram {
         };
 
         let deload: { decrement: number; unit: IUnit | "%"; attempts: number } | undefined = undefined;
-        const rawDecrement = fnArgs[2];
+        let currentFailures: number = 0;
+        const rawDecrement = fnArgs[3];
         if (rawDecrement != null) {
-          const result = this.getIncrementAndUnit(fnArgs[2] || defaultIncrement);
+          const result = this.getIncrementAndUnit(fnArgs[3] || defaultIncrement);
           if (result != null) {
             const [decrement, unitDecrement] = result;
-            const decrementAttempts = parseInt(fnArgs[3] ?? 1, 10);
+            const decrementAttempts = parseInt(fnArgs[4] ?? 1, 10);
+            currentFailures = parseInt(fnArgs[5] ?? 0, 10);
             deload = {
               attempts: decrementAttempts,
               decrement: decrement,
@@ -291,8 +294,8 @@ export class PlannerToProgram {
         const finishDayExpr = Progression.setLinearProgression(progression, deload);
         return {
           additionalState: {
-            successes: 0,
-            failures: 0,
+            successes: currentSuccesses,
+            failures: currentFailures,
           },
           finishDayExpr,
         };
@@ -308,11 +311,12 @@ export class PlannerToProgram {
           };
         }
       } else if (fnName === "dp") {
-        const range = parseInt(fnArgs[0], 10);
-        const result = this.getIncrementAndUnit(fnArgs[1] || defaultIncrement);
-        if (!isNaN(range) && result != null) {
+        const result = this.getIncrementAndUnit(fnArgs[0] || defaultIncrement);
+        const minReps = parseInt(fnArgs[1], 10);
+        const maxReps = parseInt(fnArgs[2], 10);
+        if (!isNaN(minReps) && !isNaN(maxReps) && result != null) {
           const [increment, unit] = result;
-          const finishDayExpr = Progression.setDoubleProgression(range, increment, unit);
+          const finishDayExpr = Progression.setDoubleProgression(minReps, maxReps, increment, unit);
           return {
             additionalState: {
               addreps: 0,

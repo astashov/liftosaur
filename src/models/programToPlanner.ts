@@ -7,6 +7,7 @@ import {
   IProgram,
   IProgramExercise,
   IProgramSet,
+  IProgramState,
   ISettings,
   IWeight,
 } from "../types";
@@ -143,9 +144,9 @@ export class ProgramToPlanner {
             !addedProgressMap[key] &&
             (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state))
           ) {
-            const progressLp = this.getProgressLp(programExercise.finishDayExpr);
-            if (progressLp != null) {
-              plannerExercise += ` / progress: ${progressLp}`;
+            const progress = this.getProgress(programExercise.state, programExercise.finishDayExpr);
+            if (progress != null) {
+              plannerExercise += ` / progress: ${progress}`;
             } else {
               const stateVars = ObjectUtils.keys(programExercise.state).map(
                 (k) => `${k}: ${this.printVal(programExercise.state[k])}`
@@ -188,8 +189,23 @@ export class ProgramToPlanner {
     return groups;
   }
 
-  private getProgressLp(finishDayExpr?: string): string | undefined {
-    return (finishDayExpr || "").split("\n")?.[0]?.match(/\/\/ (lp.*)$/)?.[1];
+  private getProgress(state: IProgramState, finishDayExpr?: string): string | undefined {
+    const progressLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// progress:") !== -1);
+    if (progressLine != null) {
+      const progressMatch = progressLine.match(/progress: ([^(]+)\((.*)\)$/);
+      if (progressMatch) {
+        console.log("Progress Match");
+        const name = progressMatch[1];
+        const args = progressMatch[2].split(",").map((a) => a.trim());
+        if (name === "lp") {
+          const [increment, totalSuccess, , decrement, totalFailure] = args;
+          return `lp(${increment}, ${totalSuccess}, ${state.successes}, ${decrement}, ${totalFailure}, ${state.failures})`;
+        } else if (name === "dp" || name === "sum") {
+          return `${name}(${args.join(", ")})`;
+        }
+      }
+    }
+    return undefined;
   }
 
   private weightExprToStr(weightExpr?: string): string {
