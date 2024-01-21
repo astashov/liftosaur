@@ -118,6 +118,7 @@ export interface ILiftoscriptEvaluatorVariables {
   reps?: ILiftoscriptVariableValue<number>[];
   minReps?: ILiftoscriptVariableValue<number>[];
   weights?: ILiftoscriptVariableValue<number | IPercentage | IWeight>[];
+  timer?: ILiftoscriptVariableValue<number>[];
   RPE?: ILiftoscriptVariableValue<number>[];
   setVariationIndex?: ILiftoscriptVariableValue<number>[];
 }
@@ -229,7 +230,7 @@ export class LiftoscriptEvaluator {
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
           }
-        } else if (!(name in this.bindings)) {
+        } else if (name !== "timer" && !(name in this.bindings)) {
           this.error(`${name} is not a valid variable`, nameNode);
         }
       }
@@ -249,7 +250,7 @@ export class LiftoscriptEvaluator {
   }
 
   private assignToVariable(
-    key: "reps" | "weights" | "RPE" | "minReps" | "setVariationIndex",
+    key: "reps" | "weights" | "timer" | "RPE" | "minReps" | "setVariationIndex",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -411,6 +412,7 @@ export class LiftoscriptEvaluator {
           variable === "weights" ||
           variable === "RPE" ||
           variable === "minReps" ||
+          variable === "timer" ||
           variable === "setVariationIndex"
         ) {
           if (this.mode === "planner") {
@@ -476,6 +478,7 @@ export class LiftoscriptEvaluator {
           variable === "weights" ||
           variable === "RPE" ||
           variable === "minReps" ||
+          variable === "timer" ||
           variable === "setVariationIndex"
         ) {
           const op = this.getValue(incAssignmentExpr);

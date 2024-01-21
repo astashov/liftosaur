@@ -268,9 +268,24 @@ export namespace Progress {
       entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
     if (programExercise != null && program != null) {
       const exercise = programExercise.exerciseType;
-      const timerExpr = ProgramExercise.getTimerExpr(programExercise, program.exercises);
       const state = ProgramExercise.getState(programExercise, program.exercises);
-      const bindings = Progress.createScriptBindings(Progress.getDayData(progress), entry, settings, setIndex + 1);
+      const setVariationIndexResult = Program.runVariationScript(
+        programExercise,
+        program.exercises,
+        state,
+        Progress.getDayData(progress),
+        settings
+      );
+      const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+      const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
+      const timerExpr = setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises);
+      const bindings = Progress.createScriptBindings(
+        Progress.getDayData(progress),
+        entry,
+        settings,
+        setIndex + 1,
+        setVariationIndex
+      );
       if (timerExpr?.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
