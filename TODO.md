@@ -36,7 +36,6 @@
 
 - Planner
 
-* Add quick sets
 * Add reuse logic
 * Add custom exercise adder
 * Fix equipment selection

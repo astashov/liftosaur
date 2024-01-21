@@ -161,6 +161,7 @@ export class ProgramToPlanner {
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
+    const addedQuickAddSet: Record<string, boolean> = {};
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
       const week = this.program.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
@@ -213,7 +214,12 @@ export class ProgramToPlanner {
 
           plannerExercise += variations
             .map((v, i) => {
-              const sets = this.setsToString(v.sets, globals);
+              let addQuickAddSet = false;
+              if (!addedQuickAddSet[key] && programExercise.quickAddSets) {
+                addQuickAddSet = true;
+                addedQuickAddSet[key] = true;
+              }
+              const sets = this.setsToString(v.sets, globals, addQuickAddSet);
               return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
             })
             .join(" / ");
@@ -354,13 +360,13 @@ export class ProgramToPlanner {
     return "";
   }
 
-  private setsToString(sets: IProgramSet[], globals: IPlannerToProgram2Globals): string {
+  private setsToString(sets: IProgramSet[], globals: IPlannerToProgram2Globals, addQuickAddSet?: boolean): string {
     const groupedVariationSets = this.groupVariationSets(sets);
     const result: string[] = [];
     for (const group of groupedVariationSets) {
       const set = group[0];
       let setStr = "";
-      setStr += group[1] > 1 ? `${group[1]}x` : "";
+      setStr += `${group[1]}${addQuickAddSet ? "+" : ""}x`;
       setStr += set.minRepsExpr ? `${set.minRepsExpr}-` : "";
       setStr += `${set.repsExpr}`;
       setStr += set.isAmrap ? "+" : "";

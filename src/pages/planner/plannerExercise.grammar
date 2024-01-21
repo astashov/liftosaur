@@ -34,7 +34,7 @@ Rpe { "@" Number "+"? }
 Percentage { Number "%" }
 Weight { Number ("kg" | "lb") }
 Timer { Int "s" }
-SetPart { (Rep "+"? "x")? (RepRange | Rep) "+"? }
+SetPart { Rep "+"? "x" (RepRange | Rep) "+"? }
 KeyValue { Keyword ":" (Float | Int | Weight | Percentage) }
 
 WarmupSetPart { (Rep "x")? Rep }

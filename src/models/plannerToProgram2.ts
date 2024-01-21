@@ -69,6 +69,7 @@ export class PlannerToProgram2 {
               descriptionExpr: "day",
               finishDayExpr: "",
             };
+            let isQuickAddSets = false;
             programExercises[key] = programExercise;
             const newVariations: IProgramExerciseVariation[] = evalExercise.setVariations.map(
               (setVariation, setIndex) => {
@@ -76,6 +77,7 @@ export class PlannerToProgram2 {
                 for (const set of setVariation.sets) {
                   if (set.repRange != null) {
                     const range = set.repRange;
+                    isQuickAddSets = isQuickAddSets || !!set.repRange?.isQuickAddSet;
                     let weightExpr: string = "";
                     if (set.weight) {
                       weightExpr = `${set.weight.value}${set.weight.unit}`;
@@ -164,6 +166,7 @@ export class PlannerToProgram2 {
             programExercise.enableRpe = programExercise.variations.some((v) =>
               v.sets.some((s) => s.rpeExpr != null || !!s.logRpe)
             );
+            programExercise.quickAddSets = isQuickAddSets;
             programExercise.enableRepRanges = programExercise.variations.some((v) =>
               v.sets.some((s) => s.minRepsExpr != null)
             );

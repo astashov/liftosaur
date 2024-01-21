@@ -129,14 +129,7 @@ export class PlannerExerciseEvaluator {
   }
 
   private getRepRange(setParts: string): IPlannerProgramExerciseRepRange | undefined {
-    let [numberOfSetsStr, repRangeStr] = setParts.split("x", 2);
-    if (!numberOfSetsStr) {
-      return undefined;
-    }
-    if (!repRangeStr) {
-      repRangeStr = numberOfSetsStr;
-      numberOfSetsStr = "1";
-    }
+    const [numberOfSetsStr, repRangeStr] = setParts.split("x", 2);
     // eslint-disable-next-line prefer-const
     let [minrepStr, maxrepStr] = repRangeStr.split("-", 2);
     if (!maxrepStr) {
@@ -152,6 +145,7 @@ export class PlannerExerciseEvaluator {
       minrep: parseInt(minrepStr, 10),
       maxrep: parseInt(maxrepStr, 10),
       isAmrap: isAmrap,
+      isQuickAddSet: numberOfSetsStr.endsWith("+"),
     };
   }
 
