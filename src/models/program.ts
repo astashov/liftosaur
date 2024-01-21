@@ -185,10 +185,7 @@ export namespace Program {
             "regular"
           ).execute("weight");
           if (Weight.isPct(weight)) {
-            weight = Weight.multiply(
-              settings.exerciseData[Exercise.toKey(exercise)]?.rm1 ?? Weight.build(0, settings.units),
-              MathUtils.roundFloat(weight.value / 100, 4)
-            );
+            weight = Weight.multiply(Exercise.onerm(exercise, settings), MathUtils.roundFloat(weight.value / 100, 4));
           }
           return weight;
         },

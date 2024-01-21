@@ -51,8 +51,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   exercise={exercise}
                   rmKey="rm1"
                   name="1 Rep Max"
-                  exerciseData={props.settings.exerciseData}
-                  units={props.settings.units}
+                  settings={props.settings}
                   onEditVariable={(value) => {
                     updateState(props.dispatch, [
                       lb<IState>()

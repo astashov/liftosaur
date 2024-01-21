@@ -16,6 +16,7 @@ import { ObjectUtils } from "../utils/object";
 import { Exercise, equipmentName } from "./exercise";
 import { Weight } from "./weight";
 import { PlannerToProgram2 } from "./plannerToProgram2";
+import { IProgramExerciseWarmupSet } from "../types";
 
 interface IPlannerToProgram2Globals {
   weight?: string;
@@ -83,6 +84,7 @@ export class ProgramToPlanner {
     const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
+    const addedWarmupsMap: Record<string, boolean> = {};
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
       const week = this.program.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
@@ -140,6 +142,13 @@ export class ProgramToPlanner {
             plannerExercise += ` / ${globals.timer}s`;
           }
 
+          if (!addedWarmupsMap[key] && programExercise.warmupSets) {
+            const warmupSets = this.getWarmupSets(programExercise);
+            if (warmupSets != null) {
+              plannerExercise += ` / warmup: ${warmupSets}`;
+            }
+          }
+
           if (
             !addedProgressMap[key] &&
             (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state))
@@ -187,6 +196,42 @@ export class ProgramToPlanner {
       lastKey = key;
     }
     return groups;
+  }
+
+  private groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {
+    let lastKey: string | undefined;
+    const groups: [IProgramExerciseWarmupSet, number][] = [];
+    for (const set of sets) {
+      const key = this.warmupSetToKey(set);
+      if (lastKey == null || lastKey !== key) {
+        groups.push([set, 0]);
+      }
+      groups[groups.length - 1][1] += 1;
+      lastKey = key;
+    }
+    return groups;
+  }
+
+  private getWarmupSets(programExercise: IProgramExercise): string | undefined {
+    const warmupSets = programExercise.warmupSets;
+    if (warmupSets) {
+      const groups = this.groupWarmupsSets(warmupSets);
+      const strs: string[] = [];
+      console.log("groups", groups);
+      for (const group of groups) {
+        const first = group[0];
+        const length = group[1];
+        strs.push(
+          `${length}x${first.reps} ${
+            typeof first.value === "number"
+              ? `${MathUtils.roundFloat(first.value * 100, 0)}%`
+              : Weight.print(first.value)
+          }`
+        );
+      }
+      return strs.join(", ");
+    }
+    return undefined;
   }
 
   private getProgress(state: IProgramState, finishDayExpr?: string): string | undefined {
@@ -247,6 +292,10 @@ export class ProgramToPlanner {
       result.push(setStr);
     }
     return result.map((r) => r.trim()).join(", ");
+  }
+
+  private warmupSetToKey(set: IProgramExerciseWarmupSet): string {
+    return `${set.reps}-${Weight.print(set.threshold)}-${Weight.printOrNumber(set.value)}`;
   }
 
   private setToKey(set: IProgramSet): string {

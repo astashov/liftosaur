@@ -36,7 +36,6 @@
 
 - Planner
 
-* Add lp, dp, sum progressions
 * Add warmup sets
 * Add descriptions
 * Add set variation switcher

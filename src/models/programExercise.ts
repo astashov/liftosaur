@@ -603,7 +603,7 @@ export namespace ProgramExercise {
       set[key] = Weight.printOrNumber(value);
     } else {
       const script = set[key] ?? "";
-      const onerm = Exercise.onerm(programExercise.exerciseType, settings.exerciseData);
+      const onerm = Exercise.onerm(programExercise.exerciseType, settings);
       const oldValue =
         key === "repsExpr"
           ? safe(0, () => runScript(script, programExercise, dayData, settings).execute("reps"))

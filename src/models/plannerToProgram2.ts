@@ -9,11 +9,12 @@ import {
   IProgramDay,
   IProgramWeek,
   IProgramExerciseVariation,
+  IWeight,
 } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise } from "./exercise";
-import { IProgramState } from "../types";
+import { IProgramState, IProgramExerciseWarmupSet } from "../types";
 import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
 
@@ -107,6 +108,27 @@ export class PlannerToProgram2 {
             );
             let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
+            let warmupSets: IProgramExerciseWarmupSet[] | undefined = undefined;
+            if (evalExercise.warmupSets) {
+              const sets: IProgramExerciseWarmupSet[] = [];
+              for (const ws of evalExercise.warmupSets) {
+                for (let i = 0; i < ws.numberOfSets; i += 1) {
+                  let value: IWeight | number | undefined = ws.percentage ? ws.percentage / 100 : undefined;
+                  if (value == null) {
+                    value = ws.weight;
+                  }
+                  if (value == null) {
+                    value = MathUtils.roundTo0005(Weight.rpeMultiplier(ws.reps, 4));
+                  }
+                  sets.push({
+                    reps: ws.reps,
+                    value,
+                    threshold: Weight.build(0, this.settings.units),
+                  });
+                }
+              }
+              warmupSets = sets;
+            }
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
                 if (property.fnName === "custom") {
@@ -138,6 +160,7 @@ export class PlannerToProgram2 {
             programExercise.enableRepRanges = programExercise.variations.some((v) =>
               v.sets.some((s) => s.minRepsExpr != null)
             );
+            programExercise.warmupSets = warmupSets;
             programDay.exercises.push({ id: programExercise.id });
           }
         }

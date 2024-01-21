@@ -36,8 +36,7 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
               name="1 Rep Max"
               rmKey="rm1"
               exercise={exercise}
-              exerciseData={props.settings.exerciseData}
-              units={props.settings.units}
+              settings={props.settings}
               onEditVariable={(value) => {
                 props.onEditVariable("rm1", value);
               }}
