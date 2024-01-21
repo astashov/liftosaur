@@ -107,28 +107,19 @@ function assert(name: string): never {
   throw new SyntaxError(`Missing required nodes for ${name}, this should never happen`);
 }
 
+export interface ILiftoscriptVariableValue<T> {
+  value: T;
+  op: IAssignmentOp;
+  target: ("*" | "_" | number)[];
+}
+
 export interface ILiftoscriptEvaluatorVariables {
   rm1?: IWeight;
-  reps?: {
-    value: number;
-    op: IAssignmentOp;
-    target: ("*" | "_" | number)[];
-  }[];
-  minReps?: {
-    value: number;
-    op: IAssignmentOp;
-    target: ("*" | "_" | number)[];
-  }[];
-  weights?: {
-    value: number | IWeight | IPercentage;
-    op: IAssignmentOp;
-    target: ("*" | "_" | number)[];
-  }[];
-  RPE?: {
-    value: number;
-    op: IAssignmentOp;
-    target: ("*" | "_" | number)[];
-  }[];
+  reps?: ILiftoscriptVariableValue<number>[];
+  minReps?: ILiftoscriptVariableValue<number>[];
+  weights?: ILiftoscriptVariableValue<number | IPercentage | IWeight>[];
+  RPE?: ILiftoscriptVariableValue<number>[];
+  setVariationIndex?: ILiftoscriptVariableValue<number>[];
 }
 
 export class LiftoscriptEvaluator {
@@ -258,12 +249,20 @@ export class LiftoscriptEvaluator {
   }
 
   private assignToVariable(
-    key: "reps" | "weights" | "RPE" | "minReps",
+    key: "reps" | "weights" | "RPE" | "minReps" | "setVariationIndex",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
   ): number | IWeight | IPercentage {
-    const indexValues = CollectionUtils.compact(indexExprs.map((ie) => getChildren(ie)[0])).map((ie) => {
+    const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
+    if (key === "setVariationIndex") {
+      if (indexes.length > 2) {
+        this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+      }
+    } else if (indexes.length > 4) {
+      this.error(`setVariationIndex can only have 4 values inside [*:*:*:*]`, expression);
+    }
+    const indexValues = CollectionUtils.compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
         return "*" as const;
       } else if (ie.type.name === NodeName.Current) {
@@ -407,7 +406,13 @@ export class LiftoscriptEvaluator {
             : Weight.build(0, this.unit);
           this.variables.rm1 = rm1;
           return rm1;
-        } else if (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps") {
+        } else if (
+          variable === "reps" ||
+          variable === "weights" ||
+          variable === "RPE" ||
+          variable === "minReps" ||
+          variable === "setVariationIndex"
+        ) {
           if (this.mode === "planner") {
             return this.assignToVariable(variable, expression, indexExprs, "=");
           } else {
@@ -466,7 +471,13 @@ export class LiftoscriptEvaluator {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
           return rm1;
-        } else if (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps") {
+        } else if (
+          variable === "reps" ||
+          variable === "weights" ||
+          variable === "RPE" ||
+          variable === "minReps" ||
+          variable === "setVariationIndex"
+        ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);

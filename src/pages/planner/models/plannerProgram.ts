@@ -125,17 +125,22 @@ export class PlannerProgram {
     }
   }
 
-  public static postProcess(program: IPlannerEvalResult[][]): IPlannerEvalResult[][] {
+  public static postProcess(
+    program: IPlannerEvalResult[][],
+    args?: { skipDescriptionPostProcess?: boolean }
+  ): IPlannerEvalResult[][] {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
-      if (exercise.description == null) {
-        const lastWeekExercise = this.findLastWeekExercise(
-          program,
-          weekIndex,
-          dayIndex,
-          exercise,
-          (ex) => ex.description != null
-        );
-        exercise.description = lastWeekExercise?.description;
+      if (!args?.skipDescriptionPostProcess) {
+        if (exercise.description == null) {
+          const lastWeekExercise = this.findLastWeekExercise(
+            program,
+            weekIndex,
+            dayIndex,
+            exercise,
+            (ex) => ex.description != null
+          );
+          exercise.description = lastWeekExercise?.description;
+        }
       }
       if (exercise.reuse) {
         const lastWeekExercise = this.findLastWeekExercise(program, weekIndex, dayIndex, exercise);
@@ -160,7 +165,11 @@ export class PlannerProgram {
     return program;
   }
 
-  public static evaluate(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerEvalResult[][] {
+  public static evaluate(
+    plannerProgram: IPlannerProgram,
+    settings: ISettings,
+    args?: { skipDescriptionPostProcess?: boolean }
+  ): IPlannerEvalResult[][] {
     let dayIndex = 0;
     const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
@@ -175,7 +184,7 @@ export class PlannerProgram {
         return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
     });
-    this.postProcess(evaluatedWeeks);
+    this.postProcess(evaluatedWeeks, args);
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);

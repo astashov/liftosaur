@@ -506,7 +506,7 @@ export namespace ProgramExercise {
       const values = variables[key];
       if (values != null) {
         for (const value of values) {
-          const target = normalizeTarget(value.target);
+          const target = normalizeTarget(value.target, 4);
           const [week, day, variation, set] = target;
           let dayIndex = 0;
           for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
@@ -628,9 +628,9 @@ export namespace ProgramExercise {
     }
   }
 
-  function normalizeTarget(target: (number | "*" | "_")[]): (number | "*" | "_")[] {
+  export function normalizeTarget(target: (number | "*" | "_")[], length: number): (number | "*" | "_")[] {
     const newTarget = [...target];
-    for (let i = 0; i < 4 - target.length; i += 1) {
+    for (let i = 0; i < length - target.length; i += 1) {
       newTarget.unshift("*");
     }
     return newTarget;

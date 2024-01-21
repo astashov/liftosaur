@@ -42,6 +42,7 @@ export class PlannerToProgram2 {
     const programExercises: Record<string, IProgramExercise> = {};
     let dayIndex = 0;
     const variationIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
+    const descriptionIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
     for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
       const week = evaluatedWeeks[weekIndex];
       const plannerWeek = this.plannerProgram.weeks[weekIndex];
@@ -106,6 +107,12 @@ export class PlannerToProgram2 {
                 return { sets };
               }
             );
+            if (evalExercise.description) {
+              programExercise.descriptions.push(evalExercise.description);
+              descriptionIndexes[key] = descriptionIndexes[key] || {};
+              descriptionIndexes[key][dayIndex] = descriptionIndexes[key][dayIndex] || { count: 0, current: 0 };
+              descriptionIndexes[key][dayIndex].count += 1;
+            }
             let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
             let warmupSets: IProgramExerciseWarmupSet[] | undefined = undefined;
@@ -179,6 +186,17 @@ export class PlannerToProgram2 {
         ObjectUtils.keys(variationIndex)
           .map((di) => {
             const expr = `day == ${parseInt(di, 10) + 1} ? ${index + variationIndex[di].current + 1} : `;
+            index += variationIndex[di].count;
+            return expr;
+          })
+          .join("") + "1";
+
+      index = 0;
+      const descriptionIndex = descriptionIndexes[exerciseKey];
+      programExercise.descriptionExpr =
+        ObjectUtils.keys(descriptionIndex || {})
+          .map((di) => {
+            const expr = `day == ${parseInt(di, 10) + 1} ? ${index + 2} : `;
             index += variationIndex[di].count;
             return expr;
           })

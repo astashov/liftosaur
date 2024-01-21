@@ -52,6 +52,7 @@ export interface IScriptBindings {
   cr: number[];
   ns: number;
   numberOfSets: number;
+  setVariationIndex: number;
   setIndex: number;
 }
 
@@ -175,6 +176,7 @@ export namespace Progress {
       mr: [],
       numberOfSets: 0,
       ns: 0,
+      setVariationIndex: 1,
       setIndex: 1,
       rm1,
     };
@@ -184,7 +186,8 @@ export namespace Progress {
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
-    setIndex?: number
+    setIndex?: number,
+    setVariationIndex?: number
   ): IScriptBindings {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
@@ -202,6 +205,7 @@ export namespace Progress {
     bindings.ns = entry.sets.length;
     bindings.numberOfSets = entry.sets.length;
     bindings.setIndex = setIndex ?? 1;
+    bindings.setVariationIndex = setVariationIndex ?? 1;
     return bindings;
   }
 

@@ -54,7 +54,8 @@ export function ProgramContentEditExerciseAdvanced(props: IProgramContentEditExe
           dayData,
           props.settings,
           state,
-          programExercise.finishDayExpr,
+          programExercise,
+          program.exercises,
           Program.programMode(program)
         )
       : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);

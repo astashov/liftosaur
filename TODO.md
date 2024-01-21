@@ -36,9 +36,6 @@
 
 - Planner
 
-* Add warmup sets
-* Add descriptions
-* Add set variation switcher
 * Add custom exercise adder
 * Fix equipment selection
 * Add timers

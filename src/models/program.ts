@@ -41,9 +41,10 @@ import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
-import { ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { ILiftoscriptEvaluatorVariables, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
+import { PlannerToProgram2 } from "./plannerToProgram2";
 
 declare let __HOST__: string;
 
@@ -365,11 +366,21 @@ export namespace Program {
     dayData: IDayData,
     settings: ISettings,
     state: IProgramState,
-    script: string,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     mode: IProgramMode,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables: ILiftoscriptEvaluatorVariables }, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry, settings);
+    const script = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
+    const setVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
     let variables: ILiftoscriptEvaluatorVariables = {};
@@ -534,10 +545,17 @@ export namespace Program {
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; variables?: ILiftoscriptEvaluatorVariables }, string> {
-    const bindings = Progress.createScriptBindings(dayData, entry, settings);
-    const fns = Progress.createScriptFunctions(settings);
-
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const setVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
+    const fns = Progress.createScriptFunctions(settings);
 
     const newState: IProgramState = {
       ...state,
@@ -602,14 +620,15 @@ export namespace Program {
     staticStates?: Partial<Record<string, IProgramState>>
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
-    const newProgram = lf(program)
+    const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
+    const dayData = Progress.getDayData(progress);
+    let newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
         es.map((e) => {
           const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
           if (entry != null) {
             const staticState = (staticStates || {})[e.id];
-            const dayData = Progress.getDayData(progress);
             const newStateResult = Program.runFinishDayScript(
               e,
               program.exercises,
@@ -622,8 +641,9 @@ export namespace Program {
             );
             if (newStateResult.success) {
               const { state, variables } = newStateResult.data;
+              const exerciseKey = Exercise.toKey(entry.exercise);
               if (variables?.rm1 != null) {
-                exerciseData[Exercise.toKey(entry.exercise)] = { rm1: variables.rm1 };
+                exerciseData[exerciseKey] = { rm1: variables.rm1 };
               }
               const reuseLogicId = e.reuseLogic?.selected;
               let newExercise = ObjectUtils.clone(e);
@@ -636,6 +656,9 @@ export namespace Program {
                   variables,
                   settings
                 );
+                if (variables.setVariationIndex?.length) {
+                  setVariationIndexMap[ProgramToPlanner.exerciseKey(e)] = variables.setVariationIndex;
+                }
               }
 
               if (reuseLogicId && newExercise.reuseLogic) {
@@ -654,7 +677,14 @@ export namespace Program {
         })
       );
     if (program.planner) {
-      newProgram.planner = new ProgramToPlanner(newProgram, program.planner, settings).convertToPlanner();
+      newProgram.planner = new ProgramToPlanner(
+        newProgram,
+        program.planner,
+        settings,
+        setVariationIndexMap,
+        dayData
+      ).convertToPlanner();
+      newProgram = new PlannerToProgram2(newProgram.id, newProgram.planner, settings).convertToProgram();
     }
 
     return {
@@ -865,6 +895,7 @@ export namespace Program {
   export function editAction(dispatch: IDispatch, id: string): void {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id }),
+      lb<IState>().p("editProgramV2").record(undefined),
       lb<IState>()
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "editProgram")),

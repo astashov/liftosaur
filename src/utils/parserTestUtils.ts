@@ -31,6 +31,7 @@ export namespace ParserTestUtils {
     ns: 3,
     numberOfSets: 3,
     setIndex: 1,
+    setVariationIndex: 1,
     rm1: Weight.build(100, "lb"),
   };
 
@@ -55,6 +56,7 @@ export namespace ParserTestUtils {
       ns: args.results.length,
       numberOfSets: args.results.length,
       setIndex: 1,
+      setVariationIndex: 1,
       rm1: Weight.build(100, "lb"),
     };
   }

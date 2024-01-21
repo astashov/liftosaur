@@ -46,7 +46,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
       const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
-      console.log("lr", lensRecordings);
       updateState(
         props.dispatch,
         lensRecordings.map((recording) => recording.prepend(lb<IState>().pi("editProgramV2"))),

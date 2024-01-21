@@ -146,9 +146,9 @@ export const ExerciseView = memo(
               forceShow={props.forceShowStateChanges}
               settings={props.settings}
               dayData={props.dayData}
-              state={ProgramExercise.getState(props.programExercise, props.allProgramExercises)}
+              programExercise={props.programExercise}
+              allProgramExercises={props.allProgramExercises}
               userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
-              script={ProgramExercise.getFinishDayScript(props.programExercise, props.allProgramExercises)}
             />
           )}
         </section>
