@@ -165,6 +165,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
       </div>
       <div className="flex flex-col px-4 pt-4 md:flex-row">
         <div className="flex-1 min-w-0">
+          <h2 className="mb-1 text-lg font-bold">Edit program as plain text</h2>
           <PlannerEditorView
             name="Program"
             customExercises={props.settings.exercises}

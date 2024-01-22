@@ -11,7 +11,6 @@ export interface IPlannerProgramExercise {
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   description?: string;
-  reuse?: boolean;
   properties: IPlannerProgramProperty[];
   globals: {
     logRpe?: boolean;
@@ -76,7 +75,7 @@ export interface IPlannerUi {
     muscleGroups: IScreenMuscle[];
     customExerciseName?: string;
   };
-  editDayModal?: { weekIndex: number; dayIndex: number };
+  editWeekDayModal?: { weekIndex: number; dayIndex?: number };
   weekIndex: number;
   subscreen?: "weeks" | "full";
   showWeekStats?: boolean;

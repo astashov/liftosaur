@@ -142,17 +142,6 @@ export class PlannerProgram {
           exercise.description = lastWeekExercise?.description;
         }
       }
-      if (exercise.reuse) {
-        const lastWeekExercise = this.findLastWeekExercise(program, weekIndex, dayIndex, exercise);
-        if (lastWeekExercise != null) {
-          exercise.sets = exercise.sets.length === 0 ? ObjectUtils.clone(lastWeekExercise.sets) : exercise.sets;
-          exercise.warmupSets = exercise.warmupSets || ObjectUtils.clone(lastWeekExercise.warmupSets);
-          exercise.globals.rpe = exercise.globals.rpe || lastWeekExercise.globals.rpe;
-          exercise.globals.timer = exercise.globals.timer || lastWeekExercise.globals.timer;
-          exercise.globals.percentage = exercise.globals.percentage || lastWeekExercise.globals.percentage;
-          exercise.globals.weight = exercise.globals.weight || ObjectUtils.clone(lastWeekExercise.globals.weight);
-        }
-      }
     });
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       for (const set of exercise.sets) {

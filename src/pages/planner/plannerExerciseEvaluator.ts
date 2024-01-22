@@ -416,8 +416,7 @@ export class PlannerExerciseEvaluator {
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
-    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
-    | { type: "reuse" } {
+    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const setsNode = expr.getChild(PlannerNodeName.ExerciseSets);
       if (setsNode != null) {
@@ -426,10 +425,6 @@ export class PlannerExerciseEvaluator {
         if (sets.length > 0) {
           return { type: "sets", data: sets.map((set) => this.evaluateSet(set)), isCurrent };
         }
-      }
-      const reuseNode = expr.getChild(PlannerNodeName.ReuseSection);
-      if (reuseNode != null) {
-        return { type: "reuse" };
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
@@ -533,7 +528,6 @@ export class PlannerExerciseEvaluator {
       const allSets: IPlannerProgramExerciseSet[] = [];
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
       const allProperties: IPlannerProgramProperty[] = [];
-      let isReusing = false;
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
         if (section.type === "sets") {
@@ -546,8 +540,6 @@ export class PlannerExerciseEvaluator {
           allWarmupSets.push(...section.data);
         } else if (section.type === "progress") {
           allProperties.push(section.data);
-        } else if (section.type === "reuse") {
-          isReusing = true;
         } else {
           throw new Error(`Unexpected section type`);
         }
@@ -572,7 +564,6 @@ export class PlannerExerciseEvaluator {
         sets: allSets,
         setVariations,
         description,
-        reuse: isReusing,
         warmupSets: allWarmupSets,
         properties: allProperties,
         globals: {

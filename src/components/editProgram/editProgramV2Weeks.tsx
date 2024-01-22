@@ -27,8 +27,7 @@ export interface IPlannerContentWeeksProps {
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   settings: ISettings;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  onEditWeekName: (weekIndex: number) => void;
-  onEditDayName: (weekIndex: number, dayIndex: number) => void;
+  onEditWeekDayName: (data: { weekIndex: number; dayIndex?: number }) => void;
 }
 
 export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Element {
@@ -96,7 +95,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       <button
                         data-cy="edit-day-v2"
                         className="p-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-                        onClick={() => props.onEditWeekName(weekIndex)}
+                        onClick={() => props.onEditWeekDayName({ weekIndex })}
                       >
                         <IconEditSquare />
                       </button>
@@ -195,7 +194,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                               <button
                                 data-cy="edit-day-v2"
                                 className="p-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-                                onClick={() => props.onEditDayName(weekIndex, dayIndex)}
+                                onClick={() => props.onEditWeekDayName({ weekIndex, dayIndex })}
                               >
                                 <IconEditSquare />
                               </button>

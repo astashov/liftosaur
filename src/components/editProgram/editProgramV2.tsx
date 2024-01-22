@@ -31,6 +31,7 @@ import { ModalExercise } from "../modalExercise";
 import { Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
 import { ObjectUtils } from "../../utils/object";
+import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
 
 interface IProps {
   editProgram: IProgram;
@@ -200,6 +201,37 @@ export function EditProgramV2(props: IProps): JSX.Element {
               initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(
                 StringUtils.capitalize
               )}
+            />
+          )}
+          {plannerState.ui.editWeekDayModal && (
+            <EditProgramV2EditWeekDayModal
+              onSelect={(name: string) => {
+                const modal = plannerState.ui.editWeekDayModal;
+                if (name && modal != null) {
+                  if (modal.dayIndex != null) {
+                    plannerDispatch(
+                      lb<IPlannerState>()
+                        .p("current")
+                        .p("program")
+                        .p("weeks")
+                        .i(modal.weekIndex)
+                        .p("days")
+                        .i(modal.dayIndex)
+                        .p("name")
+                        .record(name)
+                    );
+                  } else {
+                    plannerDispatch(
+                      lb<IPlannerState>().p("current").p("program").p("weeks").i(modal.weekIndex).p("name").record(name)
+                    );
+                  }
+                }
+                plannerDispatch(lb<IPlannerState>().p("ui").p("editWeekDayModal").record(undefined));
+              }}
+              onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("editWeekDayModal").record(undefined))}
+              plannerProgram={plannerState.current.program}
+              weekIndex={plannerState.ui.editWeekDayModal.weekIndex}
+              dayIndex={plannerState.ui.editWeekDayModal.dayIndex}
             />
           )}
         </>

@@ -1,5 +1,6 @@
 import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
+import { IPlannerProgram } from "../../types";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Modal } from "../modal";
@@ -7,20 +8,31 @@ import { Modal } from "../modal";
 interface IProps {
   onSelect: (name: string) => void;
   onClose: () => void;
-  currentValue: string;
-  isHidden: boolean;
+  plannerProgram: IPlannerProgram;
+  weekIndex: number;
+  dayIndex?: number;
 }
 
-export function EditProgramV2EditDayModal(props: IProps): JSX.Element {
+export function EditProgramV2EditWeekDayModal(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
+
+  const nameModal =
+    props.dayIndex == null
+      ? props.plannerProgram.weeks[props.weekIndex]?.name
+      : props.plannerProgram.weeks[props.weekIndex]?.days[props.dayIndex]?.name ?? "";
+
+  const title = props.dayIndex == null ? "Edit Week" : "Edit Day";
+
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
-      <h3 className="pb-2 text-xl font-bold text-center">Edit Day "{props.currentValue}"</h3>
+    <Modal onClose={props.onClose} shouldShowClose={true}>
+      <h3 className="pb-2 text-xl font-bold text-center">
+        {title} "{nameModal}"
+      </h3>
       <Input
         label="Day Name"
         data-cy="modal-day-name-input"
         ref={textInput}
-        defaultValue={props.currentValue}
+        defaultValue={nameModal}
         type="text"
         required={true}
         requiredMessage="Please enter a name for a day"
