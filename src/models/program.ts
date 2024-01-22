@@ -681,8 +681,7 @@ export namespace Program {
         newProgram,
         program.planner,
         settings,
-        setVariationIndexMap,
-        dayData
+        setVariationIndexMap
       ).convertToPlanner();
       newProgram = new PlannerToProgram2(
         newProgram.id,

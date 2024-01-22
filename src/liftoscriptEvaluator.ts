@@ -11,6 +11,7 @@ export enum NodeName {
   LineComment = "LineComment",
   Program = "Program",
   BinaryExpression = "BinaryExpression",
+  Digit = "Digit",
   Plus = "Plus",
   Times = "Times",
   Cmp = "Cmp",
@@ -266,8 +267,6 @@ export class LiftoscriptEvaluator {
     const indexValues = CollectionUtils.compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
         return "*" as const;
-      } else if (ie.type.name === NodeName.Current) {
-        return "_" as const;
       } else {
         const v = this.evaluate(ie);
         const v1 = Array.isArray(v) ? v[0] : v;
@@ -296,6 +295,8 @@ export class LiftoscriptEvaluator {
         }
       }
       return result;
+    } else if (expr.type.name === NodeName.Digit) {
+      return parseInt(this.getValue(expr), 10);
     } else if (expr.type.name === NodeName.BinaryExpression) {
       const [left, operator, right] = getChildren(expr);
       const evalLeft = this.evaluate(left);

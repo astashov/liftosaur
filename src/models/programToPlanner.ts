@@ -1,6 +1,5 @@
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import {
-  IDayData,
   IPercentage,
   IPlannerProgram,
   IPlannerProgramDay,
@@ -35,8 +34,7 @@ export class ProgramToPlanner {
     private readonly program: IProgram,
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings,
-    private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>,
-    private readonly dayData: IDayData
+    private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>
   ) {}
 
   public static exerciseKeyForProgramExercise(programExercise: IProgramExercise): string {
@@ -411,6 +409,6 @@ export class ProgramToPlanner {
   }
 
   private setToKey(set: IProgramSet): string {
-    return `${set.repsExpr}-${set.minRepsExpr}-${set.weightExpr}-${set.isAmrap}-${set.rpeExpr}-${set.logRpe}-${set.timerExpr}`;
+    return `${set.repsExpr}-${set.minRepsExpr}-${set.weightExpr}-${set.isAmrap}-${set.rpeExpr}-${set.logRpe}-${set.timerExpr}-${set.label}`;
   }
 }
