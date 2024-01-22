@@ -39,7 +39,7 @@ export class ProgramToPlanner {
     private readonly dayData: IDayData
   ) {}
 
-  public static exerciseKey(programExercise: IProgramExercise): string {
+  public static exerciseKeyForProgramExercise(programExercise: IProgramExercise): string {
     const [aLabel, ...aNameParts] = programExercise.name.split(":");
     let name: string;
     let label: string | undefined;
@@ -50,7 +50,7 @@ export class ProgramToPlanner {
       name = aNameParts.join(":").trim();
       label = aLabel.trim();
     }
-    return `${label || ""}-${name || ""}-${programExercise.exerciseType.equipment || "bodyweight"}`;
+    return `${label || ""}-${name || ""}-${programExercise.exerciseType.equipment || "bodyweight"}`.toLowerCase();
   }
 
   public static variationsMap(
@@ -172,7 +172,7 @@ export class ProgramToPlanner {
         const exerciseTextArr: string[] = [];
         for (const dayExercise of programDay.exercises) {
           const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
-          const key = ProgramToPlanner.exerciseKey(programExercise);
+          const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise);
           const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
           let plannerExercise = "";
           const description = descriptionsMap[key]?.[dayIndex];
@@ -243,7 +243,9 @@ export class ProgramToPlanner {
 
           if (
             !addedProgressMap[key] &&
-            (programExercise.finishDayExpr || ObjectUtils.isNotEmpty(programExercise.state))
+            (programExercise.finishDayExpr ||
+              programExercise.reuseFinishDayScript ||
+              ObjectUtils.isNotEmpty(programExercise.state))
           ) {
             const progress = this.getProgress(programExercise.state, programExercise.finishDayExpr);
             if (progress != null) {
@@ -253,7 +255,22 @@ export class ProgramToPlanner {
                 (k) => `${k}: ${this.printVal(programExercise.state[k])}`
               );
               plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
-              if (programExercise.finishDayExpr) {
+              if (programExercise.reuseFinishDayScript) {
+                const originalProgramExercise = this.program.exercises.find(
+                  (e) => e.id === programExercise.reuseFinishDayScript
+                );
+                if (originalProgramExercise != null) {
+                  const originalExercise = Exercise.get(originalProgramExercise.exerciseType, this.settings.exercises);
+                  const isDefaultEquipment =
+                    originalProgramExercise.exerciseType.equipment === originalExercise.defaultEquipment;
+                  const originalKey = `${originalProgramExercise.name}${
+                    !isDefaultEquipment
+                      ? `, ${equipmentName(originalProgramExercise.exerciseType.equipment, this.settings.equipment)}`
+                      : ""
+                  }`;
+                  plannerExercise += ` { ...${originalKey} }`;
+                }
+              } else if (programExercise.finishDayExpr) {
                 plannerExercise += " " + programExercise.finishDayExpr;
               }
             }

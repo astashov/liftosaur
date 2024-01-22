@@ -36,11 +36,9 @@
 
 - Planner
 
-* Add reuse logic
 * Add custom exercise adder
 * Fix equipment selection
 * Remove ability to reuse exercises in planner
-* Remove ability to omit sets count
 * Edit week/day names on the edit weeks subscreen
 * Show errors if target is wrong
 * Add unsaved checks

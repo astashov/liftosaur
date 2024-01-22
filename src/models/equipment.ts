@@ -66,18 +66,20 @@ export namespace Equipment {
   }
 
   export function equipmentKeyByName(name: string, equipmentSettings?: IAllEquipment): string | undefined {
-    const builtInEquipmentKey = equipments.find((eq) => eq === name);
+    const builtInEquipmentKey = equipments.find((eq) => eq === name.toLowerCase());
     if (builtInEquipmentKey) {
       return builtInEquipmentKey;
     }
 
-    const builtInEquipmentName = equipments.find((eq) => equipmentName(eq, equipmentSettings) === name);
+    const builtInEquipmentName = equipments.find(
+      (eq) => equipmentName(eq, equipmentSettings).toLowerCase() === name.toLowerCase()
+    );
     if (builtInEquipmentName) {
       return builtInEquipmentName;
     }
 
     const customEquipmentKey = ObjectUtils.keys(equipmentSettings || {}).find((eq) => {
-      return equipmentName(eq, equipmentSettings) === name;
+      return equipmentName(eq, equipmentSettings).toLowerCase() === name.toLowerCase();
     });
     return customEquipmentKey;
   }

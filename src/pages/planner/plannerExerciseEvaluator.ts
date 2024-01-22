@@ -129,6 +129,9 @@ export class PlannerExerciseEvaluator {
   }
 
   private getRepRange(setParts: string): IPlannerProgramExerciseRepRange | undefined {
+    if (!setParts) {
+      return undefined;
+    }
     const [numberOfSetsStr, repRangeStr] = setParts.split("x", 2);
     // eslint-disable-next-line prefer-const
     let [minrepStr, maxrepStr] = repRangeStr.split("-", 2);

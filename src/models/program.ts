@@ -657,7 +657,7 @@ export namespace Program {
                   settings
                 );
                 if (variables.setVariationIndex?.length) {
-                  setVariationIndexMap[ProgramToPlanner.exerciseKey(e)] = variables.setVariationIndex;
+                  setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e)] = variables.setVariationIndex;
                 }
               }
 

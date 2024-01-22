@@ -17,6 +17,7 @@ import { Exercise } from "./exercise";
 import { IProgramState, IProgramExerciseWarmupSet } from "../types";
 import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
+import { Equipment } from "./equipment";
 
 export class PlannerToProgram2 {
   constructor(
@@ -26,7 +27,7 @@ export class PlannerToProgram2 {
   ) {}
 
   public static plannerExerciseKey(exercise: IPlannerProgramExercise): string {
-    return `${exercise.label || ""}-${exercise.name}-${exercise.equipment || "bodyweight"}`;
+    return `${exercise.label || ""}-${exercise.name}-${exercise.equipment || "bodyweight"}`.toLowerCase();
   }
 
   public convertToProgram(): IProgram {
@@ -39,7 +40,8 @@ export class PlannerToProgram2 {
 
     const programDays: IProgramDay[] = [];
     const programWeeks: IProgramWeek[] = [];
-    const programExercises: Record<string, IProgramExercise> = {};
+    const keyToProgramExercise: Record<string, IProgramExercise> = {};
+    const keyToProgramExerciseId: Record<string, string> = {};
     let dayIndex = 0;
     const variationIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
     const descriptionIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
@@ -58,7 +60,7 @@ export class PlannerToProgram2 {
             if (!exercise) {
               throw new Error(`Exercise not found: ${evalExercise.name}`);
             }
-            const programExercise: IProgramExercise = programExercises[key] || {
+            const programExercise: IProgramExercise = keyToProgramExercise[key] || {
               descriptions: [""],
               exerciseType: { id: exercise.id, equipment: evalExercise.equipment || "bodyweight" },
               name: `${evalExercise.label ? `${evalExercise.label}: ` : ""}${evalExercise.name}`,
@@ -70,7 +72,8 @@ export class PlannerToProgram2 {
               finishDayExpr: "",
             };
             let isQuickAddSets = false;
-            programExercises[key] = programExercise;
+            keyToProgramExercise[key] = programExercise;
+            keyToProgramExerciseId[key] = programExercise.id;
             const newVariations: IProgramExerciseVariation[] = evalExercise.setVariations.map(
               (setVariation, setIndex) => {
                 const sets: IProgramSet[] = [];
@@ -138,6 +141,7 @@ export class PlannerToProgram2 {
               }
               warmupSets = sets;
             }
+            let reuseFinishDayScript: string | undefined;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
                 if (property.fnName === "custom") {
@@ -150,7 +154,11 @@ export class PlannerToProgram2 {
                       : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
                     state[fnArgKey] = fnArgVal ?? 0;
                   }
-                  finishDayExpr = property.script ?? "";
+                  if (property.script) {
+                    finishDayExpr = property.script ?? "";
+                  } else if (property.body) {
+                    reuseFinishDayScript = property.body;
+                  }
                 } else if (property.fnName === "lp") {
                   ({ state, finishDayExpr } = this.addLp(property, this.settings));
                 } else if (property.fnName === "dp") {
@@ -171,6 +179,7 @@ export class PlannerToProgram2 {
               v.sets.some((s) => s.minRepsExpr != null)
             );
             programExercise.warmupSets = warmupSets;
+            programExercise.reuseFinishDayScript = programExercise.reuseFinishDayScript || reuseFinishDayScript;
             programDay.exercises.push({ id: programExercise.id });
           }
         }
@@ -181,8 +190,9 @@ export class PlannerToProgram2 {
       programWeeks.push(programWeek);
     }
 
-    for (const exerciseKey of Object.keys(programExercises)) {
-      const programExercise = programExercises[exerciseKey];
+    const allExercises = ObjectUtils.values(keyToProgramExercise);
+    for (const exerciseKey of Object.keys(keyToProgramExercise)) {
+      const programExercise = keyToProgramExercise[exerciseKey];
       const variationIndex = variationIndexes[exerciseKey];
       let index = 0;
       programExercise.variationExpr =
@@ -204,6 +214,22 @@ export class PlannerToProgram2 {
             return expr;
           })
           .join("") + "1";
+
+      const reuseFinishDayScript = programExercise.reuseFinishDayScript;
+      if (reuseFinishDayScript) {
+        const parts = reuseFinishDayScript.split(",");
+        let equip: string | undefined;
+        if (parts.length > 1) {
+          equip = parts.pop();
+        }
+        equip = equip?.trim();
+        const equipKey = equip ? Equipment.equipmentKeyByName(equip, this.settings.equipment) : undefined;
+        const name = parts.join(",");
+        const originalProgramExercise = allExercises.find(
+          (e) => e.name === name && (equipKey == null || e.exerciseType.equipment === equipKey)
+        );
+        programExercise.reuseFinishDayScript = originalProgramExercise?.id;
+      }
     }
 
     const program: IProgram = {
@@ -213,7 +239,7 @@ export class PlannerToProgram2 {
       url: "",
       author: "",
       nextDay: 1,
-      exercises: ObjectUtils.values(programExercises),
+      exercises: ObjectUtils.values(keyToProgramExercise),
       days: programDays,
       weeks: programWeeks,
       isMultiweek: true,

@@ -543,6 +543,7 @@ export const TProgramExercise = t.intersection(
       timerExpr: t.string,
       reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
+      reuseFinishDayScript: t.string,
     }),
   ],
   "TProgramExercise"

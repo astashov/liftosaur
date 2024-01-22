@@ -81,7 +81,11 @@ export namespace ProgramExercise {
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]
   ): string {
-    return getProgramExercise(programExercise, allProgramExercises).finishDayExpr;
+    if (programExercise.reuseFinishDayScript) {
+      return allProgramExercises.find((pe) => pe.id === programExercise.reuseFinishDayScript)?.finishDayExpr || "";
+    } else {
+      return getProgramExercise(programExercise, allProgramExercises).finishDayExpr;
+    }
   }
 
   export function getVariationScript(
@@ -489,7 +493,9 @@ export namespace ProgramExercise {
         w.map((d) => {
           if (d.success) {
             return d.data.filter(
-              (e) => PlannerToProgram2.plannerExerciseKey(e) === ProgramToPlanner.exerciseKey(programExercise)
+              (e) =>
+                PlannerToProgram2.plannerExerciseKey(e) ===
+                ProgramToPlanner.exerciseKeyForProgramExercise(programExercise)
             );
           } else {
             return undefined;
@@ -497,7 +503,7 @@ export namespace ProgramExercise {
         })
       )
     );
-    const exerciseKey = ProgramToPlanner.exerciseKey(programExercise);
+    const exerciseKey = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise);
     const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
     const variationsMap = allVariationsMap[exerciseKey];
 
