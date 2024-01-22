@@ -213,12 +213,17 @@ export class PlannerExerciseEvaluator {
       const timerNode = expr.getChild(PlannerNodeName.Timer);
       const percentageNode = expr.getChild(PlannerNodeName.Percentage);
       const weightNode = expr.getChild(PlannerNodeName.Weight);
+      const labelNode = expr.getChild(PlannerNodeName.SetLabel)?.getChild(PlannerNodeName.NonSeparator);
       const logRpe = rpeNode == null ? undefined : this.getValue(rpeNode).indexOf("+") !== -1;
       const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", "").replace("+", ""));
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
       const weight = this.getWeight(weightNode);
+      const label = labelNode ? this.getValue(labelNode) : undefined;
+      if (labelNode && label && label.length > 8) {
+        this.error("Label length should be 8 chars max", labelNode);
+      }
       return {
         repRange,
         timer,
@@ -226,6 +231,7 @@ export class PlannerExerciseEvaluator {
         rpe,
         weight,
         percentage,
+        label,
       };
     } else {
       assert(PlannerNodeName.ExerciseSection);

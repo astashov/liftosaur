@@ -33,6 +33,7 @@ export interface IPlannerProgramExerciseSet {
   logRpe?: boolean;
   percentage?: number;
   weight?: IWeight;
+  label?: string;
 }
 
 export interface IPlannerProgramExerciseWarmupSet {

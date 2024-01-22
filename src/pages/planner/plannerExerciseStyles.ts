@@ -28,6 +28,7 @@ export enum PlannerNodeName {
   Rpe = "Rpe",
   RepRange = "RepRange",
   KeyValue = "KeyValue",
+  SetLabel = "SetLabel",
   Liftoscript = "Liftoscript",
   ReuseLiftoscript = "ReuseLiftoscript",
   WarmupExerciseSets = "WarmupExerciseSets",

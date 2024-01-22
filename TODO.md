@@ -43,4 +43,3 @@
 * Add '\_' support in targets
 * Add unsaved checks
 * Fix equipment selection
-* Wrap/nowrap mode

@@ -111,6 +111,7 @@ export class PlannerToProgram2 {
                         logRpe: set.logRpe,
                         rpeExpr: set.rpe ? `${set.rpe}` : undefined,
                         timerExpr: set.timer ? `${set.timer}` : undefined,
+                        label: set.label,
                       });
                     }
                   }

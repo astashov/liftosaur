@@ -398,6 +398,9 @@ export class ProgramToPlanner {
       if (globals.timer == null) {
         setStr += set.timerExpr ? ` ${set.timerExpr}s` : "";
       }
+      if (set.label) {
+        setStr += ` (${set.label})`;
+      }
       result.push(setStr);
     }
     return result.map((r) => r.trim()).join(", ");
