@@ -2,6 +2,7 @@ import { IState } from "./state";
 import { dequal } from "dequal";
 import { Program } from "./program";
 import { Progress } from "./progress";
+import { ObjectUtils } from "../utils/object";
 
 export type ITab = "program" | "measurements" | "workout" | "graphs" | "settings";
 
@@ -73,6 +74,15 @@ export namespace Screen {
       editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
       const exercise = editProgram?.exercises.find((e) => e.id === editExercise.id);
       if (exercise == null || !dequal(editExercise, exercise)) {
+        return "Are you sure? Your changes won't be saved";
+      }
+    }
+
+    const editProgramV2 = state.editProgramV2;
+    if (editProgramV2) {
+      let editProgram = Program.getEditingProgram(state);
+      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
+      if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program)) {
         return "Are you sure? Your changes won't be saved";
       }
     }

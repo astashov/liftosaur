@@ -40,6 +40,4 @@
 * Show errors if not matching state when reusing
 * Show errors if reusing non-existent exercise
 * Show errors if no rep ranges
-* Add '\_' support in targets
-* Add unsaved checks
-* Fix equipment selection
+* Add 1rm to preview edit exercise

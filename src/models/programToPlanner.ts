@@ -324,7 +324,6 @@ export class ProgramToPlanner {
     if (warmupSets) {
       const groups = this.groupWarmupsSets(warmupSets);
       const strs: string[] = [];
-      console.log("groups", groups);
       for (const group of groups) {
         const first = group[0];
         const length = group[1];
@@ -336,7 +335,7 @@ export class ProgramToPlanner {
           }`
         );
       }
-      return strs.join(", ");
+      return strs.length === 0 ? "none" : strs.join(", ");
     }
     return undefined;
   }
