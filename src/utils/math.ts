@@ -1,6 +1,6 @@
 export namespace MathUtils {
   export function round(value: number, to: number): number {
-    return Math.round(value / to) * to;
+    return roundFloat(Math.round(value / to) * to, 4);
   }
 
   export function roundTo005(value: number): number {

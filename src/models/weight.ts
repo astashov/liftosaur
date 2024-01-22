@@ -251,11 +251,11 @@ export namespace Weight {
   }
 
   export function multiply(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => a * b);
+    return operation(weight, value, (a, b) => MathUtils.roundTo005(a * b));
   }
 
   export function divide(weight: IWeight, value: IWeight | number): IWeight {
-    return operation(weight, value, (a, b) => a / b);
+    return operation(weight, value, (a, b) => MathUtils.roundTo005(a / b));
   }
 
   export function gt(weight: IWeight | number | IPercentage, value: IWeight | number | IPercentage): boolean {

@@ -28,6 +28,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { PlannerToProgram2 } from "./plannerToProgram2";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
+import { MathUtils } from "../utils/math";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -639,9 +640,9 @@ export namespace ProgramExercise {
       } else if (op === "-=") {
         set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => a - b));
       } else if (op === "*=") {
-        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => a * b));
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a * b)));
       } else if (op === "/=") {
-        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => a / b));
+        set[key] = Weight.printOrNumber(Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a / b)));
       }
     }
   }

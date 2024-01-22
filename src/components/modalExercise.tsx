@@ -37,6 +37,7 @@ interface IModalExerciseProps {
   initialFilterTypes?: string[];
   onChange: (value?: IExerciseId) => void;
   onCreateOrUpdate: (
+    shouldClose: boolean,
     name: string,
     equipment: IEquipment,
     targetMuscles: IMuscle[],
@@ -269,6 +270,7 @@ interface IEditCustomExerciseProps {
   exercise?: ICustomExercise;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   onCreateOrUpdate: (
+    shouldClose: boolean,
     name: string,
     equipment: IEquipment,
     targetMuscles: IMuscle[],
@@ -371,7 +373,15 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
                 setNameError("Name already taken");
               } else {
                 setNameError(undefined);
-                props.onCreateOrUpdate(name, equipment, targetMuscles, synergistMuscles, types, props.exercise);
+                props.onCreateOrUpdate(
+                  !!props.customExerciseName,
+                  name,
+                  equipment,
+                  targetMuscles,
+                  synergistMuscles,
+                  types,
+                  props.exercise
+                );
                 props.setIsCustomExerciseDisplayed(false);
               }
             }}

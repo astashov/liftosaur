@@ -4,12 +4,12 @@ import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
-import { ILoading, IState, updateState } from "../../models/state";
+import { ILoading, IState, updateSettings, updateState } from "../../models/state";
 import { Button } from "../button";
 import { useState, useCallback } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
-import { IProgram, ISettings } from "../../types";
+import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
 import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -27,6 +27,10 @@ import { CollectionUtils } from "../../utils/collection";
 import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
 import { Modal } from "../modal";
 import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
+import { ModalExercise } from "../modalExercise";
+import { Exercise } from "../../models/exercise";
+import { StringUtils } from "../../utils/string";
+import { ObjectUtils } from "../../utils/object";
 
 interface IProps {
   editProgram: IProgram;
@@ -54,6 +58,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
     },
     [plannerState]
   );
+  const modalExerciseUi = plannerState.ui.modalExercise;
 
   return (
     <Surface
@@ -104,6 +109,97 @@ export function EditProgramV2(props: IProps): JSX.Element {
               }
               settings={props.settings}
               onClose={() => plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
+            />
+          )}
+          {modalExerciseUi && (
+            <ModalExercise
+              isHidden={!modalExerciseUi}
+              onChange={(exerciseId) => {
+                window.isUndoing = true;
+                plannerDispatch([
+                  lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
+                  lb<IPlannerState>().p("ui").p("showDayStats").record(false),
+                  lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
+                  props.plannerState.fulltext
+                    ? lb<IPlannerState>()
+                        .pi("fulltext")
+                        .p("text")
+                        .recordModify((text) => {
+                          if (!exerciseId) {
+                            return text;
+                          }
+                          const line = props.plannerState.fulltext?.currentLine;
+                          if (line == null) {
+                            return text;
+                          }
+                          const exercise = Exercise.getById(exerciseId, props.settings.exercises);
+                          const lines = text.split("\n");
+                          lines.splice(line, 0, exercise.name);
+                          return lines.join("\n");
+                        })
+                    : lb<IPlannerState>()
+                        .p("current")
+                        .p("program")
+                        .p("weeks")
+                        .i(modalExerciseUi.focusedExercise.weekIndex)
+                        .p("days")
+                        .i(modalExerciseUi.focusedExercise.dayIndex)
+                        .p("exerciseText")
+                        .recordModify((exerciseText) => {
+                          if (!exerciseId) {
+                            return exerciseText;
+                          }
+                          const exercise = Exercise.getById(exerciseId, props.settings.exercises);
+                          return exerciseText + `\n${exercise.name}`;
+                        }),
+                ]);
+                plannerDispatch(
+                  [
+                    lb<IPlannerState>()
+                      .p("ui")
+                      .recordModify((ui) => ui),
+                  ],
+                  "stop-is-undoing"
+                );
+              }}
+              onCreateOrUpdate={(
+                shouldClose: boolean,
+                name: string,
+                equipment: IEquipment,
+                targetMuscles: IMuscle[],
+                synergistMuscles: IMuscle[],
+                types: IExerciseKind[],
+                exercise?: ICustomExercise
+              ) => {
+                const exercises = Exercise.createOrUpdateCustomExercise(
+                  props.settings.exercises,
+                  name,
+                  equipment,
+                  targetMuscles,
+                  synergistMuscles,
+                  types,
+                  exercise
+                );
+                updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                if (shouldClose) {
+                  plannerDispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined));
+                }
+              }}
+              onDelete={(id) => {
+                updateSettings(
+                  props.dispatch,
+                  lb<ISettings>()
+                    .p("exercises")
+                    .recordModify((exercises) => {
+                      return ObjectUtils.omit(exercises, [id]);
+                    })
+                );
+              }}
+              settings={props.settings}
+              customExerciseName={modalExerciseUi.customExerciseName}
+              initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(
+                StringUtils.capitalize
+              )}
             />
           )}
         </>

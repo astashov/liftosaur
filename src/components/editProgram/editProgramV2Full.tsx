@@ -21,6 +21,7 @@ import { PlannerEditorView } from "../../pages/planner/components/plannerEditorV
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
 import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
+import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -170,7 +171,9 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fulltext.text}
-            onCustomErrorCta={(err) => undefined}
+            onCustomErrorCta={(err) => (
+              <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
+            )}
             onChange={(e) => props.plannerDispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e))}
             lineNumbers={true}
             onBlur={(e, text) => {}}

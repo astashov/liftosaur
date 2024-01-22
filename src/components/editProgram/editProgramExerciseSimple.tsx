@@ -137,7 +137,7 @@ function Edit(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        onCreateOrUpdate={(name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
+        onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
           EditCustomExercise.createOrUpdate(
             props.dispatch,
             name,

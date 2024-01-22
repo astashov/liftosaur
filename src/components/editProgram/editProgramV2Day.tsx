@@ -3,6 +3,7 @@
 import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
+import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -133,7 +134,9 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                 equipment={customEquipment}
                 error={evaluatedDay.success ? undefined : evaluatedDay.error}
                 value={plannerDay.exerciseText}
-                onCustomErrorCta={(err) => undefined}
+                onCustomErrorCta={(err) => (
+                  <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
+                )}
                 onChange={(e) => {
                   console.log("On Change", e);
                   plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));

@@ -423,6 +423,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             );
           }}
           onCreateOrUpdate={(
+            shouldClose: boolean,
             name: string,
             equipment: IEquipment,
             targetMuscles: IMuscle[],
@@ -440,6 +441,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               exercise
             );
             setSettings(lf(settings).p("exercises").set(exercises));
+            if (shouldClose) {
+              dispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined));
+            }
           }}
           onDelete={(id) => {
             setSettings(

@@ -37,8 +37,11 @@
 - Planner
 
 * Add custom exercise adder
-* Fix equipment selection
 * Remove ability to reuse exercises in planner
 * Edit week/day names on the edit weeks subscreen
 * Show errors if target is wrong
+* Show errors if not matching state when reusing
+* Show errors if reusing non-existent exercise
+* Show errors if no rep ranges
 * Add unsaved checks
+* Fix equipment selection
