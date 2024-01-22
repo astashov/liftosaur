@@ -10,7 +10,7 @@ export class PlannerStatsUtils {
     return exercises.reduce((acc, e) => {
       return (
         acc +
-        e.sets.reduce((acc2, set) => {
+        e.setVariations[0].sets.reduce((acc2, set) => {
           const repRange = set.repRange;
           if (!repRange) {
             return acc2;
@@ -67,7 +67,7 @@ export class PlannerStatsUtils {
         if (exercise == null) {
           continue;
         }
-        for (const set of plannerExercise.sets) {
+        for (const set of plannerExercise.setVariations[0].sets) {
           const repRange = set.repRange;
           if (repRange != null) {
             results.total += repRange.numberOfSets;

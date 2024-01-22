@@ -45,7 +45,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
         {!showCalculator ? (
           <>
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
-            {ProgramExercise.isUsingVariable(programExercise, "rm1") && (
+            {(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1")) && (
               <div className="my-2">
                 <ExerciseRM
                   exercise={exercise}

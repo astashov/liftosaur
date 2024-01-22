@@ -22,6 +22,7 @@ import { Equipment } from "./equipment";
 export class PlannerToProgram2 {
   constructor(
     private readonly programId: string,
+    private readonly programExercises: IProgramExercise[],
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings
   ) {}
@@ -60,17 +61,28 @@ export class PlannerToProgram2 {
             if (!exercise) {
               throw new Error(`Exercise not found: ${evalExercise.name}`);
             }
-            const programExercise: IProgramExercise = keyToProgramExercise[key] || {
-              descriptions: [""],
-              exerciseType: { id: exercise.id, equipment: evalExercise.equipment || "bodyweight" },
-              name: `${evalExercise.label ? `${evalExercise.label}: ` : ""}${evalExercise.name}`,
-              id: UidFactory.generateUid(8),
-              state: {},
-              variations: [],
-              variationExpr: "",
-              descriptionExpr: "day",
-              finishDayExpr: "",
-            };
+            let programExercise: IProgramExercise;
+            if (keyToProgramExercise[key]) {
+              programExercise = keyToProgramExercise[key];
+            } else {
+              const name = `${evalExercise.label ? `${evalExercise.label}: ` : ""}${evalExercise.name}`;
+              const exerciseType = { id: exercise.id, equipment: evalExercise.equipment || "bodyweight" };
+              const oldProgramExercise = this.programExercises.find(
+                (pe) => pe.name === name && pe.exerciseType.equipment === exerciseType.equipment
+              );
+              const id = oldProgramExercise?.id || UidFactory.generateUid(8);
+              programExercise = {
+                descriptions: [""],
+                exerciseType,
+                name,
+                id,
+                state: {},
+                variations: [],
+                variationExpr: "",
+                descriptionExpr: "day",
+                finishDayExpr: "",
+              };
+            }
             let isQuickAddSets = false;
             keyToProgramExercise[key] = programExercise;
             keyToProgramExerciseId[key] = programExercise.id;

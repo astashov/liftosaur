@@ -191,7 +191,7 @@ export namespace Progress {
   ): IScriptBindings {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
-      bindings.weights.push(set.weight);
+      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment));
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps != null ? set.minReps : set.reps);
       bindings.completedReps.push(set.completedReps || 0);

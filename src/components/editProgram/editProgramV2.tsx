@@ -93,6 +93,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               <ProgramPreviewOrPlayground
                 program={new PlannerToProgram2(
                   props.editProgram.id,
+                  props.editProgram.exercises,
                   plannerState.current.program,
                   props.settings
                 ).convertToProgram()}
@@ -295,6 +296,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onSave={() => {
               const newProgram = new PlannerToProgram2(
                 props.editProgram.id,
+                props.editProgram.exercises,
                 props.plannerState.current.program,
                 props.settings
               ).convertToProgram();
