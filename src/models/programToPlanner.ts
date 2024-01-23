@@ -37,18 +37,11 @@ export class ProgramToPlanner {
     private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>
   ) {}
 
-  public static exerciseKeyForProgramExercise(programExercise: IProgramExercise): string {
-    const [aLabel, ...aNameParts] = programExercise.name.split(":");
-    let name: string;
-    let label: string | undefined;
-    if (aNameParts.length === 0) {
-      name = aLabel.trim();
-      label = undefined;
-    } else {
-      name = aNameParts.join(":").trim();
-      label = aLabel.trim();
-    }
-    return `${label || ""}-${name || ""}-${programExercise.exerciseType.equipment || "bodyweight"}`.toLowerCase();
+  public static exerciseKeyForProgramExercise(programExercise: IProgramExercise, settings: ISettings): string {
+    return PlannerProgram.nameToKey(
+      `${programExercise.name},${equipmentName(programExercise.exerciseType.equipment, settings.equipment)}`,
+      settings
+    );
   }
 
   public static variationsMap(
@@ -67,7 +60,7 @@ export class ProgramToPlanner {
         const day = week[dayInWeekIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(exercise);
+            const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
             variationsRunningIndex[key] = variationsRunningIndex[key] || 0;
             variationsMap[key] = variationsMap[key] || {};
             const numberOfVariations = exercise.setVariations.length;
@@ -81,7 +74,6 @@ export class ProgramToPlanner {
         variationsDayIndex += 1;
       }
     }
-    console.log("vm", variationsMap);
     return variationsMap;
   }
 
@@ -105,7 +97,7 @@ export class ProgramToPlanner {
         const day = week[dayInWeekIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(exercise);
+            const key = PlannerToProgram2.plannerExerciseKey(exercise, this.settings);
             if (exercise.description) {
               descriptionsRunningIndex[key] = descriptionsRunningIndex[key] || 0;
               descriptionsMap[key] = descriptionsMap[key] || {};
@@ -123,7 +115,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
     if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerToProgram2.plannerExerciseKey(e) === key);
+      const exercise = exercises.data.find((e) => PlannerToProgram2.plannerExerciseKey(e, this.settings) === key);
       if (exercise != null) {
         const numberOfVariations = exercise.setVariations.length;
         let isCurrentIndex = exercise.setVariations.findIndex((v) => v.isCurrent);
@@ -170,7 +162,7 @@ export class ProgramToPlanner {
         const exerciseTextArr: string[] = [];
         for (const dayExercise of programDay.exercises) {
           const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
-          const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise);
+          const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, this.settings);
           const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
           let plannerExercise = "";
           const description = descriptionsMap[key]?.[dayIndex];
@@ -283,7 +275,6 @@ export class ProgramToPlanner {
       plannerWeeks.push(plannerWeek);
     }
     const result = { name: this.program.name, weeks: plannerWeeks };
-    console.log(PlannerProgram.generateFullText(result.weeks));
     return result;
   }
 
@@ -345,7 +336,6 @@ export class ProgramToPlanner {
     if (progressLine != null) {
       const progressMatch = progressLine.match(/progress: ([^(]+)\((.*)\)$/);
       if (progressMatch) {
-        console.log("Progress Match");
         const name = progressMatch[1];
         const args = progressMatch[2].split(",").map((a) => a.trim());
         if (name === "lp") {
@@ -362,10 +352,8 @@ export class ProgramToPlanner {
   private weightExprToStr(weightExpr?: string): string {
     if (weightExpr != null) {
       const percentageMatch = weightExpr.match(/(.*)%/);
-      console.log(percentageMatch);
       if (percentageMatch != null) {
         const percentage = MathUtils.roundFloat(parseFloat(percentageMatch[1]), 2);
-        console.log(percentage);
         return `${percentage}%`;
       } else {
         return weightExpr;

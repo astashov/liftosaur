@@ -165,6 +165,7 @@ export const ProgramPreviewPlaygroundDay = memo(
               props.onSettingsChange(newSettings);
             }}
             programExercise={editModalProgramExercise}
+            isPlanner={!!props.program.planner}
             settings={props.settings}
           />
         )}

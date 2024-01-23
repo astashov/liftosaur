@@ -290,6 +290,16 @@ export namespace Weight {
     return round(convertTo(weight, settings.units), settings, equipment);
   }
 
+  export function type(value: number | IWeight | IPercentage): "weight" | "percentage" | "number" {
+    if (typeof value === "number") {
+      return "number";
+    } else if (Weight.isPct(value)) {
+      return "percentage";
+    } else {
+      return "weight";
+    }
+  }
+
   export function convertTo(weight: IWeight, unit: IUnit): IWeight;
   export function convertTo(weight: IPercentage, unit: "%" | IUnit): IPercentage;
   export function convertTo(weight: number, unit: IUnit): number;

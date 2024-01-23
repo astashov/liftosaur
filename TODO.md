@@ -37,7 +37,3 @@
 - Planner
 
 * Show errors if target is wrong
-* Show errors if not matching state when reusing
-* Show errors if reusing non-existent exercise
-* Show errors if no rep ranges
-* Add 1rm to preview edit exercise

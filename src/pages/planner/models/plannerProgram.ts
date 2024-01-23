@@ -10,6 +10,7 @@ import { IAllCustomExercises, IDayData, IPlannerProgram, IPlannerProgramWeek, IS
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
+import { Equipment } from "../../../models/equipment";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -266,8 +267,38 @@ export class PlannerProgram {
     }
   }
 
+  public static nameToKey(labelNameAndEquipment: string, settings: ISettings): string {
+    let equip: string | undefined;
+    const parts = labelNameAndEquipment.split(",");
+    if (parts.length > 1) {
+      equip = parts.pop();
+    }
+    equip = equip?.trim();
+    if (equip) {
+      equip = Equipment.equipmentKeyByName(equip, settings.equipment);
+    }
+    const nameAndLabel = parts.join(",").trim();
+    const [labelOrName, ...nameParts] = nameAndLabel.split(":");
+    let label: string | undefined;
+    let name: string;
+    if (nameParts.length === 0) {
+      name = labelOrName;
+      label = undefined;
+    } else {
+      label = labelOrName.trim();
+      name = nameParts.join(":").trim();
+    }
+    if (equip == null) {
+      const exercise = Exercise.findByName(name, settings.exercises);
+      equip = exercise?.defaultEquipment;
+    }
+    const key = `${label ? `${label}-` : ""}${name}-${equip}`.toLowerCase();
+    console.log("PlannerProgram.nameToKey", key);
+    return key;
+  }
+
   public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
     const equipment = plannerExercise.equipment ?? exercise.defaultEquipment;
-    return `${plannerExercise.label ? `${plannerExercise.label}_` : ""}${exercise.id}_${equipment}`.toLowerCase();
+    return `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${exercise.id}-${equipment}`.toLowerCase();
   }
 }

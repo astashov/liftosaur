@@ -138,7 +138,6 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                   <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
                 )}
                 onChange={(e) => {
-                  console.log("On Change", e);
                   plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
                 }}
                 onBlur={(e, text) => {

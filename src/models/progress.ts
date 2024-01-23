@@ -34,6 +34,7 @@ import { Subscriptions } from "../utils/subscriptions";
 import { IExerciseId, IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
+import { MathUtils } from "../utils/math";
 
 export interface IScriptBindings {
   day: number;
@@ -1046,7 +1047,16 @@ export namespace Progress {
       );
     } else {
       return ScriptRunner.safe(
-        () => runner.execute(type),
+        () => {
+          let weight = runner.execute(type);
+          if (Weight.isPct(weight)) {
+            weight = Weight.multiply(
+              Exercise.onerm(exerciseType, settings),
+              MathUtils.roundFloat(weight.value / 100, 4)
+            );
+          }
+          return weight;
+        },
         (e) =>
           `There's an error while executing script ${expr}:\n\n${e.message}.\n\nWe fallback to 100. Please fix the exercise's script.`,
         Weight.build(100, settings.units)

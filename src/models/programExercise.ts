@@ -495,8 +495,8 @@ export namespace ProgramExercise {
           if (d.success) {
             return d.data.filter(
               (e) =>
-                PlannerToProgram2.plannerExerciseKey(e) ===
-                ProgramToPlanner.exerciseKeyForProgramExercise(programExercise)
+                PlannerToProgram2.plannerExerciseKey(e, settings) ===
+                ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings)
             );
           } else {
             return undefined;
@@ -504,7 +504,7 @@ export namespace ProgramExercise {
         })
       )
     );
-    const exerciseKey = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise);
+    const exerciseKey = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings);
     const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
     const variationsMap = allVariationsMap[exerciseKey];
 

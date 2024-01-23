@@ -27,8 +27,13 @@ export class PlannerToProgram2 {
     private readonly settings: ISettings
   ) {}
 
-  public static plannerExerciseKey(exercise: IPlannerProgramExercise): string {
-    return `${exercise.label || ""}-${exercise.name}-${exercise.equipment || "bodyweight"}`.toLowerCase();
+  public static plannerExerciseKey(plannerExercise: IPlannerProgramExercise, settings: ISettings): string {
+    const exercise = Exercise.findByName(plannerExercise.name, settings.exercises);
+    const key = `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${plannerExercise.name}-${
+      plannerExercise.equipment || exercise?.defaultEquipment || "bodyweight"
+    }`.toLowerCase();
+    console.log("PlannerToProgram2.plannerExerciseKey", key);
+    return key;
   }
 
   public convertToProgram(): IProgram {
@@ -56,7 +61,7 @@ export class PlannerToProgram2 {
         const programDay: IProgramDay = { id: UidFactory.generateUid(8), name: plannerDay.name, exercises: [] };
         if (day.success) {
           for (const evalExercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(evalExercise);
+            const key = PlannerToProgram2.plannerExerciseKey(evalExercise, this.settings);
             const exercise = Exercise.findByName(evalExercise.name, this.settings.exercises);
             if (!exercise) {
               throw new Error(`Exercise not found: ${evalExercise.name}`);
@@ -266,7 +271,6 @@ export class PlannerToProgram2 {
     property: IPlannerProgramProperty,
     settings: ISettings
   ): { state: IProgramState; finishDayExpr: string } {
-    console.log("Property", property);
     const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
     const totalSuccesses = parseInt(property.fnArgs[1] ?? "1", 10);
     const currentSuccesses = parseInt(property.fnArgs[2] ?? "0", 10);
@@ -304,7 +308,6 @@ export class PlannerToProgram2 {
     property: IPlannerProgramProperty,
     settings: ISettings
   ): { state: IProgramState; finishDayExpr: string } {
-    console.log("Property", property);
     const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
     const minReps = parseInt(property.fnArgs[1], 10);
     const maxReps = parseInt(property.fnArgs[2], 10);
@@ -324,7 +327,6 @@ export class PlannerToProgram2 {
     property: IPlannerProgramProperty,
     settings: ISettings
   ): { state: IProgramState; finishDayExpr: string } {
-    console.log("Property", property);
     const sumReps = parseInt(property.fnArgs[0], 10);
     const increment = property.fnArgs[1] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
     let finishDayExpr = `// progress: ${property.fnName}(${property.fnArgs.join(", ")})\n`;

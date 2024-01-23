@@ -276,7 +276,6 @@ export namespace Program {
     dayIndex?: number,
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
-    console.log("Program", program);
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
     const programDay = getProgramDay(program, day);
     const week = getWeekFromDay(program, day);
@@ -657,7 +656,8 @@ export namespace Program {
                   settings
                 );
                 if (variables.setVariationIndex?.length) {
-                  setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e)] = variables.setVariationIndex;
+                  setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
+                    variables.setVariationIndex;
                 }
               }
 
