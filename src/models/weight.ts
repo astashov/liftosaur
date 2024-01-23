@@ -135,7 +135,7 @@ export namespace Weight {
   }
 
   export function roundTo005(weight: IWeight): IWeight {
-    return Weight.build(Math.round(weight.value / 0.05) * 0.05, weight.unit);
+    return Weight.build(MathUtils.roundTo005(weight.value), weight.unit);
   }
 
   export function calculatePlates(

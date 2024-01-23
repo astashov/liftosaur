@@ -642,7 +642,7 @@ export namespace Program {
               const { state, variables } = newStateResult.data;
               const exerciseKey = Exercise.toKey(entry.exercise);
               if (variables?.rm1 != null) {
-                exerciseData[exerciseKey] = { rm1: variables.rm1 };
+                exerciseData[exerciseKey] = { rm1: Weight.roundTo005(variables.rm1) };
               }
               const reuseLogicId = e.reuseLogic?.selected;
               let newExercise = ObjectUtils.clone(e);

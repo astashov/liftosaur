@@ -617,72 +617,83 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private postEvaluateCheck(expr: SyntaxNode, program: IPlannerExerciseEvaluatorWeek[]): void {
-    const cursor = expr.cursor();
-    do {
-      if (cursor.node.type.name === PlannerNodeName.ExerciseProperty) {
-        const fnExpressionNode = cursor.node.getChild(PlannerNodeName.FunctionExpression);
-        const fnNameNode = fnExpressionNode?.getChild(PlannerNodeName.FunctionName);
-        if (fnExpressionNode && fnNameNode && this.getValue(fnNameNode) === "custom") {
-          const reuseLiftoscriptNode = fnExpressionNode
-            .getChild(PlannerNodeName.ReuseLiftoscript)
-            ?.getChild(PlannerNodeName.ReuseSection)
-            ?.getChild(PlannerNodeName.ExerciseName);
-          const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-          if (body) {
-            let originalExercise: IPlannerProgramExercise | undefined;
-            for (const week of program) {
-              for (const day of week.days) {
-                for (const e of day.exercises) {
-                  const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
-                  const bodyKey = PlannerProgram.nameToKey(body, this.settings);
-                  if (key === bodyKey) {
-                    originalExercise = e;
+  public postEvaluateCheck(expr: SyntaxNode, program: IPlannerEvalResult[][]): PlannerSyntaxError | undefined {
+    try {
+      const cursor = expr.cursor();
+      do {
+        if (cursor.node.type.name === PlannerNodeName.ExerciseProperty) {
+          const fnExpressionNode = cursor.node.getChild(PlannerNodeName.FunctionExpression);
+          const fnNameNode = fnExpressionNode?.getChild(PlannerNodeName.FunctionName);
+          if (fnExpressionNode && fnNameNode && this.getValue(fnNameNode) === "custom") {
+            const reuseLiftoscriptNode = fnExpressionNode
+              .getChild(PlannerNodeName.ReuseLiftoscript)
+              ?.getChild(PlannerNodeName.ReuseSection)
+              ?.getChild(PlannerNodeName.ExerciseName);
+            const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+            if (body) {
+              let originalExercise: IPlannerProgramExercise | undefined;
+              for (const week of program) {
+                for (const day of week) {
+                  if (day.success) {
+                    for (const e of day.data) {
+                      const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
+                      const bodyKey = PlannerProgram.nameToKey(body, this.settings);
+                      console.log("Check", key, bodyKey);
+                      if (key === bodyKey) {
+                        originalExercise = e;
+                      }
+                    }
+                    if (originalExercise) {
+                      break;
+                    }
                   }
                 }
                 if (originalExercise) {
                   break;
                 }
               }
-              if (originalExercise) {
-                break;
+              if (!originalExercise) {
+                this.error(`No such exercise ${body}`, cursor.node);
               }
-            }
-            if (!originalExercise) {
-              this.error("No such exercise", cursor.node);
-            }
-            const originalProgress = originalExercise.properties.find((p) => p.name === "progress");
-            if (!originalProgress) {
-              this.error("Original exercise should specify progress", cursor.node);
-            }
-            if (originalProgress.fnName !== "custom") {
-              this.error("Original exercise should specify custom progress", cursor.node);
-            }
-            const fnArgs = fnExpressionNode
-              .getChildren(PlannerNodeName.FunctionArgument)
-              .map((argNode) => this.getValue(argNode));
-            const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
-            const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
-            for (const key of ObjectUtils.keys(originalState)) {
-              const value = originalState[key];
-              if (state[key] == null) {
-                this.error(`Missing state variable ${key}`, fnExpressionNode);
+              const originalProgress = originalExercise.properties.find((p) => p.name === "progress");
+              if (!originalProgress) {
+                this.error("Original exercise should specify progress", cursor.node);
               }
-              if (Weight.type(value) !== Weight.type(state[key])) {
-                this.error(`Wrong type of state variable ${key}`, fnExpressionNode);
+              if (originalProgress.fnName !== "custom") {
+                this.error("Original exercise should specify custom progress", cursor.node);
+              }
+              const fnArgs = fnExpressionNode
+                .getChildren(PlannerNodeName.FunctionArgument)
+                .map((argNode) => this.getValue(argNode));
+              const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
+              const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
+              for (const key of ObjectUtils.keys(originalState)) {
+                const value = originalState[key];
+                if (state[key] == null) {
+                  this.error(`Missing state variable ${key}`, fnExpressionNode);
+                }
+                if (Weight.type(value) !== Weight.type(state[key])) {
+                  this.error(`Wrong type of state variable ${key}`, fnExpressionNode);
+                }
               }
             }
           }
         }
+      } while (cursor.next());
+      return undefined;
+    } catch (e) {
+      if (e instanceof PlannerSyntaxError) {
+        return e;
+      } else {
+        throw e;
       }
-    } while (cursor.next());
+    }
   }
 
   public evaluate(programNode: SyntaxNode): IPlannerEvalFullResult {
     try {
       this.parse(programNode);
       const program = this.evaluateProgram(programNode);
-      this.postEvaluateCheck(programNode, program);
       return { data: program, success: true };
     } catch (e) {
       if (e instanceof PlannerSyntaxError) {

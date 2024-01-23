@@ -161,7 +161,7 @@ export class PlannerProgram {
     args?: { skipDescriptionPostProcess?: boolean }
   ): IPlannerEvalResult[][] {
     let dayIndex = 0;
-    const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
+    let evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
         const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
@@ -174,8 +174,21 @@ export class PlannerProgram {
         return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
     });
-    this.postProcess(evaluatedWeeks, args);
+    dayIndex = 0;
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
+    const newEvaluatedWeeks = ObjectUtils.clone(evaluatedWeeks);
+    plannerProgram.weeks.forEach((week, weekIndex) => {
+      week.days.forEach((day, dayInWeekIndex) => {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
+        const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
+        if (error) {
+          newEvaluatedWeeks[weekIndex][dayInWeekIndex] = { success: false, error };
+        }
+      });
+    });
+    evaluatedWeeks = newEvaluatedWeeks;
+    this.postProcess(evaluatedWeeks, args);
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);
       PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, settings.exercises);
@@ -198,7 +211,17 @@ export class PlannerProgram {
   public static evaluateFull(fullProgramText: string, settings: ISettings): IPlannerEvalFullResult {
     const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
     const tree = plannerExerciseParser.parse(fullProgramText);
-    return evaluator.evaluate(tree.topNode);
+    const result = evaluator.evaluate(tree.topNode);
+    if (result.success) {
+      const evaluatedWeeks = result.data.map((week) =>
+        week.days.map((d) => ({ success: true as const, data: d.exercises }))
+      );
+      const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
+      if (error) {
+        return { success: false, error };
+      }
+    }
+    return result;
   }
 
   public static evaluateText(fullProgramText: string): IPlannerExerciseEvaluatorTextWeek[] {
