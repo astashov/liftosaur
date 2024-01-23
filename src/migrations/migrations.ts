@@ -7,6 +7,7 @@ import { ObjectUtils } from "../utils/object";
 import { IStorage, IExerciseId } from "../types";
 import { Weight } from "../models/weight";
 import { SendMessage } from "../utils/sendMessage";
+import { Settings } from "../models/settings";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -459,6 +460,11 @@ export const migrations = {
   "20240106161121_add_exercise_data": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.exerciseData = storage.settings.exerciseData || {};
+    return storage;
+  },
+  "20240123071752_add_planner": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.planner = storage.settings.planner || Settings.buildPlannerSettings();
     return storage;
   },
 };

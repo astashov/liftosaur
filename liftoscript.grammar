@@ -39,7 +39,7 @@ IfExpression {
 AssignmentExpression { (StateVariable | VariableExpression) !assign "=" expression }
 IncAssignmentExpression { (StateVariable | VariableExpression) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
-VariableIndex { Digit | Wildcard }
+VariableIndex { Wildcard | expression }
 Wildcard { "*" }
 FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
@@ -64,7 +64,6 @@ UnaryExpression {
   LineComment { "//" ![\n]* }
   @precedence { LineComment, Times }
 
-  Digit { @digit+ }
   Keyword { @asciiLetter (@asciiLetter | @digit | "_")* }
   StateVariable { "state." Keyword }
   Unit { "lb" | "kg" }

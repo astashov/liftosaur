@@ -11,7 +11,6 @@ export enum NodeName {
   LineComment = "LineComment",
   Program = "Program",
   BinaryExpression = "BinaryExpression",
-  Digit = "Digit",
   Plus = "Plus",
   Times = "Times",
   Cmp = "Cmp",
@@ -295,8 +294,6 @@ export class LiftoscriptEvaluator {
         }
       }
       return result;
-    } else if (expr.type.name === NodeName.Digit) {
-      return parseInt(this.getValue(expr), 10);
     } else if (expr.type.name === NodeName.BinaryExpression) {
       const [left, operator, right] = getChildren(expr);
       const evalLeft = this.evaluate(left);
