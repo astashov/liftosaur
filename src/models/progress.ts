@@ -1050,10 +1050,8 @@ export namespace Progress {
         () => {
           let weight = runner.execute(type);
           if (Weight.isPct(weight)) {
-            weight = Weight.multiply(
-              Exercise.onerm(exerciseType, settings),
-              MathUtils.roundFloat(weight.value / 100, 4)
-            );
+            const onerm = Exercise.onerm(exerciseType, settings);
+            weight = Weight.multiply(onerm, MathUtils.roundFloat(weight.value / 100, 4));
           }
           return weight;
         },

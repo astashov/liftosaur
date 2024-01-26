@@ -9,6 +9,7 @@ import { Progress } from "../../models/progress";
 import { ObjectUtils } from "../../utils/object";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup } from "./programPreviewPlaygroundSetup";
+import deepmerge from "deepmerge";
 
 type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
   progress: IHistoryRecord;
@@ -151,12 +152,16 @@ export const ProgramPreviewPlayground = memo(
                           ]);
                         }}
                         onFinish={() => {
-                          const { program: newProgram } = Program.runAllFinishDayScripts(
+                          const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
                             state.program,
                             d.progress,
                             state.settings,
                             d.states
                           );
+                          const newSettings = {
+                            ...state.settings,
+                            exerciseData: deepmerge(state.settings.exerciseData, exerciseData),
+                          };
                           dispatch([
                             lb<IProgramPreviewPlaygroundState>()
                               .p("progresses")
@@ -180,6 +185,7 @@ export const ProgramPreviewPlayground = memo(
                                 });
                               }),
                             lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
+                            lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
                           ]);
                         }}
                       />

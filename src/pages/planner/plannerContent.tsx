@@ -311,7 +311,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                         units: settings.units,
                       },
                     };
-                    console.log(exportedProgram);
                     const programBuilderUrl = UrlUtils.build("/program", __HOST__);
                     const fullurl = await Encoder.encodeIntoUrl(
                       JSON.stringify(exportedProgram),

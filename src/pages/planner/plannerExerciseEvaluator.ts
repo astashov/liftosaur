@@ -638,7 +638,6 @@ export class PlannerExerciseEvaluator {
                     for (const e of day.data) {
                       const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
                       const bodyKey = PlannerProgram.nameToKey(body, this.settings);
-                      console.log("Check", key, bodyKey);
                       if (key === bodyKey) {
                         originalExercise = e;
                       }

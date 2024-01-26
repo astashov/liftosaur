@@ -120,20 +120,25 @@ export class ProgramToPlanner {
         const numberOfVariations = exercise.setVariations.length;
         let isCurrentIndex = exercise.setVariations.findIndex((v) => v.isCurrent);
         isCurrentIndex = isCurrentIndex === -1 ? 0 : isCurrentIndex;
-        const setVariationIndexAdd = this.setVariationIndexMap[key]?.[dayInWeekIndex];
+        const setVariationIndexAdd = this.setVariationIndexMap[key];
         if (setVariationIndexAdd != null) {
-          const [targetWeek, targetDay] = ProgramExercise.normalizeTarget(setVariationIndexAdd.target, 2);
-          if ((targetWeek === "*" || targetWeek === weekIndex) && (targetDay === "*" || targetDay === dayInWeekIndex)) {
-            if (setVariationIndexAdd.op === "=") {
-              isCurrentIndex = setVariationIndexAdd.value - 1;
-            } else if (setVariationIndexAdd.op === "+=") {
-              isCurrentIndex += setVariationIndexAdd.value;
-            } else if (setVariationIndexAdd.op === "-=") {
-              isCurrentIndex -= setVariationIndexAdd.value;
-            } else if (setVariationIndexAdd.op === "*=") {
-              isCurrentIndex *= setVariationIndexAdd.value;
-            } else if (setVariationIndexAdd.op === "/=") {
-              isCurrentIndex /= setVariationIndexAdd.value;
+          for (const add of setVariationIndexAdd) {
+            const [targetWeek, targetDay] = ProgramExercise.normalizeTarget(add.target, 2);
+            if (
+              (targetWeek === "*" || targetWeek === weekIndex + 1) &&
+              (targetDay === "*" || targetDay === dayInWeekIndex + 1)
+            ) {
+              if (add.op === "=") {
+                isCurrentIndex = add.value - 1;
+              } else if (add.op === "+=") {
+                isCurrentIndex += add.value;
+              } else if (add.op === "-=") {
+                isCurrentIndex -= add.value;
+              } else if (add.op === "*=") {
+                isCurrentIndex *= add.value;
+              } else if (add.op === "/=") {
+                isCurrentIndex /= add.value;
+              }
             }
           }
         }

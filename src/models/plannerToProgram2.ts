@@ -32,7 +32,6 @@ export class PlannerToProgram2 {
     const key = `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${plannerExercise.name}-${
       plannerExercise.equipment || exercise?.defaultEquipment || "bodyweight"
     }`.toLowerCase();
-    console.log("PlannerToProgram2.plannerExerciseKey", key);
     return key;
   }
 

@@ -226,6 +226,7 @@ export class LiftoscriptEvaluator {
             "mr",
             "completedRPE",
             "RPE",
+            "setVariationIndex",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);

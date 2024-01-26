@@ -92,7 +92,6 @@ export function useUndoRedo<T, S extends IUndoRedoState<T>>(
         (event.ctrlKey || event.metaKey) &&
         (!shouldEnable || shouldEnable())
       ) {
-        console.log("Are we here?");
         if (!event.shiftKey) {
           event.preventDefault();
           undo(dispatch, state);
