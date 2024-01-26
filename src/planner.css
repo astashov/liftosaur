@@ -35,6 +35,10 @@ body {
   color: #164;
 }
 
+.tok-meta {
+  color: #6f6e24;
+}
+
 .tok-comment {
   color: #8b9bab;
 }
