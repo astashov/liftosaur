@@ -1,5 +1,5 @@
 ---
-date: "2024-01-04"
+date: "2024-01-25"
 title: New Experimental Program Editor
 og_title: New Experimental Program Editor
 og_description: New Experimental Program Editor combines Workout Planner + Liftoscript, and makes writing Liftosaur programs way faster.
