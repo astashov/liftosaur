@@ -19,3 +19,7 @@ export namespace MathUtils {
     return +value.toFixed(precision);
   }
 }
+
+export function n(value: number, precision: number = 2): string {
+  return `${MathUtils.roundFloat(value, precision)}`;
+}

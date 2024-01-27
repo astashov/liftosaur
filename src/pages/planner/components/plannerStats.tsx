@@ -10,6 +10,7 @@ import { lb } from "lens-shmens";
 import { useState } from "preact/hooks";
 import { CollectionUtils } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
+import { n } from "../../../utils/math";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -162,15 +163,15 @@ function PlannerSetSplit(props: {
       onClick={() => setShowTooltip(!showTooltip)}
     >
       <span className={`cursor-auto relative ${setColor}`}>
-        {total}
+        {n(total, 0)}
         {setDirection}
         {showTooltip && <PlannerStatsTooltip split={split} />}
       </span>{" "}
       {total > 0 && (
         <>
-          ({split.strength > 0 && <abbr title="Strength Sets Number">{split.strength}s</abbr>}
+          ({split.strength > 0 && <abbr title="Strength Sets Number">{n(split.strength, 0)}s</abbr>}
           {split.strength > 0 && split.hypertrophy > 0 && ", "}
-          {split.hypertrophy > 0 && <abbr title="Hypertrophy Sets Number">{split.hypertrophy}h</abbr>})
+          {split.hypertrophy > 0 && <abbr title="Hypertrophy Sets Number">{n(split.hypertrophy, 0)}h</abbr>})
         </>
       )}
       {shouldIncludeFrequency && frequency > 0 && (
