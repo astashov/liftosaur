@@ -656,6 +656,9 @@ export class PlannerExerciseEvaluator {
               if (!originalExercise) {
                 this.error(`No such exercise ${body}`, cursor.node);
               }
+              if (originalExercise.properties.find((p) => p.name === "progress")?.body != null) {
+                this.error(`Original exercise cannot reuse another progress`, cursor.node);
+              }
               const originalProgress = originalExercise.properties.find((p) => p.name === "progress");
               if (!originalProgress) {
                 this.error("Original exercise should specify progress", cursor.node);

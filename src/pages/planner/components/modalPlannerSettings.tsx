@@ -97,7 +97,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
               />
             </div>
           )}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <Input
               label="Synergist multiplier"
               min={0}

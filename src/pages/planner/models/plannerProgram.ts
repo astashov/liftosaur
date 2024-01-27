@@ -49,7 +49,9 @@ export class PlannerProgram {
         if (
           existingProperty != null &&
           (existingProperty.fnName !== property.fnName ||
-            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a))
+            existingProperty.fnArgs.some((a, i) => property.fnArgs[i] !== a) ||
+            existingProperty.script !== property.script ||
+            existingProperty.body !== property.body)
         ) {
           throw new PlannerDayDataError(
             `Same property '${property.name}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +

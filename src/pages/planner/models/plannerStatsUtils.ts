@@ -2,6 +2,7 @@ import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { IAllCustomExercises, IScreenMuscle } from "../../../types";
+import { PlannerProgramExercise } from "./plannerProgramExercise";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup">;
 
@@ -10,7 +11,7 @@ export class PlannerStatsUtils {
     return exercises.reduce((acc, e) => {
       return (
         acc +
-        e.setVariations[0].sets.reduce((acc2, set) => {
+        e.setVariations[PlannerProgramExercise.currentSetVariation(e)].sets.reduce((acc2, set) => {
           const repRange = set.repRange;
           if (!repRange) {
             return acc2;
@@ -67,7 +68,8 @@ export class PlannerStatsUtils {
         if (exercise == null) {
           continue;
         }
-        for (const set of plannerExercise.setVariations[0].sets) {
+        for (const set of plannerExercise.setVariations[PlannerProgramExercise.currentSetVariation(plannerExercise)]
+          .sets) {
           const repRange = set.repRange;
           if (repRange != null) {
             results.total += repRange.numberOfSets;

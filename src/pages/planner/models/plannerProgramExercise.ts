@@ -3,7 +3,15 @@ import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 
 export class PlannerProgramExercise {
   public static numberOfSets(exercise: IPlannerProgramExercise): number {
-    return exercise.sets.reduce((acc, set) => acc + (set.repRange?.numberOfSets || 0), 0);
+    return exercise.setVariations[this.currentSetVariation(exercise)].sets.reduce(
+      (acc, set) => acc + (set.repRange?.numberOfSets || 0),
+      0
+    );
+  }
+
+  public static currentSetVariation(exercise: IPlannerProgramExercise): number {
+    const index = exercise.setVariations.findIndex((sv) => sv.isCurrent);
+    return index === -1 ? 0 : index;
   }
 
   public static numberOfSetsThisWeek(exerciseName: string, week: IPlannerEvalResult[]): number {

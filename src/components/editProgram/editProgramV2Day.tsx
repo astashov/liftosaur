@@ -10,7 +10,6 @@ import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramDay, IPlannerProgram, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
-import { HtmlUtils } from "../../utils/html";
 import { StringUtils } from "../../utils/string";
 import { TimeUtils } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -140,24 +139,26 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                 onChange={(e) => {
                   plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
                 }}
-                onBlur={(e, text) => {
-                  const relatedTarget = e.relatedTarget as HTMLElement;
-                  if (!relatedTarget || !HtmlUtils.someInParents(relatedTarget, (el) => el.tagName === "BUTTON")) {
-                    plannerDispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined));
-                  }
-                }}
+                onBlur={(e, text) => {}}
                 onLineChange={(line) => {
+                  const exerciseIndex =
+                    dayIndex !== -1 && evaluatedDay.success
+                      ? CollectionUtils.findIndexReverse(evaluatedDay.data, (d) => d.line <= line)
+                      : -1;
+                  const exercise =
+                    exerciseIndex !== -1 && evaluatedDay.success ? evaluatedDay.data[exerciseIndex] : undefined;
+
                   if (
                     !focusedExercise ||
                     focusedExercise.weekIndex !== weekIndex ||
                     focusedExercise.dayIndex !== dayIndex ||
-                    focusedExercise.exerciseLine !== line
+                    focusedExercise.exerciseLine !== exercise?.line
                   ) {
                     plannerDispatch(
                       lb<IPlannerState>()
                         .p("ui")
                         .p("focusedExercise")
-                        .record({ weekIndex, dayIndex, exerciseLine: line })
+                        .record({ weekIndex, dayIndex, exerciseLine: exercise?.line ?? 0 })
                     );
                   }
                 }}
