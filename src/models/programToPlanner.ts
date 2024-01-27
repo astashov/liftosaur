@@ -180,7 +180,7 @@ export class ProgramToPlanner {
           }
           plannerExercise += `${programExercise.name}`;
           if (programExercise.exerciseType.equipment !== exercise.defaultEquipment) {
-            plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment)}`;
+            plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}`;
           }
           plannerExercise += " / ";
           const [from, to] = variationsMap[key][dayIndex];

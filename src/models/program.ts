@@ -1095,6 +1095,7 @@ export namespace Program {
       ).filter((e) => !deletedExercises.has(e.id)),
       deletedExercises: Array.from(deletedExercises),
       clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
+      planner: newProgram.planner,
     };
   }
 }

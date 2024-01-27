@@ -10,7 +10,7 @@ import {
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramProperty,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IEquipment } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, IEquipment, equipments } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
@@ -470,10 +470,12 @@ export class PlannerExerciseEvaluator {
     if (parts.length > 1) {
       const potentialEquipment = parts[parts.length - 1]?.trim();
       const allowedEquipments = [
+        ...equipments,
+        ...equipments.map((e) => equipmentName(e, this.settings.equipment)),
         ...ObjectUtils.keys(this.settings.equipment),
         ...ObjectUtils.keys(this.settings.equipment).map((e) => equipmentName(e, this.settings.equipment)),
-      ];
-      if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment) !== -1) {
+      ].map((e) => e.toLowerCase());
+      if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment.toLowerCase()) !== -1) {
         const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.settings.equipment);
         equipment = equipmentKey;
         parts.pop();
