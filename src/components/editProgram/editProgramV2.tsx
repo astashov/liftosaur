@@ -261,6 +261,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             onChange={(newValue) => {
               if (newValue) {
                 EditProgram.setName(props.dispatch, props.editProgram, newValue);
+                plannerDispatch(lb<IPlannerState>().p("current").p("program").p("name").record(newValue));
               }
             }}
           />
