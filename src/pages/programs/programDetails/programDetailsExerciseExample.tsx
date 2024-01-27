@@ -84,7 +84,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         </div>
         <div className="relative flex-1 px-2 mx-auto rounded-lg bg-purplev2-100">
           <div className="items-start block sm:flex sm:items-center">
-            <div className="flex pt-2" style={{ minWidth: "6rem", maxWidth: "16rem" }}>
+            <div className="flex pt-2" style={{ minWidth: "4rem", maxWidth: "16rem" }}>
               <div style={{ width: "40px" }} className="box-content px-2 mr-1">
                 <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
               </div>

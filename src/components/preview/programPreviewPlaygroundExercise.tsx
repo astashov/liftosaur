@@ -136,7 +136,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
         <div style={{ width: "40px" }} className="mr-1">
           <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
         </div>
-        <div className="flex-1 ml-auto" style={{ minWidth: "6rem" }}>
+        <div className="flex-1 ml-auto" style={{ minWidth: "4rem" }}>
           <div className="flex items-center">
             <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
           </div>

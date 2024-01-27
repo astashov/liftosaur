@@ -128,7 +128,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           </div>
         </div>
       </div>
-      <div>
+      <div className="px-4">
         <ScrollableTabs
           offsetY="6rem"
           defaultIndex={ui.focusedDay?.week ? ui.focusedDay.week - 1 : undefined}
@@ -138,7 +138,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               label: week.name,
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
               children: (
-                <div key={weekIndex} className="flex flex-col px-4 mt-4 md:flex-row">
+                <div key={weekIndex} className="flex flex-col mt-4 md:flex-row">
                   <div className="flex-1">
                     <DraggableList
                       items={week.days}

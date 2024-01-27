@@ -18,6 +18,7 @@
 - Add reps/volume PR
 - Add 'bodyweight' variable
 - Add a way to create "similar" exercise
+- Switch shoulders to synergist for rows
 
 * Programs
   - 5/3/1s
@@ -33,7 +34,3 @@
 * Add descriptions to all exercises
 * Widget on iOS lock screen
 * Add time spent on each exercise
-
-- Planner
-
-* Show errors if target is wrong
