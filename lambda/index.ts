@@ -1623,6 +1623,21 @@ const getProgramShorturlHandler: RouteHandler<
         const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
+          if (program?.program.planner != null) {
+            const host = ResponseUtils.getHost(payload.event);
+            const redirectUrl = host ? UrlUtils.build(`https://${host}`) : UrlUtils.build("https://www.liftosaur.com");
+            redirectUrl.pathname = "/planner";
+            const exportedProgram: IExportedPlannerProgram = {
+              program: program.program.planner,
+              settings: {
+                exercises: program.customExercises,
+                equipment: program.customEquipment || {},
+                timer: program.settings.timers.workout ?? 180,
+              },
+            };
+            redirectUrl.searchParams.set("data", await NodeEncoder.encode(JSON.stringify(exportedProgram)));
+            return { statusCode: 303, body: "Redirecting...", headers: { Location: redirectUrl.toString() } };
+          }
 
           let user: ILimitedUserDao | undefined;
           let account: IAccount | undefined;

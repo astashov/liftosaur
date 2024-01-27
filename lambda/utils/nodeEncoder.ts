@@ -1,6 +1,23 @@
-import { gunzip } from "fflate";
+import { gunzip, gzip } from "fflate";
 
 export class NodeEncoder {
+  public static encode(str: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const textEncoder = new TextEncoder();
+      gzip(textEncoder.encode(str), (err, result) => {
+        if (!err) {
+          resolve(
+            Buffer.from(`data:application/octet-stream;base64,${Buffer.from(result).toString("base64")}`).toString(
+              "base64"
+            )
+          );
+        } else {
+          reject(err);
+        }
+      });
+    });
+  }
+
   public static decode(data: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
       try {

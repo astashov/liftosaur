@@ -1,6 +1,14 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
-import { IDayData, IPlannerProgram, IPlannerSettings, IScreenMuscle, IWeight } from "../../../types";
+import {
+  IDayData,
+  IPlannerProgram,
+  IPlannerSettings,
+  IScreenMuscle,
+  IWeight,
+  IAllCustomExercises,
+  IAllEquipment,
+} from "../../../types";
 
 export interface IPlannerProgramExercise {
   label?: string;
@@ -99,7 +107,14 @@ export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram
 
 export interface IExportedPlannerProgram {
   program: IPlannerProgram;
-  settings: IPlannerSettings;
+  plannerSettings?: IPlannerSettings;
+  settings: IPlannerMainSettings;
+}
+
+export interface IPlannerMainSettings {
+  exercises: IAllCustomExercises;
+  equipment: IAllEquipment;
+  timer: number;
 }
 
 export type IMuscleGroupSetSplit = { [key in IScreenMuscle]: ISetSplit };

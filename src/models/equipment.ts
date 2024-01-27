@@ -65,6 +65,10 @@ export namespace Equipment {
     return Array.from(new Set([...equipmentIds.map((e) => equipmentName(e, equipmentSettings || {}))]));
   }
 
+  export function customEquipment(equipmentSettings?: IAllEquipment): IAllEquipment {
+    return ObjectUtils.filter(equipmentSettings || {}, (key) => !isBuiltIn(key));
+  }
+
   export function equipmentKeyByName(name: string, equipmentSettings?: IAllEquipment): string | undefined {
     const builtInEquipmentKey = equipments.find((eq) => eq === name.toLowerCase());
     if (builtInEquipmentKey) {

@@ -30,7 +30,6 @@ import { Button } from "../../components/button";
 import { IExportedProgram } from "../../models/program";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { ClipboardUtils } from "../../utils/clipboard";
-import { PlannerToProgram } from "../../models/plannerToProgram";
 import { PlannerProgram } from "./models/plannerProgram";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
@@ -75,8 +74,20 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   };
 
   const initialSettings: ISettings = Settings.build();
-  initialSettings.exercises = { ...initialSettings.exercises, ...props.partialStorage?.settings.exercises };
-  initialSettings.equipment = { ...initialSettings.equipment, ...props.partialStorage?.settings.equipment };
+  initialSettings.exercises = {
+    ...initialSettings.exercises,
+    ...props.partialStorage?.settings?.exercises,
+    ...props.initialProgram?.settings?.exercises,
+  };
+  initialSettings.equipment = {
+    ...initialSettings.equipment,
+    ...props.partialStorage?.settings?.equipment,
+    ...props.initialProgram?.settings?.equipment,
+  };
+  initialSettings.timers.workout =
+    props.initialProgram?.settings?.timer ??
+    props.partialStorage?.settings?.timers.workout ??
+    initialSettings.timers.workout;
   const prevSettings = useRef(initialSettings);
   const [settings, setSettings] = useState(initialSettings);
 
@@ -95,8 +106,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       if (oldState.current.program !== newState.current.program) {
         const exportedProgram: IExportedPlannerProgram = {
           program: newState.current.program,
-          settings: settings.planner,
+          plannerSettings: settings.planner,
+          settings: {
+            exercises: settings.exercises,
+            equipment: Equipment.customEquipment(settings.equipment),
+            timer: settings.timers.workout ?? 0,
+          },
         };
+        console.log(Equipment.customEquipment(settings.equipment));
         await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }
     },
@@ -128,7 +145,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     if (prevSettings.current !== settings) {
       const exportedProgram: IExportedPlannerProgram = {
         program: state.current.program,
-        settings: settings.planner,
+        plannerSettings: settings.planner,
+        settings: {
+          exercises: settings.exercises,
+          equipment: Equipment.customEquipment(settings.equipment),
+          timer: settings.timers.workout ?? 0,
+        },
       };
       Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
     }
@@ -294,7 +316,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   disabled={isInvalid}
                   title={isInvalid ? "Fix the errors in the program before converting" : undefined}
                   onClick={async () => {
-                    const liftosaurProgram = new PlannerToProgram(state.current.program, settings).convert();
+                    const liftosaurProgram = new PlannerToProgram2(
+                      UidFactory.generateUid(8),
+                      [],
+                      state.current.program,
+                      settings
+                    ).convertToProgram();
                     const usedCustomExercises = ObjectUtils.keys(settings.exercises).reduce<typeof settings.exercises>(
                       (memo, id) => {
                         const exercise = settings.exercises[id];
@@ -317,6 +344,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                       },
                       {}
                     );
+                    console.log(usedCustomExercises, usedCustomEquipment);
                     const exportedProgram: IExportedProgram = {
                       program: liftosaurProgram,
                       customExercises: usedCustomExercises,
@@ -330,6 +358,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                         units: settings.units,
                       },
                     };
+                    console.log(exportedProgram);
                     const programBuilderUrl = UrlUtils.build("/program", __HOST__);
                     const fullurl = await Encoder.encodeIntoUrl(
                       JSON.stringify(exportedProgram),

@@ -6,7 +6,15 @@ import {
   PlannerExerciseEvaluator,
   PlannerSyntaxError,
 } from "../plannerExerciseEvaluator";
-import { IAllCustomExercises, IDayData, IPlannerProgram, IPlannerProgramWeek, ISettings } from "../../../types";
+import {
+  IAllCustomExercises,
+  IAllEquipment,
+  ICustomExercise,
+  IDayData,
+  IPlannerProgram,
+  IPlannerProgramWeek,
+  ISettings,
+} from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
@@ -323,5 +331,25 @@ export class PlannerProgram {
   public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
     const equipment = plannerExercise.equipment ?? exercise.defaultEquipment;
     return `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${exercise.id}-${equipment}`.toLowerCase();
+  }
+
+  public static usedExercises(exercises: ICustomExercise[], evaluatedWeeks: IPlannerEvalResult[][]): ICustomExercise[] {
+    return exercises.filter((ex) => {
+      return evaluatedWeeks.some((week) => {
+        return week.some((day) => {
+          return day.success && day.data.some((d) => d.name.toLowerCase() === ex.name.toLowerCase());
+        });
+      });
+    });
+  }
+
+  public static usedEquipment(equipment: IAllEquipment, evaluatedWeeks: IPlannerEvalResult[][]): IAllEquipment {
+    return ObjectUtils.filter(equipment, (key, value) => {
+      return evaluatedWeeks.some((week) => {
+        return week.some((day) => {
+          return day.success && day.data.some((d) => d.equipment?.toLowerCase() === key);
+        });
+      });
+    });
   }
 }
