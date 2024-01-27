@@ -474,8 +474,7 @@ Once you get familiar with the syntax, it's IMHO pretty easy to figure out how i
 
 ## App Changes
 
-The edit program screen now looks very different, and more similar to the Workout Planner web page. Similarly to
-the Workout Planner, you can see weekly/daily volume per muscle group, exercise intensity/volume undulation graphs week over week. But also there's a Program Preview, which is your best friend when developing the logic for your program. It allows you to quickly simulate various scenarios, and make sure the logic you defined works as expected.
+The edit program screen now looks very different from regular Liftosaur editor, and very similar to the Workout Planner web page. Similarly to the Workout Planner, you can see weekly/daily volume per muscle group, exercise intensity/volume undulation graphs week over week. You can also test your changes in program preview. It allows you to quickly simulate various scenarios, and make sure the logic you defined works as expected.
 
 You can also switch to Full Program Mode there, and there's new UI for rearranging weeks and days.
 

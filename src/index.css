@@ -405,11 +405,11 @@ input[type="checkbox"].checkbox:disabled {
 .planner-editor-view .cm-editor {
   height: auto;
   min-height: 6rem;
-  font-size: 22px;
+  font-size: 15px;
 }
 
 .planner-editor-view .cm-line {
-  height: 31px;
+  height: 21px;
 }
 
 .planner-stats-tooltip {
@@ -422,14 +422,6 @@ input[type="checkbox"].checkbox:disabled {
 }
 
 @media (max-width: 640px) {
-  .planner-editor-view .cm-editor {
-    font-size: 16px;
-  }
-
-  .planner-editor-view .cm-line {
-    height: 22px;
-  }
-
   .planner-stats-tooltip {
     top: 30px;
     left: 0;

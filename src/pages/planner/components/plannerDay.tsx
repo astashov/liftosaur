@@ -11,7 +11,6 @@ import { CollectionUtils } from "../../../utils/collection";
 import { PlannerDayStats } from "./plannerDayStats";
 import { PlannerExerciseStats } from "./plannerExerciseStats";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { ExerciseImageUtils } from "../../../models/exerciseImage";
 import { Exercise } from "../../../models/exercise";
 import { HtmlUtils } from "../../../utils/html";
 import { TimeUtils } from "../../../utils/time";
@@ -44,7 +43,6 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
-  const exerciseImageUrls = [];
   let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
     for (const plannerExercise of evaluatedDay.data) {
@@ -52,22 +50,10 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       if (exercise) {
         exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
       }
-      const imageUrl =
-        exercise && ExerciseImageUtils.exists(exercise, "small")
-          ? ExerciseImageUtils.url(exercise, "small")
-          : undefined;
-      if (imageUrl) {
-        exerciseImageUrls[plannerExercise.line - 1] = imageUrl;
-      }
     }
     approxDayTime = TimeUtils.formatHHMM(
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
-  }
-  for (let i = 0; i < exerciseImageUrls.length; i++) {
-    if (!exerciseImageUrls[i]) {
-      exerciseImageUrls[i] = undefined;
-    }
   }
 
   return (
@@ -90,28 +76,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
           )}
         </div>
         <div className="flex">
-          <div className="hidden w-10 sm:block">
-            <ul className="pt-2">
-              {exerciseImageUrls.map((imageUrl) => {
-                return (
-                  <li style={{ width: "34px", height: "31px" }} className="text-center">
-                    {imageUrl ? (
-                      <img
-                        style={{ maxWidth: "34px", maxHeight: "31px" }}
-                        data-cy="exercise-image-small"
-                        className="inline"
-                        src={imageUrl}
-                      />
-                    ) : (
-                      <div />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
           <div className="flex-1 w-0">
             <PlannerEditorView
+              lineNumbers={true}
               name="Exercises"
               customExercises={exercises}
               equipment={equipment}

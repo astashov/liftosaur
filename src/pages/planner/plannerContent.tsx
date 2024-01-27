@@ -42,6 +42,12 @@ import { ObjectUtils } from "../../utils/object";
 import { PlannerContentFull } from "./plannerContentFull";
 import { Equipment } from "../../models/equipment";
 import { useRef } from "preact/compat";
+import { Modal } from "../../components/modal";
+import { GroupHeader } from "../../components/groupHeader";
+import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
+import { PlannerToProgram2 } from "../../models/plannerToProgram2";
+import { UidFactory } from "../../utils/generator";
+import { IconPreview } from "../../components/icons/iconPreview";
 
 declare let __HOST__: string;
 
@@ -222,7 +228,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       </div>
 
       <div className="flex flex-col mb-2 sm:flex-row">
-        <h2 className="flex-1 pb-4 mr-2 text-2xl font-bold">
+        <h2 className="flex-1 py-2 mr-2 text-2xl font-bold">
           <BuilderLinkInlineInput
             value={state.current.program.name}
             onInputString={(v) => {
@@ -232,6 +238,19 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           />
         </h2>
         <div className="flex items-center">
+          <div className={state.fulltext != null ? "hidden sm:block" : ""}>
+            <button
+              disabled={isInvalid}
+              className="p-2"
+              onClick={() => {
+                if (!isInvalid) {
+                  dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
+                }
+              }}
+            >
+              <IconPreview size={22} />
+            </button>
+          </div>
           {state.fulltext == null && (
             <>
               <div>
@@ -372,6 +391,26 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           settings={settings}
           onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false))}
         />
+      )}
+      {state.ui.showPreview && (
+        <Modal
+          isFullWidth={true}
+          shouldShowClose={true}
+          onClose={() => dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
+        >
+          <GroupHeader size="large" name="Program Preview" />
+          <ProgramPreviewOrPlayground
+            program={new PlannerToProgram2(
+              UidFactory.generateUid(8),
+              [],
+              state.current.program,
+              settings
+            ).convertToProgram()}
+            isMobile={false}
+            hasNavbar={false}
+            settings={settings}
+          />
+        </Modal>
       )}
       {modalExerciseUi && (
         <ModalExercise

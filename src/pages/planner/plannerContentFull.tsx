@@ -4,15 +4,12 @@ import { h, JSX } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
-import { IconD } from "../../components/icons/iconD";
-import { IconE } from "../../components/icons/iconE";
 import { IconHelp } from "../../components/icons/iconHelp";
+import { IconPreview } from "../../components/icons/iconPreview";
 import { IconSpinner } from "../../components/icons/iconSpinner";
-import { IconW } from "../../components/icons/iconW";
 import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
 import { Exercise } from "../../models/exercise";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { IPlannerProgram, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -24,6 +21,9 @@ import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull"
 import { PlannerWeekStats } from "./components/plannerWeekStats";
 import { PlannerProgram } from "./models/plannerProgram";
 import { IPlannerFullText, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
+import { IconGraphsE } from "../../components/icons/iconGraphsE";
+import { IconMusclesD } from "../../components/icons/iconMusclesD";
+import { IconMusclesW } from "../../components/icons/iconMusclesW";
 
 export interface IPlannerContentFullProps {
   fullText: IPlannerFullText;
@@ -105,7 +105,6 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   const evalResults = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
 
-  const exerciseImageUrls = [];
   if (evaluatedWeeks.success) {
     for (const week of evaluatedWeeks.data) {
       for (const day of week.days) {
@@ -114,20 +113,8 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           if (exercise) {
             exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
           }
-          const imageUrl =
-            exercise && ExerciseImageUtils.exists(exercise, "small")
-              ? ExerciseImageUtils.url(exercise, "small")
-              : undefined;
-          if (imageUrl) {
-            exerciseImageUrls[plannerExercise.line - 1] = imageUrl;
-          }
         }
       }
-    }
-  }
-  for (let i = 0; i < exerciseImageUrls.length; i++) {
-    if (!exerciseImageUrls[i]) {
-      exerciseImageUrls[i] = undefined;
     }
   }
 
@@ -183,15 +170,26 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           </div>
           <div>
             <button
+              disabled={!evaluatedWeeks.success}
+              className="p-2 align-middle"
+              onClick={() => {
+                if (evaluatedWeeks.success) {
+                  props.dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
+                }
+              }}
+            >
+              <IconPreview size={27} />
+            </button>
+            <button
               disabled={!focusedExercise}
               onClick={() => {
                 if (focusedExercise) {
                   setShowExerciseStats(true);
                 }
               }}
-              className={`${!focusedExercise ? "cursor-not-allowed" : ""} p-2`}
+              className={`${!focusedExercise ? "cursor-not-allowed" : ""} p-2 align-middle`}
             >
-              <IconE color={focusedExercise ? "#3C5063" : "#D2D8DE"} />
+              <IconGraphsE color={focusedExercise ? "#3C5063" : "#D2D8DE"} />
             </button>
             <button
               disabled={dayIndex === -1}
@@ -200,9 +198,9 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
                   setShowDayStats(true);
                 }
               }}
-              className={`${dayIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
+              className={`${dayIndex === -1 ? "cursor-not-allowed" : ""} p-2 align-middle`}
             >
-              <IconD color={dayIndex !== -1 ? "#3C5063" : "#D2D8DE"} />
+              <IconMusclesD color={dayIndex !== -1 ? "#3C5063" : "#D2D8DE"} />
             </button>
             <button
               disabled={weekIndex === -1}
@@ -211,34 +209,14 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
                   setShowWeekStats(true);
                 }
               }}
-              className={`${weekIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
+              className={`${weekIndex === -1 ? "cursor-not-allowed" : ""} p-2 align-middle`}
             >
-              <IconW color={weekIndex !== -1 ? "#3C5063" : "#D2D8DE"} />
+              <IconMusclesW color={weekIndex !== -1 ? "#3C5063" : "#D2D8DE"} />
             </button>
           </div>
         </div>
       </div>
       <div className="flex flex-col md:flex-row">
-        <div className="hidden w-10 sm:block">
-          <ul className="pt-2">
-            {exerciseImageUrls.map((imageUrl) => {
-              return (
-                <li style={{ width: "34px", height: "31px" }} className="text-center">
-                  {imageUrl ? (
-                    <img
-                      style={{ maxWidth: "34px", maxHeight: "31px" }}
-                      data-cy="exercise-image-small"
-                      className="inline"
-                      src={imageUrl}
-                    />
-                  ) : (
-                    <div />
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
         <div className="flex-1 min-w-0" ref={editorRef}>
           <PlannerEditorView
             name="Program"
