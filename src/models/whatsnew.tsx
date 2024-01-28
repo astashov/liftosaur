@@ -812,6 +812,53 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240127": {
+    title: <span>✨ New "Experimental" programs (aka "in-app Workout Planner") ✨</span>,
+    body: (
+      <ul>
+        <li>
+          Massive update - now there's a way to build Liftosaur programs using completely different syntax - the one
+          that you used in the{" "}
+          <InternalLink
+            name="whatsnew-workout-planner"
+            className="font-bold underline text-bluev2"
+            href="https://www.liftosaur.com/planner"
+          >
+            Workout Planner
+          </InternalLink>
+        </li>
+        <li>
+          The syntax got extended with the new features, making it pretty much as powerful as a regular way of building
+          programs. You now can use Liftoscript within the new syntax to describe the progressions.
+        </li>
+        <li>
+          Basically, the new programs is just one blob of text, and it changes over time based on your progressions. You
+          can define set variations, quick add sets, descriptions, ways to switch between them, etc - everything is
+          possible!
+        </li>
+        <li>
+          To create that "experimental" program, just go to <strong>"Choose Program"</strong> screen, tap on{" "}
+          <strong>"Create"</strong>, and tap the
+          <strong>"Create experimental program"</strong> button.
+        </li>
+        <li>
+          Read more about new syntax and how to write programs that way{" "}
+          <InternalLink
+            name="whatsnew-planner-blogpost"
+            className="font-bold underline text-bluev2"
+            href="https://www.liftosaur.com/blog/posts/new-experimental-program-editor/"
+          >
+            in the blogpost.
+          </InternalLink>
+        </li>
+        <li>
+          IMHO it should be much easier to build programs this way. Eventually I'd like to make it a default way of
+          writing programs in Liftosaur. So, check it out, and don't hesitate to ask questions in our Discord channel,
+          subreddit, or just shooting email to <strong>info@liftosaur.com</strong>!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
