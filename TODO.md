@@ -8,7 +8,6 @@
 - Custom exercise lists
 - Take custom timers into account
 - Import from Perseus
-- Disable Zoom in the app
 - Add integration with Apple Health
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
@@ -18,7 +17,6 @@
 - Add reps/volume PR
 - Add 'bodyweight' variable
 - Add a way to create "similar" exercise
-- Switch shoulders to synergist for rows
 
 * Programs
   - 5/3/1s

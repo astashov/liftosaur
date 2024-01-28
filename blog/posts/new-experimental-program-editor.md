@@ -5,6 +5,8 @@ og_title: New Experimental Program Editor
 og_description: New Experimental Program Editor combines Workout Planner + Liftoscript, and makes writing Liftosaur programs way faster.
 og_image: /images/new-experimental-program-editor-intro.jpg
 tags: ["weightlifting", "tech"]
+reddit: https://www.reddit.com/r/liftosaur/comments/1acnvmt/new_experimetal_programs_aka_inapp_workout/
+twitter: https://twitter.com/liftosaur/status/1751384940040601772
 ---
 
 <div><img src="../../images/new-experimental-program-editor-intro.jpg" width="100%" alt="Buff guy writing notes" /></div>
