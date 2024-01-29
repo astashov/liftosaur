@@ -50,6 +50,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: CodeEditor): Languag
           { label: "completedReps", type: "keyword" },
           { label: "completedRPE", type: "keyword" },
           { label: "setVariationIndex", type: "keyword" },
+          { label: "descriptionIndex", type: "keyword" },
           { label: "rm1", type: "keyword" },
           { label: "day", type: "keyword" },
           { label: "week", type: "keyword" },

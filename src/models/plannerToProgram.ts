@@ -236,7 +236,7 @@ export class PlannerToProgram {
   private buildProgramExerciseDescriptions(): Record<string, Record<string, Array<Required<IDayData>>>> {
     const descriptions: Record<string, Record<string, Array<Required<IDayData>>>> = {};
     this.generateEquipmentTypeAndDayData((exercise, name, dayData) => {
-      const description = exercise.description || "";
+      const description = exercise.descriptions[0]?.value || "";
       if (description) {
         descriptions[name] = descriptions[name] || {};
         descriptions[name][description] = descriptions[name][description] || [];

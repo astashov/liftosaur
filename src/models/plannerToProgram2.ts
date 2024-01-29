@@ -83,7 +83,7 @@ export class PlannerToProgram2 {
                 state: {},
                 variations: [],
                 variationExpr: "",
-                descriptionExpr: "day",
+                descriptionExpr: "",
                 finishDayExpr: "",
               };
             }
@@ -129,12 +129,15 @@ export class PlannerToProgram2 {
                 return { sets };
               }
             );
-            if (evalExercise.description) {
-              programExercise.descriptions.push(evalExercise.description);
+            const newDescriptions = evalExercise.descriptions.map((description, descriptionIndex) => {
               descriptionIndexes[key] = descriptionIndexes[key] || {};
               descriptionIndexes[key][dayIndex] = descriptionIndexes[key][dayIndex] || { count: 0, current: 0 };
               descriptionIndexes[key][dayIndex].count += 1;
-            }
+              if (description.isCurrent) {
+                descriptionIndexes[key][dayIndex].current = descriptionIndex;
+              }
+              return description.value;
+            });
             let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
             let warmupSets: IProgramExerciseWarmupSet[] | undefined = undefined;
@@ -186,6 +189,7 @@ export class PlannerToProgram2 {
               }
             }
             programExercise.variations = programExercise.variations.concat(newVariations);
+            programExercise.descriptions = programExercise.descriptions.concat(newDescriptions);
             programExercise.state = state;
             programExercise.finishDayExpr = finishDayExpr;
             programExercise.enableRpe = programExercise.variations.some((v) =>
@@ -226,8 +230,8 @@ export class PlannerToProgram2 {
       programExercise.descriptionExpr =
         ObjectUtils.keys(descriptionIndex || {})
           .map((di) => {
-            const expr = `day == ${parseInt(di, 10) + 1} ? ${index + 2} : `;
-            index += variationIndex[di].count;
+            const expr = `day == ${parseInt(di, 10) + 1} ? ${index + descriptionIndex[di].current + 2} : `;
+            index += descriptionIndex[di].count;
             return expr;
           })
           .join("") + "1";

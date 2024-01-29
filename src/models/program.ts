@@ -378,8 +378,23 @@ export namespace Program {
       dayData,
       settings
     );
+    const descriptionIndexResult = Program.runDescriptionScript(
+      programExercise.descriptionExpr ?? "1",
+      programExercise.exerciseType,
+      state,
+      dayData,
+      settings
+    );
     const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
+    const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(
+      dayData,
+      entry,
+      settings,
+      undefined,
+      setVariationIndex,
+      descriptionIndex
+    );
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
     let variables: ILiftoscriptEvaluatorVariables = {};
@@ -552,8 +567,23 @@ export namespace Program {
       dayData,
       settings
     );
+    const descriptionIndexResult = Program.runDescriptionScript(
+      programExercise.descriptionExpr ?? "1",
+      programExercise.exerciseType,
+      state,
+      dayData,
+      settings
+    );
     const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-    const bindings = Progress.createScriptBindings(dayData, entry, settings, undefined, setVariationIndex);
+    const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+    const bindings = Progress.createScriptBindings(
+      dayData,
+      entry,
+      settings,
+      undefined,
+      setVariationIndex,
+      descriptionIndex
+    );
     const fns = Progress.createScriptFunctions(settings);
 
     const newState: IProgramState = {
@@ -620,6 +650,7 @@ export namespace Program {
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
+    const descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const dayData = Progress.getDayData(progress);
     let newProgram = lf(program)
       .p("exercises")
@@ -659,6 +690,10 @@ export namespace Program {
                   setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
                     variables.setVariationIndex;
                 }
+                if (variables.descriptionIndex?.length) {
+                  descriptionIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
+                    variables.descriptionIndex;
+                }
               }
 
               if (reuseLogicId && newExercise.reuseLogic) {
@@ -681,7 +716,8 @@ export namespace Program {
         newProgram,
         program.planner,
         settings,
-        setVariationIndexMap
+        setVariationIndexMap,
+        descriptionIndexMap
       ).convertToPlanner();
       newProgram = new PlannerToProgram2(
         newProgram.id,

@@ -20,6 +20,7 @@ import { Exercise, IExercise } from "../../../models/exercise";
 import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
+import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -143,15 +144,15 @@ export class PlannerProgram {
   ): IPlannerEvalResult[][] {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       if (!args?.skipDescriptionPostProcess) {
-        if (exercise.description == null) {
+        if (exercise.descriptions == null) {
           const lastWeekExercise = this.findLastWeekExercise(
             program,
             weekIndex,
             dayIndex,
             exercise,
-            (ex) => ex.description != null
+            (ex) => ex.descriptions != null
           );
-          exercise.description = lastWeekExercise?.description;
+          exercise.descriptions = lastWeekExercise?.descriptions || [];
         }
       }
     });
@@ -164,6 +165,22 @@ export class PlannerProgram {
       }
     });
     return program;
+  }
+
+  public static topLineItems(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerTopLineItem[][][] {
+    let dayIndex = 0;
+    return plannerProgram.weeks.map((week, weekIndex) => {
+      return week.days.map((day, dayInWeekIndex) => {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
+          day: dayIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          week: weekIndex + 1,
+        });
+        dayIndex += 1;
+        return evaluator.topLineMap(tree.topNode);
+      });
+    });
   }
 
   public static evaluate(

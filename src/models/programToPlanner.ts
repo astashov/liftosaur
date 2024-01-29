@@ -34,7 +34,8 @@ export class ProgramToPlanner {
     private readonly program: IProgram,
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings,
-    private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>
+    private readonly setVariationIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>,
+    private readonly descriptionIndexMap: Partial<Record<string, ILiftoscriptVariableValue<number>[]>>
   ) {}
 
   public static exerciseKeyForProgramExercise(programExercise: IProgramExercise, settings: ISettings): string {
@@ -84,33 +85,6 @@ export class ProgramToPlanner {
     return this._evaluatedWeeks;
   }
 
-  public descriptionsMap(): Partial<Record<string, Record<number, string>>> {
-    const evaluatedWeeks = this.getEvaluatedWeeks();
-
-    const descriptionsMap: Record<string, Record<number, string>> = {};
-    const descriptionsRunningIndex: Record<string, number> = {};
-
-    let descriptionsDayIndex = 0;
-    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
-      const week = evaluatedWeeks[weekIndex];
-      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
-        const day = week[dayInWeekIndex];
-        if (day.success) {
-          for (const exercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(exercise, this.settings);
-            if (exercise.description) {
-              descriptionsRunningIndex[key] = descriptionsRunningIndex[key] || 0;
-              descriptionsMap[key] = descriptionsMap[key] || {};
-              descriptionsMap[key][descriptionsDayIndex] = exercise.description;
-            }
-          }
-        }
-        descriptionsDayIndex += 1;
-      }
-    }
-    return descriptionsMap;
-  }
-
   private getCurrentSetVariationIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
@@ -149,10 +123,48 @@ export class ProgramToPlanner {
     return 0;
   }
 
+  private getCurrentDescriptionIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
+    const evaluatedWeeks = this.getEvaluatedWeeks();
+    const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
+    if (exercises.success) {
+      const exercise = exercises.data.find((e) => PlannerToProgram2.plannerExerciseKey(e, this.settings) === key);
+      if (exercise != null) {
+        const numberOfDescriptions = exercise.descriptions.length;
+        let isCurrentIndex = exercise.descriptions.findIndex((v) => v.isCurrent);
+        isCurrentIndex = isCurrentIndex === -1 ? 0 : isCurrentIndex;
+        const descriptionIndexAdd = this.descriptionIndexMap[key];
+        if (descriptionIndexAdd != null) {
+          for (const add of descriptionIndexAdd) {
+            const [targetWeek, targetDay] = ProgramExercise.normalizeTarget(add.target, 2);
+            if (
+              (targetWeek === "*" || targetWeek === weekIndex + 1) &&
+              (targetDay === "*" || targetDay === dayInWeekIndex + 1)
+            ) {
+              if (add.op === "=") {
+                isCurrentIndex = add.value - 1;
+              } else if (add.op === "+=") {
+                isCurrentIndex += add.value;
+              } else if (add.op === "-=") {
+                isCurrentIndex -= add.value;
+              } else if (add.op === "*=") {
+                isCurrentIndex *= add.value;
+              } else if (add.op === "/=") {
+                isCurrentIndex /= add.value;
+              }
+            }
+          }
+        }
+        isCurrentIndex = isCurrentIndex % numberOfDescriptions;
+        return isCurrentIndex;
+      }
+    }
+    return 0;
+  }
+
   public convertToPlanner(): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
+    const topLineMap = PlannerProgram.topLineItems(this.plannerProgram, this.settings);
     const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
-    const descriptionsMap = this.descriptionsMap();
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
@@ -161,117 +173,172 @@ export class ProgramToPlanner {
       const week = this.program.weeks[weekIndex];
       const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
+        const topLines = topLineMap[weekIndex][dayInWeekIndex];
         const weekDay = week.days[dayInWeekIndex];
         const programDay = this.program.days.find((d) => d.id === weekDay.id)!;
         const plannerDay: IPlannerProgramDay = { name: programDay.name, exerciseText: "" };
         const exerciseTextArr: string[] = [];
-        for (const dayExercise of programDay.exercises) {
-          const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
-          const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, this.settings);
-          const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
-          let plannerExercise = "";
-          const description = descriptionsMap[key]?.[dayIndex];
-          if (description) {
-            plannerExercise +=
-              description
-                .split("\n")
-                .map((l) => `// ${l}`)
-                .join("\n") + "\n";
-          }
-          plannerExercise += `${programExercise.name}`;
-          if (programExercise.exerciseType.equipment !== exercise.defaultEquipment) {
-            plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}`;
-          }
-          plannerExercise += " / ";
-          const [from, to] = variationsMap[key][dayIndex];
-          const currentSetVariationIndex = this.getCurrentSetVariationIndex(key, weekIndex, dayInWeekIndex);
-          const variations = programExercise.variations.slice(from, to);
-
-          const firstWeight = variations[0]?.sets[0]?.weightExpr;
-          const firstRpe = variations[0]?.sets[0]?.rpeExpr;
-          const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
-          const firstTimer = variations[0]?.sets[0]?.timerExpr;
-          const globals: IPlannerToProgram2Globals = {
-            weight:
-              firstWeight != null && variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight))
-                ? firstWeight
-                : undefined,
-            rpe:
-              firstRpe != null &&
-              variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe))
-                ? firstRpe
-                : undefined,
-            timer:
-              firstTimer != null && variations.every((v) => v.sets.every((s) => s.timerExpr === firstTimer))
-                ? firstTimer
-                : undefined,
-          };
-
-          plannerExercise += variations
-            .map((v, i) => {
-              let addQuickAddSet = false;
-              if (!addedQuickAddSet[key] && programExercise.quickAddSets) {
-                addQuickAddSet = true;
-                addedQuickAddSet[key] = true;
+        let descriptionIndex: number | undefined = undefined;
+        let addedCurrentDescription = false;
+        for (let lineIndex = 0; lineIndex < topLines.length; lineIndex += 1) {
+          const line = topLines[lineIndex];
+          switch (line.type) {
+            case "comment": {
+              exerciseTextArr.push(line.value);
+              if (descriptionIndex != null) {
+                descriptionIndex += 1;
               }
-              const sets = this.setsToString(v.sets, globals, addQuickAddSet);
-              return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
-            })
-            .join(" / ");
-
-          if (globals.weight != null) {
-            plannerExercise += ` / ${this.weightExprToStr(globals.weight)}`;
-          }
-          if (globals.rpe != null) {
-            plannerExercise += ` / @${globals.rpe}`;
-          }
-          if (globals.timer != null) {
-            plannerExercise += ` / ${globals.timer}s`;
-          }
-
-          if (!addedWarmupsMap[key] && programExercise.warmupSets) {
-            const warmupSets = this.getWarmupSets(programExercise);
-            if (warmupSets != null) {
-              plannerExercise += ` / warmup: ${warmupSets}`;
+              break;
             }
-          }
-
-          if (
-            !addedProgressMap[key] &&
-            (programExercise.finishDayExpr ||
-              programExercise.reuseFinishDayScript ||
-              ObjectUtils.isNotEmpty(programExercise.state))
-          ) {
-            const progress = this.getProgress(programExercise.state, programExercise.finishDayExpr);
-            if (progress != null) {
-              plannerExercise += ` / progress: ${progress}`;
-            } else {
-              const stateVars = ObjectUtils.keys(programExercise.state).map(
-                (k) => `${k}: ${this.printVal(programExercise.state[k])}`
-              );
-              plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
-              if (programExercise.reuseFinishDayScript) {
-                const originalProgramExercise = this.program.exercises.find(
-                  (e) => e.id === programExercise.reuseFinishDayScript
-                );
-                if (originalProgramExercise != null) {
-                  const originalExercise = Exercise.get(originalProgramExercise.exerciseType, this.settings.exercises);
-                  const isDefaultEquipment =
-                    originalProgramExercise.exerciseType.equipment === originalExercise.defaultEquipment;
-                  const originalKey = `${originalProgramExercise.name}${
-                    !isDefaultEquipment
-                      ? `, ${equipmentName(originalProgramExercise.exerciseType.equipment, this.settings.equipment)}`
-                      : ""
-                  }`;
-                  plannerExercise += ` { ...${originalKey} }`;
+            case "description": {
+              let key: string | undefined;
+              for (let i = lineIndex; i < topLines.length; i += 1) {
+                if (topLines[i].type === "exercise") {
+                  key = topLines[i].value;
+                  break;
                 }
-              } else if (programExercise.finishDayExpr) {
-                plannerExercise += " " + programExercise.finishDayExpr;
               }
+              let value: string;
+              if (descriptionIndex == null) {
+                descriptionIndex = 0;
+              }
+              if (key != null) {
+                const currentIndex = this.getCurrentDescriptionIndex(key, weekIndex, dayInWeekIndex);
+                if (currentIndex !== 0 && currentIndex === descriptionIndex && !addedCurrentDescription) {
+                  value = line.value.replace(/^\/\/\s*!?\s*/, "// ! ");
+                  addedCurrentDescription = true;
+                } else {
+                  value = line.value.replace(/^(\/\/\s*)!\s*/, "$1");
+                }
+              } else {
+                value = line.value.replace(/^(\/\/\s*)!\s*/, "$1");
+              }
+              exerciseTextArr.push(value);
+              break;
             }
-            addedProgressMap[key] = true;
+            case "empty": {
+              exerciseTextArr.push("");
+              if (descriptionIndex != null) {
+                descriptionIndex += 1;
+              }
+              break;
+            }
+            case "exercise": {
+              descriptionIndex = undefined;
+              addedCurrentDescription = false;
+              const dayExercise = this.program.exercises.find(
+                (e) => ProgramToPlanner.exerciseKeyForProgramExercise(e, this.settings) === line.value
+              )!;
+              const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
+              const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, this.settings);
+              const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
+              let plannerExercise = "";
+              plannerExercise += `${programExercise.name}`;
+              if (programExercise.exerciseType.equipment !== exercise.defaultEquipment) {
+                plannerExercise += `, ${equipmentName(
+                  programExercise.exerciseType.equipment,
+                  this.settings.equipment
+                )}`;
+              }
+              plannerExercise += " / ";
+              const [from, to] = variationsMap[key][dayIndex];
+              const currentSetVariationIndex = this.getCurrentSetVariationIndex(key, weekIndex, dayInWeekIndex);
+              const variations = programExercise.variations.slice(from, to);
+
+              const firstWeight = variations[0]?.sets[0]?.weightExpr;
+              const firstRpe = variations[0]?.sets[0]?.rpeExpr;
+              const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
+              const firstTimer = variations[0]?.sets[0]?.timerExpr;
+              const globals: IPlannerToProgram2Globals = {
+                weight:
+                  firstWeight != null && variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight))
+                    ? firstWeight
+                    : undefined,
+                rpe:
+                  firstRpe != null &&
+                  variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe))
+                    ? firstRpe
+                    : undefined,
+                timer:
+                  firstTimer != null && variations.every((v) => v.sets.every((s) => s.timerExpr === firstTimer))
+                    ? firstTimer
+                    : undefined,
+              };
+
+              plannerExercise += variations
+                .map((v, i) => {
+                  let addQuickAddSet = false;
+                  if (!addedQuickAddSet[key] && programExercise.quickAddSets) {
+                    addQuickAddSet = true;
+                    addedQuickAddSet[key] = true;
+                  }
+                  const sets = this.setsToString(v.sets, globals, addQuickAddSet);
+                  return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
+                })
+                .join(" / ");
+
+              if (globals.weight != null) {
+                plannerExercise += ` / ${this.weightExprToStr(globals.weight)}`;
+              }
+              if (globals.rpe != null) {
+                plannerExercise += ` / @${globals.rpe}`;
+              }
+              if (globals.timer != null) {
+                plannerExercise += ` / ${globals.timer}s`;
+              }
+
+              if (!addedWarmupsMap[key] && programExercise.warmupSets) {
+                const warmupSets = this.getWarmupSets(programExercise);
+                if (warmupSets != null) {
+                  plannerExercise += ` / warmup: ${warmupSets}`;
+                }
+              }
+
+              if (
+                !addedProgressMap[key] &&
+                (programExercise.finishDayExpr ||
+                  programExercise.reuseFinishDayScript ||
+                  ObjectUtils.isNotEmpty(programExercise.state))
+              ) {
+                const progress = this.getProgress(programExercise.state, programExercise.finishDayExpr);
+                if (progress != null) {
+                  plannerExercise += ` / progress: ${progress}`;
+                } else {
+                  const stateVars = ObjectUtils.keys(programExercise.state).map(
+                    (k) => `${k}: ${this.printVal(programExercise.state[k])}`
+                  );
+                  plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
+                  if (programExercise.reuseFinishDayScript) {
+                    const originalProgramExercise = this.program.exercises.find(
+                      (e) => e.id === programExercise.reuseFinishDayScript
+                    );
+                    if (originalProgramExercise != null) {
+                      const originalExercise = Exercise.get(
+                        originalProgramExercise.exerciseType,
+                        this.settings.exercises
+                      );
+                      const isDefaultEquipment =
+                        originalProgramExercise.exerciseType.equipment === originalExercise.defaultEquipment;
+                      const originalKey = `${originalProgramExercise.name}${
+                        !isDefaultEquipment
+                          ? `, ${equipmentName(
+                              originalProgramExercise.exerciseType.equipment,
+                              this.settings.equipment
+                            )}`
+                          : ""
+                      }`;
+                      plannerExercise += ` { ...${originalKey} }`;
+                    }
+                  } else if (programExercise.finishDayExpr) {
+                    plannerExercise += " " + programExercise.finishDayExpr;
+                  }
+                }
+                addedProgressMap[key] = true;
+              }
+              exerciseTextArr.push(plannerExercise);
+              break;
+            }
           }
-          exerciseTextArr.push(plannerExercise);
         }
         plannerDay.exerciseText = exerciseTextArr.join("\n");
         plannerWeek.days.push(plannerDay);

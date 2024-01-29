@@ -10,6 +10,11 @@ import {
   IAllEquipment,
 } from "../../../types";
 
+export interface IPlannerProgramExerciseDescription {
+  value: string;
+  isCurrent: boolean;
+}
+
 export interface IPlannerProgramExercise {
   label?: string;
   equipment?: string;
@@ -18,7 +23,7 @@ export interface IPlannerProgramExercise {
   sets: IPlannerProgramExerciseSet[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
-  description?: string;
+  descriptions: IPlannerProgramExerciseDescription[];
   properties: IPlannerProgramProperty[];
   globals: {
     logRpe?: boolean;

@@ -24,6 +24,11 @@ import { MathUtils } from "../../utils/math";
 import { PlannerToProgram2 } from "../../models/plannerToProgram2";
 import { PlannerProgram } from "./models/plannerProgram";
 
+export interface IPlannerTopLineItem {
+  type: "exercise" | "comment" | "description" | "empty";
+  value: string;
+}
+
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
   public readonly offset: number;
@@ -71,7 +76,7 @@ export class PlannerExerciseEvaluator {
   private readonly settings: ISettings;
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
 
-  private latestDescription: string | undefined = undefined;
+  private latestDescriptions: string[][] = [];
 
   constructor(script: string, settings: ISettings, mode: "perday" | "full", dayData?: IDayData) {
     this.script = script;
@@ -485,14 +490,19 @@ export class PlannerExerciseEvaluator {
     return { name, label: label ? label : undefined, equipment };
   }
 
-  private addLineComment(value: string): void {
+  private addDescription(value: string): void {
     value = value.replace(/^\/\//, "").trim();
-    this.latestDescription = this.latestDescription || "";
-    this.latestDescription += value + "\n";
+    if (this.latestDescriptions.length === 0) {
+      this.latestDescriptions.push([]);
+    }
+    this.latestDescriptions[this.latestDescriptions.length - 1].push(value);
   }
 
   private evaluateExercise(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
+      if (this.latestDescriptions.length > 0) {
+        this.latestDescriptions.push([]);
+      }
       return;
     } else if (expr.type.name === PlannerNodeName.Week) {
       if (this.mode === "perday") {
@@ -524,8 +534,8 @@ export class PlannerExerciseEvaluator {
         dayInWeek: (this.dayData.dayInWeek || 0) + 1,
       };
     } else if (expr.type.name === PlannerNodeName.LineComment) {
-      const value = this.getValueTrim(expr);
-      this.addLineComment(value);
+      const value = this.getValueTrim(expr).trim();
+      this.addDescription(value);
       return undefined;
     } else if (expr.type.name === PlannerNodeName.ExerciseExpression) {
       if (this.mode === "full" && (this.weeks.length === 0 || this.weeks[this.weeks.length - 1].days.length === 0)) {
@@ -575,11 +585,13 @@ export class PlannerExerciseEvaluator {
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
       const logRpe = allSets.find((set) => set.repRange == null && set.logRpe != null)?.logRpe;
       const [line] = this.getLineAndOffset(expr);
-      let description: string | undefined;
-      if (this.latestDescription) {
-        description = this.latestDescription.trim();
-        this.latestDescription = undefined;
-      }
+      const rawDescriptions: string[] = this.latestDescriptions.map((d) => d.join("\n"));
+      const currentDescriptionIndex = rawDescriptions.findIndex((d) => d.startsWith("!"));
+      const descriptions = rawDescriptions.map((d, i) => ({
+        value: d.replace(/^!/, "").trim(),
+        isCurrent: i === currentDescriptionIndex,
+      }));
+      this.latestDescriptions = [];
 
       const plannerExercise: IPlannerProgramExercise = {
         label,
@@ -588,7 +600,7 @@ export class PlannerExerciseEvaluator {
         line,
         sets: allSets,
         setVariations,
-        description,
+        descriptions,
         warmupSets: allWarmupSets,
         properties: allProperties,
         globals: {
@@ -706,5 +718,36 @@ export class PlannerExerciseEvaluator {
         throw e;
       }
     }
+  }
+
+  public topLineMap(programNode: SyntaxNode): IPlannerTopLineItem[] {
+    if (programNode.type.name !== PlannerNodeName.Program) {
+      this.error(`Unexpected node type ${programNode.type.name} - should be Program`, programNode);
+    }
+    const children = getChildren(programNode);
+    const result: IPlannerTopLineItem[] = [];
+    for (const child of children) {
+      if (child.type.name === PlannerNodeName.ExerciseExpression) {
+        const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
+        const { label, name, equipment } = this.extractNameParts(this.getValue(nameNode));
+        const exercise = Exercise.findByName(name, this.settings.exercises);
+        const key = `${label ? `${label}-` : ""}${name}-${
+          equipment || exercise?.defaultEquipment || "bodyweight"
+        }`.toLowerCase();
+        result.push({ type: "exercise", value: key });
+      } else if (child.type.name === PlannerNodeName.LineComment) {
+        result.push({ type: "description", value: this.getValueTrim(child).trim() });
+      } else if (child.type.name === PlannerNodeName.TripleLineComment) {
+        result.push({ type: "comment", value: this.getValueTrim(child).trim() });
+      } else if (child.type.name === PlannerNodeName.EmptyExpression) {
+        result.push({ type: "empty", value: "" });
+      } else {
+        this.error(
+          `Unexpected node type ${child.type.name}, should be only exercise, comment, description or empty line`,
+          child
+        );
+      }
+    }
+    return result;
   }
 }

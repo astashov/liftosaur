@@ -121,6 +121,7 @@ export interface ILiftoscriptEvaluatorVariables {
   timer?: ILiftoscriptVariableValue<number>[];
   RPE?: ILiftoscriptVariableValue<number>[];
   setVariationIndex?: ILiftoscriptVariableValue<number>[];
+  descriptionIndex?: ILiftoscriptVariableValue<number>[];
 }
 
 export class LiftoscriptEvaluator {
@@ -227,6 +228,7 @@ export class LiftoscriptEvaluator {
             "completedRPE",
             "RPE",
             "setVariationIndex",
+            "descriptionIndex",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
@@ -251,7 +253,7 @@ export class LiftoscriptEvaluator {
   }
 
   private assignToVariable(
-    key: "reps" | "weights" | "timer" | "RPE" | "minReps" | "setVariationIndex",
+    key: "reps" | "weights" | "timer" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -261,8 +263,12 @@ export class LiftoscriptEvaluator {
       if (indexes.length > 2) {
         this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
       }
+    } else if (key === "descriptionIndex") {
+      if (indexes.length > 2) {
+        this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+      }
     } else if (indexes.length > 4) {
-      this.error(`setVariationIndex can only have 4 values inside [*:*:*:*]`, expression);
+      this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
     }
     const indexValues = CollectionUtils.compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
@@ -412,7 +418,8 @@ export class LiftoscriptEvaluator {
           variable === "RPE" ||
           variable === "minReps" ||
           variable === "timer" ||
-          variable === "setVariationIndex"
+          variable === "setVariationIndex" ||
+          variable === "descriptionIndex"
         ) {
           if (this.mode === "planner") {
             return this.assignToVariable(variable, expression, indexExprs, "=");
@@ -478,7 +485,8 @@ export class LiftoscriptEvaluator {
           variable === "RPE" ||
           variable === "minReps" ||
           variable === "timer" ||
-          variable === "setVariationIndex"
+          variable === "setVariationIndex" ||
+          variable === "descriptionIndex"
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {

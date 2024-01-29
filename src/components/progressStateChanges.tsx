@@ -58,7 +58,15 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
         )}`;
       }
     }
-    for (const key of ["reps", "weights", "RPE", "minReps", "timer", "setVariationIndex"] as const) {
+    for (const key of [
+      "reps",
+      "weights",
+      "RPE",
+      "minReps",
+      "timer",
+      "setVariationIndex",
+      "descriptionIndex",
+    ] as const) {
       if (variables[key] != null) {
         for (const value of variables[key] || []) {
           const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
