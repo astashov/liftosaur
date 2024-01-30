@@ -325,7 +325,7 @@ export namespace Program {
       throw new Error(variationIndexResult.error);
     }
     const variations = ProgramExercise.getVariations(programExercise, allProgramExercises);
-    return Math.max(0, Math.min(variationIndexResult.data - 1, variations.length - 1));
+    return Math.floor(Math.max(0, Math.min(variationIndexResult.data - 1, variations.length - 1)));
   }
 
   export function parseExerciseFinishDayScript(
