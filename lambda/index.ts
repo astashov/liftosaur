@@ -1611,6 +1611,7 @@ const getProgramShorturlHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const di = payload.di;
   const id = params.id;
+  const env = Utils.getEnv();
   let program: IExportedProgram | undefined;
   const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const urlString = await new UrlDao(di).get(id);
@@ -1624,8 +1625,13 @@ const getProgramShorturlHandler: RouteHandler<
         if (result.success) {
           program = result.data;
           if (program?.program.planner != null) {
-            const host = ResponseUtils.getHost(payload.event);
-            const redirectUrl = host ? UrlUtils.build(`https://${host}`) : UrlUtils.build("https://www.liftosaur.com");
+            const host =
+              env === "dev"
+                ? Utils.isLocal()
+                  ? "local.liftosaur.com:8080"
+                  : "stage.liftosaur.com"
+                : "www.liftosaur.com";
+            const redirectUrl = UrlUtils.build(`https://${host}`);
             redirectUrl.pathname = "/planner";
             const exportedProgram: IExportedPlannerProgram = {
               program: program.program.planner,

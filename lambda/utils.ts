@@ -2,6 +2,10 @@ export namespace Utils {
   export function getEnv(): "dev" | "prod" {
     return process.env.IS_DEV === "true" ? "dev" : "prod";
   }
+
+  export function isLocal(): boolean {
+    return process.env.IS_LOCAL === "true";
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

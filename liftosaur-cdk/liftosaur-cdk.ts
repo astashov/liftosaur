@@ -253,6 +253,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(isDev ? 240 : 300),
       handler: "lambda/run.handler",
       environment: {
+        IS_LOCAL: "false",
         IS_DEV: `${isDev}`,
         COMMIT_HASH: commitHash,
         FULL_COMMIT_HASH: fullCommitHash,

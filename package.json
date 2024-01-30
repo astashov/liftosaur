@@ -14,7 +14,7 @@
     "build:dev": "webpack",
     "lint": "tsc --listFiles | grep -v 'node_modules' | xargs eslint",
     "start": "webpack-dev-server",
-    "start:server": "IS_DEV=true IMGPREFIX=lambda/ yarn ts-node-dev --inspect --files --poll -T devserver.ts",
+    "start:server": "IS_DEV=true IS_LOCAL=true IMGPREFIX=lambda/ yarn ts-node-dev --inspect --files --poll -T devserver.ts",
     "trust": "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert/private.crt",
     "start:https": "webpack-dev-server --https --cert cert/private.pem --key cert/private.key --port 8443",
     "migrate": "curl -v -X POST http://local-api.liftosaur.com:3000/api/migrate?key=$KEY",
