@@ -190,7 +190,7 @@ export class PlannerToProgram2 {
             }
             programExercise.variations = programExercise.variations.concat(newVariations);
             programExercise.descriptions = programExercise.descriptions.concat(newDescriptions);
-            programExercise.state = state;
+            programExercise.state = { ...programExercise.state, ...state };
             programExercise.finishDayExpr = finishDayExpr;
             programExercise.enableRpe = programExercise.variations.some((v) =>
               v.sets.some((s) => s.rpeExpr != null || !!s.logRpe)
