@@ -28,7 +28,7 @@ export enum NodeName {
   AssignmentExpression = "AssignmentExpression",
   IncAssignmentExpression = "IncAssignmentExpression",
   StateVariable = "StateVariable",
-  FunctionExpression = "FunctionExpression",
+  BuiltinFunctionExpression = "BuiltinFunctionExpression",
   Keyword = "Keyword",
   VariableExpression = "VariableExpression",
   VariableIndex = "VariableIndex",
@@ -195,10 +195,10 @@ export class LiftoscriptEvaluator {
     do {
       if (cursor.node.type.isError) {
         this.error("Syntax error", cursor.node);
-      } else if (cursor.node.type.name === NodeName.FunctionExpression) {
+      } else if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
         const [keyword] = getChildren(cursor.node);
         if (keyword == null || keyword.type.name !== NodeName.Keyword) {
-          assert(NodeName.FunctionExpression);
+          assert(NodeName.BuiltinFunctionExpression);
         }
         const name = this.getValue(keyword);
         if (!(name in this.fns)) {
@@ -524,11 +524,11 @@ export class LiftoscriptEvaluator {
           this.error(`There's no state variable '${stateKey}'`, stateVar);
         }
       }
-    } else if (expr.type.name === NodeName.FunctionExpression) {
+    } else if (expr.type.name === NodeName.BuiltinFunctionExpression) {
       const fns = this.fns;
       const [keyword, ...args] = getChildren(expr);
       if (keyword == null || keyword.type.name !== NodeName.Keyword) {
-        assert(NodeName.FunctionExpression);
+        assert(NodeName.BuiltinFunctionExpression);
       }
       const name = this.getValue(keyword) as keyof typeof fns;
       if (name != null && this.fns[name] != null) {

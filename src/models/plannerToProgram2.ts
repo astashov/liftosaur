@@ -35,6 +35,20 @@ export class PlannerToProgram2 {
     return key;
   }
 
+  public static fnArgsToState(fnArgs: string[]): IProgramState {
+    const state: IProgramState = {};
+    for (const value of fnArgs) {
+      const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
+      const fnArgVal = fnArgValStr.match(/(lb|kg)/)
+        ? Weight.parse(fnArgValStr)
+        : fnArgValStr.match(/%/)
+        ? Weight.buildPct(parseFloat(fnArgValStr))
+        : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
+      state[fnArgKey] = fnArgVal ?? 0;
+    }
+    return state;
+  }
+
   public convertToProgram(): IProgram {
     const evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.settings);
     const isValid = evaluatedWeeks.every((week) => week.every((day) => day.success));
@@ -165,15 +179,7 @@ export class PlannerToProgram2 {
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
                 if (property.fnName === "custom") {
-                  for (const value of property.fnArgs) {
-                    const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
-                    const fnArgVal = fnArgValStr.match(/(lb|kg)/)
-                      ? Weight.parse(fnArgValStr)
-                      : fnArgValStr.match(/%/)
-                      ? Weight.buildPct(parseFloat(fnArgValStr))
-                      : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
-                    state[fnArgKey] = fnArgVal ?? 0;
-                  }
+                  state = { ...state, ...PlannerToProgram2.fnArgsToState(property.fnArgs) };
                   if (property.script) {
                     finishDayExpr = property.script ?? "";
                   } else if (property.body) {

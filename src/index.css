@@ -402,6 +402,15 @@ input[type="checkbox"].checkbox:disabled {
   display: none;
 }
 
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .cm-completionIcon.cm-completionIcon-liftoscript {
+  padding-left: 0.25rem;
+}
+
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .cm-completionIcon.cm-completionIcon-liftoscript,
+.planner-editor-view .cm-editor .cm-tooltip-autocomplete .cm-completionIcon-liftoscript + .cm-completionLabel {
+  display: inherit;
+}
+
 .planner-editor-view .cm-editor {
   height: auto;
   min-height: 6rem;

@@ -1,5 +1,5 @@
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
-import { defaultKeymap, historyKeymap, history } from "@codemirror/commands";
+import { defaultKeymap, historyKeymap, history, indentWithTab } from "@codemirror/commands";
 import { search, searchKeymap } from "@codemirror/search";
 import { HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";
 import { linter, forceLinting } from "@codemirror/lint";
@@ -300,7 +300,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
         top: true,
       }),
       EditorState.allowMultipleSelections.of(true),
-      keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap, ...searchKeymap]),
+      keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap, ...searchKeymap, indentWithTab]),
     ],
     { errorGutterCompartment },
   ];

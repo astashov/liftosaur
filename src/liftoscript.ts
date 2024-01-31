@@ -12,7 +12,7 @@ export const parser = LRParser.deserialize({
   goto:
     "&`wPPPxPPPP!^PxPP!r#^xxPxP$O$d$jxPxxP$n$x%O%UPPPPPP%`uZOTUY[]^_`afhijk{!Q!TuSOTUY[]^_`afhijk{!Q!TtZOTUY[]^_`afhijk{!Q!TQgVR!e!]tZOTUY[]^_`afhijk{!Q!TQugQ!^!RQ!f!_R!h!euXOTUY[]^_`afhijk{!Q!TQyhR!a!TTxh!TQ[OQfUTm[fQ!SuR!`!SQ!UyR!b!UQ|iQ!WzT!Z|!WWPOU[fQdTQlYQn]Qo^Qp_Qq`QraSvh!TQziQ!OjQ!PkQ!Y{R![!Q",
   nodeNames:
-    "⚠ LineComment Program BinaryExpression Plus Times Cmp AndOr NumberExpression Number WeightExpression Unit Percentage ParenthesisExpression BlockExpression Ternary IfExpression Keyword AssignmentExpression StateVariable VariableExpression VariableIndex Wildcard IncAssignmentExpression IncAssignment FunctionExpression UnaryExpression Not",
+    "⚠ LineComment Program BinaryExpression Plus Times Cmp AndOr NumberExpression Number WeightExpression Unit Percentage ParenthesisExpression BlockExpression Ternary IfExpression Keyword AssignmentExpression StateVariable VariableExpression VariableIndex Wildcard IncAssignmentExpression IncAssignment BuiltinFunctionExpression UnaryExpression Not",
   maxTerm: 51,
   skippedNodes: [0, 1],
   repeatNodeCount: 4,

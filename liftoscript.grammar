@@ -23,7 +23,7 @@ expression {
   IfExpression |
   AssignmentExpression |
   IncAssignmentExpression |
-  FunctionExpression |
+  BuiltinFunctionExpression |
   VariableExpression |
   StateVariable |
   UnaryExpression
@@ -41,7 +41,7 @@ IncAssignmentExpression { (StateVariable | VariableExpression) !assign IncAssign
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
 VariableIndex { Wildcard | expression }
 Wildcard { "*" }
-FunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
+BuiltinFunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
 NumberExpression { !unary Plus? Number }
 WeightExpression { NumberExpression Unit }

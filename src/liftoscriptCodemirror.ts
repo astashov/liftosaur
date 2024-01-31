@@ -1,8 +1,18 @@
 import { parser as liftoscriptParser } from "./liftoscript";
-import { LRLanguage, LanguageSupport, indentNodeProp, foldNodeProp, foldInside } from "@codemirror/language";
+import {
+  LRLanguage,
+  LanguageSupport,
+  indentNodeProp,
+  foldNodeProp,
+  foldInside,
+  syntaxTree,
+} from "@codemirror/language";
 import { styleTags, tags as t } from "@lezer/highlight";
 import { completeFromList, CompletionContext } from "@codemirror/autocomplete";
-import { CodeEditor } from "./editor";
+import { IProgramState } from "./types";
+import { PlannerNodeName } from "./pages/planner/plannerExerciseStyles";
+import { SyntaxNode } from "@lezer/common";
+import { PlannerToProgram2 } from "./models/plannerToProgram2";
 
 export const liftoscriptParserWithMetadata = liftoscriptParser.configure({
   props: [
@@ -27,47 +37,65 @@ const liftoscriptLanguage = LRLanguage.define({
   parser: liftoscriptParserWithMetadata,
 });
 
-export function buildLiftoscriptLanguageSupport(codeEditor: CodeEditor): LanguageSupport {
+function findStateInScope(context: CompletionContext, script: string): IProgramState | undefined {
+  const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
+  let node: SyntaxNode | null = nodeBefore;
+  while (node != null && node.type.name !== PlannerNodeName.FunctionExpression) {
+    node = node.parent;
+  }
+  if (node != null && node.type.name === PlannerNodeName.FunctionExpression) {
+    const fnArgs = node.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => {
+      return script.slice(argNode.from, argNode.to);
+    });
+    const state = PlannerToProgram2.fnArgsToState(fnArgs);
+    return state;
+  } else {
+    return undefined;
+  }
+}
+
+export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramState }): LanguageSupport {
   const liftosaurCompletion = liftoscriptLanguage.data.of({
     autocomplete: (context: CompletionContext) => {
       const stateVar = context.matchBefore(/state\.[a-zA-Z0-9_]*/);
       if (stateVar != null) {
+        const stateKeys = Object.keys(findStateInScope(context, context.state.doc.toString()) || codeEditor.state);
         const stateVarPrefix = stateVar.text.replace(/^state\./, "");
-        const stateVarOptions = Object.keys(codeEditor.state).filter((key) => key.startsWith(stateVarPrefix));
+        const stateVarOptions = stateKeys.filter((key) => key.startsWith(stateVarPrefix));
         const result = {
           from: stateVar.from + "state.".length,
-          options: stateVarOptions.map((opt) => ({ label: opt, type: "keyword" })),
+          options: stateVarOptions.map((opt) => ({ label: opt, type: "keyword liftoscript" })),
           validFor: /.*/,
         };
         return result;
       } else {
         return completeFromList([
-          { label: "state", type: "keyword" },
-          { label: "weights", type: "keyword" },
-          { label: "reps", type: "keyword" },
-          { label: "minReps", type: "keyword" },
-          { label: "RPE", type: "keyword" },
-          { label: "completedReps", type: "keyword" },
-          { label: "completedRPE", type: "keyword" },
-          { label: "setVariationIndex", type: "keyword" },
-          { label: "descriptionIndex", type: "keyword" },
-          { label: "rm1", type: "keyword" },
-          { label: "day", type: "keyword" },
-          { label: "week", type: "keyword" },
-          { label: "dayInWeek", type: "keyword" },
-          { label: "setIndex", type: "keyword" },
-          { label: "numberOfSets", type: "keyword" },
-          { label: "roundWeight", type: "function" },
-          { label: "calculateTrainingMax", type: "function" },
-          { label: "calculate1RM", type: "function" },
-          { label: "zeroOrGte", type: "function" },
-          { label: "rpeMultiplier", type: "function" },
-          { label: "floor", type: "function" },
-          { label: "round", type: "function" },
-          { label: "ceil", type: "function" },
-          { label: "sum", type: "function" },
-          { label: "min", type: "function" },
-          { label: "max", type: "function" },
+          { label: "state", type: "keyword liftoscript" },
+          { label: "weights", type: "keyword liftoscript" },
+          { label: "reps", type: "keyword liftoscript" },
+          { label: "minReps", type: "keyword liftoscript" },
+          { label: "RPE", type: "keyword liftoscript" },
+          { label: "completedReps", type: "keyword liftoscript" },
+          { label: "completedRPE", type: "keyword liftoscript" },
+          { label: "setVariationIndex", type: "keyword liftoscript" },
+          { label: "descriptionIndex", type: "keyword liftoscript" },
+          { label: "rm1", type: "keyword liftoscript" },
+          { label: "day", type: "keyword liftoscript" },
+          { label: "week", type: "keyword liftoscript" },
+          { label: "dayInWeek", type: "keyword liftoscript" },
+          { label: "setIndex", type: "keyword liftoscript" },
+          { label: "numberOfSets", type: "keyword liftoscript" },
+          { label: "roundWeight", type: "function liftoscript" },
+          { label: "calculateTrainingMax", type: "function liftoscript" },
+          { label: "calculate1RM", type: "function liftoscript" },
+          { label: "zeroOrGte", type: "function liftoscript" },
+          { label: "rpeMultiplier", type: "function liftoscript" },
+          { label: "floor", type: "function liftoscript" },
+          { label: "round", type: "function liftoscript" },
+          { label: "ceil", type: "function liftoscript" },
+          { label: "sum", type: "function liftoscript" },
+          { label: "min", type: "function liftoscript" },
+          { label: "max", type: "function liftoscript" },
         ])(context);
       }
     },

@@ -6,13 +6,15 @@ import { Exercise } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
-import { liftoscriptParserWithMetadata } from "../../liftoscriptCodemirror";
+import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
 import { Equipment } from "../../models/equipment";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
   wrap: parseMixed((node) => {
-    return node.name === "Liftoscript" ? { parser: liftoscriptParserWithMetadata } : null;
+    return node.name === "Liftoscript"
+      ? { parser: buildLiftoscriptLanguageSupport({ state: {} }).language.parser }
+      : null;
   }),
 });
 
@@ -70,7 +72,7 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
         if (offsetMatch) {
           text = text.substring(offsetMatch[0].length);
         }
-        const availableFns = ["lp", "sum", "dp"];
+        const availableFns = ["lp", "sum", "dp", "custom"];
         const selectedFns = availableFns.filter((prop) => prop.startsWith(text));
         return {
           from: propertyMatch.from + (offsetMatch?.[0]?.length ?? 0),
@@ -82,5 +84,5 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
     },
   });
 
-  return new LanguageSupport(language, [completion]);
+  return new LanguageSupport(language, [completion, buildLiftoscriptLanguageSupport({ state: {} }).support]);
 }
