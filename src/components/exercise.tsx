@@ -46,6 +46,7 @@ import { UidFactory } from "../utils/generator";
 import { Nux } from "./nux";
 import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
 import { IProgramMode } from "../models/program";
+import { n } from "../utils/math";
 
 interface IProps {
   showHelp: boolean;
@@ -365,7 +366,7 @@ const ExerciseContentView = memo(
                             {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
                           </span>
                           <span className="text-left whitespace-no-wrap text-grayv2-500">
-                            {w.value} {w.unit}
+                            {n(w.value)} {w.unit}
                           </span>
                           <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
                         </div>
@@ -652,7 +653,7 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
             }
           }}
         >
-          {w.rounded.value} {w.rounded.unit}
+          {n(w.rounded.value)} {w.rounded.unit}
         </button>
         <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
       </div>

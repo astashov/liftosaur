@@ -4,6 +4,7 @@ import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IExerciseType, ISettings, ISet, IWeight } from "../types";
 import { useCallback, useRef } from "preact/hooks";
+import { n } from "../utils/math";
 
 interface IProps {
   exercise: IExerciseType;
@@ -20,7 +21,7 @@ interface IProps {
 export const ExerciseSetView = memo(
   (props: IProps): JSX.Element => {
     const set = props.set;
-    const subtitle = convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value;
+    const subtitle = n(convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value);
 
     let cy: string;
     let color: "red" | "green" | "gray" | "yellow";
