@@ -203,12 +203,12 @@ export class DynamoUtil implements IDynamoUtil {
           return this.dynamo.batchGet({ RequestItems: { [args.tableName]: { Keys: group } } }).promise();
         })
       );
+      this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
       return CollectionUtils.compact(result.map((r) => r.Responses?.[args.tableName] || [])).flat() as T[];
     } catch (e) {
       this.log.log(`FAILED Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
       throw e;
     }
-    this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
   }
 
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {

@@ -257,10 +257,14 @@ export class UserDao {
     const programs = await this.getProgramsByUserId(userId);
     const programIds = Array.from(new Set(programs.map((p) => p.id)));
     if (programIds.length > 0) {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].programs,
-        keys: programIds.map((id) => ({ id, userId })),
-      });
+      await Promise.all(
+        CollectionUtils.inGroupsOf(23, programIds).map((group) => {
+          return this.di.dynamo.batchDelete({
+            tableName: userTableNames[env].programs,
+            keys: group.map((id) => ({ id, userId })),
+          });
+        })
+      );
     }
 
     const statsDb = await this.di.dynamo.query<IStatDb>({
@@ -272,19 +276,27 @@ export class UserDao {
     });
     const names = Array.from(new Set(statsDb.map((p) => p.name)));
     if (names.length > 0) {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].stats,
-        keys: names.map((name) => ({ name, userId })),
-      });
+      await Promise.all(
+        CollectionUtils.inGroupsOf(23, names).map((group) => {
+          return this.di.dynamo.batchDelete({
+            tableName: userTableNames[env].stats,
+            keys: group.map((name) => ({ name, userId })),
+          });
+        })
+      );
     }
 
     const historyRecords = await this.getHistoryByUserId(userId);
     const historyRecordIds = Array.from(new Set(historyRecords.map((p) => p.id)));
     if (historyRecordIds.length > 0) {
-      await this.di.dynamo.batchDelete({
-        tableName: userTableNames[env].historyRecords,
-        keys: historyRecordIds.map((id) => ({ id, userId })),
-      });
+      await Promise.all(
+        CollectionUtils.inGroupsOf(23, historyRecordIds).map((group) => {
+          return this.di.dynamo.batchDelete({
+            tableName: userTableNames[env].historyRecords,
+            keys: group.map((id) => ({ id, userId })),
+          });
+        })
+      );
     }
 
     await this.di.dynamo.remove({ tableName: userTableNames[env].users, key: { id: userId } });
@@ -298,10 +310,14 @@ export class UserDao {
     const logs = await logDao.getForUsers([userId]);
     const actions = logs.map((l) => l.action);
     if (actions.length > 0) {
-      await this.di.dynamo.batchDelete({
-        tableName: logTableNames[env].logs,
-        keys: actions.map((action) => ({ action, userId })),
-      });
+      await Promise.all(
+        CollectionUtils.inGroupsOf(23, actions).map((group) => {
+          return this.di.dynamo.batchDelete({
+            tableName: logTableNames[env].logs,
+            keys: group.map((action) => ({ action, userId })),
+          });
+        })
+      );
     }
   }
 
