@@ -3405,7 +3405,7 @@ export function equipmentToBarKey(equipment?: IEquipment): IBarKey | undefined {
 export function equipmentName(equipment: IEquipment | undefined, equipmentSettings?: IAllEquipment): string {
   const equipmentData = equipment && equipmentSettings ? equipmentSettings[equipment] : undefined;
   if (equipmentData?.name) {
-    return equipmentData.name;
+    return equipmentData.name.trim();
   }
   switch (equipment) {
     case "barbell":

@@ -483,7 +483,7 @@ export class PlannerExerciseEvaluator {
         ...equipments.map((e) => equipmentName(e, this.settings.equipment)),
         ...ObjectUtils.keys(this.settings.equipment),
         ...ObjectUtils.keys(this.settings.equipment).map((e) => equipmentName(e, this.settings.equipment)),
-      ].map((e) => e.toLowerCase());
+      ].map((e) => e.toLowerCase().trim());
       if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment.toLowerCase()) !== -1) {
         const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.settings.equipment);
         equipment = equipmentKey;
