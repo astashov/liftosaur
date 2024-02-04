@@ -30,12 +30,12 @@ Number { Float | Int }
 RepRange { Rep "-" Rep }
 Rep { Int }
 
-Rpe { "@" Number "+"? }
+Rpe { "@" (Number | Plus | Number Plus?) }
 Percentage { Number "%" }
 Weight { Number ("kg" | "lb") }
 Timer { Int "s" }
-SetPart { Rep "+"? "x" (RepRange | Rep) "+"? }
-KeyValue { Keyword ":" (Float | Int | Weight | Percentage) }
+SetPart { Rep Plus? "x" (RepRange | Rep) Plus? }
+KeyValue { Keyword ":" (Float | Int | Weight | Percentage) Plus? }
 SetLabel { "(" NonSeparator+ ")" }
 
 WarmupSetPart { (Rep "x")? Rep }
@@ -49,6 +49,7 @@ WarmupSetPart { (Rep "x")? Rep }
   TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
   Liftoscript { "{~" ![~]* "~}" }
+  Plus { "+" }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }
   space { $[ \t]+ }

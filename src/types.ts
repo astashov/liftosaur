@@ -533,6 +533,7 @@ export const TProgramExercise = t.intersection(
       descriptions: t.array(t.string),
     }),
     t.partial({
+      updateDayExpr: t.string,
       diffPaths: t.array(t.string),
       description: t.string,
       descriptionExpr: t.string,
@@ -544,6 +545,7 @@ export const TProgramExercise = t.intersection(
       reuseLogic: TProgramExerciseReuseLogic,
       warmupSets: t.array(TProgramExerciseWarmupSet),
       reuseFinishDayScript: t.string,
+      reuseUpdateDayScript: t.string,
     }),
   ],
   "TProgramExercise"

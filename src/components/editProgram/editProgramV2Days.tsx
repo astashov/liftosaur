@@ -49,6 +49,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           <div className="mr-2">
             <Button
               name="editor-save-v2-top"
+              data-cy="editor-save-v2-top"
               kind="orange"
               buttonSize="sm"
               disabled={isInvalid}
@@ -109,6 +110,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             </button>
             <button
               disabled={isInvalid}
+              data-cy="program-preview"
               className="p-2"
               onClick={() => {
                 if (!isInvalid) {

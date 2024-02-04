@@ -69,16 +69,18 @@ export interface IPlannerExerciseEvaluatorWeek {
   days: { name: string; line: number; exercises: IPlannerProgramExercise[] }[];
 }
 
+type IPlannerExerciseEvaluatorMode = "perday" | "full" | "onset";
+
 export class PlannerExerciseEvaluator {
   private readonly script: string;
-  private readonly mode: "perday" | "full";
+  private readonly mode: IPlannerExerciseEvaluatorMode;
   private dayData: IDayData;
   private readonly settings: ISettings;
   private weeks: IPlannerExerciseEvaluatorWeek[] = [];
 
   private latestDescriptions: string[][] = [];
 
-  constructor(script: string, settings: ISettings, mode: "perday" | "full", dayData?: IDayData) {
+  constructor(script: string, settings: ISettings, mode: IPlannerExerciseEvaluatorMode, dayData?: IDayData) {
     this.script = script;
     this.settings = settings;
     this.dayData = dayData || { day: 1, week: 1, dayInWeek: 1 };
@@ -260,6 +262,80 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private evaluateUpdate(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
+    if (expr.type.name === PlannerNodeName.ExerciseProperty) {
+      const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
+      if (valueNode == null) {
+        throw this.error(`Missing value for the property 'update'`, expr);
+      }
+      const fnNameNode = valueNode.getChild(PlannerNodeName.FunctionName);
+      if (fnNameNode == null) {
+        assert(PlannerNodeName.FunctionName);
+      }
+      const fnName = this.getValue(fnNameNode);
+      if (["custom"].indexOf(fnName) === -1) {
+        this.error(`There's no such update progression exists - '${fnName}'`, fnNameNode);
+      }
+      const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
+      let script: string | undefined;
+      let body: string | undefined;
+      if (fnName === "custom") {
+        const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
+        script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
+        if (fnArgs.length > 0) {
+          this.error(`You cannot specify state variables for the update script`, fnNameNode);
+        }
+        const reuseLiftoscriptNode = valueNode
+          .getChild(PlannerNodeName.ReuseLiftoscript)
+          ?.getChild(PlannerNodeName.ReuseSection)
+          ?.getChild(PlannerNodeName.ExerciseName);
+        body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+        if (script) {
+          const liftoscriptEvaluator = new ScriptRunner(
+            script,
+            {},
+            Progress.createEmptyScriptBindings(this.dayData, this.settings),
+            Progress.createScriptFunctions(this.settings),
+            this.settings.units,
+            { equipment },
+            "planner"
+          );
+          try {
+            liftoscriptEvaluator.parse();
+          } catch (e) {
+            if (e instanceof LiftoscriptSyntaxError && liftoscriptNode) {
+              const [line] = this.getLineAndOffset(liftoscriptNode);
+              throw new PlannerSyntaxError(
+                e.message,
+                line + e.line,
+                e.offset,
+                liftoscriptNode.from + e.from,
+                liftoscriptNode.from + e.to
+              );
+            } else {
+              throw e;
+            }
+          }
+        }
+        if (!script && !body) {
+          this.error(
+            `'custom' update requires either to specify Liftoscript block or specify which one to reuse`,
+            valueNode
+          );
+        }
+      }
+      return {
+        name: "update",
+        fnName,
+        fnArgs: fnArgs,
+        script,
+        body,
+      };
+    } else {
+      assert(PlannerNodeName.ExerciseProperty);
+    }
+  }
+
   private evaluateProgress(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
@@ -350,7 +426,7 @@ export class PlannerExerciseEvaluator {
             state,
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
-            "lb",
+            this.settings.units,
             { equipment },
             "planner"
           );
@@ -419,6 +495,7 @@ export class PlannerExerciseEvaluator {
     equipment?: IEquipment
   ):
     | { type: "progress"; data: IPlannerProgramProperty }
+    | { type: "update"; data: IPlannerProgramProperty }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
@@ -428,6 +505,8 @@ export class PlannerExerciseEvaluator {
       const name = this.getValue(nameNode);
       if (name === "progress") {
         return { type: "progress", data: this.evaluateProgress(expr, equipment) };
+      } else if (name === "update") {
+        return { type: "update", data: this.evaluateUpdate(expr, equipment) };
       } else if (name === "warmup") {
         return { type: "warmup", data: this.evaluateWarmup(expr) };
       } else {
@@ -444,6 +523,7 @@ export class PlannerExerciseEvaluator {
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
+    | { type: "update"; data: IPlannerProgramProperty }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const setsNode = expr.getChild(PlannerNodeName.ExerciseSets);
@@ -575,6 +655,8 @@ export class PlannerExerciseEvaluator {
           allWarmupSets.push(...section.data);
         } else if (section.type === "progress") {
           allProperties.push(section.data);
+        } else if (section.type === "update") {
+          allProperties.push(section.data);
         } else {
           throw new Error(`Unexpected section type`);
         }
@@ -635,6 +717,30 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private findOriginalExercise(body: string, program: IPlannerEvalResult[][]): IPlannerProgramExercise | undefined {
+    let originalExercise: IPlannerProgramExercise | undefined;
+    for (const week of program) {
+      for (const day of week) {
+        if (day.success) {
+          for (const e of day.data) {
+            const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
+            const bodyKey = PlannerProgram.nameToKey(body, this.settings);
+            if (key === bodyKey) {
+              originalExercise = e;
+            }
+          }
+          if (originalExercise) {
+            break;
+          }
+        }
+      }
+      if (originalExercise) {
+        break;
+      }
+    }
+    return originalExercise;
+  }
+
   public postEvaluateCheck(expr: SyntaxNode, program: IPlannerEvalResult[][]): PlannerSyntaxError | undefined {
     try {
       const cursor = expr.cursor();
@@ -642,58 +748,62 @@ export class PlannerExerciseEvaluator {
         if (cursor.node.type.name === PlannerNodeName.ExerciseProperty) {
           const fnExpressionNode = cursor.node.getChild(PlannerNodeName.FunctionExpression);
           const fnNameNode = fnExpressionNode?.getChild(PlannerNodeName.FunctionName);
-          if (fnExpressionNode && fnNameNode && this.getValue(fnNameNode) === "custom") {
-            const reuseLiftoscriptNode = fnExpressionNode
-              .getChild(PlannerNodeName.ReuseLiftoscript)
-              ?.getChild(PlannerNodeName.ReuseSection)
-              ?.getChild(PlannerNodeName.ExerciseName);
-            const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-            if (body) {
-              let originalExercise: IPlannerProgramExercise | undefined;
-              for (const week of program) {
-                for (const day of week) {
-                  if (day.success) {
-                    for (const e of day.data) {
-                      const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
-                      const bodyKey = PlannerProgram.nameToKey(body, this.settings);
-                      if (key === bodyKey) {
-                        originalExercise = e;
-                      }
-                    }
-                    if (originalExercise) {
-                      break;
-                    }
+          const propertyNameNode = cursor.node.getChild(PlannerNodeName.ExercisePropertyName);
+          const propertyName = propertyNameNode ? this.getValue(propertyNameNode) : undefined;
+          if (fnExpressionNode && fnNameNode) {
+            if (propertyName === "progress" && this.getValue(fnNameNode) === "custom") {
+              const reuseLiftoscriptNode = fnExpressionNode
+                .getChild(PlannerNodeName.ReuseLiftoscript)
+                ?.getChild(PlannerNodeName.ReuseSection)
+                ?.getChild(PlannerNodeName.ExerciseName);
+              const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+              if (body) {
+                const originalExercise = this.findOriginalExercise(body, program);
+                if (!originalExercise) {
+                  this.error(`No such exercise ${body}`, cursor.node);
+                }
+                if (originalExercise.properties.find((p) => p.name === "progress")?.body != null) {
+                  this.error(`Original exercise cannot reuse another progress`, cursor.node);
+                }
+                const originalProgress = originalExercise.properties.find((p) => p.name === "progress");
+                if (!originalProgress) {
+                  this.error("Original exercise should specify progress", cursor.node);
+                }
+                if (originalProgress.fnName !== "custom") {
+                  this.error("Original exercise should specify custom progress", cursor.node);
+                }
+                const fnArgs = fnExpressionNode
+                  .getChildren(PlannerNodeName.FunctionArgument)
+                  .map((argNode) => this.getValue(argNode));
+                const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
+                const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
+                for (const key of ObjectUtils.keys(originalState)) {
+                  const value = originalState[key];
+                  if (state[key] == null) {
+                    this.error(`Missing state variable ${key}`, fnExpressionNode);
+                  }
+                  if (Weight.type(value) !== Weight.type(state[key])) {
+                    this.error(`Wrong type of state variable ${key}`, fnExpressionNode);
                   }
                 }
-                if (originalExercise) {
-                  break;
+              }
+            } else if (propertyName === "update" && this.getValue(fnNameNode) === "custom") {
+              const reuseLiftoscriptNode = fnExpressionNode
+                .getChild(PlannerNodeName.ReuseLiftoscript)
+                ?.getChild(PlannerNodeName.ReuseSection)
+                ?.getChild(PlannerNodeName.ExerciseName);
+              const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+              if (body) {
+                const originalExercise = this.findOriginalExercise(body, program);
+                if (!originalExercise) {
+                  this.error(`No such exercise ${body}`, cursor.node);
                 }
-              }
-              if (!originalExercise) {
-                this.error(`No such exercise ${body}`, cursor.node);
-              }
-              if (originalExercise.properties.find((p) => p.name === "progress")?.body != null) {
-                this.error(`Original exercise cannot reuse another progress`, cursor.node);
-              }
-              const originalProgress = originalExercise.properties.find((p) => p.name === "progress");
-              if (!originalProgress) {
-                this.error("Original exercise should specify progress", cursor.node);
-              }
-              if (originalProgress.fnName !== "custom") {
-                this.error("Original exercise should specify custom progress", cursor.node);
-              }
-              const fnArgs = fnExpressionNode
-                .getChildren(PlannerNodeName.FunctionArgument)
-                .map((argNode) => this.getValue(argNode));
-              const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
-              const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
-              for (const key of ObjectUtils.keys(originalState)) {
-                const value = originalState[key];
-                if (state[key] == null) {
-                  this.error(`Missing state variable ${key}`, fnExpressionNode);
+                if (originalExercise.properties.find((p) => p.name === "update")?.body != null) {
+                  this.error(`Original exercise cannot reuse another update`, cursor.node);
                 }
-                if (Weight.type(value) !== Weight.type(state[key])) {
-                  this.error(`Wrong type of state variable ${key}`, fnExpressionNode);
+                const originalUpdate = originalExercise.properties.find((p) => p.name === "update");
+                if (!originalUpdate) {
+                  this.error("Original exercise should specify update", cursor.node);
                 }
               }
             }

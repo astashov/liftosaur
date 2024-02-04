@@ -167,6 +167,7 @@ export class ProgramToPlanner {
     const variationsMap = ProgramToPlanner.variationsMap(this.plannerProgram, this.settings);
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
+    const addedUpdateMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
     const addedQuickAddSet: Record<string, boolean> = {};
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
@@ -294,6 +295,22 @@ export class ProgramToPlanner {
                 }
               }
 
+              if (!addedUpdateMap[key] && (programExercise.updateDayExpr || programExercise.reuseUpdateDayScript)) {
+                plannerExercise += ` / update: custom()`;
+                if (programExercise.reuseUpdateDayScript) {
+                  const originalProgramExercise = this.program.exercises.find(
+                    (e) => e.id === programExercise.reuseUpdateDayScript
+                  );
+                  if (originalProgramExercise != null) {
+                    const originalKey = this.getExerciseKey(originalProgramExercise);
+                    plannerExercise += ` { ...${originalKey} }`;
+                  }
+                } else if (programExercise.updateDayExpr) {
+                  plannerExercise += " " + programExercise.updateDayExpr;
+                }
+                addedUpdateMap[key] = true;
+              }
+
               if (
                 !addedProgressMap[key] &&
                 (programExercise.finishDayExpr ||
@@ -313,20 +330,7 @@ export class ProgramToPlanner {
                       (e) => e.id === programExercise.reuseFinishDayScript
                     );
                     if (originalProgramExercise != null) {
-                      const originalExercise = Exercise.get(
-                        originalProgramExercise.exerciseType,
-                        this.settings.exercises
-                      );
-                      const isDefaultEquipment =
-                        originalProgramExercise.exerciseType.equipment === originalExercise.defaultEquipment;
-                      const originalKey = `${originalProgramExercise.name}${
-                        !isDefaultEquipment
-                          ? `, ${equipmentName(
-                              originalProgramExercise.exerciseType.equipment,
-                              this.settings.equipment
-                            )}`
-                          : ""
-                      }`;
+                      const originalKey = this.getExerciseKey(originalProgramExercise);
                       plannerExercise += ` { ...${originalKey} }`;
                     }
                   } else if (programExercise.finishDayExpr) {
@@ -366,6 +370,14 @@ export class ProgramToPlanner {
       lastKey = key;
     }
     return groups;
+  }
+
+  private getExerciseKey(programExercise: IProgramExercise): string {
+    const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
+    const isDefaultEquipment = programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
+    return `${programExercise.name}${
+      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}` : ""
+    }`;
   }
 
   private groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {

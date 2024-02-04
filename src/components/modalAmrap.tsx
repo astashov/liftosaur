@@ -16,6 +16,8 @@ interface IModalAmrapProps {
   dispatch: IDispatch;
   initialReps?: number;
   initialRpe?: number;
+  entryIndex: number;
+  setIndex: number;
   isAmrap: boolean;
   logRpe: boolean;
   userVars: boolean;
@@ -48,10 +50,13 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
       type: "ChangeAMRAPAction",
       amrapValue,
       rpeValue,
+      setIndex: props.setIndex,
+      entryIndex: props.entryIndex,
+      allProgramExercises: props.allProgramExercises,
+      programExercise: props.programExercise,
       isAmrap: props.isAmrap,
       logRpe: props.logRpe,
       userVars: userVarValues.current,
-      programExerciseId: props.programExercise?.id,
     });
     if (props.onDone != null) {
       props.onDone();

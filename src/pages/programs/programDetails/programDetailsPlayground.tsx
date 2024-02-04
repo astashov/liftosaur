@@ -124,6 +124,8 @@ export const Playground = memo(
         />
         <ModalAmrap
           isHidden={progressRef.current.ui?.amrapModal == null}
+          entryIndex={progressRef.current.ui?.amrapModal?.entryIndex || 0}
+          setIndex={progressRef.current.ui?.amrapModal?.setIndex || 0}
           initialReps={
             progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[
               progressRef.current.ui?.amrapModal?.setIndex || 0

@@ -263,7 +263,10 @@ function completeRepsActions(program: IProgram, progress: IHistoryRecord, reps: 
           isAmrap: true,
           logRpe: false,
           userVars: {},
-          programExerciseId: programExercise?.id,
+          entryIndex: entryIndex,
+          setIndex: setIndex,
+          programExercise: programExercise,
+          allProgramExercises: allProgramExercises,
         });
       } else {
         for (let i = set.reps; i >= r; i -= 1) {

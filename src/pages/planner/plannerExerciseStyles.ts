@@ -26,6 +26,7 @@ export enum PlannerNodeName {
   Float = "Float",
   Percentage = "Percentage",
   Rpe = "Rpe",
+  Plus = "Plus",
   RepRange = "RepRange",
   KeyValue = "KeyValue",
   SetLabel = "SetLabel",

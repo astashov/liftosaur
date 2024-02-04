@@ -5,6 +5,7 @@ import { Weight } from "./models/weight";
 import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
 import { CollectionUtils } from "./utils/collection";
 import { MathUtils } from "./utils/math";
+import { IProgramMode } from "./models/program";
 
 // eslint-disable-next-line no-shadow
 export enum NodeName {
@@ -131,7 +132,7 @@ export class LiftoscriptEvaluator {
   private readonly fns: IScriptFunctions;
   private readonly context: IScriptContext;
   private readonly unit: IUnit;
-  private readonly mode: "planner" | "regular";
+  private readonly mode: IProgramMode;
   public readonly variables: ILiftoscriptEvaluatorVariables = {};
 
   constructor(
@@ -141,7 +142,7 @@ export class LiftoscriptEvaluator {
     fns: IScriptFunctions,
     context: IScriptContext,
     unit: IUnit,
-    mode: "planner" | "regular"
+    mode: IProgramMode
   ) {
     this.script = script;
     this.state = state;
@@ -259,16 +260,24 @@ export class LiftoscriptEvaluator {
     op: IAssignmentOp
   ): number | IWeight | IPercentage {
     const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
-    if (key === "setVariationIndex") {
-      if (indexes.length > 2) {
-        this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+    if (this.mode === "planner") {
+      if (key === "setVariationIndex") {
+        if (indexes.length > 2) {
+          this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+        }
+      } else if (key === "descriptionIndex") {
+        if (indexes.length > 2) {
+          this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+        }
+      } else if (indexes.length > 4) {
+        this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
       }
-    } else if (key === "descriptionIndex") {
-      if (indexes.length > 2) {
-        this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+    } else if (this.mode === "update") {
+      if (key === "setVariationIndex" || key === "descriptionIndex") {
+        this.error(`Cannot change '${key}' in 'update' mode`, expression);
+      } else if (indexes.length > 1) {
+        this.error(`${key} can only have 1 value max inside []`, expression);
       }
-    } else if (indexes.length > 4) {
-      this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
     }
     const indexValues = CollectionUtils.compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
@@ -421,7 +430,7 @@ export class LiftoscriptEvaluator {
           variable === "setVariationIndex" ||
           variable === "descriptionIndex"
         ) {
-          if (this.mode === "planner") {
+          if (this.mode === "planner" || this.mode === "update") {
             return this.assignToVariable(variable, expression, indexExprs, "=");
           } else {
             this.error(`Unknown variable '${variable}'`, variableNode);
@@ -492,7 +501,7 @@ export class LiftoscriptEvaluator {
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
-          if (this.mode === "planner") {
+          if (this.mode === "planner" || this.mode === "update") {
             return this.assignToVariable(variable, expression, indexExprs, op);
           } else {
             this.error(`Can't use incremental assignment for a variable '${variable}'`, stateVar);

@@ -87,6 +87,8 @@ export const ProgramPreviewPlaygroundDay = memo(
         <ModalAmrap
           isHidden={props.progress.ui?.amrapModal == null}
           dispatch={dispatch}
+          entryIndex={props.progress.ui?.amrapModal?.entryIndex || 0}
+          setIndex={props.progress.ui?.amrapModal?.setIndex || 0}
           initialReps={
             props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.sets[
               props.progress.ui?.amrapModal?.setIndex || 0

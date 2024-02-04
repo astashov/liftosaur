@@ -178,6 +178,8 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <ModalAmrap
         isHidden={progress.ui?.amrapModal == null}
         dispatch={dispatch}
+        entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
+        setIndex={progress.ui?.amrapModal?.setIndex || 0}
         isAmrap={progress.ui?.amrapModal?.isAmrap || false}
         logRpe={progress.ui?.amrapModal?.logRpe || false}
         userVars={progress.ui?.amrapModal?.userVars || false}

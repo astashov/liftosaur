@@ -198,11 +198,14 @@ export type IStartProgramDayAction = {
 
 export type IChangeAMRAPAction = {
   type: "ChangeAMRAPAction";
+  setIndex: number;
+  entryIndex: number;
   amrapValue?: number;
   rpeValue?: number;
   isAmrap?: boolean;
   logRpe?: boolean;
-  programExerciseId?: string;
+  programExercise?: IProgramExercise;
+  allProgramExercises?: IProgramExercise[];
   userVars?: Record<string, number | IWeight | IPercentage>;
 };
 
@@ -497,6 +500,18 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
           action.mode,
           !!hasUserPromptedVars
         );
+        if (action.programExercise && action.allProgramExercises && !newProgress.ui?.amrapModal) {
+          newProgress = Progress.runUpdateScript(
+            newProgress,
+            action.programExercise,
+            action.allProgramExercises,
+            action.entryIndex,
+            action.setIndex,
+            action.mode,
+            settings
+          );
+        }
+
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
@@ -507,8 +522,20 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         if (action.logRpe) {
           progress = Progress.updateRpeInExercise(progress, action.rpeValue);
         }
-        if (ObjectUtils.keys(action.userVars || {}).length > 0 && action.programExerciseId != null) {
-          progress = Progress.updateUserPromptedStateVars(progress, action.programExerciseId, action.userVars || {});
+        const programExerciseId = action.programExercise?.id;
+        if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
+          progress = Progress.updateUserPromptedStateVars(progress, programExerciseId, action.userVars || {});
+        }
+        if (action.programExercise && action.allProgramExercises) {
+          progress = Progress.runUpdateScript(
+            progress,
+            action.programExercise,
+            action.allProgramExercises,
+            action.entryIndex,
+            action.setIndex,
+            "workout",
+            settings
+          );
         }
         if (Progress.isFullyFinishedSet(progress)) {
           progress = Progress.stopTimer(progress);

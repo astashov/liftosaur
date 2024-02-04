@@ -147,6 +147,8 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
             ?.completedRpe
         }
+        entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
+        setIndex={progress.ui?.amrapModal?.setIndex || 0}
         programExercise={programExercise}
         allProgramExercises={props.program.exercises}
         isAmrap={progress.ui?.amrapModal?.isAmrap || false}

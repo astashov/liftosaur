@@ -122,6 +122,8 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
               )}
               allProgramExercises={props.program?.exercises || []}
+              entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
+              setIndex={progress.ui?.amrapModal?.setIndex || 0}
               initialReps={
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
                   ?.completedReps ??

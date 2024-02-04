@@ -56,7 +56,7 @@ export interface IExportedProgram {
   settings: IProgramContentSettings;
 }
 
-export type IProgramMode = "planner" | "regular";
+export type IProgramMode = "planner" | "regular" | "update";
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {

@@ -154,6 +154,7 @@ export class PlannerToProgram2 {
             });
             let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
+            let updateDayExpr = programExercise.updateDayExpr;
             let warmupSets: IProgramExerciseWarmupSet[] | undefined = undefined;
             if (evalExercise.warmupSets) {
               const sets: IProgramExerciseWarmupSet[] = [];
@@ -176,6 +177,7 @@ export class PlannerToProgram2 {
               warmupSets = sets;
             }
             let reuseFinishDayScript: string | undefined;
+            let reuseUpdateDayScript: string | undefined;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
                 if (property.fnName === "custom") {
@@ -193,11 +195,21 @@ export class PlannerToProgram2 {
                   ({ state, finishDayExpr } = this.addSum(property, this.settings));
                 }
               }
+              if (property.name === "update") {
+                if (property.fnName === "custom") {
+                  if (property.script) {
+                    updateDayExpr = property.script ?? "";
+                  } else if (property.body) {
+                    reuseUpdateDayScript = property.body;
+                  }
+                }
+              }
             }
             programExercise.variations = programExercise.variations.concat(newVariations);
             programExercise.descriptions = programExercise.descriptions.concat(newDescriptions);
             programExercise.state = { ...programExercise.state, ...state };
             programExercise.finishDayExpr = finishDayExpr;
+            programExercise.updateDayExpr = updateDayExpr;
             programExercise.enableRpe = programExercise.variations.some((v) =>
               v.sets.some((s) => s.rpeExpr != null || !!s.logRpe)
             );
@@ -207,6 +219,7 @@ export class PlannerToProgram2 {
             );
             programExercise.warmupSets = warmupSets;
             programExercise.reuseFinishDayScript = programExercise.reuseFinishDayScript || reuseFinishDayScript;
+            programExercise.reuseUpdateDayScript = programExercise.reuseUpdateDayScript || reuseUpdateDayScript;
             programDay.exercises.push({ id: programExercise.id });
           }
         }

@@ -35,6 +35,7 @@ import { IExerciseId, IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
 import { MathUtils } from "../utils/math";
+import { IAssignmentOp, ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
 
 export interface IScriptBindings {
   day: number;
@@ -490,6 +491,151 @@ export namespace Progress {
       return lf(state).p("progress").p(state.currentHistoryRecord).set(progress);
     } else {
       return state;
+    }
+  }
+
+  export function runUpdateScript(
+    aProgress: IHistoryRecord,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    entryIndex: number,
+    setIndex: number,
+    mode: IProgressMode,
+    settings: ISettings
+  ): IHistoryRecord {
+    if (mode === "warmup") {
+      return aProgress;
+    }
+    const entry = aProgress.entries[entryIndex];
+    if (entry?.sets[setIndex]?.completedReps == null) {
+      return aProgress;
+    }
+    const exercise = programExercise.exerciseType;
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const dayData = Progress.getDayData(aProgress);
+    const setVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const descriptionIndexResult = Program.runDescriptionScript(
+      programExercise.descriptionExpr ?? "1",
+      programExercise.exerciseType,
+      state,
+      dayData,
+      settings
+    );
+    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+    const script = programExercise?.updateDayExpr;
+    if (script && state) {
+      const bindings = Progress.createScriptBindings(
+        Progress.getDayData(aProgress),
+        entry,
+        settings,
+        setIndex + 1,
+        setVariationIndex,
+        descriptionIndex
+      );
+      try {
+        const runner = new ScriptRunner(
+          script,
+          state,
+          bindings,
+          Progress.createScriptFunctions(settings),
+          settings.units,
+          {
+            equipment: exercise.equipment,
+          },
+          "update"
+        );
+        runner.execute();
+        const variables = runner.getVariables();
+        const newEntry = Progress.applyVariables(programExercise, settings, entry, variables);
+        const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
+        return progress;
+      } catch (e) {
+        alert("Something went wrong");
+      }
+    }
+    return aProgress;
+  }
+
+  export function applyVariables(
+    programExercise: IProgramExercise,
+    settings: ISettings,
+    entry: IHistoryEntry,
+    variables: ILiftoscriptEvaluatorVariables
+  ): IHistoryEntry {
+    const keys = ["RPE", "reps", "weights", "minReps"] as const;
+    const newEntry = ObjectUtils.clone(entry);
+    for (const key of keys) {
+      const values = variables[key];
+      if (values != null) {
+        for (const value of values) {
+          const op = value.op;
+          const target = ProgramExercise.normalizeTarget(value.target, 1);
+          const [index] = target;
+          for (let i = 0; i < newEntry.sets.length; i++) {
+            const set = newEntry.sets[i];
+            if (set.completedReps == null && ((typeof index === "number" && i === index - 1) || index === "*")) {
+              if (key === "RPE") {
+                operationNum(set, "rpe", typeof value.value === "number" ? value.value : value.value.value, op);
+              } else if (key === "reps") {
+                operationNum(set, "reps", typeof value.value === "number" ? value.value : value.value.value, op);
+              } else if (key === "minReps") {
+                operationNum(set, "minReps", typeof value.value === "number" ? value.value : value.value.value, op);
+              } else if (key === "weights") {
+                operationWeight(programExercise, settings, set, value.value, op);
+              }
+            }
+          }
+        }
+      }
+    }
+    return newEntry;
+  }
+
+  function operationNum(set: ISet, key: "reps" | "rpe" | "minReps", value: number, op: IAssignmentOp): void {
+    if (op === "=") {
+      set[key] = value;
+    } else {
+      if (op === "+=") {
+        set[key] += value;
+      } else if (op === "-=") {
+        set[key] -= value;
+      } else if (op === "*=") {
+        set[key] *= value;
+      } else if (op === "/=") {
+        set[key] /= value;
+      }
+    }
+  }
+
+  function operationWeight(
+    programExercise: IProgramExercise,
+    settings: ISettings,
+    set: ISet,
+    value: number | IWeight | IPercentage,
+    op: IAssignmentOp
+  ): void {
+    const onerm = Exercise.onerm(programExercise.exerciseType, settings);
+    value = Weight.isPct(value) ? Weight.multiply(onerm, value.value) : value;
+    value = typeof value === "number" ? Weight.build(value, settings.units) : value;
+    if (op === "=") {
+      set.weight = value;
+    } else {
+      if (op === "+=") {
+        set.weight = Weight.add(set.weight, value);
+      } else if (op === "-=") {
+        set.weight = Weight.subtract(set.weight, value);
+      } else if (op === "*=") {
+        set.weight = Weight.multiply(set.weight, value);
+      } else if (op === "/=") {
+        set.weight = Weight.multiply(set.weight, value);
+      }
     }
   }
 
