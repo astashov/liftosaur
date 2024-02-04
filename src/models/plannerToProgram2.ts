@@ -155,7 +155,7 @@ export class PlannerToProgram2 {
             let state: IProgramState = {};
             let finishDayExpr = programExercise.finishDayExpr;
             let updateDayExpr = programExercise.updateDayExpr;
-            let warmupSets: IProgramExerciseWarmupSet[] | undefined = undefined;
+            let warmupSets: IProgramExerciseWarmupSet[] | undefined = programExercise.warmupSets;
             if (evalExercise.warmupSets) {
               const sets: IProgramExerciseWarmupSet[] = [];
               for (const ws of evalExercise.warmupSets) {
