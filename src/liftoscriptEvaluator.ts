@@ -205,7 +205,27 @@ export class LiftoscriptEvaluator {
         if (!(name in this.fns)) {
           this.error(`Unknown function '${name}'`, keyword);
         }
+      } else if (cursor.node.type.name === NodeName.AssignmentExpression) {
+        const variableNode = cursor.node.getChild(NodeName.VariableExpression);
+        if (variableNode != null) {
+          const nameNode = variableNode.getChild(NodeName.Keyword);
+          if (nameNode != null) {
+            const name = this.getValue(nameNode);
+            if (this.mode === "update") {
+              if (["reps", "weights", "RPE", "minReps"].indexOf(name) === -1) {
+                this.error(`Cannot assign to '${name}'`, variableNode);
+              }
+              const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
+              if (indexExprs.length > 1) {
+                this.error(`Can't assign to set variations, weeks or days here`, variableNode);
+              }
+            }
+          }
+        }
       } else if (cursor.node.type.name === NodeName.StateVariable) {
+        if (this.mode === "update") {
+          this.error(`Cannot access state variables in 'update' mode`, cursor.node);
+        }
         const stateKey = this.getValue(cursor.node).replace("state.", "");
         if (!(stateKey in this.state)) {
           this.error(`There's no state variable '${stateKey}'`, cursor.node);

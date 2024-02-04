@@ -298,7 +298,7 @@ export class PlannerExerciseEvaluator {
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
             { equipment },
-            "planner"
+            "update"
           );
           try {
             liftoscriptEvaluator.parse();
