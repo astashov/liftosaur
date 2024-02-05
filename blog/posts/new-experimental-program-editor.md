@@ -351,6 +351,49 @@ Squat / 3x4 / progress: custom(increment: 10lb) { ...Bench Press }
 
 Here, we reuse the same finish day script for both Bench Press and Squat, but for Squat we'll increment the weight by 10lb. I.e. we also can use state variables to parameterize our Finish Day Scripts. Note that in this case it's just curly braces `{ }`, without tildas - because it's still Workout Planner syntax.
 
+## In-workout Updates
+
+Similar to `progress: custom()`, you can use another property: `update: custom()`. It won't change the program,
+but it will change **currently ongoing workout**. You can use it to update sets based on your performance. 
+E.g. adjust weights if RPE was higher or lower than expected, or if you did more or less reps than expected during AMRAP.
+
+It's almost the same script as in `progress: custom()`, just you cannot use state variables, and you cannot change the program - you can change only the current workout. You can access any other variables, and a special variable `setIndex`, that is set to the index of the set you just finished.
+
+Those scripts are run after completing any set, or changing completed reps on any set. You can change:
+
+* `reps`
+* `minReps`
+* `weights`
+* `RPE`
+
+You can either target all sets, or specific sets. To target all sets, you could do:
+
+{% plannercode %}
+reps = 5
+weights[*] = 100lb
+{% endplannercode %}
+
+and to target specific set, you could do:
+
+{% plannercode %}
+reps[2] = 5
+weights[1] = 100lb
+{% endplannercode %}
+
+You can only change non-completed sets. You cannot change already completed sets, both successfully or unsuccessfully.
+
+For example, if you want to adjust half-sets after the first AMRAP set, you can do:
+
+{% plannercode %}
+Squat / 1x6+, 3x3 / update: custom() {~
+  if (setIndex == 1) {
+    reps = floor(completedReps[1] / 2)
+  }
+~}
+{% endplannercode %}
+
+That will change all the rest sets after finishing the first AMRAP set, and will set reps == half of the reps of the 1st set.
+
 ## Percentages
 
 I added new numeric type to Liftoscript - percentage (both in old and new programs!). You can set percentages in state variables, use them in weight expressions, etc. Percentages mean % of 1RM. So, you can e.g. write in your weight expression field `50%`, and it'll be 50% of 1RM for that exercise.
