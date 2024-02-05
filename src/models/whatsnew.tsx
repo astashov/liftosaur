@@ -8,6 +8,7 @@ import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";
 import { UrlUtils } from "../utils/url";
 import { IconDoc } from "../components/icons/iconDoc";
+import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -859,46 +860,46 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
-  //   "20240204": {
-  //     title: (
-  //       <span>
-  //         New <strong className="text-orangev2">update: custom()</strong> syntax for updates after completed sets (in the
-  //         "Experimental" programs)
-  //       </span>
-  //     ),
-  //     body: (
-  //       <ul>
-  //         <li>
-  //           Now you can dynamically make updates in reps, sets or weights. Like for example, if you want to have AMRAP on
-  //           the first set, and then based on the completed reps of that set adjust the reps of the rest sets, you can do
-  //           it now. Do something like:
-  //           <div className="m-2 overflow-x-auto">
-  //             <PlannerCodeBlock
-  //               script={`Squat / 1x6+, 3x3 / update: custom() {~
-  //   if (setIndex == 1) {
-  //     reps = floor(completedReps[1] / 2)
-  //   }
-  // ~}`}
-  //             />
-  //           </div>
-  //           and that will make the rest of the sets update after finishing the first set.
-  //         </li>
-  //         <li>
-  //           That <strong>update</strong> script is run after completing every set or updating completed reps on the set.
-  //           It's available only in the new "Experimental" programs.
-  //         </li>
-  //         <li>
-  //           In that script, you may change <strong>reps</strong>, <strong>minReps</strong>, <strong>weights</strong>, and{" "}
-  //           <strong>RPE</strong> variables. It doesn't change a program, and you cannot access state variables, but you
-  //           can access any other built-in variable.
-  //         </li>
-  //         <li>
-  //           You can target all incompleted sets (by using <strong>reps = 3</strong>, <strong>weights = 40lb</strong>,
-  //           etc), or you can target specific sets (e.g. <strong>reps[3] = 10</strong>)
-  //         </li>
-  //       </ul>
-  //     ),
-  //   },
+  "20240205": {
+    title: (
+      <span>
+        New <strong className="text-orangev2">update: custom()</strong> syntax for updates after completed sets (in the
+        "Experimental" programs)
+      </span>
+    ),
+    body: (
+      <ul>
+        <li>
+          Now you can dynamically make updates in reps, sets or weights. Like for example, if you want to have AMRAP on
+          the first set, and then based on the completed reps of that set adjust the reps of the rest sets, you can do
+          it now. Do something like:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 1x6+, 3x3 / update: custom() {~
+    if (setIndex == 1) {
+      reps = floor(completedReps[1] / 2)
+    }
+  ~}`}
+            />
+          </div>
+          and that will make the rest of the sets update after finishing the first set.
+        </li>
+        <li>
+          That <strong>update</strong> script is run after completing every set or updating completed reps on the set.
+          It's available only in the new "Experimental" programs.
+        </li>
+        <li>
+          In that script, you may change <strong>reps</strong>, <strong>minReps</strong>, <strong>weights</strong>, and{" "}
+          <strong>RPE</strong> variables. It doesn't change a program, and you cannot access state variables, but you
+          can access any other built-in variable.
+        </li>
+        <li>
+          You can target all incompleted sets (by using <strong>reps = 3</strong>, <strong>weights = 40lb</strong>,
+          etc), or you can target specific sets (e.g. <strong>reps[3] = 10</strong>)
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
