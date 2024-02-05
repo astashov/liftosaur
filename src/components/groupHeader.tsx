@@ -32,9 +32,11 @@ export function GroupHeader(props: IProps): JSX.Element {
           props.topPadding ? "mt-6 pt-4" : ""
         }`}
       >
-        <div className="flex items-center justify-center mr-2 text-left">
-          {props.children && props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
-        </div>
+        {props.children && props.leftExpandIcon && (
+          <div className="flex items-center justify-center mr-2 text-left">
+            {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
+          </div>
+        )}
         <div className="flex-1">
           <span className={`${size === "small" ? "text-xs" : "text-base font-bold"} align-middle text-grayv2-700`}>
             {name}

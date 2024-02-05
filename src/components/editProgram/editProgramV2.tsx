@@ -60,6 +60,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
     [plannerState]
   );
   const modalExerciseUi = plannerState.ui.modalExercise;
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   return (
     <Surface
@@ -240,6 +241,28 @@ export function EditProgramV2(props: IProps): JSX.Element {
     >
       <section>
         <div className="px-4">
+          <div className="mb-2 text-sm text-grayv2-main">
+            <div>
+              You can use{" "}
+              <LinkButton
+                name="edit-program-copy-program-link"
+                onClick={async () => {
+                  props.dispatch(
+                    Thunk.generateAndCopyLink(props.editProgram, props.settings, () => {
+                      setIsCopied(true);
+                      setTimeout(() => {
+                        setIsCopied(false);
+                      }, 3000);
+                    })
+                  );
+                }}
+              >
+                this link
+              </LinkButton>{" "}
+              to edit this program on your laptop
+            </div>
+            {isCopied && <div className="font-bold">Copied to clipboard!</div>}
+          </div>
           <GroupHeader name="Current Program" />
           <MenuItem
             name="Program"
