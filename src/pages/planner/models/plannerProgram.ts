@@ -144,7 +144,7 @@ export class PlannerProgram {
   ): IPlannerEvalResult[][] {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       if (!args?.skipDescriptionPostProcess) {
-        if (exercise.descriptions == null) {
+        if (exercise.descriptions == null || exercise.descriptions.length === 0) {
           const lastWeekExercise = this.findLastWeekExercise(
             program,
             weekIndex,

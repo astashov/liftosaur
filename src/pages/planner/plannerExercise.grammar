@@ -8,7 +8,7 @@ EmptyExpression { linebreak }
 ExerciseName { NonSeparator+ }
 ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
-ExerciseSection {  ExerciseProperty | ExerciseSets }
+ExerciseSection {  (ExerciseProperty | ExerciseSets) ("\\" linebreak)? }
 ReuseSection { "..." ExerciseName? }
 ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage | SetLabel)+ }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }

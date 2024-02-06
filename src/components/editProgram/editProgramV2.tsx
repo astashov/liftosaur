@@ -16,7 +16,6 @@ import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { Program } from "../../models/program";
 import { LinkButton } from "../linkButton";
-import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramV2PerDay } from "./editProgramV2PerDay";
 import { ILensRecordingPayload, lb } from "lens-shmens";
@@ -32,6 +31,7 @@ import { Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
 import { ObjectUtils } from "../../utils/object";
 import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
+import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 
 interface IProps {
   editProgram: IProgram;
@@ -68,7 +68,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
-          helpContent={<HelpEditProgramDaysList />}
+          helpContent={<HelpEditProgramV2 />}
           screenStack={props.screenStack}
           title="Edit Program"
         />
