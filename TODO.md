@@ -18,6 +18,7 @@
 - Add 'bodyweight' variable
 - Add a way to create "similar" exercise
 - Add estimated time for the next workout
+- Add 'bodyweight' to Similar equipment
 
 * Programs
   - 5/3/1s

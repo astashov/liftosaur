@@ -257,18 +257,11 @@ export class PlannerToProgram2 {
 
       const reuseFinishDayScript = programExercise.reuseFinishDayScript;
       if (reuseFinishDayScript) {
-        const parts = reuseFinishDayScript.split(",");
-        let equip: string | undefined;
-        if (parts.length > 1) {
-          equip = parts.pop();
-        }
-        equip = equip?.trim();
-        const equipKey = equip ? Equipment.equipmentKeyByName(equip, this.settings.equipment) : undefined;
-        const name = parts.join(",");
-        const originalProgramExercise = allExercises.find(
-          (e) => e.name === name && (equipKey == null || e.exerciseType.equipment === equipKey)
-        );
-        programExercise.reuseFinishDayScript = originalProgramExercise?.id;
+        programExercise.reuseFinishDayScript = this.labelKeyToExerciseId(reuseFinishDayScript, allExercises);
+      }
+      const reuseUpdateDayScript = programExercise.reuseUpdateDayScript;
+      if (reuseUpdateDayScript) {
+        programExercise.reuseUpdateDayScript = this.labelKeyToExerciseId(reuseUpdateDayScript, allExercises);
       }
     }
 
@@ -287,6 +280,21 @@ export class PlannerToProgram2 {
       planner: this.plannerProgram,
     };
     return program;
+  }
+
+  private labelKeyToExerciseId(key: string, allExercises: IProgramExercise[]): string | undefined {
+    const parts = key.split(",");
+    let equip: string | undefined;
+    if (parts.length > 1) {
+      equip = parts.pop();
+    }
+    equip = equip?.trim();
+    const equipKey = equip ? Equipment.equipmentKeyByName(equip, this.settings.equipment) : undefined;
+    const name = parts.join(",");
+    const originalProgramExercise = allExercises.find(
+      (e) => e.name === name && (equipKey == null || e.exerciseType.equipment === equipKey)
+    );
+    return originalProgramExercise?.id;
   }
 
   private addLp(
