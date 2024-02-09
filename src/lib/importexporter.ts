@@ -50,10 +50,11 @@ export namespace ImportExporter {
       exportedProgram = parsedMaybeProgram;
     }
     const payload = Storage.getDefault();
-    payload.settings = settings || payload.settings;
-    payload.settings = { ...payload.settings, ...exportedProgram.settings };
-    payload.settings.exercises = { ...payload.settings.exercises, ...exportedProgram.customExercises };
-    payload.settings.equipment = { ...payload.settings.equipment, ...exportedProgram.customEquipment };
+    payload.settings = ObjectUtils.clone(settings || payload.settings);
+    payload.settings.timers.workout = exportedProgram.settings.timers.workout || payload.settings.timers.workout;
+    payload.settings.units = exportedProgram.settings.units || payload.settings.units;
+    payload.settings.exercises = exportedProgram.customExercises;
+    payload.settings.equipment = exportedProgram.customEquipment || {};
     payload.programs.push(exportedProgram.program);
     payload.version = exportedProgram.version;
     const result = await Storage.get(client, payload, false);
