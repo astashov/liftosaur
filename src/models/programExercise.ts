@@ -89,6 +89,17 @@ export namespace ProgramExercise {
     }
   }
 
+  export function getUpdateDayScript(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[]
+  ): string | undefined {
+    if (programExercise.reuseUpdateDayScript) {
+      return allProgramExercises.find((pe) => pe.id === programExercise.reuseUpdateDayScript)?.updateDayExpr;
+    } else {
+      return getProgramExercise(programExercise, allProgramExercises).updateDayExpr;
+    }
+  }
+
   export function getVariationScript(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[]

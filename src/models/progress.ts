@@ -529,7 +529,9 @@ export namespace Progress {
     );
     const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
     const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
-    const script = programExercise?.updateDayExpr;
+    const script = programExercise
+      ? ProgramExercise.getUpdateDayScript(programExercise, allProgramExercises)
+      : undefined;
     if (script && state) {
       const bindings = Progress.createScriptBindings(
         Progress.getDayData(aProgress),
