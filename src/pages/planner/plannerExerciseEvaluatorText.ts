@@ -44,9 +44,12 @@ export class PlannerExerciseEvaluatorText {
       expr.type.name === PlannerNodeName.LineComment ||
       expr.type.name === PlannerNodeName.ExerciseExpression
     ) {
-      this.weeks[this.weeks.length - 1].days[this.weeks[this.weeks.length - 1].days.length - 1].exercises.push(
-        this.getValue(expr)
-      );
+      const lastWeek = this.weeks[this.weeks.length - 1];
+      const lastDay = lastWeek ? lastWeek.days[lastWeek.days.length - 1] : undefined;
+      const exercises = lastDay?.exercises;
+      if (exercises) {
+        exercises.push(this.getValue(expr));
+      }
     }
   }
 
