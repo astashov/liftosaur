@@ -1,18 +1,14 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
-import {
-  LiftoscriptEvaluator,
-  ILiftoscriptEvaluatorVariables,
-  NodeName,
-  LiftoscriptSyntaxError,
-} from "./liftoscriptEvaluator";
+import { LiftoscriptEvaluator, NodeName, LiftoscriptSyntaxError } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
-import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
+import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
 import { IUnit, IWeight, IProgramState, IPercentage } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IState } from "./models/state";
 import { IProgramMode } from "./models/program";
+import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
 
 declare let Rollbar: RB;
 
@@ -24,9 +20,9 @@ export class ScriptRunner {
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
-  private readonly context: IScriptContext;
+  private readonly context: IScriptFnContext;
   private readonly mode: IProgramMode;
-  private variables: ILiftoscriptEvaluatorVariables;
+  private updates: ILiftoscriptEvaluatorUpdate[] = [];
 
   constructor(
     script: string,
@@ -34,7 +30,7 @@ export class ScriptRunner {
     bindings: IScriptBindings,
     fns: IScriptFunctions,
     units: IUnit,
-    context: IScriptContext,
+    context: IScriptFnContext,
     mode: IProgramMode
   ) {
     this.script = script;
@@ -43,7 +39,6 @@ export class ScriptRunner {
     this.fns = fns;
     this.units = units;
     this.context = context;
-    this.variables = {};
     this.mode = mode;
   }
 
@@ -111,13 +106,13 @@ export class ScriptRunner {
       result = 0;
     }
     const output = this.convertResult(type, result);
-    this.variables = liftoscriptEvaluator.variables;
+    this.updates = liftoscriptEvaluator.updates;
 
     return output;
   }
 
-  public getVariables(): ILiftoscriptEvaluatorVariables {
-    return this.variables;
+  public getUpdates(): ILiftoscriptEvaluatorUpdate[] {
+    return this.updates;
   }
 
   private convertResult(

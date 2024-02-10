@@ -27,6 +27,7 @@ import {
   ISet,
   IProgramDay,
   IDayData,
+  IExerciseDataValue,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -35,7 +36,7 @@ import { IExerciseId, IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
 import { MathUtils } from "../utils/math";
-import { IAssignmentOp, ILiftoscriptEvaluatorVariables } from "../liftoscriptEvaluator";
+import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 
 export interface IScriptBindings {
   day: number;
@@ -44,14 +45,14 @@ export interface IScriptBindings {
   weights: IWeight[];
   rm1: IWeight;
   reps: number[];
-  minReps: number[];
-  RPE: number[];
-  completedRPE: number[];
-  completedReps: number[];
+  minReps: (number | undefined)[];
+  RPE: (number | undefined)[];
+  completedRPE: (number | undefined)[];
+  completedReps: (number | undefined)[];
   w: IWeight[];
   r: number[];
-  mr: number[];
-  cr: number[];
+  mr: (number | undefined)[];
+  cr: (number | undefined)[];
   ns: number;
   numberOfSets: number;
   setVariationIndex: number;
@@ -59,15 +60,27 @@ export interface IScriptBindings {
   setIndex: number;
 }
 
-export interface IScriptContext {
+export interface IScriptFnContext {
+  equipment?: IEquipment;
+}
+
+export interface IScriptFinishContext {
+  type: "finish";
+  updates: ILiftoscriptEvaluatorUpdate[];
+  exerciseData: IExerciseDataValue;
+  setVariationIndex: number;
+  descriptionIndex: number;
+}
+
+export interface IScriptUpdateContext {
   equipment?: IEquipment;
 }
 
 export interface IScriptFunctions {
-  roundWeight: (num: IWeight, context: IScriptContext) => IWeight;
-  calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
-  calculate1RM: (weight: IWeight, reps: number, context: IScriptContext) => IWeight;
-  rpeMultiplier: (reps: number, rpe: number, context: IScriptContext) => number;
+  roundWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
+  calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
+  calculate1RM: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
+  rpeMultiplier: (reps: number, rpe: number, context: IScriptFnContext) => number;
   floor(num: number): number;
   floor(num: IWeight): IWeight;
   ceil(num: number): number;
@@ -198,10 +211,10 @@ export namespace Progress {
     for (const set of entry.sets) {
       bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment));
       bindings.reps.push(set.reps);
-      bindings.minReps.push(set.minReps != null ? set.minReps : set.reps);
-      bindings.completedReps.push(set.completedReps || 0);
-      bindings.completedRPE.push(set.completedRpe || 0);
-      bindings.RPE.push(set.rpe || 0);
+      bindings.minReps.push(set.minReps);
+      bindings.completedReps.push(set.completedReps);
+      bindings.completedRPE.push(set.completedRpe);
+      bindings.RPE.push(set.rpe);
     }
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
@@ -542,6 +555,7 @@ export namespace Progress {
         descriptionIndex
       );
       try {
+        console.log("initial bindings", ObjectUtils.clone(bindings));
         const runner = new ScriptRunner(
           script,
           state,
@@ -554,8 +568,8 @@ export namespace Progress {
           "update"
         );
         runner.execute();
-        const variables = runner.getVariables();
-        const newEntry = Progress.applyVariables(programExercise, settings, entry, variables);
+        const newEntry = Progress.applyVariables(entry, bindings);
+        console.log("bindings after", ObjectUtils.clone(bindings));
         const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
         return progress;
       } catch (e) {
@@ -565,80 +579,29 @@ export namespace Progress {
     return aProgress;
   }
 
-  export function applyVariables(
-    programExercise: IProgramExercise,
-    settings: ISettings,
-    entry: IHistoryEntry,
-    variables: ILiftoscriptEvaluatorVariables
-  ): IHistoryEntry {
-    const keys = ["RPE", "reps", "weights", "minReps"] as const;
-    const newEntry = ObjectUtils.clone(entry);
+  export function applyVariables(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
+    const keys = ["RPE", "minReps", "reps", "weights"] as const;
+    const entry = ObjectUtils.clone(oldEntry);
     for (const key of keys) {
-      const values = variables[key];
-      if (values != null) {
-        for (const value of values) {
-          const op = value.op;
-          const target = ProgramExercise.normalizeTarget(value.target, 1);
-          const [index] = target;
-          for (let i = 0; i < newEntry.sets.length; i++) {
-            const set = newEntry.sets[i];
-            if (set.completedReps == null && ((typeof index === "number" && i === index - 1) || index === "*")) {
-              if (key === "RPE") {
-                operationNum(set, "rpe", typeof value.value === "number" ? value.value : value.value.value, op);
-              } else if (key === "reps") {
-                operationNum(set, "reps", typeof value.value === "number" ? value.value : value.value.value, op);
-              } else if (key === "minReps") {
-                operationNum(set, "minReps", typeof value.value === "number" ? value.value : value.value.value, op);
-              } else if (key === "weights") {
-                operationWeight(programExercise, settings, set, value.value, op);
-              }
-            }
+      for (let i = 0; i < entry.sets.length; i += 1) {
+        if (entry.sets[i].completedReps == null) {
+          if (key === "RPE") {
+            const value = bindings.RPE[i];
+            entry.sets[i].rpe = value !== 0 ? value : undefined;
+          } else if (key === "reps") {
+            const value = bindings.reps[i];
+            entry.sets[i].reps = value;
+          } else if (key === "minReps") {
+            const value = bindings.minReps[i];
+            entry.sets[i].minReps = value !== 0 ? value : undefined;
+          } else if (key === "weights") {
+            const value = bindings.weights[i];
+            entry.sets[i].weight = value;
           }
         }
       }
     }
-    return newEntry;
-  }
-
-  function operationNum(set: ISet, key: "reps" | "rpe" | "minReps", value: number, op: IAssignmentOp): void {
-    if (op === "=") {
-      set[key] = value;
-    } else {
-      if (op === "+=") {
-        set[key] += value;
-      } else if (op === "-=") {
-        set[key] -= value;
-      } else if (op === "*=") {
-        set[key] *= value;
-      } else if (op === "/=") {
-        set[key] /= value;
-      }
-    }
-  }
-
-  function operationWeight(
-    programExercise: IProgramExercise,
-    settings: ISettings,
-    set: ISet,
-    value: number | IWeight | IPercentage,
-    op: IAssignmentOp
-  ): void {
-    const onerm = Exercise.onerm(programExercise.exerciseType, settings);
-    value = Weight.isPct(value) ? Weight.multiply(onerm, value.value) : value;
-    value = typeof value === "number" ? Weight.build(value, settings.units) : value;
-    if (op === "=") {
-      set.weight = value;
-    } else {
-      if (op === "+=") {
-        set.weight = Weight.add(set.weight, value);
-      } else if (op === "-=") {
-        set.weight = Weight.subtract(set.weight, value);
-      } else if (op === "*=") {
-        set.weight = Weight.multiply(set.weight, value);
-      } else if (op === "/=") {
-        set.weight = Weight.multiply(set.weight, value);
-      }
-    }
+    return entry;
   }
 
   export function updateRepsInExercise(
@@ -1136,7 +1099,7 @@ export namespace Progress {
     exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
-    context: IScriptContext,
+    context: IScriptFnContext,
     settings: ISettings,
     type: "weight"
   ): IWeight;
@@ -1145,7 +1108,7 @@ export namespace Progress {
     exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
-    context: IScriptContext,
+    context: IScriptFnContext,
     settings: ISettings,
     type: "reps" | "rpe"
   ): number;
@@ -1154,7 +1117,7 @@ export namespace Progress {
     exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
-    context: IScriptContext,
+    context: IScriptFnContext,
     settings: ISettings,
     type: "timer"
   ): number;
@@ -1163,7 +1126,7 @@ export namespace Progress {
     exerciseType: IExerciseType,
     dayData: IDayData,
     state: IProgramState,
-    context: IScriptContext,
+    context: IScriptFnContext,
     settings: ISettings,
     type: "reps" | "weight" | "timer" | "rpe"
   ): IWeight | IPercentage | number | undefined {

@@ -349,6 +349,25 @@ export namespace Weight {
     }
   }
 
+  export function applyOp(
+    onerm: IWeight | undefined,
+    oldValue: IWeight | number | IPercentage,
+    value: IWeight | number | IPercentage,
+    opr: "+=" | "-=" | "*=" | "/=" | "="
+  ): IWeight | number | IPercentage {
+    if (opr === "=") {
+      return value;
+    } else if (opr === "+=") {
+      return Weight.op(onerm, oldValue, value, (a, b) => a + b);
+    } else if (opr === "-=") {
+      return Weight.op(onerm, oldValue, value, (a, b) => a - b);
+    } else if (opr === "*=") {
+      return Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a * b));
+    } else {
+      return Weight.op(onerm, oldValue, value, (a, b) => MathUtils.roundTo005(a / b));
+    }
+  }
+
   export function op(
     onerm: IWeight | undefined,
     a: IWeight | number | IPercentage,
@@ -405,6 +424,16 @@ export namespace Weight {
       return Weight.build(o(weight.value, convertTo(value, weight.unit).value), weight.unit);
     } else {
       throw new Error("Weight.operation should never work with numbers only");
+    }
+  }
+
+  export function convertToWeight(onerm: IWeight, value: IWeight | number | IPercentage, unit: IUnit): IWeight {
+    if (typeof value === "number") {
+      return Weight.build(value, unit);
+    } else if (Weight.isPct(value)) {
+      return Weight.convertTo(Weight.multiply(onerm, MathUtils.roundFloat(value.value / 100, 4)), unit);
+    } else {
+      return value;
     }
   }
 

@@ -38,7 +38,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const isFinished = Reps.isFinished(entry.sets);
 
   if ((props.forceShow || isFinished) && result.success) {
-    const { state: newState, variables } = result.data;
+    const { state: newState, updates, bindings } = result.data;
     const diffState = ObjectUtils.keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
       const oldValue = state[key];
       const newValue = newState[key];
@@ -50,29 +50,19 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
       return memo;
     }, {});
     const diffVars: Record<string, string | undefined> = {};
-    if (variables.rm1 != null) {
+    if (bindings.rm1 != null) {
       const oldOnerm = Exercise.rm1(entry.exercise, settings.exerciseData, settings.units);
-      if (oldOnerm !== variables.rm1) {
+      if (!Weight.eq(oldOnerm, bindings.rm1)) {
         diffVars["1 RM"] = `${Weight.display(Weight.convertTo(oldOnerm, units))} -> ${Weight.display(
-          Weight.convertTo(variables.rm1, units)
+          Weight.convertTo(bindings.rm1, units)
         )}`;
       }
     }
-    for (const key of [
-      "reps",
-      "weights",
-      "RPE",
-      "minReps",
-      "timer",
-      "setVariationIndex",
-      "descriptionIndex",
-    ] as const) {
-      if (variables[key] != null) {
-        for (const value of variables[key] || []) {
-          const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
-          diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
-        }
-      }
+    for (const update of updates) {
+      const key = update.type;
+      const value = update.value;
+      const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
+      diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
     }
 
     if (ObjectUtils.isNotEmpty(diffState) || ObjectUtils.isNotEmpty(diffVars)) {

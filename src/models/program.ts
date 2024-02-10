@@ -1,6 +1,6 @@
 import { Exercise, exercises, warmupValues } from "./exercise";
 import { ScriptRunner } from "../parser";
-import { Progress } from "./progress";
+import { IScriptBindings, Progress } from "./progress";
 import { Screen } from "./screen";
 import { lb, lf } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
@@ -41,7 +41,7 @@ import { Encoder } from "../utils/encoder";
 import { IBuilderProgram, IBuilderExercise } from "../pages/builder/models/types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
-import { ILiftoscriptEvaluatorVariables, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
+import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
 import { PlannerToProgram2 } from "./plannerToProgram2";
@@ -369,7 +369,7 @@ export namespace Program {
     allProgramExercises: IProgramExercise[],
     mode: IProgramMode,
     staticState?: IProgramState
-  ): IEither<{ state: IProgramState; variables: ILiftoscriptEvaluatorVariables }, string> {
+  ): IEither<{ state: IProgramState; bindings: IScriptBindings; updates: ILiftoscriptEvaluatorUpdate[] }, string> {
     const script = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -397,7 +397,7 @@ export namespace Program {
     );
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
-    let variables: ILiftoscriptEvaluatorVariables = {};
+    let updates: ILiftoscriptEvaluatorUpdate[] = [];
 
     try {
       const runner = new ScriptRunner(
@@ -412,7 +412,7 @@ export namespace Program {
         mode
       );
       runner.execute();
-      variables = runner.getVariables();
+      updates = runner.getUpdates();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -424,7 +424,7 @@ export namespace Program {
       newState[key] = state[key];
     }
 
-    return { success: true, data: { state: newState, variables } };
+    return { success: true, data: { state: newState, updates, bindings } };
   }
 
   export function runDescriptionScript(
@@ -558,7 +558,7 @@ export namespace Program {
     mode: IProgramMode,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
-  ): IEither<{ state: IProgramState; variables?: ILiftoscriptEvaluatorVariables }, string> {
+  ): IEither<{ state: IProgramState; updates?: ILiftoscriptEvaluatorUpdate[]; bindings: IScriptBindings }, string> {
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -592,7 +592,7 @@ export namespace Program {
       ...staticState,
     };
 
-    let variables: ILiftoscriptEvaluatorVariables | undefined;
+    let updates: ILiftoscriptEvaluatorUpdate[] = [];
     try {
       const runner = new ScriptRunner(
         ProgramExercise.getFinishDayScript(programExercise, allProgramExercises),
@@ -606,7 +606,7 @@ export namespace Program {
         mode
       );
       runner.execute();
-      variables = runner.getVariables();
+      updates = runner.getUpdates();
     } catch (e) {
       if (e instanceof SyntaxError) {
         return { success: false, error: e.message };
@@ -619,7 +619,7 @@ export namespace Program {
       newState[key] = (staticState || {})[key];
     }
 
-    return { success: true, data: { state: newState, variables } };
+    return { success: true, data: { state: newState, updates, bindings } };
   }
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
@@ -670,30 +670,25 @@ export namespace Program {
               staticState
             );
             if (newStateResult.success) {
-              const { state, variables } = newStateResult.data;
+              const { state, updates, bindings } = newStateResult.data;
               const exerciseKey = Exercise.toKey(entry.exercise);
-              if (variables?.rm1 != null) {
-                exerciseData[exerciseKey] = { rm1: Weight.roundTo005(variables.rm1) };
+              const onerm = Exercise.rm1(e, exerciseData, settings.units);
+              if (!Weight.eq(bindings.rm1, onerm)) {
+                exerciseData[exerciseKey] = { rm1: Weight.roundTo005(bindings.rm1) };
               }
               const reuseLogicId = e.reuseLogic?.selected;
               let newExercise = ObjectUtils.clone(e);
 
-              if (Program.programMode(program) === "planner" && variables != null) {
+              if (Program.programMode(program) === "planner" && updates != null) {
                 newExercise = ProgramExercise.applyVariables(
                   dayData,
                   newExercise,
                   program.planner!,
-                  variables,
-                  settings
+                  updates,
+                  settings,
+                  setVariationIndexMap,
+                  descriptionIndexMap
                 );
-                if (variables.setVariationIndex?.length) {
-                  setVariationIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
-                    variables.setVariationIndex;
-                }
-                if (variables.descriptionIndex?.length) {
-                  descriptionIndexMap[ProgramToPlanner.exerciseKeyForProgramExercise(e, settings)] =
-                    variables.descriptionIndex;
-                }
               }
 
               if (reuseLogicId && newExercise.reuseLogic) {

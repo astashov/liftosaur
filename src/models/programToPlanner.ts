@@ -19,7 +19,6 @@ import { PlannerToProgram2 } from "./plannerToProgram2";
 import { IProgramExerciseWarmupSet } from "../types";
 import { ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
-import { ProgramExercise } from "./programExercise";
 
 interface IPlannerToProgram2Globals {
   weight?: string;
@@ -97,7 +96,7 @@ export class ProgramToPlanner {
         const setVariationIndexAdd = this.setVariationIndexMap[key];
         if (setVariationIndexAdd != null) {
           for (const add of setVariationIndexAdd) {
-            const [targetWeek, targetDay] = ProgramExercise.normalizeTarget(add.target, 2);
+            const [targetWeek, targetDay] = add.target;
             if (
               (targetWeek === "*" || targetWeek === weekIndex + 1) &&
               (targetDay === "*" || targetDay === dayInWeekIndex + 1)
@@ -135,7 +134,7 @@ export class ProgramToPlanner {
         const descriptionIndexAdd = this.descriptionIndexMap[key];
         if (descriptionIndexAdd != null) {
           for (const add of descriptionIndexAdd) {
-            const [targetWeek, targetDay] = ProgramExercise.normalizeTarget(add.target, 2);
+            const [targetWeek, targetDay] = add.target;
             if (
               (targetWeek === "*" || targetWeek === weekIndex + 1) &&
               (targetDay === "*" || targetDay === dayInWeekIndex + 1)

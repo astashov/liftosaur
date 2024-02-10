@@ -1,6 +1,6 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
-import { IScriptBindings, IScriptContext, IScriptFunctions } from "./models/progress";
+import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
 import { Weight } from "./models/weight";
 import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
 import { CollectionUtils } from "./utils/collection";
@@ -71,8 +71,8 @@ function getChildren(node: SyntaxNode): SyntaxNode[] {
 }
 
 function comparing(
-  left: number | IWeight | IPercentage | (number | IWeight)[],
-  right: number | IWeight | IPercentage | (number | IWeight)[],
+  left: number | IWeight | IPercentage | (number | IWeight | undefined)[],
+  right: number | IWeight | IPercentage | (number | IWeight | undefined)[],
   operator: ">" | "<" | ">=" | "<=" | "==" | "!="
 ): boolean {
   function comparator(l: number | IWeight | IPercentage, r: number | IWeight | IPercentage): boolean {
@@ -93,13 +93,13 @@ function comparing(
   }
 
   if (Array.isArray(left) && Array.isArray(right)) {
-    return left.every((l, i) => comparator(l, right[i]));
+    return left.every((l, i) => comparator(l ?? 0, right[i] ?? 0));
   } else if (Array.isArray(left) && !Array.isArray(right)) {
-    return left.every((l, i) => comparator(l, right));
+    return left.every((l, i) => comparator(l ?? 0, right ?? 0));
   } else if (!Array.isArray(left) && Array.isArray(right)) {
-    return right.every((r, i) => comparator(left, r));
+    return right.every((r, i) => comparator(left ?? 0, r ?? 0));
   } else if (!Array.isArray(left) && !Array.isArray(right)) {
-    return comparator(left, right);
+    return comparator(left ?? 0, right ?? 0);
   } else {
     throw new Error("Impossible case");
   }
@@ -115,34 +115,32 @@ export interface ILiftoscriptVariableValue<T> {
   target: ("*" | "_" | number)[];
 }
 
-export interface ILiftoscriptEvaluatorVariables {
-  rm1?: IWeight;
-  reps?: ILiftoscriptVariableValue<number>[];
-  minReps?: ILiftoscriptVariableValue<number>[];
-  weights?: ILiftoscriptVariableValue<number | IPercentage | IWeight>[];
-  timer?: ILiftoscriptVariableValue<number>[];
-  RPE?: ILiftoscriptVariableValue<number>[];
-  setVariationIndex?: ILiftoscriptVariableValue<number>[];
-  descriptionIndex?: ILiftoscriptVariableValue<number>[];
-}
+export type ILiftoscriptEvaluatorUpdate =
+  | { type: "setVariationIndex"; value: ILiftoscriptVariableValue<number> }
+  | { type: "descriptionIndex"; value: ILiftoscriptVariableValue<number> }
+  | { type: "reps"; value: ILiftoscriptVariableValue<number> }
+  | { type: "minReps"; value: ILiftoscriptVariableValue<number> }
+  | { type: "weights"; value: ILiftoscriptVariableValue<number | IPercentage | IWeight> }
+  | { type: "timer"; value: ILiftoscriptVariableValue<number> }
+  | { type: "RPE"; value: ILiftoscriptVariableValue<number> };
 
 export class LiftoscriptEvaluator {
   private readonly script: string;
   private readonly state: IProgramState;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
-  private readonly context: IScriptContext;
+  private readonly fnContext: IScriptFnContext;
   private readonly unit: IUnit;
   private readonly mode: IProgramMode;
   private readonly vars: IProgramState = {};
-  public readonly variables: ILiftoscriptEvaluatorVariables = {};
+  public readonly updates: ILiftoscriptEvaluatorUpdate[] = [];
 
   constructor(
     script: string,
     state: IProgramState,
     bindings: IScriptBindings,
     fns: IScriptFunctions,
-    context: IScriptContext,
+    fnContext: IScriptFnContext,
     unit: IUnit,
     mode: IProgramMode
   ) {
@@ -150,7 +148,7 @@ export class LiftoscriptEvaluator {
     this.state = state;
     this.bindings = bindings;
     this.fns = fns;
-    this.context = context;
+    this.fnContext = fnContext;
     this.unit = unit;
     this.mode = mode;
   }
@@ -283,33 +281,88 @@ export class LiftoscriptEvaluator {
     return Weight.is(v1) || Weight.isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
   }
 
-  private assignToVariable(
+  private changeBinding(
+    key: "reps" | "weights" | "RPE" | "minReps",
+    expression: SyntaxNode,
+    indexExprs: SyntaxNode[],
+    op: IAssignmentOp
+  ): number | IWeight | IPercentage {
+    const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
+    const maxTargetLength = 1;
+    if (indexes.length > maxTargetLength) {
+      this.error(`${key} can only have 1 value inside []`, expression);
+    }
+    const indexValues = this.calculateIndexValues(indexes);
+    const normalizedIndexValues = this.normalizeTarget(indexValues, maxTargetLength);
+    const [setIndex] = normalizedIndexValues;
+    let value: number | IWeight | IPercentage = 0;
+    if (key === "weights") {
+      for (let i = 0; i < this.bindings.weights.length; i += 1) {
+        if (setIndex === "*" || setIndex === i + 1) {
+          const evalutedValue = this.evaluateToNumberOrWeightOrPercentage(expression);
+          const newValue = Weight.applyOp(this.bindings.rm1, this.bindings.weights[i], evalutedValue, op);
+          value = Weight.convertToWeight(this.bindings.rm1, newValue, this.unit);
+          this.bindings.weights[i] = value;
+        }
+      }
+    } else {
+      for (let i = 0; i < this.bindings[key].length; i += 1) {
+        if (setIndex === "*" || setIndex === i + 1) {
+          const evaluatedValue = this.evaluateToNumber(expression);
+          value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
+          this.bindings[key][i] = value;
+        }
+      }
+    }
+    return value;
+  }
+
+  private recordVariableUpdate(
     key: "reps" | "weights" | "timer" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
   ): number | IWeight | IPercentage {
     const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
-    if (this.mode === "planner") {
+    const maxTargetLength = key === "setVariationIndex" || key === "descriptionIndex" ? 2 : 4;
+    if (key === "setVariationIndex") {
+      if (indexes.length > maxTargetLength) {
+        this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+      }
+    } else if (key === "descriptionIndex") {
+      if (indexes.length > maxTargetLength) {
+        this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+      }
+    } else if (indexes.length > maxTargetLength) {
+      this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
+    }
+    const indexValues = this.calculateIndexValues(indexes);
+    const normalizedIndexValues = this.normalizeTarget(indexValues, maxTargetLength);
+    let result: number | IWeight | IPercentage;
+    if (key === "weights") {
+      result = this.evaluateToNumberOrWeightOrPercentage(expression);
+      this.updates.push({ type: key, value: { value: result, op, target: normalizedIndexValues } });
+    } else {
+      result = this.evaluateToNumber(expression);
+      this.updates.push({ type: key, value: { value: result, op, target: normalizedIndexValues } });
       if (key === "setVariationIndex") {
-        if (indexes.length > 2) {
-          this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+        const [week, day] = normalizedIndexValues;
+        if ((week === "*" || week === this.bindings.week) && (day === "*" || day === this.bindings.day)) {
+          this.bindings.setVariationIndex = result;
         }
       } else if (key === "descriptionIndex") {
-        if (indexes.length > 2) {
-          this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+        const [week, day] = normalizedIndexValues;
+        if ((week === "*" || week === this.bindings.week) && (day === "*" || day === this.bindings.day)) {
+          this.bindings.descriptionIndex = result;
         }
-      } else if (indexes.length > 4) {
-        this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
-      }
-    } else if (this.mode === "update") {
-      if (key === "setVariationIndex" || key === "descriptionIndex") {
-        this.error(`Cannot change '${key}' in 'update' mode`, expression);
-      } else if (indexes.length > 1) {
-        this.error(`${key} can only have 1 value max inside []`, expression);
       }
     }
-    const indexValues = CollectionUtils.compact(indexes).map((ie) => {
+
+    return result;
+  }
+
+  private calculateIndexValues(indexes: SyntaxNode[]): (number | "*")[] {
+    return CollectionUtils.compact(indexes).map((ie) => {
       if (ie.type.name === NodeName.Wildcard) {
         return "*" as const;
       } else {
@@ -318,22 +371,19 @@ export class LiftoscriptEvaluator {
         return Weight.is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
       }
     });
-    let result: number | IWeight | IPercentage;
-    if (key === "weights") {
-      result = this.evaluateToNumberOrWeightOrPercentage(expression);
-      this.variables[key] = this.variables[key] || [];
-      this.variables[key]!.push({ value: result, op, target: indexValues });
-    } else {
-      result = this.evaluateToNumber(expression);
-      this.variables[key] = this.variables[key] || [];
-      this.variables[key]!.push({ value: result, op, target: indexValues });
-    }
-    return result;
   }
 
-  public evaluate(expr: SyntaxNode): number | boolean | IWeight | IPercentage | number[] | IWeight[] {
+  private normalizeTarget(target: (number | "*")[], length: number): (number | "*")[] {
+    const newTarget = [...target];
+    for (let i = 0; i < length - target.length; i += 1) {
+      newTarget.unshift("*");
+    }
+    return newTarget;
+  }
+
+  public evaluate(expr: SyntaxNode): number | boolean | IWeight | IPercentage | (number | undefined)[] | IWeight[] {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
-      let result: number | boolean | IWeight | number[] | IWeight[] | IPercentage = 0;
+      let result: number | boolean | IWeight | (number | undefined)[] | IWeight[] | IPercentage = 0;
       for (const child of getChildren(expr)) {
         if (!child.type.isSkipped) {
           result = this.evaluate(child);
@@ -451,22 +501,24 @@ export class LiftoscriptEvaluator {
             : typeof value === "number"
             ? Weight.build(value, this.unit)
             : Weight.build(0, this.unit);
-          this.variables.rm1 = rm1;
+          this.bindings.rm1 = rm1;
           return rm1;
         } else if (
-          variable === "reps" ||
-          variable === "weights" ||
-          variable === "RPE" ||
-          variable === "minReps" ||
-          variable === "timer" ||
-          variable === "setVariationIndex" ||
-          variable === "descriptionIndex"
+          this.mode === "planner" &&
+          (variable === "reps" ||
+            variable === "weights" ||
+            variable === "RPE" ||
+            variable === "minReps" ||
+            variable === "timer" ||
+            variable === "setVariationIndex" ||
+            variable === "descriptionIndex")
         ) {
-          if (this.mode === "planner" || this.mode === "update") {
-            return this.assignToVariable(variable, expression, indexExprs, "=");
-          } else {
-            this.error(`Unknown variable '${variable}'`, variableNode);
-          }
+          return this.recordVariableUpdate(variable, expression, indexExprs, "=");
+        } else if (
+          this.mode === "update" &&
+          (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")
+        ) {
+          return this.changeBinding(variable, expression, indexExprs, "=");
         } else {
           this.error(`Unknown variable '${variable}'`, variableNode);
         }
@@ -518,35 +570,41 @@ export class LiftoscriptEvaluator {
           const rm1 = Weight.is(value) ? value : typeof value === "number" ? value : 0;
           const op = this.getValue(incAssignmentExpr);
           if (op === "+=") {
-            this.variables.rm1 = Weight.add(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.add(this.bindings.rm1, rm1);
           } else if (op === "-=") {
-            this.variables.rm1 = Weight.subtract(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.subtract(this.bindings.rm1, rm1);
           } else if (op === "*=") {
-            this.variables.rm1 = Weight.multiply(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.multiply(this.bindings.rm1, rm1);
           } else if (op === "/=") {
-            this.variables.rm1 = Weight.divide(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.divide(this.bindings.rm1, rm1);
           } else {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
           return rm1;
         } else if (
-          variable === "reps" ||
-          variable === "weights" ||
-          variable === "RPE" ||
-          variable === "minReps" ||
-          variable === "timer" ||
-          variable === "setVariationIndex" ||
-          variable === "descriptionIndex"
+          this.mode === "planner" &&
+          (variable === "reps" ||
+            variable === "weights" ||
+            variable === "RPE" ||
+            variable === "minReps" ||
+            variable === "timer" ||
+            variable === "setVariationIndex" ||
+            variable === "descriptionIndex")
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
-          if (this.mode === "planner" || this.mode === "update") {
-            return this.assignToVariable(variable, expression, indexExprs, op);
-          } else {
-            this.error(`Can't use incremental assignment for a variable '${variable}'`, stateVar);
+          return this.recordVariableUpdate(variable, expression, indexExprs, op);
+        } else if (
+          this.mode === "update" &&
+          (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")
+        ) {
+          const op = this.getValue(incAssignmentExpr);
+          if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
+          return this.changeBinding(variable, expression, indexExprs, op);
         } else {
           this.error(`Unknown variable '${variable}'`, stateVar);
         }
@@ -585,7 +643,7 @@ export class LiftoscriptEvaluator {
         const argValues = args.map((a) => this.evaluate(a));
         const fn = this.fns[name];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fn as any).apply(undefined, [...argValues, this.context]);
+        return (fn as any).apply(undefined, [...argValues, this.fnContext]);
       } else {
         this.error(`Unknown function '${name}'`, keyword);
       }
@@ -617,7 +675,10 @@ export class LiftoscriptEvaluator {
         assert(NodeName.VariableIndex);
       }
       if (indexExprs.length === 0) {
-        const value = this.bindings[name];
+        let value = this.bindings[name];
+        if (Array.isArray(value) && name === "minReps") {
+          value = value.map((v, i) => (v as number) ?? this.bindings.reps[i]);
+        }
         return value;
       } else if (indexExprs.length === 1) {
         const indexExpr = indexExprs[0];
@@ -635,14 +696,18 @@ export class LiftoscriptEvaluator {
           index = indexEval ? 1 : 0;
         }
         index -= 1;
-        const value = this.bindings[name];
-        if (!Array.isArray(value)) {
+        const binding = this.bindings[name];
+        if (!Array.isArray(binding)) {
           this.error(`Variable ${name} should be an array`, nameNode);
         }
-        if (value[index] == null) {
+        if (index >= binding.length) {
           this.error(`Out of bounds index ${index + 1} for array ${name}`, nameNode);
         }
-        return value[index];
+        let value = binding[index];
+        if (value == null) {
+          value = name === "minReps" ? this.bindings.reps[index] ?? 0 : 0;
+        }
+        return value;
       } else {
         this.error(`Can't use [1:1] syntax when reading from the ${name} variable`, expr);
       }

@@ -18,6 +18,20 @@ export namespace MathUtils {
   export function roundFloat(value: number, precision: number): number {
     return +value.toFixed(precision);
   }
+
+  export function applyOp(a: number, b: number, opr: "+=" | "-=" | "*=" | "/=" | "="): number {
+    if (opr === "=") {
+      return b;
+    } else if (opr === "+=") {
+      return a + b;
+    } else if (opr === "-=") {
+      return a - b;
+    } else if (opr === "*=") {
+      return MathUtils.roundTo005(a * b);
+    } else {
+      return MathUtils.roundTo005(a / b);
+    }
+  }
 }
 
 export function n(value: number, precision: number = 2): string {
