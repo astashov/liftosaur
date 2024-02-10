@@ -71,6 +71,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramSta
       } else {
         return completeFromList([
           { label: "state", type: "keyword liftoscript" },
+          { label: "var", type: "keyword liftoscript" },
           { label: "weights", type: "keyword liftoscript" },
           { label: "reps", type: "keyword liftoscript" },
           { label: "minReps", type: "keyword liftoscript" },

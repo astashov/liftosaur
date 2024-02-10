@@ -26,6 +26,7 @@ expression {
   BuiltinFunctionExpression |
   VariableExpression |
   StateVariable |
+  Variable |
   UnaryExpression
 }
 
@@ -36,8 +37,8 @@ IfExpression {
   BlockExpression
   (@specialize<Keyword, "else"> @specialize<Keyword, "if"> ParenthesisExpression BlockExpression)*
   (@specialize<Keyword, "else"> BlockExpression)? }
-AssignmentExpression { (StateVariable | VariableExpression) !assign "=" expression }
-IncAssignmentExpression { (StateVariable | VariableExpression) !assign IncAssignment expression }
+AssignmentExpression { (StateVariable | Variable | VariableExpression) !assign "=" expression }
+IncAssignmentExpression { (StateVariable | Variable | VariableExpression) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
 VariableIndex { Wildcard | expression }
 Wildcard { "*" }
@@ -66,8 +67,9 @@ UnaryExpression {
 
   Keyword { @asciiLetter (@asciiLetter | @digit | "_")* }
   StateVariable { "state." Keyword }
+  Variable { "var." Keyword }
   Unit { "lb" | "kg" }
-  @precedence { StateVariable, Unit, Keyword }
+  @precedence { StateVariable, Variable, Unit, Keyword }
 
   Number { (@digit+ ("." @digit+)*) | "." @digit+ | @digit+ "." }
   Plus { ("+" | "-") }

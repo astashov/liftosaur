@@ -29,6 +29,7 @@ export enum NodeName {
   AssignmentExpression = "AssignmentExpression",
   IncAssignmentExpression = "IncAssignmentExpression",
   StateVariable = "StateVariable",
+  Variable = "Variable",
   BuiltinFunctionExpression = "BuiltinFunctionExpression",
   Keyword = "Keyword",
   VariableExpression = "VariableExpression",
@@ -133,6 +134,7 @@ export class LiftoscriptEvaluator {
   private readonly context: IScriptContext;
   private readonly unit: IUnit;
   private readonly mode: IProgramMode;
+  private readonly vars: IProgramState = {};
   public readonly variables: ILiftoscriptEvaluatorVariables = {};
 
   constructor(
@@ -193,6 +195,7 @@ export class LiftoscriptEvaluator {
 
   public parse(expr: SyntaxNode): void {
     const cursor = expr.cursor();
+    const vars: IProgramState = {};
     do {
       if (cursor.node.type.isError) {
         this.error("Syntax error", cursor.node);
@@ -206,8 +209,10 @@ export class LiftoscriptEvaluator {
           this.error(`Unknown function '${name}'`, keyword);
         }
       } else if (cursor.node.type.name === NodeName.AssignmentExpression) {
-        const variableNode = cursor.node.getChild(NodeName.VariableExpression);
-        if (variableNode != null) {
+        const [variableNode] = getChildren(cursor.node);
+        if (variableNode.type.name === NodeName.Variable) {
+          vars[this.getValue(variableNode)] = 1;
+        } else if (variableNode.type.name === NodeName.VariableExpression) {
           const nameNode = variableNode.getChild(NodeName.Keyword);
           if (nameNode != null) {
             const name = this.getValue(nameNode);
@@ -229,6 +234,11 @@ export class LiftoscriptEvaluator {
         const stateKey = this.getValue(cursor.node).replace("state.", "");
         if (!(stateKey in this.state)) {
           this.error(`There's no state variable '${stateKey}'`, cursor.node);
+        }
+      } else if (cursor.node.type.name === NodeName.Variable) {
+        const variableKey = this.getValue(cursor.node);
+        if (!(variableKey in vars)) {
+          this.error(`There's no variable '${variableKey}'`, cursor.node);
         }
       } else if (cursor.node.type.name === NodeName.VariableExpression) {
         const [nameNode, indexExpr] = getChildren(cursor.node);
@@ -417,7 +427,9 @@ export class LiftoscriptEvaluator {
       const [variableNode, expression] = getChildren(expr);
       if (
         variableNode == null ||
-        (variableNode.type.name !== NodeName.StateVariable && variableNode.type.name !== NodeName.VariableExpression) ||
+        (variableNode.type.name !== NodeName.StateVariable &&
+          variableNode.type.name !== NodeName.VariableExpression &&
+          variableNode.type.name !== NodeName.Variable) ||
         expression == null
       ) {
         assert(NodeName.AssignmentExpression);
@@ -458,6 +470,15 @@ export class LiftoscriptEvaluator {
         } else {
           this.error(`Unknown variable '${variable}'`, variableNode);
         }
+      } else if (variableNode.type.name === NodeName.Variable) {
+        const varKey = this.getValue(variableNode).replace("var.", "");
+        const value = this.evaluate(expression);
+        if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
+          this.vars[varKey] = value;
+        } else {
+          this.vars[varKey] = value ? 1 : 0;
+        }
+        return this.vars[varKey];
       } else {
         const stateKey = this.getValue(variableNode).replace("state.", "");
         if (stateKey in this.state) {
@@ -631,6 +652,13 @@ export class LiftoscriptEvaluator {
         return this.state[stateKey];
       } else {
         this.error(`There's no state variable '${stateKey}'`, expr);
+      }
+    } else if (expr.type.name === NodeName.Variable) {
+      const varKey = this.getValue(expr).replace("var.", "");
+      if (varKey in this.vars) {
+        return this.vars[varKey];
+      } else {
+        this.error(`There's no variable '${varKey}'`, expr);
       }
     } else {
       this.error(`Unknown node type ${expr.node.type.name}`, expr);
