@@ -61,7 +61,11 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     for (const update of updates) {
       const key = update.type;
       const value = update.value;
-      const keyStr = `${key}${value.target.length > 0 ? `[${value.target.join(":")}]` : ""}`;
+      const target = value.target;
+      while (target[0] === "*") {
+        target.shift();
+      }
+      const keyStr = `${key}${target.length > 0 ? `[${target.join(":")}]` : ""}`;
       diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
     }
 
