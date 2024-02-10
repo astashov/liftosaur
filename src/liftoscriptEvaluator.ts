@@ -214,12 +214,19 @@ export class LiftoscriptEvaluator {
           const nameNode = variableNode.getChild(NodeName.Keyword);
           if (nameNode != null) {
             const name = this.getValue(nameNode);
+            if (this.mode !== "update") {
+              if (["numberOfSets"].indexOf(name) !== -1) {
+                this.error(`Cannot assign to '${name}'`, variableNode);
+              }
+            }
             if (this.mode === "update") {
-              if (["reps", "weights", "RPE", "minReps"].indexOf(name) === -1) {
+              if (["reps", "weights", "RPE", "minReps", "numberOfSets"].indexOf(name) === -1) {
                 this.error(`Cannot assign to '${name}'`, variableNode);
               }
               const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
-              if (indexExprs.length > 1) {
+              if (name === "numberOfSets" && indexExprs.length > 0) {
+                this.error(`${name} is not an array`, variableNode);
+              } else if (indexExprs.length > 1) {
                 this.error(`Can't assign to set variations, weeks or days here`, variableNode);
               }
             }
@@ -279,6 +286,35 @@ export class LiftoscriptEvaluator {
     const v = this.evaluate(expr);
     const v1 = Array.isArray(v) ? v[0] : v;
     return Weight.is(v1) || Weight.isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
+  }
+
+  private changeNumberOfSets(expression: SyntaxNode, op: IAssignmentOp): number | IWeight | IPercentage {
+    const evaluatedValue = MathUtils.applyOp(this.bindings.numberOfSets, this.evaluateToNumber(expression), op);
+
+    this.bindings.weights = this.bindings.weights.slice(0, evaluatedValue);
+    this.bindings.reps = this.bindings.reps.slice(0, evaluatedValue);
+    this.bindings.minReps = this.bindings.minReps.slice(0, evaluatedValue);
+    this.bindings.RPE = this.bindings.RPE.slice(0, evaluatedValue);
+    this.bindings.w = this.bindings.weights.slice(0, evaluatedValue);
+    this.bindings.r = this.bindings.reps.slice(0, evaluatedValue);
+    this.bindings.mr = this.bindings.minReps.slice(0, evaluatedValue);
+
+    for (let i = 0; i < evaluatedValue; i += 1) {
+      if (this.bindings.weights[i] == null) {
+        this.bindings.weights[i] = Weight.build(0, this.unit);
+        this.bindings.reps[i] = 0;
+        this.bindings.minReps[i] = undefined;
+        this.bindings.RPE[i] = undefined;
+        this.bindings.w[i] = this.bindings.weights[i];
+        this.bindings.r[i] = this.bindings.reps[i];
+        this.bindings.mr[i] = this.bindings.minReps[i];
+      }
+    }
+
+    this.bindings.numberOfSets = evaluatedValue;
+    this.bindings.ns = evaluatedValue;
+
+    return evaluatedValue;
   }
 
   private changeBinding(
@@ -514,6 +550,8 @@ export class LiftoscriptEvaluator {
             variable === "descriptionIndex")
         ) {
           return this.recordVariableUpdate(variable, expression, indexExprs, "=");
+        } else if (this.mode === "update" && variable === "numberOfSets") {
+          return this.changeNumberOfSets(expression, "=");
         } else if (
           this.mode === "update" &&
           (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")
@@ -596,6 +634,12 @@ export class LiftoscriptEvaluator {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
           return this.recordVariableUpdate(variable, expression, indexExprs, op);
+        } else if (this.mode === "update" && variable === "numberOfSets") {
+          const op = this.getValue(incAssignmentExpr);
+          if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
+          }
+          return this.changeNumberOfSets(expression, op);
         } else if (
           this.mode === "update" &&
           (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")

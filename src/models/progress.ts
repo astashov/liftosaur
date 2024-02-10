@@ -568,7 +568,7 @@ export namespace Progress {
           "update"
         );
         runner.execute();
-        const newEntry = Progress.applyVariables(entry, bindings);
+        const newEntry = Progress.applyBindings(entry, bindings);
         console.log("bindings after", ObjectUtils.clone(bindings));
         const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
         return progress;
@@ -579,11 +579,16 @@ export namespace Progress {
     return aProgress;
   }
 
-  export function applyVariables(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
+  export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
     const keys = ["RPE", "minReps", "reps", "weights"] as const;
     const entry = ObjectUtils.clone(oldEntry);
+    const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
+    entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
     for (const key of keys) {
-      for (let i = 0; i < entry.sets.length; i += 1) {
+      for (let i = 0; i < bindings[key].length; i += 1) {
+        if (entry.sets[i] == null) {
+          entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb") };
+        }
         if (entry.sets[i].completedReps == null) {
           if (key === "RPE") {
             const value = bindings.RPE[i];
