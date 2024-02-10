@@ -51,7 +51,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     }, {});
     const diffVars: Record<string, string | undefined> = {};
     if (bindings.rm1 != null) {
-      const oldOnerm = Exercise.rm1(entry.exercise, settings.exerciseData, settings.units);
+      const oldOnerm = Exercise.onerm(entry.exercise, settings);
       if (!Weight.eq(oldOnerm, bindings.rm1)) {
         diffVars["1 RM"] = `${Weight.display(Weight.convertTo(oldOnerm, units))} -> ${Weight.display(
           Weight.convertTo(bindings.rm1, units)

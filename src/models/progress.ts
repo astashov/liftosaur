@@ -28,6 +28,7 @@ import {
   IProgramDay,
   IDayData,
   IExerciseDataValue,
+  IUnit,
 } from "../types";
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
@@ -46,6 +47,8 @@ export interface IScriptBindings {
   rm1: IWeight;
   reps: number[];
   minReps: (number | undefined)[];
+  amraps: (number | undefined)[];
+  logrpes: (number | undefined)[];
   RPE: (number | undefined)[];
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
@@ -61,6 +64,7 @@ export interface IScriptBindings {
 }
 
 export interface IScriptFnContext {
+  unit: IUnit;
   equipment?: IEquipment;
 }
 
@@ -94,6 +98,18 @@ export interface IScriptFunctions {
   max(vals: number[]): number;
   max(vals: IWeight[]): IWeight;
   zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
+  sets(
+    from: number,
+    to: number,
+    minReps: number,
+    reps: number,
+    isAmrap: number,
+    weight: IWeight | IPercentage | number,
+    rpe: number,
+    logRpe: number,
+    context: IScriptFnContext,
+    bindings: IScriptBindings
+  ): number;
 }
 
 function floor(num: number): number;
@@ -175,7 +191,7 @@ export namespace Progress {
     settings: ISettings,
     exercise?: IExerciseType
   ): IScriptBindings {
-    const rm1 = exercise ? Exercise.rm1(exercise, settings.exerciseData, settings.units) : Weight.build(0, "lb");
+    const rm1 = exercise ? Exercise.onerm(exercise, settings) : Weight.build(0, "lb");
     return {
       day: dayData.day,
       week: dayData.week ?? 1,
@@ -184,6 +200,8 @@ export namespace Progress {
       reps: [],
       minReps: [],
       RPE: [],
+      amraps: [],
+      logrpes: [],
       completedReps: [],
       completedRPE: [],
       w: [],
@@ -267,6 +285,32 @@ export namespace Progress {
       min,
       max,
       zeroOrGte,
+      sets(
+        from: number,
+        to: number,
+        minReps: number,
+        reps: number,
+        isAmrap: number,
+        weight: IWeight | IPercentage | number,
+        rpe: number,
+        logRpe: number,
+        context: IScriptFnContext,
+        bindings: IScriptBindings
+      ): number {
+        console.log("sets", from, to, minReps, reps, isAmrap, weight, rpe, logRpe);
+        for (let i = 0; i < bindings.numberOfSets; i++) {
+          if (i >= from - 1 && i < to) {
+            const weightValue = Weight.convertToWeight(bindings.rm1, weight, context.unit);
+            bindings.minReps[i] = reps !== minReps ? minReps : undefined;
+            bindings.reps[i] = reps;
+            bindings.weights[i] = weightValue;
+            bindings.RPE[i] = rpe;
+            bindings.amraps[i] = isAmrap !== 0 ? 1 : 0;
+            bindings.logrpes[i] = logRpe !== 0 ? 1 : 0;
+          }
+        }
+        return to - from;
+      },
     };
   }
 
@@ -316,6 +360,7 @@ export namespace Progress {
               settings.units,
               {
                 equipment: exercise.equipment,
+                unit: settings.units,
               },
               "regular"
             ).execute("timer"),
@@ -564,6 +609,7 @@ export namespace Progress {
           settings.units,
           {
             equipment: exercise.equipment,
+            unit: settings.units,
           },
           "update"
         );
@@ -573,6 +619,7 @@ export namespace Progress {
         const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
         return progress;
       } catch (e) {
+        console.error(e);
         alert("Something went wrong");
       }
     }
@@ -580,7 +627,7 @@ export namespace Progress {
   }
 
   export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
-    const keys = ["RPE", "minReps", "reps", "weights"] as const;
+    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes"] as const;
     const entry = ObjectUtils.clone(oldEntry);
     const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
     entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
@@ -602,6 +649,12 @@ export namespace Progress {
           } else if (key === "weights") {
             const value = bindings.weights[i];
             entry.sets[i].weight = value;
+          } else if (key === "amraps") {
+            const value = bindings.amraps[i];
+            entry.sets[i].isAmrap = !!value;
+          } else if (key === "logrpes") {
+            const value = bindings.logrpes[i];
+            entry.sets[i].logRpe = !!value;
           }
         }
       }
@@ -908,7 +961,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment },
+            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
             settings,
             "weight"
           )
@@ -928,7 +981,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment },
+            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
             settings,
             "weight"
           );
@@ -939,7 +992,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { equipment: programExercise.exerciseType.equipment },
+              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
               settings,
               "reps"
             ),
@@ -971,7 +1024,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment },
+            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
             settings,
             "weight"
           );
@@ -981,7 +1034,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { equipment: programExercise.exerciseType.equipment },
+              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
               settings,
               "reps"
             ),
@@ -992,7 +1045,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { equipment: programExercise.exerciseType.equipment },
+                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
                   settings,
                   "rpe"
                 )

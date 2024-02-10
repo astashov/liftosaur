@@ -17,6 +17,8 @@ const bindings: IScriptBindings = {
   ],
   reps: [1, 2, 3],
   minReps: [1, 2, 3],
+  amraps: [0, 0, 0],
+  logrpes: [0, 0, 0],
   RPE: [0, 0, 0],
   completedRPE: [0, 0, 0],
   completedReps: [1, 2, 3],
@@ -40,7 +42,7 @@ const fns = Progress.createScriptFunctions(Settings.build());
 
 const state = { foo: 2 };
 
-const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {}, "regular");
+const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", { unit: "lb" }, "regular");
 console.log("\n\nRunning...\n\n");
 const result = scriptRunner.execute();
 console.log("\n\nResult:\n\n");

@@ -581,7 +581,7 @@ export namespace ProgramExercise {
       Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
       Progress.createScriptFunctions(settings),
       settings.units,
-      { equipment: programExercise.exerciseType.equipment },
+      { equipment: programExercise.exerciseType.equipment, unit: settings.units },
       "planner"
     );
   }

@@ -90,6 +90,7 @@ export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramSta
           { label: "calculateTrainingMax", type: "function liftoscript" },
           { label: "calculate1RM", type: "function liftoscript" },
           { label: "zeroOrGte", type: "function liftoscript" },
+          { label: "sets", type: "function liftoscript" },
           { label: "rpeMultiplier", type: "function liftoscript" },
           { label: "floor", type: "function liftoscript" },
           { label: "round", type: "function liftoscript" },

@@ -83,9 +83,7 @@ export namespace History {
             entry = {
               ...entry,
               state: { ...state },
-              vars: useRm1
-                ? { rm1: Exercise.rm1(programExercise.exerciseType, settings.exerciseData, settings.units) }
-                : {},
+              vars: useRm1 ? { rm1: Exercise.onerm(programExercise.exerciseType, settings) } : {},
             };
           }
         }

@@ -18,6 +18,8 @@ export namespace ParserTestUtils {
     reps: [1, 2, 3],
     minReps: [1, 2, 3],
     RPE: [0, 0, 0],
+    amraps: [0, 0, 0],
+    logrpes: [0, 0, 0],
     completedReps: [1, 2, 3],
     completedRPE: [0, 0, 0],
     w: [
@@ -49,6 +51,8 @@ export namespace ParserTestUtils {
       minReps: reps,
       RPE: reps.map(() => 0),
       completedRPE: reps.map(() => 0),
+      amraps: reps.map(() => 0),
+      logrpes: reps.map(() => 0),
       completedReps,
       w: weights,
       r: reps,
@@ -68,7 +72,7 @@ export namespace ParserTestUtils {
     state: IProgramState,
     bindings: IScriptBindings = defaultBindings
   ): number | IWeight | boolean {
-    const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", {}, "regular");
+    const scriptRunner = new ScriptRunner(program, state, bindings, fns, "lb", { unit: "lb" }, "regular");
     return scriptRunner.execute();
   }
 }

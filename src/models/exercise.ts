@@ -15,7 +15,6 @@ import {
   IProgramExerciseWarmupSet,
   IUnit,
   ICustomExercise,
-  IExerciseData,
   IScreenMuscle,
 } from "../types";
 import { Muscle } from "./muscle";
@@ -3614,13 +3613,13 @@ export namespace Exercise {
     return { ...exercise, equipment: type.equipment };
   }
 
-  export function rm1(type: IExerciseType, exerciseData: IExerciseData, unit: IUnit): IWeight {
-    const weight = exerciseData[Exercise.toKey(type)]?.rm1;
-    if (weight != null) {
-      return weight;
+  export function onerm(type: IExerciseType, settings: ISettings): IWeight {
+    const rm = settings.exerciseData[Exercise.toKey(type)]?.rm1;
+    if (rm) {
+      return Weight.convertTo(rm, settings.units);
     }
-    const exercise = Exercise.get(type, {});
-    return unit === "lb" ? exercise.startingWeightLb : exercise.startingWeightKg;
+    const exercise = Exercise.get(type, settings.exercises);
+    return settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb;
   }
 
   export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {
@@ -3718,15 +3717,6 @@ export namespace Exercise {
       }
     }
     return Array.from(allMuscleGroups);
-  }
-
-  export function onerm(type: IExerciseType, settings: ISettings): IWeight {
-    const rm = settings.exerciseData[Exercise.toKey(type)]?.rm1;
-    if (rm) {
-      return Weight.convertTo(rm, settings.units);
-    }
-    const exercise = Exercise.get(type, settings.exercises);
-    return settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb;
   }
 
   export function synergistMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {

@@ -164,7 +164,7 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
-            { equipment: exercise.equipment },
+            { equipment: exercise.equipment, unit: settings.units },
             "regular"
           ).execute("reps");
         },
@@ -182,7 +182,7 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
-            { equipment: exercise.equipment },
+            { equipment: exercise.equipment, unit: settings.units },
             "regular"
           ).execute("weight");
           if (Weight.isPct(weight)) {
@@ -207,7 +207,7 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { equipment: exercise.equipment },
+                  { equipment: exercise.equipment, unit: settings.units },
                   "regular"
                 ).execute("rpe");
               },
@@ -229,7 +229,7 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { equipment: exercise.equipment },
+                  { equipment: exercise.equipment, unit: settings.units },
                   "regular"
                 ).execute("reps");
               },
@@ -341,7 +341,7 @@ export namespace Program {
       Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
-      { equipment },
+      { equipment, unit: settings.units },
       "regular"
     );
 
@@ -408,6 +408,7 @@ export namespace Program {
         settings.units,
         {
           equipment: entry.exercise.equipment,
+          unit: settings.units,
         },
         mode
       );
@@ -442,7 +443,7 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment: exercise.equipment },
+          { equipment: exercise.equipment, unit: settings.units },
           "regular"
         );
         return { success: true, data: scriptRunnerResult.execute("reps") };
@@ -477,7 +478,7 @@ export namespace Program {
               Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
-              { equipment: programExercise.exerciseType.equipment },
+              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
               "regular"
             ).execute("reps");
           },
@@ -533,7 +534,7 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment: programExercise.exerciseType.equipment },
+          { equipment: programExercise.exerciseType.equipment, unit: settings.units },
           "regular"
         );
         return { success: true, data: scriptRunnerResult.execute(type as "reps") };
@@ -602,6 +603,7 @@ export namespace Program {
         settings.units,
         {
           equipment: programExercise.exerciseType.equipment,
+          unit: settings.units,
         },
         mode
       );
@@ -672,7 +674,7 @@ export namespace Program {
             if (newStateResult.success) {
               const { state, updates, bindings } = newStateResult.data;
               const exerciseKey = Exercise.toKey(entry.exercise);
-              const onerm = Exercise.rm1(e, exerciseData, settings.units);
+              const onerm = Exercise.onerm(e, settings);
               if (!Weight.eq(bindings.rm1, onerm)) {
                 exerciseData[exerciseKey] = { rm1: Weight.roundTo005(bindings.rm1) };
               }

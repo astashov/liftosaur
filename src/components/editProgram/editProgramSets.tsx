@@ -179,7 +179,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           ),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment },
+          { equipment, unit: settings.units },
           "regular"
         );
         if (type === "reps") {

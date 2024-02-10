@@ -297,7 +297,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { equipment },
+            { equipment, unit: this.settings.units },
             "update"
           );
           try {
@@ -427,7 +427,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { equipment },
+            { equipment, unit: this.settings.units },
             "planner"
           );
           try {

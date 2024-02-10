@@ -687,7 +687,7 @@ export class LiftoscriptEvaluator {
         const argValues = args.map((a) => this.evaluate(a));
         const fn = this.fns[name];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fn as any).apply(undefined, [...argValues, this.fnContext]);
+        return (fn as any).apply(undefined, [...argValues, this.fnContext, this.bindings]);
       } else {
         this.error(`Unknown function '${name}'`, keyword);
       }
@@ -778,28 +778,28 @@ export class LiftoscriptEvaluator {
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(undefined, one, two, (a, b) => a + b);
+    return this.operation(this.bindings.rm1, one, two, (a, b) => a + b);
   }
 
   private subtract(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(undefined, one, two, (a, b) => a - b);
+    return this.operation(this.bindings.rm1, one, two, (a, b) => a - b);
   }
 
   private multiply(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(undefined, one, two, (a, b) => a * b);
+    return this.operation(this.bindings.rm1, one, two, (a, b) => a * b);
   }
 
   private divide(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(undefined, one, two, (a, b) => a / b);
+    return this.operation(this.bindings.rm1, one, two, (a, b) => a / b);
   }
 
   private modulo(
