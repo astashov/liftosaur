@@ -422,6 +422,7 @@ export const TSet = t.intersection(
       timestamp: t.number,
       isAmrap: t.boolean,
       label: t.string,
+      timer: t.number,
     }),
   ],
   "TSet"

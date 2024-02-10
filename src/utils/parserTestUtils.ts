@@ -20,6 +20,7 @@ export namespace ParserTestUtils {
     RPE: [0, 0, 0],
     amraps: [0, 0, 0],
     logrpes: [0, 0, 0],
+    timers: [0, 0, 0],
     completedReps: [1, 2, 3],
     completedRPE: [0, 0, 0],
     w: [
@@ -53,6 +54,7 @@ export namespace ParserTestUtils {
       completedRPE: reps.map(() => 0),
       amraps: reps.map(() => 0),
       logrpes: reps.map(() => 0),
+      timers: reps.map(() => 0),
       completedReps,
       w: weights,
       r: reps,

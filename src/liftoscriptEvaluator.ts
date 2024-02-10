@@ -198,13 +198,16 @@ export class LiftoscriptEvaluator {
       if (cursor.node.type.isError) {
         this.error("Syntax error", cursor.node);
       } else if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
-        const [keyword] = getChildren(cursor.node);
+        const [keyword, ...fnArgs] = getChildren(cursor.node);
         if (keyword == null || keyword.type.name !== NodeName.Keyword) {
           assert(NodeName.BuiltinFunctionExpression);
         }
         const name = this.getValue(keyword);
-        if (!(name in this.fns)) {
+        if (!(name in this.fns) || (name === "sets" && this.mode !== "update")) {
           this.error(`Unknown function '${name}'`, keyword);
+        }
+        if (name === "sets" && fnArgs.length !== 9) {
+          this.error(`'sets' function should have 9 arguments`, keyword);
         }
       } else if (cursor.node.type.name === NodeName.AssignmentExpression) {
         const [variableNode] = getChildren(cursor.node);
@@ -298,11 +301,17 @@ export class LiftoscriptEvaluator {
     this.bindings.w = this.bindings.weights.slice(0, evaluatedValue);
     this.bindings.r = this.bindings.reps.slice(0, evaluatedValue);
     this.bindings.mr = this.bindings.minReps.slice(0, evaluatedValue);
+    this.bindings.timers = this.bindings.minReps.slice(0, evaluatedValue);
+    this.bindings.amraps = this.bindings.minReps.slice(0, evaluatedValue);
+    this.bindings.logrpes = this.bindings.minReps.slice(0, evaluatedValue);
 
     for (let i = 0; i < evaluatedValue; i += 1) {
       if (this.bindings.weights[i] == null) {
         this.bindings.weights[i] = Weight.build(0, this.unit);
         this.bindings.reps[i] = 0;
+        this.bindings.timers[i] = undefined;
+        this.bindings.amraps[i] = undefined;
+        this.bindings.logrpes[i] = undefined;
         this.bindings.minReps[i] = undefined;
         this.bindings.RPE[i] = undefined;
         this.bindings.w[i] = this.bindings.weights[i];
@@ -531,14 +540,13 @@ export class LiftoscriptEvaluator {
           if (indexExprs.length > 0) {
             this.error(`rm1 is not an array`, expr);
           }
-          const value = this.evaluate(expression);
-          const rm1 = Weight.is(value)
-            ? value
-            : typeof value === "number"
-            ? Weight.build(value, this.unit)
-            : Weight.build(0, this.unit);
-          this.bindings.rm1 = rm1;
-          return rm1;
+          const evaluatedValue = this.evaluate(expression);
+          let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
+          value = value ?? 0;
+          value = value === true ? 1 : value === false ? 0 : value;
+          value = Weight.convertToWeight(this.bindings.rm1, value, this.unit);
+          this.bindings.rm1 = value;
+          return value;
         } else if (
           this.mode === "planner" &&
           (variable === "reps" ||
@@ -604,21 +612,40 @@ export class LiftoscriptEvaluator {
           if (indexExprs.length > 0) {
             this.error(`rm1 is not an array`, expr);
           }
-          const value = this.evaluate(expression);
-          const rm1 = Weight.is(value) ? value : typeof value === "number" ? value : 0;
+          const evaluatedValue = this.evaluate(expression);
+          let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
+          value = value ?? 0;
+          value = value === true ? 1 : value === false ? 0 : value;
+
           const op = this.getValue(incAssignmentExpr);
           if (op === "+=") {
-            this.bindings.rm1 = Weight.add(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.convertToWeight(
+              this.bindings.rm1,
+              this.add(this.bindings.rm1, value),
+              this.unit
+            );
           } else if (op === "-=") {
-            this.bindings.rm1 = Weight.subtract(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.convertToWeight(
+              this.bindings.rm1,
+              this.subtract(this.bindings.rm1, value),
+              this.unit
+            );
           } else if (op === "*=") {
-            this.bindings.rm1 = Weight.multiply(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.convertToWeight(
+              this.bindings.rm1,
+              this.multiply(this.bindings.rm1, value),
+              this.unit
+            );
           } else if (op === "/=") {
-            this.bindings.rm1 = Weight.divide(this.bindings.rm1, rm1);
+            this.bindings.rm1 = Weight.convertToWeight(
+              this.bindings.rm1,
+              this.divide(this.bindings.rm1, value),
+              this.unit
+            );
           } else {
             this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
           }
-          return rm1;
+          return this.bindings.rm1;
         } else if (
           this.mode === "planner" &&
           (variable === "reps" ||

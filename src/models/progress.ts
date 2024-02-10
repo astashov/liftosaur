@@ -49,6 +49,7 @@ export interface IScriptBindings {
   minReps: (number | undefined)[];
   amraps: (number | undefined)[];
   logrpes: (number | undefined)[];
+  timers: (number | undefined)[];
   RPE: (number | undefined)[];
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
@@ -105,6 +106,7 @@ export interface IScriptFunctions {
     reps: number,
     isAmrap: number,
     weight: IWeight | IPercentage | number,
+    timer: number,
     rpe: number,
     logRpe: number,
     context: IScriptFnContext,
@@ -204,6 +206,7 @@ export namespace Progress {
       logrpes: [],
       completedReps: [],
       completedRPE: [],
+      timers: [],
       w: [],
       r: [],
       cr: [],
@@ -233,6 +236,9 @@ export namespace Progress {
       bindings.completedReps.push(set.completedReps);
       bindings.completedRPE.push(set.completedRpe);
       bindings.RPE.push(set.rpe);
+      bindings.amraps.push(set.isAmrap ? 1 : undefined);
+      bindings.logrpes.push(set.logRpe ? 1 : undefined);
+      bindings.timers.push(set.timer);
     }
     bindings.w = bindings.weights;
     bindings.r = bindings.reps;
@@ -292,6 +298,7 @@ export namespace Progress {
         reps: number,
         isAmrap: number,
         weight: IWeight | IPercentage | number,
+        timer: number,
         rpe: number,
         logRpe: number,
         context: IScriptFnContext,
@@ -304,9 +311,10 @@ export namespace Progress {
             bindings.minReps[i] = reps !== minReps ? minReps : undefined;
             bindings.reps[i] = reps;
             bindings.weights[i] = weightValue;
-            bindings.RPE[i] = rpe;
+            bindings.RPE[i] = rpe !== 0 ? rpe : undefined;
             bindings.amraps[i] = isAmrap !== 0 ? 1 : 0;
             bindings.logrpes[i] = logRpe !== 0 ? 1 : 0;
+            bindings.timers[i] = timer !== 0 ? timer : undefined;
           }
         }
         return to - from;
@@ -330,6 +338,7 @@ export namespace Progress {
     const programExercise =
       entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
     if (programExercise != null && program != null) {
+      const set = entry.sets[setIndex];
       const exercise = programExercise.exerciseType;
       const state = ProgramExercise.getState(programExercise, program.exercises);
       const setVariationIndexResult = Program.runVariationScript(
@@ -341,7 +350,7 @@ export namespace Progress {
       );
       const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
       const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
-      const timerExpr = setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises);
+      const timerExpr = set.timer || setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises);
       const bindings = Progress.createScriptBindings(
         Progress.getDayData(progress),
         entry,
@@ -349,11 +358,11 @@ export namespace Progress {
         setIndex + 1,
         setVariationIndex
       );
-      if (timerExpr?.trim() && state) {
+      if (timerExpr && `${timerExpr}`.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
             new ScriptRunner(
-              timerExpr,
+              `${timerExpr}`.trim(),
               state,
               bindings,
               Progress.createScriptFunctions(settings),
@@ -627,7 +636,7 @@ export namespace Progress {
   }
 
   export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
-    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes"] as const;
+    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers"] as const;
     const entry = ObjectUtils.clone(oldEntry);
     const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
     entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
@@ -655,6 +664,9 @@ export namespace Progress {
           } else if (key === "logrpes") {
             const value = bindings.logrpes[i];
             entry.sets[i].logRpe = !!value;
+          } else if (key === "timers") {
+            const value = bindings.timers[i];
+            entry.sets[i].timer = value !== 0 ? value : undefined;
           }
         }
       }
