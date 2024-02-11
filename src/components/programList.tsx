@@ -18,6 +18,8 @@ import { TimeUtils } from "../utils/time";
 import { IconWatch } from "./icons/iconWatch";
 import { ExerciseImageUtils } from "../models/exerciseImage";
 import { EditProgram } from "../models/editProgram";
+import { IconDoc } from "./icons/iconDoc";
+import { StringUtils } from "../utils/string";
 
 interface IProps {
   onSelectProgram: (id: string) => void;
@@ -180,6 +182,13 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
               <span className="pl-1 align-middle">{formattedTime}h</span>
             </div>
           )}
+        </div>
+        <div className="py-1 text-grayv2-main">
+          <IconDoc width={15} height={20} color="#607284" />{" "}
+          <span className="align-middle">
+            {program.isMultiweek && `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}, `}
+            {Program.daysRange(program)}, {Program.exerciseRange(program)}
+          </span>
         </div>
         <h4 className="text-sm text-grayv2-main">{program.shortDescription}</h4>
         <div className="py-3">
