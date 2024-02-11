@@ -125,11 +125,18 @@ export const Playground = memo(
         <ModalAmrap
           isHidden={progressRef.current.ui?.amrapModal == null}
           entryIndex={progressRef.current.ui?.amrapModal?.entryIndex || 0}
+          settings={props.settings}
+          askWeight={progressRef.current.ui?.amrapModal?.askWeight || false}
           setIndex={progressRef.current.ui?.amrapModal?.setIndex || 0}
           initialReps={
             progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[
               progressRef.current.ui?.amrapModal?.setIndex || 0
             ]?.completedReps
+          }
+          initialWeight={
+            progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[
+              progressRef.current.ui?.amrapModal?.setIndex || 0
+            ]?.weight
           }
           initialRpe={
             progressRef.current.entries[progressRef.current.ui?.amrapModal?.entryIndex || 0]?.sets[

@@ -178,16 +178,22 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <ModalAmrap
         isHidden={progress.ui?.amrapModal == null}
         dispatch={dispatch}
+        settings={props.settings}
         entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
         setIndex={progress.ui?.amrapModal?.setIndex || 0}
         isAmrap={progress.ui?.amrapModal?.isAmrap || false}
         logRpe={progress.ui?.amrapModal?.logRpe || false}
         userVars={progress.ui?.amrapModal?.userVars || false}
+        askWeight={progress.ui?.amrapModal?.askWeight || false}
         programExercise={programExercise}
         allProgramExercises={props.program.exercises}
         initialReps={
           progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
             ?.completedReps
+        }
+        initialWeight={
+          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
+            ?.weight
         }
         initialRpe={
           progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]

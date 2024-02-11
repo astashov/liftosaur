@@ -41,6 +41,8 @@ export enum PlannerNodeName {
   ExerciseSet = "ExerciseSet",
   Timer = "Timer",
   SetPart = "SetPart",
+  WeightWithPlus = "WeightWithPlus",
+  PercentageWithPlus = "PercentageWithPlus",
   EmptyExpression = "EmptyExpression",
 }
 

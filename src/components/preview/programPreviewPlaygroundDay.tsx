@@ -87,6 +87,7 @@ export const ProgramPreviewPlaygroundDay = memo(
         <ModalAmrap
           isHidden={props.progress.ui?.amrapModal == null}
           dispatch={dispatch}
+          settings={props.settings}
           entryIndex={props.progress.ui?.amrapModal?.entryIndex || 0}
           setIndex={props.progress.ui?.amrapModal?.setIndex || 0}
           initialReps={
@@ -99,8 +100,14 @@ export const ProgramPreviewPlaygroundDay = memo(
               props.progress.ui?.amrapModal?.setIndex || 0
             ]?.completedRpe
           }
+          initialWeight={
+            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.sets[
+              props.progress.ui?.amrapModal?.setIndex || 0
+            ]?.weight
+          }
           isAmrap={props.progress.ui?.amrapModal?.isAmrap || false}
           logRpe={props.progress.ui?.amrapModal?.logRpe || false}
+          askWeight={props.progress.ui?.amrapModal?.askWeight || false}
           userVars={props.progress.ui?.amrapModal?.userVars || false}
           programExercise={Program.getProgramExerciseFromEntry(
             props.program.exercises,

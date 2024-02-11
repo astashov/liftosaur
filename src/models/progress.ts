@@ -713,18 +713,21 @@ export namespace Progress {
     } else {
       const isAmrap = entry.sets[setIndex].isAmrap;
       const shouldLogRpe = (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].logRpe;
+      const shouldAskWeight =
+        (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].askWeight;
       const shouldPromptUserVars =
         hasUserPromptedVars &&
         ((Progress.hasLastUnfinishedSet(entry) && !Reps.isFinishedSet(entry.sets[setIndex])) ||
           (isAmrap && Progress.isFinishedSet(entry)));
 
-      if (isAmrap || shouldLogRpe || shouldPromptUserVars) {
+      if (isAmrap || shouldLogRpe || shouldPromptUserVars || shouldAskWeight) {
         const amrapUi: IProgressUi = {
           amrapModal: {
             entryIndex,
             setIndex,
             isAmrap: isAmrap,
             logRpe: shouldLogRpe,
+            askWeight: shouldAskWeight,
             userVars: shouldPromptUserVars,
           },
         };
@@ -814,6 +817,29 @@ export namespace Progress {
             } else if (typeof value === "number") {
               value = Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5;
               sets[setIndex] = { ...set, completedRpe: value };
+            }
+            return { ...progressEntry, sets: sets };
+          } else {
+            return progressEntry;
+          }
+        }),
+      };
+    } else {
+      return progress;
+    }
+  }
+
+  export function updateWeightInExercise(progress: IHistoryRecord, value?: IWeight): IHistoryRecord {
+    if (progress.ui?.amrapModal != null) {
+      const { entryIndex, setIndex } = progress.ui.amrapModal;
+      return {
+        ...progress,
+        entries: progress.entries.map((progressEntry, i) => {
+          if (i === entryIndex) {
+            const sets = [...progressEntry.sets];
+            const set = sets[setIndex];
+            if (value != null) {
+              sets[setIndex] = { ...set, weight: value };
             }
             return { ...progressEntry, sets: sets };
           } else {

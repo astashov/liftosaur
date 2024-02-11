@@ -4,7 +4,7 @@ import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { Input } from "./input";
-import { IPercentage, IProgramExercise, IWeight } from "../types";
+import { IPercentage, IProgramExercise, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
@@ -14,13 +14,16 @@ import { ProgramExercise } from "../models/programExercise";
 interface IModalAmrapProps {
   isHidden: boolean;
   dispatch: IDispatch;
+  initialWeight?: IWeight;
   initialReps?: number;
   initialRpe?: number;
   entryIndex: number;
   setIndex: number;
   isAmrap: boolean;
   logRpe: boolean;
+  askWeight: boolean;
   userVars: boolean;
+  settings: ISettings;
   programExercise?: IProgramExercise;
   allProgramExercises: IProgramExercise[];
   onDone?: () => void;
@@ -42,20 +45,24 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const amrapContainer = useRef<HTMLDivElement>(null);
   const amrapInput = useRef<HTMLInputElement>(null);
   const rpeContainer = useRef<HTMLDivElement>(null);
+  const weightContainer = useRef<HTMLDivElement>(null);
   const rpeInput = useRef<HTMLInputElement>(null);
+  const weightInput = useRef<HTMLInputElement>(null);
   const userVarValues = useRef<Record<string, number | IWeight | IPercentage>>({});
 
-  function onDone(amrapValue?: number, rpeValue?: number): void {
+  function onDone(amrapValue?: number, rpeValue?: number, weightValue?: IWeight): void {
     props.dispatch({
       type: "ChangeAMRAPAction",
       amrapValue,
       rpeValue,
+      weightValue,
       setIndex: props.setIndex,
       entryIndex: props.entryIndex,
       allProgramExercises: props.allProgramExercises,
       programExercise: props.programExercise,
       isAmrap: props.isAmrap,
       logRpe: props.logRpe,
+      askWeight: props.askWeight,
       userVars: userVarValues.current,
     });
     if (props.onDone != null) {
@@ -70,6 +77,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
       preautofocus={[
         [amrapContainer, (el) => toggleElement(el, props.isAmrap, props.initialReps)],
         [rpeContainer, (el) => toggleElement(el, props.logRpe, props.initialRpe)],
+        [weightContainer, (el) => toggleElement(el, props.askWeight, props.initialWeight?.value)],
       ]}
       shouldShowClose={true}
       onClose={() => onDone(undefined, undefined)}
@@ -84,6 +92,15 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             data-name="modal-input-autofocus"
             type="tel"
             min="0"
+          />
+        </div>
+        <div className="mb-2" ref={weightContainer}>
+          <Input
+            label={`Completed Weight (${props.settings.units})`}
+            defaultValue={props.initialWeight?.value}
+            ref={weightInput}
+            data-cy="modal-amrap-weight-input"
+            type="number"
           />
         </div>
         <div className="mb-2" ref={rpeContainer}>
@@ -132,9 +149,17 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
               const rpeValue = rpeInput.current?.value;
               const rpeNumValue = rpeValue != null ? parseFloat(rpeValue) : undefined;
 
+              const weightValue = weightInput.current?.value;
+              const weightNumValue = weightValue != null ? parseFloat(weightValue) : undefined;
+              const weight =
+                weightNumValue && !isNaN(weightNumValue)
+                  ? Weight.build(weightNumValue, props.settings.units)
+                  : undefined;
+
               onDone(
                 amrapNumValue != null && !isNaN(amrapNumValue) ? amrapNumValue : undefined,
-                rpeNumValue != null && !isNaN(rpeNumValue) ? rpeNumValue : undefined
+                rpeNumValue != null && !isNaN(rpeNumValue) ? rpeNumValue : undefined,
+                weight
               );
             }}
           >

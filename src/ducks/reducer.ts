@@ -202,8 +202,10 @@ export type IChangeAMRAPAction = {
   entryIndex: number;
   amrapValue?: number;
   rpeValue?: number;
+  weightValue?: IWeight;
   isAmrap?: boolean;
   logRpe?: boolean;
+  askWeight?: boolean;
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
   userVars?: Record<string, number | IWeight | IPercentage>;
@@ -521,6 +523,9 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         progress = Progress.updateAmrapRepsInExercise(progress, action.amrapValue, action.isAmrap);
         if (action.logRpe) {
           progress = Progress.updateRpeInExercise(progress, action.rpeValue);
+        }
+        if (action.weightValue) {
+          progress = Progress.updateWeightInExercise(progress, action.weightValue);
         }
         const programExerciseId = action.programExercise?.id;
         if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {

@@ -247,6 +247,7 @@ export namespace Program {
         minReps: minRepsValue,
         rpe: rpeValue,
         logRpe: set.logRpe,
+        askWeight: set.askWeight,
         weight: weightValue,
       };
     });

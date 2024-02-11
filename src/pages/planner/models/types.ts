@@ -31,6 +31,7 @@ export interface IPlannerProgramExercise {
     timer?: number;
     percentage?: number;
     weight?: IWeight;
+    askWeight?: boolean;
   };
 }
 
@@ -47,6 +48,7 @@ export interface IPlannerProgramExerciseSet {
   percentage?: number;
   weight?: IWeight;
   label?: string;
+  askWeight?: boolean;
 }
 
 export interface IPlannerProgramExerciseWarmupSet {

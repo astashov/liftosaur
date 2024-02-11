@@ -248,10 +248,14 @@ export class ProgramToPlanner {
               const firstWeight = variations[0]?.sets[0]?.weightExpr;
               const firstRpe = variations[0]?.sets[0]?.rpeExpr;
               const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
+              const firstAskWeight = !!variations[0]?.sets[0]?.askWeight;
               const firstTimer = variations[0]?.sets[0]?.timerExpr;
               const globals: IPlannerToProgram2Globals = {
                 weight:
-                  firstWeight != null && variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight))
+                  firstWeight != null &&
+                  variations.every((v) =>
+                    v.sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight === firstAskWeight)
+                  )
                     ? firstWeight
                     : undefined,
                 rpe:
@@ -457,7 +461,7 @@ export class ProgramToPlanner {
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {
         const weightValue = this.weightExprToStr(set.weightExpr);
-        setStr += weightValue ? ` ${weightValue}` : "";
+        setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
       }
       if (globals.rpe == null) {
         setStr += set.rpeExpr ? ` @${set.rpeExpr}` : "";

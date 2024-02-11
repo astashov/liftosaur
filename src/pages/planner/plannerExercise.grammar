@@ -10,7 +10,9 @@ ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) | None }
 ExerciseSection {  (ExerciseProperty | ExerciseSets) ("\\" linebreak)? }
 ReuseSection { "..." ExerciseName? }
-ExerciseSet { (Rpe | Timer | SetPart | Weight | Percentage | SetLabel)+ }
+ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel)+ }
+WeightWithPlus { Weight Plus? }
+PercentageWithPlus { Percentage Plus? }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets ) }
 ExercisePropertyName { Keyword }

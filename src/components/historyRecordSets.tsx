@@ -8,6 +8,7 @@ interface IDisplaySet {
   reps: string;
   weight: string;
   rpe?: string;
+  askWeight?: boolean;
   completedRpe?: string;
   isCompleted?: boolean;
   isInRange?: boolean;
@@ -28,11 +29,13 @@ export function HistoryRecordSetsView(props: {
         rpe: set.rpe?.toString(),
         completedRpe: set.completedRpe?.toString(),
         weight: Weight.display(Weight.convertTo(set.weight, settings.units), false),
+        askWeight: set.askWeight,
         isCompleted: Reps.isCompletedSet(set),
         isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
       };
     });
   });
+  console.log(displayGroups);
   const hasRpe = displayGroups.some((group) => group.some((set) => set.rpe || set.completedRpe));
   return (
     <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>
@@ -118,6 +121,7 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
         </div>
         <div data-cy="history-entry-weight" className="pt-2 text-sm font-bold text-grayv2-main">
           {set.weight}
+          {set.askWeight ? "+" : ""}
         </div>
       </div>
     </div>

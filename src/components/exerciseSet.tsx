@@ -21,7 +21,9 @@ interface IProps {
 export const ExerciseSetView = memo(
   (props: IProps): JSX.Element => {
     const set = props.set;
-    const subtitle = n(convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value);
+    const subtitle = `${n(convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value)}${
+      set.completedReps == null && set.askWeight ? "+" : ""
+    }`;
 
     let cy: string;
     let color: "red" | "green" | "gray" | "yellow";

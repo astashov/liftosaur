@@ -87,6 +87,7 @@ export namespace Reps {
             last.reps !== set.reps ||
             last.minReps !== set.minReps ||
             last.completedReps !== set.completedReps ||
+            last.askWeight !== set.askWeight ||
             (isNext && last.isAmrap !== set.isAmrap) ||
             last.rpe !== set.rpe ||
             last.completedRpe !== set.completedRpe)

@@ -162,8 +162,8 @@ export class PlannerExerciseEvaluator {
   }
 
   private getWeight(expr?: SyntaxNode | null): IWeight | undefined {
-    if (expr?.type.name === PlannerNodeName.Weight) {
-      const value = this.getValue(expr);
+    if (expr?.type.name === PlannerNodeName.WeightWithPlus || expr?.type.name === PlannerNodeName.Weight) {
+      const value = this.getValue(expr).replace("+", "");
       const unit = value.indexOf("kg") !== -1 ? "kg" : "lb";
       return W.Weight.build(parseFloat(value), unit);
     } else {
@@ -231,15 +231,19 @@ export class PlannerExerciseEvaluator {
       const repRange = this.getRepRange(setParts);
       const rpeNode = expr.getChild(PlannerNodeName.Rpe);
       const timerNode = expr.getChild(PlannerNodeName.Timer);
-      const percentageNode = expr.getChild(PlannerNodeName.Percentage);
-      const weightNode = expr.getChild(PlannerNodeName.Weight);
+      const percentageNode = expr.getChild(PlannerNodeName.PercentageWithPlus);
+      const weightNode = expr.getChild(PlannerNodeName.WeightWithPlus);
       const labelNode = expr.getChild(PlannerNodeName.SetLabel);
+      const askWeight =
+        (weightNode != null && this.getValue(weightNode).indexOf("+") !== -1) ||
+        (percentageNode != null && this.getValue(percentageNode).indexOf("+") !== -1);
       const logRpe = rpeNode == null ? undefined : this.getValue(rpeNode).indexOf("+") !== -1;
       const rpe = rpeNode == null ? undefined : parseFloat(this.getValue(rpeNode).replace("@", "").replace("+", ""));
       const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
       const percentage =
-        percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
+        percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace(/[%\+]/, ""));
       const weight = this.getWeight(weightNode);
+      console.log(weight);
       const label = labelNode
         ? getChildren(labelNode)
             .map((n) => this.getValue(n))
@@ -256,6 +260,7 @@ export class PlannerExerciseEvaluator {
         weight,
         percentage,
         label,
+        askWeight,
       };
     } else {
       assert(PlannerNodeName.ExerciseSection);
@@ -670,6 +675,7 @@ export class PlannerExerciseEvaluator {
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
       const logRpe = allSets.find((set) => set.repRange == null && set.logRpe != null)?.logRpe;
+      const askWeight = allSets.find((set) => set.repRange == null && set.askWeight != null)?.askWeight;
       const [line] = this.getLineAndOffset(expr);
       const rawDescriptions: string[] = this.latestDescriptions.map((d) => d.join("\n"));
       const currentDescriptionIndex = rawDescriptions.findIndex((d) => d.startsWith("!"));
@@ -692,6 +698,7 @@ export class PlannerExerciseEvaluator {
         globals: {
           rpe,
           logRpe,
+          askWeight,
           timer,
           percentage,
           weight,

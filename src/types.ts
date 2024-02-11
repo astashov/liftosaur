@@ -423,6 +423,7 @@ export const TSet = t.intersection(
       isAmrap: t.boolean,
       label: t.string,
       timer: t.number,
+      askWeight: t.boolean,
     }),
   ],
   "TSet"
@@ -486,6 +487,7 @@ export const TProgramSet = t.intersection(
       rpeExpr: t.string,
       minRepsExpr: t.string,
       logRpe: t.boolean,
+      askWeight: t.boolean,
       label: t.string,
       timerExpr: t.string,
     }),
@@ -563,6 +565,7 @@ export const TProgressUi = t.partial(
       t.partial({
         isAmrap: t.boolean,
         logRpe: t.boolean,
+        askWeight: t.boolean,
         userVars: t.boolean,
       }),
     ]),
