@@ -35,7 +35,6 @@ export function HistoryRecordSetsView(props: {
       };
     });
   });
-  console.log(displayGroups);
   const hasRpe = displayGroups.some((group) => group.some((set) => set.rpe || set.completedRpe));
   return (
     <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>

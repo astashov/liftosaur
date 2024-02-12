@@ -304,7 +304,6 @@ export namespace Progress {
         context: IScriptFnContext,
         bindings: IScriptBindings
       ): number {
-        console.log("sets", from, to, minReps, reps, isAmrap, weight, rpe, logRpe);
         for (let i = 0; i < bindings.numberOfSets; i++) {
           if (i >= from - 1 && i < to) {
             const weightValue = Weight.convertToWeight(bindings.rm1, weight, context.unit);
@@ -609,7 +608,6 @@ export namespace Progress {
         descriptionIndex
       );
       try {
-        console.log("initial bindings", ObjectUtils.clone(bindings));
         const runner = new ScriptRunner(
           script,
           state,
@@ -624,7 +622,6 @@ export namespace Progress {
         );
         runner.execute();
         const newEntry = Progress.applyBindings(entry, bindings);
-        console.log("bindings after", ObjectUtils.clone(bindings));
         const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
         return progress;
       } catch (e) {

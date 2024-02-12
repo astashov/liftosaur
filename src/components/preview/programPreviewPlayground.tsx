@@ -172,7 +172,7 @@ export const ProgramPreviewPlayground = memo(
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                       const newProgress = Program.nextProgramRecord(
                                         newProgram,
-                                        state.settings,
+                                        newSettings,
                                         day.dayIndex,
                                         day.states
                                       );

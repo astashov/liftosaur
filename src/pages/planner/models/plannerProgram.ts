@@ -162,6 +162,8 @@ export class PlannerProgram {
         set.timer = set.timer ?? exercise.globals.timer;
         set.weight = set.weight ?? exercise.globals.weight;
         set.percentage = set.percentage ?? exercise.globals.percentage;
+        set.logRpe = set.logRpe || exercise.globals.logRpe;
+        set.askWeight = set.askWeight || exercise.globals.askWeight;
       }
     });
     return program;

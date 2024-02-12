@@ -243,7 +243,6 @@ export class PlannerExerciseEvaluator {
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace(/[%\+]/, ""));
       const weight = this.getWeight(weightNode);
-      console.log(weight);
       const label = labelNode
         ? getChildren(labelNode)
             .map((n) => this.getValue(n))

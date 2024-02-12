@@ -24,6 +24,8 @@ interface IPlannerToProgram2Globals {
   weight?: string;
   rpe?: string;
   timer?: string;
+  logRpe?: boolean;
+  askWeight?: boolean;
 }
 
 export class ProgramToPlanner {
@@ -258,11 +260,13 @@ export class ProgramToPlanner {
                   )
                     ? firstWeight
                     : undefined,
+                askWeight: variations.every((v) => v.sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight)),
                 rpe:
                   firstRpe != null &&
                   variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe))
                     ? firstRpe
                     : undefined,
+                logRpe: variations.every((v) => v.sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe)),
                 timer:
                   firstTimer != null && variations.every((v) => v.sets.every((s) => s.timerExpr === firstTimer))
                     ? firstTimer
@@ -282,10 +286,10 @@ export class ProgramToPlanner {
                 .join(" / ");
 
               if (globals.weight != null) {
-                plannerExercise += ` / ${this.weightExprToStr(globals.weight)}`;
+                plannerExercise += ` / ${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`;
               }
               if (globals.rpe != null) {
-                plannerExercise += ` / @${globals.rpe}`;
+                plannerExercise += ` / @${globals.rpe}${globals.logRpe ? "+" : ""}`;
               }
               if (globals.timer != null) {
                 plannerExercise += ` / ${globals.timer}s`;
