@@ -112,36 +112,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               dispatch={props.dispatch}
             />
             <ModalAmrap
-              isHidden={progress.ui?.amrapModal == null}
               settings={props.settings}
               dispatch={props.dispatch}
-              askWeight={progress.ui?.amrapModal?.askWeight || false}
-              isAmrap={progress.ui?.amrapModal?.isAmrap || false}
-              logRpe={progress.ui?.amrapModal?.logRpe || false}
-              userVars={progress.ui?.amrapModal?.userVars || false}
               programExercise={Program.getProgramExerciseFromEntry(
                 props.program?.exercises || [],
                 progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
               )}
               allProgramExercises={props.program?.exercises || []}
-              entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
-              setIndex={progress.ui?.amrapModal?.setIndex || 0}
-              initialReps={
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.completedReps ??
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.reps
-              }
-              initialRpe={
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.completedRpe ??
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.rpe
-              }
-              initialWeight={
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-                  ?.weight
-              }
+              progress={progress}
               onDone={() => {
                 const amrapModal = progress.ui?.amrapModal;
                 if (amrapModal != null) {

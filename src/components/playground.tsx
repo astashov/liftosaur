@@ -137,29 +137,11 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         </LinkButton>
       </div>
       <ModalAmrap
-        isHidden={progress.ui?.amrapModal == null}
+        progress={progress}
         dispatch={dispatch}
         settings={props.settings}
-        initialReps={
-          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-            ?.completedReps
-        }
-        initialRpe={
-          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-            ?.completedRpe
-        }
-        initialWeight={
-          progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.sets[progress.ui?.amrapModal?.setIndex || 0]
-            ?.weight
-        }
-        entryIndex={progress.ui?.amrapModal?.entryIndex || 0}
-        setIndex={progress.ui?.amrapModal?.setIndex || 0}
         programExercise={programExercise}
         allProgramExercises={props.program.exercises}
-        isAmrap={progress.ui?.amrapModal?.isAmrap || false}
-        logRpe={progress.ui?.amrapModal?.logRpe || false}
-        userVars={progress.ui?.amrapModal?.userVars || false}
-        askWeight={progress.ui?.amrapModal?.askWeight || false}
       />
       <ModalWeight
         programExercise={progress.ui?.weightModal?.programExercise}
