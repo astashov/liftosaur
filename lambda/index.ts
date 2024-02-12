@@ -782,7 +782,7 @@ const getDashboardsUsersHandler: RouteHandler<
     const userPrograms = await new UserDao(di).getProgramsByUserIds(userIds);
     const userIdToProgramNames = userPrograms.reduce<Record<string, { id: string; name: string }[]>>((memo, p) => {
       memo[p.userId] = memo[p.userId] || [];
-      memo[p.userId].push({ id: p.id, name: p.name });
+      memo[p.userId].push({ id: p.id, name: `${p.name} ${p.planner ? "🎯" : ""}` });
       return memo;
     }, {});
     const usersById = CollectionUtils.groupByKeyUniq(users, "id");
