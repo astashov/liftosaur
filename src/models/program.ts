@@ -33,7 +33,7 @@ import {
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
-import { ICustomExercise, IProgramContentSettings } from "../types";
+import { ICustomExercise, IProgramContentSettings, IAllCustomExercises } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -1077,6 +1077,12 @@ export namespace Program {
 
   export function switchToUnit(program: IProgram, settings: ISettings): IProgram {
     return { ...program, exercises: program.exercises.map((ex) => ProgramExercise.switchToUnit(ex, settings)) };
+  }
+
+  export function filterCustomExercises(program: IProgram, customExercises: IAllCustomExercises): IAllCustomExercises {
+    return ObjectUtils.filter(customExercises, (id) => {
+      return program.exercises.some((pe) => pe.exerciseType.id === id);
+    });
   }
 
   export function isChanged(aProgram: IProgram, bProgram: IProgram): boolean {

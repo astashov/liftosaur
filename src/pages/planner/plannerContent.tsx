@@ -26,15 +26,10 @@ import {
   ISettings,
 } from "../../types";
 import { Service } from "../../api/service";
-import { Button } from "../../components/button";
-import { IExportedProgram } from "../../models/program";
-import { getLatestMigrationVersion } from "../../migrations/migrations";
-import { ClipboardUtils } from "../../utils/clipboard";
 import { PlannerProgram } from "./models/plannerProgram";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
-import { UrlUtils } from "../../utils/url";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { ObjectUtils } from "../../utils/object";
@@ -47,6 +42,8 @@ import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPla
 import { PlannerToProgram2 } from "../../models/plannerToProgram2";
 import { UidFactory } from "../../utils/generator";
 import { IconPreview } from "../../components/icons/iconPreview";
+import { IAccount } from "../../models/account";
+import { PlannerBanner } from "./plannerBanner";
 
 declare let __HOST__: string;
 
@@ -54,6 +51,7 @@ export interface IPlannerContentProps {
   client: Window["fetch"];
   initialProgram?: IExportedPlannerProgram;
   partialStorage?: IPartialStorage;
+  account?: IAccount;
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
@@ -104,16 +102,18 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
+        const evaluatedWeeks = PlannerProgram.evaluate(newState.current.program, settings, {
+          skipDescriptionPostProcess: true,
+        });
         const exportedProgram: IExportedPlannerProgram = {
           program: newState.current.program,
           plannerSettings: settings.planner,
           settings: {
-            exercises: settings.exercises,
-            equipment: Equipment.customEquipment(settings.equipment),
+            exercises: PlannerProgram.usedExercises(settings.exercises, evaluatedWeeks),
+            equipment: PlannerProgram.usedEquipment(Equipment.customEquipment(settings.equipment), evaluatedWeeks),
             timer: settings.timers.workout ?? 0,
           },
         };
-        console.log(Equipment.customEquipment(settings.equipment));
         await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
       }
     },
@@ -157,7 +157,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     prevSettings.current = settings;
   }, [settings, state.current.program]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
-  const [showLiftosaurConvertInfo, setShowLiftosaurConvertInfo] = useState<string | undefined>(undefined);
   const [showHelp, setShowHelp] = useState(false);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
@@ -249,6 +248,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </button>
       </div>
 
+      <PlannerBanner account={props.account} />
+
       <div className="flex flex-col mb-2 sm:flex-row">
         <h2 className="flex-1 py-2 mr-2 text-2xl font-bold">
           <BuilderLinkInlineInput
@@ -309,69 +310,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   <IconCog2 />
                 </button>
               </div>
-              <div className="ml-2">
-                <Button
-                  name="planner-convert-to-liftosaur"
-                  kind="purple"
-                  disabled={isInvalid}
-                  title={isInvalid ? "Fix the errors in the program before converting" : undefined}
-                  onClick={async () => {
-                    const liftosaurProgram = new PlannerToProgram2(
-                      UidFactory.generateUid(8),
-                      [],
-                      state.current.program,
-                      settings
-                    ).convertToProgram();
-                    const usedCustomExercises = ObjectUtils.keys(settings.exercises).reduce<typeof settings.exercises>(
-                      (memo, id) => {
-                        const exercise = settings.exercises[id];
-                        if (exercise && liftosaurProgram.exercises.some((e) => e.exerciseType.id === exercise.id)) {
-                          memo[id] = exercise;
-                        }
-                        return memo;
-                      },
-                      {}
-                    );
-                    const usedCustomEquipment = ObjectUtils.keys(settings.equipment).reduce<typeof settings.equipment>(
-                      (memo, id) => {
-                        if (
-                          !Equipment.isBuiltIn(id) &&
-                          liftosaurProgram.exercises.some((e) => e.exerciseType.equipment === id)
-                        ) {
-                          memo[id] = settings.equipment[id];
-                        }
-                        return memo;
-                      },
-                      {}
-                    );
-                    console.log(usedCustomExercises, usedCustomEquipment);
-                    const exportedProgram: IExportedProgram = {
-                      program: liftosaurProgram,
-                      customExercises: usedCustomExercises,
-                      customEquipment: usedCustomEquipment,
-                      version: getLatestMigrationVersion(),
-                      settings: {
-                        timers: {
-                          workout: settings.timers.workout ?? 180,
-                          warmup: props.partialStorage?.settings.timers.warmup ?? 90,
-                        },
-                        units: settings.units,
-                      },
-                    };
-                    console.log(exportedProgram);
-                    const programBuilderUrl = UrlUtils.build("/program", __HOST__);
-                    const fullurl = await Encoder.encodeIntoUrl(
-                      JSON.stringify(exportedProgram),
-                      programBuilderUrl.toString()
-                    );
-                    const url = await service.postShortUrl(fullurl.toString(), "p");
-                    ClipboardUtils.copy(url);
-                    setShowLiftosaurConvertInfo(url);
-                  }}
-                >
-                  Convert to Liftosaur program
-                </Button>
-              </div>
             </>
           )}
         </div>
@@ -381,14 +319,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           Copied to clipboard:{" "}
           <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
             {showClipboardInfo}
-          </a>
-        </div>
-      )}
-      {showLiftosaurConvertInfo && (
-        <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
-          Copied Liftosaur program to clipboard:{" "}
-          <a target="_blank" className="font-bold underline text-bluev2" href={showLiftosaurConvertInfo}>
-            {showLiftosaurConvertInfo}
           </a>
         </div>
       )}

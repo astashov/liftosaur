@@ -9,7 +9,6 @@ import {
 import {
   IAllCustomExercises,
   IAllEquipment,
-  ICustomExercise,
   IDayData,
   IPlannerProgram,
   IPlannerProgramWeek,
@@ -354,8 +353,15 @@ export class PlannerProgram {
     return `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${exercise.id}-${equipment}`.toLowerCase();
   }
 
-  public static usedExercises(exercises: ICustomExercise[], evaluatedWeeks: IPlannerEvalResult[][]): ICustomExercise[] {
-    return exercises.filter((ex) => {
+  public static usedExercises(
+    exercises: IAllCustomExercises,
+    evaluatedWeeks: IPlannerEvalResult[][]
+  ): IAllCustomExercises {
+    return ObjectUtils.filter(exercises, (_id, ex) => {
+      if (!ex) {
+        return false;
+      }
+
       return evaluatedWeeks.some((week) => {
         return week.some((day) => {
           return day.success && day.data.some((d) => d.name.toLowerCase() === ex.name.toLowerCase());
