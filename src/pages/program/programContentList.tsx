@@ -20,6 +20,7 @@ import { ModalCreateProgram } from "../../components/modalCreateProgram";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { CollectionUtils } from "../../utils/collection";
 import { Exercise } from "../../models/exercise";
+import { Program } from "../../models/program";
 
 export interface IProgramContentListProps {
   env: IEnv;
@@ -67,7 +68,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
             New Program in Your Account
           </Button>
           <a
-            href="/program"
+            href="/planner"
             className="inline-block px-8 py-2 mt-2 text-xs font-semibold leading-6 text-white bg-purple-700 sm:mt-0 sm:ml-4 rounded-2xl nm-add-standalone-program"
             target="_blank"
           >
@@ -166,14 +167,24 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           onClose={() => setShowCreateProgramModal(false)}
           onSelect={(name, isV2) => {
             if (isV2) {
-              alert(
-                "Can't create Experimental programs in your account on desktop yet. You can use Workout Planner for now."
-              );
-              return;
+              const newProgram = {
+                ...Program.create(name),
+                planner: {
+                  name,
+                  weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+                },
+              };
+              updateState(dispatch, [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((pgms) => [...pgms, newProgram]),
+              ]);
+            } else {
+              dispatch({ type: "CreateProgramAction", name });
             }
             setShowCreateProgramModal(false);
             setCreatingPrograms((prev) => new Set([...prev, name]));
-            dispatch({ type: "CreateProgramAction", name });
           }}
         />
       )}

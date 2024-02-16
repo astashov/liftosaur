@@ -47,6 +47,7 @@ import { PlannerBanner } from "./plannerBanner";
 import { throttle } from "../../utils/throttler";
 import { UrlUtils } from "../../utils/url";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { ProgramQrCode } from "../../components/programQrCode";
 
 declare let __HOST__: string;
 
@@ -348,12 +349,17 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </div>
       </div>
       {showClipboardInfo && (
-        <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
-          Copied to clipboard:{" "}
-          <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
-            {showClipboardInfo}
-          </a>
-        </div>
+        <>
+          <div className="mb-2 text-xs text-left sm:text-right text-grayv2-main">
+            Copied to clipboard:{" "}
+            <a target="_blank" className="font-bold underline text-bluev2" href={showClipboardInfo}>
+              {showClipboardInfo}
+            </a>
+          </div>
+          <div className="text-right">
+            <ProgramQrCode url={showClipboardInfo} />
+          </div>
+        </>
       )}
       <div>
         {state.fulltext != null ? (
