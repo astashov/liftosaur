@@ -1,7 +1,7 @@
 import { ISettings, IStorage } from "../types";
 import { DateUtils } from "../utils/date";
 import { Exporter } from "../utils/exporter";
-import { IExportedProgram, Program } from "../models/program";
+import { IExportedProgram } from "../models/program";
 import { Storage } from "../models/storage";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -9,16 +9,18 @@ import { IDispatch } from "../ducks/types";
 import { Thunk } from "../ducks/thunks";
 import { ObjectUtils } from "../utils/object";
 import { ImportFromLink } from "../utils/importFromLink";
-import { IBuilderProgram } from "../pages/builder/models/types";
 import { UrlUtils } from "../utils/url";
+import { IExportedPlannerProgram } from "../pages/planner/models/types";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { Settings } from "../models/settings";
 
 export namespace ImportExporter {
   export function exportStorage(storage: IStorage): void {
     Exporter.toFile(`liftosaur-${DateUtils.formatYYYYMMDD(Date.now())}.json`, JSON.stringify(storage, null, 2));
   }
 
-  function isPlanProgram(program: IExportedProgram | IBuilderProgram): program is IBuilderProgram {
-    return "weeks" in program;
+  function isPlanProgram(program: IExportedProgram | IExportedPlannerProgram): program is IExportedPlannerProgram {
+    return "type" in program && program.type === "v2";
   }
 
   export async function getExportedProgram(
@@ -26,7 +28,7 @@ export namespace ImportExporter {
     maybeProgram: string,
     settings?: ISettings
   ): Promise<IEither<IExportedProgram, string[]>> {
-    let parsedMaybeProgram: IExportedProgram | IBuilderProgram;
+    let parsedMaybeProgram: IExportedProgram | IExportedPlannerProgram;
     try {
       parsedMaybeProgram = JSON.parse(maybeProgram);
     } catch (e) {
@@ -34,18 +36,10 @@ export namespace ImportExporter {
     }
     let exportedProgram: IExportedProgram;
     if (isPlanProgram(parsedMaybeProgram)) {
-      const program = Program.planToProgram(parsedMaybeProgram);
-      const units = parsedMaybeProgram.weeks[0]?.days[0]?.exercises[0]?.onerm.unit;
-      exportedProgram = {
-        program,
-        version: getLatestMigrationVersion(),
-        settings: {
-          timers: { workout: 180, warmup: 90 },
-          units,
-        },
-        customExercises: {},
-        customEquipment: {},
-      };
+      exportedProgram = PlannerProgram.convertExportedPlannerToProgram(
+        parsedMaybeProgram,
+        settings || Settings.build()
+      );
     } else {
       exportedProgram = parsedMaybeProgram;
     }

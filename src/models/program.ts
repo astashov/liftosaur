@@ -1085,6 +1085,27 @@ export namespace Program {
     });
   }
 
+  export function create(name: string): IProgram {
+    return {
+      id: UidFactory.generateUid(8),
+      name: name,
+      url: "",
+      author: "",
+      shortDescription: "",
+      description: "",
+      nextDay: 1,
+      weeks: [],
+      isMultiweek: false,
+      days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
+      exercises: [],
+      tags: [],
+      deletedDays: [],
+      deletedWeeks: [],
+      deletedExercises: [],
+      clonedAt: Date.now(),
+    };
+  }
+
   export function isChanged(aProgram: IProgram, bProgram: IProgram): boolean {
     const { ...cleanedAProgram } = aProgram;
     const { ...cleanedBProgram } = bProgram;

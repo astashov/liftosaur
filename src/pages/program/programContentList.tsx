@@ -80,72 +80,63 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           const isCreating = creatingPrograms.has(program.name);
           return (
             <li className="mb-8">
-              {program.planner != null ? (
-                <div>
-                  <span className="text-lg font-bold text-grayv2-main">{program.name}</span>
-                  <span className="ml-2 text-sm text-grayv2-main">
-                    (can't edit your Experimental programs on desktop yet)
-                  </span>
-                </div>
-              ) : (
-                <div>
-                  <a
-                    className={`text-lg font-bold ${isCreating ? "text-grayv2-main" : "text-bluev2 underline"}`}
-                    target="_blank"
-                    href={`/user/p/${encodeURIComponent(program.id)}`}
-                    onClick={(event) => {
-                      if (isCreating) {
-                        event.preventDefault();
+              <div>
+                <a
+                  className={`text-lg font-bold ${isCreating ? "text-grayv2-main" : "text-bluev2 underline"}`}
+                  target="_blank"
+                  href={`/user/p/${encodeURIComponent(program.id)}`}
+                  onClick={(event) => {
+                    if (isCreating) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  {isCreating ? <IconSpinner width={18} height={18} /> : <></>} {program.name}
+                </a>
+                <span className="ml-4">
+                  <button
+                    className="px-2 align-middle ls-programs-list-copy-program button"
+                    onClick={() => {
+                      const newName = `${program.name} Copy`;
+                      updateState(dispatch, [
+                        lb<IState>()
+                          .p("storage")
+                          .p("programs")
+                          .recordModify((programs) => {
+                            const newPrograms = [...programs];
+                            newPrograms.push({
+                              ...program,
+                              name: newName,
+                              id: UidFactory.generateUid(8),
+                              clonedAt: Date.now(),
+                            });
+                            return newPrograms;
+                          }),
+                      ]);
+                    }}
+                  >
+                    <IconDuplicate2 />
+                  </button>
+                  <button
+                    className="px-2 align-middle ls-programs-list-delete-program button"
+                    onClick={() => {
+                      if (state.storage.programs.length < 2) {
+                        alert("You cannot delete all your programs, you should have at least one");
+                      } else {
+                        const confirmText =
+                          state.storage.currentProgramId === program.id
+                            ? "Are you sure? This will delete your current program!"
+                            : "Are you sure?";
+                        if (confirm(confirmText)) {
+                          EditProgram.deleteProgram(dispatch, program, state.storage.programs);
+                        }
                       }
                     }}
                   >
-                    {isCreating ? <IconSpinner width={18} height={18} /> : <></>} {program.name}
-                  </a>
-                  <span className="ml-4">
-                    <button
-                      className="px-2 align-middle ls-programs-list-copy-program button"
-                      onClick={() => {
-                        const newName = `${program.name} Copy`;
-                        updateState(dispatch, [
-                          lb<IState>()
-                            .p("storage")
-                            .p("programs")
-                            .recordModify((programs) => {
-                              const newPrograms = [...programs];
-                              newPrograms.push({
-                                ...program,
-                                name: newName,
-                                id: UidFactory.generateUid(8),
-                                clonedAt: Date.now(),
-                              });
-                              return newPrograms;
-                            }),
-                        ]);
-                      }}
-                    >
-                      <IconDuplicate2 />
-                    </button>
-                    <button
-                      className="px-2 align-middle ls-programs-list-delete-program button"
-                      onClick={() => {
-                        if (state.storage.programs.length < 2) {
-                          alert("You cannot delete all your programs, you should have at least one");
-                        } else {
-                          const confirmText =
-                            state.storage.currentProgramId === program.id
-                              ? "Are you sure? This will delete your current program!"
-                              : "Are you sure?";
-                          if (confirm(confirmText)) {
-                            EditProgram.deleteProgram(dispatch, program, state.storage.programs);
-                          }
-                        }
-                      }}
-                    >
-                      <IconTrash />
-                    </button>
-                  </span>
-                </div>
-              )}
+                    <IconTrash />
+                  </button>
+                </span>
+              </div>
               <div className="pt-2">
                 {CollectionUtils.uniqByExpr(program.exercises, (e) => Exercise.toKey(e.exerciseType))
                   .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small", state.storage.settings))

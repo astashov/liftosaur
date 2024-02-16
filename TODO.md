@@ -34,3 +34,5 @@
 * Add descriptions to all exercises
 * Widget on iOS lock screen
 * Add time spent on each exercise
+
+- Add id to planenr programs

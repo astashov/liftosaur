@@ -13,7 +13,8 @@ interface IProps {
 }
 
 export function PlannerHtml(props: IProps): JSX.Element {
-  const { client, ...data } = props;
+  const { client, ...rawData } = props;
+  const data = { ...rawData, shouldSync: false };
 
   return (
     <Page
@@ -29,7 +30,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       url="/planner"
       client={client}
     >
-      <PlannerContent client={client} {...data} />
+      <PlannerContent client={client} onUpdate={() => undefined} {...data} />
     </Page>
   );
 }

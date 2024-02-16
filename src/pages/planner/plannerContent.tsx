@@ -5,7 +5,7 @@ import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput
 import { lb, lf } from "lens-shmens";
 import { HtmlUtils } from "../../utils/html";
 import { Encoder } from "../../utils/encoder";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
@@ -44,6 +44,9 @@ import { UidFactory } from "../../utils/generator";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
+import { throttle } from "../../utils/throttler";
+import { UrlUtils } from "../../utils/url";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
 
 declare let __HOST__: string;
 
@@ -52,6 +55,28 @@ export interface IPlannerContentProps {
   initialProgram?: IExportedPlannerProgram;
   partialStorage?: IPartialStorage;
   account?: IAccount;
+  shouldSync?: boolean;
+  onUpdate: (args: { program: IPlannerProgram } | { settings: ISettings }) => void;
+}
+
+function buildExportedProgram(program: IPlannerProgram, settings: ISettings): IExportedPlannerProgram {
+  const evaluatedWeeks = PlannerProgram.evaluate(program, settings);
+  return {
+    type: "v2",
+    version: getLatestMigrationVersion(),
+    program: program,
+    plannerSettings: settings.planner,
+    settings: {
+      exercises: PlannerProgram.usedExercises(settings.exercises, evaluatedWeeks),
+      equipment: PlannerProgram.usedEquipment(Equipment.customEquipment(settings.equipment), evaluatedWeeks),
+      timer: settings.timers.workout ?? 0,
+    },
+  };
+}
+
+function updateUrl(program: IPlannerProgram, settings: ISettings): void {
+  const exportedProgram = buildExportedProgram(program, settings);
+  Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
@@ -88,6 +113,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     initialSettings.timers.workout;
   const prevSettings = useRef(initialSettings);
   const [settings, setSettings] = useState(initialSettings);
+  const [isBannerLoading, setIsBannerLoading] = useState(false);
 
   const initialState: IPlannerState = {
     current: {
@@ -99,22 +125,17 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       future: [],
     },
   };
+
+  const throttledUpdate = useCallback(throttle(props.onUpdate, 3000), [props.onUpdate]);
+
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
-        const evaluatedWeeks = PlannerProgram.evaluate(newState.current.program, settings, {
-          skipDescriptionPostProcess: true,
-        });
-        const exportedProgram: IExportedPlannerProgram = {
-          program: newState.current.program,
-          plannerSettings: settings.planner,
-          settings: {
-            exercises: PlannerProgram.usedExercises(settings.exercises, evaluatedWeeks),
-            equipment: PlannerProgram.usedEquipment(Equipment.customEquipment(settings.equipment), evaluatedWeeks),
-            timer: settings.timers.workout ?? 0,
-          },
-        };
-        await Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
+        if (!props.shouldSync) {
+          updateUrl(newState.current.program, settings);
+        } else {
+          throttledUpdate({ program: newState.current.program });
+        }
       }
     },
     async (action, oldState, newState) => {
@@ -143,16 +164,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   }, []);
   useEffect(() => {
     if (prevSettings.current !== settings) {
-      const exportedProgram: IExportedPlannerProgram = {
-        program: state.current.program,
-        plannerSettings: settings.planner,
-        settings: {
-          exercises: settings.exercises,
-          equipment: Equipment.customEquipment(settings.equipment),
-          timer: settings.timers.workout ?? 0,
-        },
-      };
-      Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
+      if (!props.shouldSync) {
+        updateUrl(state.current.program, settings);
+      } else {
+        props.onUpdate({ settings });
+      }
     }
     prevSettings.current = settings;
   }, [settings, state.current.program]);
@@ -248,7 +264,18 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </button>
       </div>
 
-      <PlannerBanner account={props.account} />
+      {!props.shouldSync && (
+        <PlannerBanner
+          isBannerLoading={isBannerLoading}
+          account={props.account}
+          onAddProgram={async () => {
+            const exportedProgram = buildExportedProgram(state.current.program, settings);
+            setIsBannerLoading(true);
+            const { id } = await service.postSaveUserProgram(exportedProgram);
+            window.location.href = `${__HOST__}/user/p/${id}`;
+          }}
+        />
+      )}
 
       <div className="flex flex-col mb-2 sm:flex-row">
         <h2 className="flex-1 py-2 mr-2 text-2xl font-bold">
@@ -300,6 +327,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 type="n"
                 program={program}
                 client={props.client}
+                encodedProgram={async () => {
+                  const exportedProgram = buildExportedProgram(program, settings);
+                  const baseUrl = UrlUtils.build("/planner", window.location.href);
+                  const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
+                  return encodedUrl.toString();
+                }}
               />
               <div>
                 <button
