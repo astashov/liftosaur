@@ -137,6 +137,14 @@ export class UserDao {
     };
   }
 
+  public async saveProgram(userId: string, program: IProgram): Promise<void> {
+    const env = Utils.getEnv();
+    await this.di.dynamo.put({
+      tableName: userTableNames[env].programs,
+      item: { ...program, userId },
+    });
+  }
+
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils.getEnv();
     const item = { ...user, nickname: user.storage.settings.nickname?.toLowerCase() };

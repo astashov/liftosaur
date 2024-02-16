@@ -17,7 +17,6 @@ import {
   IProgressMode,
   ISettings,
   IHistoryRecord,
-  IProgram,
   IProgramExercise,
   IPercentage,
 } from "../types";
@@ -752,24 +751,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "CreateProgramAction") {
-    const newProgram: IProgram = {
-      id: action.name,
-      name: action.name,
-      url: "",
-      author: "",
-      shortDescription: "",
-      description: "",
-      nextDay: 1,
-      weeks: [],
-      isMultiweek: false,
-      days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
-      exercises: [],
-      tags: [],
-      deletedDays: [],
-      deletedWeeks: [],
-      deletedExercises: [],
-      clonedAt: Date.now(),
-    };
+    const newProgram = Program.create(action.name);
     let newState = lf(state)
       .p("storage")
       .p("programs")

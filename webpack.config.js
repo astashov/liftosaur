@@ -18,7 +18,6 @@ module.exports = {
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
     programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
-    builder: ["./src/builder.tsx", "./src/builder.css", "./src/index.css"],
     planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
@@ -261,10 +260,6 @@ module.exports = {
       },
       "/programs/*": {
         target: "https://0.0.0.0:3000",
-        secure: false,
-      },
-      "/builder": {
-        target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
       "/planner": {

@@ -2,26 +2,33 @@ import { h, JSX, Fragment } from "preact";
 import { Button } from "../../components/button";
 import { IconLink } from "../../components/icons/iconLink";
 import { IAccount } from "../../models/account";
+import { IconSpinner } from "../../components/icons/iconSpinner";
 
 interface IPlannerBannerProps {
   account?: IAccount;
+  isBannerLoading: boolean;
+  onAddProgram: () => void;
 }
 
 export function PlannerBanner(props: IPlannerBannerProps): JSX.Element {
   return (
     <div className="flex flex-col items-center px-8 py-4 mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:mr-64 sm:flex-row">
-      {props.account ? <LoggedInGuideBanner onAddProgram={async () => {}} /> : <LoggedOutGuideBanner />}
+      {props.account ? (
+        <LoggedInGuideBanner isBannerLoading={props.isBannerLoading} onAddProgram={props.onAddProgram} />
+      ) : (
+        <LoggedOutGuideBanner />
+      )}
     </div>
   );
 }
 
-function LoggedInGuideBanner(props: { onAddProgram: () => void }): JSX.Element {
+function LoggedInGuideBanner(props: { onAddProgram: () => void; isBannerLoading: boolean }): JSX.Element {
   return (
     <div className="flex-1">
       To use this program:
       <div>
-        <Button kind="purple" name="add-program-to-account" onClick={props.onAddProgram}>
-          Add this program to your account
+        <Button style={{ width: "18rem" }} kind="purple" name="add-program-to-account" onClick={props.onAddProgram}>
+          {props.isBannerLoading ? <IconSpinner width={20} height={20} /> : "Add this program to your account"}
         </Button>
       </div>
       <div className="font-bold">OR</div>

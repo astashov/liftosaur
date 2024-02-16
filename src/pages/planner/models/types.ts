@@ -113,6 +113,8 @@ export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram
 }
 
 export interface IExportedPlannerProgram {
+  type: "v2";
+  version: string;
   program: IPlannerProgram;
   plannerSettings?: IPlannerSettings;
   settings: IPlannerMainSettings;

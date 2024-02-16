@@ -1,4 +1,9 @@
-import { IPlannerProgramExercise, IPlannerProgramExerciseWarmupSet, IPlannerProgramProperty } from "./types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseWarmupSet,
+  IPlannerProgramProperty,
+  IExportedPlannerProgram,
+} from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import {
   IPlannerEvalFullResult,
@@ -20,6 +25,8 @@ import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from 
 import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
+import { IExportedProgram, Program } from "../../../models/program";
+import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -378,5 +385,33 @@ export class PlannerProgram {
         });
       });
     });
+  }
+
+  public static convertExportedPlannerToProgram(
+    planner: IExportedPlannerProgram,
+    settings: ISettings
+  ): IExportedProgram {
+    const newProgram = Program.create(planner.program.name);
+    const newSettings: ISettings = {
+      ...settings,
+      exercises: { ...settings.exercises, ...planner.settings.exercises },
+      equipment: { ...settings.equipment, ...planner.settings.equipment },
+    };
+    const program = new PlannerToProgram2(
+      newProgram.id,
+      newProgram.exercises,
+      planner.program,
+      newSettings
+    ).convertToProgram();
+    return {
+      program: program,
+      settings: {
+        timers: newSettings.timers,
+        units: newSettings.units,
+      },
+      customExercises: planner.settings.exercises,
+      customEquipment: planner.settings.equipment,
+      version: planner.version,
+    };
   }
 }

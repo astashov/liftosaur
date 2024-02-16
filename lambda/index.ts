@@ -29,9 +29,7 @@ import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
-import { renderBuilderHtml } from "./builder";
 import { NodeEncoder } from "./utils/nodeEncoder";
-import { IBuilderProgram } from "../src/pages/builder/models/types";
 import { renderProgramHtml } from "./program";
 import { IExportedProgram, Program } from "../src/models/program";
 import { Storage } from "../src/models/storage";
@@ -60,6 +58,8 @@ import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
+import { PlannerToProgram2 } from "../src/models/plannerToProgram2";
+import { getLatestMigrationVersion } from "../src/migrations/migrations";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1319,14 +1319,6 @@ const getFreeformRecordHandler: RouteHandler<
   }
 };
 
-const getBuilderEndpoint = Endpoint.build("/builder", { data: "string?" });
-const getBuilderHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getBuilderEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  return _getBuilderHandler(payload.di, params.data);
-};
-
 const getPlannerEndpoint = Endpoint.build("/planner", { data: "string?" });
 const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getPlannerEndpoint> = async ({
   payload,
@@ -1353,24 +1345,6 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     headers: { "content-type": "text/html" },
   };
 };
-
-async function _getBuilderHandler(di: IDI, data: string | undefined): Promise<APIGatewayProxyResult> {
-  let program: IBuilderProgram | undefined;
-  if (data) {
-    try {
-      const programJson = await NodeEncoder.decode(data);
-      program = JSON.parse(programJson);
-    } catch (e) {
-      di.log.log(e);
-    }
-  }
-
-  return {
-    statusCode: 200,
-    body: renderBuilderHtml(di.fetch, program),
-    headers: { "content-type": "text/html" },
-  };
-}
 
 const getProgramEndpoint = Endpoint.build("/program", { data: "string?" });
 const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramEndpoint> = async ({
@@ -1458,6 +1432,49 @@ async function getUserAccount(
   const account = Account.getFromStorage(user.id, user.email, user.storage);
   return { success: true, data: { user, account } };
 }
+
+const postUserPlannerProgramEndpoint = Endpoint.build("/api/userplannerprogram");
+const postUserPlannerProgramHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postUserPlannerProgramEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const currentUserId = await getCurrentUserId(event, di);
+  if (currentUserId == null) {
+    return ResponseUtils.json(401, event, { error: "not_authorized" });
+  }
+  const userDao = new UserDao(di);
+  const user = await userDao.getLimitedById(currentUserId);
+  if (user == null) {
+    return ResponseUtils.json(404, event, { error: "not_found" });
+  }
+  const bodyJson = getBodyJson(event);
+  const exportedPlannerProgram: IExportedPlannerProgram = bodyJson.program;
+  user.storage.settings = {
+    ...user.storage.settings,
+    exercises: {
+      ...user.storage.settings.exercises,
+      ...exportedPlannerProgram.settings.exercises,
+    },
+    equipment: {
+      ...user.storage.settings.equipment,
+      ...exportedPlannerProgram.settings.equipment,
+    },
+  };
+  const oldProgram = Program.create(exportedPlannerProgram.program.name);
+  const program = new PlannerToProgram2(
+    UidFactory.generateUid(8),
+    oldProgram.exercises,
+    exportedPlannerProgram.program,
+    user.storage.settings
+  ).convertToProgram();
+
+  await userDao.store(user);
+  await userDao.saveProgram(user.id, program);
+
+  return ResponseUtils.json(200, event, { id: program.id });
+};
 
 const getUserProgramEndpoint = Endpoint.build("/user/p/:programid");
 const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserProgramEndpoint> = async ({
@@ -1635,6 +1652,8 @@ const getProgramShorturlHandler: RouteHandler<
             redirectUrl.pathname = "/planner";
             const exportedProgram: IExportedPlannerProgram = {
               program: program.program.planner,
+              type: "v2",
+              version: getLatestMigrationVersion(),
               settings: {
                 exercises: program.customExercises,
                 equipment: program.customEquipment || {},
@@ -1667,17 +1686,6 @@ const getProgramShorturlHandler: RouteHandler<
     }
   }
   return ResponseUtils.json(404, payload.event, { error: "Not Found" });
-};
-
-const getBuilderShorturlEndpoint = Endpoint.build("/b/:id");
-const getBuilderShorturlHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof getBuilderShorturlEndpoint
-> = async ({ payload, match: { params } }) => {
-  const di = payload.di;
-  const id = params.id;
-  return shorturlRedirect(di, id);
 };
 
 async function shorturlRedirect(di: IDI, id: string): Promise<APIGatewayProxyResult> {
@@ -1852,7 +1860,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProgramShorturlResponseEndpoint, getProgramShorturlResponseHandler)
       .get(getPlannerShorturlResponseEndpoint, getPlannerShorturlResponseHandler)
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
-      .get(getBuilderShorturlEndpoint, getBuilderShorturlHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getFreeformEndpoint, getFreeformHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
@@ -1865,7 +1872,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .get(getStorageEndpoint, getStorageHandler)
-      .get(getBuilderEndpoint, getBuilderHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
@@ -1903,7 +1909,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler)
       .get(pingEndpoint, pingHandler)
-      .delete(deleteAccountEndpoint, deleteAccountHandler);
+      .delete(deleteAccountEndpoint, deleteAccountHandler)
+      .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

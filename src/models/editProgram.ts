@@ -20,7 +20,6 @@ import {
 } from "../types";
 import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
-import { UidFactory } from "../utils/generator";
 import { IPlannerState } from "../pages/planner/models/types";
 import { IPercentageUnit } from "../types";
 
@@ -607,23 +606,8 @@ export namespace EditProgram {
   }
 
   export function createExperimental(dispatch: IDispatch, name: string, settings: ISettings): void {
-    const newProgram: IProgram = {
-      id: UidFactory.generateUid(8),
-      name,
-      url: "",
-      author: "",
-      shortDescription: "",
-      description: "",
-      nextDay: 1,
-      weeks: [],
-      isMultiweek: false,
-      days: [{ name: "Day 1", id: UidFactory.generateUid(8), exercises: [] }],
-      exercises: [],
-      tags: [],
-      deletedDays: [],
-      deletedWeeks: [],
-      deletedExercises: [],
-      clonedAt: Date.now(),
+    const newProgram = {
+      ...Program.create(name),
       planner: {
         name,
         weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],

@@ -1,4 +1,5 @@
 import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
+import { IExportedPlannerProgram } from "../pages/planner/models/types";
 import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
@@ -154,6 +155,17 @@ export class Service {
       method: "POST",
       credentials: "include",
     });
+  }
+
+  public async postSaveUserProgram(program: IExportedPlannerProgram): Promise<{ id: string }> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/userplannerprogram`);
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ program }),
+      credentials: "include",
+    });
+    const json = await response.json();
+    return json;
   }
 
   public async postFreeformGenerator(prompt: string): Promise<string> {
@@ -417,7 +429,7 @@ export class Service {
     }
   }
 
-  public async getDataFromShortUrl(type: "p" | "b", id: string): Promise<{ data: string; s?: string }> {
+  public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string }> {
     const url = UrlUtils.build(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
