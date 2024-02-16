@@ -270,7 +270,7 @@ export namespace Progress {
         if (!Weight.is(weight)) {
           weight = Weight.build(weight, settings.units);
         }
-        return Weight.getOneRepMax(weight, reps, settings, undefined);
+        return Weight.getOneRepMax(weight, reps);
       },
       rpeMultiplier: (repsRaw, rpeRawOrContext, context) => {
         const reps = Weight.is(repsRaw) ? repsRaw.value : typeof repsRaw === "number" ? repsRaw : 1;

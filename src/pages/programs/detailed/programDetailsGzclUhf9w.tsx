@@ -140,12 +140,7 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               staticStateBuilder={(week, day, state) => {
                 const weeksToRm = [15, 15, 12, 12, 10, 10, 8, 8, 0];
                 return {
-                  rm: Weight.getNRepMax(
-                    Weight.build(60, props.settings.units),
-                    weeksToRm[week - 1],
-                    props.settings,
-                    t3Exercise.exerciseType.equipment
-                  ),
+                  rm: Weight.getNRepMax(Weight.build(60, props.settings.units), weeksToRm[week - 1]),
                 };
               }}
               weightInputs={[]}

@@ -135,12 +135,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
               staticStateBuilder={(week, day, state) => {
                 const weeksToRm = [10, 8, 6, 4, 2, 1, 6, 4, 2, 5, 3, 1];
                 return {
-                  rm: Weight.getNRepMax(
-                    state.tm as IWeight,
-                    weeksToRm[week - 1],
-                    props.settings,
-                    t1Exercise.exerciseType.equipment
-                  ),
+                  rm: Weight.getNRepMax(state.tm as IWeight, weeksToRm[week - 1]),
                 };
               }}
               weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
@@ -181,12 +176,7 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
               staticStateBuilder={(week, day, state) => {
                 const weeksToRm = [20, 18, 16, 14, 12, 10, 0, 18, 16, 14, 12, 0];
                 return {
-                  rm: Weight.getNRepMax(
-                    Weight.build(80, props.settings.units),
-                    weeksToRm[week - 1],
-                    props.settings,
-                    t3Exercise.exerciseType.equipment
-                  ),
+                  rm: Weight.getNRepMax(Weight.build(80, props.settings.units), weeksToRm[week - 1]),
                 };
               }}
               weightInputs={[]}

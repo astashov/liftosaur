@@ -81,30 +81,30 @@ export namespace Weight {
     return Weight.calculatePlates(weight, settings, equipment).totalWeight;
   }
 
-  export function getOneRepMax(weight: IWeight, reps: number, settings: ISettings, bar?: IBarKey): IWeight {
+  export function getOneRepMax(weight: IWeight, reps: number): IWeight {
     if (reps === 0) {
       return Weight.build(0, weight.unit);
     } else if (reps === 1) {
       return weight;
     } else {
       // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
-      return Weight.round(Weight.multiply(weight, 1 + reps / 30), settings, bar);
+      return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, 10)));
     }
   }
 
-  export function getNRepMax(oneRepMax: IWeight, reps: number, settings: ISettings, bar?: IEquipment): IWeight {
+  export function getNRepMax(oneRepMax: IWeight, reps: number): IWeight {
     if (reps === 0) {
       return Weight.build(0, oneRepMax.unit);
     } else if (reps === 1) {
       return oneRepMax;
     } else {
       // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
-      return Weight.round(Weight.divide(oneRepMax, 1 + reps / 30), settings, bar);
+      return Weight.roundTo005(Weight.multiply(oneRepMax, Weight.rpeMultiplier(reps, 10)));
     }
   }
 
   export function getTrainingMax(weight: IWeight, reps: number, settings: ISettings, bar: IBarKey): IWeight {
-    return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps, settings, bar), 0.9), settings, bar);
+    return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps), 0.9), settings, bar);
   }
 
   export function platesWeight(plates: IPlate[]): IWeight {

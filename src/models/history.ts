@@ -1,4 +1,4 @@
-import { equipmentToBarKey, Exercise } from "./exercise";
+import { Exercise } from "./exercise";
 import { Progress } from "./progress";
 import { CollectionUtils } from "../utils/collection";
 
@@ -295,15 +295,11 @@ export namespace History {
     exerciseType: IExerciseType,
     settings: ISettings
   ): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
-    const bar = equipmentToBarKey(exerciseType.equipment);
     return {
       fn: (acc, hr) => {
         const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
         const allSets = entries.flatMap((e) => e.sets);
-        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
-          s,
-          Weight.getOneRepMax(s.weight, s.completedReps || 0, settings, bar),
-        ]);
+        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [s, Weight.getOneRepMax(s.weight, s.completedReps || 0)]);
         const max1RM = CollectionUtils.sort(all1RMs, (a, b) => Weight.compare(b[1], a[1]))[0];
         if (max1RM != null && Weight.gt(max1RM[1], acc.max1RM)) {
           acc = { max1RM: max1RM[1], max1RMHistoryRecord: hr, max1RMSet: max1RM[0] };

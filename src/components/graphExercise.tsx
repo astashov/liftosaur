@@ -4,7 +4,7 @@ import UPlot from "uplot";
 import { useRef, useEffect, useState } from "preact/hooks";
 import { CollectionUtils } from "../utils/collection";
 import { DateUtils } from "../utils/date";
-import { Exercise, equipmentToBarKey, equipmentName } from "../models/exercise";
+import { Exercise, equipmentName } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { GraphsPlugins } from "../utils/graphsPlugins";
@@ -61,8 +61,7 @@ function getData(
       if (maxSet != null) {
         let onerm = null;
         if (isWithOneRm) {
-          const bar = equipmentToBarKey(exerciseType.equipment);
-          onerm = Weight.getOneRepMax(maxSet.weight, maxSet.completedReps || 0, settings, bar).value;
+          onerm = Weight.getOneRepMax(maxSet.weight, maxSet.completedReps || 0).value;
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
