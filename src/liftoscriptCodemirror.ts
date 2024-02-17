@@ -1,41 +1,10 @@
-import { parser as liftoscriptParser } from "./liftoscript";
-import {
-  LRLanguage,
-  LanguageSupport,
-  indentNodeProp,
-  foldNodeProp,
-  foldInside,
-  syntaxTree,
-} from "@codemirror/language";
-import { styleTags, tags as t } from "@lezer/highlight";
+import { LanguageSupport, syntaxTree } from "@codemirror/language";
 import { completeFromList, CompletionContext } from "@codemirror/autocomplete";
-import { IProgramState } from "./types";
+import type { IProgramState } from "./types";
 import { PlannerNodeName } from "./pages/planner/plannerExerciseStyles";
 import { SyntaxNode } from "@lezer/common";
 import { PlannerToProgram2 } from "./models/plannerToProgram2";
-
-export const liftoscriptParserWithMetadata = liftoscriptParser.configure({
-  props: [
-    styleTags({
-      StateVariable: t.variableName,
-      Number: t.number,
-      LineComment: t.lineComment,
-      Unit: t.unit,
-      Keyword: t.keyword,
-    }),
-    indentNodeProp.add({
-      IfExpression: (context) => context.column(context.node.from) + context.unit,
-    }),
-    foldNodeProp.add({
-      IfExpression: foldInside,
-    }),
-  ],
-});
-
-const liftoscriptLanguage = LRLanguage.define({
-  name: "liftoscript",
-  parser: liftoscriptParserWithMetadata,
-});
+import { liftoscriptLanguage } from "./liftoscriptLanguage";
 
 function findStateInScope(context: CompletionContext, script: string): IProgramState | undefined {
   const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);

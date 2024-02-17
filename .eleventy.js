@@ -1,6 +1,6 @@
 const pluginRss = require("@11ty/eleventy-plugin-rss");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
-const { PlannerHighlighter } = require("./dist-plannerhighlighter/plannerHighlighter");
+const { PlannerHighlighter } = require("./dist-plannerhighlighter/pages/planner/plannerHighlighter");
 
 module.exports = function (config) {
   config.addPassthroughCopy("blog/styles");

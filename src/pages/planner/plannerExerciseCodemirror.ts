@@ -8,13 +8,12 @@ import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
 import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
 import { Equipment } from "../../models/equipment";
+import { liftoscriptLanguage } from "../../liftoscriptLanguage";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
   wrap: parseMixed((node) => {
-    return node.name === "Liftoscript"
-      ? { parser: buildLiftoscriptLanguageSupport({ state: {} }).language.parser }
-      : null;
+    return node.name === "Liftoscript" ? { parser: liftoscriptLanguage.parser } : null;
   }),
 });
 

@@ -220,7 +220,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             character, like this:
           </p>
           <div>
-            <div className="inline-block px-4 py-2 my-1 mb-2 font-bold bg-white border rounded-md border-grayv2-300">
+            <div className="inline-block px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
               <PlannerCodeBlock script={script} />
             </div>
           </div>

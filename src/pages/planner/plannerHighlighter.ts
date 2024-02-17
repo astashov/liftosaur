@@ -1,9 +1,14 @@
 import { highlightTree, classHighlighter, styleTags } from "@lezer/highlight";
 import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
+import { parseMixed } from "@lezer/common";
+import { liftoscriptLanguage } from "../../liftoscriptLanguage";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
+  wrap: parseMixed((node) => {
+    return node.name === "Liftoscript" ? { parser: liftoscriptLanguage.parser } : null;
+  }),
 });
 
 type IRange = { from: number; to: number; clazz: string };

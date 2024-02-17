@@ -26,7 +26,7 @@ import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 const highlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: "#708" },
   { tag: [tags.literal, tags.inserted], color: "#164" },
-  { tag: tags.variableName, color: "#171718", fontWeight: "bold" },
+  { tag: tags.variableName, color: "#28839f" },
   { tag: tags.comment, color: "#8B9BAB" },
   { tag: tags.blockComment, color: "#5a8e7b" },
   { tag: tags.atom, color: "#940" },
