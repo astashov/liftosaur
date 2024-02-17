@@ -1085,9 +1085,9 @@ export namespace Program {
     });
   }
 
-  export function create(name: string): IProgram {
+  export function create(name: string, id?: string): IProgram {
     return {
-      id: UidFactory.generateUid(8),
+      id: id || UidFactory.generateUid(8),
       name: name,
       url: "",
       author: "",

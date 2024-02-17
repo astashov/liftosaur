@@ -1462,9 +1462,9 @@ const postUserPlannerProgramHandler: RouteHandler<
       ...exportedPlannerProgram.settings.equipment,
     },
   };
-  const oldProgram = Program.create(exportedPlannerProgram.program.name);
+  const oldProgram = Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id);
   const program = new PlannerToProgram2(
-    UidFactory.generateUid(8),
+    oldProgram.id,
     oldProgram.exercises,
     exportedPlannerProgram.program,
     user.storage.settings
@@ -1651,6 +1651,7 @@ const getProgramShorturlHandler: RouteHandler<
             const redirectUrl = UrlUtils.build(`https://${host}`);
             redirectUrl.pathname = "/planner";
             const exportedProgram: IExportedPlannerProgram = {
+              id: program.program.id,
               program: program.program.planner,
               type: "v2",
               version: getLatestMigrationVersion(),

@@ -108,6 +108,7 @@ export interface IPlannerFullText {
 }
 
 export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram }> {
+  id: string;
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;
 }
@@ -115,6 +116,7 @@ export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram
 export interface IExportedPlannerProgram {
   type: "v2";
   version: string;
+  id: string;
   program: IPlannerProgram;
   plannerSettings?: IPlannerSettings;
   settings: IPlannerMainSettings;

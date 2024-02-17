@@ -391,7 +391,7 @@ export class PlannerProgram {
     planner: IExportedPlannerProgram,
     settings: ISettings
   ): IExportedProgram {
-    const newProgram = Program.create(planner.program.name);
+    const newProgram = Program.create(planner.program.name, planner.id);
     const newSettings: ISettings = {
       ...settings,
       exercises: { ...settings.exercises, ...planner.settings.exercises },

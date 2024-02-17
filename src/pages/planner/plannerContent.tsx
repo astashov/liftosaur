@@ -60,9 +60,10 @@ export interface IPlannerContentProps {
   onUpdate: (args: { program: IPlannerProgram } | { settings: ISettings }) => void;
 }
 
-function buildExportedProgram(program: IPlannerProgram, settings: ISettings): IExportedPlannerProgram {
+function buildExportedProgram(id: string, program: IPlannerProgram, settings: ISettings): IExportedPlannerProgram {
   const evaluatedWeeks = PlannerProgram.evaluate(program, settings);
   return {
+    id,
     type: "v2",
     version: getLatestMigrationVersion(),
     program: program,
@@ -75,8 +76,8 @@ function buildExportedProgram(program: IPlannerProgram, settings: ISettings): IE
   };
 }
 
-function updateUrl(program: IPlannerProgram, settings: ISettings): void {
-  const exportedProgram = buildExportedProgram(program, settings);
+function updateUrl(id: string, program: IPlannerProgram, settings: ISettings): void {
+  const exportedProgram = buildExportedProgram(id, program, settings);
   Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
 }
 
@@ -117,6 +118,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
   const initialState: IPlannerState = {
+    id: props.initialProgram?.id || UidFactory.generateUid(8),
     current: {
       program: initialProgram,
     },
@@ -133,7 +135,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
         if (!props.shouldSync) {
-          updateUrl(newState.current.program, settings);
+          updateUrl(newState.id, newState.current.program, settings);
         } else {
           throttledUpdate({ program: newState.current.program });
         }
@@ -166,7 +168,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useEffect(() => {
     if (prevSettings.current !== settings) {
       if (!props.shouldSync) {
-        updateUrl(state.current.program, settings);
+        updateUrl(state.id, state.current.program, settings);
       } else {
         props.onUpdate({ settings });
       }
@@ -270,7 +272,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           isBannerLoading={isBannerLoading}
           account={props.account}
           onAddProgram={async () => {
-            const exportedProgram = buildExportedProgram(state.current.program, settings);
+            const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
             setIsBannerLoading(true);
             const { id } = await service.postSaveUserProgram(exportedProgram);
             window.location.href = `${__HOST__}/user/p/${id}`;
@@ -279,15 +281,24 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       )}
 
       <div className="flex flex-col mb-2 sm:flex-row">
-        <h2 className="flex-1 py-2 mr-2 text-2xl font-bold">
-          <BuilderLinkInlineInput
-            value={state.current.program.name}
-            onInputString={(v) => {
-              dispatch(lbProgram.p("name").record(v));
-              document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
-            }}
-          />
-        </h2>
+        <div className="flex-1 py-2 ">
+          <h2 className="mr-2 text-2xl font-bold">
+            <BuilderLinkInlineInput
+              value={state.current.program.name}
+              onInputString={(v) => {
+                dispatch(lbProgram.p("name").record(v));
+                document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils.escapeHtml(v)}`;
+              }}
+            />
+          </h2>
+          <button
+            className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
+            style={{ marginTop: "-0.5rem" }}
+            onClick={() => dispatch(lb<IPlannerState>().p("id").record(UidFactory.generateUid(8)))}
+          >
+            id: {state.id}
+          </button>
+        </div>
         <div className="flex items-center">
           <div className={state.fulltext != null ? "hidden sm:block" : ""}>
             <button
@@ -329,7 +340,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 program={program}
                 client={props.client}
                 encodedProgram={async () => {
-                  const exportedProgram = buildExportedProgram(program, settings);
+                  const exportedProgram = buildExportedProgram(state.id, program, settings);
                   const baseUrl = UrlUtils.build("/planner", window.location.href);
                   const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
                   return encodedUrl.toString();

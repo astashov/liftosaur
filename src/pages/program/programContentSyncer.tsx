@@ -72,6 +72,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
 
   const exportedPlannerProgram: IExportedPlannerProgram | undefined = exportedProgram?.program.planner
     ? {
+        id: exportedProgram?.program.id,
         type: "v2",
         version: getLatestMigrationVersion(),
         program: exportedProgram?.program.planner,

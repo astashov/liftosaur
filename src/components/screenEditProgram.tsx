@@ -31,7 +31,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
   const screen = Screen.current(props.screenStack);
   useEffect(() => {
     if (screen === "editProgram" && props.editProgram.planner != null && props.plannerState == null) {
-      EditProgram.initializePlanner(props.dispatch, props.editProgram.planner);
+      EditProgram.initializePlanner(props.dispatch, props.editProgram.id, props.editProgram.planner);
     }
   }, [screen, props.editProgram.planner, props.plannerState]);
   if (screen === "editProgram") {

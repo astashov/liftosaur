@@ -74,7 +74,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             onClose={() => setShouldCreateProgram(false)}
             onSelect={(name, isV2) => {
               if (isV2) {
-                EditProgram.createExperimental(props.dispatch, name, props.settings);
+                EditProgram.createExperimental(props.dispatch, name);
               } else {
                 props.dispatch({ type: "CreateProgramAction", name });
               }

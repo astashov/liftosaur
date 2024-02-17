@@ -756,7 +756,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       .p("storage")
       .p("programs")
       .modify((programs) => [...programs, newProgram]);
-    newState = lf(newState).p("editProgram").set({ id: action.name });
+    newState = lf(newState).p("editProgram").set({ id: newProgram.id });
     newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
     return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgram"));
   } else if (action.type === "CreateDayAction") {
