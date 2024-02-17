@@ -109,6 +109,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
               if (oldProgram && PlannerProgram.isValid(args.program, state.storage.settings)) {
                 const newProgram = new PlannerToProgram2(
                   oldProgram.id,
+                  oldProgram.nextDay,
                   oldProgram.exercises,
                   args.program,
                   state.storage.settings

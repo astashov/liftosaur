@@ -1465,6 +1465,7 @@ const postUserPlannerProgramHandler: RouteHandler<
   const oldProgram = Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id);
   const program = new PlannerToProgram2(
     oldProgram.id,
+    oldProgram.nextDay,
     oldProgram.exercises,
     exportedPlannerProgram.program,
     user.storage.settings

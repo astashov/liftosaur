@@ -719,6 +719,7 @@ export namespace Program {
       ).convertToPlanner();
       newProgram = new PlannerToProgram2(
         newProgram.id,
+        newProgram.nextDay,
         newProgram.exercises,
         newProgram.planner,
         settings

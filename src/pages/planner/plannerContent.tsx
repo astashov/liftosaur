@@ -411,6 +411,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           <ProgramPreviewOrPlayground
             program={new PlannerToProgram2(
               UidFactory.generateUid(8),
+              1,
               [],
               state.current.program,
               settings

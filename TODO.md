@@ -36,4 +36,5 @@
 * Widget on iOS lock screen
 * Add time spent on each exercise
 
-- Add id to planenr programs
+- Fix bug with disappearing always on when importing a program via "Add this program to your account"
+

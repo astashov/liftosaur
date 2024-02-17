@@ -399,6 +399,7 @@ export class PlannerProgram {
     };
     const program = new PlannerToProgram2(
       newProgram.id,
+      newProgram.nextDay,
       newProgram.exercises,
       planner.program,
       newSettings

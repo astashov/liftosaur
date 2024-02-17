@@ -22,6 +22,7 @@ import { Equipment } from "./equipment";
 export class PlannerToProgram2 {
   constructor(
     private readonly programId: string,
+    private readonly nextDay: number,
     private readonly programExercises: IProgramExercise[],
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings
@@ -272,7 +273,7 @@ export class PlannerToProgram2 {
       description: "Generated from a Workout Planner",
       url: "",
       author: "",
-      nextDay: 1,
+      nextDay: this.nextDay,
       exercises: ObjectUtils.values(keyToProgramExercise),
       days: programDays,
       weeks: programWeeks,
