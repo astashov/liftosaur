@@ -23,6 +23,7 @@ export interface IPlannerProgramExercise {
   sets: IPlannerProgramExerciseSet[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
+  skipProgress: { week: number; day: number }[];
   descriptions: IPlannerProgramExerciseDescription[];
   properties: IPlannerProgramProperty[];
   globals: {

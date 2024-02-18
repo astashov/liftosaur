@@ -186,15 +186,18 @@ export class PlannerToProgram2 {
                   state = { ...state, ...PlannerToProgram2.fnArgsToState(property.fnArgs) };
                   if (property.script) {
                     finishDayExpr = property.script ?? "";
+                    if (finishDayExpr) {
+                      finishDayExpr = this.applyProgressNone(finishDayExpr, evalExercise.skipProgress);
+                    }
                   } else if (property.body) {
                     reuseFinishDayScript = property.body;
                   }
                 } else if (property.fnName === "lp") {
-                  ({ state, finishDayExpr } = this.addLp(property, this.settings));
+                  ({ state, finishDayExpr } = this.addLp(property, this.settings, evalExercise.skipProgress));
                 } else if (property.fnName === "dp") {
-                  ({ state, finishDayExpr } = this.addDp(property, this.settings));
+                  ({ state, finishDayExpr } = this.addDp(property, this.settings, evalExercise.skipProgress));
                 } else if (property.fnName === "sum") {
-                  ({ state, finishDayExpr } = this.addSum(property, this.settings));
+                  ({ state, finishDayExpr } = this.addSum(property, this.settings, evalExercise.skipProgress));
                 }
               }
               if (property.name === "update") {
@@ -299,9 +302,20 @@ export class PlannerToProgram2 {
     return originalProgramExercise?.id;
   }
 
+  private applyProgressNone(script: string, skipProgress: IPlannerProgramExercise["skipProgress"]): string {
+    if (skipProgress.length === 0) {
+      return script;
+    }
+    const condition = skipProgress.map(({ week, day }) => `(week == ${week} && dayInWeek == ${day})`).join(" || ");
+    return `// skip: ${JSON.stringify(
+      skipProgress.map((sp) => [sp.week, sp.day])
+    )}\nif (!(${condition})) {\n${script}\n}`;
+  }
+
   private addLp(
     property: IPlannerProgramProperty,
-    settings: ISettings
+    settings: ISettings,
+    skipProgress: IPlannerProgramExercise["skipProgress"]
   ): { state: IProgramState; finishDayExpr: string } {
     const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
     const totalSuccesses = parseInt(property.fnArgs[1] ?? "1", 10);
@@ -333,12 +347,14 @@ export class PlannerToProgram2 {
   }
 }`;
     }
+    finishDayExpr = this.applyProgressNone(finishDayExpr, skipProgress);
     return { state, finishDayExpr };
   }
 
   private addDp(
     property: IPlannerProgramProperty,
-    settings: ISettings
+    settings: ISettings,
+    skipProgress: IPlannerProgramExercise["skipProgress"]
   ): { state: IProgramState; finishDayExpr: string } {
     const increment = property.fnArgs[0] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
     const minReps = parseInt(property.fnArgs[1], 10);
@@ -352,12 +368,14 @@ export class PlannerToProgram2 {
     weights += ${increment}
   }
 }`;
+    finishDayExpr = this.applyProgressNone(finishDayExpr, skipProgress);
     return { state: {}, finishDayExpr };
   }
 
   private addSum(
     property: IPlannerProgramProperty,
-    settings: ISettings
+    settings: ISettings,
+    skipProgress: IPlannerProgramExercise["skipProgress"]
   ): { state: IProgramState; finishDayExpr: string } {
     const sumReps = parseInt(property.fnArgs[0], 10);
     const increment = property.fnArgs[1] ?? (settings.units === "kg" ? "2.5kg" : "5lb");
@@ -365,6 +383,7 @@ export class PlannerToProgram2 {
     finishDayExpr += `if (sum(completedReps) >= ${sumReps}) {
     weights += ${increment}
   }`;
+    finishDayExpr = this.applyProgressNone(finishDayExpr, skipProgress);
     return { state: {}, finishDayExpr };
   }
 }

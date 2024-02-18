@@ -51,7 +51,7 @@ export class PlannerProgram {
     PlannerProgram.generateExerciseTypeAndDayData(evaluatedWeeks, customExercises, (exercise, name, dayData) => {
       exerciseTypeToProperties[name] = exerciseTypeToProperties[name] || [];
       const properties = exerciseTypeToProperties[name];
-      for (const property of exercise.properties) {
+      for (const property of exercise.properties.filter((p) => p.fnName !== "none")) {
         const existingProperty = properties.find((p) => p.name === property.name);
         if (
           existingProperty != null &&
@@ -170,6 +170,19 @@ export class PlannerProgram {
         set.percentage = set.percentage ?? exercise.globals.percentage;
         set.logRpe = set.logRpe || exercise.globals.logRpe;
         set.askWeight = set.askWeight || exercise.globals.askWeight;
+      }
+    });
+    const skipProgress: IPlannerProgramExercise["skipProgress"] = [];
+    this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      const nones = exercise.properties.filter((p) => p.fnName === "none");
+      if (nones.length > 0) {
+        skipProgress.push({ week: weekIndex + 1, day: dayIndex + 1 });
+      }
+    });
+    this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      const nonnones = exercise.properties.filter((p) => p.fnName !== "none");
+      if (nonnones.length > 0) {
+        exercise.skipProgress = skipProgress;
       }
     });
     return program;

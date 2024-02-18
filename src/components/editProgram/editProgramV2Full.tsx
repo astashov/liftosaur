@@ -113,6 +113,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             <Button
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
+              data-cy="editor-v2-save-full"
               name="save-full-planner"
               kind="orange"
               buttonSize="sm"

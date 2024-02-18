@@ -318,7 +318,10 @@ export class ProgramToPlanner {
                 addedUpdateMap[key] = true;
               }
 
-              if (
+              const skip = this.getSkipProgress(programExercise.finishDayExpr);
+              if (skip.some((s) => weekIndex + 1 === s[0] && dayInWeekIndex + 1 === s[1])) {
+                plannerExercise += ` / progress: none`;
+              } else if (
                 !addedProgressMap[key] &&
                 (programExercise.finishDayExpr ||
                   programExercise.reuseFinishDayScript ||
@@ -438,6 +441,18 @@ export class ProgramToPlanner {
       }
     }
     return undefined;
+  }
+
+  private getSkipProgress(finishDayExpr?: string): [number, number][] {
+    const skipLine = (finishDayExpr || "").split("\n")?.find((l) => l.indexOf("// skip: ") !== -1);
+    if (skipLine != null) {
+      const skipMatch = skipLine.match(/skip: (.*)$/);
+      if (skipMatch) {
+        const arr: [number, number][] = JSON.parse(skipMatch[1]);
+        return arr;
+      }
+    }
+    return [];
   }
 
   private weightExprToStr(weightExpr?: string): string {

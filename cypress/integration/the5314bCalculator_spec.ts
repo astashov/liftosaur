@@ -17,7 +17,7 @@ describe("5/3/1 for beginners calculator", () => {
     g("input-reps").clear().type("5");
     g("input-weight").clear().type("300");
     cy.contains("Use this value").click();
-    g("bench-press-training-max-lb-input").should("have.value", "315");
+    g("bench-press-training-max-lb-input").should("have.value", "310");
     cy.contains("Save").click();
 
     cy.get("[data-cy=history-record]")

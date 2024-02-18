@@ -65,6 +65,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           <div className="ml-auto">
             <button
               className="p-2"
+              data-cy="editor-v2-full-program"
               disabled={isInvalid}
               onClick={() => {
                 if (!isInvalid) {
@@ -79,6 +80,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               <IconDoc style={{ display: "block" }} color={isInvalid ? "#BAC4CD" : "#3C5063"} />
             </button>
             <button
+              data-cy="editor-v2-week-muscles"
               className="p-2"
               onClick={() => {
                 props.plannerDispatch(props.lbUi.p("showWeekStats").record(true));
@@ -89,6 +91,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             <button
               disabled={!enabledDayStats}
               className="p-2"
+              data-cy="editor-v2-day-muscles"
               onClick={() => {
                 if (enabledDayStats) {
                   props.plannerDispatch(props.lbUi.p("showDayStats").record(true));
@@ -99,6 +102,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             </button>
             <button
               disabled={!enabledDayStats}
+              data-cy="editor-v2-exercise-stats"
               className="p-2"
               onClick={() => {
                 if (enabledDayStats) {

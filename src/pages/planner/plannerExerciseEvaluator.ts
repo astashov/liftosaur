@@ -344,14 +344,23 @@ export class PlannerExerciseEvaluator {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
-        throw this.error(`Missing value for the property 'progress'`, expr);
+        const none = expr.getChild(PlannerNodeName.None);
+        if (none != null) {
+          return {
+            name: "progress",
+            fnName: "none",
+            fnArgs: [],
+          };
+        } else {
+          throw this.error(`Missing value for the property 'progress'`, expr);
+        }
       }
       const fnNameNode = valueNode.getChild(PlannerNodeName.FunctionName);
       if (fnNameNode == null) {
         assert(PlannerNodeName.FunctionName);
       }
       const fnName = this.getValue(fnNameNode);
-      if (["lp", "sum", "dp", "custom"].indexOf(fnName) === -1) {
+      if (["lp", "sum", "dp", "custom", "none"].indexOf(fnName) === -1) {
         this.error(`There's no such progression exists - '${fnName}'`, fnNameNode);
       }
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
@@ -477,12 +486,12 @@ export class PlannerExerciseEvaluator {
 
   private evaluateWarmup(expr: SyntaxNode): IPlannerProgramExerciseWarmupSet[] {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
+      const none = expr.getChild(PlannerNodeName.None);
+      if (none != null) {
+        return [];
+      }
       const setsNode = expr.getChild(PlannerNodeName.WarmupExerciseSets);
       if (setsNode != null) {
-        const none = setsNode.getChild(PlannerNodeName.None);
-        if (none != null) {
-          return [];
-        }
         const sets = setsNode.getChildren(PlannerNodeName.WarmupExerciseSet);
         if (sets.length > 0) {
           return sets.map((set) => this.evaluateWarmupSet(set));
@@ -694,6 +703,7 @@ export class PlannerExerciseEvaluator {
         descriptions,
         warmupSets: allWarmupSets,
         properties: allProperties,
+        skipProgress: [],
         globals: {
           rpe,
           logRpe,
