@@ -12,6 +12,14 @@ body {
   padding: 30px 0;
 }
 
+.note {
+  padding: 1rem;
+  background: #faf8ff;
+  border: 1px solid #430bd1;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
 .highlight-block {
   background: #edf2f7;
   padding: 2em;

@@ -226,6 +226,10 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/docs": {
+        target: "https://local.liftosaur.com:8080/blog",
+        secure: false,
+      },
       "/n/*": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
