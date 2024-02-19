@@ -4,6 +4,7 @@ interface IIconGraphsEProps {
   width?: number;
   height?: number;
   color?: string;
+  className?: string;
 }
 
 export function IconGraphsE(props: IIconGraphsEProps): JSX.Element {
@@ -11,7 +12,14 @@ export function IconGraphsE(props: IIconGraphsEProps): JSX.Element {
   const height = props.height || 27;
   const color = props.color || "#3C5063";
   return (
-    <svg width={width} height={height} viewBox="0 0 20 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={props.className}
+      width={width}
+      height={height}
+      viewBox="0 0 20 27"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M9.56288 1.64587V3.3518H12.0819V4.9376H9.56288V6.7877H12.4119V8.43357H7.68188V0H12.4119V1.64587H9.56288Z"
         fill={color}

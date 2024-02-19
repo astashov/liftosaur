@@ -3,13 +3,21 @@ import { h, JSX } from "preact";
 interface IIconMusclesDProps {
   size?: number;
   color?: string;
+  className?: string;
 }
 
 export function IconMusclesD(props: IIconMusclesDProps): JSX.Element {
   const size = props.size || 27;
   const color = props.color || "#3C5063";
   return (
-    <svg width={size} height={size} viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={props.className}
+      width={size}
+      height={size}
+      viewBox="0 0 27 27"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M13.575 4.278C14.389 4.278 15.1003 4.43933 15.709 4.762C16.3177 5.08467 16.787 5.53933 17.117 6.126C17.4543 6.70533 17.623 7.37633 17.623 8.139C17.623 8.89433 17.4543 9.56533 17.117 10.152C16.787 10.7387 16.314 11.1933 15.698 11.516C15.0893 11.8387 14.3817 12 13.575 12H10.682V4.278H13.575ZM13.454 10.372C14.1653 10.372 14.719 10.1777 15.115 9.789C15.511 9.40033 15.709 8.85033 15.709 8.139C15.709 7.42767 15.511 6.874 15.115 6.478C14.719 6.082 14.1653 5.884 13.454 5.884H12.563V10.372H13.454Z"
         fill={color}
