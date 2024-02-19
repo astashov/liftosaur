@@ -643,6 +643,16 @@ Squat / 5x3 / 6x2 / 10x1 / progress: custom() {~
 
 (note the `!` at the beginning of the second description).
 
+### Split exercise lines
+
+If the exercise lines get too long, and it becomes inconvenient to read and modify those, you can split them into multiple lines. Just add `\` character at the end of a section, like this:
+
+{% plannercode %}
+Squat / 1x5 @8 75% 120s, 3x8 @9 60s \
+  / warmup: 1x5, 1x3, 1x1 \
+  / progress: lp(5lb)
+{% endplannercode %}
+
 ## Script Language Reference
 
 ### Types
