@@ -344,7 +344,10 @@ export class ProgramToPlanner {
                       plannerExercise += ` { ...${originalKey} }`;
                     }
                   } else if (programExercise.finishDayExpr) {
-                    plannerExercise += " " + programExercise.finishDayExpr;
+                    const finishDayExpr = programExercise.finishDayExpr
+                      .replace(/^[\s\S]*{~/, "{~")
+                      .replace(/~}[\s\S]*$/, "~}");
+                    plannerExercise += " " + finishDayExpr;
                   }
                 }
                 addedProgressMap[key] = true;

@@ -27,6 +27,7 @@ import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
 import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
+import { Settings } from "../../../models/settings";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -172,17 +173,21 @@ export class PlannerProgram {
         set.askWeight = set.askWeight || exercise.globals.askWeight;
       }
     });
-    const skipProgress: IPlannerProgramExercise["skipProgress"] = [];
+    const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
+    const settings = Settings.build();
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       const nones = exercise.properties.filter((p) => p.fnName === "none");
       if (nones.length > 0) {
-        skipProgress.push({ week: weekIndex + 1, day: dayIndex + 1 });
+        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+        skipProgress[key] = skipProgress[key] || [];
+        skipProgress[key].push({ week: weekIndex + 1, day: dayIndex + 1 });
       }
     });
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       const nonnones = exercise.properties.filter((p) => p.fnName !== "none");
       if (nonnones.length > 0) {
-        exercise.skipProgress = skipProgress;
+        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+        exercise.skipProgress = skipProgress[key] || [];
       }
     });
     return program;
