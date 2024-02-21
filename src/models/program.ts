@@ -277,7 +277,6 @@ export namespace Program {
     dayIndex?: number,
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
-    console.log(program);
     const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
     const programDay = getProgramDay(program, day);
     const week = getWeekFromDay(program, day);

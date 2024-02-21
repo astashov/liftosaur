@@ -147,13 +147,13 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
             className="ls-modal-set-amrap"
             onClick={(e) => {
               e.preventDefault();
-              const amrapValue = amrapInput.current?.value;
+              const amrapValue = isAmrap ? amrapInput.current?.value : undefined;
               const amrapNumValue = amrapValue != null ? parseInt(amrapValue, 10) : undefined;
 
-              const rpeValue = rpeInput.current?.value;
+              const rpeValue = logRpe ? rpeInput.current?.value : undefined;
               const rpeNumValue = rpeValue != null ? parseFloat(rpeValue) : undefined;
 
-              const weightValue = weightInput.current?.value;
+              const weightValue = askWeight ? weightInput.current?.value : undefined;
               const weightNumValue = weightValue != null ? parseFloat(weightValue) : undefined;
               const weight =
                 weightNumValue && !isNaN(weightNumValue)
