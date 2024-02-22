@@ -3,11 +3,12 @@ import { h, JSX } from "preact";
 interface IProps {
   width?: number;
   height?: number;
+  className?: string;
 }
 
 export function IconQuestion(props: IProps): JSX.Element {
   return (
-    <svg width={props.width || 20} height={props.height || 20} viewBox="0 0 20 20">
+    <svg className={props.className} width={props.width || 20} height={props.height || 20} viewBox="0 0 20 20">
       <path
         d="M10,20 C4.4771525,20 0,15.5228475 0,10 C0,4.4771525 4.4771525,0 10,0 C15.5228475,0 20,4.4771525 20,10 C20,15.5228475 15.5228475,20 10,20 Z"
         fill="#3182ce"

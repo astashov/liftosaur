@@ -392,6 +392,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (editProgram != null) {
       content = (
         <ScreenEditProgram
+          helps={state.storage.helps}
           loading={state.loading}
           adminKey={state.adminKey}
           subscription={state.storage.subscription}

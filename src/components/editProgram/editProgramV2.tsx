@@ -32,11 +32,15 @@ import { StringUtils } from "../../utils/string";
 import { ObjectUtils } from "../../utils/object";
 import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
+import { Nux } from "../nux";
+import { IconQuestion } from "../icons/iconQuestion";
+import { IconHelp } from "../icons/iconHelp";
 
 interface IProps {
   editProgram: IProgram;
   plannerState: IPlannerState;
   programIndex: number;
+  helps: string[];
   screenStack: IScreen[];
   dispatch: IDispatch;
   adminKey?: string;
@@ -302,6 +306,16 @@ export function EditProgramV2(props: IProps): JSX.Element {
               }
             }}
           />
+          <Nux
+            className="my-2 bg-orange-100 border border-orange-600 rounded-md"
+            id="Rounded Weights"
+            helps={props.helps}
+            dispatch={props.dispatch}
+          >
+            If you're first time here, make sure to read the help (
+            <IconHelp fill="white" size={20} className="inline-block" /> at the top right corner) to learn how to use
+            the <strong>Liftoscript</strong> syntax to write weightlifting programs!
+          </Nux>
         </div>
         {props.plannerState.fulltext != null ? (
           <EditProgramV2Full

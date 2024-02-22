@@ -7,6 +7,7 @@ import { InternalLink } from "../../internalLink";
 
 export function HelpEditProgramV2(): JSX.Element {
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
+  const script2 = "Squat / 3x3-5 65%\nRomanian Deadlift / 3x8 150lb";
 
   return (
     <>
@@ -23,8 +24,18 @@ export function HelpEditProgramV2(): JSX.Element {
         this:
       </p>
       <div>
-        <div className="inline-block px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+        <div className="px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
           <PlannerCodeBlock script={script} />
+        </div>
+      </div>
+      <p className="mb-2">
+        You can specify weight - either in absolute units (<strong>kg</strong> or <strong>lb</strong>) or as a
+        percentage of your{" "}
+        <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>:
+      </p>
+      <div>
+        <div className="px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+          <PlannerCodeBlock script={script2} />
         </div>
       </div>
       <p className="mb-2">
@@ -44,8 +55,7 @@ export function HelpEditProgramV2(): JSX.Element {
 
       <p className="mb-2">
         The exercise syntax supports{" "}
-        <abbr title="RPE - Rate of Perceived Exertion. It's a subjective measure of how hard the set was.">RPEs</abbr> ,
-        percentage of <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>,
+        <abbr title="RPE - Rate of Perceived Exertion. It's a subjective measure of how hard the set was.">RPEs</abbr>,{" "}
         rest timers, various progressive overload types, etc. It's very powerful, read more about all the features{" "}
         <InternalLink
           name="help-edit-program-v2-docs"

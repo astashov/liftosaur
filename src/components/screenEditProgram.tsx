@@ -16,6 +16,7 @@ interface IProps {
   editProgram: IProgram;
   editExercise?: IProgramExercise;
   screenStack: IScreen[];
+  helps: string[];
   dispatch: IDispatch;
   programIndex: number;
   subscription: ISubscription;
@@ -41,6 +42,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       } else {
         return (
           <EditProgramV2
+            helps={props.helps}
             settings={props.settings}
             screenStack={props.screenStack}
             loading={props.loading}
