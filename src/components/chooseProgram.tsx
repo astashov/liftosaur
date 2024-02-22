@@ -7,7 +7,6 @@ import { ModalCreateProgram } from "./modalCreateProgram";
 import { ModalProgramInfo } from "./modalProgramInfo";
 import { Thunk } from "../ducks/thunks";
 import { IScreen, Screen } from "../models/screen";
-import { ModalPostClone } from "./modalPostClone";
 import { IProgram, ISettings } from "../types";
 import { ILoading } from "../models/state";
 import { NavbarView } from "./navbar";
@@ -33,7 +32,6 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
   const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
   const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
-  const [shouldShowPostCloneModal, setShouldShowPostCloneModal] = useState<boolean>(false);
 
   const program = props.programs.find((p) => p.id === selectedProgramId);
   const noPrograms = props.customPrograms.length === 0;
@@ -61,11 +59,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
               onSelect={() => {
                 Program.cloneProgram(props.dispatch, program);
-                if (program.id === "the5314b") {
-                  setShouldShowPostCloneModal(true);
-                } else {
-                  props.dispatch(Thunk.pushScreen("main"));
-                }
+                props.dispatch(Thunk.pushScreen("main"));
               }}
             />
           )}
@@ -80,15 +74,6 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               }
             }}
           />
-          {shouldShowPostCloneModal && program && (
-            <ModalPostClone
-              settings={props.settings}
-              programIndex={props.customPrograms.findIndex((cp) => cp.id === program.id)}
-              program={program}
-              onClose={() => props.dispatch(Thunk.pushScreen("main"))}
-              dispatch={props.dispatch}
-            />
-          )}
           <ModalImportFromLink
             isHidden={!showImportFromLink}
             onSubmit={async (link) => {

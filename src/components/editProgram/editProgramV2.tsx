@@ -33,7 +33,6 @@ import { ObjectUtils } from "../../utils/object";
 import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { Nux } from "../nux";
-import { IconQuestion } from "../icons/iconQuestion";
 import { IconHelp } from "../icons/iconHelp";
 
 interface IProps {
