@@ -58,7 +58,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
   );
 }
 
-function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
+export function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
   if (!program.isMultiweek) {
     const days = [];
     for (let day = 1; day <= program.days.length; day++) {

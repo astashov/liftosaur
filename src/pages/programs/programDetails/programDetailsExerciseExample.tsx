@@ -7,18 +7,17 @@ import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { Program } from "../../../models/program";
 import { Reps } from "../../../models/set";
-import { IProgram, IProgramExercise, ISettings, IWeight, IProgramState } from "../../../types";
+import { IProgram, IProgramExercise, ISettings, IWeight } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
 import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
+import { Weight } from "../../../models/weight";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
   program: IProgram;
   programExercise: IProgramExercise;
   weekSetup: IProgramPreviewPlaygroundWeekSetup[];
-  staticStateBuilder?: (week: number, day: number, state: IProgramState) => IProgramState;
-  weightInputs: { label: string; key: string }[];
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
@@ -27,36 +26,18 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
   const exercise = Exercise.get(exerciseType, props.settings.exercises);
   const day = props.program.days.findIndex((d) => d.exercises.some((e) => e.id === programExercise.id));
 
-  const [stateWeights, setStateWeights] = useState<Record<string, IWeight>>(
-    props.weightInputs.reduce<Record<string, IWeight>>((acc, input) => {
-      acc[input.key] = programExercise.state[input.key] as IWeight;
-      return acc;
-    }, {})
-  );
-  for (const key of ObjectUtils.keys(stateWeights)) {
-    programExercise.state[key] = stateWeights[key];
-  }
-  const key = ObjectUtils.values(stateWeights)
-    .map((s) => s.value)
-    .join("-");
-
+  const [onerm, setOnerm] = useState<IWeight>(Exercise.onerm(programExercise.exerciseType, props.settings));
+  const settings = {
+    ...props.settings,
+    exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(programExercise.exerciseType)]: { rm1: onerm } },
+  };
   const weeks = props.weekSetup.map((week, weekIndex) => {
     const dayIndex = week.days[day].dayIndex;
-    const staticState = {
-      ...week.days[day].states[props.programExercise.id],
-      ...props.staticStateBuilder?.(weekIndex + 1, day + 1, programExercise.state),
-    };
     const dayData = Program.getDayData(props.program, dayIndex);
 
     return {
       label: week.name,
-      entry: Program.programExerciseToHistoryEntry(
-        programExercise,
-        props.program.exercises,
-        dayData,
-        props.settings,
-        staticState
-      ),
+      entry: Program.programExerciseToHistoryEntry(programExercise, props.program.exercises, dayData, settings, {}),
     };
   });
 
@@ -64,23 +45,18 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
     <div>
       <div className="mx-auto mt-2">
         <div className="w-48 mx-auto mb-2">
-          {props.weightInputs.map((input) => {
-            return (
-              <Input
-                key={input.key}
-                label={input.label}
-                value={stateWeights[input.key].value}
-                changeHandler={(r) => {
-                  if (r.success) {
-                    const value = parseFloat(r.data);
-                    if (!isNaN(value)) {
-                      setStateWeights({ ...stateWeights, [input.key]: { value, unit: props.settings.units } });
-                    }
-                  }
-                }}
-              />
-            );
-          })}
+          <Input
+            label={`Enter 1RM weight (${onerm.unit})`}
+            value={onerm.value}
+            changeHandler={(r) => {
+              if (r.success) {
+                const value = parseFloat(r.data);
+                if (!isNaN(value)) {
+                  setOnerm(Weight.build(value, props.settings.units));
+                }
+              }
+            }}
+          />
         </div>
         <div className="relative flex-1 px-2 mx-auto rounded-lg bg-purplev2-100">
           <div className="items-start block sm:flex sm:items-center">
@@ -125,18 +101,20 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         </div>
         <div className="mb-2">
           <ProgramDetailsExerciseExampleGraph
-            key={key}
             weeksData={weeks}
+            key={onerm.value}
             title="Weight week over week"
             yAxisLabel="Weight"
             color="red"
-            getValue={(entry) => entry.sets[0].weight.value}
+            getValue={(entry) =>
+              Weight.roundConvertTo(entry.sets[0].weight, settings, props.programExercise.exerciseType.equipment).value
+            }
           />
         </div>
         <div>
           <ProgramDetailsExerciseExampleGraph
-            key={key}
             weeksData={weeks}
+            key={onerm.value}
             title="Volume (reps * weight) week over week"
             yAxisLabel="Volume"
             color="orange"

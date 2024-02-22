@@ -6,11 +6,11 @@ import { IconEditSquare } from "../../../components/icons/iconEditSquare";
 import { IconCheckCircle } from "../../../components/icons/iconCheckCircle";
 import { ProgramDetailsUpsell } from "../programDetails/programDetailsUpsell";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
 import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
+import { buildWeekSetup } from "../../../components/programPreviewOrPlayground";
 
 export interface IProgramDetailsTheRipplerProps {
   settings: ISettings;
@@ -32,8 +32,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
     }
   }
   const points = Muscle.normalizePoints(Muscle.getPointsForProgram(programForMuscles, props.settings));
-  const t1Pct = [85, 90, 87.5, 92.5, 90, 95, 92.5, 97.5, 95, 100, 90];
-  const t2Pct = [80, 85, 90, 82.5, 87.5, 92.5, 85, 90, 95, 100];
+  const t1Pct = [80, 85, 82.5, 87.5, 85, 90, 87.5, 92.5, 90, 95, 85, 95];
+  const t2Pct = [68, 72, 76, 70, 74, 78, 72, 76, 80, 85];
 
   return (
     <section className="px-4">
@@ -70,7 +70,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
             For <strong>T1 exercises</strong>, we increase the weight for 2 weeks, then slightly decrease it, and
             increase it even more in week 4. This pattern repeats through 4-week blocks. We'll have three 4-week blocks.
             We use 2 rep max (2RM) as a base weight for T1 exercises. So, for first 4 weeks we do 85%, 87.5%, 90%, 92.5%
-            of 2RM weight.
+            of 2RM weight. Liftosaur uses 1RM as a basis for the programs though, so the weights are converted into 1RM.
           </p>
           <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
@@ -78,15 +78,14 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               program={props.program}
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
               settings={props.settings}
-              weekSetup={weekSetup.slice(0, 11).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
-              weightInputs={[{ key: "weight", label: "Enter your 2RM weight" }]}
+              weekSetup={weekSetup.slice(0, 12).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
             />
           </div>
           <p>
             For <strong>T2 exercises</strong>, we gradually increase the weights over 3 weeks (e.g., 80%, 85%, 90%),
             then reset to 82.5%, and increase again (82.5%, 87.5%, 92.5%). We repeat this pattern over four 3-week
             blocks, creating a wave-like pattern. We use 5 rep max (5RM) as a base weight for T2 exercises. We skip T2
-            exercises completely on weeks 11 and 12.
+            exercises completely on weeks 11 and 12. Again, the weights in Liftosaur are converted into % of 1RM.
           </p>
           <h3>Example of a T2 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
@@ -95,7 +94,6 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
               programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
-              weightInputs={[{ key: "weight", label: "Enter your 5RM weight" }]}
             />
           </div>
           <p>
@@ -156,18 +154,4 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
       </div>
     </section>
   );
-}
-
-function buildWeekSetup(program: IProgram): IProgramPreviewPlaygroundWeekSetup[] {
-  const weekSetup: IProgramPreviewPlaygroundWeekSetup[] = [];
-  let dayIndex = 1;
-  for (const week of program.weeks) {
-    const days = [];
-    for (const _ of week.days) {
-      days.push({ dayIndex, states: {} });
-      dayIndex += 1;
-    }
-    weekSetup.push({ name: week.name, days });
-  }
-  return weekSetup;
 }

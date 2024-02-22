@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { IProgram, ISettings, IWeight } from "../../../types";
+import { IProgram, ISettings } from "../../../types";
 import { IAudioInterface } from "../../../lib/audioInterface";
 import { ObjectUtils } from "../../../utils/object";
 import { IconEditSquare } from "../../../components/icons/iconEditSquare";
@@ -10,7 +10,6 @@ import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
-import { Weight } from "../../../models/weight";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 
 export interface IProgramDetailsJackedAndTanProps {
@@ -132,13 +131,6 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
               programExercise={t1Exercise}
               settings={props.settings}
               weekSetup={weekSetup}
-              staticStateBuilder={(week, day, state) => {
-                const weeksToRm = [10, 8, 6, 4, 2, 1, 6, 4, 2, 5, 3, 1];
-                return {
-                  rm: Weight.getNRepMax(state.tm as IWeight, weeksToRm[week - 1]),
-                };
-              }}
-              weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
             />
           </div>
           <h3>T2a Exercise</h3>
@@ -156,7 +148,6 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
             programExercise={t2Exercise}
             settings={props.settings}
             weekSetup={weekSetup}
-            weightInputs={[{ key: "tm", label: "Enter your TM weight" }]}
           />
           <h3>T2b and T3 Exercises</h3>
           <p>
@@ -173,13 +164,6 @@ export function ProgramDetailsJackedAndTan(props: IProgramDetailsJackedAndTanPro
               programExercise={t3Exercise}
               settings={props.settings}
               weekSetup={weekSetup}
-              staticStateBuilder={(week, day, state) => {
-                const weeksToRm = [20, 18, 16, 14, 12, 10, 0, 18, 16, 14, 12, 0];
-                return {
-                  rm: Weight.getNRepMax(Weight.build(80, props.settings.units), weeksToRm[week - 1]),
-                };
-              }}
-              weightInputs={[]}
             />
           </div>
           <p>

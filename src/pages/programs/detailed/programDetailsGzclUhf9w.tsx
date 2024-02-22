@@ -10,7 +10,6 @@ import { Muscle } from "../../../models/muscle";
 import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsExerciseExample } from "../programDetails/programDetailsExerciseExample";
-import { Weight } from "../../../models/weight";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 
 export interface IProgramDetailsGzclUhf9wProps {
@@ -84,7 +83,6 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               programExercise={t1Exercise}
               settings={props.settings}
               weekSetup={weekSetup}
-              weightInputs={[{ key: "weight", label: "Enter your TM weight" }]}
             />
           </div>
           <h3>T2 Exercise</h3>
@@ -105,7 +103,6 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               programExercise={t2Exercise}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 8)}
-              weightInputs={[{ key: "weight", label: "Enter your TM weight" }]}
             />
           </div>
           <h3>T3 Exercise</h3>
@@ -137,13 +134,6 @@ export function ProgramDetailsGzclUhf9w(props: IProgramDetailsGzclUhf9wProps): J
               programExercise={t3Exercise}
               settings={props.settings}
               weekSetup={weekSetup}
-              staticStateBuilder={(week, day, state) => {
-                const weeksToRm = [15, 15, 12, 12, 10, 10, 8, 8, 0];
-                return {
-                  rm: Weight.getNRepMax(Weight.build(60, props.settings.units), weeksToRm[week - 1]),
-                };
-              }}
-              weightInputs={[]}
             />
           </div>
           <p>
