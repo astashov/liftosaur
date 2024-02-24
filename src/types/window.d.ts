@@ -26,4 +26,6 @@ interface Window {
   reducerLastState?: any;
   reducerLastActions?: any[];
   loadRollbar: (item: string | number, token: string) => Promise<void>;
+
+  structuredClone?: (obj: any) => any;
 }

@@ -9,6 +9,7 @@ import {
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
   IPlannerProgramProperty,
+  IPlannerProgramReuse,
 } from "./models/types";
 import { IWeight, IProgramState, IDayData, ISettings, IEquipment, equipments } from "../../types";
 import * as W from "../../models/weight";
@@ -530,6 +531,42 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private getReuseWeekDay(weekDayNode: SyntaxNode | null): { week?: number; day?: number } {
+    let week: number | undefined;
+    let day: number | undefined;
+    if (weekDayNode != null) {
+      const result = weekDayNode.getChildren(PlannerNodeName.WeekOrDay).map((n) => {
+        const child = getChildren(n)[0];
+        if (child.type.name === PlannerNodeName.Int) {
+          return parseInt(this.getValue(child), 10);
+        } else {
+          return undefined;
+        }
+      });
+      if (result.length === 1) {
+        day = result[0];
+      } else {
+        week = result[0];
+        day = result[1];
+      }
+    }
+    return { week, day };
+  }
+
+  private evaluateReuseNode(expr: SyntaxNode): { type: "reuse"; data: IPlannerProgramReuse } {
+    if (expr.type.name === PlannerNodeName.ReuseSectionWithWeekDay) {
+      const nameNode = expr.getChild(PlannerNodeName.ReuseSection)?.getChild(PlannerNodeName.ExerciseName);
+      if (nameNode == null) {
+        assert(PlannerNodeName.ExerciseName);
+      }
+      const name = this.getValue(nameNode);
+      const { week, day } = this.getReuseWeekDay(expr.getChild(PlannerNodeName.WeekDay));
+      return { type: "reuse", data: { exercise: name, week, day } };
+    } else {
+      assert(PlannerNodeName.ReuseSectionWithWeekDay);
+    }
+  }
+
   private evaluateSection(
     expr: SyntaxNode,
     equipment?: IEquipment
@@ -537,8 +574,13 @@ export class PlannerExerciseEvaluator {
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
+    | { type: "reuse"; data: IPlannerProgramReuse }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
+      const reuseNode = expr.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
+      if (reuseNode != null) {
+        return this.evaluateReuseNode(reuseNode);
+      }
       const setsNode = expr.getChild(PlannerNodeName.ExerciseSets);
       if (setsNode != null) {
         const sets = setsNode.getChildren(PlannerNodeName.ExerciseSet);
@@ -655,6 +697,7 @@ export class PlannerExerciseEvaluator {
       const setVariations: IPlannerProgramExerciseSetVariation[] = [];
       const allSets: IPlannerProgramExerciseSet[] = [];
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
+      let reuse: IPlannerProgramReuse | undefined;
       const allProperties: IPlannerProgramProperty[] = [];
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
@@ -670,12 +713,17 @@ export class PlannerExerciseEvaluator {
           allProperties.push(section.data);
         } else if (section.type === "update") {
           allProperties.push(section.data);
+        } else if (section.type === "reuse") {
+          reuse = section.data;
         } else {
           throw new Error(`Unexpected section type`);
         }
       }
       const hasRepRanges = allSets.some((set) => set.repRange);
-      if (!hasRepRanges) {
+      if (hasRepRanges && reuse) {
+        this.error("If you're reusing sets x reps, you cannot also specify them in this exercise", nameNode);
+      }
+      if (!hasRepRanges && !reuse) {
         this.error("Exercise must have sets x reps specified in one of sections", nameNode);
       }
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
@@ -703,6 +751,7 @@ export class PlannerExerciseEvaluator {
         descriptions,
         warmupSets: allWarmupSets,
         properties: allProperties,
+        reuse,
         skipProgress: [],
         globals: {
           rpe,
@@ -733,10 +782,40 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  public static findOriginalExercisesAtWeekDay(
+    settings: ISettings,
+    body: string,
+    program: IPlannerEvalResult[][],
+    atWeek: number,
+    atDay?: number
+  ): IPlannerProgramExercise[] {
+    const originalExercises: IPlannerProgramExercise[] = [];
+    const week = program[atWeek - 1];
+    if (week != null) {
+      for (let dayIndex = 0; dayIndex < week.length; dayIndex++) {
+        if (atDay == null || atDay === dayIndex + 1) {
+          const day = week[dayIndex];
+          if (day.success) {
+            for (const e of day.data) {
+              const key = PlannerToProgram2.plannerExerciseKey(e, settings);
+              const bodyKey = PlannerProgram.nameToKey(body, settings);
+              if (key === bodyKey) {
+                originalExercises.push(e);
+              }
+            }
+          }
+        }
+      }
+    }
+    return originalExercises;
+  }
+
   private findOriginalExercise(body: string, program: IPlannerEvalResult[][]): IPlannerProgramExercise | undefined {
     let originalExercise: IPlannerProgramExercise | undefined;
-    for (const week of program) {
-      for (const day of week) {
+    for (let weekIndex = 0; weekIndex < program.length; weekIndex++) {
+      const week = program[weekIndex];
+      for (let dayIndex = 0; dayIndex < week.length; dayIndex++) {
+        const day = week[dayIndex];
         if (day.success) {
           for (const e of day.data) {
             const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
@@ -758,10 +837,59 @@ export class PlannerExerciseEvaluator {
   }
 
   public postEvaluateCheck(expr: SyntaxNode, program: IPlannerEvalResult[][]): PlannerSyntaxError | undefined {
+    if (this.mode === "full") {
+      this.dayData = { day: 0, week: 0, dayInWeek: 0 };
+    }
     try {
       const cursor = expr.cursor();
       do {
-        if (cursor.node.type.name === PlannerNodeName.ExerciseProperty) {
+        if (cursor.node.type.name === PlannerNodeName.Week) {
+          if (this.mode === "full") {
+            this.dayData = { day: this.dayData.day, week: (this.dayData.week ?? 0) + 1, dayInWeek: 0 };
+          }
+        } else if (cursor.node.type.name === PlannerNodeName.Day) {
+          if (this.mode === "full") {
+            this.dayData = {
+              day: this.dayData.day + 1,
+              week: this.dayData.week,
+              dayInWeek: (this.dayData.dayInWeek || 0) + 1,
+            };
+          }
+        } else if (cursor.node.type.name === PlannerNodeName.ReuseSectionWithWeekDay) {
+          const reuseLiftoscriptNode = cursor.node
+            .getChild(PlannerNodeName.ReuseSection)
+            ?.getChild(PlannerNodeName.ExerciseName);
+          const { week, day } = this.getReuseWeekDay(cursor.node.getChild(PlannerNodeName.WeekDay));
+          const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
+          if (body) {
+            const originalExercises = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
+              this.settings,
+              body,
+              program,
+              week ?? this.dayData.week ?? 1,
+              day
+            );
+            if (originalExercises.length > 1) {
+              this.error(
+                `There're several exercises matching, please be more specific with [week:day] syntax`,
+                cursor.node
+              );
+            }
+            const originalExercise = originalExercises[0];
+            if (!originalExercise) {
+              this.error(
+                `No such exercise ${body} at week: ${week ?? this.dayData.week}${day != null ? `, day: ${day}` : ""}`,
+                cursor.node
+              );
+            }
+            if (originalExercise.reuse?.exercise != null) {
+              this.error(`Original exercise cannot reuse another exercise's sets x reps`, cursor.node);
+            }
+            if (originalExercise.setVariations.length > 1) {
+              this.error(`Original exercise cannot have mutliple set variations`, cursor.node);
+            }
+          }
+        } else if (cursor.node.type.name === PlannerNodeName.ExerciseProperty) {
           const fnExpressionNode = cursor.node.getChild(PlannerNodeName.FunctionExpression);
           const fnNameNode = fnExpressionNode?.getChild(PlannerNodeName.FunctionName);
           const propertyNameNode = cursor.node.getChild(PlannerNodeName.ExercisePropertyName);

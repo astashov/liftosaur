@@ -27,7 +27,6 @@ import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
 import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
-import { Settings } from "../../../models/settings";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -146,6 +145,7 @@ export class PlannerProgram {
   }
 
   public static postProcess(
+    settings: ISettings,
     program: IPlannerEvalResult[][],
     args?: { skipDescriptionPostProcess?: boolean }
   ): IPlannerEvalResult[][] {
@@ -164,17 +164,19 @@ export class PlannerProgram {
       }
     });
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
-      for (const set of exercise.sets) {
-        set.rpe = set.rpe ?? exercise.globals.rpe;
-        set.timer = set.timer ?? exercise.globals.timer;
-        set.weight = set.weight ?? exercise.globals.weight;
-        set.percentage = set.percentage ?? exercise.globals.percentage;
-        set.logRpe = set.logRpe || exercise.globals.logRpe;
-        set.askWeight = set.askWeight || exercise.globals.askWeight;
+      if (exercise.reuse) {
+        const originalExercise = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
+          settings,
+          exercise.reuse.exercise,
+          program,
+          exercise.reuse.week ?? weekIndex + 1 ?? 1,
+          exercise.reuse.day
+        )[0];
+        exercise.reuse.sets = originalExercise.setVariations[0].sets;
+        exercise.reuse.globals = originalExercise.globals;
       }
     });
     const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
-    const settings = Settings.build();
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       const nones = exercise.properties.filter((p) => p.fnName === "none");
       if (nones.length > 0) {
@@ -234,15 +236,20 @@ export class PlannerProgram {
       week.days.forEach((day, dayInWeekIndex) => {
         if (evaluatedWeeks[weekIndex][dayInWeekIndex].success) {
           const tree = plannerExerciseParser.parse(day.exerciseText);
-          const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
+          const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
+            day: dayIndex + 1,
+            dayInWeek: dayInWeekIndex + 1,
+            week: weekIndex + 1,
+          });
           const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
           if (error) {
             evaluatedWeeks = lf(evaluatedWeeks).i(weekIndex).i(dayInWeekIndex).set({ success: false, error });
           }
         }
+        dayIndex += 1;
       });
     });
-    this.postProcess(evaluatedWeeks, args);
+    this.postProcess(settings, evaluatedWeeks, args);
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);
       PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, settings.exercises);

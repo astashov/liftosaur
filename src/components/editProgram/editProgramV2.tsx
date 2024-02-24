@@ -90,6 +90,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
           {plannerState.ui.showPreview && (
             <Modal
               isFullWidth={true}
+              name="program-preview"
               shouldShowClose={true}
               onClose={() => plannerDispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
             >

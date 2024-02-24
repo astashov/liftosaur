@@ -492,6 +492,22 @@ export namespace ProgramExercise {
     };
   }
 
+  export function areVariationsEqual(old: IProgramExercise, now: IProgramExercise): boolean {
+    if (old.variations.length !== now.variations.length) {
+      return false;
+    }
+    return old.variations.every((v, i) => {
+      const newVariation = now.variations[i];
+      if (newVariation.sets.length !== v.sets.length) {
+        return false;
+      }
+      return v.sets.every((s, j) => {
+        const newSet = newVariation.sets[j];
+        return ProgramSet.isEqual(s, newSet);
+      });
+    });
+  }
+
   export function applyVariables(
     dayData: IDayData,
     programExercise: IProgramExercise,
@@ -499,7 +515,8 @@ export namespace ProgramExercise {
     updates: ILiftoscriptEvaluatorUpdate[],
     settings: ISettings,
     setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>,
-    descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>
+    descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>,
+    dereuseExercises: Record<string, Record<string, Set<string>>>
   ): IProgramExercise {
     const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).map((w) =>
       CollectionUtils.compact(
@@ -540,6 +557,7 @@ export namespace ProgramExercise {
                   (variation === "*" || variation === variationIndex + 1) &&
                   (set === "*" || set === setIndex + 1)
                 ) {
+                  const originalSet = ObjectUtils.clone(sets[setIndex]);
                   if (key === "RPE") {
                     operation(programExercise, sets[setIndex], dayData, settings, "rpeExpr", value.value, value.op);
                   } else if (key === "reps") {
@@ -556,6 +574,11 @@ export namespace ProgramExercise {
                   } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
                     descriptionIndexMap[exerciseKey] = descriptionIndexMap[exerciseKey] || [];
                     descriptionIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
+                  }
+                  if (!ProgramSet.isEqual(originalSet, sets[setIndex])) {
+                    dereuseExercises[weekIndex] = dereuseExercises[weekIndex] || {};
+                    dereuseExercises[weekIndex][dayIndex] = dereuseExercises[weekIndex][dayIndex] || new Set();
+                    dereuseExercises[weekIndex][dayIndex].add(exerciseKey);
                   }
                 }
               }

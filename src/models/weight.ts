@@ -438,6 +438,9 @@ export namespace Weight {
   }
 
   export function rpeMultiplier(reps: number, rpe: number): number {
+    if (reps === 1 && rpe === 10) {
+      return 1;
+    }
     reps = Math.max(Math.min(reps, 24), 1);
     rpe = Math.max(Math.min(rpe, 10), 1);
 

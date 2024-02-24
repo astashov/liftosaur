@@ -49,4 +49,16 @@ export namespace ProgramSet {
     const totalTime = timeToRep + timeToRest;
     return totalTime;
   }
+
+  export function isEqual(set1: IProgramSet, set2: IProgramSet): boolean {
+    return (
+      set1.weightExpr === set2.weightExpr &&
+      !!set1.askWeight === !!set2.askWeight &&
+      set1.repsExpr === set2.repsExpr &&
+      set1.minRepsExpr === set2.minRepsExpr &&
+      !!set1.isAmrap === !!set2.isAmrap &&
+      set1.rpeExpr === set2.rpeExpr &&
+      !!set1.logRpe === !!set2.logRpe
+    );
+  }
 }

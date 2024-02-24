@@ -404,6 +404,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {state.ui.showPreview && (
         <Modal
           isFullWidth={true}
+          name="program-preview"
           shouldShowClose={true}
           onClose={() => dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false))}
         >

@@ -654,6 +654,7 @@ export namespace Program {
     const exerciseData: IExerciseData = {};
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
+    const dereuseExercises: Record<string, Record<string, Set<string>>> = {};
     const dayData = Progress.getDayData(progress);
     let newProgram = lf(program)
       .p("exercises")
@@ -690,10 +691,10 @@ export namespace Program {
                   updates,
                   settings,
                   setVariationIndexMap,
-                  descriptionIndexMap
+                  descriptionIndexMap,
+                  dereuseExercises
                 );
               }
-
               if (reuseLogicId && newExercise.reuseLogic) {
                 newExercise.reuseLogic.states[reuseLogicId] = state;
               } else {
@@ -715,7 +716,8 @@ export namespace Program {
         program.planner,
         settings,
         setVariationIndexMap,
-        descriptionIndexMap
+        descriptionIndexMap,
+        dereuseExercises
       ).convertToPlanner();
       newProgram = new PlannerToProgram2(
         newProgram.id,

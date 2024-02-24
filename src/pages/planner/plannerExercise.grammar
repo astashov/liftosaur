@@ -8,8 +8,9 @@ EmptyExpression { linebreak }
 ExerciseName { NonSeparator+ }
 ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) }
-ExerciseSection {  (ExerciseProperty | ExerciseSets) ("\\" linebreak)? }
-ReuseSection { "..." ExerciseName? }
+ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay) ("\\" linebreak)? }
+ReuseSectionWithWeekDay { ReuseSection WeekDay? }
+ReuseSection { "..." ExerciseName }
 ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel)+ }
 WeightWithPlus { Weight Plus? }
 PercentageWithPlus { Percentage Plus? }
@@ -18,6 +19,8 @@ ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExercise
 ExercisePropertyName { Keyword }
 None { @specialize<Keyword, "none"> }
 CurrentVariation { "!" }
+WeekDay { "[" WeekOrDay (":" WeekOrDay)? "]" }
+WeekOrDay { (Int | Current) }
 
 FunctionExpression { 
   FunctionName
@@ -48,17 +51,19 @@ WarmupSetPart { (Rep "x")? Rep }
   @precedence { Float, Int }
   @precedence { Day, Week }
   @precedence { TripleLineComment, LineComment }
+  @precedence { "\\", "[", "]", NonSeparator }
   TripleLineComment { "///" ![\n]* linebreakOrEof }
   LineComment { "//" ![\n]* linebreakOrEof }
   Liftoscript { "{~" ![~]* "~}" }
   Plus { "+" }
   Week { "#" ![\n]* linebreakOrEof }
   Day { "##" ![\n]* linebreakOrEof }
+  Current { "_" }
   space { $[ \t]+ }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\n" | "\r" | "\r\n" }
-  NonSeparator { ![/{}() \t\n\r#]+ }
+  NonSeparator { ![/{}() \t\n\r#\[\]]+ }
   Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
   Int { @digit+ }
   Float { @digit* "." @digit+ }

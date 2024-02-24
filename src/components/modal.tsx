@@ -3,6 +3,7 @@ import { useRef, useEffect } from "preact/hooks";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 
 interface IProps {
+  name?: string;
   children: ComponentChildren;
   autofocusInputRef?: RefObject<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   preautofocus?: [RefObject<HTMLElement>, (el: HTMLElement) => void][];
@@ -60,6 +61,7 @@ export function Modal(props: IProps): JSX.Element {
       ></div>
       <div
         data-name="modal"
+        data-cy={`modal${props.name ? `-${props.name}` : ""}`}
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-white rounded-lg shadow-lg`}
         style={{ maxWidth: "85%", maxHeight: "90%", width: props.isFullWidth ? "85%" : "auto", ...props.style }}
       >
@@ -68,7 +70,7 @@ export function Modal(props: IProps): JSX.Element {
         </div>
         {props.shouldShowClose && (
           <button
-            data-cy="modal-close"
+            data-cy={`modal-close${props.name ? `-${props.name}` : ""}`}
             onClick={props.onClose}
             className="absolute p-2 nm-modal-close"
             style={{ top: "-3px", right: "-3px" }}

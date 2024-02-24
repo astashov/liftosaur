@@ -195,6 +195,10 @@ export namespace ObjectUtils {
     if (obj == null) {
       return obj;
     }
-    return JSON.parse(JSON.stringify(obj));
+    if (typeof window !== "undefined" && window.structuredClone) {
+      return window.structuredClone(obj);
+    } else {
+      return JSON.parse(JSON.stringify(obj));
+    }
   }
 }

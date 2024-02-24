@@ -1,12 +1,40 @@
-import { IPlannerProgramExercise } from "./types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseSet, IPlannerProgramExerciseSetVariation } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
+import { ObjectUtils } from "../../../utils/object";
 
 export class PlannerProgramExercise {
   public static numberOfSets(exercise: IPlannerProgramExercise): number {
-    return exercise.setVariations[this.currentSetVariation(exercise)].sets.reduce(
-      (acc, set) => acc + (set.repRange?.numberOfSets || 0),
-      0
-    );
+    return PlannerProgramExercise.sets(exercise).reduce((acc, set) => acc + (set.repRange?.numberOfSets || 0), 0);
+  }
+
+  public static setVariations(exercise: IPlannerProgramExercise): IPlannerProgramExerciseSetVariation[] {
+    const setVariations = exercise.setVariations;
+    return setVariations.length === 0
+      ? [{ sets: PlannerProgramExercise.sets(exercise), isCurrent: true }]
+      : setVariations;
+  }
+
+  public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
+    const reusedSets = exercise.reuse?.sets;
+    const reusedGlobals = exercise.reuse?.globals || {};
+    variationIndex = variationIndex ?? this.currentSetVariation(exercise);
+    const currentSets = exercise.setVariations[variationIndex]?.sets;
+    const currentGlobals = exercise.globals;
+    const sets = (reusedSets ? reusedSets : currentSets) ?? [];
+    return sets.map((aSet) => {
+      const set = ObjectUtils.clone(aSet);
+      set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;
+      set.timer = currentGlobals.timer != null ? currentGlobals.timer : set.timer ?? reusedGlobals.timer;
+      set.weight = currentGlobals.weight != null ? currentGlobals.weight : set.weight ?? reusedGlobals.weight;
+      set.percentage =
+        currentGlobals.percentage != null ? currentGlobals.percentage : set.percentage ?? reusedGlobals.percentage;
+
+      set.logRpe = !!(currentGlobals.logRpe != null ? currentGlobals.logRpe : set.logRpe ?? reusedGlobals.logRpe);
+      set.askWeight = !!(currentGlobals.askWeight != null
+        ? currentGlobals.askWeight
+        : set.askWeight ?? reusedGlobals.askWeight);
+      return set;
+    });
   }
 
   public static currentSetVariation(exercise: IPlannerProgramExercise): number {

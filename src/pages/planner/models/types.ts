@@ -15,25 +15,28 @@ export interface IPlannerProgramExerciseDescription {
   isCurrent: boolean;
 }
 
+export interface IPlannerProgramExerciseGlobals {
+  logRpe?: boolean;
+  rpe?: number;
+  timer?: number;
+  percentage?: number;
+  weight?: IWeight;
+  askWeight?: boolean;
+}
+
 export interface IPlannerProgramExercise {
   label?: string;
   equipment?: string;
   name: string;
   line: number;
+  reuse?: IPlannerProgramReuse;
   sets: IPlannerProgramExerciseSet[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   skipProgress: { week: number; day: number }[];
   descriptions: IPlannerProgramExerciseDescription[];
   properties: IPlannerProgramProperty[];
-  globals: {
-    logRpe?: boolean;
-    rpe?: number;
-    timer?: number;
-    percentage?: number;
-    weight?: IWeight;
-    askWeight?: boolean;
-  };
+  globals: IPlannerProgramExerciseGlobals;
 }
 
 export interface IPlannerProgramExerciseSetVariation {
@@ -58,6 +61,14 @@ export interface IPlannerProgramExerciseWarmupSet {
   reps: number;
   percentage?: number;
   weight?: IWeight;
+}
+
+export interface IPlannerProgramReuse {
+  exercise: string;
+  week?: number;
+  day?: number;
+  sets?: IPlannerProgramExerciseSet[];
+  globals?: IPlannerProgramExerciseGlobals;
 }
 
 export interface IPlannerProgramProperty {

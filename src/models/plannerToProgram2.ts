@@ -18,6 +18,7 @@ import { IProgramState, IProgramExerciseWarmupSet } from "../types";
 import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "./equipment";
+import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 
 export class PlannerToProgram2 {
   constructor(
@@ -105,10 +106,10 @@ export class PlannerToProgram2 {
             let isQuickAddSets = false;
             keyToProgramExercise[key] = programExercise;
             keyToProgramExerciseId[key] = programExercise.id;
-            const newVariations: IProgramExerciseVariation[] = evalExercise.setVariations.map(
-              (setVariation, setIndex) => {
+            const newVariations: IProgramExerciseVariation[] = PlannerProgramExercise.setVariations(evalExercise).map(
+              (setVariation, setVarIndex) => {
                 const sets: IProgramSet[] = [];
-                for (const set of setVariation.sets) {
+                for (const set of PlannerProgramExercise.sets(evalExercise, setVarIndex)) {
                   if (set.repRange != null) {
                     const range = set.repRange;
                     isQuickAddSets = isQuickAddSets || !!set.repRange?.isQuickAddSet;
@@ -140,7 +141,7 @@ export class PlannerToProgram2 {
                 variationIndexes[key][dayIndex] = variationIndexes[key][dayIndex] || { count: 0, current: 0 };
                 variationIndexes[key][dayIndex].count += 1;
                 if (setVariation.isCurrent) {
-                  variationIndexes[key][dayIndex].current = setIndex;
+                  variationIndexes[key][dayIndex].current = setVarIndex;
                 }
                 return { sets };
               }

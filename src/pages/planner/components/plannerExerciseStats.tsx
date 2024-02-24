@@ -124,7 +124,7 @@ function getIntensityPerWeeks(
     if (!exercise) {
       continue;
     }
-    const weights = exercise.sets.map((s) => {
+    const weights = PlannerProgramExercise.sets(exercise).map((s) => {
       const weight = s.percentage
         ? s.percentage * 100
         : Weight.rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
@@ -153,7 +153,7 @@ function getVolumePerWeeks(
       continue;
     }
     const volume = Number(
-      exercise.sets
+      PlannerProgramExercise.sets(exercise)
         .reduce((acc, s) => {
           if (!s.repRange) {
             return acc;

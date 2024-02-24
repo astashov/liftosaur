@@ -12,7 +12,6 @@ export enum PlannerNodeName {
   NonSeparator = "NonSeparator",
   SectionSeparator = "SectionSeparator",
   ExerciseSection = "ExerciseSection",
-  ReuseSection = "ReuseSection",
   ExerciseProperty = "ExerciseProperty",
   ExercisePropertyName = "ExercisePropertyName",
   Keyword = "Keyword",
@@ -29,9 +28,9 @@ export enum PlannerNodeName {
   Plus = "Plus",
   RepRange = "RepRange",
   KeyValue = "KeyValue",
-  SetLabel = "SetLabel",
   Liftoscript = "Liftoscript",
   ReuseLiftoscript = "ReuseLiftoscript",
+  ReuseSection = "ReuseSection",
   WarmupExerciseSets = "WarmupExerciseSets",
   WarmupExerciseSet = "WarmupExerciseSet",
   WarmupSetPart = "WarmupSetPart",
@@ -43,6 +42,11 @@ export enum PlannerNodeName {
   SetPart = "SetPart",
   WeightWithPlus = "WeightWithPlus",
   PercentageWithPlus = "PercentageWithPlus",
+  SetLabel = "SetLabel",
+  ReuseSectionWithWeekDay = "ReuseSectionWithWeekDay",
+  WeekDay = "WeekDay",
+  WeekOrDay = "WeekOrDay",
+  Current = "Current",
   EmptyExpression = "EmptyExpression",
 }
 
@@ -62,4 +66,5 @@ export const plannerExerciseStyles = {
   [PlannerNodeName.None]: t.atom,
   [PlannerNodeName.Week]: t.annotation,
   [PlannerNodeName.Day]: t.docComment,
+  [PlannerNodeName.WeekDay]: t.atom,
 };

@@ -20,6 +20,8 @@
 - Add estimated time for the next workout
 - Add 'bodyweight' to Similar equipment
 - Add 'Rhomboids' 
+* Add 'Goals'
+* Add default for dynamic double progression
 
 * Programs
   - 5/3/1s
@@ -37,4 +39,4 @@
 * Add time spent on each exercise
 
 - Fix bug with disappearing always on when importing a program via "Add this program to your account"
-
+- Need to do "Save" after updating the program on Web
