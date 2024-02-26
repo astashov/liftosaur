@@ -75,7 +75,7 @@ describe("Edit Sets", () => {
     cy.get(arnoldPressSelector).eq(0).should("have.data", "cy", "set-nonstarted");
 
     g("entry-squat").find("[data-cy=exercise-edit-mode]").click();
-    g("menu-item-value-weight").clear().type("70");
+    g("menu-item-value-1-rep-max").clear().type("200");
     g("modal-edit-mode-save-statvars").click();
 
     g("entry-bent-over-row").should("not.exist");

@@ -37,6 +37,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
             <span className="mr-2 font-normal text-grayv2-main">{rm.unit}</span>
             <button
               className="p-2 nm-show-rm-calculator"
+              data-cy="onerm-calculator"
               style={{ marginRight: "-0.25rem" }}
               onClick={() => setShowCalculator(true)}
             >
