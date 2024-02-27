@@ -9,6 +9,7 @@ export enum PlannerNodeName {
   Day = "Day",
   ExerciseExpression = "ExerciseExpression",
   ExerciseName = "ExerciseName",
+  Repeat = "Repeat",
   NonSeparator = "NonSeparator",
   SectionSeparator = "SectionSeparator",
   ExerciseSection = "ExerciseSection",
@@ -67,4 +68,5 @@ export const plannerExerciseStyles = {
   [PlannerNodeName.Week]: t.annotation,
   [PlannerNodeName.Day]: t.docComment,
   [PlannerNodeName.WeekDay]: t.atom,
+  [PlannerNodeName.Repeat]: t.atom,
 };

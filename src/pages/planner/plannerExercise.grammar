@@ -2,7 +2,7 @@
 
 expression { LineComment | TripleLineComment | Week | Day | ExerciseExpression | EmptyExpression }
 
-ExerciseExpression { ExerciseName (SectionSeparator ExerciseSection?)* linebreakOrEof }
+ExerciseExpression { ExerciseName Repeat? (SectionSeparator ExerciseSection?)* linebreakOrEof }
 EmptyExpression { linebreak }
 
 ExerciseName { NonSeparator+ }
@@ -21,6 +21,7 @@ None { @specialize<Keyword, "none"> }
 CurrentVariation { "!" }
 WeekDay { "[" WeekOrDay (":" WeekOrDay)? "]" }
 WeekOrDay { (Int | Current) }
+Repeat { "[" (Rep | RepRange) ("," (Rep | RepRange))* "]" }
 
 FunctionExpression { 
   FunctionName
