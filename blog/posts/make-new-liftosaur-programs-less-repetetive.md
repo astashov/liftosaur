@@ -1,15 +1,15 @@
 ---
 date: "2024-02-27"
-title: Make new Liftosaur programs less repetetive
-og_title: Make new Liftosaur programs less repetetive
-og_description: Planned syntax improvements to make the weightlifting programs using new syntax less repetetive
+title: Make new Liftosaur programs less repetitive
+og_title: Make new Liftosaur programs less repetitive
+og_description: Planned syntax improvements to make the weightlifting programs using new syntax less repetitive
 og_image: /images/make-new-liftosaur-programs-less-repetetive-intro.jpg
 tags: ["weightlifting", "tech"]
 ---
 
 <div><img src="../../images/make-new-liftosaur-programs-less-repetetive-intro.jpg" width="100%" alt="Bart Simpson writing weightlifting program" /></div>
 
-I'm currently working on porting over the built-in programs to the new syntax, and I've noticed that it's quite repetetive. I expected that, and thought that with Find & Replace (since it's just one text file) it'd be easy to edit the exercises in bulk. But in reality it's not that easy. It's more or less okay when you only create a new program, but if you need to make changes in it, you sometimes need to change it in like 30 places, and it's very easy to make a mistake.
+I'm currently working on porting over the built-in programs to the new syntax, and I've noticed that it's quite repetitive. I expected that, and thought that with Find & Replace (since it's just one text file) it'd be easy to edit the exercises in bulk. But in reality it's not that easy. It's more or less okay when you only create a new program, but if you need to make changes in it, you sometimes need to change it in like 30 places, and it's very easy to make a mistake.
 
 That's especially obvious with the long multi-week programs e.g. GZCL: Rippler or UHF. Like, I was writing those, and then noticed that I forgot to add last set as AMRAP. And I was already on the 7th week. Going back and adding that `+` sign to every single exercise across all days and weeks is really brutal.
 
