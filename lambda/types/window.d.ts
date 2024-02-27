@@ -21,4 +21,5 @@ interface Window {
       init: (args: { clientId: string; scope: string; redirectURI: string; usePopup: boolean }) => void;
     };
   };
+  structuredClone?: (obj: any) => any;
 }
