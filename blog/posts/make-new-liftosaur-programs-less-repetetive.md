@@ -5,7 +5,7 @@ og_title: Make new Liftosaur programs less repetitive
 og_description: Planned syntax improvements to make the weightlifting programs using new syntax less repetitive
 og_image: /images/make-new-liftosaur-programs-less-repetetive-intro.jpg
 tags: ["weightlifting", "tech"]
-reddit: https://www.liftosaur.com/blog/posts/make-new-liftosaur-programs-less-repetetive/
+reddit: https://www.reddit.com/r/liftosaur/comments/1b14ajp/make_new_liftosaur_programs_less_repetetive/
 twitter: https://twitter.com/liftosaur/status/1762354109124944040
 ---
 
