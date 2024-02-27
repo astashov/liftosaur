@@ -510,7 +510,8 @@ export class PlannerExerciseEvaluator {
   ):
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
-    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
+    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
+    | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
       if (nameNode == null) {
@@ -523,6 +524,8 @@ export class PlannerExerciseEvaluator {
         return { type: "update", data: this.evaluateUpdate(expr, equipment) };
       } else if (name === "warmup") {
         return { type: "warmup", data: this.evaluateWarmup(expr) };
+      } else if (name === "used") {
+        return { type: "used", data: "" };
       } else {
         this.error(`There's no such property exists - '${name}'`, nameNode);
       }
@@ -575,7 +578,8 @@ export class PlannerExerciseEvaluator {
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
     | { type: "reuse"; data: IPlannerProgramReuse }
-    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] } {
+    | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
+    | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseSection) {
       const reuseNode = expr.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
       if (reuseNode != null) {
@@ -698,6 +702,7 @@ export class PlannerExerciseEvaluator {
       const allSets: IPlannerProgramExerciseSet[] = [];
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
       let reuse: IPlannerProgramReuse | undefined;
+      let notused: boolean = false;
       const allProperties: IPlannerProgramProperty[] = [];
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
@@ -715,6 +720,8 @@ export class PlannerExerciseEvaluator {
           allProperties.push(section.data);
         } else if (section.type === "reuse") {
           reuse = section.data;
+        } else if (section.type === "used") {
+          notused = true;
         } else {
           throw new Error(`Unexpected section type`);
         }
@@ -746,6 +753,7 @@ export class PlannerExerciseEvaluator {
         name,
         equipment,
         line,
+        notused: notused,
         sets: allSets,
         setVariations,
         descriptions,

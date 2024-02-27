@@ -283,6 +283,7 @@ export class ProgramToPlanner {
                 (e) => ProgramToPlanner.exerciseKeyForProgramExercise(e, this.settings) === line.value
               )!;
               const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
+              const notused = this.program.days.every((d) => d.exercises.every((e) => e.id !== programExercise.id));
               const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, this.settings);
               const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
               let plannerExercise = "";
@@ -294,6 +295,9 @@ export class ProgramToPlanner {
                 )}`;
               }
               plannerExercise += " / ";
+              if (notused) {
+                plannerExercise += "used: none / ";
+              }
               const [from, to] = variationsMap[key][dayIndex];
               const currentSetVariationIndex = this.getCurrentSetVariationIndex(key, weekIndex, dayInWeekIndex);
               const variations = programExercise.variations.slice(from, to);

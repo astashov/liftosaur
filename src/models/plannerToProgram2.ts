@@ -226,7 +226,9 @@ export class PlannerToProgram2 {
             programExercise.warmupSets = warmupSets;
             programExercise.reuseFinishDayScript = programExercise.reuseFinishDayScript || reuseFinishDayScript;
             programExercise.reuseUpdateDayScript = programExercise.reuseUpdateDayScript || reuseUpdateDayScript;
-            programDay.exercises.push({ id: programExercise.id });
+            if (!evalExercise.notused) {
+              programDay.exercises.push({ id: programExercise.id });
+            }
           }
         }
         programDays.push(programDay);

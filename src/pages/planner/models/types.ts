@@ -30,6 +30,7 @@ export interface IPlannerProgramExercise {
   name: string;
   line: number;
   reuse?: IPlannerProgramReuse;
+  notused?: boolean;
   sets: IPlannerProgramExerciseSet[];
   setVariations: IPlannerProgramExerciseSetVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
