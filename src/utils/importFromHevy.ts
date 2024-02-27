@@ -286,7 +286,8 @@ interface IHevyRecord {
   exercise_notes: string;
   set_index: number;
   set_type: string;
-  weight_lbs: number;
+  weight_lbs?: number;
+  weight_kg?: number;
   reps: number;
 }
 
@@ -298,7 +299,8 @@ interface IHevyStructExercise {
 }
 
 interface IHevyStructSet {
-  weight_lbs: number;
+  weight_lbs?: number;
+  weight_kg?: number;
   reps: number;
 }
 
@@ -338,11 +340,13 @@ export class ImportFromHevy {
           exercise_title: exercise[0].exercise_title,
           exercise_notes: (exercise[0].exercise_notes || "").replace(/\\n/g, "\n"),
           warmupSets: warmupSets.map((set) => ({
-            weight_lbs: Number(`${set.weight_lbs ?? 0}`),
+            weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
+            weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
             reps: Number(`${set.reps ?? 1}`),
           })),
           sets: sets.map((set) => ({
-            weight_lbs: Number(`${set.weight_lbs ?? 0}`),
+            weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
+            weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
             reps: Number(`${set.reps ?? 1}`),
           })),
         });
@@ -401,14 +405,16 @@ export class ImportFromHevy {
         return {
           exercise: { id: exerciseId, equipment: equipment },
           warmupSets: record.warmupSets.map((set) => ({
-            weight: Weight.build(set.weight_lbs ?? 0, "lb"),
+            weight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
             isAmrap: false,
             timestamp: startTs,
           })),
           sets: record.sets.map((set) => ({
-            weight: Weight.build(set.weight_lbs ?? 0, "lb"),
+            weight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,
             isAmrap: false,
