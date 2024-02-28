@@ -6,7 +6,7 @@ import { ScrollableTabs } from "../../components/scrollableTabs";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { EditProgramV2Day } from "./editProgramV2Day";
-import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { DraggableList } from "../draggableList";
 import { applyChangesInEditor } from "./editProgramV2Utils";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -30,6 +30,7 @@ export interface IEditProgramV2DaysProps {
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
   evaluatedWeeks: IPlannerEvalResult[][];
+  repeats: IPlannerProgramExercise[][][];
   onEditDayModal: (args: { weekIndex: number; dayIndex: number }) => void;
   onSave: () => void;
   plannerDispatch: ILensDispatch<IPlannerState>;
@@ -38,6 +39,8 @@ export interface IEditProgramV2DaysProps {
 export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
   const { plannerProgram, settings, ui, plannerDispatch, lbProgram, evaluatedWeeks } = props;
   const evaluatedWeek = evaluatedWeeks[ui.weekIndex];
+  const repeats = props.repeats[ui.weekIndex] || [];
+  console.log("Week", ui.weekIndex, repeats);
   const isInvalid = evaluatedWeeks.some((week) => week.some((day) => !day.success));
 
   const enabledDayStats = props.ui.focusedExercise && evaluatedWeek[props.ui.focusedExercise?.dayIndex].success;
@@ -171,6 +174,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                               evaluatedWeeks={evaluatedWeeks}
                               settings={settings}
                               showDelete={week.days.length > 1}
+                              repeats={repeats[dayIndex] || []}
                               onEditDayName={() => {
                                 props.onEditDayModal({ weekIndex, dayIndex });
                               }}

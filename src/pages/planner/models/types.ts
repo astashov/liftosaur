@@ -26,6 +26,8 @@ export interface IPlannerProgramExerciseGlobals {
 
 export interface IPlannerProgramExercise {
   label?: string;
+  repeat: number[];
+  text: string;
   equipment?: string;
   name: string;
   line: number;

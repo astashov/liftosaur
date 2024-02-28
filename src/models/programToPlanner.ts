@@ -101,7 +101,7 @@ export class ProgramToPlanner {
     plannerProgram: IPlannerProgram,
     settings: ISettings
   ): Record<string, Record<number, [number, number]>> {
-    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings, { skipDescriptionPostProcess: true });
+    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings, { skipDescriptionPostProcess: true });
 
     const variationsMap: Record<string, Record<number, [number, number]>> = {};
     const variationsRunningIndex: Record<string, number> = {};
@@ -132,7 +132,8 @@ export class ProgramToPlanner {
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
     if (this._evaluatedWeeks == null) {
-      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.settings);
+      const { evaluatedWeeks } = PlannerProgram.evaluate(this.plannerProgram, this.settings);
+      this._evaluatedWeeks = evaluatedWeeks;
     }
     return this._evaluatedWeeks;
   }

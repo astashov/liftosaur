@@ -66,7 +66,8 @@ export class PlannerToProgram {
 
   private getEvaluatedWeeks(): IPlannerEvalResult[][] {
     if (this._evaluatedWeeks == null) {
-      this._evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.settings);
+      const { evaluatedWeeks } = PlannerProgram.evaluate(this.plannerProgram, this.settings);
+      this._evaluatedWeeks = evaluatedWeeks;
     }
     return this._evaluatedWeeks;
   }

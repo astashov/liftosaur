@@ -61,7 +61,7 @@ export interface IPlannerContentProps {
 }
 
 function buildExportedProgram(id: string, program: IPlannerProgram, settings: ISettings): IExportedPlannerProgram {
-  const evaluatedWeeks = PlannerProgram.evaluate(program, settings);
+  const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
   return {
     id,
     type: "v2",

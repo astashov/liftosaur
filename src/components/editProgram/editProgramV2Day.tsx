@@ -3,10 +3,11 @@
 import { LensBuilder, lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
+import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
-import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramDay, IPlannerProgram, ISettings } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
@@ -26,6 +27,7 @@ interface IEditProgramV2DayProps {
   weekIndex: number;
   dayIndex: number;
   plannerDay: IPlannerProgramDay;
+  repeats: IPlannerProgramExercise[];
   showDelete: boolean;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   ui: IPlannerUi;
@@ -163,6 +165,15 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                   }
                 }}
               />
+              {props.repeats.length > 0 && (
+                <ul className="pl-1 ml-8 list-disc">
+                  {props.repeats.map((e) => (
+                    <li>
+                      <PlannerCodeBlock script={e.text} />
+                    </li>
+                  ))}
+                </ul>
+              )}
               {approxDayTime && (
                 <div className="text-xs text-right text-grayv2-main">
                   <IconWatch className="mb-1 align-middle" />

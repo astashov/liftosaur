@@ -52,7 +52,7 @@ export class PlannerToProgram2 {
   }
 
   public convertToProgram(): IProgram {
-    const evaluatedWeeks = PlannerProgram.evaluate(this.plannerProgram, this.settings);
+    const { evaluatedWeeks } = PlannerProgram.evaluate(this.plannerProgram, this.settings);
     const isValid = evaluatedWeeks.every((week) => week.every((day) => day.success));
 
     if (!isValid) {

@@ -518,7 +518,7 @@ export namespace ProgramExercise {
     descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>,
     dereuseExercises: Record<string, Record<string, Set<string>>>
   ): IProgramExercise {
-    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).map((w) =>
+    const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).evaluatedWeeks.map((w) =>
       CollectionUtils.compact(
         w.map((d) => {
           if (d.success) {

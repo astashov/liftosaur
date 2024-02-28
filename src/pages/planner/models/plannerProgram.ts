@@ -39,7 +39,7 @@ export class PlannerDayDataError extends Error {
 
 export class PlannerProgram {
   public static isValid(program: IPlannerProgram, settings: ISettings): boolean {
-    const evaluatedWeeks = PlannerProgram.evaluate(program, settings);
+    const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
   }
 
@@ -211,11 +211,46 @@ export class PlannerProgram {
     });
   }
 
+  public static fillRepeats(evalWeeks: IPlannerEvalResult[][], settings: ISettings): IPlannerProgramExercise[][][] {
+    const repeats: IPlannerProgramExercise[][][] = [];
+    for (let weekIndex = 0; weekIndex < evalWeeks.length; weekIndex += 1) {
+      const week = evalWeeks[weekIndex];
+      for (let dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        if (day.success) {
+          const exercises = day.data;
+          for (let i = 0; i < exercises.length; i += 1) {
+            const exercise = exercises[i];
+            for (const repeatWeek of exercise.repeat ?? []) {
+              const repeatWeekIndex = repeatWeek - 1;
+              const repeatDay = evalWeeks[repeatWeekIndex]?.[dayIndex];
+              if (repeatDay?.success) {
+                const hasExercise = repeatDay.data.some(
+                  (e) =>
+                    PlannerToProgram2.plannerExerciseKey(e, settings) ===
+                    PlannerToProgram2.plannerExerciseKey(exercise, settings)
+                );
+                if (!hasExercise) {
+                  repeats[repeatWeekIndex] = repeats[repeatWeekIndex] || [];
+                  repeats[repeatWeekIndex][dayIndex] = repeats[repeatWeekIndex][dayIndex] || [];
+                  const newExercise = { ...ObjectUtils.clone(exercise), repeat: [] };
+                  repeats[repeatWeekIndex][dayIndex].push(newExercise);
+                  repeatDay.data.push(newExercise);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return repeats;
+  }
+
   public static evaluate(
     plannerProgram: IPlannerProgram,
     settings: ISettings,
     args?: { skipDescriptionPostProcess?: boolean }
-  ): IPlannerEvalResult[][] {
+  ): { evaluatedWeeks: IPlannerEvalResult[][]; repeats: IPlannerProgramExercise[][][] } {
     let dayIndex = 0;
     let evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
@@ -266,7 +301,9 @@ export class PlannerProgram {
         error: new PlannerSyntaxError(error.error, 0, 0, 0, 1),
       };
     }
-    return evaluatedWeeks;
+
+    const repeats = this.fillRepeats(evaluatedWeeks, settings);
+    return { repeats, evaluatedWeeks };
   }
 
   public static evaluateFull(fullProgramText: string, settings: ISettings): IPlannerEvalFullResult {

@@ -641,6 +641,30 @@ export class PlannerExerciseEvaluator {
     this.latestDescriptions[this.latestDescriptions.length - 1].push(value);
   }
 
+  private getRepeat(expr: SyntaxNode): number[] {
+    if (expr.type.name === PlannerNodeName.ExerciseExpression) {
+      const repeatNode = expr.getChild(PlannerNodeName.Repeat);
+      if (repeatNode == null) {
+        return [];
+      }
+      const result: Set<number> = new Set();
+      const children = getChildren(repeatNode);
+      for (const childNode of children) {
+        if (childNode.type.name === PlannerNodeName.Rep) {
+          result.add(parseInt(this.getValue(childNode), 10));
+        } else {
+          const [from, to] = getChildren(childNode).map((n) => parseInt(this.getValue(n), 10));
+          for (let i = from; i <= to; i += 1) {
+            result.add(i);
+          }
+        }
+      }
+      return Array.from(result).sort((a, b) => a - b);
+    } else {
+      assert(PlannerNodeName.ExerciseExpression);
+    }
+  }
+
   private evaluateExercise(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
       if (this.latestDescriptions.length > 0) {
@@ -703,7 +727,9 @@ export class PlannerExerciseEvaluator {
       let allWarmupSets: IPlannerProgramExerciseWarmupSet[] | undefined;
       let reuse: IPlannerProgramReuse | undefined;
       let notused: boolean = false;
+      const repeat = this.getRepeat(expr);
       const allProperties: IPlannerProgramProperty[] = [];
+      const text = this.getValue(expr);
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
         if (section.type === "sets") {
@@ -750,6 +776,8 @@ export class PlannerExerciseEvaluator {
 
       const plannerExercise: IPlannerProgramExercise = {
         label,
+        text,
+        repeat,
         name,
         equipment,
         line,
