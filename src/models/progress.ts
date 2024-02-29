@@ -349,7 +349,7 @@ export namespace Progress {
       );
       const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
       const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
-      const timerExpr = set.timer || setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises);
+      const timerExpr = set.timer ?? (setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises));
       const bindings = Progress.createScriptBindings(
         Progress.getDayData(progress),
         entry,
@@ -400,7 +400,17 @@ export namespace Progress {
     if (timer == null) {
       timer = settings.timers[mode] || undefined;
     }
-    if (timer != null && Subscriptions.hasSubscription(subscription)) {
+    if (!timer) {
+      return {
+        ...progress,
+        timerSince: undefined,
+        timer: undefined,
+        timerMode: undefined,
+        timerEntryIndex: undefined,
+        timerSetIndex: undefined,
+      };
+    }
+    if (Subscriptions.hasSubscription(subscription)) {
       const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
       const title = "It's time for the next set!";
       let subtitle = "";

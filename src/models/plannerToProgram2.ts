@@ -130,8 +130,8 @@ export class PlannerToProgram2 {
                         isAmrap: range.isAmrap,
                         logRpe: set.logRpe,
                         askWeight: set.askWeight,
-                        rpeExpr: set.rpe ? `${set.rpe}` : undefined,
-                        timerExpr: set.timer ? `${set.timer}` : undefined,
+                        rpeExpr: set.rpe != null ? `${set.rpe}` : undefined,
+                        timerExpr: set.timer != null ? `${set.timer}` : undefined,
                         label: set.label,
                       });
                     }
