@@ -467,4 +467,18 @@ export const migrations = {
     storage.settings.planner = storage.settings.planner || Settings.buildPlannerSettings();
     return storage;
   },
+  "20240229152620_fix_null_state_vars": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const program of storage.programs || []) {
+      for (const exercise of program.exercises || []) {
+        for (const key of ObjectUtils.keys(exercise.state || {})) {
+          const value = exercise.state[key];
+          if (value != null && typeof value !== "number" && value.value == null) {
+            value.value = 0;
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };
