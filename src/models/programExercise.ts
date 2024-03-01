@@ -568,12 +568,6 @@ export namespace ProgramExercise {
                     operation(programExercise, sets[setIndex], dayData, settings, "timerExpr", value.value, value.op);
                   } else if (key === "weights") {
                     operation(programExercise, sets[setIndex], dayData, settings, "weightExpr", value.value, value.op);
-                  } else if (key === "setVariationIndex" && typeof update.value.value === "number") {
-                    setVariationIndexMap[exerciseKey] = setVariationIndexMap[exerciseKey] || [];
-                    setVariationIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
-                  } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
-                    descriptionIndexMap[exerciseKey] = descriptionIndexMap[exerciseKey] || [];
-                    descriptionIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
                   }
                   if (!ProgramSet.isEqual(originalSet, sets[setIndex])) {
                     dereuseExercises[weekIndex] = dereuseExercises[weekIndex] || {};
@@ -582,6 +576,15 @@ export namespace ProgramExercise {
                   }
                 }
               }
+            }
+          }
+          if ((week === "*" || week === weekIndex + 1) && (day === "*" || day === dayInWeekIndex + 1)) {
+            if (key === "setVariationIndex" && typeof update.value.value === "number") {
+              setVariationIndexMap[exerciseKey] = setVariationIndexMap[exerciseKey] || [];
+              setVariationIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
+            } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
+              descriptionIndexMap[exerciseKey] = descriptionIndexMap[exerciseKey] || [];
+              descriptionIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
             }
           }
           dayIndex += 1;
