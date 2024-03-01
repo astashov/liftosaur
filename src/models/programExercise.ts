@@ -577,14 +577,14 @@ export namespace ProgramExercise {
                 }
               }
             }
-          }
-          if ((week === "*" || week === weekIndex + 1) && (day === "*" || day === dayInWeekIndex + 1)) {
-            if (key === "setVariationIndex" && typeof update.value.value === "number") {
-              setVariationIndexMap[exerciseKey] = setVariationIndexMap[exerciseKey] || [];
-              setVariationIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
-            } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
-              descriptionIndexMap[exerciseKey] = descriptionIndexMap[exerciseKey] || [];
-              descriptionIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
+            if ((week === "*" || week === weekIndex + 1) && (day === "*" || day === dayInWeekIndex + 1)) {
+              if (key === "setVariationIndex" && typeof update.value.value === "number") {
+                setVariationIndexMap[exerciseKey] = setVariationIndexMap[exerciseKey] || [];
+                setVariationIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
+              } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
+                descriptionIndexMap[exerciseKey] = descriptionIndexMap[exerciseKey] || [];
+                descriptionIndexMap[exerciseKey].push(update.value as ILiftoscriptVariableValue<number>);
+              }
             }
           }
           dayIndex += 1;
