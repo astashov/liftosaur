@@ -343,7 +343,7 @@ export class LiftoscriptEvaluator {
     let value: number | IWeight | IPercentage = 0;
     if (key === "weights") {
       for (let i = 0; i < this.bindings.weights.length; i += 1) {
-        if (setIndex === "*" || setIndex === i + 1) {
+        if (this.bindings.completedReps[i] == null && (setIndex === "*" || setIndex === i + 1)) {
           const evalutedValue = this.evaluateToNumberOrWeightOrPercentage(expression);
           const newValue = Weight.applyOp(this.bindings.rm1, this.bindings.weights[i], evalutedValue, op);
           value = Weight.convertToWeight(this.bindings.rm1, newValue, this.unit);
@@ -352,7 +352,7 @@ export class LiftoscriptEvaluator {
       }
     } else {
       for (let i = 0; i < this.bindings[key].length; i += 1) {
-        if (setIndex === "*" || setIndex === i + 1) {
+        if (this.bindings.completedReps[i] == null && (setIndex === "*" || setIndex === i + 1)) {
           const evaluatedValue = this.evaluateToNumber(expression);
           value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
           this.bindings[key][i] = value;
