@@ -49,6 +49,7 @@ export namespace Storage {
         Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
       }
       console.error(`Error decoding ${name}`);
+      console.log(data);
       error.forEach((e) => console.error(e));
     }
     return result;
