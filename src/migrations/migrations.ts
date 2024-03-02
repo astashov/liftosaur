@@ -481,4 +481,12 @@ export const migrations = {
     }
     return storage;
   },
+  "20240302101133_fix_null_plates": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const equipmentKey of ObjectUtils.keys(storage.settings.equipment)) {
+      const equipment = storage.settings.equipment[equipmentKey]!;
+      equipment.plates = equipment.plates.filter((p) => p.num != null && p.weight != null);
+    }
+    return storage;
+  },
 };
