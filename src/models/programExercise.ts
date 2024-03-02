@@ -571,8 +571,9 @@ export namespace ProgramExercise {
                   }
                   if (!ProgramSet.isEqual(originalSet, sets[setIndex])) {
                     dereuseExercises[weekIndex] = dereuseExercises[weekIndex] || {};
-                    dereuseExercises[weekIndex][dayIndex] = dereuseExercises[weekIndex][dayIndex] || new Set();
-                    dereuseExercises[weekIndex][dayIndex].add(exerciseKey);
+                    dereuseExercises[weekIndex][dayInWeekIndex] =
+                      dereuseExercises[weekIndex][dayInWeekIndex] || new Set();
+                    dereuseExercises[weekIndex][dayInWeekIndex].add(exerciseKey);
                   }
                 }
               }

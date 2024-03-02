@@ -166,7 +166,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                 }}
               />
               {props.repeats.length > 0 && (
-                <ul className="pl-1 ml-8 list-disc">
+                <ul className="pl-1 ml-8 overflow-x-auto list-disc">
                   {props.repeats.map((e) => (
                     <li>
                       <PlannerCodeBlock script={e.text} />

@@ -574,7 +574,6 @@ export class PlannerToProgram {
 
     const weeks: IProgramWeek[] = [];
     const days: IProgramDay[] = [];
-    console.log(potentialWeeksAndDays);
     for (const value of potentialWeeksAndDays) {
       const id = UidFactory.generateUid(8);
       const usedDayNames = new Set<string>();

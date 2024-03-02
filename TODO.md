@@ -22,6 +22,7 @@
 - Add 'Rhomboids' 
 * Add 'Goals'
 * Add default for dynamic double progression
+* Add +/- button for the set weight/reps/rpe on long press
 
 * Programs
   - 5/3/1s

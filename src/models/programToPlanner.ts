@@ -430,8 +430,8 @@ export class ProgramToPlanner {
       }
       plannerWeeks.push(plannerWeek);
     }
-    const result = { name: this.program.name, weeks: plannerWeeks };
-    return result;
+    const result: IPlannerProgram = { name: this.program.name, weeks: plannerWeeks };
+    return PlannerProgram.compact(result, this.settings);
   }
 
   private printVal(val: number | IWeight | IPercentage): string {

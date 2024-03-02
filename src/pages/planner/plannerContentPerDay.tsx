@@ -104,6 +104,7 @@ export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Ele
                   return (
                     <div key={dayIndex}>
                       <PlannerDay
+                        repeats={repeats[weekIndex]?.[dayIndex] || []}
                         evaluatedWeeks={evaluatedWeeks}
                         settings={settings}
                         program={program}

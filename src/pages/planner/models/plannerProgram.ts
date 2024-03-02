@@ -21,7 +21,7 @@ import {
 } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { Exercise, IExercise } from "../../../models/exercise";
-import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
+import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
@@ -172,8 +172,10 @@ export class PlannerProgram {
           exercise.reuse.week ?? weekIndex + 1 ?? 1,
           exercise.reuse.day
         )[0];
-        exercise.reuse.sets = originalExercise.setVariations[0].sets;
-        exercise.reuse.globals = originalExercise.globals;
+        if (originalExercise) {
+          exercise.reuse.sets = originalExercise.setVariations[0].sets;
+          exercise.reuse.globals = originalExercise.globals;
+        }
       }
     });
     const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
@@ -195,9 +197,10 @@ export class PlannerProgram {
     return program;
   }
 
-  public static topLineItems(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerTopLineItem[][][] {
+  public static compact(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
     let dayIndex = 0;
-    return plannerProgram.weeks.map((week, weekIndex) => {
+
+    const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
         const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
@@ -206,9 +209,117 @@ export class PlannerProgram {
           week: weekIndex + 1,
         });
         dayIndex += 1;
-        return evaluator.topLineMap(tree.topNode);
+        const map = evaluator.topLineMap(tree.topNode);
+        return map;
       });
     });
+
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        for (const line of day) {
+          if (line.type === "exercise" && !line.used) {
+            const repeatRanges: [number, number | undefined][] = [];
+            for (let repeatWeekIndex = weekIndex + 1; repeatWeekIndex < mapping.length; repeatWeekIndex += 1) {
+              const repeatDay = mapping[repeatWeekIndex]?.[dayIndex];
+              const repeatedExercises = (repeatDay || []).filter((e) => {
+                return (
+                  e.type === "exercise" &&
+                  e.value === line.value &&
+                  e.sections === line.sections &&
+                  e.description === line.description
+                );
+              });
+              for (const e of repeatedExercises) {
+                e.used = true;
+              }
+              if (repeatedExercises.length > 0) {
+                if (repeatRanges.length === 0 || repeatRanges[repeatRanges.length - 1][1] != null) {
+                  repeatRanges.push([repeatWeekIndex, undefined]);
+                }
+              } else {
+                if (repeatRanges.length > 0) {
+                  repeatRanges[repeatRanges.length - 1][1] = repeatWeekIndex;
+                }
+                break;
+              }
+            }
+            if (repeatRanges.length > 0 && repeatRanges[repeatRanges.length - 1][1] == null) {
+              repeatRanges[repeatRanges.length - 1][1] = mapping.length;
+            }
+            line.repeatRanges = repeatRanges.map((r) => `${r[0]}-${r[1]}`);
+          }
+        }
+      }
+    }
+
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const programWeek = plannerProgram.weeks[weekIndex];
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        const programDay = programWeek.days[dayIndex];
+        let str = "";
+        for (const line of day) {
+          if (line.type === "description") {
+            //
+          } else if (line.type === "exercise") {
+            if (!line.used) {
+              if (line.description) {
+                str += `${line.description}\n`;
+              }
+              if (line.repeatRanges && line.repeatRanges.length > 0) {
+                str += `${line.fullName}[${line.repeatRanges.join(", ")}] / ${line.sections}\n`;
+              } else {
+                str += `${line.fullName} / ${line.sections}\n`;
+              }
+            }
+          } else {
+            str += line.value + "\n";
+          }
+        }
+        programDay.exerciseText = str.trim();
+      }
+    }
+
+    return plannerProgram;
+  }
+
+  public static topLineItems(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerTopLineItem[][][] {
+    let dayIndex = 0;
+
+    const mapping = plannerProgram.weeks.map((week, weekIndex) => {
+      return week.days.map((day, dayInWeekIndex) => {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
+          day: dayIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          week: weekIndex + 1,
+        });
+        dayIndex += 1;
+        const map = evaluator.topLineMap(tree.topNode);
+        return map;
+      });
+    });
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        for (const exercise of day) {
+          for (const r of exercise.repeat || []) {
+            const reuseDay = mapping[r - 1][dayIndex];
+            if (!reuseDay.some((e) => e.type === "exercise" && e.value === exercise.value)) {
+              if (exercise.description) {
+                reuseDay.push({ type: "description", value: exercise.description });
+              }
+              reuseDay.push({ ...exercise, repeat: undefined });
+            }
+          }
+        }
+      }
+    }
+    return mapping;
   }
 
   public static fillRepeats(evalWeeks: IPlannerEvalResult[][], settings: ISettings): IPlannerProgramExercise[][][] {
@@ -233,7 +344,11 @@ export class PlannerProgram {
                 if (!hasExercise) {
                   repeats[repeatWeekIndex] = repeats[repeatWeekIndex] || [];
                   repeats[repeatWeekIndex][dayIndex] = repeats[repeatWeekIndex][dayIndex] || [];
-                  const newExercise = { ...ObjectUtils.clone(exercise), repeat: [] };
+                  const newExercise: IPlannerProgramExercise = {
+                    ...ObjectUtils.clone(exercise),
+                    repeat: [],
+                    isRepeat: true,
+                  };
                   repeats[repeatWeekIndex][dayIndex].push(newExercise);
                   repeatDay.data.push(newExercise);
                 }
@@ -265,6 +380,7 @@ export class PlannerProgram {
         return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
       });
     });
+    const repeats = this.fillRepeats(evaluatedWeeks, settings);
     dayIndex = 0;
     const errors: { error: string; dayData: Required<IDayData> }[] = [];
     plannerProgram.weeks.forEach((week, weekIndex) => {
@@ -284,6 +400,14 @@ export class PlannerProgram {
         dayIndex += 1;
       });
     });
+
+    const evaluatedCheckError = this.evaluatedCheck(evaluatedWeeks, settings);
+    if (evaluatedCheckError) {
+      evaluatedWeeks[evaluatedCheckError.weekIndex][evaluatedCheckError.dayInWeekIndex] = {
+        success: false,
+        error: evaluatedCheckError.error,
+      };
+    }
     this.postProcess(settings, evaluatedWeeks, args);
     try {
       PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);
@@ -302,8 +426,46 @@ export class PlannerProgram {
       };
     }
 
-    const repeats = this.fillRepeats(evaluatedWeeks, settings);
     return { repeats, evaluatedWeeks };
+  }
+
+  public static evaluatedCheck(
+    program: IPlannerEvalResult[][],
+    settings: ISettings
+  ): { weekIndex: number; dayInWeekIndex: number; error: PlannerSyntaxError } | undefined {
+    for (let weekIndex = 0; weekIndex < program.length; weekIndex++) {
+      const week = program[weekIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex++) {
+        const day = week[dayInWeekIndex];
+        if (day.success) {
+          for (const exercise of day.data) {
+            if (exercise.reuse) {
+              const originalExercise = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
+                settings,
+                exercise.reuse.exercise,
+                program,
+                exercise.reuse.week ?? weekIndex + 1 ?? 1,
+                exercise.reuse.day
+              )[0];
+              if (!originalExercise) {
+                return {
+                  weekIndex,
+                  dayInWeekIndex,
+                  error: new PlannerSyntaxError(
+                    `Reused and repeated exercises mismatch for '${exercise.name}'`,
+                    0,
+                    0,
+                    0,
+                    0
+                  ),
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    return undefined;
   }
 
   public static evaluateFull(fullProgramText: string, settings: ISettings): IPlannerEvalFullResult {
@@ -314,6 +476,7 @@ export class PlannerProgram {
       const evaluatedWeeks = result.data.map((week) =>
         week.days.map((d) => ({ success: true as const, data: d.exercises }))
       );
+      this.fillRepeats(evaluatedWeeks, settings);
       const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
       if (error) {
         return { success: false, error };
@@ -322,10 +485,21 @@ export class PlannerProgram {
     return result;
   }
 
-  public static evaluateText(fullProgramText: string): IPlannerExerciseEvaluatorTextWeek[] {
+  public static evaluateText(fullProgramText: string): IPlannerProgramWeek[] {
     const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
     const tree = plannerExerciseParser.parse(fullProgramText);
-    return evaluator.evaluate(tree.topNode);
+    const data = evaluator.evaluate(tree.topNode);
+    return data.map((week) => {
+      return {
+        name: week.name,
+        days: week.days.map((day) => {
+          return {
+            name: day.name,
+            exerciseText: day.exercises.join("").trim(),
+          };
+        }),
+      };
+    });
   }
 
   public static fullToWeekEvalResult(fullResult: IPlannerEvalFullResult): IPlannerEvalResult[][] {

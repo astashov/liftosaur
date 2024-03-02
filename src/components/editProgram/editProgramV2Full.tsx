@@ -45,18 +45,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           if (text == null) {
             return oldWeeks;
           }
-          const data = PlannerProgram.evaluateText(text);
-          return data.map((week) => {
-            return {
-              name: week.name,
-              days: week.days.map((day) => {
-                return {
-                  name: day.name,
-                  exerciseText: day.exercises.join("").trim(),
-                };
-              }),
-            };
-          });
+          return PlannerProgram.evaluateText(text);
         }),
       lb<IPlannerState>().p("fulltext").record(undefined),
     ]);

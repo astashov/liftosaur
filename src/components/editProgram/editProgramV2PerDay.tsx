@@ -23,7 +23,6 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
   const { evaluatedWeeks, repeats } = useMemo(() => {
     return PlannerProgram.evaluate(plannerProgram, settings);
   }, [plannerProgram, settings]);
-  console.log(repeats);
 
   return (
     <div>

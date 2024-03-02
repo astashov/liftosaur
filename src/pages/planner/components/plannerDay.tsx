@@ -2,7 +2,7 @@
 
 import { h, JSX } from "preact";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
-import { IPlannerState, IPlannerUi } from "../models/types";
+import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
@@ -22,8 +22,10 @@ import { useState } from "preact/hooks";
 import { IconHelp } from "../../../components/icons/iconHelp";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
+import { PlannerCodeBlock } from "./plannerCodeBlock";
 
 interface IPlannerDayProps {
+  repeats: IPlannerProgramExercise[];
   weekIndex: number;
   dayIndex: number;
   day: IPlannerProgramDay;
@@ -107,6 +109,15 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 }
               }}
             />
+            {props.repeats.length > 0 && (
+              <ul className="pl-1 ml-8 overflow-x-auto list-disc">
+                {props.repeats.map((e) => (
+                  <li>
+                    <PlannerCodeBlock script={e.text} />
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
               {reformatterSpinner && <IconSpinner width={12} height={12} />}
               <LinkButton

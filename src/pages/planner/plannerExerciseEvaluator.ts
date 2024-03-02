@@ -28,6 +28,12 @@ import { PlannerProgram } from "./models/plannerProgram";
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
   value: string;
+  fullName?: string;
+  repeat?: number[];
+  repeatRanges?: string[];
+  description?: string;
+  sections?: string;
+  used?: boolean;
 }
 
 export class PlannerSyntaxError extends SyntaxError {
@@ -729,7 +735,7 @@ export class PlannerExerciseEvaluator {
       let notused: boolean = false;
       const repeat = this.getRepeat(expr);
       const allProperties: IPlannerProgramProperty[] = [];
-      const text = this.getValue(expr);
+      const text = this.getValueTrim(expr).trim();
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
         if (section.type === "sets") {
@@ -1020,17 +1026,34 @@ export class PlannerExerciseEvaluator {
     }
     const children = getChildren(programNode);
     const result: IPlannerTopLineItem[] = [];
+    let lastDescriptions: string[] = [];
     for (const child of children) {
       if (child.type.name === PlannerNodeName.ExerciseExpression) {
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
-        const { label, name, equipment } = this.extractNameParts(this.getValue(nameNode));
+        const fullName = this.getValue(nameNode);
+        const { label, name, equipment } = this.extractNameParts(fullName);
         const exercise = Exercise.findByName(name, this.settings.exercises);
         const key = `${label ? `${label}-` : ""}${name}-${
           equipment || exercise?.defaultEquipment || "bodyweight"
         }`.toLowerCase();
-        result.push({ type: "exercise", value: key });
+        const repeat = this.getRepeat(child);
+        const sections = child
+          .getChildren(PlannerNodeName.ExerciseSection)
+          .map((section) => this.getValueTrim(section).trim())
+          .join(" / ");
+        result.push({
+          type: "exercise",
+          fullName,
+          value: key,
+          repeat,
+          description: lastDescriptions.join("\n"),
+          sections,
+        });
+        lastDescriptions = [];
       } else if (child.type.name === PlannerNodeName.LineComment) {
-        result.push({ type: "description", value: this.getValueTrim(child).trim() });
+        const description = this.getValueTrim(child).trim();
+        lastDescriptions.push(description);
+        result.push({ type: "description", value: description });
       } else if (child.type.name === PlannerNodeName.TripleLineComment) {
         result.push({ type: "comment", value: this.getValueTrim(child).trim() });
       } else if (child.type.name === PlannerNodeName.EmptyExpression) {

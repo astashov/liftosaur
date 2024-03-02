@@ -40,7 +40,6 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
   const { plannerProgram, settings, ui, plannerDispatch, lbProgram, evaluatedWeeks } = props;
   const evaluatedWeek = evaluatedWeeks[ui.weekIndex];
   const repeats = props.repeats[ui.weekIndex] || [];
-  console.log("Week", ui.weekIndex, repeats);
   const isInvalid = evaluatedWeeks.some((week) => week.some((day) => !day.success));
 
   const enabledDayStats = props.ui.focusedExercise && evaluatedWeek[props.ui.focusedExercise?.dayIndex].success;
