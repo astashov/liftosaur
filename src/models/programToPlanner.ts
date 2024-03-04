@@ -295,6 +295,9 @@ export class ProgramToPlanner {
                   this.settings.equipment
                 )}`;
               }
+              if (line.order != null && line.order !== 0) {
+                plannerExercise += `[${line.order}]`;
+              }
               plannerExercise += " / ";
               if (notused) {
                 plannerExercise += "used: none / ";

@@ -19,6 +19,7 @@ import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "./equipment";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { CollectionUtils } from "../utils/collection";
 
 export class PlannerToProgram2 {
   constructor(
@@ -75,7 +76,7 @@ export class PlannerToProgram2 {
         const plannerDay = plannerWeek.days[dayInWeekIndex];
         const programDay: IProgramDay = { id: UidFactory.generateUid(8), name: plannerDay.name, exercises: [] };
         if (day.success) {
-          for (const evalExercise of day.data) {
+          for (const evalExercise of CollectionUtils.sortBy(day.data, "order")) {
             const key = PlannerToProgram2.plannerExerciseKey(evalExercise, this.settings);
             const exercise = Exercise.findByName(evalExercise.name, this.settings.exercises);
             if (!exercise) {

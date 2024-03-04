@@ -204,4 +204,71 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
       error: new PlannerSyntaxError("Reused and repeated exercises mismatch for 'Squat'", 0, 0, 0, 0),
     });
   });
+
+  it("preserves order of exercises", () => {
+    const programText = `# Week 1
+## Day 1
+tmp: Squat[1-5] / 2x5 / used: none
+Squat[1-5, 3] / ...tmp: Squat 
+Bench Press[1-5,2] / ...tmp: Squat
+
+# Week 2
+## Day 1
+Bicep Curl[2-5] / 5x5
+
+
+# Week 3
+## Day 1
+
+# Week 4
+## Day 1
+
+# Week 5
+## Day 1
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [
+        [5, 5],
+        [5, 5],
+      ],
+    });
+    const exerciseNamesWeek3 = program.weeks[2].days
+      .map((d1) =>
+        program.days
+          .find((d2) => d1.id === d2.id)!
+          .exercises.map((e1) => program.exercises.find((e2) => e1.id === e2.id))
+      )
+      .flat(3)
+      .map((e) => e!.name);
+    expect(exerciseNamesWeek3).to.eql(["Bicep Curl", "Bench Press", "Squat"]);
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+tmp: Squat[1-5] / used: none / 2x5 / 86.53%
+Squat[3,1-5] / ...tmp: Squat
+Bench Press[2,1-5] / ...tmp: Squat
+
+
+# Week 2
+## Day 1
+Bicep Curl[2-5] / 5x5 / 86.53%
+
+
+# Week 3
+## Day 1
+
+
+
+# Week 4
+## Day 1
+
+
+
+# Week 5
+## Day 1
+
+
+
+`);
+  });
 });

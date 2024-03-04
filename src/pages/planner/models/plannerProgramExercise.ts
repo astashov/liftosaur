@@ -22,15 +22,18 @@ export class PlannerProgramExercise {
     const currentGlobals = exercise.globals;
     const sets = (reusedSets ? reusedSets : currentSets) ?? [];
     return sets.map((aSet) => {
-      const set = ObjectUtils.clone(aSet);
+      const set: IPlannerProgramExerciseSet = ObjectUtils.clone(aSet);
       set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;
       set.timer = currentGlobals.timer != null ? currentGlobals.timer : set.timer ?? reusedGlobals.timer;
       set.weight = currentGlobals.weight != null ? currentGlobals.weight : set.weight ?? reusedGlobals.weight;
       set.percentage =
         currentGlobals.percentage != null ? currentGlobals.percentage : set.percentage ?? reusedGlobals.percentage;
 
-      set.logRpe = !!(currentGlobals.logRpe != null ? currentGlobals.logRpe : set.logRpe ?? reusedGlobals.logRpe);
-      set.askWeight = !!(currentGlobals.askWeight != null
+      set.logRpe = !!(currentGlobals.rpe != null && currentGlobals.logRpe != null
+        ? currentGlobals.logRpe
+        : set.logRpe ?? reusedGlobals.logRpe);
+      set.askWeight = !!((currentGlobals.weight != null || currentGlobals.percentage != null) &&
+      currentGlobals.askWeight != null
         ? currentGlobals.askWeight
         : set.askWeight ?? reusedGlobals.askWeight);
       return set;

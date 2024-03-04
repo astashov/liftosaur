@@ -28,6 +28,7 @@ import { PlannerProgram } from "./models/plannerProgram";
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
   value: string;
+  order?: number;
   fullName?: string;
   repeat?: number[];
   repeatRanges?: string[];
@@ -647,6 +648,24 @@ export class PlannerExerciseEvaluator {
     this.latestDescriptions[this.latestDescriptions.length - 1].push(value);
   }
 
+  private getOrder(expr: SyntaxNode): number {
+    if (expr.type.name === PlannerNodeName.ExerciseExpression) {
+      const repeatNode = expr.getChild(PlannerNodeName.Repeat);
+      if (repeatNode == null) {
+        return 0;
+      }
+      const children = getChildren(repeatNode);
+      for (const childNode of children) {
+        if (childNode.type.name === PlannerNodeName.Rep) {
+          return parseInt(this.getValue(childNode), 10);
+        }
+      }
+      return 0;
+    } else {
+      assert(PlannerNodeName.ExerciseExpression);
+    }
+  }
+
   private getRepeat(expr: SyntaxNode): number[] {
     if (expr.type.name === PlannerNodeName.ExerciseExpression) {
       const repeatNode = expr.getChild(PlannerNodeName.Repeat);
@@ -656,13 +675,12 @@ export class PlannerExerciseEvaluator {
       const result: Set<number> = new Set();
       const children = getChildren(repeatNode);
       for (const childNode of children) {
-        if (childNode.type.name === PlannerNodeName.Rep) {
-          result.add(parseInt(this.getValue(childNode), 10));
-        } else {
+        if (childNode.type.name === PlannerNodeName.RepRange) {
           const [from, to] = getChildren(childNode).map((n) => parseInt(this.getValue(n), 10));
           for (let i = from; i <= to; i += 1) {
             result.add(i);
           }
+          break;
         }
       }
       return Array.from(result).sort((a, b) => a - b);
@@ -734,6 +752,7 @@ export class PlannerExerciseEvaluator {
       let reuse: IPlannerProgramReuse | undefined;
       let notused: boolean = false;
       const repeat = this.getRepeat(expr);
+      const order = this.getOrder(expr);
       const allProperties: IPlannerProgramProperty[] = [];
       const text = this.getValueTrim(expr).trim();
       for (const sectionNode of sectionNodes) {
@@ -784,6 +803,7 @@ export class PlannerExerciseEvaluator {
         label,
         text,
         repeat,
+        order,
         name,
         equipment,
         line,
@@ -1037,6 +1057,7 @@ export class PlannerExerciseEvaluator {
           equipment || exercise?.defaultEquipment || "bodyweight"
         }`.toLowerCase();
         const repeat = this.getRepeat(child);
+        const order = this.getOrder(child);
         const sections = child
           .getChildren(PlannerNodeName.ExerciseSection)
           .map((section) => this.getValueTrim(section).trim())
@@ -1044,6 +1065,7 @@ export class PlannerExerciseEvaluator {
         result.push({
           type: "exercise",
           fullName,
+          order,
           value: key,
           repeat,
           description: lastDescriptions.join("\n"),

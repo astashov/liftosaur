@@ -269,11 +269,18 @@ export class PlannerProgram {
               if (line.description) {
                 str += `${line.description}\n`;
               }
-              if (line.repeatRanges && line.repeatRanges.length > 0) {
-                str += `${line.fullName}[${line.repeatRanges.join(", ")}] / ${line.sections}\n`;
-              } else {
-                str += `${line.fullName} / ${line.sections}\n`;
+              let repeatStr = "";
+              if ((line.order != null && line.order !== 0) || (line.repeatRanges && line.repeatRanges.length > 0)) {
+                const repeatParts = [];
+                if (line.order != null && line.order !== 0) {
+                  repeatParts.push(line.order);
+                }
+                if (line.repeatRanges && line.repeatRanges.length > 0) {
+                  repeatParts.push(line.repeatRanges.join(","));
+                }
+                repeatStr = `[${repeatParts.join(",")}]`;
               }
+              str += `${line.fullName}${repeatStr} / ${line.sections}\n`;
             }
           } else {
             str += line.value + "\n";
