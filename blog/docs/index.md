@@ -338,9 +338,224 @@ sum(reps threshold, weights increase)
 For example:
 
 {% plannercode %}
-// Increases the reps from 8 to 12 reps, then adds 5lb to weight and
-// goes back to 8 reps
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)
+// Increases the weight if the sum of all reps is more than 30
+Bench Press / 3x10+ / progress: sum(30, 5lb)
+{% endplannercode %}
+
+### Ways to make written programs less repetitive
+
+Weightlifting programs are often very repetitive - you usually have multiple exercises with the same set schemes,
+using the same waving progressions over weeks. It's important to have ways to not repeat yourself, so it'd be easier to modify the programs, add exercises, change the set schemes, progressions, etc. E.g. a 12-week program with 4-days per week
+and 5 exercises in each day in total may have 240 places where you specify the sets! And modifying such program would be a very tedious task.
+
+Liftosaur offers a bunch of syntax sugar to make it easier to write and modify the programs.
+
+#### Reusing the exercises's sets/reps/weight/RPE/timer via `...Squat`
+
+You can reuse the sets/reps/weight/RPE/timer of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
+
+{% plannercode %}
+Bench Press / 5x5 / progress: lp(5lb)
+Squat / ...Bench Press
+{% endplannercode %}
+
+The Squat would reuse 5x5 sets of the Bench Press from the current week. And if you change 5x5 of Bench Press to e.g. 3x8, that would be applied to Squat as well. Note that we don't reuse the `progress: lp(5lb)` of Bench Press, only the sets!
+
+For multi-week programs it may look like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Bench Press / 3x8
+Squat / ...Bench Press
+
+# Week 2
+## Day 1
+Bench Press / 3x9
+Squat / ...Bench Press
+
+# Week 3
+## Day 1
+Bench Press / 3x10
+Squat / ...Bench Press
+{% endplannercode %}
+
+So, Squat would be `3x8` on week 1, `3x9` on week 2, and `3x10` on week 3, because by default it tries to find the original exercise in the **any** day of the **same** week.
+
+You can also specify the exact week/day to reuse the exercise from, by syntax `...Bench Press[day]` (in the current week) or `...Bench Press[week:day]`. Like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Bench Press / 3x8
+Squat / ...Bench Press[2]
+
+## Day 2
+Bench Press / 5x5
+Deadlift / 3x3
+{% endplannercode %}
+
+This way Squat would use `5x5`, and not `3x8`.
+
+{% plannercode %}
+# Week 1
+## Day 1
+Bench Press / 3x8
+Squat / ...Bench Press[2:1]
+
+# Week 2
+## Day 1
+Bench Press / 5x5
+Deadlift / 3x3
+{% endplannercode %}
+
+And this way Squat also would use `5x5` from Bench Press on week 2, day 1.
+
+One thing to note that if the reused exercise changes their weight, sets, reps, etc - after finishing a workout the reusing would be removed by the app - since the exercises are not identical anymore. I.e. if it was like this:
+
+{% plannercode %}
+Bench Press / 3x8 75% / progress: lp(5lb)
+Squat / ...Bench Press / progress: lp(5lb)
+{% endplannercode %}
+
+And then you finished all sets of Squat successfully. That will change the weight of Squat, and the program now would look like this:
+
+{% plannercode %}
+Bench Press / 3x8 75% / progress: lp(5lb)
+Squat / 3x8 185lb / progress: lp(5lb)
+{% endplannercode %}
+
+I.e. the app notices Bench Press and Squat are not the same anymore, and removes the reusing syntax.
+And if you progress in Bench Press - then **ALL** the reused exercises would stop reusing Bench Press - because it just went unsync with them.
+
+#### Repeating the same exercise over multiple weeks via `Squat[1-4]`
+
+Usually in multi-week programs, you have exactly the same exercises on the same days over multiple weeks. So, to avoid typing them over and over, you can specify that the same exercise would be repeated over multiple weeks, by specifying a range of weeks after exercise name. 
+
+{% plannercode %}
+Bench Press[1-5] / 3x8
+{% endplannercode %}
+
+The syntax is `Squat[fromWeek-toWeek]`. If you do that, you don't have to type `Bench Press / 3x8` on weeks 2-5. In the full day mode, your days would be empty, and in the per-day mode - the exercises would be listed under the text input on the repeated days, but would be undediable.
+
+{% plannercode %}
+# Week 1
+## Day 1
+Bench Press[1-4] / 3x8
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+
+# Week 4
+## Day 1
+{% endplannercode %}
+
+Like this - you don't need to write it in the weeks 2-4.
+
+This works especially nice in combination with the previous feature - reusing sets/reps/weights/etc. In multi-week programs, you specify the weekly undulation for one of the exercises, and then other exercises reuse and repeat it, like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Squat / 3x8
+
+## Day 2
+Bench Press[1-4] / ...Squat
+
+# Week 2
+## Day 1
+Squat / 3x9
+
+## Day 2
+
+# Week 3
+## Day 1
+Squat / 3x10
+
+## Day 2
+
+# Week 4
+## Day 1
+Squat / 3x11
+
+## Day 2
+{% endplannercode %}
+
+When repeating, it tries to preserve the order of exercises, but things may get ambiguous if you have multiple exercises starting repeating in various days.
+In that case, you can specify the order of exercises, within square brackets, like `Squat[order,fromWeek-toWeek]` or just `Squat[order]` for non-repeating exercises.
+
+{% plannercode %}
+Squat[1,1-4] / 3x8
+Bench Press[2,1-4] / 3x8
+Bicep Curl[3,1-4] / 3x8
+{% endplannercode %}
+
+#### Exercise templates (or unused exercises) via `/ used: none`
+
+With the features like above, it's often pretty convenient to specify a "template" exercise, which wouldn't be used in a program, but would work as a template for other exercises. To do that, you can specify an exercise and remove it from a program with the `/ used: none` section, like this:
+
+{% plannercode %}
+Squat / 1x10+, 3x10 / 70% / used: none / progress: lp(5lb)
+Bench Press / ...Squat / progress: lp(5lb)
+{% endplannercode %}
+
+In this case, the Squat would be used as a template for Bench Press, but wouldn't be used in the program itself.
+
+Templates also solve the problem of the original exercise changing e.g. their weight and therefore breaking the reusing.
+Since templates would never progress, they would never break the reusing. The reused exercises still may break reusing on progression, but at least only for that specific reused exercise, not for all of them.
+
+#### Combining it all together
+
+These features work the best when combined together. For example, you can have a template exercise, and then reuse it over multiple weeks, and use repeat syntax to avoid repeating the reused exercises across all weeks. E.g. an example program may look something like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+/// Specifying templates for our exercises, prefixing with `t:` label
+t: Squat / used: none / 1x6, 3x3 / 80%
+t: Romanian Deadlift / used: none / 1x8, 3x4 / 70%
+t: Bicep Curl[1-4] / used: none / 3x10+ / 60% / progress: sum(30, 5lb)
+
+/// Now the actual exercises:
+Squat[1,1-4] / ...t: Squat
+Romanian Deadlift[2,1-4] / ...t: Romanian Deadlift
+Bicep Curl[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+
+## Day 2
+Bench Press[1,1-4] / ...t: Squat
+Overhead Press[2,1-4] / ...t: Romanian Deadlift
+Lat Pulldown[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+
+## Day 3
+Deadlift[1,1-4] / ...t: Squat
+Front Squat[2,1-4] / ...t: Romanian Deadlift
+Hanging Leg Raise[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+
+
+# Week 2
+## Day 1
+/// Now we only need to specify undulating sets for main templates exercises 
+t: Squat / 1x7, 3x4 / 80%
+t: Romanian Deadlift / 1x9, 3x5 / 70%
+## Day 2
+## Day 3
+
+# Week 3
+## Day 1
+t: Squat / 1x8, 3x4 / 80%
+t: Romanian Deadlift / 1x10, 3x5 / 70%
+## Day 2
+## Day 3
+
+# Week 4
+## Day 1
+t: Squat / 1x9, 3x5 / 80%
+t: Romanian Deadlift / 1x11, 3x6 / 70%
+## Day 2
+## Day 3
 {% endplannercode %}
 
 ## Advanced

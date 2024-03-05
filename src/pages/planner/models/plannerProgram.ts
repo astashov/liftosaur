@@ -163,7 +163,11 @@ export class PlannerProgram {
         }
       }
     });
+    const notused: Set<string> = new Set();
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      if (exercise.notused) {
+        notused.add(PlannerToProgram2.plannerExerciseKey(exercise, settings));
+      }
       if (exercise.reuse) {
         const originalExercise = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
           settings,
@@ -180,9 +184,12 @@ export class PlannerProgram {
     });
     const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
+      const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+      if (notused.has(key)) {
+        exercise.notused = true;
+      }
       const nones = exercise.properties.filter((p) => p.fnName === "none");
       if (nones.length > 0) {
-        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
         skipProgress[key] = skipProgress[key] || [];
         skipProgress[key].push({ week: weekIndex + 1, day: dayIndex + 1 });
       }

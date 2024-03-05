@@ -777,7 +777,7 @@ export class PlannerExerciseEvaluator {
           throw new Error(`Unexpected section type`);
         }
       }
-      const hasRepRanges = allSets.some((set) => set.repRange);
+      const hasRepRanges = allSets.length > 0;
       if (hasRepRanges && reuse) {
         this.error("If you're reusing sets x reps, you cannot also specify them in this exercise", nameNode);
       }
