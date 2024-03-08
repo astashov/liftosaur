@@ -493,6 +493,25 @@ Bench Press[2,1-4] / 3x8
 Bicep Curl[3,1-4] / 3x8
 {% endplannercode %}
 
+#### Reusing descriptions
+
+Exactly the same idea as with reusing sets:
+
+{% plannercode %}
+# Week 1
+## Day 1
+// T1 exercise. Work up to 3RM, and then do 4 singles.
+Squat / 1x3 80%+, 4x1 80%
+
+## Day 2
+// ...Squat
+Bench Press / 1x3 80%+, 4x1 80%
+{% endplannercode %}
+
+Bench Press would reuse the description of Squat, and it'd be `T1 exercise. Work up to 3RM, and then do 4 singles.` too.
+You can use the same syntax as for reusing sets, like `// ...Squat[3:2]` to reuse the description from week 3, day 2,
+or `// ...Squat[3]` to reuse the description from the current week's day 3.
+
 #### Exercise templates (or unused exercises) via `/ used: none`
 
 With the features like above, it's often pretty convenient to specify a "template" exercise, which wouldn't be used in a program, but would work as a template for other exercises. To do that, you can specify an exercise and remove it from a program with the `/ used: none` section, like this:

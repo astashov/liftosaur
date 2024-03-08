@@ -72,8 +72,8 @@ export const CardsView = memo(
                     onClick={() => {
                       if (program.planner) {
                         const dayData = Program.getDayData(program, props.progress.day);
-                        EditProgram.initializePlanner(props.dispatch, program.id, program.planner, dayData);
-                        Program.editAction(props.dispatch, program.id);
+                        const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
+                        Program.editAction(props.dispatch, program.id, plannerState);
                       } else {
                         const programDay = Program.getProgramDay(program, props.progress.day);
                         const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;

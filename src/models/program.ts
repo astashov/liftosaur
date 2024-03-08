@@ -45,6 +45,7 @@ import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../lifto
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
 import { PlannerToProgram2 } from "./plannerToProgram2";
+import { IPlannerState } from "../pages/planner/models/types";
 
 declare let __HOST__: string;
 
@@ -933,10 +934,10 @@ export namespace Program {
     return isNaN(nd) ? 1 : nd;
   }
 
-  export function editAction(dispatch: IDispatch, id: string): void {
+  export function editAction(dispatch: IDispatch, id: string, plannerState?: IPlannerState): void {
     updateState(dispatch, [
       lb<IState>().p("editProgram").record({ id }),
-      lb<IState>().p("editProgramV2").record(undefined),
+      lb<IState>().p("editProgramV2").record(plannerState),
       lb<IState>()
         .p("screenStack")
         .recordModify((s) => Screen.push(s, "editProgram")),

@@ -83,7 +83,7 @@ Bench Press[1-5] / 2x5
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-Squat / 2x5 / 86.53% / progress: custom() {~
+Squat[1-2] / 2x5 / 86.53% / progress: custom() {~
   weights[3:*:*:*] += 10lb
 ~}
 Bench Press[1-5] / 2x5 / 86.53%
@@ -91,7 +91,7 @@ Bench Press[1-5] / 2x5 / 86.53%
 
 # Week 2
 ## Day 1
-Squat / 2x5 / 86.53%
+
 
 
 # Week 3
@@ -142,18 +142,16 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-tmp: Squat / used: none / 2x5 / 86.53% / progress: custom() {~
+tmp: Squat[1-5] / used: none / 2x5 / 86.53% / progress: custom() {~
   weights[3:*:*:*] += 10lb
 ~}
-Squat / ...tmp: Squat / progress: custom() { ...tmp: Squat }
-Bench Press / ...tmp: Squat / progress: custom() { ...tmp: Squat }
+Squat[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
+Bench Press[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 
 
 # Week 2
 ## Day 1
-tmp: Squat[2-5] / used: none / 2x5 / 86.53%
-Squat / ...tmp: Squat
-Bench Press / ...tmp: Squat
+
 
 
 # Week 3
@@ -215,7 +213,6 @@ Bench Press[1-5,2] / ...tmp: Squat
 # Week 2
 ## Day 1
 Bicep Curl[2-5] / 5x5
-
 
 # Week 3
 ## Day 1

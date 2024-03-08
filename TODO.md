@@ -42,10 +42,7 @@
 
 - Fix bug with disappearing always on when importing a program via "Add this program to your account"
 - Need to do "Save" after updating the program on Web
-- Fix bug with case-sensitive reusing in planner
-- Edit in program doesn't hide other days and weeks
 - Add new exercise picker to pick/substitute exercises
-- Bug when changing equipment in a program doesn't apply right to ongoing program
 - Convert all programs to the new syntax
-- Forbid reusing multi descriptions
-- Forbid reusing set variations
+- Add autocomplete after label
+- Add autocomplete for reuses

@@ -1062,7 +1062,19 @@ export class PlannerExerciseEvaluator {
         const sectionsNode = child.getChildren(PlannerNodeName.ExerciseSection);
         const sections = sectionsNode.map((section) => this.getValueTrim(section).trim()).join(" / ");
         const sectionsToReuse = sectionsNode
-          .filter((section) => section.getChild(PlannerNodeName.ExerciseProperty) == null)
+          .filter((section) => {
+            const properties = section.getChild(PlannerNodeName.ExerciseProperty);
+            if (properties == null) {
+              return true;
+            }
+            const propertyNameNode = properties.getChild(PlannerNodeName.ExercisePropertyName);
+            const propertyName = propertyNameNode ? this.getValue(propertyNameNode) : undefined;
+            if (propertyName === "progress") {
+              const none = properties.getChild(PlannerNodeName.None);
+              return none != null;
+            }
+            return false;
+          })
           .map((section) => this.getValueTrim(section).trim())
           .join(" / ");
         result.push({

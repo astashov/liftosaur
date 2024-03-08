@@ -6,7 +6,7 @@ import { EditProgram } from "../../models/editProgram";
 import { MenuItemEditable } from "../menuItemEditable";
 import { ILoading, IState, updateSettings, updateState } from "../../models/state";
 import { Button } from "../button";
-import { useState, useCallback } from "preact/hooks";
+import { useState, useCallback, useEffect, useRef } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
 import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
@@ -49,8 +49,14 @@ interface IProps {
 
 export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
-
   const plannerState = props.plannerState;
+
+  useEffect(() => {
+    if (plannerState.ui.focusedDay != null) {
+      window.scrollTo(0, programEditorRef.current?.offsetTop || 0);
+    }
+  }, []);
+  const programEditorRef = useRef<HTMLDivElement>(null);
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     (lensRecording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[], desc?: string) => {
       const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
@@ -317,43 +323,45 @@ export function EditProgramV2(props: IProps): JSX.Element {
             the <strong>Liftoscript</strong> syntax to write weightlifting programs!
           </Nux>
         </div>
-        {props.plannerState.fulltext != null ? (
-          <EditProgramV2Full
-            plannerProgram={plannerState.current.program}
-            ui={plannerState.ui}
-            lbUi={lb<IPlannerState>().pi("ui")}
-            fulltext={props.plannerState.fulltext}
-            settings={props.settings}
-            plannerDispatch={plannerDispatch}
-          />
-        ) : (
-          <EditProgramV2PerDay
-            plannerProgram={plannerState.current.program}
-            ui={plannerState.ui}
-            settings={props.settings}
-            plannerDispatch={plannerDispatch}
-            onSave={() => {
-              const newProgram = new PlannerToProgram2(
-                props.editProgram.id,
-                props.editProgram.nextDay,
-                props.editProgram.exercises,
-                props.plannerState.current.program,
-                props.settings
-              ).convertToProgram();
-              newProgram.planner = props.plannerState.current.program;
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((programs) => {
-                    return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
-                  }),
-                lb<IState>().p("editProgramV2").record(undefined),
-              ]);
-              props.dispatch(Thunk.pullScreen());
-            }}
-          />
-        )}
+        <div ref={programEditorRef}>
+          {props.plannerState.fulltext != null ? (
+            <EditProgramV2Full
+              plannerProgram={plannerState.current.program}
+              ui={plannerState.ui}
+              lbUi={lb<IPlannerState>().pi("ui")}
+              fulltext={props.plannerState.fulltext}
+              settings={props.settings}
+              plannerDispatch={plannerDispatch}
+            />
+          ) : (
+            <EditProgramV2PerDay
+              plannerProgram={plannerState.current.program}
+              ui={plannerState.ui}
+              settings={props.settings}
+              plannerDispatch={plannerDispatch}
+              onSave={() => {
+                const newProgram = new PlannerToProgram2(
+                  props.editProgram.id,
+                  props.editProgram.nextDay,
+                  props.editProgram.exercises,
+                  props.plannerState.current.program,
+                  props.settings
+                ).convertToProgram();
+                newProgram.planner = props.plannerState.current.program;
+                updateState(props.dispatch, [
+                  lb<IState>()
+                    .p("storage")
+                    .p("programs")
+                    .recordModify((programs) => {
+                      return CollectionUtils.setBy(programs, "id", props.editProgram.id, newProgram);
+                    }),
+                  lb<IState>().p("editProgramV2").record(undefined),
+                ]);
+                props.dispatch(Thunk.pullScreen());
+              }}
+            />
+          )}
+        </div>
         {props.adminKey && (
           <div className="py-3 text-center">
             <Button
