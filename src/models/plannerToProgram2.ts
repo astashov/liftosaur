@@ -301,7 +301,7 @@ export class PlannerToProgram2 {
     const equipKey = equip ? Equipment.equipmentKeyByName(equip, this.settings.equipment) : undefined;
     const name = parts.join(",");
     const originalProgramExercise = allExercises.find(
-      (e) => e.name === name && (equipKey == null || e.exerciseType.equipment === equipKey)
+      (e) => e.name.toLowerCase() === name.toLowerCase() && (equipKey == null || e.exerciseType.equipment === equipKey)
     );
     return originalProgramExercise?.id;
   }
