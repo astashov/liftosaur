@@ -34,6 +34,7 @@ export interface IPlannerTopLineItem {
   repeatRanges?: string[];
   description?: string;
   sections?: string;
+  sectionsToReuse?: string;
   used?: boolean;
 }
 
@@ -1058,8 +1059,10 @@ export class PlannerExerciseEvaluator {
         }`.toLowerCase();
         const repeat = this.getRepeat(child);
         const order = this.getOrder(child);
-        const sections = child
-          .getChildren(PlannerNodeName.ExerciseSection)
+        const sectionsNode = child.getChildren(PlannerNodeName.ExerciseSection);
+        const sections = sectionsNode.map((section) => this.getValueTrim(section).trim()).join(" / ");
+        const sectionsToReuse = sectionsNode
+          .filter((section) => section.getChild(PlannerNodeName.ExerciseProperty) == null)
           .map((section) => this.getValueTrim(section).trim())
           .join(" / ");
         result.push({
@@ -1070,6 +1073,7 @@ export class PlannerExerciseEvaluator {
           repeat,
           description: lastDescriptions.join("\n"),
           sections,
+          sectionsToReuse,
         });
         lastDescriptions = [];
       } else if (child.type.name === PlannerNodeName.LineComment) {

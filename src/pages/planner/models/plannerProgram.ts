@@ -3,6 +3,7 @@ import {
   IPlannerProgramExerciseWarmupSet,
   IPlannerProgramProperty,
   IExportedPlannerProgram,
+  IPlannerProgramExerciseDescription,
 } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import {
@@ -149,6 +150,10 @@ export class PlannerProgram {
     program: IPlannerEvalResult[][],
     args?: { skipDescriptionPostProcess?: boolean }
   ): IPlannerEvalResult[][] {
+    const exerciseDescriptions: Record<
+      string,
+      Record<number, Record<number, IPlannerProgramExerciseDescription[]>>
+    > = {};
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       if (!args?.skipDescriptionPostProcess) {
         if (exercise.descriptions == null || exercise.descriptions.length === 0) {
@@ -161,6 +166,12 @@ export class PlannerProgram {
           );
           exercise.descriptions = lastWeekExercise?.descriptions || [];
         }
+      }
+      if (exercise.descriptions != null && exercise.descriptions.length > 0) {
+        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+        exerciseDescriptions[key] = exerciseDescriptions[key] || {};
+        exerciseDescriptions[key][weekIndex] = exerciseDescriptions[key][weekIndex] || {};
+        exerciseDescriptions[key][weekIndex][dayIndex] = exercise.descriptions;
       }
     });
     const notused: Set<string> = new Set();
@@ -179,6 +190,17 @@ export class PlannerProgram {
         if (originalExercise) {
           exercise.reuse.sets = originalExercise.setVariations[0].sets;
           exercise.reuse.globals = originalExercise.globals;
+        }
+      }
+      if (
+        exercise.descriptions != null &&
+        exercise.descriptions.length === 1 &&
+        exercise.descriptions[0].value?.startsWith("...")
+      ) {
+        const reusingName = exercise.descriptions[0].value.slice(3).trim();
+        const descriptions = this.findReusedDescriptions(reusingName, weekIndex, exerciseDescriptions, settings);
+        if (descriptions != null) {
+          exercise.descriptions = descriptions;
         }
       }
     });
@@ -202,6 +224,37 @@ export class PlannerProgram {
       }
     });
     return program;
+  }
+
+  public static findReusedDescriptions(
+    reusingName: string,
+    currentWeekIndex: number,
+    exerciseDescriptions: Record<string, Record<number, Record<number, IPlannerProgramExerciseDescription[]>>>,
+    settings: ISettings
+  ): IPlannerProgramExerciseDescription[] | undefined {
+    const weekDayMatch = reusingName.match(/\[([^]+)\]/);
+    let weekIndex: number | undefined;
+    let dayIndex: number | undefined;
+    if (weekDayMatch != null) {
+      const [dayOrWeekStr, dayStr] = weekDayMatch[1].split(":");
+      if (dayStr != null) {
+        weekIndex = parseInt(dayOrWeekStr, 10);
+        weekIndex = isNaN(weekIndex) ? undefined : weekIndex - 1;
+        dayIndex = parseInt(dayStr, 10);
+        dayIndex = isNaN(dayIndex) ? undefined : dayIndex - 1;
+      } else {
+        dayIndex = parseInt(dayOrWeekStr, 10);
+        dayIndex = isNaN(dayIndex) ? undefined : dayIndex - 1;
+      }
+    }
+    reusingName = reusingName.replace(/\[([^]+)\]/, "").trim();
+    const key = PlannerProgram.nameToKey(reusingName, settings);
+    const weekDescriptions = exerciseDescriptions[key]?.[weekIndex ?? currentWeekIndex];
+    if (dayIndex != null) {
+      return weekDescriptions?.[dayIndex];
+    } else {
+      return ObjectUtils.values(weekDescriptions ?? {})[0];
+    }
   }
 
   public static compact(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
@@ -234,7 +287,7 @@ export class PlannerProgram {
                 return (
                   e.type === "exercise" &&
                   e.value === line.value &&
-                  e.sections === line.sections &&
+                  e.sectionsToReuse === line.sectionsToReuse &&
                   e.description === line.description
                 );
               });
