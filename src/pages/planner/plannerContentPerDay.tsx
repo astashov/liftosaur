@@ -26,7 +26,7 @@ export interface IPlannerContentPerDayProps {
 
 export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Element {
   const { program, settings, ui, initialWeek, initialDay, service, dispatch } = props;
-  const { evaluatedWeeks, repeats } = useMemo(() => {
+  const { evaluatedWeeks, repeats, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluate(program, settings);
   }, [program, settings]);
   const lbProgram = lb<IPlannerState>().p("current").p("program");
@@ -105,6 +105,7 @@ export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Ele
                     <div key={dayIndex}>
                       <PlannerDay
                         repeats={repeats[weekIndex]?.[dayIndex] || []}
+                        exerciseFullNames={exerciseFullNames}
                         evaluatedWeeks={evaluatedWeeks}
                         settings={settings}
                         program={program}

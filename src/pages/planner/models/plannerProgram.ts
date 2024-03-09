@@ -455,8 +455,9 @@ export class PlannerProgram {
     plannerProgram: IPlannerProgram,
     settings: ISettings,
     args?: { skipDescriptionPostProcess?: boolean }
-  ): { evaluatedWeeks: IPlannerEvalResult[][]; repeats: IPlannerProgramExercise[][][] } {
+  ): { evaluatedWeeks: IPlannerEvalResult[][]; repeats: IPlannerProgramExercise[][][]; exerciseFullNames: string[] } {
     let dayIndex = 0;
+    const exerciseFullNames: Set<string> = new Set();
     let evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
@@ -467,7 +468,15 @@ export class PlannerProgram {
         });
         const result = evaluator.evaluate(tree.topNode);
         dayIndex += 1;
-        return result.success ? { success: true, data: result.data[0]?.days[0]?.exercises || [] } : result;
+        if (result.success) {
+          const exercises = result.data[0]?.days[0]?.exercises || [];
+          for (const e of exercises) {
+            exerciseFullNames.add(e.fullName);
+          }
+          return { success: true, data: exercises };
+        } else {
+          return result;
+        }
       });
     });
     const repeats = this.fillRepeats(evaluatedWeeks, settings);
@@ -516,7 +525,7 @@ export class PlannerProgram {
       };
     }
 
-    return { repeats, evaluatedWeeks };
+    return { repeats, evaluatedWeeks, exerciseFullNames: Array.from(exerciseFullNames) };
   }
 
   public static evaluatedCheck(
@@ -558,21 +567,31 @@ export class PlannerProgram {
     return undefined;
   }
 
-  public static evaluateFull(fullProgramText: string, settings: ISettings): IPlannerEvalFullResult {
+  public static evaluateFull(
+    fullProgramText: string,
+    settings: ISettings
+  ): { evaluatedWeeks: IPlannerEvalFullResult; exerciseFullNames: string[] } {
     const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
     const tree = plannerExerciseParser.parse(fullProgramText);
     const result = evaluator.evaluate(tree.topNode);
+    const exerciseFullNames: Set<string> = new Set();
     if (result.success) {
       const evaluatedWeeks = result.data.map((week) =>
-        week.days.map((d) => ({ success: true as const, data: d.exercises }))
+        week.days.map((d) => {
+          const exercises = d.exercises;
+          for (const e of exercises) {
+            exerciseFullNames.add(e.fullName);
+          }
+          return { success: true as const, data: exercises };
+        })
       );
       this.fillRepeats(evaluatedWeeks, settings);
       const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
       if (error) {
-        return { success: false, error };
+        return { evaluatedWeeks: { success: false, error }, exerciseFullNames: [] };
       }
     }
-    return result;
+    return { evaluatedWeeks: result, exerciseFullNames: Array.from(exerciseFullNames) };
   }
 
   public static evaluateText(fullProgramText: string): IPlannerProgramWeek[] {

@@ -62,7 +62,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [showExerciseStats, setShowExerciseStats] = useState(false);
   const [reformatterSpinner, setReformatterSpinner] = useState(false);
 
-  const evaluatedWeeks = useMemo(() => {
+  const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
   }, [props.fullText.text, props.settings.exercises]);
 
@@ -210,6 +210,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           <PlannerEditorView
             name="Program"
             customExercises={props.settings.exercises}
+            exerciseFullNames={exerciseFullNames}
             equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fullText.text}

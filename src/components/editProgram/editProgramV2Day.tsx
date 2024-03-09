@@ -28,6 +28,7 @@ interface IEditProgramV2DayProps {
   dayIndex: number;
   plannerDay: IPlannerProgramDay;
   repeats: IPlannerProgramExercise[];
+  exerciseFullNames: string[];
   showDelete: boolean;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   ui: IPlannerUi;
@@ -130,6 +131,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
             <div className="flex-1 w-0">
               <PlannerEditorView
                 name="Exercises"
+                exerciseFullNames={props.exerciseFullNames}
                 customExercises={customExercises}
                 lineNumbers={true}
                 equipment={customEquipment}
