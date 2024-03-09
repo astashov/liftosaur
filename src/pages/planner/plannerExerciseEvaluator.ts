@@ -740,7 +740,9 @@ export class PlannerExerciseEvaluator {
         assert("ExerciseName");
       }
       // eslint-disable-next-line prefer-const
-      let { label, name, equipment } = this.extractNameParts(this.getValue(nameNode));
+      const fullName = this.getValue(nameNode);
+      // eslint-disable-next-line prefer-const
+      let { label, name, equipment } = this.extractNameParts(fullName);
       const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
@@ -801,6 +803,7 @@ export class PlannerExerciseEvaluator {
       this.latestDescriptions = [];
 
       const plannerExercise: IPlannerProgramExercise = {
+        fullName,
         label,
         text,
         repeat,

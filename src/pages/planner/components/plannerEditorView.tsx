@@ -13,6 +13,7 @@ interface IProps {
   lineNumbers?: boolean;
   onCustomErrorCta?: (error: string) => JSX.Element | undefined;
   customExercises: IAllCustomExercises;
+  exerciseFullNames: string[];
   equipment: IAllEquipment;
   value?: string;
 }
@@ -45,6 +46,12 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       codeEditor.current.setCustomExercises(props.customExercises);
     }
   }, [props.customExercises]);
+
+  useEffect(() => {
+    if (codeEditor.current) {
+      codeEditor.current.setExerciseFullNames(props.exerciseFullNames);
+    }
+  }, [props.exerciseFullNames]);
 
   useEffect(() => {
     if (codeEditor.current) {

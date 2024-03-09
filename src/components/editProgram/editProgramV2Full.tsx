@@ -56,7 +56,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   }
 
   const currentLine = props.fulltext.currentLine;
-  const evaluatedWeeks = useMemo(() => {
+  const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluateFull(props.fulltext.text, props.settings);
   }, [props.fulltext.text, props.settings.exercises]);
 
@@ -159,6 +159,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           <PlannerEditorView
             name="Program"
             customExercises={props.settings.exercises}
+            exerciseFullNames={exerciseFullNames}
             equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fulltext.text}

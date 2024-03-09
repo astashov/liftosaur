@@ -25,6 +25,7 @@ export interface IPlannerProgramExerciseGlobals {
 }
 
 export interface IPlannerProgramExercise {
+  fullName: string;
   label?: string;
   repeat: number[];
   order: number;

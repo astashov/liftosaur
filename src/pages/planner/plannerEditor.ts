@@ -22,6 +22,7 @@ import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { StringUtils } from "../../utils/string";
 import { IAllCustomExercises, IAllEquipment } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
+import { ObjectUtils } from "../../utils/object";
 
 const highlightStyle = HighlightStyle.define([
   { tag: tags.keyword, color: "#708" },
@@ -77,6 +78,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
         addToOptions: [
           {
             render: (completion) => {
+              console.log("Completion", completion);
               if (completion.type === "keyword") {
                 const exercise = Exercise.findByName(completion.label, plannerEditor.args.customExercises || {});
                 const url =
@@ -312,6 +314,7 @@ interface IArgs {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   value?: string;
   customExercises?: IAllCustomExercises;
+  exerciseFullNames?: string[];
   equipment?: IAllEquipment;
   height?: number;
   error?: PlannerSyntaxError;
@@ -339,6 +342,14 @@ export class PlannerEditor {
   public setCustomExercises(customExercises: IAllCustomExercises): void {
     this.args.customExercises = customExercises;
     this.relint();
+  }
+
+  public setExerciseFullNames(names: string[]): void {
+    const changed = !ObjectUtils.isEqual({ arr: names }, { arr: this.args.exerciseFullNames });
+    if (changed) {
+      this.args.exerciseFullNames = names;
+      this.relint();
+    }
   }
 
   public setEquipment(equipment: IAllEquipment): void {

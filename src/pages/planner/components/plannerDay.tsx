@@ -32,6 +32,7 @@ interface IPlannerDayProps {
   program: IPlannerProgram;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
   ui: IPlannerUi;
+  exerciseFullNames: string[];
   evaluatedWeeks: IPlannerEvalResult[][];
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
@@ -82,6 +83,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <PlannerEditorView
               lineNumbers={true}
               name="Exercises"
+              exerciseFullNames={props.exerciseFullNames}
               customExercises={exercises}
               equipment={equipment}
               error={evaluatedDay.success ? undefined : evaluatedDay.error}

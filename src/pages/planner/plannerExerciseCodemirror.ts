@@ -9,6 +9,7 @@ import { parseMixed } from "@lezer/common";
 import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
 import { Equipment } from "../../models/equipment";
 import { liftoscriptLanguage } from "../../liftoscriptLanguage";
+import { StringUtils } from "../../utils/string";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
@@ -40,15 +41,31 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
             validFor: /.*/,
           };
         } else {
-          const exerciseNames = Exercise.searchNames(text, plannerEditor.args.customExercises || {});
+          const newText = text.replace(/^[^:]*:/, "");
+          const offset = text.length - newText.length;
+          text = newText;
+          const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
           const result = {
-            from: exerciseMatch.from,
+            from: exerciseMatch.from + offset,
             options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
             validFor: /.*/,
           };
           return result;
         }
       }
+      const reuseMatch = context.matchBefore(/\.\.\.[^\/]*/);
+      if (reuseMatch) {
+        const text = reuseMatch.text.replace("...", "");
+        const exerciseFullNames = (plannerEditor.args.exerciseFullNames || []).filter((name) => {
+          return StringUtils.fuzzySearch(text.toLowerCase(), name.toLowerCase());
+        });
+        return {
+          from: reuseMatch.from + 3,
+          options: exerciseFullNames.map((prop) => ({ label: prop, type: "method" })),
+          validFor: /.*/,
+        };
+      }
+
       const sectionMatch = context.matchBefore(/\/\s*\w+$/);
       if (sectionMatch) {
         let text = sectionMatch.text;

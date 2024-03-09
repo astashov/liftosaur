@@ -28,6 +28,7 @@ export interface IEditProgramV2DaysProps {
   ui: IPlannerUi;
   settings: ISettings;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
+  exerciseFullNames: string[];
   lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
   evaluatedWeeks: IPlannerEvalResult[][];
   repeats: IPlannerProgramExercise[][][];
@@ -170,6 +171,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                         return (
                           <div key={dayIndex}>
                             <EditProgramV2Day
+                              exerciseFullNames={props.exerciseFullNames}
                               evaluatedWeeks={evaluatedWeeks}
                               settings={settings}
                               showDelete={week.days.length > 1}
