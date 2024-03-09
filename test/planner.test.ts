@@ -24,11 +24,10 @@ Squat / 2x5 / 105lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
   it("compacts repeated exercises", () => {
     const programText = `# Week 1
 ## Day 1
-Squat / 2x5
+Squat[1-2] / 2x5
 
 # Week 2
 ## Day 1
-Squat / 2x5
 
 # Week 3
 ## Day 1
@@ -49,6 +48,39 @@ Squat[1-3] / 2x5 / 86.53%
 # Week 3
 ## Day 1
 
+
+
+`);
+  });
+
+  it("does not compact repeated exercises if originally didn't use ranges", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5
+
+# Week 2
+## Day 1
+Squat / 2x5
+
+# Week 3
+## Day 1
+Squat / 2x5
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 86.53%
+
+
+# Week 2
+## Day 1
+Squat / 2x5 / 86.53%
+
+
+# Week 3
+## Day 1
+Squat / 2x5 / 86.53%
 
 
 `);

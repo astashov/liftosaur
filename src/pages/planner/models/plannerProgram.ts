@@ -257,8 +257,22 @@ export class PlannerProgram {
     }
   }
 
-  public static compact(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
+  public static compact(
+    originalToplineItems: IPlannerTopLineItem[][][],
+    plannerProgram: IPlannerProgram,
+    settings: ISettings
+  ): IPlannerProgram {
     let dayIndex = 0;
+    const repeatingExercises = new Set<string>();
+    for (const w of originalToplineItems) {
+      for (const d of w) {
+        for (const e of d) {
+          if (e.type === "exercise" && e.repeat != null && e.repeat.length > 0) {
+            repeatingExercises.add(e.value);
+          }
+        }
+      }
+    }
 
     const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
@@ -279,7 +293,7 @@ export class PlannerProgram {
       for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
         const day = week[dayIndex];
         for (const line of day) {
-          if (line.type === "exercise" && !line.used) {
+          if (line.type === "exercise" && !line.used && repeatingExercises.has(line.value)) {
             const repeatRanges: [number, number | undefined][] = [];
             for (let repeatWeekIndex = weekIndex + 1; repeatWeekIndex < mapping.length; repeatWeekIndex += 1) {
               const repeatDay = mapping[repeatWeekIndex]?.[dayIndex];
