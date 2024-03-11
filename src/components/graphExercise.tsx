@@ -196,7 +196,10 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                   return;
                 }
                 text += "</div>";
-                const entryNotes = historyRecord.entries.map((e) => e.notes).filter((e) => e);
+                const entryNotes = historyRecord.entries
+                  .filter((e) => Exercise.eq(props.exercise, e.exercise))
+                  .map((e) => e.notes)
+                  .filter((e) => e);
                 if (historyRecord.notes || entryNotes.length > 0) {
                   text += "<div class='text-sm text-grayv2-main'>";
                   if (entryNotes.length > 0) {

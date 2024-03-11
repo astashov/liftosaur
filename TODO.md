@@ -44,5 +44,3 @@
 - Need to do "Save" after updating the program on Web
 - Add new exercise picker to pick/substitute exercises
 - Convert all programs to the new syntax
-- Add autocomplete after label
-- Add autocomplete for reuses
