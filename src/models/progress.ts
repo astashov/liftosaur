@@ -1041,8 +1041,20 @@ export namespace Progress {
               settings,
               "reps"
             ),
+            minReps: programSet.minRepsExpr
+              ? executeEntryScript(
+                  programSet.minRepsExpr,
+                  programExercise.exerciseType,
+                  dayData,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  settings,
+                  "reps"
+                )
+              : undefined,
             weight,
             isAmrap: programSet.isAmrap,
+            logRpe: programSet.logRpe,
             label: programSet.label,
           });
         }
@@ -1083,6 +1095,17 @@ export namespace Progress {
               settings,
               "reps"
             ),
+            minReps: set.minRepsExpr
+              ? executeEntryScript(
+                  set.minRepsExpr,
+                  programExercise.exerciseType,
+                  dayData,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  settings,
+                  "reps"
+                )
+              : undefined,
             weight,
             rpe: set.rpeExpr
               ? executeEntryScript(
@@ -1095,6 +1118,7 @@ export namespace Progress {
                   "rpe"
                 )
               : undefined,
+            logRpe: set.logRpe,
             isAmrap: set.isAmrap,
             label: set.label,
           };
