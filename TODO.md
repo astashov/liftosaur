@@ -42,5 +42,8 @@
 
 - Fix bug with disappearing always on when importing a program via "Add this program to your account"
 - Need to do "Save" after updating the program on Web
-- Add new exercise picker to pick/substitute exercises
 - Convert all programs to the new syntax
+- Add a last week note to the last week sets
+- Fix bug: Bench Press, Dumbbell / 60% / 40kg / 180s / warmup: none / progress: lp(2.5kg, 1, 0, 10%, 1, 0)
+- Calculate e1RM based on AMRAPs
+- FIX THE ANDROID DISAPPEARING SUBSCRIPTION!!!

@@ -3440,10 +3440,6 @@ function getCustomEquipment(settings: ISettings): string[] {
   );
 }
 
-function getMetadata(id: IExerciseId): IMetaExercises {
-  return metadata[id] || {};
-}
-
 export type IExerciseKind = "core" | "pull" | "push" | "legs" | "upper" | "lower";
 
 export type IExercise = {
@@ -3569,6 +3565,10 @@ function getExercise(id: IExerciseId, customExercises: IAllCustomExercises): IEx
 }
 
 export namespace Exercise {
+  export function getMetadata(id: IExerciseId): IMetaExercises {
+    return metadata[id] || {};
+  }
+
   export function exists(name: string, customExercises: IAllCustomExercises): boolean {
     let exercise = ObjectUtils.keys(exercises).filter((k) => exercises[k].name === name)[0];
     if (exercise == null) {
@@ -3774,6 +3774,52 @@ export namespace Exercise {
     return equipment;
   }
 
+  export function similarRating(current: IExerciseType, e: IExercise, customExercises: IAllCustomExercises): number {
+    const tm = Exercise.targetMuscles(current, customExercises);
+    const sm = Exercise.synergistMuscles(current, customExercises);
+    const etm = Exercise.targetMuscles(e, customExercises);
+    const esm = Exercise.synergistMuscles(e, customExercises);
+    let rating = 0;
+    if (e.id === current.id || (etm.length === 0 && esm.length === 0)) {
+      rating = -Infinity;
+    } else {
+      for (const muscle of etm) {
+        if (tm.indexOf(muscle) !== -1) {
+          rating += 60;
+        } else {
+          rating -= 30;
+        }
+        if (sm.indexOf(muscle) !== -1) {
+          rating += 20;
+        }
+      }
+      for (const muscle of tm) {
+        if (etm.indexOf(muscle) === -1) {
+          rating -= 30;
+        }
+      }
+      for (const muscle of esm) {
+        if (sm.indexOf(muscle) !== -1) {
+          rating += 30;
+        } else {
+          rating -= 15;
+        }
+        if (tm.indexOf(muscle) !== -1) {
+          rating += 10;
+        }
+      }
+      for (const muscle of sm) {
+        if (esm.indexOf(muscle) === -1) {
+          rating -= 15;
+        }
+      }
+      if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
+        rating -= 20;
+      }
+    }
+    return rating;
+  }
+
   export function similar(type: IExerciseType, customExercises: IAllCustomExercises): [IExercise, number][] {
     const tm = Exercise.targetMuscles(type, customExercises);
     const sm = Exercise.synergistMuscles(type, customExercises);
@@ -3781,46 +3827,7 @@ export namespace Exercise {
       return [];
     }
     const rated = Exercise.all(customExercises).map<[IExercise, number]>((e) => {
-      const etm = Exercise.targetMuscles(e, customExercises);
-      const esm = Exercise.synergistMuscles(e, customExercises);
-      let rating = 0;
-      if (e.id === type.id || (etm.length === 0 && esm.length === 0)) {
-        rating = -Infinity;
-      } else {
-        for (const muscle of etm) {
-          if (tm.indexOf(muscle) !== -1) {
-            rating += 50;
-          } else {
-            rating -= 5;
-          }
-          if (sm.indexOf(muscle) !== -1) {
-            rating += 20;
-          }
-        }
-        for (const muscle of tm) {
-          if (etm.indexOf(muscle) === -1) {
-            rating -= 5;
-          }
-        }
-        for (const muscle of esm) {
-          if (sm.indexOf(muscle) !== -1) {
-            rating += 30;
-          } else {
-            rating -= 5;
-          }
-          if (tm.indexOf(muscle) !== -1) {
-            rating += 10;
-          }
-        }
-        for (const muscle of sm) {
-          if (esm.indexOf(muscle) === -1) {
-            rating -= 5;
-          }
-        }
-        if (e.defaultEquipment === "cable" || e.defaultEquipment === "leverageMachine") {
-          rating -= 20;
-        }
-      }
+      const rating = similarRating(type, e, customExercises);
       return [e, rating];
     });
     rated.sort((a, b) => b[1] - a[1]);

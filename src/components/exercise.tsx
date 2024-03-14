@@ -47,6 +47,7 @@ import { Nux } from "./nux";
 import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
 import { IProgramMode } from "../models/program";
 import { n } from "../utils/math";
+import { IconSwap } from "./icons/iconSwap";
 
 interface IProps {
   showHelp: boolean;
@@ -248,6 +249,23 @@ const ExerciseContentView = memo(
                       <IconPreview size={18} className="inline-block" />
                     </button>
                   )}
+                  <button
+                    data-cy="exercise-swap"
+                    className="box-content p-2 align-middle nm-workout-edit-mode"
+                    style={{ width: "18px", height: "18px" }}
+                    onClick={() => {
+                      updateState(props.dispatch, [
+                        lb<IState>()
+                          .p("progress")
+                          .pi(props.progress.id)
+                          .pi("ui")
+                          .p("exerciseModal")
+                          .record({ exerciseType: props.entry.exercise, entryIndex: props.index }),
+                      ]);
+                    }}
+                  >
+                    <IconSwap size={18} color="#313A43" />
+                  </button>
                   <button
                     data-cy="exercise-edit-mode"
                     className="box-content p-2 align-middle nm-workout-edit-mode"

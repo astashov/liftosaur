@@ -932,9 +932,7 @@ export namespace Progress {
   }
 
   export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
-    updateState(dispatch, [
-      lb<IState>().p("progress").pi(progressId).pi("ui").p("addExerciseModal").record({ isShown: true }),
-    ]);
+    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})]);
   }
 
   export function addExercise(
@@ -950,6 +948,24 @@ export namespace Progress {
         .p("entries")
         .recordModify((entries) => {
           return [...entries, History.createCustomEntry(exerciseId, settings)];
+        }),
+    ]);
+  }
+
+  export function changeExercise(
+    dispatch: IDispatch,
+    progressId: number,
+    exerciseType: IExerciseType,
+    entryIndex: number
+  ): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("progress")
+        .pi(progressId)
+        .p("entries")
+        .i(entryIndex)
+        .recordModify((entry) => {
+          return { ...entry, exercise: exerciseType };
         }),
     ]);
   }

@@ -253,6 +253,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           <div className="fixed bottom-0 hidden sm:block" style={{ width: editorWidth }}>
             {focusedExercise?.exerciseLine != null && (
               <PlannerExerciseStatsFull
+                dispatch={props.dispatch}
                 settings={props.settings}
                 evaluatedWeeks={evalResults}
                 weekIndex={weekIndex}
@@ -325,6 +326,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
           {focusedExercise?.exerciseLine != null ? (
             <PlannerExerciseStats
               settings={props.settings}
+              dispatch={props.dispatch}
               evaluatedWeeks={evalResults}
               weekIndex={weekIndex}
               dayIndex={dayIndex}

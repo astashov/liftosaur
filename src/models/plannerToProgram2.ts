@@ -57,6 +57,8 @@ export class PlannerToProgram2 {
     const isValid = evaluatedWeeks.every((week) => week.every((day) => day.success));
 
     if (!isValid) {
+      console.log(this.plannerProgram);
+      console.log(evaluatedWeeks);
       throw new Error("Invalid program");
     }
 

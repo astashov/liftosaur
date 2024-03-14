@@ -23,17 +23,17 @@ describe("Custom Exercises", () => {
     cy.contains("Create New Exercise").click();
 
     g("menu-item-exercise").click();
-    g("custom-exercise-create").click();
+    g("custom-exercise-create").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise");
     g("custom-exercise-equipment-select").select("Band");
     g("custom-exercise-create").click();
 
-    g("custom-exercise-edit-my-exercise").click();
+    g("custom-exercise-edit-my-exercise").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise 2");
     g("custom-exercise-equipment-select").select("Cable");
     g("custom-exercise-create").click();
 
-    g("menu-item-my-exercise-2").click();
+    g("menu-item-my-exercise-2").click({ force: true });
     cy.contains("Save").click();
     g("navbar-back").click();
     g("navbar-back").click();
@@ -47,14 +47,14 @@ describe("Custom Exercises", () => {
     g("footer-program").click({ force: true });
     g("edit-exercise").click();
     g("menu-item-exercise").click();
-    g("custom-exercise-delete-my-exercise-2").click();
+    g("custom-exercise-delete-my-exercise-2").click({ force: true });
 
-    g("custom-exercise-create").click();
+    g("custom-exercise-create").click({ force: true });
     g("custom-exercise-name-input").clear().type("Blah One");
     g("custom-exercise-equipment-select").select("Barbell");
-    g("custom-exercise-create").click();
+    g("custom-exercise-create").click({ force: true });
 
-    g("menu-item-blah-one").click();
+    g("menu-item-blah-one").click({ force: true });
     cy.contains("Save").click();
     g("navbar-back").click();
 
@@ -64,13 +64,13 @@ describe("Custom Exercises", () => {
     g("footer-program").click({ force: true });
     g("edit-exercise").click();
     g("menu-item-exercise").click();
-    g("custom-exercise-create").click();
+    g("custom-exercise-create").click({ force: true });
 
     g("custom-exercise-name-input").clear().type("My Exercise 2");
     g("custom-exercise-equipment-select").select("Barbell");
-    g("custom-exercise-create").click();
+    g("custom-exercise-create").click({ force: true });
 
-    g("custom-exercise-edit-my-exercise-2").click();
+    g("custom-exercise-edit-my-exercise-2").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise 3");
     g("custom-exercise-equipment-select").select("Band");
     g("multiselect-target_muscles").clear().type("Adductor Magnus");
@@ -81,7 +81,7 @@ describe("Custom Exercises", () => {
     g("multiselect-option-obliques").click();
     g("custom-exercise-create").click();
 
-    g("menu-item-my-exercise-3").click();
+    g("menu-item-my-exercise-3").click({ force: true });
     cy.contains("Save").click();
     g("navbar-back").click();
 

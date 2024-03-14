@@ -241,6 +241,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           onClose={() => props.plannerDispatch(props.lbUi.p("showExerciseStats").record(false))}
         >
           <PlannerExerciseStats
+            dispatch={props.plannerDispatch}
             settings={props.settings}
             evaluatedWeeks={evaluatedWeeks}
             weekIndex={props.ui.focusedExercise.weekIndex}

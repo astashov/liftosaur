@@ -200,6 +200,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
         >
           {focusedExercise?.exerciseLine != null && (
             <PlannerExerciseStats
+              dispatch={props.plannerDispatch}
               settings={props.settings}
               evaluatedWeeks={evalResults}
               weekIndex={weekIndex}

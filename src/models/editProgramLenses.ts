@@ -2,7 +2,6 @@
 import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
 import {
   IEquipment,
-  IExerciseId,
   IExerciseType,
   IPercentage,
   IPercentageUnit,
@@ -241,17 +240,17 @@ export namespace EditProgramLenses {
     return prefix.p("exerciseType").p("equipment").record(newEquipment);
   }
 
-  export function changeExerciseId<T>(
+  export function changeExercise<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     settings: ISettings,
     oldExerciseType: IExerciseType,
-    newId: IExerciseId
+    newExerciseType: IExerciseType
   ): ILensRecordingPayload<T>[] {
     const oldExercise = Exercise.get(oldExerciseType, settings.exercises);
-    const exercise = Exercise.get({ id: newId, equipment: "barbell" }, settings.exercises);
+    const exercise = Exercise.get(newExerciseType, settings.exercises);
     return [
       prefix.p("exerciseType").p("id").record(exercise.id),
-      prefix.p("exerciseType").p("equipment").record(exercise.defaultEquipment),
+      prefix.p("exerciseType").p("equipment").record(exercise.equipment),
       prefix.p("state").recordModify((oldState) => {
         if ("weight" in oldState) {
           return {

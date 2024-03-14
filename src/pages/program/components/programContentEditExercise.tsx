@@ -4,10 +4,9 @@ import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { ModalExercise } from "../../../components/modalExercise";
-import { ModalSubstitute } from "../../../components/modalSubstitute";
-import { equipmentName, Exercise } from "../../../models/exercise";
+import { Exercise, equipmentName } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
-import { IEquipment, IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
+import { IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IProgramEditorState } from "../models/types";
 import { BuilderInlineInput } from "../../builder/components/builderInlineInput";
@@ -42,7 +41,6 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
-  const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const isEligibleForSimple = Program.isEligibleForSimpleExercise(props.programExercise).success;
   const initialTab = isEligibleForSimple ? 0 : 1;
 
@@ -61,10 +59,6 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
   });
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
 
-  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id,
-    props.settings
-  ).map((e) => [e, equipmentName(e, props.settings.equipment)]);
   const lbe = lb<IProgramEditorState>()
     .p("current")
     .p("editExercises")
@@ -97,30 +91,10 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
               <LinkButton name="program-content-choose-exercise" onClick={() => setShowModalExercise(true)}>
                 {exercise.name}
               </LinkButton>
-            </div>
-            <div className="inline-block ml-2">
-              <select
-                className="border rounded border-grayv2-main"
-                value={programExercise.exerciseType.equipment}
-                onChange={(e) => {
-                  if (e.target instanceof HTMLSelectElement) {
-                    props.dispatch(EditProgramLenses.changeExerciseEquipment(lbe, e.target.value as IEquipment));
-                  }
-                }}
-              >
-                {equipmentOptions.map(([id, value]) => {
-                  return (
-                    <option value={id} selected={id === programExercise.exerciseType.equipment}>
-                      {value}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="inline-block ml-2">
-              <LinkButton name="program-content-substitute-exercise" onClick={() => setShowModalSubstitute(true)}>
-                Substitute
-              </LinkButton>
+              ,{" "}
+              <span className="text-xs text-grayv2-main">
+                {equipmentName(programExercise.exerciseType.equipment, props.settings.equipment)}
+              </span>
             </div>
           </div>
         </div>
@@ -178,23 +152,10 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
       >
         <IconCloseCircleOutline />
       </button>
-      {showModalSubstitute && (
-        <ModalSubstitute
-          exerciseType={programExercise.exerciseType}
-          customExercises={props.settings.exercises}
-          onChange={(exerciseId) => {
-            setShowModalSubstitute(false);
-            if (exerciseId != null) {
-              props.dispatch(
-                EditProgramLenses.changeExerciseId(lbe, props.settings, programExercise.exerciseType, exerciseId)
-              );
-            }
-          }}
-        />
-      )}
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
+        exerciseType={programExercise.exerciseType}
         onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, ex) => {
           props.dispatch(
             EditCustomExerciseLenses.createOrUpdate(
@@ -211,11 +172,13 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         onDelete={(id) => {
           props.dispatch(EditCustomExerciseLenses.markDeleted(lb<IProgramEditorState>().p("settings"), id));
         }}
-        onChange={(exerciseId) => {
-          setShowModalExercise(false);
-          if (exerciseId != null) {
+        onChange={(exerciseType, shouldClose) => {
+          if (shouldClose) {
+            setShowModalExercise(false);
+          }
+          if (exerciseType != null) {
             props.dispatch(
-              EditProgramLenses.changeExerciseId(lbe, props.settings, programExercise.exerciseType, exerciseId)
+              EditProgramLenses.changeExercise(lbe, props.settings, programExercise.exerciseType, exerciseType)
             );
           }
         }}

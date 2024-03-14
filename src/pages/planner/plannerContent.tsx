@@ -240,13 +240,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             </abbr>{" "}
             , percentage of{" "}
             <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
-            timers, various progressive overload types, etc. Read more about features{" "}
-            <a
-              target="_blank"
-              className="font-bold underline text-bluev2"
-              href="https://www.liftosaur.com/blog/posts/launched-workout-planner/"
-            >
-              in this blog post
+            timers, various progressive overload types, etc. Read more about the features{" "}
+            <a target="_blank" className="font-bold underline text-bluev2" href="https://www.liftosaur.com/docs/">
+              in the docs
             </a>
             !
           </p>
@@ -426,42 +422,74 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {modalExerciseUi && (
         <ModalExercise
           isHidden={!modalExerciseUi}
-          onChange={(exerciseId) => {
+          onChange={(exerciseType, shouldClose) => {
             window.isUndoing = true;
-            dispatch([
-              lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
-              lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-              state.fulltext
-                ? lb<IPlannerState>()
-                    .pi("fulltext")
-                    .p("text")
-                    .recordModify((text) => {
-                      if (!exerciseId) {
-                        return text;
-                      }
-                      const line = state.fulltext?.currentLine;
-                      if (line == null) {
-                        return text;
-                      }
-                      const exercise = Exercise.getById(exerciseId, settings.exercises);
-                      const lines = text.split("\n");
-                      lines.splice(line, 0, exercise.name);
-                      return lines.join("\n");
-                    })
-                : lbProgram
-                    .p("weeks")
-                    .i(modalExerciseUi.focusedExercise.weekIndex)
-                    .p("days")
-                    .i(modalExerciseUi.focusedExercise.dayIndex)
-                    .p("exerciseText")
-                    .recordModify((exerciseText) => {
-                      if (!exerciseId) {
-                        return exerciseText;
-                      }
-                      const exercise = Exercise.getById(exerciseId, settings.exercises);
-                      return exerciseText + `\n${exercise.name}`;
-                    }),
-            ]);
+            if (shouldClose) {
+              dispatch([
+                lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
+                lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
+              ]);
+            }
+            if (modalExerciseUi.exerciseType && modalExerciseUi.exerciseKey) {
+              if (!exerciseType) {
+                return;
+              }
+              if (state.fulltext) {
+                const newProgram = {
+                  name: state.current.program.name,
+                  weeks: PlannerProgram.evaluateText(state.fulltext.text),
+                };
+                const newPlannerProgram = PlannerProgram.replaceExercise(
+                  newProgram,
+                  modalExerciseUi.exerciseKey,
+                  exerciseType,
+                  settings
+                );
+                const newText = PlannerProgram.generateFullText(newPlannerProgram.weeks);
+                dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+              } else {
+                const newPlannerProgram = PlannerProgram.replaceExercise(
+                  state.current.program,
+                  modalExerciseUi.exerciseKey,
+                  exerciseType,
+                  settings
+                );
+                dispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+              }
+            } else {
+              dispatch([
+                state.fulltext
+                  ? lb<IPlannerState>()
+                      .pi("fulltext")
+                      .p("text")
+                      .recordModify((text) => {
+                        if (!exerciseType) {
+                          return text;
+                        }
+                        const line = state.fulltext?.currentLine;
+                        if (line == null) {
+                          return text;
+                        }
+                        const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                        const lines = text.split("\n");
+                        lines.splice(line, 0, exercise.name);
+                        return lines.join("\n");
+                      })
+                  : lbProgram
+                      .p("weeks")
+                      .i(modalExerciseUi.focusedExercise.weekIndex)
+                      .p("days")
+                      .i(modalExerciseUi.focusedExercise.dayIndex)
+                      .p("exerciseText")
+                      .recordModify((exerciseText) => {
+                        if (!exerciseType) {
+                          return exerciseText;
+                        }
+                        const exercise = Exercise.getById(exerciseType.id, settings.exercises);
+                        return exerciseText + `\n${exercise.name}`;
+                      }),
+              ]);
+            }
             dispatch(
               [
                 lb<IPlannerState>()
@@ -503,6 +531,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           }}
           settings={{ ...Settings.build(), exercises: settings.exercises }}
           customExerciseName={modalExerciseUi.customExerciseName}
+          exerciseType={modalExerciseUi.exerciseType}
           initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
         />
       )}

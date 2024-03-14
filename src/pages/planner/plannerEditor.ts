@@ -78,7 +78,6 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
         addToOptions: [
           {
             render: (completion) => {
-              console.log("Completion", completion);
               if (completion.type === "keyword") {
                 const exercise = Exercise.findByName(completion.label, plannerEditor.args.customExercises || {});
                 const url =

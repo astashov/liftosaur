@@ -156,6 +156,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <PlannerExerciseStats
               settings={props.settings}
               evaluatedWeeks={props.evaluatedWeeks}
+              dispatch={dispatch}
               weekIndex={weekIndex}
               dayIndex={dayIndex}
               exerciseLine={focusedExercise?.exerciseLine}
