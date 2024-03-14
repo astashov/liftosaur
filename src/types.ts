@@ -581,8 +581,9 @@ export const TProgressUi = t.partial(
     dateModal: t.type({
       date: t.string,
     }),
-    addExerciseModal: t.type({
-      isShown: t.boolean,
+    exerciseModal: t.partial({
+      exerciseType: TExerciseType,
+      entryIndex: t.number,
     }),
     editSetModal: t.type({
       isWarmup: t.boolean,

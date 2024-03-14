@@ -11,6 +11,8 @@ test("custom equipment", async ({ page }) => {
   await page.getByText("Add New Exercise").click();
 
   await page.getByTestId("menu-item-exercise").click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("modal-exercise").getByTestId("scroll-barrel-item-dumbbell").click();
   await page.getByTestId("modal-exercise").getByTestId("menu-item-bicep-curl").click();
   await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("Dumbbell");
 
@@ -46,8 +48,10 @@ test("custom equipment", async ({ page }) => {
   await page.getByTestId("footer-program").click();
   await page.getByTestId("edit-exercise").click();
 
-  await page.getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("menu-item-equipment").getByRole("button", { name: "Boom" }).click();
+  await page.getByTestId("menu-item-exercise").click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("modal-exercise").getByRole("button", { name: "Boom" }).click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-bicep-curl").click();
   await page.getByRole("button", { name: "Save" }).click();
 
   await expect(page.getByTestId("navbar")).toHaveText("Edit Program");
@@ -85,6 +89,7 @@ test("custom equipment", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("edit-exercise").click();
-  await page.getByTestId("menu-item-value-equipment").click();
-  await expect(page.getByTestId("menu-item-equipment").getByRole("button", { name: "Boom" })).toHaveCount(0);
+  await page.getByTestId("menu-item-exercise").click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-value-equipment").click();
+  await expect(page.getByTestId("modal-exercise").getByRole("button", { name: "Boom" })).toHaveCount(0);
 });

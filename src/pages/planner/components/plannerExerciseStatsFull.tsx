@@ -1,8 +1,12 @@
+import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
+import { LinkButton } from "../../../components/linkButton";
 import { Exercise } from "../../../models/exercise";
+import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
-import { IPlannerProgramExercise } from "../models/types";
+import { ILensDispatch } from "../../../utils/useLensReducer";
+import { IPlannerProgramExercise, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
 
@@ -10,6 +14,7 @@ interface IPlannerExerciseStatsFullProps {
   settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   weekIndex: number;
+  dispatch: ILensDispatch<IPlannerState>;
   dayIndex: number;
   exerciseLine: number;
 }
@@ -44,6 +49,34 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
 
   return (
     <div className="py-1 bg-white shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
+      <div className="px-4 pb-2">
+        <LinkButton
+          name="planner-swap-exercise"
+          data-cy="planner-swap-exercise"
+          onClick={() => {
+            const exerciseKey = PlannerToProgram2.plannerExerciseKey(evaluatedExercise, props.settings);
+            props.dispatch([
+              lb<IPlannerState>()
+                .pi("ui")
+                .p("modalExercise")
+                .record({
+                  focusedExercise: {
+                    weekIndex: 0,
+                    dayIndex: 0,
+                    exerciseLine: 0,
+                  },
+                  types: [],
+                  muscleGroups: [],
+                  exerciseType: exercise,
+                  exerciseKey,
+                }),
+              lb<IPlannerState>().pi("ui").p("showExerciseStats").record(false),
+            ]);
+          }}
+        >
+          Swap Exercise
+        </LinkButton>
+      </div>
       <div className="flex mb-2">
         {intensityGraphData[0].length > 1 && (
           <div className="flex-1" style={{ marginTop: "-14px" }}>

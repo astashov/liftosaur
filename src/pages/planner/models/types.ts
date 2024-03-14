@@ -1,5 +1,6 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
+import { IExerciseType } from "../../../types";
 import {
   IDayData,
   IPlannerProgram,
@@ -107,6 +108,8 @@ export interface IPlannerUi {
     focusedExercise: IPlannerUiFocusedExercise;
     types: IExerciseKind[];
     muscleGroups: IScreenMuscle[];
+    exerciseType?: IExerciseType;
+    exerciseKey?: string;
     customExerciseName?: string;
   };
   editWeekDayModal?: { weekIndex: number; dayIndex?: number };

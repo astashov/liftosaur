@@ -5,13 +5,10 @@ import { ModalExercise } from "../modalExercise";
 import { useState } from "preact/hooks";
 import { EditProgram } from "../../models/editProgram";
 import { Exercise, equipmentName } from "../../models/exercise";
-import { MenuItemEditable } from "../menuItemEditable";
 import { MenuItem, MenuItemWrapper } from "../menuItem";
 import { Button } from "../button";
 import { ExerciseImage } from "../exerciseImage";
-import { ModalSubstitute } from "../modalSubstitute";
-import { ISettings, IProgramExercise, IEquipment, IProgram } from "../../types";
-import { LinkButton } from "../linkButton";
+import { ISettings, IProgramExercise, IProgram } from "../../types";
 import { ProgramExercise } from "../../models/programExercise";
 import { EditCustomExercise } from "../../models/editCustomExercise";
 import { EditProgramExerciseSimpleRow } from "./editProgramExerciseSimpleRow";
@@ -42,13 +39,6 @@ function Edit(props: IProps): JSX.Element {
   const { programExercise } = props;
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
-  const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
-
-  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id,
-    props.settings
-  ).map((e) => [e, equipmentName(e, props.settings.equipment)]);
-
   const [trigger, setTrigger] = useState<boolean>(false);
 
   return (
@@ -56,23 +46,14 @@ function Edit(props: IProps): JSX.Element {
       <MenuItem
         name="Exercise"
         onClick={() => setShowModalExercise(true)}
-        value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
-      />
-      <LinkButton
-        name="edit-program-simple-substitute-exercise"
-        className="mb-4"
-        onClick={() => setShowModalSubstitute(true)}
-      >
-        Substitute Exercise
-      </LinkButton>
-      <MenuItemEditable
-        type="select"
-        name="Equipment"
-        value={programExercise.exerciseType.equipment || "bodyweight"}
-        values={equipmentOptions}
-        onChange={(newEquipment) => {
-          EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
-        }}
+        value={
+          <div>
+            <div>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</div>
+            <div className="text-xs text-grayv2-main">
+              {equipmentName(programExercise.exerciseType.equipment, props.settings.equipment)}
+            </div>
+          </div>
+        }
       />
       <div className="mt-2">
         <EditProgramExerciseSimpleDescription
@@ -122,21 +103,10 @@ function Edit(props: IProps): JSX.Element {
           Save
         </Button>
       </div>
-      {showModalSubstitute && (
-        <ModalSubstitute
-          exerciseType={programExercise.exerciseType}
-          customExercises={props.settings.exercises}
-          onChange={(exerciseId) => {
-            setShowModalSubstitute(false);
-            if (exerciseId != null) {
-              EditProgram.changeExerciseId(props.dispatch, props.settings, programExercise.exerciseType, exerciseId);
-            }
-          }}
-        />
-      )}
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
+        exerciseType={programExercise.exerciseType}
         onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
           EditCustomExercise.createOrUpdate(
             props.dispatch,
@@ -149,11 +119,13 @@ function Edit(props: IProps): JSX.Element {
           );
         }}
         onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
-        onChange={(exerciseId) => {
-          setShowModalExercise(false);
-          if (exerciseId != null) {
+        onChange={(exerciseType, shouldClose) => {
+          if (shouldClose) {
+            setShowModalExercise(false);
+          }
+          if (exerciseType != null) {
             const oldExerciseType = programExercise.exerciseType;
-            EditProgram.changeExerciseId(props.dispatch, props.settings, oldExerciseType, exerciseId);
+            EditProgram.changeExercise(props.dispatch, props.settings, oldExerciseType, exerciseType);
           }
         }}
       />

@@ -12,12 +12,10 @@ import { MenuItem } from "../menuItem";
 import { ModalExercise } from "../modalExercise";
 import { Exercise, equipmentName } from "../../models/exercise";
 import { ExerciseImage } from "../exerciseImage";
-import { ModalSubstitute } from "../modalSubstitute";
 import {
   ISettings,
   IProgramExercise,
   IHistoryRecord,
-  IEquipment,
   IUnit,
   ISubscription,
   IProgram,
@@ -58,7 +56,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   );
 
   const [showModalExercise, setShowModalExercise] = useState<boolean>(false);
-  const [showModalSubstitute, setShowModalSubstitute] = useState<boolean>(false);
   const [showVariations, setShowVariations] = useState<boolean>(programExercise.variations.length > 1);
   const [showModalExamples, setShowModalExamples] = useState<boolean>(false);
   const [isTimerValid, setIsTimerValid] = useState<boolean>(true);
@@ -108,11 +105,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
   );
   const stateMetadata = ProgramExercise.getStateMetadata(programExercise, allProgramExercises);
 
-  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments(
-    programExercise.exerciseType.id,
-    props.settings
-  ).map((e) => [e, equipmentName(e, props.settings.equipment)]);
-
   const cannotSave = !entry || !finishEditorResult.success || !variationScriptResult.success || !isTimerValid;
   const isReusingDescription = ProgramExercise.isDescriptionReused(programExercise);
 
@@ -140,23 +132,14 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <MenuItem
         name="Exercise"
         onClick={() => setShowModalExercise(true)}
-        value={Exercise.get(programExercise.exerciseType, props.settings.exercises).name}
-      />
-      <LinkButton
-        name="edit-exercise-advanced-substitute"
-        className="mb-4"
-        onClick={() => setShowModalSubstitute(true)}
-      >
-        Substitute Exercise
-      </LinkButton>
-      <MenuItemEditable
-        type="select"
-        name="Equipment"
-        value={programExercise.exerciseType.equipment || "bodyweight"}
-        values={equipmentOptions}
-        onChange={(newEquipment) => {
-          EditProgram.changeExerciseEquipment(props.dispatch, newEquipment ? (newEquipment as IEquipment) : undefined);
-        }}
+        value={
+          <div>
+            <div>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</div>
+            <div className="text-xs text-grayv2-main">
+              {equipmentName(programExercise.exerciseType.equipment, props.settings.equipment)}
+            </div>
+          </div>
+        }
       />
       <div className="mt-2">
         {isReusingDescription && (
@@ -375,18 +358,6 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           setShouldShowAddStateVariable(false);
         }}
       />
-      {showModalSubstitute && (
-        <ModalSubstitute
-          exerciseType={programExercise.exerciseType}
-          customExercises={props.settings.exercises}
-          onChange={(exerciseId) => {
-            setShowModalSubstitute(false);
-            if (exerciseId != null) {
-              EditProgram.changeExerciseId(props.dispatch, props.settings, programExercise.exerciseType, exerciseId);
-            }
-          }}
-        />
-      )}
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
@@ -402,10 +373,13 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           );
         }}
         onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
-        onChange={(exerciseId) => {
-          setShowModalExercise(false);
-          if (exerciseId != null) {
-            EditProgram.changeExerciseId(props.dispatch, props.settings, programExercise.exerciseType, exerciseId);
+        exerciseType={programExercise.exerciseType}
+        onChange={(exerciseType, shouldClose) => {
+          if (shouldClose) {
+            setShowModalExercise(false);
+          }
+          if (exerciseType != null) {
+            EditProgram.changeExercise(props.dispatch, props.settings, programExercise.exerciseType, exerciseType);
           }
         }}
       />

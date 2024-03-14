@@ -34,6 +34,7 @@ import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { Nux } from "../nux";
 import { IconHelp } from "../icons/iconHelp";
+import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 
 interface IProps {
   editProgram: IProgram;
@@ -128,45 +129,77 @@ export function EditProgramV2(props: IProps): JSX.Element {
           {modalExerciseUi && (
             <ModalExercise
               isHidden={!modalExerciseUi}
-              onChange={(exerciseId) => {
+              onChange={(exerciseType, shouldClose) => {
                 window.isUndoing = true;
-                plannerDispatch([
-                  lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
-                  lb<IPlannerState>().p("ui").p("showDayStats").record(false),
-                  lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-                  props.plannerState.fulltext
-                    ? lb<IPlannerState>()
-                        .pi("fulltext")
-                        .p("text")
-                        .recordModify((text) => {
-                          if (!exerciseId) {
-                            return text;
-                          }
-                          const line = props.plannerState.fulltext?.currentLine;
-                          if (line == null) {
-                            return text;
-                          }
-                          const exercise = Exercise.getById(exerciseId, props.settings.exercises);
-                          const lines = text.split("\n");
-                          lines.splice(line, 0, exercise.name);
-                          return lines.join("\n");
-                        })
-                    : lb<IPlannerState>()
-                        .p("current")
-                        .p("program")
-                        .p("weeks")
-                        .i(modalExerciseUi.focusedExercise.weekIndex)
-                        .p("days")
-                        .i(modalExerciseUi.focusedExercise.dayIndex)
-                        .p("exerciseText")
-                        .recordModify((exerciseText) => {
-                          if (!exerciseId) {
-                            return exerciseText;
-                          }
-                          const exercise = Exercise.getById(exerciseId, props.settings.exercises);
-                          return exerciseText + `\n${exercise.name}`;
-                        }),
-                ]);
+                if (shouldClose) {
+                  plannerDispatch([
+                    lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
+                    lb<IPlannerState>().p("ui").p("showDayStats").record(false),
+                    lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
+                  ]);
+                }
+                if (modalExerciseUi.exerciseType && modalExerciseUi.exerciseKey) {
+                  if (!exerciseType) {
+                    return;
+                  }
+                  if (plannerState.fulltext) {
+                    const program = {
+                      name: plannerState.current.program.name,
+                      weeks: PlannerProgram.evaluateText(plannerState.fulltext.text),
+                    };
+                    const newPlannerProgram = PlannerProgram.replaceExercise(
+                      program,
+                      modalExerciseUi.exerciseKey,
+                      exerciseType,
+                      props.settings
+                    );
+                    const newText = PlannerProgram.generateFullText(newPlannerProgram.weeks);
+                    plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                  } else {
+                    const newPlannerProgram = PlannerProgram.replaceExercise(
+                      plannerState.current.program,
+                      modalExerciseUi.exerciseKey,
+                      exerciseType,
+                      props.settings
+                    );
+                    plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                  }
+                } else {
+                  plannerDispatch([
+                    props.plannerState.fulltext
+                      ? lb<IPlannerState>()
+                          .pi("fulltext")
+                          .p("text")
+                          .recordModify((text) => {
+                            if (!exerciseType) {
+                              return text;
+                            }
+                            const line = props.plannerState.fulltext?.currentLine;
+                            if (line == null) {
+                              return text;
+                            }
+                            const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
+                            const lines = text.split("\n");
+                            lines.splice(line, 0, exercise.name);
+                            return lines.join("\n");
+                          })
+                      : lb<IPlannerState>()
+                          .p("current")
+                          .p("program")
+                          .p("weeks")
+                          .i(modalExerciseUi.focusedExercise.weekIndex)
+                          .p("days")
+                          .i(modalExerciseUi.focusedExercise.dayIndex)
+                          .p("exerciseText")
+                          .recordModify((exerciseText) => {
+                            if (!exerciseType) {
+                              return exerciseText;
+                            }
+                            const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
+                            return exerciseText + `\n${exercise.name}`;
+                          }),
+                  ]);
+                }
                 plannerDispatch(
                   [
                     lb<IPlannerState>()
@@ -211,6 +244,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               }}
               settings={props.settings}
               customExerciseName={modalExerciseUi.customExerciseName}
+              exerciseType={modalExerciseUi.exerciseType}
               initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(
                 StringUtils.capitalize
               )}

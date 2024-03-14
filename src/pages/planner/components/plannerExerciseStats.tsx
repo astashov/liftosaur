@@ -5,14 +5,19 @@ import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
 import { PlannerProgramExercise } from "../models/plannerProgramExercise";
-import { IPlannerProgramExercise } from "../models/types";
+import { IPlannerProgramExercise, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
+import { LinkButton } from "../../../components/linkButton";
+import { ILensDispatch } from "../../../utils/useLensReducer";
+import { lb } from "lens-shmens";
+import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
   evaluatedWeeks: IPlannerEvalResult[][];
   weekIndex: number;
+  dispatch: ILensDispatch<IPlannerState>;
   dayIndex: number;
   exerciseLine: number;
 }
@@ -61,7 +66,35 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
           <ExerciseImage exerciseType={exercise} size="small" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold">{evaluatedExercise.name}: </h3>
+          <h3 className="text-lg font-bold">{evaluatedExercise.name}</h3>
+          <div>
+            <LinkButton
+              name="planner-swap-exercise"
+              data-cy="planner-swap-exercise"
+              onClick={() => {
+                const exerciseKey = PlannerToProgram2.plannerExerciseKey(evaluatedExercise, props.settings);
+                props.dispatch([
+                  lb<IPlannerState>()
+                    .pi("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex: 0,
+                        dayIndex: 0,
+                        exerciseLine: 0,
+                      },
+                      types: [],
+                      muscleGroups: [],
+                      exerciseType: exercise,
+                      exerciseKey,
+                    }),
+                  lb<IPlannerState>().pi("ui").p("showExerciseStats").record(false),
+                ]);
+              }}
+            >
+              Swap Exercise
+            </LinkButton>
+          </div>
           <div>
             <span className="text-grayv2-main">Sets this day: </span>
             <span>{PlannerProgramExercise.numberOfSets(evaluatedExercise)}</span>

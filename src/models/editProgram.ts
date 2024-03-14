@@ -8,7 +8,6 @@ import { updateState, IState } from "./state";
 import {
   IWeight,
   IUnit,
-  IExerciseId,
   IEquipment,
   IProgram,
   IProgramExercise,
@@ -22,6 +21,8 @@ import { EditProgramLenses } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
 import { IPlannerState } from "../pages/planner/models/types";
 import { IPercentageUnit } from "../types";
+import { ProgramToPlanner } from "./programToPlanner";
+import { CollectionUtils } from "../utils/collection";
 
 interface I531Tms {
   squat: IWeight;
@@ -127,16 +128,67 @@ export namespace EditProgram {
     ]);
   }
 
-  export function changeExerciseId(
+  export function changeExercise(
     dispatch: IDispatch,
     settings: ISettings,
     oldExerciseType: IExerciseType,
-    newId?: IExerciseId
+    newExerciseType?: IExerciseType
   ): void {
-    if (newId != null) {
+    if (newExerciseType != null) {
       updateState(
         dispatch,
-        EditProgramLenses.changeExerciseId(lb<IState>().pi("editExercise"), settings, oldExerciseType, newId)
+        EditProgramLenses.changeExercise(lb<IState>().pi("editExercise"), settings, oldExerciseType, newExerciseType)
+      );
+    }
+  }
+
+  export function swapExercise(
+    dispatch: IDispatch,
+    settings: ISettings,
+    programId: string,
+    programExerciseId: string,
+    oldExerciseType: IExerciseType,
+    newExerciseType?: IExerciseType
+  ): void {
+    if (newExerciseType != null) {
+      updateState(
+        dispatch,
+        EditProgramLenses.changeExercise(
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .find((p) => p.id === programId)
+            .p("exercises")
+            .find((e) => e.id === programExerciseId),
+          settings,
+          oldExerciseType,
+          newExerciseType
+        )
+      );
+    }
+  }
+
+  export function replaceExercise(
+    dispatch: IDispatch,
+    settings: ISettings,
+    program: IProgram,
+    programExercise: IProgramExercise,
+    newExerciseType?: IExerciseType
+  ): void {
+    if (newExerciseType != null) {
+      updateState(
+        dispatch,
+        EditProgramLenses.changeExercise(
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .find((p) => p.id === program.id)
+            .p("exercises")
+            .find((e) => e.id === programExercise.id),
+          settings,
+          programExercise.exerciseType,
+          newExerciseType
+        )
       );
     }
   }
@@ -612,6 +664,24 @@ export namespace EditProgram {
   ): void {
     const initialState = initPlannerState(id, plannerProgram, focusedDay);
     updateState(dispatch, [lb<IState>().p("editProgramV2").record(initialState)]);
+  }
+
+  export function updatePlanner(dispatch: IDispatch, programId: string, settings: ISettings): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => {
+          let program = CollectionUtils.findBy(pgms, "id", programId);
+          if (program && program.planner) {
+            const newPlanner = new ProgramToPlanner(program, program.planner, settings, {}, {}, {}).convertToPlanner();
+            program = { ...program, planner: newPlanner };
+            return CollectionUtils.setBy(pgms, "id", program.id, program);
+          } else {
+            return pgms;
+          }
+        }),
+    ]);
   }
 
   export function createExperimental(dispatch: IDispatch, name: string): void {

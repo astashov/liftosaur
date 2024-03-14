@@ -16,12 +16,13 @@ import {
   IAllCustomExercises,
   IAllEquipment,
   IDayData,
+  IExerciseType,
   IPlannerProgram,
   IPlannerProgramWeek,
   ISettings,
 } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
-import { Exercise, IExercise } from "../../../models/exercise";
+import { equipmentName, Exercise, IExercise } from "../../../models/exercise";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
@@ -255,6 +256,107 @@ export class PlannerProgram {
     } else {
       return ObjectUtils.values(weekDescriptions ?? {})[0];
     }
+  }
+
+  public static replaceExercise(
+    plannerProgram: IPlannerProgram,
+    key: string,
+    exerciseType: IExerciseType,
+    settings: ISettings
+  ): IPlannerProgram {
+    return this.modifyTopLineItems(plannerProgram, settings, (line) => {
+      if (line.type === "exercise" && line.value === key && line.fullName) {
+        const { label } = PlannerExerciseEvaluator.extractNameParts(line.fullName, settings);
+        const exercise = Exercise.get(exerciseType, settings.exercises);
+        const newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
+          exercise.defaultEquipment !== exerciseType.equipment
+            ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
+            : ""
+        }`;
+        line.fullName = newFullName;
+        return line;
+      } else {
+        return line;
+      }
+    });
+  }
+
+  public static modifyTopLineItems(
+    aPlannerProgram: IPlannerProgram,
+    settings: ISettings,
+    cb: (line: IPlannerTopLineItem, weekIndex: number, dayIndex: number, lineIndex: number) => IPlannerTopLineItem
+  ): IPlannerProgram {
+    let dayIndex = 0;
+    const plannerProgram = ObjectUtils.clone(aPlannerProgram);
+    const mapping = plannerProgram.weeks.map((week, weekIndex) => {
+      return week.days.map((day, dayInWeekIndex) => {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
+          day: dayIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          week: weekIndex + 1,
+        });
+        dayIndex += 1;
+        const map = evaluator.topLineMap(tree.topNode);
+        return map;
+      });
+    });
+
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        for (let lineIndex = 0; lineIndex < day.length; lineIndex += 1) {
+          const line = day[lineIndex];
+          const newLine = cb(line, weekIndex, dayIndex, lineIndex);
+          day[lineIndex] = newLine;
+        }
+      }
+    }
+
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const programWeek = plannerProgram.weeks[weekIndex];
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        const programDay = programWeek.days[dayIndex];
+        let str = "";
+        for (const line of day) {
+          str += this.topLineItemToText(line);
+        }
+        programDay.exerciseText = str.trim();
+      }
+    }
+
+    return plannerProgram;
+  }
+
+  public static topLineItemToText(line: IPlannerTopLineItem): string {
+    let str = "";
+    if (line.type === "description") {
+      //
+    } else if (line.type === "exercise") {
+      if (!line.used) {
+        if (line.description) {
+          str += `${line.description}\n`;
+        }
+        let repeatStr = "";
+        if ((line.order != null && line.order !== 0) || (line.repeatRanges && line.repeatRanges.length > 0)) {
+          const repeatParts = [];
+          if (line.order != null && line.order !== 0) {
+            repeatParts.push(line.order);
+          }
+          if (line.repeatRanges && line.repeatRanges.length > 0) {
+            repeatParts.push(line.repeatRanges.join(","));
+          }
+          repeatStr = `[${repeatParts.join(",")}]`;
+        }
+        str += `${line.fullName}${repeatStr} / ${line.sections}\n`;
+      }
+    } else {
+      str += line.value + "\n";
+    }
+    return str;
   }
 
   public static compact(

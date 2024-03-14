@@ -3,13 +3,21 @@ import { h, JSX } from "preact";
 interface IProps {
   size?: number;
   color?: string;
+  className?: string;
 }
 
 export function IconSwap(props: IProps): JSX.Element {
   const size = props.size ?? 20;
   const color = props.color ?? "#171718";
   return (
-    <svg width={size} height={size} viewBox="0 0 61 61" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={props.className}
+      width={size}
+      height={size}
+      viewBox="0 0 61 61"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M58.1574 22.1348C57.5571 20.6512 55.7714 19.8993 54.1693 20.4551C52.5663 21.011 51.7552 22.6646 52.3555 24.1481C59.2796 41.2586 41.8841 58.2121 23.1916 52.9027L23.5299 52.2149C24.5126 50.2145 22.7941 47.9577 20.4102 48.1715L12.2173 48.9076C9.84535 49.1205 8.6117 51.6386 9.99591 53.4307L14.7799 59.6324C16.1662 61.4292 19.1353 61.1587 20.1211 59.1528L20.6079 58.1619C44.4367 65.5906 66.9846 43.9496 58.1574 22.1348Z"
         fill={color}

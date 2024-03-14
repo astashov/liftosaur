@@ -612,7 +612,10 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private extractNameParts(str: string): { name: string; label?: string; equipment?: string } {
+  public static extractNameParts(
+    str: string,
+    settings: ISettings
+  ): { name: string; label?: string; equipment?: string } {
     let [label, ...nameEquipmentItems] = str.split(":");
     if (nameEquipmentItems.length === 0) {
       nameEquipmentItems = [label];
@@ -627,12 +630,12 @@ export class PlannerExerciseEvaluator {
       const potentialEquipment = parts[parts.length - 1]?.trim();
       const allowedEquipments = [
         ...equipments,
-        ...equipments.map((e) => equipmentName(e, this.settings.equipment)),
-        ...ObjectUtils.keys(this.settings.equipment),
-        ...ObjectUtils.keys(this.settings.equipment).map((e) => equipmentName(e, this.settings.equipment)),
+        ...equipments.map((e) => equipmentName(e, settings.equipment)),
+        ...ObjectUtils.keys(settings.equipment),
+        ...ObjectUtils.keys(settings.equipment).map((e) => equipmentName(e, settings.equipment)),
       ].map((e) => e.toLowerCase().trim());
       if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment.toLowerCase()) !== -1) {
-        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, this.settings.equipment);
+        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, settings.equipment);
         equipment = equipmentKey;
         parts.pop();
       }
@@ -742,7 +745,7 @@ export class PlannerExerciseEvaluator {
       // eslint-disable-next-line prefer-const
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
-      let { label, name, equipment } = this.extractNameParts(fullName);
+      let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
@@ -906,6 +909,7 @@ export class PlannerExerciseEvaluator {
     if (this.mode === "full") {
       this.dayData = { day: 0, week: 0, dayInWeek: 0 };
     }
+    const exerciseKeys: Record<number, Record<number, Set<string>>> = {};
     try {
       const cursor = expr.cursor();
       do {
@@ -920,6 +924,25 @@ export class PlannerExerciseEvaluator {
               week: this.dayData.week,
               dayInWeek: (this.dayData.dayInWeek || 0) + 1,
             };
+          }
+        } else if (cursor.node.type.name === PlannerNodeName.ExerciseExpression) {
+          const nameNode = cursor.node.getChild(PlannerNodeName.ExerciseName);
+          if (nameNode != null) {
+            const fullName = this.getValue(nameNode);
+            const key = this.fullNameToKey(fullName);
+            if (this.dayData.week != null && this.dayData.dayInWeek != null) {
+              if (exerciseKeys[this.dayData.week]?.[this.dayData.dayInWeek]?.has(key)) {
+                this.error(
+                  `Exercise '${fullName}' already specified for that day. Combine the sets into one exercise.`,
+                  cursor.node
+                );
+              } else {
+                exerciseKeys[this.dayData.week] = exerciseKeys[this.dayData.week] || {};
+                exerciseKeys[this.dayData.week][this.dayData.dayInWeek] =
+                  exerciseKeys[this.dayData.week][this.dayData.dayInWeek] || new Set();
+                exerciseKeys[this.dayData.week][this.dayData.dayInWeek].add(key);
+              }
+            }
           }
         } else if (cursor.node.type.name === PlannerNodeName.ReuseSectionWithWeekDay) {
           const reuseLiftoscriptNode = cursor.node
@@ -1044,6 +1067,14 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private fullNameToKey(fullName: string): string {
+    const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
+    const exercise = Exercise.findByName(name, this.settings.exercises);
+    return `${label ? `${label}-` : ""}${name}-${
+      equipment || exercise?.defaultEquipment || "bodyweight"
+    }`.toLowerCase();
+  }
+
   public topLineMap(programNode: SyntaxNode): IPlannerTopLineItem[] {
     if (programNode.type.name !== PlannerNodeName.Program) {
       this.error(`Unexpected node type ${programNode.type.name} - should be Program`, programNode);
@@ -1055,11 +1086,7 @@ export class PlannerExerciseEvaluator {
       if (child.type.name === PlannerNodeName.ExerciseExpression) {
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
-        const { label, name, equipment } = this.extractNameParts(fullName);
-        const exercise = Exercise.findByName(name, this.settings.exercises);
-        const key = `${label ? `${label}-` : ""}${name}-${
-          equipment || exercise?.defaultEquipment || "bodyweight"
-        }`.toLowerCase();
+        const key = this.fullNameToKey(fullName);
         const repeat = this.getRepeat(child);
         const order = this.getOrder(child);
         const sectionsNode = child.getChildren(PlannerNodeName.ExerciseSection);

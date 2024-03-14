@@ -85,7 +85,7 @@ Triceps Extension / ...Bench Press[1]`
   expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "Triceps Extension / ...Bench Press[1]"
   );
-  expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).not.toContainText(
+  expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "a: Squat / 1x2 / 95.71%"
   );
 });

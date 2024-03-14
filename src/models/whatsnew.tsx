@@ -9,6 +9,7 @@ import { IconDiscord } from "../components/icons/iconDiscord";
 import { UrlUtils } from "../utils/url";
 import { IconDoc } from "../components/icons/iconDoc";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
+import { IconSwap } from "../components/icons/iconSwap";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -896,6 +897,27 @@ const whatsNew: Record<string, IWhatsNew> = {
         <li>
           You can target all incompleted sets (by using <strong>reps = 3</strong>, <strong>weights = 40lb</strong>,
           etc), or you can target specific sets (e.g. <strong>reps[3] = 10</strong>)
+        </li>
+      </ul>
+    ),
+  },
+  "20240318": {
+    title: (
+      <span>Redesigned exercise picker and ability to replace exercises from the workout and new editor screens.</span>
+    ),
+    body: (
+      <ul>
+        <li>
+          There's a new exercise picker modal, that now combines equipment selection + exercise selection, and also the
+          "Substitute" feature.
+        </li>
+        <li>
+          There's also a new "Swap" exercise feature on the workout screen (the <IconSwap className="inline-block" />{" "}
+          icon), where you can replace exercise for this workout only, or for the whole program.
+        </li>
+        <li>
+          And now you can replace the exercise across whole program in the new Liftoscript 2.0 editor, both in Web and
+          app. You were able to do it before as well with Find & Replace, but now there's simpler UI for it.
         </li>
       </ul>
     ),

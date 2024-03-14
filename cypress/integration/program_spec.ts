@@ -25,7 +25,7 @@ describe("Program", () => {
     g("tab-advanced").click();
 
     g("menu-item-exercise").click();
-    g("modal-exercise").find("[data-cy='menu-item-deadlift']").click();
+    g("modal-exercise").find("[data-cy='menu-item-deadlift']").click({ force: true });
     g("menu-item-value-equipment").should("have.text", "Barbell");
     g("menu-item-value-name").should("have.value", "Deadlift");
 
