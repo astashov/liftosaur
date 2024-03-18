@@ -154,80 +154,85 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               dispatch={props.dispatch}
               date={progress.ui?.dateModal?.date ?? ""}
             />
-            <ModalExercise
-              isHidden={progress.ui?.exerciseModal == null}
-              exerciseType={progress.ui?.exerciseModal?.exerciseType}
-              settings={props.settings}
-              onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
-                EditCustomExercise.createOrUpdate(
-                  props.dispatch,
-                  name,
-                  equipment,
-                  targetMuscles,
-                  synergistMuscles,
-                  types,
-                  exercise
-                );
-              }}
-              onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
-              onChange={(exerciseType, shouldClose) => {
-                if (exerciseType != null) {
-                  if (progress.ui?.exerciseModal?.entryIndex == null) {
-                    Progress.addExercise(props.dispatch, props.progress.id, exerciseType.id, props.settings);
-                  } else {
-                    const entryIndex = progress.ui?.exerciseModal?.entryIndex;
-                    if (confirm("This will change it for the current workout. Change in the program too?")) {
-                      const programExercise = Program.getProgramExerciseFromEntry(
-                        props.program?.exercises || [],
-                        progress.entries[entryIndex]
-                      );
-                      const program = props.program;
-                      if (program && programExercise) {
-                        if (program.planner) {
-                          const newPlanner = PlannerProgram.replaceExercise(
-                            program.planner,
-                            ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, props.settings),
-                            exerciseType,
-                            props.settings
-                          );
-                          const newProgram = new PlannerToProgram2(
-                            program.id,
-                            program.nextDay,
-                            program.exercises,
-                            newPlanner,
-                            props.settings
-                          ).convertToProgram();
-                          updateState(props.dispatch, [
-                            lb<IState>()
-                              .p("storage")
-                              .p("programs")
-                              .recordModify((programs) => {
-                                return CollectionUtils.setBy(programs, "id", program.id, newProgram);
-                              }),
-                          ]);
-                        } else {
-                          EditProgram.swapExercise(
-                            props.dispatch,
-                            props.settings,
-                            program.id,
-                            programExercise.id,
-                            programExercise.exerciseType,
-                            exerciseType
-                          );
-                        }
-                      }
+            {progress.ui?.exerciseModal != null && (
+              <ModalExercise
+                isHidden={progress.ui?.exerciseModal == null}
+                exerciseType={progress.ui?.exerciseModal?.exerciseType}
+                settings={props.settings}
+                onCreateOrUpdate={(shouldClose, name, equipment, targetMuscles, synergistMuscles, types, exercise) => {
+                  EditCustomExercise.createOrUpdate(
+                    props.dispatch,
+                    name,
+                    equipment,
+                    targetMuscles,
+                    synergistMuscles,
+                    types,
+                    exercise
+                  );
+                }}
+                onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
+                onChange={(exerciseType, shouldClose) => {
+                  if (exerciseType != null) {
+                    if (progress.ui?.exerciseModal?.entryIndex == null) {
+                      Progress.addExercise(props.dispatch, props.progress.id, exerciseType.id, props.settings);
                     } else {
-                      Progress.changeExercise(props.dispatch, props.progress.id, exerciseType, entryIndex);
+                      const entryIndex = progress.ui?.exerciseModal?.entryIndex;
+                      const program = props.program;
+                      if (
+                        program &&
+                        confirm("This will change it for the current workout. Change in the program too?")
+                      ) {
+                        const programExercise = Program.getProgramExerciseFromEntry(
+                          program.exercises || [],
+                          progress.entries[entryIndex]
+                        );
+                        if (program && programExercise) {
+                          if (program.planner) {
+                            const newPlanner = PlannerProgram.replaceExercise(
+                              program.planner,
+                              ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, props.settings),
+                              exerciseType,
+                              props.settings
+                            );
+                            const newProgram = new PlannerToProgram2(
+                              program.id,
+                              program.nextDay,
+                              program.exercises,
+                              newPlanner,
+                              props.settings
+                            ).convertToProgram();
+                            updateState(props.dispatch, [
+                              lb<IState>()
+                                .p("storage")
+                                .p("programs")
+                                .recordModify((programs) => {
+                                  return CollectionUtils.setBy(programs, "id", program.id, newProgram);
+                                }),
+                            ]);
+                          } else {
+                            EditProgram.swapExercise(
+                              props.dispatch,
+                              props.settings,
+                              program.id,
+                              programExercise.id,
+                              programExercise.exerciseType,
+                              exerciseType
+                            );
+                          }
+                        }
+                      } else {
+                        Progress.changeExercise(props.dispatch, props.progress.id, exerciseType, entryIndex);
+                      }
                     }
                   }
-                }
-                if (shouldClose) {
-                  updateState(props.dispatch, [
-                    lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseModal").record(undefined),
-                  ]);
-                }
-              }}
-            />
+                  if (shouldClose) {
+                    updateState(props.dispatch, [
+                      lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("exerciseModal").record(undefined),
+                    ]);
+                  }
+                }}
+              />
+            )}
             <ModalEditSet
               isHidden={progress.ui?.editSetModal == null}
               setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
