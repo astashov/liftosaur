@@ -302,7 +302,7 @@ export class PlannerProgram {
                   e.type === "exercise" &&
                   e.value === line.value &&
                   e.sectionsToReuse === line.sectionsToReuse &&
-                  e.description === line.description
+                  ObjectUtils.isEqual(e.descriptions || [], line.descriptions || [])
                 );
               });
               for (const e of repeatedExercises) {
@@ -335,13 +335,16 @@ export class PlannerProgram {
         const day = week[dayIndex];
         const programDay = programWeek.days[dayIndex];
         let str = "";
+        let ongoingDescriptions = true;
         for (const line of day) {
           if (line.type === "description") {
+            ongoingDescriptions = true;
             //
           } else if (line.type === "exercise") {
+            ongoingDescriptions = false;
             if (!line.used) {
-              if (line.description) {
-                str += `${line.description}\n`;
+              if (line.descriptions && line.descriptions.length > 0) {
+                str += `${line.descriptions.join("\n\n")}\n`;
               }
               let repeatStr = "";
               if ((line.order != null && line.order !== 0) || (line.repeatRanges && line.repeatRanges.length > 0)) {
@@ -355,6 +358,10 @@ export class PlannerProgram {
                 repeatStr = `[${repeatParts.join(",")}]`;
               }
               str += `${line.fullName}${repeatStr} / ${line.sections}\n`;
+            }
+          } else if (line.type === "empty") {
+            if (!ongoingDescriptions) {
+              str += line.value + "\n";
             }
           } else {
             str += line.value + "\n";
@@ -391,8 +398,10 @@ export class PlannerProgram {
           for (const r of exercise.repeat || []) {
             const reuseDay = mapping[r - 1][dayIndex];
             if (!reuseDay.some((e) => e.type === "exercise" && e.value === exercise.value)) {
-              if (exercise.description) {
-                reuseDay.push({ type: "description", value: exercise.description });
+              if (exercise.descriptions) {
+                for (const description of exercise.descriptions) {
+                  reuseDay.push({ type: "description", value: description });
+                }
               }
               reuseDay.push({ ...exercise, repeat: undefined });
             }

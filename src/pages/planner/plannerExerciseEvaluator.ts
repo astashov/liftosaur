@@ -32,7 +32,7 @@ export interface IPlannerTopLineItem {
   fullName?: string;
   repeat?: number[];
   repeatRanges?: string[];
-  description?: string;
+  descriptions?: string[];
   sections?: string;
   sectionsToReuse?: string;
   used?: boolean;
@@ -1047,7 +1047,7 @@ export class PlannerExerciseEvaluator {
     }
     const children = getChildren(programNode);
     const result: IPlannerTopLineItem[] = [];
-    let lastDescriptions: string[] = [];
+    let lastDescriptions: string[][] = [];
     for (const child of children) {
       if (child.type.name === PlannerNodeName.ExerciseExpression) {
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
@@ -1083,19 +1083,23 @@ export class PlannerExerciseEvaluator {
           order,
           value: key,
           repeat,
-          description: lastDescriptions.join("\n"),
+          descriptions: lastDescriptions.map((d) => d.join("\n")),
           sections,
           sectionsToReuse,
         });
         lastDescriptions = [];
       } else if (child.type.name === PlannerNodeName.LineComment) {
         const description = this.getValueTrim(child).trim();
-        lastDescriptions.push(description);
+        if (lastDescriptions.length === 0) {
+          lastDescriptions.push([]);
+        }
+        lastDescriptions[lastDescriptions.length - 1].push(description);
         result.push({ type: "description", value: description });
       } else if (child.type.name === PlannerNodeName.TripleLineComment) {
         result.push({ type: "comment", value: this.getValueTrim(child).trim() });
       } else if (child.type.name === PlannerNodeName.EmptyExpression) {
         result.push({ type: "empty", value: "" });
+        lastDescriptions.push([]);
       } else {
         this.error(
           `Unexpected node type ${child.type.name}, should be only exercise, comment, description or empty line`,
