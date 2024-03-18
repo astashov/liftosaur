@@ -337,8 +337,8 @@ export class PlannerProgram {
       //
     } else if (line.type === "exercise") {
       if (!line.used) {
-        if (line.description) {
-          str += `${line.description}\n`;
+        if (line.descriptions && line.descriptions.length > 0) {
+          str += `${line.descriptions.join("\n\n")}\n`;
         }
         let repeatStr = "";
         if ((line.order != null && line.order !== 0) || (line.repeatRanges && line.repeatRanges.length > 0)) {
