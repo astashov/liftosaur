@@ -104,6 +104,16 @@ export class PlannerExerciseEvaluator {
     return this.script.slice(node.from, node.to);
   }
 
+  public static applyChangesToScript(script: string, ranges: [number, number][], replacement: string): string {
+    let offset = 0;
+    while (ranges.length > 0) {
+      const [from, to] = ranges.shift()!;
+      script = script.slice(0, from + offset) + replacement + script.slice(to + offset);
+      offset += replacement.length - (to - from);
+    }
+    return script;
+  }
+
   private error(message: string, node: SyntaxNode): never {
     const [line, offset] = this.getLineAndOffset(node);
     throw new PlannerSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to);

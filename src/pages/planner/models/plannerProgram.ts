@@ -29,6 +29,7 @@ import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
 import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
+import { PlannerNodeName } from "../plannerExerciseStyles";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -264,27 +265,60 @@ export class PlannerProgram {
     exerciseType: IExerciseType,
     settings: ISettings
   ): IPlannerProgram {
+    const conversions: Record<string, string> = {};
+    const exercise = Exercise.get(exerciseType, settings.exercises);
     return this.modifyTopLineItems(plannerProgram, settings, (line) => {
-      if (line.type === "exercise" && line.value === key && line.fullName) {
-        const { label } = PlannerExerciseEvaluator.extractNameParts(line.fullName, settings);
-        const exercise = Exercise.get(exerciseType, settings.exercises);
-        const newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
-          exercise.defaultEquipment !== exerciseType.equipment
-            ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
-            : ""
-        }`;
-        line.fullName = newFullName;
-        return line;
-      } else {
-        return line;
+      if (line.type === "exercise") {
+        if (line.value === key && line.fullName) {
+          const { label } = PlannerExerciseEvaluator.extractNameParts(line.fullName, settings);
+          const newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
+            exercise.defaultEquipment !== exerciseType.equipment
+              ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
+              : ""
+          }`;
+          conversions[line.fullName] = newFullName;
+          line.fullName = newFullName;
+          return line;
+        } else {
+          let fakeScript = `E / ${line.sections}`;
+          const fakeTree = plannerExerciseParser.parse(fakeScript);
+          const cursor = fakeTree.cursor();
+          const ranges: [number, number][] = [];
+          let newFullName;
+          do {
+            if (cursor.type.name === PlannerNodeName.ExerciseName) {
+              const oldFullname = fakeScript.slice(cursor.node.from, cursor.node.to);
+              const exerciseKey = PlannerProgram.nameToKey(oldFullname, settings);
+              if (exerciseKey === key) {
+                const { label } = PlannerExerciseEvaluator.extractNameParts(oldFullname, settings);
+                newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
+                  exercise.defaultEquipment !== exerciseType.equipment
+                    ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
+                    : ""
+                }`;
+                ranges.push([cursor.node.from, cursor.node.to]);
+              }
+            }
+          } while (cursor.next());
+          if (newFullName) {
+            fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, ranges, newFullName);
+            line.sections = fakeScript.replace(/^E \//, "").trim();
+          }
+        }
       }
+      return line;
     });
   }
 
   public static modifyTopLineItems(
     aPlannerProgram: IPlannerProgram,
     settings: ISettings,
-    cb: (line: IPlannerTopLineItem, weekIndex: number, dayIndex: number, lineIndex: number) => IPlannerTopLineItem
+    firstPass: (
+      line: IPlannerTopLineItem,
+      weekIndex: number,
+      dayIndex: number,
+      lineIndex: number
+    ) => IPlannerTopLineItem
   ): IPlannerProgram {
     let dayIndex = 0;
     const plannerProgram = ObjectUtils.clone(aPlannerProgram);
@@ -308,7 +342,7 @@ export class PlannerProgram {
         const day = week[dayIndex];
         for (let lineIndex = 0; lineIndex < day.length; lineIndex += 1) {
           const line = day[lineIndex];
-          const newLine = cb(line, weekIndex, dayIndex, lineIndex);
+          const newLine = firstPass(line, weekIndex, dayIndex, lineIndex);
           day[lineIndex] = newLine;
         }
       }
