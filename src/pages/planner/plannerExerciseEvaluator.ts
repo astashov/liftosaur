@@ -693,6 +693,34 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private getRepeatRanges(numbers: number[]): string[] {
+    // Check if the input array is empty
+    if (numbers.length === 0) {
+      return [];
+    }
+
+    const ranges: string[] = [];
+    let rangeStart = numbers[0];
+    let rangeEnd = numbers[0];
+
+    for (let i = 1; i < numbers.length; i++) {
+      if (numbers[i] === rangeEnd + 1) {
+        // If the current number is consecutive, extend the current range
+        rangeEnd = numbers[i];
+      } else {
+        // If not consecutive, add the current range to results and start a new range
+        ranges.push(`${rangeStart}-${rangeEnd}`);
+        rangeStart = numbers[i];
+        rangeEnd = numbers[i];
+      }
+    }
+
+    // Add the last range to results
+    ranges.push(`${rangeStart}-${rangeEnd}`);
+
+    return ranges;
+  }
+
   private evaluateExercise(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.EmptyExpression || expr.type.name === PlannerNodeName.TripleLineComment) {
       if (this.latestDescriptions.length > 0) {
@@ -1088,6 +1116,7 @@ export class PlannerExerciseEvaluator {
         const fullName = this.getValue(nameNode);
         const key = this.fullNameToKey(fullName);
         const repeat = this.getRepeat(child);
+        const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);
         const sectionsNode = child.getChildren(PlannerNodeName.ExerciseSection);
         const sections = sectionsNode.map((section) => this.getValueTrim(section).trim()).join(" / ");
@@ -1113,6 +1142,7 @@ export class PlannerExerciseEvaluator {
           order,
           value: key,
           repeat,
+          repeatRanges,
           descriptions: lastDescriptions.map((d) => d.join("\n")),
           sections,
           sectionsToReuse,
