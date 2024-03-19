@@ -17,7 +17,7 @@ test("replaces exercises", async ({ page }) => {
     `# Week 1
 ## Day 1
 Squat / 3x8
-Bench Press / 3x8
+Bench Press[1-2] / 3x8
 
 ## Day 2
 Bicep Curl / 1x5
@@ -25,7 +25,6 @@ t1: Bench Press / 3x5
 
 # Week 2
 ## Day 1
-Bench Press / 3x8
 Squat / 3x8
 t1: Squat / 3x5
 
@@ -49,7 +48,7 @@ Bicep Curl / 1x5`
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    "Bent Over Row, Dumbbell / 3x8"
+    "Bent Over Row, Dumbbell[1-2] / 3x8"
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
@@ -62,7 +61,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Bent Over Row, Dumbbell / 3x8Squat / 3x8t1: Squat / 3x5`
+    `Squat / 3x8t1: Squat / 3x5`
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "Bicep Curl / 1x5"
@@ -97,7 +96,7 @@ Bicep Curl / 1x5`
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    "Hack Squat, Dumbbell / 3x8Bent Over Row, Dumbbell / 3x8"
+    "Hack Squat, Dumbbell / 3x8Bent Over Row, Dumbbell[1-2] / 3x8"
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
@@ -107,7 +106,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Bent Over Row, Dumbbell / 3x8Hack Squat, Dumbbell / 3x8t1: Squat / 3x5`
+    `Hack Squat, Dumbbell / 3x8t1: Squat / 3x5`
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
     "Bicep Curl / 1x5"
