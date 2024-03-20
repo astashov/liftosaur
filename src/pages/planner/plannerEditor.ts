@@ -367,11 +367,15 @@ export class PlannerEditor {
       this.requireLint = true;
       forceLinting(this.codeMirror);
       const from = this.args.error?.from;
-      const line = from != null ? this.codeMirror.state.doc.lineAt(from).from : undefined;
-      const rangeSet = RangeSet.of(line != null ? [new ErrorGutterMarker().range(line)] : []);
-      this.codeMirror.dispatch({
-        effects: errorGutterCompartment.reconfigure(gutterLineClass.of(rangeSet)),
-      });
+      try {
+        const line = from != null ? this.codeMirror.state.doc.lineAt(from).from : undefined;
+        const rangeSet = RangeSet.of(line != null ? [new ErrorGutterMarker().range(line)] : []);
+        this.codeMirror.dispatch({
+          effects: errorGutterCompartment.reconfigure(gutterLineClass.of(rangeSet)),
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 
