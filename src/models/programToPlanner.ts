@@ -442,6 +442,9 @@ export class ProgramToPlanner {
   }
 
   private groupVariationSets(sets: IProgramSet[]): [IProgramSet, number][] {
+    if (sets.length === 0) {
+      return [[{ repsExpr: "1", weightExpr: "0lb" }, 0]];
+    }
     let lastKey: string | undefined;
     const groups: [IProgramSet, number][] = [];
     for (const set of sets) {
