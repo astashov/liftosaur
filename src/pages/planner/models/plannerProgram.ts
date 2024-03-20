@@ -267,15 +267,31 @@ export class PlannerProgram {
   ): IPlannerProgram {
     const conversions: Record<string, string> = {};
     const exercise = Exercise.get(exerciseType, settings.exercises);
+
+    function getNewFullName(oldFullName: string): string {
+      const { label } = PlannerExerciseEvaluator.extractNameParts(oldFullName, settings);
+      return `${label ? `${label}: ` : ""}${exercise.name}${
+        exercise.defaultEquipment !== exerciseType.equipment
+          ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
+          : ""
+      }`;
+    }
+
     return this.modifyTopLineItems(plannerProgram, settings, (line) => {
       if (line.type === "exercise") {
+        line.descriptions = line.descriptions?.map((d) => {
+          if (d.match(/^\s*\/+\s*\.\.\./)) {
+            const fullName = d.replace(/^\s*\/+\s*.../, "").trim();
+            const exerciseKey = PlannerProgram.nameToKey(fullName, settings);
+            if (exerciseKey === key) {
+              return `// ...${getNewFullName(fullName)}`;
+            }
+          }
+          return d;
+        });
+
         if (line.value === key && line.fullName) {
-          const { label } = PlannerExerciseEvaluator.extractNameParts(line.fullName, settings);
-          const newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
-            exercise.defaultEquipment !== exerciseType.equipment
-              ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
-              : ""
-          }`;
+          const newFullName = getNewFullName(line.fullName);
           conversions[line.fullName] = newFullName;
           line.fullName = newFullName;
           return line;
@@ -290,12 +306,7 @@ export class PlannerProgram {
               const oldFullname = fakeScript.slice(cursor.node.from, cursor.node.to);
               const exerciseKey = PlannerProgram.nameToKey(oldFullname, settings);
               if (exerciseKey === key) {
-                const { label } = PlannerExerciseEvaluator.extractNameParts(oldFullname, settings);
-                newFullName = `${label ? `${label}: ` : ""}${exercise.name}${
-                  exercise.defaultEquipment !== exerciseType.equipment
-                    ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
-                    : ""
-                }`;
+                newFullName = getNewFullName(oldFullname);
                 ranges.push([cursor.node.from, cursor.node.to]);
               }
             }
