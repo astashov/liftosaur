@@ -107,6 +107,17 @@ export class UserDao {
     }
   }
 
+  public async getByEmail(email: string): Promise<ILimitedUserDao | undefined> {
+    const env = Utils.getEnv();
+
+    const users = await this.di.dynamo.scan<ILimitedUserDao>({
+      tableName: userTableNames[env].users,
+      filterExpression: "email = :email",
+      values: { ":email": email },
+    });
+    return users[0];
+  }
+
   public static build(id: string, email: string, opts: { appleId?: string; googleId?: string }): IUserDao {
     return {
       id,
@@ -258,6 +269,28 @@ export class UserDao {
       })
     );
     return result.flat();
+  }
+
+  public async transfer(fromEmail: string, toEmail: string): Promise<void> {
+    const fromUser = await this.getByEmail(fromEmail);
+    const toUser = await this.getByEmail(toEmail);
+
+    if (fromUser && toUser) {
+      const toIsApple = toUser.appleId != null;
+
+      const token = toIsApple ? toUser.appleId : toUser.googleId;
+      if (toIsApple) {
+        fromUser.appleId = token;
+        delete fromUser.googleId;
+      } else {
+        fromUser.googleId = token;
+        delete fromUser.appleId;
+      }
+      fromUser.email = toEmail;
+      await this.store(fromUser);
+    } else {
+      throw new Error("Missing users");
+    }
   }
 
   public async removeUser(userId: string): Promise<void> {
