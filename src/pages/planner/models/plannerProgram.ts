@@ -543,8 +543,8 @@ export class PlannerProgram {
         const day = week[dayIndex];
         for (const exercise of day) {
           for (const r of exercise.repeat || []) {
-            const reuseDay = mapping[r - 1][dayIndex];
-            if (!reuseDay.some((e) => e.type === "exercise" && e.value === exercise.value)) {
+            const reuseDay = mapping[r - 1]?.[dayIndex];
+            if (reuseDay && !reuseDay.some((e) => e.type === "exercise" && e.value === exercise.value)) {
               if (exercise.descriptions) {
                 for (const description of exercise.descriptions) {
                   reuseDay.push({ type: "description", value: description });
