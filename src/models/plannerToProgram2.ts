@@ -222,7 +222,7 @@ export class PlannerToProgram2 {
             programExercise.enableRpe = programExercise.variations.some((v) =>
               v.sets.some((s) => s.rpeExpr != null || !!s.logRpe)
             );
-            programExercise.quickAddSets = isQuickAddSets;
+            programExercise.quickAddSets = programExercise.quickAddSets || isQuickAddSets;
             programExercise.enableRepRanges = programExercise.variations.some((v) =>
               v.sets.some((s) => s.minRepsExpr != null)
             );
