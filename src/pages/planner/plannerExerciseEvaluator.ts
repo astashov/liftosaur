@@ -1120,8 +1120,10 @@ export class PlannerExerciseEvaluator {
     const children = getChildren(programNode);
     const result: IPlannerTopLineItem[] = [];
     let lastDescriptions: string[][] = [];
+    let ongoingDescriptions = false;
     for (const child of children) {
       if (child.type.name === PlannerNodeName.ExerciseExpression) {
+        ongoingDescriptions = false;
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
         const key = this.fullNameToKey(fullName);
@@ -1159,6 +1161,7 @@ export class PlannerExerciseEvaluator {
         });
         lastDescriptions = [];
       } else if (child.type.name === PlannerNodeName.LineComment) {
+        ongoingDescriptions = true;
         const description = this.getValueTrim(child).trim();
         if (lastDescriptions.length === 0) {
           lastDescriptions.push([]);
@@ -1169,7 +1172,9 @@ export class PlannerExerciseEvaluator {
         result.push({ type: "comment", value: this.getValueTrim(child).trim() });
       } else if (child.type.name === PlannerNodeName.EmptyExpression) {
         result.push({ type: "empty", value: "" });
-        lastDescriptions.push([]);
+        if (ongoingDescriptions) {
+          lastDescriptions.push([]);
+        }
       } else {
         this.error(
           `Unexpected node type ${child.type.name}, should be only exercise, comment, description or empty line`,

@@ -482,7 +482,7 @@ export class PlannerProgram {
         const day = week[dayIndex];
         const programDay = programWeek.days[dayIndex];
         let str = "";
-        let ongoingDescriptions = true;
+        let ongoingDescriptions = false;
         for (const line of day) {
           if (line.type === "description") {
             ongoingDescriptions = true;
