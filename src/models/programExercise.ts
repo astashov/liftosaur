@@ -24,9 +24,9 @@ import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
 import { IAssignmentOp, ILiftoscriptEvaluatorUpdate, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { PlannerToProgram } from "./plannerToProgram";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 export interface IProgramExerciseExample {
   title: string;
@@ -454,8 +454,8 @@ export namespace ProgramExercise {
           if (d.success) {
             return d.data.filter(
               (e) =>
-                PlannerToProgram.plannerExerciseKey(e, settings) ===
-                ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings)
+                PlannerKey.fromPlannerExercise(e, settings) ===
+                PlannerKey.fromProgramExercise(programExercise, settings)
             );
           } else {
             return undefined;
@@ -463,7 +463,7 @@ export namespace ProgramExercise {
         })
       )
     );
-    const exerciseKey = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings);
+    const exerciseKey = PlannerKey.fromProgramExercise(programExercise, settings);
     const allVariationsMap = ProgramToPlanner.variationsMap(plannerProgram, settings);
     const variationsMap = allVariationsMap[exerciseKey];
 

@@ -15,12 +15,12 @@ import { MathUtils } from "../utils/math";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, equipmentName } from "./exercise";
 import { Weight } from "./weight";
-import { PlannerToProgram } from "./plannerToProgram";
 import { IProgramExerciseWarmupSet } from "../types";
 import { ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramReuse } from "../pages/planner/models/types";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 interface IPlannerToProgram2Globals {
   weight?: string;
@@ -43,13 +43,6 @@ export class ProgramToPlanner {
     private readonly dereuseExercises: Record<string, Record<string, Set<string>>>
   ) {}
 
-  public static exerciseKeyForProgramExercise(programExercise: IProgramExercise, settings: ISettings): string {
-    return PlannerProgram.nameToKey(
-      `${programExercise.name},${equipmentName(programExercise.exerciseType.equipment, settings.equipment)}`,
-      settings
-    );
-  }
-
   private getReuseGraph(): Record<string, Record<string, Record<string, IPlannerProgramReuse>>> {
     if (this._reuseGraph != null) {
       return this._reuseGraph;
@@ -57,7 +50,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
 
     const exerciseKeyToId = this.program.exercises.reduce<Record<string, string>>((memo, e) => {
-      memo[ProgramToPlanner.exerciseKeyForProgramExercise(e, this.settings)] = e.id;
+      memo[PlannerKey.fromProgramExercise(e, this.settings)] = e.id;
       return memo;
     }, {});
 
@@ -68,11 +61,11 @@ export class ProgramToPlanner {
         const day = week[dayIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram.plannerExerciseKey(exercise, this.settings);
+            const key = PlannerKey.fromPlannerExercise(exercise, this.settings);
             const id = exerciseKeyToId[key];
             const reuse = exercise.reuse;
             if (reuse?.exercise != null && !this.dereuseExercises[weekIndex]?.[dayIndex]?.has(key)) {
-              const reuseKey = PlannerProgram.nameToKey(reuse.exercise, this.settings);
+              const reuseKey = PlannerKey.fromFullName(reuse.exercise, this.settings);
               const reuseWeekIndex = reuse.week != null ? reuse.week - 1 : weekIndex;
               const condition =
                 reuse.day != null
@@ -113,7 +106,7 @@ export class ProgramToPlanner {
         const day = week[dayInWeekIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
+            const key = PlannerKey.fromPlannerExercise(exercise, settings);
             variationsRunningIndex[key] = variationsRunningIndex[key] || 0;
             variationsMap[key] = variationsMap[key] || {};
             const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
@@ -142,7 +135,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
     if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerToProgram.plannerExerciseKey(e, this.settings) === key);
+      const exercise = exercises.data.find((e) => PlannerKey.fromPlannerExercise(e, this.settings) === key);
       if (exercise != null) {
         const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
         let isCurrentIndex = exercise.setVariations.findIndex((v) => v.isCurrent);
@@ -180,7 +173,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
     if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerToProgram.plannerExerciseKey(e, this.settings) === key);
+      const exercise = exercises.data.find((e) => PlannerKey.fromPlannerExercise(e, this.settings) === key);
       if (exercise != null) {
         const numberOfDescriptions = exercise.descriptions.length;
         let isCurrentIndex = exercise.descriptions.findIndex((v) => v.isCurrent);
@@ -281,11 +274,11 @@ export class ProgramToPlanner {
               descriptionIndex = undefined;
               addedCurrentDescription = false;
               const dayExercise = this.program.exercises.find(
-                (e) => ProgramToPlanner.exerciseKeyForProgramExercise(e, this.settings) === line.value
+                (e) => PlannerKey.fromProgramExercise(e, this.settings) === line.value
               )!;
               const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
               const notused = this.program.days.every((d) => d.exercises.every((e) => e.id !== programExercise.id));
-              const key = ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, this.settings);
+              const key = PlannerKey.fromProgramExercise(programExercise, this.settings);
               const exercise = Exercise.findById(programExercise.exerciseType.id, this.settings.exercises)!;
               let plannerExercise = "";
               plannerExercise += `${programExercise.name}`;

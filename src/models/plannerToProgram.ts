@@ -20,6 +20,7 @@ import { MathUtils } from "../utils/math";
 import { Equipment } from "./equipment";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils } from "../utils/collection";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 export class PlannerToProgram {
   constructor(
@@ -29,14 +30,6 @@ export class PlannerToProgram {
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings
   ) {}
-
-  public static plannerExerciseKey(plannerExercise: IPlannerProgramExercise, settings: ISettings): string {
-    const exercise = Exercise.findByName(plannerExercise.name, settings.exercises);
-    const key = `${plannerExercise.label ? `${plannerExercise.label}-` : ""}${plannerExercise.name}-${
-      plannerExercise.equipment || exercise?.defaultEquipment || "bodyweight"
-    }`.toLowerCase();
-    return key;
-  }
 
   public static fnArgsToState(fnArgs: string[]): IProgramState {
     const state: IProgramState = {};
@@ -79,7 +72,7 @@ export class PlannerToProgram {
         const programDay: IProgramDay = { id: UidFactory.generateUid(8), name: plannerDay.name, exercises: [] };
         if (day.success) {
           for (const evalExercise of CollectionUtils.sortBy(day.data, "order")) {
-            const key = PlannerToProgram.plannerExerciseKey(evalExercise, this.settings);
+            const key = PlannerKey.fromPlannerExercise(evalExercise, this.settings);
             const exercise = Exercise.findByName(evalExercise.name, this.settings.exercises);
             if (!exercise) {
               throw new Error(`Exercise not found: ${evalExercise.name}`);

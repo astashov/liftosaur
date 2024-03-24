@@ -36,9 +36,9 @@ import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { EditProgram } from "../models/editProgram";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { ProgramToPlanner } from "../models/programToPlanner";
 import { CollectionUtils } from "../utils/collection";
 import { PlannerToProgram } from "../models/plannerToProgram";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -190,7 +190,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                           if (program.planner) {
                             const newPlanner = PlannerProgram.replaceExercise(
                               program.planner,
-                              ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, props.settings),
+                              PlannerKey.fromProgramExercise(programExercise, props.settings),
                               exerciseType,
                               props.settings
                             );

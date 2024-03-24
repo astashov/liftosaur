@@ -2,13 +2,13 @@ import { lb } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { LinkButton } from "../../../components/linkButton";
 import { Exercise } from "../../../models/exercise";
-import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerProgramExercise, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
+import { PlannerKey } from "../plannerKey";
 
 interface IPlannerExerciseStatsFullProps {
   settings: ISettings;
@@ -54,7 +54,7 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
           name="planner-swap-exercise"
           data-cy="planner-swap-exercise"
           onClick={() => {
-            const exerciseKey = PlannerToProgram.plannerExerciseKey(evaluatedExercise, props.settings);
+            const exerciseKey = PlannerKey.fromPlannerExercise(evaluatedExercise, props.settings);
             props.dispatch([
               lb<IPlannerState>()
                 .pi("ui")

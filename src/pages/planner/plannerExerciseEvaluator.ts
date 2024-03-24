@@ -22,8 +22,7 @@ import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
-import { PlannerToProgram } from "../../models/plannerToProgram";
-import { PlannerProgram } from "./models/plannerProgram";
+import { PlannerKey } from "./plannerKey";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -904,8 +903,8 @@ export class PlannerExerciseEvaluator {
           const day = week[dayIndex];
           if (day.success) {
             for (const e of day.data) {
-              const key = PlannerToProgram.plannerExerciseKey(e, settings);
-              const bodyKey = PlannerProgram.nameToKey(body, settings);
+              const key = PlannerKey.fromPlannerExercise(e, settings);
+              const bodyKey = PlannerKey.fromFullName(body, settings);
               if (key === bodyKey) {
                 originalExercises.push(e);
               }
@@ -925,8 +924,8 @@ export class PlannerExerciseEvaluator {
         const day = week[dayIndex];
         if (day.success) {
           for (const e of day.data) {
-            const key = PlannerToProgram.plannerExerciseKey(e, this.settings);
-            const bodyKey = PlannerProgram.nameToKey(body, this.settings);
+            const key = PlannerKey.fromPlannerExercise(e, this.settings);
+            const bodyKey = PlannerKey.fromFullName(body, this.settings);
             if (key === bodyKey) {
               originalExercise = e;
             }
@@ -967,7 +966,7 @@ export class PlannerExerciseEvaluator {
           const nameNode = cursor.node.getChild(PlannerNodeName.ExerciseName);
           if (nameNode != null) {
             const fullName = this.getValue(nameNode);
-            const key = this.fullNameToKey(fullName);
+            const key = PlannerKey.fromFullName(fullName, this.settings);
             if (this.dayData.week != null && this.dayData.dayInWeek != null) {
               if (exerciseKeys[this.dayData.week]?.[this.dayData.dayInWeek]?.has(key)) {
                 this.error(
@@ -1105,14 +1104,6 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private fullNameToKey(fullName: string): string {
-    const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
-    const exercise = Exercise.findByName(name, this.settings.exercises);
-    return `${label ? `${label}-` : ""}${name}-${
-      equipment || exercise?.defaultEquipment || "bodyweight"
-    }`.toLowerCase();
-  }
-
   public topLineMap(programNode: SyntaxNode): IPlannerTopLineItem[] {
     if (programNode.type.name !== PlannerNodeName.Program) {
       this.error(`Unexpected node type ${programNode.type.name} - should be Program`, programNode);
@@ -1126,7 +1117,7 @@ export class PlannerExerciseEvaluator {
         ongoingDescriptions = false;
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
-        const key = this.fullNameToKey(fullName);
+        const key = PlannerKey.fromFullName(fullName, this.settings);
         const repeat = this.getRepeat(child);
         const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);

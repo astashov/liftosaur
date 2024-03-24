@@ -24,12 +24,12 @@ import {
 import { ObjectUtils } from "../../../utils/object";
 import { equipmentName, Exercise, IExercise } from "../../../models/exercise";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
-import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
 import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { PlannerNodeName } from "../plannerExerciseStyles";
+import { PlannerKey } from "../plannerKey";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -170,7 +170,7 @@ export class PlannerProgram {
         }
       }
       if (exercise.descriptions != null && exercise.descriptions.length > 0) {
-        const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
+        const key = PlannerKey.fromPlannerExercise(exercise, settings);
         exerciseDescriptions[key] = exerciseDescriptions[key] || {};
         exerciseDescriptions[key][weekIndex] = exerciseDescriptions[key][weekIndex] || {};
         exerciseDescriptions[key][weekIndex][dayIndex] = exercise.descriptions;
@@ -179,7 +179,7 @@ export class PlannerProgram {
     const notused: Set<string> = new Set();
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       if (exercise.notused) {
-        notused.add(PlannerToProgram.plannerExerciseKey(exercise, settings));
+        notused.add(PlannerKey.fromPlannerExercise(exercise, settings));
       }
       if (exercise.reuse) {
         const originalExercise = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
@@ -208,7 +208,7 @@ export class PlannerProgram {
     });
     const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
-      const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
+      const key = PlannerKey.fromPlannerExercise(exercise, settings);
       if (notused.has(key)) {
         exercise.notused = true;
       }
@@ -221,7 +221,7 @@ export class PlannerProgram {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       const nonnones = exercise.properties.filter((p) => p.fnName !== "none");
       if (nonnones.length > 0) {
-        const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
+        const key = PlannerKey.fromPlannerExercise(exercise, settings);
         exercise.skipProgress = skipProgress[key] || [];
       }
     });
@@ -250,7 +250,7 @@ export class PlannerProgram {
       }
     }
     reusingName = reusingName.replace(/\[([^]+)\]/, "").trim();
-    const key = PlannerProgram.nameToKey(reusingName, settings);
+    const key = PlannerKey.fromFullName(reusingName, settings);
     const weekDescriptions = exerciseDescriptions[key]?.[weekIndex ?? currentWeekIndex];
     if (dayIndex != null) {
       return weekDescriptions?.[dayIndex];
@@ -282,7 +282,7 @@ export class PlannerProgram {
         line.descriptions = line.descriptions?.map((d) => {
           if (d.match(/^\s*\/+\s*\.\.\./)) {
             const fullName = d.replace(/^\s*\/+\s*.../, "").trim();
-            const exerciseKey = PlannerProgram.nameToKey(fullName, settings);
+            const exerciseKey = PlannerKey.fromFullName(fullName, settings);
             if (exerciseKey === key) {
               return `// ...${getNewFullName(fullName)}`;
             }
@@ -304,7 +304,7 @@ export class PlannerProgram {
           do {
             if (cursor.type.name === PlannerNodeName.ExerciseName) {
               const oldFullname = fakeScript.slice(cursor.node.from, cursor.node.to);
-              const exerciseKey = PlannerProgram.nameToKey(oldFullname, settings);
+              const exerciseKey = PlannerKey.fromFullName(oldFullname, settings);
               if (exerciseKey === key) {
                 newFullName = getNewFullName(oldFullname);
                 ranges.push([cursor.node.from, cursor.node.to]);
@@ -575,8 +575,7 @@ export class PlannerProgram {
               if (repeatDay?.success) {
                 const hasExercise = repeatDay.data.some(
                   (e) =>
-                    PlannerToProgram.plannerExerciseKey(e, settings) ===
-                    PlannerToProgram.plannerExerciseKey(exercise, settings)
+                    PlannerKey.fromPlannerExercise(e, settings) === PlannerKey.fromPlannerExercise(exercise, settings)
                 );
                 if (!hasExercise) {
                   repeats[repeatWeekIndex] = repeats[repeatWeekIndex] || [];
@@ -816,35 +815,6 @@ export class PlannerProgram {
         dayIndex += 1;
       }
     }
-  }
-
-  public static nameToKey(labelNameAndEquipment: string, settings: ISettings): string {
-    let equip: string | undefined;
-    const parts = labelNameAndEquipment.split(",");
-    if (parts.length > 1) {
-      equip = parts.pop();
-    }
-    equip = equip?.trim();
-    if (equip) {
-      equip = Equipment.equipmentKeyByName(equip, settings.equipment);
-    }
-    const nameAndLabel = parts.join(",").trim();
-    const [labelOrName, ...nameParts] = nameAndLabel.split(":");
-    let label: string | undefined;
-    let name: string;
-    if (nameParts.length === 0) {
-      name = labelOrName;
-      label = undefined;
-    } else {
-      label = labelOrName.trim();
-      name = nameParts.join(":").trim();
-    }
-    if (equip == null) {
-      const exercise = Exercise.findByName(name, settings.exercises);
-      equip = exercise?.defaultEquipment;
-    }
-    const key = `${label ? `${label}-` : ""}${name}-${equip}`.toLowerCase();
-    return key;
   }
 
   public static generateExerciseTypeKey(plannerExercise: IPlannerProgramExercise, exercise: IExercise): string {
