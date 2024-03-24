@@ -15,7 +15,7 @@ import { MathUtils } from "../utils/math";
 import { ObjectUtils } from "../utils/object";
 import { Exercise, equipmentName } from "./exercise";
 import { Weight } from "./weight";
-import { PlannerToProgram2 } from "./plannerToProgram2";
+import { PlannerToProgram } from "./plannerToProgram";
 import { IProgramExerciseWarmupSet } from "../types";
 import { ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
@@ -68,7 +68,7 @@ export class ProgramToPlanner {
         const day = week[dayIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(exercise, this.settings);
+            const key = PlannerToProgram.plannerExerciseKey(exercise, this.settings);
             const id = exerciseKeyToId[key];
             const reuse = exercise.reuse;
             if (reuse?.exercise != null && !this.dereuseExercises[weekIndex]?.[dayIndex]?.has(key)) {
@@ -113,7 +113,7 @@ export class ProgramToPlanner {
         const day = week[dayInWeekIndex];
         if (day.success) {
           for (const exercise of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+            const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
             variationsRunningIndex[key] = variationsRunningIndex[key] || 0;
             variationsMap[key] = variationsMap[key] || {};
             const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
@@ -142,7 +142,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
     if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerToProgram2.plannerExerciseKey(e, this.settings) === key);
+      const exercise = exercises.data.find((e) => PlannerToProgram.plannerExerciseKey(e, this.settings) === key);
       if (exercise != null) {
         const numberOfVariations = PlannerProgramExercise.setVariations(exercise).length;
         let isCurrentIndex = exercise.setVariations.findIndex((v) => v.isCurrent);
@@ -180,7 +180,7 @@ export class ProgramToPlanner {
     const evaluatedWeeks = this.getEvaluatedWeeks();
     const exercises = evaluatedWeeks[weekIndex][dayInWeekIndex];
     if (exercises.success) {
-      const exercise = exercises.data.find((e) => PlannerToProgram2.plannerExerciseKey(e, this.settings) === key);
+      const exercise = exercises.data.find((e) => PlannerToProgram.plannerExerciseKey(e, this.settings) === key);
       if (exercise != null) {
         const numberOfDescriptions = exercise.descriptions.length;
         let isCurrentIndex = exercise.descriptions.findIndex((v) => v.isCurrent);

@@ -22,7 +22,7 @@ import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { Weight } from "../../models/weight";
 import { MathUtils } from "../../utils/math";
-import { PlannerToProgram2 } from "../../models/plannerToProgram2";
+import { PlannerToProgram } from "../../models/plannerToProgram";
 import { PlannerProgram } from "./models/plannerProgram";
 
 export interface IPlannerTopLineItem {
@@ -904,7 +904,7 @@ export class PlannerExerciseEvaluator {
           const day = week[dayIndex];
           if (day.success) {
             for (const e of day.data) {
-              const key = PlannerToProgram2.plannerExerciseKey(e, settings);
+              const key = PlannerToProgram.plannerExerciseKey(e, settings);
               const bodyKey = PlannerProgram.nameToKey(body, settings);
               if (key === bodyKey) {
                 originalExercises.push(e);
@@ -925,7 +925,7 @@ export class PlannerExerciseEvaluator {
         const day = week[dayIndex];
         if (day.success) {
           for (const e of day.data) {
-            const key = PlannerToProgram2.plannerExerciseKey(e, this.settings);
+            const key = PlannerToProgram.plannerExerciseKey(e, this.settings);
             const bodyKey = PlannerProgram.nameToKey(body, this.settings);
             if (key === bodyKey) {
               originalExercise = e;

@@ -11,7 +11,7 @@ import { PlannerGraph } from "../plannerGraph";
 import { LinkButton } from "../../../components/linkButton";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
+import { PlannerToProgram } from "../../../models/plannerToProgram";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -72,7 +72,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
               name="planner-swap-exercise"
               data-cy="planner-swap-exercise"
               onClick={() => {
-                const exerciseKey = PlannerToProgram2.plannerExerciseKey(evaluatedExercise, props.settings);
+                const exerciseKey = PlannerToProgram.plannerExerciseKey(evaluatedExercise, props.settings);
                 props.dispatch([
                   lb<IPlannerState>()
                     .pi("ui")

@@ -28,7 +28,7 @@ import { Equipment } from "../../../models/equipment";
 import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
-import { PlannerToProgram2 } from "../../../models/plannerToProgram2";
+import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
@@ -170,7 +170,7 @@ export class PlannerProgram {
         }
       }
       if (exercise.descriptions != null && exercise.descriptions.length > 0) {
-        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+        const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
         exerciseDescriptions[key] = exerciseDescriptions[key] || {};
         exerciseDescriptions[key][weekIndex] = exerciseDescriptions[key][weekIndex] || {};
         exerciseDescriptions[key][weekIndex][dayIndex] = exercise.descriptions;
@@ -179,7 +179,7 @@ export class PlannerProgram {
     const notused: Set<string> = new Set();
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       if (exercise.notused) {
-        notused.add(PlannerToProgram2.plannerExerciseKey(exercise, settings));
+        notused.add(PlannerToProgram.plannerExerciseKey(exercise, settings));
       }
       if (exercise.reuse) {
         const originalExercise = PlannerExerciseEvaluator.findOriginalExercisesAtWeekDay(
@@ -208,7 +208,7 @@ export class PlannerProgram {
     });
     const skipProgress: Record<string, IPlannerProgramExercise["skipProgress"]> = {};
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
-      const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+      const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
       if (notused.has(key)) {
         exercise.notused = true;
       }
@@ -221,7 +221,7 @@ export class PlannerProgram {
     this.iterateOverExercises(program, (weekIndex, dayIndex, exercise) => {
       const nonnones = exercise.properties.filter((p) => p.fnName !== "none");
       if (nonnones.length > 0) {
-        const key = PlannerToProgram2.plannerExerciseKey(exercise, settings);
+        const key = PlannerToProgram.plannerExerciseKey(exercise, settings);
         exercise.skipProgress = skipProgress[key] || [];
       }
     });
@@ -575,8 +575,8 @@ export class PlannerProgram {
               if (repeatDay?.success) {
                 const hasExercise = repeatDay.data.some(
                   (e) =>
-                    PlannerToProgram2.plannerExerciseKey(e, settings) ===
-                    PlannerToProgram2.plannerExerciseKey(exercise, settings)
+                    PlannerToProgram.plannerExerciseKey(e, settings) ===
+                    PlannerToProgram.plannerExerciseKey(exercise, settings)
                 );
                 if (!hasExercise) {
                   repeats[repeatWeekIndex] = repeats[repeatWeekIndex] || [];
@@ -889,7 +889,7 @@ export class PlannerProgram {
       exercises: { ...settings.exercises, ...planner.settings.exercises },
       equipment: { ...settings.equipment, ...planner.settings.equipment },
     };
-    const program = new PlannerToProgram2(
+    const program = new PlannerToProgram(
       newProgram.id,
       newProgram.nextDay,
       newProgram.exercises,

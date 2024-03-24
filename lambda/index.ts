@@ -58,7 +58,7 @@ import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
-import { PlannerToProgram2 } from "../src/models/plannerToProgram2";
+import { PlannerToProgram } from "../src/models/plannerToProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
 
 interface IOpenIdResponseSuccess {
@@ -1463,7 +1463,7 @@ const postUserPlannerProgramHandler: RouteHandler<
     },
   };
   const oldProgram = Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id);
-  const program = new PlannerToProgram2(
+  const program = new PlannerToProgram(
     oldProgram.id,
     oldProgram.nextDay,
     oldProgram.exercises,

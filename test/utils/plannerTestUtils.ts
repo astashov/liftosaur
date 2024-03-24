@@ -1,4 +1,4 @@
-import { PlannerToProgram2 } from "../../src/models/plannerToProgram2";
+import { PlannerToProgram } from "../../src/models/plannerToProgram";
 import { Program } from "../../src/models/program";
 import { Settings } from "../../src/models/settings";
 import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
@@ -16,7 +16,7 @@ export class PlannerTestUtils {
     settings: ISettings = Settings.build()
   ): { program: IProgram } {
     const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
-    const program = new PlannerToProgram2(UidFactory.generateUid(8), 1, [], planner, settings).convertToProgram();
+    const program = new PlannerToProgram(UidFactory.generateUid(8), 1, [], planner, settings).convertToProgram();
     const nextHistoryRecord = Program.nextProgramRecord(program, settings);
     for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
       for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {

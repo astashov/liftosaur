@@ -21,7 +21,7 @@ import { EditProgramV2PerDay } from "./editProgramV2PerDay";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { EditProgramV2Full } from "./editProgramV2Full";
-import { PlannerToProgram2 } from "../../models/plannerToProgram2";
+import { PlannerToProgram } from "../../models/plannerToProgram";
 import { CollectionUtils } from "../../utils/collection";
 import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
 import { Modal } from "../modal";
@@ -103,7 +103,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             >
               <GroupHeader size="large" name="Program Preview" />
               <ProgramPreviewOrPlayground
-                program={new PlannerToProgram2(
+                program={new PlannerToProgram(
                   props.editProgram.id,
                   props.editProgram.nextDay,
                   props.editProgram.exercises,
@@ -374,7 +374,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
               settings={props.settings}
               plannerDispatch={plannerDispatch}
               onSave={() => {
-                const newProgram = new PlannerToProgram2(
+                const newProgram = new PlannerToProgram(
                   props.editProgram.id,
                   props.editProgram.nextDay,
                   props.editProgram.exercises,

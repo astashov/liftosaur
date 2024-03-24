@@ -38,7 +38,7 @@ import { EditProgram } from "../models/editProgram";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { ProgramToPlanner } from "../models/programToPlanner";
 import { CollectionUtils } from "../utils/collection";
-import { PlannerToProgram2 } from "../models/plannerToProgram2";
+import { PlannerToProgram } from "../models/plannerToProgram";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -194,7 +194,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                               exerciseType,
                               props.settings
                             );
-                            const newProgram = new PlannerToProgram2(
+                            const newProgram = new PlannerToProgram(
                               program.id,
                               program.nextDay,
                               program.exercises,

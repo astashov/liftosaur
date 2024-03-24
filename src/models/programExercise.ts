@@ -24,7 +24,7 @@ import { CollectionUtils } from "../utils/collection";
 import { ScriptRunner } from "../parser";
 import { IAssignmentOp, ILiftoscriptEvaluatorUpdate, ILiftoscriptVariableValue } from "../liftoscriptEvaluator";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { PlannerToProgram2 } from "./plannerToProgram2";
+import { PlannerToProgram } from "./plannerToProgram";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
 
@@ -454,7 +454,7 @@ export namespace ProgramExercise {
           if (d.success) {
             return d.data.filter(
               (e) =>
-                PlannerToProgram2.plannerExerciseKey(e, settings) ===
+                PlannerToProgram.plannerExerciseKey(e, settings) ===
                 ProgramToPlanner.exerciseKeyForProgramExercise(programExercise, settings)
             );
           } else {

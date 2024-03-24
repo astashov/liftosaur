@@ -39,7 +39,7 @@ import { useRef } from "preact/compat";
 import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
-import { PlannerToProgram2 } from "../../models/plannerToProgram2";
+import { PlannerToProgram } from "../../models/plannerToProgram";
 import { UidFactory } from "../../utils/generator";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
@@ -406,7 +406,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         >
           <GroupHeader size="large" name="Program Preview" />
           <ProgramPreviewOrPlayground
-            program={new PlannerToProgram2(
+            program={new PlannerToProgram(
               UidFactory.generateUid(8),
               1,
               [],

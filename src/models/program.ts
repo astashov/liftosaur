@@ -43,7 +43,7 @@ import { StringUtils } from "../utils/string";
 import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
-import { PlannerToProgram2 } from "./plannerToProgram2";
+import { PlannerToProgram } from "./plannerToProgram";
 import { IPlannerState } from "../pages/planner/models/types";
 
 declare let __HOST__: string;
@@ -719,7 +719,7 @@ export namespace Program {
         descriptionIndexMap,
         dereuseExercises
       ).convertToPlanner();
-      newProgram = new PlannerToProgram2(
+      newProgram = new PlannerToProgram(
         newProgram.id,
         newProgram.nextDay,
         newProgram.exercises,
