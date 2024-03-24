@@ -24,12 +24,12 @@ import {
 import { ObjectUtils } from "../../../utils/object";
 import { equipmentName, Exercise, IExercise } from "../../../models/exercise";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
-import { lf } from "lens-shmens";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
 import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerKey } from "../plannerKey";
+import { PlannerEvaluator } from "../plannerEvaluator";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -599,79 +599,9 @@ export class PlannerProgram {
 
   public static evaluate(
     plannerProgram: IPlannerProgram,
-    settings: ISettings,
-    args?: { skipDescriptionPostProcess?: boolean }
-  ): { evaluatedWeeks: IPlannerEvalResult[][]; repeats: IPlannerProgramExercise[][][]; exerciseFullNames: string[] } {
-    let dayIndex = 0;
-    const exerciseFullNames: Set<string> = new Set();
-    let evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
-      return week.days.map((day, dayInWeekIndex) => {
-        const tree = plannerExerciseParser.parse(day.exerciseText);
-        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
-          day: dayIndex + 1,
-          dayInWeek: dayInWeekIndex + 1,
-          week: weekIndex + 1,
-        });
-        const result = evaluator.evaluate(tree.topNode);
-        dayIndex += 1;
-        if (result.success) {
-          const exercises = result.data[0]?.days[0]?.exercises || [];
-          for (const e of exercises) {
-            exerciseFullNames.add(e.fullName);
-          }
-          return { success: true, data: exercises };
-        } else {
-          return result;
-        }
-      });
-    });
-    const repeats = this.fillRepeats(evaluatedWeeks, settings);
-    dayIndex = 0;
-    const errors: { error: string; dayData: Required<IDayData> }[] = [];
-    plannerProgram.weeks.forEach((week, weekIndex) => {
-      week.days.forEach((day, dayInWeekIndex) => {
-        if (evaluatedWeeks[weekIndex][dayInWeekIndex].success) {
-          const tree = plannerExerciseParser.parse(day.exerciseText);
-          const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday", {
-            day: dayIndex + 1,
-            dayInWeek: dayInWeekIndex + 1,
-            week: weekIndex + 1,
-          });
-          const error = evaluator.postEvaluateCheck(tree.topNode, evaluatedWeeks);
-          if (error) {
-            evaluatedWeeks = lf(evaluatedWeeks).i(weekIndex).i(dayInWeekIndex).set({ success: false, error });
-          }
-        }
-        dayIndex += 1;
-      });
-    });
-
-    const evaluatedCheckError = this.evaluatedCheck(evaluatedWeeks, settings);
-    if (evaluatedCheckError) {
-      evaluatedWeeks[evaluatedCheckError.weekIndex][evaluatedCheckError.dayInWeekIndex] = {
-        success: false,
-        error: evaluatedCheckError.error,
-      };
-    }
-    this.postProcess(settings, evaluatedWeeks, args);
-    try {
-      PlannerProgram.getExerciseTypeToProperties(evaluatedWeeks, settings.exercises);
-      PlannerProgram.getExerciseTypeToWarmupSets(evaluatedWeeks, settings.exercises);
-    } catch (e) {
-      if (e instanceof PlannerDayDataError) {
-        errors.push({ error: e.message, dayData: e.dayData });
-      } else {
-        throw e;
-      }
-    }
-    for (const error of errors) {
-      evaluatedWeeks[error.dayData.week][error.dayData.dayInWeek] = {
-        success: false,
-        error: new PlannerSyntaxError(error.error, 0, 0, 0, 1),
-      };
-    }
-
-    return { repeats, evaluatedWeeks, exerciseFullNames: Array.from(exerciseFullNames) };
+    settings: ISettings
+  ): { evaluatedWeeks: IPlannerEvalResult[][]; exerciseFullNames: string[] } {
+    return PlannerEvaluator.evaluate(plannerProgram, settings);
   }
 
   public static evaluatedCheck(

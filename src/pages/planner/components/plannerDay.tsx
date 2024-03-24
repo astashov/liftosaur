@@ -25,7 +25,6 @@ import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
 import { PlannerCodeBlock } from "./plannerCodeBlock";
 
 interface IPlannerDayProps {
-  repeats: IPlannerProgramExercise[];
   weekIndex: number;
   dayIndex: number;
   day: IPlannerProgramDay;
@@ -58,6 +57,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
+  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -111,9 +111,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 }
               }}
             />
-            {props.repeats.length > 0 && (
+            {repeats.length > 0 && (
               <ul className="pl-1 ml-8 overflow-x-auto list-disc">
-                {props.repeats.map((e) => (
+                {repeats.map((e) => (
                   <li>
                     <PlannerCodeBlock script={e.text} />
                   </li>

@@ -231,7 +231,7 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
     const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
     expect(evaluatedWeeks[2][0]).to.deep.equal({
       success: false,
-      error: new PlannerSyntaxError("Reused and repeated exercises mismatch for 'Squat'", 0, 0, 0, 0),
+      error: new PlannerSyntaxError("No such exercise tmp: Squat at week: 3 (4:13)", 0, 0, 0, 0),
     });
   });
 

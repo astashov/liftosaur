@@ -27,7 +27,6 @@ interface IEditProgramV2DayProps {
   weekIndex: number;
   dayIndex: number;
   plannerDay: IPlannerProgramDay;
-  repeats: IPlannerProgramExercise[];
   exerciseFullNames: string[];
   showDelete: boolean;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
@@ -53,6 +52,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(
     !!(props.ui.focusedDay && props.ui.focusedDay.dayInWeek !== dayIndex + 1)
   );
+  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
 
   return (
     <div className="flex flex-col pb-4 md:flex-row">
@@ -167,9 +167,9 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
                   }
                 }}
               />
-              {props.repeats.length > 0 && (
+              {repeats.length > 0 && (
                 <ul className="pl-1 ml-8 overflow-x-auto list-disc">
-                  {props.repeats.map((e) => (
+                  {repeats.map((e) => (
                     <li>
                       <PlannerCodeBlock script={e.text} />
                     </li>

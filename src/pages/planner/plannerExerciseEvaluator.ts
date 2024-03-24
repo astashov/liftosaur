@@ -37,11 +37,23 @@ export interface IPlannerTopLineItem {
   used?: boolean;
 }
 
+export type IPlannerSyntaxPointer = { line: number; offset: number; from: number; to: number };
+
 export class PlannerSyntaxError extends SyntaxError {
   public readonly line: number;
   public readonly offset: number;
   public readonly from: number;
   public readonly to: number;
+
+  public static fromPoint(message: string, point: IPlannerSyntaxPointer): PlannerSyntaxError {
+    return new PlannerSyntaxError(
+      `${message} (${point.line}:${point.offset})`,
+      point.line,
+      point.offset,
+      point.from,
+      point.to
+    );
+  }
 
   constructor(message: string, line: number, offset: number, from: number, to: number) {
     super(message);
@@ -113,9 +125,18 @@ export class PlannerExerciseEvaluator {
     return script;
   }
 
-  private error(message: string, node: SyntaxNode): never {
+  public static isEqualProperty(a: IPlannerProgramProperty, b: IPlannerProgramProperty): boolean {
+    return a.fnName === b.fnName && a.fnArgs.join() === b.fnArgs.join() && a.script === b.script && a.body === b.body;
+  }
+
+  private getPoint(node: SyntaxNode): IPlannerSyntaxPointer {
     const [line, offset] = this.getLineAndOffset(node);
-    throw new PlannerSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to);
+    return { line, offset, from: node.from, to: node.to };
+  }
+
+  private error(message: string, node: SyntaxNode): never {
+    const point = this.getPoint(node);
+    throw PlannerSyntaxError.fromPoint(message, point);
   }
 
   private getLineAndOffset(node: SyntaxNode): [number, number] {
@@ -783,6 +804,7 @@ export class PlannerExerciseEvaluator {
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
+      const key = PlannerKey.fromFullName(fullName, this.settings);
       const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
@@ -841,8 +863,43 @@ export class PlannerExerciseEvaluator {
         isCurrent: i === currentDescriptionIndex,
       }));
       this.latestDescriptions = [];
+      const fullNamePoint = this.getPoint(nameNode);
+
+      const reuseSetsNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => n.getChild(PlannerNodeName.ReuseSectionWithWeekDay))
+        .filter((n) => n)[0];
+      const reuseSetPoint = reuseSetsNode ? this.getPoint(reuseSetsNode) : undefined;
+
+      const progressNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => {
+          const node = n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.ExercisePropertyName);
+          return node != null && this.getValueTrim(node) === "progress" ? node : undefined;
+        })
+        .flat(2)
+        .filter((n) => n)[0];
+      const progressPoint = progressNode ? this.getPoint(progressNode) : undefined;
+
+      const updateNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => {
+          const node = n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.ExercisePropertyName);
+          return node != null && this.getValueTrim(node) === "update" ? node : undefined;
+        })
+        .flat(2)
+        .filter((n) => n)[0];
+      const updatePoint = updateNode ? this.getPoint(updateNode) : undefined;
+
+      const warmupNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.WarmupExerciseSets))
+        .flat(2)
+        .filter((n) => n)[0];
+      const warmupPoint = warmupNode ? this.getPoint(warmupNode) : undefined;
 
       const plannerExercise: IPlannerProgramExercise = {
+        key,
         fullName,
         label,
         text,
@@ -866,6 +923,13 @@ export class PlannerExerciseEvaluator {
           timer,
           percentage,
           weight,
+        },
+        points: {
+          fullName: fullNamePoint,
+          reuseSetPoint,
+          progressPoint,
+          updatePoint,
+          warmupPoint,
         },
       };
       this.weeks[this.weeks.length - 1].days[this.weeks[this.weeks.length - 1].days.length - 1].exercises.push(

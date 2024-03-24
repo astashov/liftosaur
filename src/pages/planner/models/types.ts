@@ -1,6 +1,7 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
 import { IExerciseType } from "../../../types";
+import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
 import {
   IDayData,
   IPlannerProgram,
@@ -26,6 +27,7 @@ export interface IPlannerProgramExerciseGlobals {
 }
 
 export interface IPlannerProgramExercise {
+  key: string;
   fullName: string;
   label?: string;
   repeat: number[];
@@ -44,6 +46,13 @@ export interface IPlannerProgramExercise {
   descriptions: IPlannerProgramExerciseDescription[];
   properties: IPlannerProgramProperty[];
   globals: IPlannerProgramExerciseGlobals;
+  points: {
+    fullName: IPlannerSyntaxPointer;
+    reuseSetPoint?: IPlannerSyntaxPointer;
+    progressPoint?: IPlannerSyntaxPointer;
+    updatePoint?: IPlannerSyntaxPointer;
+    warmupPoint?: IPlannerSyntaxPointer;
+  };
 }
 
 export interface IPlannerProgramExerciseSetVariation {
@@ -84,6 +93,7 @@ export interface IPlannerProgramProperty {
   fnArgs: string[];
   script?: string;
   body?: string;
+  reuse?: IPlannerProgramProperty;
 }
 
 export interface IPlannerProgramExerciseRepRange {

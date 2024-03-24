@@ -94,7 +94,7 @@ export class ProgramToPlanner {
     plannerProgram: IPlannerProgram,
     settings: ISettings
   ): Record<string, Record<number, [number, number]>> {
-    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings, { skipDescriptionPostProcess: true });
+    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings);
 
     const variationsMap: Record<string, Record<number, [number, number]>> = {};
     const variationsRunningIndex: Record<string, number> = {};
