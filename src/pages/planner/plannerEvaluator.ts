@@ -1,6 +1,11 @@
 import { IPlannerProgram, ISettings, IDayData } from "../../types";
 import { parser as plannerExerciseParser } from "./plannerExerciseParser";
-import { IPlannerEvalResult, PlannerExerciseEvaluator, PlannerSyntaxError } from "./plannerExerciseEvaluator";
+import {
+  IPlannerEvalFullResult,
+  IPlannerEvalResult,
+  PlannerExerciseEvaluator,
+  PlannerSyntaxError,
+} from "./plannerExerciseEvaluator";
 import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseDescription,
@@ -10,6 +15,7 @@ import {
 import { PlannerKey } from "./plannerKey";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
+import { PlannerProgram } from "./models/plannerProgram";
 
 type IByExercise<T> = Record<string, T>;
 type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
@@ -29,7 +35,72 @@ interface IPlannerEvalMetadata {
 }
 
 export class PlannerEvaluator {
-  private static getEvaluatedWeeks(
+  private static fillInMetadata(
+    exercise: IPlannerProgramExercise,
+    metadata: IPlannerEvalMetadata,
+    weekIndex: number,
+    dayIndex: number,
+    dayInWeekIndex: number
+  ): void {
+    if (metadata.byWeekDayExercise[weekIndex]?.[dayInWeekIndex]?.[exercise.key] != null) {
+      throw PlannerSyntaxError.fromPoint(
+        `Exercise ${exercise.key} is already used in this day. Combine them together, or add a label to separate out.`,
+        exercise.points.fullName
+      );
+    }
+    for (const propertyName of ["progress", "update"] as const) {
+      const property = exercise.properties.find((p) => p.name === propertyName);
+      if (property != null) {
+        const existingProperty = metadata.properties[propertyName][exercise.key];
+        if (
+          existingProperty != null &&
+          property.fnName !== "none" &&
+          !PlannerExerciseEvaluator.isEqualProperty(property, existingProperty.property)
+        ) {
+          throw PlannerSyntaxError.fromPoint(
+            `Same property '${propertyName}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
+              `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
+              `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
+            (propertyName === "progress" ? exercise.points.progressPoint : exercise.points.updatePoint) ||
+              exercise.points.fullName
+          );
+        }
+        if (propertyName === "progress" && property.fnName === "none") {
+          metadata.skipProgresses[exercise.key] = metadata.skipProgresses[exercise.key] || [];
+          metadata.skipProgresses[exercise.key].push({ week: weekIndex + 1, day: dayInWeekIndex + 1 });
+        } else {
+          metadata.properties[propertyName][exercise.key] = {
+            property: property,
+            dayData: { week: weekIndex, dayInWeek: dayInWeekIndex, day: dayIndex },
+          };
+        }
+      }
+    }
+    if (exercise.notused) {
+      metadata.notused.add(exercise.key);
+    }
+    if (exercise.warmupSets != null) {
+      const scheme = JSON.stringify(exercise.warmupSets);
+      const ws = metadata.properties.warmup[exercise.key];
+      if (ws != null && JSON.stringify(ws.warmupSets) !== scheme) {
+        throw PlannerSyntaxError.fromPoint(
+          `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
+            `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
+            `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
+          exercise.points.warmupPoint || exercise.points.fullName
+        );
+      }
+      metadata.properties.warmup[exercise.key] = {
+        warmupSets: exercise.warmupSets,
+        dayData: { week: weekIndex, dayInWeek: dayInWeekIndex, day: dayIndex },
+      };
+    }
+    this.setByWeekDayExercise(metadata.byWeekDayExercise, exercise.key, weekIndex, dayInWeekIndex, exercise);
+    this.setByExerciseWeekDay(metadata.byExerciseWeekDay, exercise.key, weekIndex, dayInWeekIndex, exercise);
+    metadata.fullNames.add(exercise.fullName);
+  }
+
+  private static getPerDayEvaluatedWeeks(
     plannerProgram: IPlannerProgram,
     settings: ISettings
   ): {
@@ -37,23 +108,13 @@ export class PlannerEvaluator {
     metadata: IPlannerEvalMetadata;
   } {
     let dayIndex = 0;
-    const fullNames: Set<string> = new Set();
-    const byExerciseWeekDay: IByExerciseWeekDay<IPlannerProgramExercise> = {};
-    const byWeekDayExercise: IByWeekDayExercise<IPlannerProgramExercise> = {};
-    const properties: {
-      progress: IByExercise<{ property: IPlannerProgramProperty; dayData: Required<IDayData> }>;
-      update: IByExercise<{ property: IPlannerProgramProperty; dayData: Required<IDayData> }>;
-      warmup: IByExercise<{ warmupSets: IPlannerProgramExerciseWarmupSet[]; dayData: Required<IDayData> }>;
-    } = { progress: {}, update: {}, warmup: {} };
-    const skipProgresses: IByExercise<IPlannerProgramExercise["skipProgress"]> = {};
-    const notused: Set<string> = new Set();
     const metadata: IPlannerEvalMetadata = {
-      byExerciseWeekDay,
-      byWeekDayExercise,
-      fullNames,
-      notused,
-      skipProgresses,
-      properties,
+      byExerciseWeekDay: {},
+      byWeekDayExercise: {},
+      fullNames: new Set(),
+      notused: new Set(),
+      skipProgresses: {},
+      properties: { progress: {}, update: {}, warmup: {} },
     };
     const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
@@ -67,71 +128,16 @@ export class PlannerEvaluator {
         dayIndex += 1;
         if (result.success) {
           const exercises = result.data[0]?.days[0]?.exercises || [];
-          for (const e of exercises) {
-            if (byWeekDayExercise[weekIndex]?.[dayInWeekIndex]?.[e.key] != null) {
-              return {
-                success: false,
-                error: PlannerSyntaxError.fromPoint(
-                  `Exercise ${e.key} is already used in this day. Combine them together, or add a label to separate out.`,
-                  e.points.fullName
-                ),
-              };
-            }
-            for (const propertyName of ["progress", "update"] as const) {
-              const property = e.properties.find((p) => p.name === propertyName);
-              if (property != null) {
-                const existingProperty = properties[propertyName][e.key];
-                if (
-                  existingProperty != null &&
-                  property.fnName !== "none" &&
-                  !PlannerExerciseEvaluator.isEqualProperty(property, existingProperty.property)
-                ) {
-                  return {
-                    success: false,
-                    error: PlannerSyntaxError.fromPoint(
-                      `Same property '${propertyName}' is specified with different arguments in multiple weeks/days for exercise '${e.name}': both in ` +
-                        `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
-                        `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
-                      (propertyName === "progress" ? e.points.progressPoint : e.points.updatePoint) || e.points.fullName
-                    ),
-                  };
-                }
-                if (propertyName === "progress" && property.fnName === "none") {
-                  skipProgresses[e.key] = skipProgresses[e.key] || [];
-                  skipProgresses[e.key].push({ week: weekIndex + 1, day: dayInWeekIndex + 1 });
-                } else {
-                  properties[propertyName][e.key] = {
-                    property: property,
-                    dayData: { week: weekIndex, dayInWeek: dayInWeekIndex, day: dayIndex },
-                  };
-                }
+          for (const exercise of exercises) {
+            try {
+              this.fillInMetadata(exercise, metadata, weekIndex, dayIndex, dayInWeekIndex);
+            } catch (e) {
+              if (e instanceof PlannerSyntaxError) {
+                return { success: false, error: e };
+              } else {
+                throw e;
               }
             }
-            if (e.notused) {
-              notused.add(e.key);
-            }
-            if (e.warmupSets != null) {
-              const scheme = JSON.stringify(e.warmupSets);
-              const ws = properties.warmup[e.key];
-              if (ws != null && JSON.stringify(ws.warmupSets) !== scheme) {
-                return {
-                  success: false,
-                  error: PlannerSyntaxError.fromPoint(
-                    `Different warmup sets are specified in multiple weeks/days for exercise '${e.name}': both in ` +
-                      `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
-                      `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
-                    e.points.warmupPoint || e.points.fullName
-                  ),
-                };
-              }
-              properties.warmup[e.key] = {
-                warmupSets: e.warmupSets,
-                dayData: { week: weekIndex, dayInWeek: dayInWeekIndex, day: dayIndex },
-              };
-            }
-            this.setByWeekDayExercise(byWeekDayExercise, e.key, weekIndex, dayInWeekIndex, e);
-            this.setByExerciseWeekDay(byExerciseWeekDay, e.key, weekIndex, dayInWeekIndex, e);
-            fullNames.add(e.fullName);
           }
           return { success: true, data: exercises };
         } else {
@@ -140,6 +146,51 @@ export class PlannerEvaluator {
       });
     });
     return { evaluatedWeeks, metadata };
+  }
+
+  private static getFullEvaluatedWeeks(
+    fullProgramText: string,
+    settings: ISettings
+  ): {
+    evaluatedWeeks: IPlannerEvalFullResult;
+    metadata: IPlannerEvalMetadata;
+  } {
+    let dayIndex = 0;
+    const metadata: IPlannerEvalMetadata = {
+      byExerciseWeekDay: {},
+      byWeekDayExercise: {},
+      fullNames: new Set(),
+      notused: new Set(),
+      skipProgresses: {},
+      properties: { progress: {}, update: {}, warmup: {} },
+    };
+    const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
+    const tree = plannerExerciseParser.parse(fullProgramText);
+    const result = evaluator.evaluate(tree.topNode);
+    if (result.success) {
+      try {
+        for (let weekIndex = 0; weekIndex < result.data.length; weekIndex += 1) {
+          const week = result.data[weekIndex];
+          for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
+            const day = week.days[dayInWeekIndex];
+            const exercises = day.exercises;
+            for (const exercise of exercises) {
+              this.fillInMetadata(exercise, metadata, weekIndex, dayIndex, dayInWeekIndex);
+            }
+            dayIndex += 1;
+          }
+        }
+      } catch (e) {
+        if (e instanceof PlannerSyntaxError) {
+          return { evaluatedWeeks: { success: false, error: e }, metadata };
+        } else {
+          throw e;
+        }
+      }
+      return { evaluatedWeeks: result, metadata };
+    } else {
+      return { evaluatedWeeks: result, metadata };
+    }
   }
 
   private static fillRepeats(
@@ -423,8 +474,30 @@ export class PlannerEvaluator {
     plannerProgram: IPlannerProgram,
     settings: ISettings
   ): { evaluatedWeeks: IPlannerEvalResult[][]; exerciseFullNames: string[] } {
-    const { evaluatedWeeks, metadata } = this.getEvaluatedWeeks(plannerProgram, settings);
+    const { evaluatedWeeks, metadata } = this.getPerDayEvaluatedWeeks(plannerProgram, settings);
     this.postProcess(evaluatedWeeks, settings, metadata);
+    return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
+  }
+
+  public static evaluateFull(
+    fullProgramText: string,
+    settings: ISettings
+  ): { evaluatedWeeks: IPlannerEvalFullResult; exerciseFullNames: string[] } {
+    const { evaluatedWeeks, metadata } = this.getFullEvaluatedWeeks(fullProgramText, settings);
+    if (evaluatedWeeks.success) {
+      const perDayEvaluatedWeeks = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
+      this.postProcess(perDayEvaluatedWeeks, settings, metadata);
+      for (const week of perDayEvaluatedWeeks) {
+        for (const day of week) {
+          if (!day.success) {
+            return {
+              evaluatedWeeks: { success: false, error: day.error },
+              exerciseFullNames: Array.from(metadata.fullNames),
+            };
+          }
+        }
+      }
+    }
     return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
   }
 
