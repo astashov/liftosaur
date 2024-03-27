@@ -155,9 +155,9 @@ export class PlannerToProgram {
             let finishDayExpr = programExercise.finishDayExpr;
             let updateDayExpr = programExercise.updateDayExpr;
             let warmupSets: IProgramExerciseWarmupSet[] | undefined = programExercise.warmupSets;
-            if (evalExercise.warmupSets) {
+            if (PlannerProgramExercise.warmups(evalExercise)) {
               const sets: IProgramExerciseWarmupSet[] = [];
-              for (const ws of evalExercise.warmupSets) {
+              for (const ws of PlannerProgramExercise.warmups(evalExercise) || []) {
                 for (let i = 0; i < ws.numberOfSets; i += 1) {
                   let value: IWeight | number | undefined = ws.percentage ? ws.percentage / 100 : undefined;
                   if (value == null) {
@@ -179,23 +179,12 @@ export class PlannerToProgram {
             let reuseUpdateDayScript: string | undefined;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
-                if (property.fnName === "custom") {
-                  state = { ...state, ...PlannerToProgram.fnArgsToState(property.fnArgs) };
-                  if (property.script) {
-                    finishDayExpr = property.script ?? "";
-                    if (finishDayExpr) {
-                      finishDayExpr = this.applyProgressNone(finishDayExpr, evalExercise.skipProgress);
-                    }
-                  } else if (property.body) {
-                    reuseFinishDayScript = property.body;
-                  }
-                } else if (property.fnName === "lp") {
-                  ({ state, finishDayExpr } = this.addLp(property, this.settings, evalExercise.skipProgress));
-                } else if (property.fnName === "dp") {
-                  ({ state, finishDayExpr } = this.addDp(property, this.settings, evalExercise.skipProgress));
-                } else if (property.fnName === "sum") {
-                  ({ state, finishDayExpr } = this.addSum(property, this.settings, evalExercise.skipProgress));
-                }
+                ({ state, finishDayExpr, reuseFinishDayScript } = this.getProgress(
+                  evalExercise,
+                  property,
+                  state,
+                  finishDayExpr
+                ));
               }
               if (property.name === "update") {
                 if (property.fnName === "custom") {
@@ -299,6 +288,33 @@ export class PlannerToProgram {
       (e) => e.name.toLowerCase() === name.toLowerCase() && (equipKey == null || e.exerciseType.equipment === equipKey)
     );
     return originalProgramExercise?.id;
+  }
+
+  private getProgress(
+    evalExercise: IPlannerProgramExercise,
+    property: IPlannerProgramProperty,
+    state: IProgramState,
+    finishDayExpr: string
+  ): { state: IProgramState; finishDayExpr: string; reuseFinishDayScript: string | undefined } {
+    let reuseFinishDayScript;
+    if (property.fnName === "custom") {
+      state = { ...state, ...PlannerToProgram.fnArgsToState(property.fnArgs) };
+      if (property.script) {
+        finishDayExpr = property.script ?? "";
+        if (finishDayExpr) {
+          finishDayExpr = this.applyProgressNone(finishDayExpr, evalExercise.skipProgress);
+        }
+      } else if (property.body) {
+        reuseFinishDayScript = property.body;
+      }
+    } else if (property.fnName === "lp") {
+      ({ state, finishDayExpr } = this.addLp(property, this.settings, evalExercise.skipProgress));
+    } else if (property.fnName === "dp") {
+      ({ state, finishDayExpr } = this.addDp(property, this.settings, evalExercise.skipProgress));
+    } else if (property.fnName === "sum") {
+      ({ state, finishDayExpr } = this.addSum(property, this.settings, evalExercise.skipProgress));
+    }
+    return { state, finishDayExpr, reuseFinishDayScript };
   }
 
   private applyProgressNone(script: string, skipProgress: IPlannerProgramExercise["skipProgress"]): string {

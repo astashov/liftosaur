@@ -80,11 +80,13 @@ export interface IPlannerProgramExerciseWarmupSet {
 }
 
 export interface IPlannerProgramReuse {
-  exercise: string;
+  fullName: string;
   week?: number;
   day?: number;
-  sets?: IPlannerProgramExerciseSet[];
-  globals?: IPlannerProgramExerciseGlobals;
+  exercise?: IPlannerProgramExercise;
+  exerciseWeek?: number;
+  exerciseDayInWeek?: number;
+  exerciseDay?: number;
 }
 
 export interface IPlannerProgramProperty {

@@ -16,10 +16,11 @@ import { PlannerKey } from "./plannerKey";
 import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
 import { PlannerProgram } from "./models/plannerProgram";
+import { PP } from "../../models/pp";
 
-type IByExercise<T> = Record<string, T>;
-type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
-type IByWeekDayExercise<T> = Record<number, Record<number, Record<string, T>>>;
+export type IByExercise<T> = Record<string, T>;
+export type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
+export type IByWeekDayExercise<T> = Record<number, Record<number, Record<string, T>>>;
 
 interface IPlannerEvalMetadata {
   byExerciseWeekDay: IByExerciseWeekDay<IPlannerProgramExercise>;
@@ -226,7 +227,7 @@ export class PlannerEvaluator {
       const reuse = exercise.reuse;
       const originalExercises = this.findOriginalExercisesAtWeekDay(
         settings,
-        reuse.exercise,
+        reuse.fullName,
         evaluatedWeeks,
         reuse.week ?? weekIndex + 1 ?? 1,
         reuse.day
@@ -240,26 +241,28 @@ export class PlannerEvaluator {
       const originalExercise = originalExercises[0];
       if (!originalExercise) {
         throw PlannerSyntaxError.fromPoint(
-          `No such exercise ${reuse.exercise} at week: ${reuse.week ?? weekIndex + 1}${
+          `No such exercise ${reuse.fullName} at week: ${reuse.week ?? weekIndex + 1}${
             reuse.day != null ? `, day: ${reuse.day}` : ""
           }`,
           exercise.points.reuseSetPoint
         );
       }
-      if (originalExercise.reuse?.exercise != null) {
+      if (originalExercise.exercise.reuse?.fullName != null) {
         throw PlannerSyntaxError.fromPoint(
           `Original exercise cannot reuse another exercise's sets x reps`,
           exercise.points.reuseSetPoint
         );
       }
-      if (originalExercise.setVariations.length > 1) {
+      if (originalExercise.exercise.setVariations.length > 1) {
         throw PlannerSyntaxError.fromPoint(
           `Original exercise cannot have mutliple set variations`,
           exercise.points.reuseSetPoint
         );
       }
-      exercise.reuse.sets = originalExercise.setVariations[0].sets;
-      exercise.reuse.globals = originalExercise.globals;
+      exercise.reuse.exercise = originalExercise.exercise;
+      exercise.reuse.exerciseWeek = originalExercise.dayData.week;
+      exercise.reuse.exerciseDayInWeek = originalExercise.dayData.dayInWeek;
+      exercise.reuse.exerciseDay = originalExercise.dayData.day;
     }
   }
 
@@ -448,25 +451,24 @@ export class PlannerEvaluator {
     program: IPlannerEvalResult[][],
     atWeek: number,
     atDay?: number
-  ): IPlannerProgramExercise[] {
-    const originalExercises: IPlannerProgramExercise[] = [];
-    const week = program[atWeek - 1];
-    if (week != null) {
-      for (let dayIndex = 0; dayIndex < week.length; dayIndex++) {
-        if (atDay == null || atDay === dayIndex + 1) {
-          const day = week[dayIndex];
-          if (day.success) {
-            for (const e of day.data) {
-              const reusingKey = PlannerKey.fromPlannerExercise(e, settings);
-              const originalKey = PlannerKey.fromFullName(fullName, settings);
-              if (reusingKey === originalKey) {
-                originalExercises.push(e);
-              }
-            }
-          }
+  ): { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] {
+    const originalExercises: { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] = [];
+    PP.iterate(program, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+      if (weekIndex === atWeek - 1 && (atDay == null || atDay === dayInWeekIndex + 1)) {
+        const reusingKey = PlannerKey.fromPlannerExercise(exercise, settings);
+        const originalKey = PlannerKey.fromFullName(fullName, settings);
+        if (reusingKey === originalKey) {
+          originalExercises.push({
+            exercise,
+            dayData: {
+              week: atWeek,
+              dayInWeek: dayInWeekIndex + 1,
+              day: dayIndex + 1,
+            },
+          });
         }
       }
-    }
+    });
     return originalExercises;
   }
 

@@ -445,8 +445,7 @@ export namespace ProgramExercise {
     updates: ILiftoscriptEvaluatorUpdate[],
     settings: ISettings,
     setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>,
-    descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>,
-    dereuseExercises: Record<string, Record<string, Set<string>>>
+    descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]>
   ): IProgramExercise {
     const evaluatedWeeks = PlannerProgram.evaluate(plannerProgram, settings).evaluatedWeeks.map((w) =>
       CollectionUtils.compact(
@@ -487,7 +486,6 @@ export namespace ProgramExercise {
                   (variation === "*" || variation === variationIndex + 1) &&
                   (set === "*" || set === setIndex + 1)
                 ) {
-                  const originalSet = ObjectUtils.clone(sets[setIndex]);
                   if (key === "RPE") {
                     operation(programExercise, sets[setIndex], dayData, settings, "rpeExpr", value.value, value.op);
                   } else if (key === "reps") {
@@ -498,12 +496,6 @@ export namespace ProgramExercise {
                     operation(programExercise, sets[setIndex], dayData, settings, "timerExpr", value.value, value.op);
                   } else if (key === "weights") {
                     operation(programExercise, sets[setIndex], dayData, settings, "weightExpr", value.value, value.op);
-                  }
-                  if (!ProgramSet.isEqual(originalSet, sets[setIndex])) {
-                    dereuseExercises[weekIndex] = dereuseExercises[weekIndex] || {};
-                    dereuseExercises[weekIndex][dayInWeekIndex] =
-                      dereuseExercises[weekIndex][dayInWeekIndex] || new Set();
-                    dereuseExercises[weekIndex][dayInWeekIndex].add(exerciseKey);
                   }
                 }
               }

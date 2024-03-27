@@ -87,7 +87,7 @@ test("Program Preview", async ({ page }) => {
   ).toHaveCount(3);
   await expect(
     page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-nonstarted")
-  ).toHaveCount(2);
+  ).toHaveCount(3);
   await expect(
     page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-amrap-nonstarted")
   ).toHaveCount(1);

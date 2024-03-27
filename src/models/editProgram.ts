@@ -674,7 +674,7 @@ export namespace EditProgram {
         .recordModify((pgms) => {
           let program = CollectionUtils.findBy(pgms, "id", programId);
           if (program && program.planner) {
-            const newPlanner = new ProgramToPlanner(program, program.planner, settings, {}, {}, {}).convertToPlanner();
+            const newPlanner = new ProgramToPlanner(program, program.planner, settings, {}, {}).convertToPlanner();
             program = { ...program, planner: newPlanner };
             return CollectionUtils.setBy(pgms, "id", program.id, program);
           } else {

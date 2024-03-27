@@ -177,8 +177,8 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 tmp: Squat[1-5] / used: none / 2x5 / 86.53% / progress: custom() {~
   weights[3:*:*:*] += 10lb
 ~}
-Squat[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
-Bench Press[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
+Squat[1-2] / ...tmp: Squat / 86.53% / progress: custom() { ...tmp: Squat }
+Bench Press[1-2] / ...tmp: Squat / 86.53% / progress: custom() { ...tmp: Squat }
 
 
 # Week 2
@@ -188,14 +188,14 @@ Bench Press[1-2] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 
 # Week 3
 ## Day 1
-Squat / 2x5 / 126.8lb
-Bench Press / 2x5 / 126.8lb
+Squat / ...tmp: Squat / 126.8lb
+Bench Press / ...tmp: Squat / 126.8lb
 
 
 # Week 4
 ## Day 1
-Squat[4-5] / ...tmp: Squat
-Bench Press[4-5] / ...tmp: Squat
+Squat[4-5] / ...tmp: Squat / 86.53%
+Bench Press[4-5] / ...tmp: Squat / 86.53%
 
 
 # Week 5
@@ -274,8 +274,8 @@ Bicep Curl[2-5] / 5x5
     expect(newText).to.equal(`# Week 1
 ## Day 1
 tmp: Squat[1-5] / used: none / 2x5 / 86.53%
-Squat[3,1-5] / ...tmp: Squat
-Bench Press[2,1-5] / ...tmp: Squat
+Squat[3,1-5] / ...tmp: Squat / 86.53%
+Bench Press[2,1-5] / ...tmp: Squat / 86.53%
 
 
 # Week 2

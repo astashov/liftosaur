@@ -1,4 +1,9 @@
-import { IPlannerProgramExercise, IPlannerProgramExerciseSet, IPlannerProgramExerciseSetVariation } from "./types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseSet,
+  IPlannerProgramExerciseSetVariation,
+  IPlannerProgramExerciseWarmupSet,
+} from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
 
@@ -14,13 +19,17 @@ export class PlannerProgramExercise {
       : setVariations;
   }
 
+  public static warmups(exercise: IPlannerProgramExercise): IPlannerProgramExerciseWarmupSet[] | undefined {
+    return exercise.warmupSets || exercise.reuse?.exercise?.warmupSets;
+  }
+
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
-    const reusedSets = exercise.reuse?.sets;
-    const reusedGlobals = exercise.reuse?.globals || {};
+    const reusedSets = exercise.reuse?.exercise?.sets;
+    const reusedGlobals = exercise.reuse?.exercise?.globals || {};
     variationIndex = variationIndex ?? this.currentSetVariation(exercise);
     const currentSets = exercise.setVariations[variationIndex]?.sets;
     const currentGlobals = exercise.globals;
-    const sets = (reusedSets ? reusedSets : currentSets) ?? [];
+    const sets = currentSets || reusedSets || [];
     return sets.map((aSet) => {
       const set: IPlannerProgramExerciseSet = ObjectUtils.clone(aSet);
       set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;

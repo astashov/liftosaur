@@ -29,6 +29,8 @@ export class PlannerDayDataError extends Error {
   }
 }
 
+export type IDereuseDecision = "all" | "weight" | "rpe" | "timer";
+
 export class PlannerProgram {
   public static isValid(program: IPlannerProgram, settings: ISettings): boolean {
     const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);

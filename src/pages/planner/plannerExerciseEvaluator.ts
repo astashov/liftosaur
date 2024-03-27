@@ -602,7 +602,7 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       const { week, day } = this.getReuseWeekDay(expr.getChild(PlannerNodeName.WeekDay));
-      return { type: "reuse", data: { exercise: name, week, day } };
+      return { type: "reuse", data: { fullName: name, week, day } };
     } else {
       assert(PlannerNodeName.ReuseSectionWithWeekDay);
     }
@@ -842,10 +842,7 @@ export class PlannerExerciseEvaluator {
           throw new Error(`Unexpected section type`);
         }
       }
-      const hasRepRanges = allSets.length > 0;
-      if (hasRepRanges && reuse) {
-        this.error("If you're reusing sets x reps, you cannot also specify them in this exercise", nameNode);
-      }
+      const hasRepRanges = allSets.filter((s) => s.repRange != null).length > 0;
       if (!hasRepRanges && !reuse) {
         this.error("Exercise must have sets x reps specified in one of sections", nameNode);
       }
