@@ -350,9 +350,9 @@ and 5 exercises in each day in total may have 240 places where you specify the s
 
 Liftosaur offers a bunch of syntax sugar to make it easier to write and modify the programs.
 
-#### Reusing the exercises's sets/reps/weight/RPE/timer via `...Squat`
+#### Reusing the exercises's sets/reps/weight/RPE/timer and warmups via `...Squat`
 
-You can reuse the sets/reps/weight/RPE/timer of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
+You can reuse the sets/reps/weight/RPE/timer and warmups of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
 
 {% plannercode %}
 Bench Press / 5x5 / progress: lp(5lb)
@@ -411,7 +411,18 @@ Deadlift / 3x3
 
 And this way Squat also would use `5x5` from Bench Press on week 2, day 1.
 
-One thing to note that if the reused exercise changes their weight, sets, reps, etc - after finishing a workout the reusing would be removed by the app - since the exercises are not identical anymore. I.e. if it was like this:
+You can also override weight, timer or RPE of the reused exercise, like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Squat / 3x8 200lb 60s
+Bench Press / ...Squat / 150lb
+{% endplannercode %}
+
+Bench Press would be `3x8 150lb 60s` in this case.
+
+One thing to note that if the reused exercise changes their weight, sets, reps, etc - after finishing a workout the app would try to extract the new values into overrides. For example, if you have the following setup:
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
@@ -422,11 +433,13 @@ And then you finished all sets of Squat successfully. That will change the weigh
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
-Squat / 3x8 185lb / progress: lp(5lb)
+Squat / ...Bench Press / 185lb / progress: lp(5lb)
 {% endplannercode %}
 
-I.e. the app notices Bench Press and Squat are not the same anymore, and removes the reusing syntax.
-And if you progress in Bench Press - then **ALL** the reused exercises would stop reusing Bench Press - because it just went unsync with them.
+I.e. the app notices that the weight of the Bench Press and Squat are not the same anymore, so it extracts the weight
+of Squat into override.
+
+And if you progress in Bench Press - then **ALL** the reused exercises would move the weights into overrides - because it just went unsync with them.
 
 #### Repeating the same exercise over multiple weeks via `Squat[1-4]`
 

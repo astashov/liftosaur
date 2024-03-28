@@ -684,9 +684,6 @@ export class ProgramToPlanner {
     const { sets: normalizedUpdatedSets, globals: updatedGlobals } = this.normalizedProgramSets(updatedSets);
     const { sets: normalizedReusedSets, globals: reusedGlobals } = this.normalizedSets(reusedExercise);
     const decisions: Set<IDereuseDecision> = new Set();
-    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusedSets)) {
-      decisions.add("all");
-    }
     if (updatedGlobals.weight !== reusedGlobals.weight) {
       decisions.add("weight");
     }
@@ -696,6 +693,24 @@ export class ProgramToPlanner {
     if (updatedGlobals.timer !== reusedGlobals.timer) {
       decisions.add("timer");
     }
+    for (const set of normalizedReusedSets) {
+      for (const field of ["weight", "rpe", "timer"] as const) {
+        if (decisions.has(field)) {
+          delete set[field];
+        }
+      }
+    }
+    for (const set of normalizedUpdatedSets) {
+      for (const field of ["weight", "rpe", "timer"] as const) {
+        if (decisions.has(field)) {
+          delete set[field];
+        }
+      }
+    }
+    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusedSets)) {
+      decisions.add("all");
+    }
+
     return decisions;
   }
 
@@ -706,9 +721,6 @@ export class ProgramToPlanner {
     const { sets: normalizedUpdatedSets, globals: updatedGlobals } = this.normalizedProgramSets(updatedSets);
     const { sets: normalizedReusingSets, globals: reusingGlobals } = this.normalizedSets(reusingExercise);
     const decisions: Set<IDereuseDecision> = new Set();
-    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusingSets)) {
-      decisions.add("all");
-    }
     if (updatedGlobals.timer !== reusingGlobals.timer) {
       decisions.add("timer");
     }
@@ -717,6 +729,23 @@ export class ProgramToPlanner {
     }
     if (updatedGlobals.weight !== reusingGlobals.weight) {
       decisions.add("weight");
+    }
+    for (const set of normalizedReusingSets) {
+      for (const field of ["weight", "rpe", "timer"] as const) {
+        if (decisions.has(field)) {
+          delete set[field];
+        }
+      }
+    }
+    for (const set of normalizedUpdatedSets) {
+      for (const field of ["weight", "rpe", "timer"] as const) {
+        if (decisions.has(field)) {
+          delete set[field];
+        }
+      }
+    }
+    if (!ObjectUtils.isEqual(normalizedUpdatedSets, normalizedReusingSets)) {
+      decisions.add("all");
     }
     return decisions;
   }

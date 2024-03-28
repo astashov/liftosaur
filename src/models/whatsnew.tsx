@@ -922,6 +922,23 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240328": {
+    title: <span>Improved reusing of sets, reps, weight, RPE, timer and warmups</span>,
+    body: (
+      <ul>
+        <li>
+          Now the <b>...Squat</b> syntax would also reuse the warmups.
+        </li>
+        <li>
+          Also, you can override the reused weights, RPE and timer. For example, if you do:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock script={`Squat / ...Bench Press / 200lb`} />
+          </div>
+          Then it would reuse sets x reps, timer, RPE and warmups from Bench Press - everything except the weight.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

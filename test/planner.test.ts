@@ -144,6 +144,28 @@ Squat[4-5] / 2x5 / 86.53%
 `);
   });
 
+  it("override weights", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 200lb / 60s / progress: dp(5lb, 3, 8)
+Bench Press[1-5] / ...Squat / 120lb / progress: lp(5lb)
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [
+        [5, 3],
+        [5, 3],
+      ],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x6 100lb, 1x4 200lb / 60s / progress: dp(5lb, 3, 8)
+Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
+
+
+`);
+  });
+
   it("use templates", () => {
     const programText = `# Week 1
 ## Day 1

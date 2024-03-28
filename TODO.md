@@ -44,6 +44,10 @@
 - Need to do "Save" after updating the program on Web
 - Convert all programs to the new syntax
 - Add a last week note to the last week sets
-- Fix bug: Bench Press, Dumbbell / 60% / 40kg / 180s / warmup: none / progress: lp(2.5kg, 1, 0, 10%, 1, 0)
 - Calculate e1RM based on AMRAPs
 - Fix freezing on plates calculator
+- Add an option to disable equipment calculation
+- Make it more explicit to replace exercise only for the workout or for the whole program
+- Loops in Liftoscript
+- User prompted state vars
+
