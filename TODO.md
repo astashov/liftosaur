@@ -50,4 +50,5 @@
 - Make it more explicit to replace exercise only for the workout or for the whole program
 - Loops in Liftoscript
 - User prompted state vars
+- Properly open repeated exercises when editing
 

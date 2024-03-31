@@ -425,7 +425,7 @@ export class ProgramToPlanner {
               }
 
               if (!addedUpdateMap[key] && (programExercise.updateDayExpr || programExercise.reuseUpdateDayScript)) {
-                this.getUpdate(programExercise);
+                plannerExercise += this.getUpdate(programExercise);
                 addedUpdateMap[key] = true;
               }
 
