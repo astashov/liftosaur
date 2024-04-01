@@ -51,4 +51,6 @@
 - Loops in Liftoscript
 - User prompted state vars
 - Properly open repeated exercises when editing
+- Missing Description Bug (https://www.liftosaur.com/n/9b1a6b12)
+- Sync bug
 

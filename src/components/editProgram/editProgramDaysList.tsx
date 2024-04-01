@@ -30,6 +30,7 @@ import { BottomSheetEditProgram } from "../bottomSheetEditProgram";
 import { HelpEditProgramDaysList } from "../help/helpEditProgramDaysList";
 import { ObjectUtils } from "../../utils/object";
 import { UidFactory } from "../../utils/generator";
+import { MigratorToPlanner } from "../../models/migratorToPlanner";
 
 interface IProps {
   editProgram: IProgram;
@@ -445,6 +446,17 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
             >
               Publish
             </Button>
+            <div className="mt-2">
+              <Button
+                name="migrate-program"
+                kind="orange"
+                onClick={() => {
+                  console.log(new MigratorToPlanner(props.editProgram, props.settings).migrate());
+                }}
+              >
+                Migrate
+              </Button>
+            </div>
           </div>
         )}
       </section>
