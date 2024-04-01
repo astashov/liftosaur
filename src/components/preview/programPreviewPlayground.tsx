@@ -36,9 +36,6 @@ interface IProgramPreviewPlaygroundState {
 
 function prepareProgram(program: IProgram): IProgram {
   const newProgram = ObjectUtils.clone(program);
-  for (const exercise of newProgram.exercises) {
-    exercise.warmupSets = [];
-  }
   return newProgram;
 }
 

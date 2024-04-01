@@ -375,7 +375,10 @@ export class MigratorToPlanner {
         }
       } else if (programExercise.finishDayExpr) {
         const finishDayExpr = programExercise.finishDayExpr.replace(/^[\s\S]*{~/, "{~").replace(/~}[\s\S]*$/, "~}");
-        plannerExercise += ` {~\n${finishDayExpr}\n~}`;
+        plannerExercise += ` {~\n${finishDayExpr
+          .split("\n")
+          .map((l) => `  ${l}`)
+          .join("\n")}\n~}`;
       }
     }
     return plannerExercise;

@@ -21,6 +21,7 @@ expression {
   BlockExpression |
   Ternary |
   IfExpression |
+  ForExpression |
   AssignmentExpression |
   IncAssignmentExpression |
   BuiltinFunctionExpression |
@@ -36,7 +37,15 @@ IfExpression {
   @specialize<Keyword, "if"> ParenthesisExpression
   BlockExpression
   (@specialize<Keyword, "else"> @specialize<Keyword, "if"> ParenthesisExpression BlockExpression)*
-  (@specialize<Keyword, "else"> BlockExpression)? }
+  (@specialize<Keyword, "else"> BlockExpression)? 
+}
+ForExpression {
+  @specialize<Keyword, "for"> "(" Variable "in" ForInExpression ")"
+  BlockExpression
+}
+ForInExpression {
+  expression
+}
 AssignmentExpression { (StateVariable | Variable | VariableExpression) !assign "=" expression }
 IncAssignmentExpression { (StateVariable | Variable | VariableExpression) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }

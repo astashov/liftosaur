@@ -24,6 +24,8 @@ export enum NodeName {
   BlockExpression = "BlockExpression",
   Ternary = "Ternary",
   IfExpression = "IfExpression",
+  ForExpression = "ForExpression",
+  ForInExpression = "ForInExpression",
   If = "If",
   Else = "Else",
   AssignmentExpression = "AssignmentExpression",
@@ -208,6 +210,11 @@ export class LiftoscriptEvaluator {
         }
         if (name === "sets" && fnArgs.length !== 9) {
           this.error(`'sets' function should have 9 arguments`, keyword);
+        }
+      } else if (cursor.node.type.name === NodeName.ForExpression) {
+        const variableNode = cursor.node.getChild(NodeName.Variable);
+        if (variableNode != null) {
+          vars[this.getValue(variableNode)] = 1;
         }
       } else if (cursor.node.type.name === NodeName.AssignmentExpression) {
         const [variableNode] = getChildren(cursor.node);
@@ -495,6 +502,29 @@ export class LiftoscriptEvaluator {
     } else if (expr.type.name === NodeName.Ternary) {
       const [condition, then, or] = getChildren(expr);
       return this.evaluate(condition) ? this.evaluate(then) : this.evaluate(or);
+    } else if (expr.type.name === NodeName.ForExpression) {
+      const variableNode = expr.getChild(NodeName.Variable);
+      const forInExpression = expr.getChild(NodeName.ForInExpression);
+      const blockNode = expr.getChild(NodeName.BlockExpression);
+      if (variableNode == null) {
+        assert(NodeName.ForExpression);
+      }
+      if (forInExpression == null) {
+        assert(NodeName.ForInExpression);
+      }
+      if (blockNode == null) {
+        assert(NodeName.BlockExpression);
+      }
+      const forIn = this.evaluate(forInExpression);
+      if (!Array.isArray(forIn)) {
+        this.error(`for in expression should return an array`, forInExpression);
+      }
+      const varKey = this.getValue(variableNode).replace("var.", "");
+      for (let i = 1; i <= forIn.length; i += 1) {
+        this.vars[varKey] = i;
+        this.evaluate(blockNode);
+      }
+      return forIn.length;
     } else if (expr.type.name === NodeName.IfExpression) {
       const parenthesisNodes = expr.getChildren(NodeName.ParenthesisExpression);
       const blockNodes = expr.getChildren(NodeName.BlockExpression);
@@ -796,6 +826,9 @@ export class LiftoscriptEvaluator {
       } else {
         this.error(`There's no variable '${varKey}'`, expr);
       }
+    } else if (expr.type.name === NodeName.ForInExpression) {
+      const child = getChildren(expr)[0];
+      return this.evaluate(child);
     } else {
       this.error(`Unknown node type ${expr.node.type.name}`, expr);
     }

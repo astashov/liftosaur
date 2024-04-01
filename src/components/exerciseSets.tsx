@@ -122,8 +122,8 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
           <div
             style={{
               width: "1px",
-              marginTop: props.size !== "small" ? "17px" : undefined,
-              marginBottom: props.size !== "small" ? "0" : undefined,
+              marginTop: "21px",
+              marginBottom: "0",
             }}
             className={`${props.size === "small" ? "h-8 mt-1 mr-1" : "h-10 mr-2"} bg-grayv2-400`}
           ></div>
