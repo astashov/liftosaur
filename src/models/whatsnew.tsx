@@ -939,6 +939,29 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240401": {
+    title: <span>Loops</span>,
+    body: (
+      <ul>
+        <li>
+          You can now write <strong>for</strong> loops in the Liftoscripts.
+        </li>
+        <li>
+          Looks like this:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Bench Press / 3x8 / progress: custom() {~
+  for (var.i in completedReps) {
+    weights[var.i] = weights[var.i] + 5lb
+  }
+~}`}
+            />
+          </div>
+          In this case, <strong>var.i</strong> would contain an index of a set, starting from 1.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

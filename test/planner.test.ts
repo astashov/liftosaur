@@ -166,6 +166,35 @@ Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
 `);
   });
 
+  it("use loops", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 100lb / progress: custom() {~
+  for (var.i in completedReps) {
+    if (completedReps[var.i] >= reps[var.i]) {
+      weights[var.i] = weights[var.i] + 5lb
+    }
+  }
+~}
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[8, 6, 8]],
+    });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
+  for (var.i in completedReps) {
+    if (completedReps[var.i] >= reps[var.i]) {
+      weights[var.i] = weights[var.i] + 5lb
+    }
+  }
+~}
+
+
+`);
+  });
+
   it("use templates", () => {
     const programText = `# Week 1
 ## Day 1

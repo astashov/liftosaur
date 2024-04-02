@@ -753,6 +753,23 @@ Bench Press / 3x8 / progress: custom() {~
 ~}
 {% endplannercode %}
 
+### Loops
+
+There's also a way to iterate over the sets with **loops**. It looks like this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom() {~
+  for (var.i in completedReps) {
+    weights[var.i] = weights[var.i] + 5lb
+  }
+~}
+{% endplannercode %}
+
+That would set the weights of the next workout to 5lb more than finished weights of this workout.
+The syntax is `for (var.i in weights)`, where `var.i` should always be a temporary variable (i.e. start with `var.`), and 
+the expression on the right side of `in` should return an array.
+The `var.i` would contain the index of each set, starting from 1.
+
 ### Update
 
 `progress: ` logic updates the weights/reps/etc **in the program**, after you finish a workout. But there's also a way to update sets while you're doing a workout! For example, you want to set the number of drop sets or dropset reps based on the first set completed reps, or something like that.
