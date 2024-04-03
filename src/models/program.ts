@@ -1082,30 +1082,36 @@ export namespace Program {
       url: newProgram.url,
       author: newProgram.author,
       nextDay: newProgram.nextDay,
-      days: CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id)
-        .map((d) => ({ ...d, exercises: d.exercises.filter((e) => !deletedExercises.has(e.id)) }))
-        .filter((d) => !deletedDays.has(d.id)),
+      days: newProgram.planner
+        ? newProgram.days
+        : CollectionUtils.concatBy(oldProgram.days, newProgram.days, (p) => p.id)
+            .map((d) => ({ ...d, exercises: d.exercises.filter((e) => !deletedExercises.has(e.id)) }))
+            .filter((d) => !deletedDays.has(d.id)),
       deletedDays: Array.from(deletedDays),
-      weeks: CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id)
-        .map((d) => ({ ...d, days: d.days.filter((e) => !deletedDays.has(e.id)) }))
-        .filter((d) => !deletedWeeks.has(d.id)),
+      weeks: newProgram.planner
+        ? newProgram.weeks
+        : CollectionUtils.concatBy(oldProgram.weeks, newProgram.weeks, (p) => p.id)
+            .map((d) => ({ ...d, days: d.days.filter((e) => !deletedDays.has(e.id)) }))
+            .filter((d) => !deletedWeeks.has(d.id)),
       deletedWeeks: Array.from(deletedWeeks),
       isMultiweek: newProgram.isMultiweek,
       tags: newProgram.tags,
       shortDescription: newProgram.shortDescription,
-      exercises: CollectionUtils.concatBy(
-        oldProgram.exercises,
-        newProgram.exercises.map((e) => {
-          const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
-          if (oldExercise) {
-            const mergedExercise = ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
-            return mergedExercise;
-          } else {
-            return e;
-          }
-        }),
-        (e) => e.id
-      ).filter((e) => !deletedExercises.has(e.id)),
+      exercises: newProgram.planner
+        ? newProgram.exercises
+        : CollectionUtils.concatBy(
+            oldProgram.exercises,
+            newProgram.exercises.map((e) => {
+              const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
+              if (oldExercise) {
+                const mergedExercise = ProgramExercise.mergeExercises(oldExercise, e, enforceNew);
+                return mergedExercise;
+              } else {
+                return e;
+              }
+            }),
+            (e) => e.id
+          ).filter((e) => !deletedExercises.has(e.id)),
       deletedExercises: Array.from(deletedExercises),
       clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
       planner: newProgram.planner,
