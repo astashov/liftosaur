@@ -54,4 +54,5 @@
 - Missing Description Bug (https://www.liftosaur.com/n/9b1a6b12)
 - Sync bug
 - Check e1RM calculation on graphs
+- Mix ask weight and regular weights (probably same for RPE/log RPE)
 

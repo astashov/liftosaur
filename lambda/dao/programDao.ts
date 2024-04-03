@@ -41,11 +41,8 @@ export class ProgramDao {
       "ss1",
       "ss2",
       "ss3",
-      "strongcurves1",
-      "strongcurves2",
-      "strongcurves3",
+      "strongcurves",
       "texasmethod",
-      "drswoleullowvolume",
     ]);
   }
 
