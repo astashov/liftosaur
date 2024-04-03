@@ -5,9 +5,11 @@ og_description: How to write weightlifting programs in Liftosaur
 layout: blogpost
 ---
 
-<div class="note">
-This is documentation for the "Experimental" programs, which soon are going to be the default programs. Docs for the old programs could be found <a href="/docs/docs.html" target="_blank">there</a>!
-</div>
+### Contact Us
+
+If you have any questions, don't hesitate to contact us at <a href="mailto:info@liftosaur.com">info@liftosaur.com</a>!
+
+# Summary
 
 Liftosaur is an app that combines both weightlifting programming part (that people sometimes use Google Sheets for) and workouts tracking part. I.e. it consists of 2 steps:
 

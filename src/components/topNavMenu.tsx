@@ -121,7 +121,7 @@ export function TopNavMenu(props: {
 function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, string])[] {
   return [
     ["About", "/about"],
-    ["Docs", "/docs/docs.html"],
+    ["Docs", "/docs"],
     ["Blog", "/blog"],
     ["Legacy Web Editor", "/program"],
     ["Web Editor", "/planner"],

@@ -12,7 +12,7 @@ It's a mobile app, that's available as:
 
 The main idea is to make a weightlifting tracker app, that is flexible enough to implement pretty much any weightlifting routine. It would be a platform for your experiments in weightlifting, you can try any progression and deloading logic you want to see what suits you better. It automatically handles progressive overloads and deloads based on the logic you define. Any program should be possible to implement - Stronglifts 5x5, GZCLP, any 5/3/1s, any PPL, you name it.
 
-To describe the logic, there's a built-in scripting language called [Liftoscript](https://www.liftosaur.com/docs/docs.html#liftoscript-tutorial), which is a very simple programming language with JavaScript-like syntax. It has some built-in variables and some custom number types (e.g. `kg` and `lb`), but other than that it's pretty simple. E.g. Stronglifts 5x5 logic could look like this if written in Liftoscript:
+To describe the logic, there's a built-in scripting language called [Liftoscript](https://www.liftosaur.com/docs), which is a very simple programming language with JavaScript-like syntax. It has some built-in variables and some custom number types (e.g. `kg` and `lb`), but other than that it's pretty simple. E.g. Stronglifts 5x5 logic could look like this if written in Liftoscript:
 
 ```js
 if (completedReps >= reps) {
