@@ -123,8 +123,8 @@ function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, stri
     ["About", "/about"],
     ["Docs", "/docs/docs.html"],
     ["Blog", "/blog"],
-    ["Web Editor", "/program"],
-    ["Workout Planner", "/planner"],
+    ["Legacy Web Editor", "/program"],
+    ["Web Editor", "/planner"],
     ...(isLoggedIn ? [["Your Programs", "/user/programs"] as const] : []),
   ];
 }

@@ -31,7 +31,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
       data={data}
       account={props.account}
       client={client}
-      url="/program"
+      url={data.exportedProgram?.program?.planner ? "/planner" : "/program"}
     >
       <ProgramContentSyncer client={client} {...data} />
     </Page>

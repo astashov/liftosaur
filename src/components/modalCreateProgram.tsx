@@ -3,6 +3,7 @@ import { Button } from "./button";
 import { Modal } from "./modal";
 import { useRef } from "preact/hooks";
 import { Input } from "./input";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   onSelect: (name: string, isV2: boolean) => void;
@@ -43,7 +44,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           className="ls-modal-create-program"
           onClick={() => {
             if (textInput.current.value) {
-              props.onSelect(textInput.current.value, false);
+              props.onSelect(textInput.current.value, true);
             }
           }}
         >
@@ -51,19 +52,19 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
         </Button>
       </p>
       <div className="mt-2 text-center">
-        <Button
+        <LinkButton
           name="modal-create-experimental-program-submit"
           data-cy="modal-create-experimental-program-submit"
-          kind="purple"
-          className="ls-modal-create-experimental-program"
+          kind="grayv2"
+          className="text-xs ls-modal-create-legacy-program"
           onClick={() => {
             if (textInput.current.value) {
-              props.onSelect(textInput.current.value, true);
+              props.onSelect(textInput.current.value, false);
             }
           }}
         >
-          Create experimental program
-        </Button>
+          Create legacy program
+        </LinkButton>
       </div>
     </Modal>
   );

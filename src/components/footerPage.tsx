@@ -26,8 +26,8 @@ export function FooterPage(props: IProps): JSX.Element {
                 {[
                   ["About", "/about"],
                   ["Docs", "/docs/docs.html"],
-                  ["Web Editor", "/program"],
-                  ["Workout Planner", "/planner"],
+                  ["Legacy Web Editor", "/program"],
+                  ["Web Editor", "/planner"],
                   ...(!!props.account ? [["Your Programs", "/user/programs"]] : []),
                 ].map(([text, link]) => {
                   return (

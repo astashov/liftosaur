@@ -189,7 +189,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   return (
     <section className="px-4">
       <h1 className="flex items-center mb-4 text-2xl font-bold leading-tight">
-        <div>Workout Planner</div>
+        <div>Web Editor</div>
         {!showHelp && (
           <button
             className="block ml-3 nm-planner-help"
