@@ -962,6 +962,17 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240403": {
+    title: <span>All built-in programs are migrated to the new syntax</span>,
+    body: (
+      <ul>
+        <li>
+          All the built-in programs now use the new <strong>Liftoscript 2.0 (aka Workout Planner)</strong> syntax.
+        </li>
+        <li>Also, by default you now create the programs with the new syntax.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
