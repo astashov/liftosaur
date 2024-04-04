@@ -243,9 +243,13 @@ export class PlannerExerciseEvaluator {
   public static fnArgsToStateVars(fnArgs: string[], onError?: (message: string) => void): IProgramState {
     const state: IProgramState = {};
     for (const value of fnArgs) {
-      const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
+      // eslint-disable-next-line prefer-const
+      let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
       if (onError && (!fnArgKey || !fnArgValStr)) {
         onError(`Invalid argument ${value}`);
+      }
+      if (fnArgKey.endsWith("+")) {
+        fnArgKey = fnArgKey.replace("+", "");
       }
       try {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
@@ -842,7 +846,10 @@ export class PlannerExerciseEvaluator {
           throw new Error(`Unexpected section type`);
         }
       }
-      const hasRepRanges = allSets.filter((s) => s.repRange != null).length > 0;
+      const hasRepRanges = allSets.length > 0;
+      if (hasRepRanges && reuse) {
+        this.error("If you're reusing sets x reps, you cannot also specify them in this exercise", nameNode);
+      }
       if (!hasRepRanges && !reuse) {
         this.error("Exercise must have sets x reps specified in one of sections", nameNode);
       }

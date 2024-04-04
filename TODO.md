@@ -48,11 +48,11 @@
 - Fix freezing on plates calculator
 - Add an option to disable equipment calculation
 - Make it more explicit to replace exercise only for the workout or for the whole program
-- Loops in Liftoscript
 - User prompted state vars
 - Properly open repeated exercises when editing
 - Missing Description Bug (https://www.liftosaur.com/n/9b1a6b12)
 - Sync bug
 - Check e1RM calculation on graphs
 - Mix ask weight and regular weights (probably same for RPE/log RPE)
+- Add a check when importing invalid program
 

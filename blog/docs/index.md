@@ -740,6 +740,19 @@ Squat / 3x8 / progress: custom(attempt: 0, increment: 10lb) { ...Bench Press }
 
 You can see that now we use `state.increment` in `weights += state.increment` expression. And we use different values for `increment` - `5lb` in Bench Press and `10lb` in Squat.
 
+There's also a way to define **user-prompted** state variables. For that, add a `+` sign after the variable name, like this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom(shouldBumpWeight+: 0) {~
+  if (shouldBumpWeight > 0) {
+    weights += 5lb
+  }
+~}
+{% endplannercode %}
+
+In this case, after the last set the app will ask the user for the `shouldBumpWeight` value. And if user
+enters 1, the weight would be increased. Otherwise - it'd stay the same.
+
 ### Temporary Variables
 
 Sometimes you want to store long math expression value in a variable to use it across the script. You can do it with temporary variables. The syntax looks like this - `var.foo = 30lb`. I.e. they should be prefixed with `var.`. For example:

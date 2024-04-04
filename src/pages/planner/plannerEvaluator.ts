@@ -349,8 +349,8 @@ export class PlannerEvaluator {
           throw PlannerSyntaxError.fromPoint("Original exercise should specify custom progress", point);
         }
         const fnArgs = originalProgress.fnArgs;
-        const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
-        const state = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
+        const { state: originalState } = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
+        const { state } = PlannerExerciseEvaluator.fnArgsToStateVars(fnArgs);
         for (const stateKey of ObjectUtils.keys(originalState)) {
           const value = originalState[stateKey];
           if (state[stateKey] == null) {

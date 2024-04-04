@@ -14,7 +14,7 @@ import {
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
 import { Exercise } from "./exercise";
-import { IProgramState, IProgramExerciseWarmupSet } from "../types";
+import { IProgramState, IProgramExerciseWarmupSet, IProgramStateMetadata } from "../types";
 import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "./equipment";
@@ -31,10 +31,21 @@ export class PlannerToProgram {
     private readonly settings: ISettings
   ) {}
 
-  public static fnArgsToState(fnArgs: string[]): IProgramState {
+  public static fnArgsToState(
+    fnArgs: string[]
+  ): {
+    state: IProgramState;
+    metadata: IProgramStateMetadata;
+  } {
     const state: IProgramState = {};
+    const metadata: IProgramStateMetadata = {};
     for (const value of fnArgs) {
-      const [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
+      // eslint-disable-next-line prefer-const
+      let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
+      if (fnArgKey.endsWith("+")) {
+        fnArgKey = fnArgKey.replace("+", "");
+        metadata[fnArgKey] = { userPrompted: true };
+      }
       const fnArgVal = fnArgValStr.match(/(lb|kg)/)
         ? Weight.parse(fnArgValStr)
         : fnArgValStr.match(/%/)
@@ -42,7 +53,7 @@ export class PlannerToProgram {
         : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
       state[fnArgKey] = fnArgVal ?? 0;
     }
-    return state;
+    return { metadata, state };
   }
 
   public convertToProgram(): IProgram {
@@ -152,6 +163,7 @@ export class PlannerToProgram {
               return description.value;
             });
             let state: IProgramState = {};
+            let metadata: IProgramStateMetadata = {};
             let finishDayExpr = programExercise.finishDayExpr;
             let updateDayExpr = programExercise.updateDayExpr;
             let warmupSets: IProgramExerciseWarmupSet[] | undefined = programExercise.warmupSets;
@@ -179,10 +191,11 @@ export class PlannerToProgram {
             let reuseUpdateDayScript: string | undefined;
             for (const property of evalExercise.properties) {
               if (property.name === "progress") {
-                ({ state, finishDayExpr, reuseFinishDayScript } = this.getProgress(
+                ({ state, metadata, finishDayExpr, reuseFinishDayScript } = this.getProgress(
                   evalExercise,
                   property,
                   state,
+                  metadata,
                   finishDayExpr
                 ));
               }
@@ -199,6 +212,7 @@ export class PlannerToProgram {
             programExercise.variations = programExercise.variations.concat(newVariations);
             programExercise.descriptions = programExercise.descriptions.concat(newDescriptions);
             programExercise.state = { ...programExercise.state, ...state };
+            programExercise.stateMetadata = { ...programExercise.stateMetadata, ...metadata };
             programExercise.finishDayExpr = finishDayExpr;
             programExercise.updateDayExpr = updateDayExpr;
             programExercise.enableRpe = programExercise.variations.some((v) =>
@@ -294,11 +308,19 @@ export class PlannerToProgram {
     evalExercise: IPlannerProgramExercise,
     property: IPlannerProgramProperty,
     state: IProgramState,
+    metadata: IProgramStateMetadata,
     finishDayExpr: string
-  ): { state: IProgramState; finishDayExpr: string; reuseFinishDayScript: string | undefined } {
+  ): {
+    state: IProgramState;
+    metadata: IProgramStateMetadata;
+    finishDayExpr: string;
+    reuseFinishDayScript: string | undefined;
+  } {
     let reuseFinishDayScript;
     if (property.fnName === "custom") {
-      state = { ...state, ...PlannerToProgram.fnArgsToState(property.fnArgs) };
+      const { state: newState, metadata: newMetadata } = PlannerToProgram.fnArgsToState(property.fnArgs);
+      state = { ...state, ...newState };
+      metadata = { ...metadata, ...newMetadata };
       if (property.script) {
         finishDayExpr = property.script ?? "";
         if (finishDayExpr) {
@@ -314,7 +336,7 @@ export class PlannerToProgram {
     } else if (property.fnName === "sum") {
       ({ state, finishDayExpr } = this.addSum(property, this.settings, evalExercise.skipProgress));
     }
-    return { state, finishDayExpr, reuseFinishDayScript };
+    return { state, metadata, finishDayExpr, reuseFinishDayScript };
   }
 
   private applyProgressNone(script: string, skipProgress: IPlannerProgramExercise["skipProgress"]): string {

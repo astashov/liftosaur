@@ -476,9 +476,11 @@ export class ProgramToPlanner {
     if (progress != null) {
       plannerExercise += ` / progress: ${progress}`;
     } else {
-      const stateVars = ObjectUtils.keys(programExercise.state).map(
-        (k) => `${k}: ${this.printVal(programExercise.state[k])}`
-      );
+      const metadata = programExercise.stateMetadata || {};
+      const stateVars = ObjectUtils.keys(programExercise.state).map((k) => {
+        const isUserPrompted = !!metadata[k]?.userPrompted;
+        return `${k}${isUserPrompted ? "+" : ""}: ${this.printVal(programExercise.state[k])}`;
+      });
       plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
       if (programExercise.reuseFinishDayScript) {
         const originalProgramExercise = this.program.exercises.find(
