@@ -37,8 +37,8 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           Cancel
         </Button>
         <Button
+          data-cy="modal-create-experimental-program-submit"
           name="modal-create-program-submit"
-          data-cy="modal-create-program-submit"
           type="button"
           kind="orange"
           className="ls-modal-create-program"
@@ -54,8 +54,8 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
       <div className="mt-2 text-center">
         <LinkButton
           name="modal-create-experimental-program-submit"
-          data-cy="modal-create-experimental-program-submit"
           kind="grayv2"
+          data-cy="modal-create-program-submit"
           className="text-xs ls-modal-create-legacy-program"
           onClick={() => {
             if (textInput.current.value) {
