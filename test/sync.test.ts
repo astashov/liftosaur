@@ -201,7 +201,7 @@ describe("sync", () => {
         ])
       ),
     ]);
-    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("New Name!");
+    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("Bent Over Row");
     expect(mockReducer2.state.storage.programs[0].exercises[0].exerciseType.equipment).to.equal("band");
   });
 
