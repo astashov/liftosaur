@@ -117,18 +117,27 @@ export interface IScriptFunctions {
 function floor(num: number): number;
 function floor(num: IWeight): IWeight;
 function floor(num: IWeight | number): IWeight | number {
+  if (num == null) {
+    return 0;
+  }
   return typeof num === "number" ? Math.floor(num) : Weight.build(Math.floor(num.value), num.unit);
 }
 
 function ceil(num: number): number;
 function ceil(num: IWeight): IWeight;
 function ceil(num: IWeight | number): IWeight | number {
+  if (num == null) {
+    return 0;
+  }
   return typeof num === "number" ? Math.ceil(num) : Weight.build(Math.ceil(num.value), num.unit);
 }
 
 function round(num: number): number;
 function round(num: IWeight): IWeight;
 function round(num: IWeight | number): IWeight | number {
+  if (num == null) {
+    return 0;
+  }
   return typeof num === "number" ? Math.round(num) : Weight.build(Math.round(num.value), num.unit);
 }
 
@@ -140,9 +149,9 @@ function sum(vals: IWeight[] | number[]): IWeight | number {
     return 0;
   }
   if (typeof firstElement === "number") {
-    return (vals as number[]).reduce((acc, a) => acc + a, 0);
+    return (vals as number[]).reduce((acc, a) => acc + (a || 0), 0);
   } else {
-    return (vals as IWeight[]).reduce((acc, a) => Weight.add(acc, a), Weight.build(0, firstElement.unit));
+    return (vals as IWeight[]).reduce((acc, a) => Weight.add(acc, a || 0), Weight.build(0, firstElement.unit));
   }
 }
 
@@ -154,8 +163,10 @@ function min(vals: IWeight[] | number[]): IWeight | number {
     return 0;
   }
   if (typeof firstElement === "number") {
+    vals = vals.map((v) => v ?? 0) as number[];
     return Math.min(...(vals as number[]));
   } else {
+    vals = vals.map((v) => v ?? Weight.build(0, "lb")) as IWeight[];
     const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(a, b));
     return sortedWeights[0];
   }
@@ -169,8 +180,10 @@ function max(vals: IWeight[] | number[]): IWeight | number {
     return 0;
   }
   if (typeof firstElement === "number") {
+    vals = vals.map((v) => v ?? 0) as number[];
     return Math.max(...(vals as number[]));
   } else {
+    vals = vals.map((v) => v ?? Weight.build(0, "lb")) as IWeight[];
     const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(b, a));
     return sortedWeights[0];
   }
