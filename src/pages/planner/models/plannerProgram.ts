@@ -72,27 +72,25 @@ export class PlannerProgram {
           const newFullName = getNewFullName(line.fullName);
           conversions[line.fullName] = newFullName;
           line.fullName = newFullName;
-          return line;
-        } else {
-          let fakeScript = `E / ${line.sections}`;
-          const fakeTree = plannerExerciseParser.parse(fakeScript);
-          const cursor = fakeTree.cursor();
-          const ranges: [number, number][] = [];
-          let newFullName;
-          do {
-            if (cursor.type.name === PlannerNodeName.ExerciseName) {
-              const oldFullname = fakeScript.slice(cursor.node.from, cursor.node.to);
-              const exerciseKey = PlannerKey.fromFullName(oldFullname, settings);
-              if (exerciseKey === key) {
-                newFullName = getNewFullName(oldFullname);
-                ranges.push([cursor.node.from, cursor.node.to]);
-              }
+        }
+        let fakeScript = `E / ${line.sections}`;
+        const fakeTree = plannerExerciseParser.parse(fakeScript);
+        const cursor = fakeTree.cursor();
+        const ranges: [number, number][] = [];
+        let newFullName;
+        do {
+          if (cursor.type.name === PlannerNodeName.ExerciseName) {
+            const oldFullname = fakeScript.slice(cursor.node.from, cursor.node.to);
+            const exerciseKey = PlannerKey.fromFullName(oldFullname, settings);
+            if (exerciseKey === key) {
+              newFullName = getNewFullName(oldFullname);
+              ranges.push([cursor.node.from, cursor.node.to]);
             }
-          } while (cursor.next());
-          if (newFullName) {
-            fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, ranges, newFullName);
-            line.sections = fakeScript.replace(/^E \//, "").trim();
           }
+        } while (cursor.next());
+        if (newFullName) {
+          fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, ranges, newFullName);
+          line.sections = fakeScript.replace(/^E \//, "").trim();
         }
       }
       return line;
