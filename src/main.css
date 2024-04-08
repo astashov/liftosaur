@@ -1,0 +1,30 @@
+/* purgecss start ignore */
+
+@tailwind base;
+@tailwind components;
+
+@import "fonts.css";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.55em;
+  font-family: Poppins, sans-serif;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+#app {
+  flex: 1;
+}
+
+/* purgecss end ignore */
+
+@tailwind utilities;

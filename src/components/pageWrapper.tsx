@@ -1,7 +1,7 @@
 import { JSX, h, ComponentChildren } from "preact";
-import { TopNavMenu } from "./topNavMenu";
 import { FooterPage } from "./footerPage";
 import { IAccount } from "../models/account";
+import { TopNavMenu } from "./topNavMenu";
 
 export interface IPageWrapperProps {
   skipTopNavMenu?: boolean;
@@ -18,7 +18,7 @@ export function PageWrapper(props: IPageWrapperProps): JSX.Element {
     <div>
       {!props.skipTopNavMenu && (
         <TopNavMenu
-          maxWidth={props.maxWidth || 800}
+          maxWidth={props.maxWidth || 1200}
           current={props.url}
           account={props.account}
           client={props.client}

@@ -4,21 +4,24 @@ import { IAccount } from "../models/account";
 interface IProps {
   maxWidth?: number;
   account?: IAccount;
+  withoutBg?: boolean;
 }
 
 export function FooterPage(props: IProps): JSX.Element {
   const maxWidth = props.maxWidth != null ? `${props.maxWidth}px` : "800px";
   return (
     <footer>
-      <div
-        className="w-full bg-no-repeat"
-        style={{
-          paddingBottom: "9%",
-          backgroundSize: "100% auto",
-          backgroundImage: "url(/images/desktop-wave-footer.svg)",
-        }}
-      ></div>
-      <div style={{ backgroundColor: "#fafafa" }}>
+      {!props.withoutBg && (
+        <div
+          className="w-full bg-no-repeat"
+          style={{
+            paddingBottom: "9%",
+            backgroundSize: "100% auto",
+            backgroundImage: "url(/images/desktop-wave-footer.svg)",
+          }}
+        ></div>
+      )}
+      <div style={{ backgroundColor: props.withoutBg ? undefined : "#fafafa" }}>
         <div className="flex flex-col px-6 py-0 mx-auto my-0 text-sm font-bold md:flex-row" style={{ maxWidth }}>
           <nav className="flex items-center flex-1 w-full px-0 py-6 leading-loose text-left md:text-right md:py-12 md:px-3">
             <div className="flex flex-1 md:pr-6">

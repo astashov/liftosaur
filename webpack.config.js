@@ -11,8 +11,7 @@ const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").t
 // Export a function. Accept the base config as the only param.
 module.exports = {
   entry: {
-    main: ["./src/index.tsx", "./src/index.css"],
-    aboutexporter: ["./src/aboutExporter.tsx"],
+    main: ["./src/main.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
@@ -22,7 +21,6 @@ module.exports = {
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
-    about: ["./src/about.css"],
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
     affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
@@ -70,7 +68,7 @@ module.exports = {
         vendors: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendors",
-          chunks: (chunk) => chunk.name === "main" || chunk.name === "app",
+          chunks: (chunk) => chunk.name === "app",
         },
       },
     },
@@ -105,16 +103,6 @@ module.exports = {
     }),
     new CopyPlugin([
       {
-        from: `src/about.html`,
-        to: `index.html`,
-        transform: (content) => {
-          return content
-            .toString()
-            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
-        },
-      },
-      {
         from: `src/index.html`,
         to: `app/index.html`,
         transform: (content) => {
@@ -136,16 +124,6 @@ module.exports = {
       {
         from: `src/editor.html`,
         to: `editor.html`,
-      },
-      {
-        from: `src/about.html`,
-        to: `about/index.html`,
-        transform: (content) => {
-          return content
-            .toString()
-            .replace(/\?version=xxxxxxxx/g, `?version=${commitHash}`)
-            .replace(/\?vendor=xxxxxxxx/g, `?vendor=${commitHash}`);
-        },
       },
       {
         from: `docs`,
@@ -208,6 +186,9 @@ module.exports = {
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   devServer: {
+    devMiddleware: {
+      index: false, // specify to enable root proxying
+    },
     static: path.join(__dirname, "dist"),
     compress: true,
     https:
@@ -228,6 +209,13 @@ module.exports = {
       },
       "/docs": {
         target: "https://local.liftosaur.com:8080/blog",
+        secure: false,
+      },
+      "/about": {
+        target: "https://local-api.liftosaur.com:3000/",
+        pathRewrite: (p, req) => {
+          return "/main";
+        },
         secure: false,
       },
       "/n/*": {
@@ -305,6 +293,25 @@ module.exports = {
       },
       "/user/programs": {
         target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/": {
+        target: "https://local-api.liftosaur.com:3000/",
+        bypass: function (req, res, proxyOptions) {
+          // If the request is not for the root path, bypass the proxy
+          if (req.path !== "/") {
+            return req.path;
+          }
+        },
+        pathRewrite: (p, req) => {
+          console.log(p);
+          const url = new URL(p, "https://www.example.com");
+          if (url.pathname === "/") {
+            return "/main";
+          } else {
+            return p;
+          }
+        },
         secure: false,
       },
     },

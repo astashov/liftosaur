@@ -13,6 +13,7 @@ interface IProps<T> extends IPageWrapperProps {
   data: T;
   postHead?: JSX.Element;
   account?: IAccount;
+  nowrapper?: boolean;
 }
 
 declare let __COMMIT_HASH__: string;
@@ -66,7 +67,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
       </head>
       <body>
         <div class="content" id="app">
-          <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>
+          {props.nowrapper ? props.children : <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>}
         </div>
         <div id="pagewrapper" style={{ display: "none" }}>
           {JSON.stringify(pageWrapperProps)}
