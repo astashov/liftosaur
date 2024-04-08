@@ -60,6 +60,7 @@ import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
 import { PlannerToProgram } from "../src/models/plannerToProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
+import { renderMainHtml } from "./main";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1346,6 +1347,22 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   };
 };
 
+const getMainEndpoint = Endpoint.build("/main");
+const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMainEndpoint> = async ({ payload }) => {
+  const di = payload.di;
+  let account: IAccount | undefined;
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  if (userResult.success) {
+    ({ account } = userResult.data);
+  }
+
+  return {
+    statusCode: 200,
+    body: renderMainHtml(di.fetch, account),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 const getProgramEndpoint = Endpoint.build("/program", { data: "string?" });
 const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramEndpoint> = async ({
   payload,
@@ -1855,6 +1872,7 @@ export const getRawHandler = (di: IDI): IHandler => {
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
     const request: IPayload = { event, di };
     const r = new Router<IPayload, APIGatewayProxyResult>(request)
+      .get(getMainEndpoint, getMainHandler)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
       .post(postStoreExceptionDataEndpoint, postStoreExceptionDataHandler)
       .get(getProgramShorturlEndpoint, getProgramShorturlHandler)

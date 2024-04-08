@@ -19,22 +19,31 @@ import { IconSpinner } from "./icons/iconSpinner";
 declare let __HOST__: string;
 
 export function TopNavMenu(props: {
-  maxWidth?: number;
+  client: Window["fetch"];
+  maxWidth: number;
   current?: string;
   account?: IAccount;
-  client: Window["fetch"];
 }): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const service = new Service(props.client);
 
   return (
-    <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: props.maxWidth ? `${props.maxWidth}px` : "800px" }}>
+    <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
       <div class="flex items-center cursor-pointer">
-        <div className="mr-2 sm:hidden">
-          <button className="p-2 nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
+        <div className="mr-2 md:hidden">
+          <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
             <IconHamburger />
           </button>
+          <a href="/" class="text-gray-900 align-middle no-underline ml-3">
+            <img
+              className="inline align-middle"
+              style={{ width: "3em", height: "3em" }}
+              src="/images/logo.svg"
+              alt="Liftosaur Logo"
+            />
+          </a>
+          <span className="ml-4 text-3xl font-bold align-middle">Liftosaur</span>
         </div>
         {isMenuOpen && (
           <BottomSheet isHidden={!isMenuOpen} onClose={() => setIsMenuOpen(false)}>
@@ -69,48 +78,47 @@ export function TopNavMenu(props: {
             </div>
           </BottomSheet>
         )}
-        <div className="flex-1">
-          <a href="/" class="text-gray-900 no-underline">
-            <img
-              className="inline align-middle"
-              style={{ width: "2.5em", height: "2.5em" }}
-              src="/images/logo.svg"
-              alt="Liftosaur Logo"
-            />
-            <span
-              className="inline text-3xl font-bold text-gray-900 align-middle"
-              style={{ marginLeft: "8px", fontFamily: "Poppins" }}
-            >
-              Liftosaur
-            </span>
-          </a>
-        </div>
-        <div className="items-center justify-center hidden ml-auto sm:block">
-          <ul className="mb-2 font-bold text-right align-middle list-none">
-            {getMenuItemsList(!!props.account).map(([text, link]) => {
-              return (
-                <li className="inline-block mx-3 leading-5 align-middle list-none">
-                  {props.current === link ? (
-                    <strong>{text}</strong>
-                  ) : (
-                    <a className="text-blue-700 underline cursor-pointer" href={link}>
-                      {text}
-                    </a>
-                  )}
-                </li>
-              );
-            })}
-            <li className="inline-block leading-5 align-middle list-none">
-              <button onClick={() => setIsAccountModalOpen(true)} className="p-2">
-                <IconUser size={22} color={props.account ? "#38A169" : "#E53E3E"} />
-              </button>
-            </li>
-          </ul>
+        <div className="items-center flex-1 hidden md:flex">
+          <div>
+            <a href="/" class="text-gray-900 no-underline">
+              <img
+                className="inline align-middle"
+                style={{ width: "4em", height: "4em" }}
+                src="/images/logo.svg"
+                alt="Liftosaur Logo"
+              />
+            </a>
+          </div>
+          <div className="flex flex-wrap items-center flex-1">
+            <ul className="flex-1 ml-2 font-bold whitespace-no-wrap align-middle list-none">
+              {getMenuItemsList(!!props.account).map(([text, link]) => {
+                return (
+                  <li className="inline-block mx-4 align-middle list-none">
+                    {props.current === link ? (
+                      <strong className="text-orangev2">{text}</strong>
+                    ) : (
+                      <a className="cursor-pointer" href={link}>
+                        {text}
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="flex items-center justify-center ml-4">
+              <ul className="flex list-none">
+                <SocialIcons />
+              </ul>
+              <div className="mx-3 bg-grayv2-main" style={{ width: "1px", height: "2rem" }} />
+              <div className="inline-block leading-5 align-middle list-none">
+                <button onClick={() => setIsAccountModalOpen(true)} className="p-3">
+                  <IconUser size={22} color={props.account ? "#38A169" : "#E53E3E"} />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <ul className="hidden text-right align-middle list-none sm:block" style={{ marginTop: "-0.5rem" }}>
-        <SocialIcons />
-      </ul>
       {isAccountModalOpen && (
         <ModalAccount account={props.account} service={service} onClose={() => setIsAccountModalOpen(false)} />
       )}
@@ -123,7 +131,6 @@ function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, stri
     ["About", "/about"],
     ["Docs", "/docs"],
     ["Blog", "/blog"],
-    ["Legacy Web Editor", "/program"],
     ["Web Editor", "/planner"],
     ...(isLoggedIn ? [["Your Programs", "/user/programs"] as const] : []),
   ];
@@ -139,7 +146,7 @@ function SocialIcons(): JSX.Element {
         ["Discord", "https://discord.gg/AAh3cvdBRs", "logo-discord"],
       ].map(([text, link, img]) => {
         return (
-          <li className="inline-block align-middle list-none">
+          <li className="inline-block list-none md:block">
             <a
               target="_blank"
               href={link}
@@ -149,7 +156,7 @@ function SocialIcons(): JSX.Element {
                 backgroundSize: "60%",
                 backgroundImage: `url(/images/${img}.svg)`,
               }}
-              className="inline-block w-8 h-8 p-2 overflow-hidden bg-no-repeat"
+              className="inline-block w-10 h-10 px-2 mx-1 overflow-hidden align-middle bg-no-repeat"
             >
               <span>{text}</span>
             </a>

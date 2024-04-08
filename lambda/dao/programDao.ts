@@ -28,6 +28,7 @@ export class ProgramDao {
     return CollectionUtils.sortInOrder(programs, "id", [
       "basicBeginner",
       "the5314b",
+      "the531bbb",
       "gzclp",
       "gzclp-blacknoir",
       "gzcl-the-rippler",
@@ -37,6 +38,7 @@ export class ProgramDao {
       "gzcl-vdip",
       "gzcl-general-gainz",
       "gzcl-general-gainz-burrito-but-big",
+      "madcow",
       "dbPpl",
       "ss1",
       "ss2",

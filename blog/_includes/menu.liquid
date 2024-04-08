@@ -9,9 +9,19 @@
     <nav>
       <ul>
         <li><a href="/about">About</a></li>
-        <li><a href="/docs">Docs</a></li>
-        <li><strong>Blog</strong></li>
-        <li><a href="/program">Legacy Web Editor</a></li>
+
+        {% if title == "Documentation" %}
+          <li><a href="/blog">Blog</a></li>
+        {% else %}
+          <li><strong>Blog</strong></li>
+        {% endif %}
+
+        {% if title == "Documentation" %}
+          <li><strong>Docs</strong></li>
+        {% else %}
+          <li><a href="/docs">Docs</a></li>
+        {% endif %}
+
         <li><a href="/planner">Web Editor</a></li>
       </ul>
     </nav>
