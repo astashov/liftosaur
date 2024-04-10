@@ -17,10 +17,10 @@ import { Exercise } from "./exercise";
 import { IProgramState, IProgramExerciseWarmupSet, IProgramStateMetadata } from "../types";
 import { Weight } from "./weight";
 import { MathUtils } from "../utils/math";
-import { Equipment } from "./equipment";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
+import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 
 export class PlannerToProgram {
   constructor(
@@ -290,16 +290,12 @@ export class PlannerToProgram {
   }
 
   private labelKeyToExerciseId(key: string, allExercises: IProgramExercise[]): string | undefined {
-    const parts = key.split(",");
-    let equip: string | undefined;
-    if (parts.length > 1) {
-      equip = parts.pop();
-    }
-    equip = equip?.trim();
-    const equipKey = equip ? Equipment.equipmentKeyByName(equip, this.settings.equipment) : undefined;
-    const name = parts.join(",");
+    const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(key, this.settings);
+    const programExerciseName = [label, name].filter((p) => p).join(": ");
     const originalProgramExercise = allExercises.find(
-      (e) => e.name.toLowerCase() === name.toLowerCase() && (equipKey == null || e.exerciseType.equipment === equipKey)
+      (e) =>
+        e.name.toLowerCase() === programExerciseName.toLowerCase() &&
+        (equipment == null || e.exerciseType.equipment === equipment)
     );
     return originalProgramExercise?.id;
   }
