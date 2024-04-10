@@ -21,6 +21,7 @@ import { IProgramWeek } from "../types";
 import { UidFactory } from "../utils/generator";
 import { ScriptRunner } from "../parser";
 import { Progress } from "./progress";
+import { ProgramExercise } from "./programExercise";
 
 export interface IGlobals {
   weight?: IWeight | IPercentage;
@@ -66,7 +67,7 @@ export class MigratorToPlanner {
           let plannerExercise = "";
           plannerExercise += this.getExerciseName(programExercise, exercise);
           plannerExercise += " / ";
-          const variations = programExercise.variations;
+          const variations = ProgramExercise.getVariations(programExercise, this.program.exercises);
           const globals = this.getGlobals(programExercise, dayData);
 
           plannerExercise += variations
@@ -102,7 +103,7 @@ export class MigratorToPlanner {
             !addedProgressMap[key] &&
             (programExercise.finishDayExpr ||
               programExercise.reuseFinishDayScript ||
-              ObjectUtils.isNotEmpty(programExercise.state))
+              ObjectUtils.isNotEmpty(ProgramExercise.getState(programExercise, this.program.exercises)))
           ) {
             plannerExercise += this.getProgress(programExercise);
             addedProgressMap[key] = true;
@@ -128,7 +129,7 @@ export class MigratorToPlanner {
   }
 
   private getGlobals(programExercise: IProgramExercise, dayData: IDayData): IGlobals {
-    const variations = programExercise.variations;
+    const variations = ProgramExercise.getVariations(programExercise, this.program.exercises);
     const firstWeightExpr = variations[0]?.sets[0]?.weightExpr;
     const firstRpeExpr = variations[0]?.sets[0]?.rpeExpr;
 
@@ -261,10 +262,11 @@ export class MigratorToPlanner {
     dayData: IDayData,
     settings: ISettings
   ): number | undefined {
+    const state = ProgramExercise.getState(programExercise, this.program.exercises);
     return expr
       ? new ScriptRunner(
           expr,
-          programExercise.state,
+          state,
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -280,10 +282,11 @@ export class MigratorToPlanner {
     dayData: IDayData,
     settings: ISettings
   ): number | undefined {
+    const state = ProgramExercise.getState(programExercise, this.program.exercises);
     return expr
       ? new ScriptRunner(
           expr,
-          programExercise.state,
+          state,
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -299,9 +302,10 @@ export class MigratorToPlanner {
     dayData: IDayData,
     settings: ISettings
   ): IWeight | IPercentage {
+    const state = ProgramExercise.getState(programExercise, this.program.exercises);
     return new ScriptRunner(
       expr,
-      programExercise.state,
+      state,
       Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
       Progress.createScriptFunctions(settings),
       settings.units,
@@ -357,13 +361,12 @@ export class MigratorToPlanner {
 
   private getProgress(programExercise: IProgramExercise): string {
     let plannerExercise = "";
-    const progress = this.getBuiltinProgress(programExercise.state, programExercise.finishDayExpr);
+    const state = ProgramExercise.getState(programExercise, this.program.exercises);
+    const progress = this.getBuiltinProgress(state, programExercise.finishDayExpr);
     if (progress != null) {
       plannerExercise += ` / progress: ${progress}`;
     } else {
-      const stateVars = ObjectUtils.keys(programExercise.state).map(
-        (k) => `${k}: ${this.printVal(programExercise.state[k])}`
-      );
+      const stateVars = ObjectUtils.keys(state).map((k) => `${k}: ${this.printVal(state[k])}`);
       plannerExercise += ` / progress: custom(${stateVars.join(", ")})`;
       if (programExercise.reuseFinishDayScript) {
         const originalProgramExercise = this.program.exercises.find(
