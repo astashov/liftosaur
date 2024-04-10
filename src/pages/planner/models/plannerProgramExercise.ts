@@ -34,9 +34,16 @@ export class PlannerProgramExercise {
       const set: IPlannerProgramExerciseSet = ObjectUtils.clone(aSet);
       set.rpe = currentGlobals.rpe != null ? currentGlobals.rpe : set.rpe ?? reusedGlobals.rpe;
       set.timer = currentGlobals.timer != null ? currentGlobals.timer : set.timer ?? reusedGlobals.timer;
-      set.weight = currentGlobals.weight != null ? currentGlobals.weight : set.weight ?? reusedGlobals.weight;
-      set.percentage =
-        currentGlobals.percentage != null ? currentGlobals.percentage : set.percentage ?? reusedGlobals.percentage;
+      if (currentGlobals.weight != null || currentGlobals.percentage != null) {
+        if (currentGlobals.weight != null) {
+          set.weight = currentGlobals.weight;
+        } else {
+          set.percentage = currentGlobals.percentage;
+        }
+      } else {
+        set.weight = set.weight ?? reusedGlobals.weight;
+        set.percentage = set.percentage ?? reusedGlobals.percentage;
+      }
 
       set.logRpe = !!(currentGlobals.rpe != null && currentGlobals.logRpe != null
         ? currentGlobals.logRpe
