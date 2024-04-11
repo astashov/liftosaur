@@ -1,3 +1,5 @@
+/ https://api3.liftosaur.com/main  200
+/about https://api3.liftosaur.com/main  200
 /record id=:id user=:user https://api3.liftosaur.com/api/record?id=:id&user=:user  200
 /recordimage id=:id user=:user https://api3.liftosaur.com/api/recordimage?id=:id&user=:user  200
 /externalimages/* https://liftosaurimages2.s3-us-west-2.amazonaws.com/:splat  200
