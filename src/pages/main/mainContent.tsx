@@ -295,6 +295,23 @@ function Features(): JSX.Element {
       <h2 className="mb-4 text-4xl font-bold text-center">Features</h2>
 
       <Feature
+        img="/images/mainprogram.png"
+        imgOnLeft={false}
+        title="Workout Editor"
+        subtitle={
+          <span>
+            Extremely customizable workout editor. Create your programs using{" "}
+            <a href="/docs" target="_blank" className="font-bold underline text-bluev2">
+              Liftoscript
+            </a>{" "}
+            - just type the exercises, reps, weights, progressions across days and weeks.
+          </span>
+        }
+        pos1={{ x: 80, y: 40, r: 15 }}
+        pos2={{ x: 40, y: 75, r: 20 }}
+      />
+
+      <Feature
         img="/images/mainworkouthistory.png"
         imgOnLeft={true}
         title="Workout history"
