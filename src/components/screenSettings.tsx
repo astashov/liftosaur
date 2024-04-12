@@ -321,9 +321,13 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <div className="ls-changelog">
           <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
         </div>
-        <a href="mailto:info@liftosaur.com" className="block py-3 text-base text-left border-b border-gray-200">
+        <InternalLink
+          name="contact-us"
+          href="mailto:info@liftosaur.com"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
           Contact Us
-        </a>
+        </InternalLink>
         <a
           href="https://discord.com/invite/AAh3cvdBRs"
           target="_blank"
