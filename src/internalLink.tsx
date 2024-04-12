@@ -16,7 +16,7 @@ export function InternalLink(props: IProps): JSX.Element {
         <button
           className={`block w-full ${props.className} nm-${props.name}`}
           onClick={() => {
-            const url = UrlUtils.build(props.href, window.location.href);
+            const url = UrlUtils.build(props.href, window.location.href.replace("liftosaur://", "https://"));
             SendMessage.toIos({ type: "openUrl", url: url.toString() });
           }}
         >
