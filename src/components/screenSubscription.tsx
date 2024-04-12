@@ -6,7 +6,6 @@ import { IScreen } from "../models/screen";
 import { ILoading, IState, ISubscriptionLoading, updateState } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs2 } from "./icons/iconGraphs2";
-import { IconMuscles2 } from "./icons/iconMuscles2";
 import { Button } from "./button";
 import { SendMessage } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
@@ -19,6 +18,7 @@ import { InternalLink } from "../internalLink";
 import { ISubscription } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { ModalCoupon } from "./modalCoupon";
+import { IconClose } from "./icons/iconClose";
 
 interface IProps {
   loading: ILoading;
@@ -31,7 +31,6 @@ interface IProps {
 export function ScreenSubscription(props: IProps): JSX.Element {
   const [isPlatesCalculatorShown, setIsPlatesCalculatorShown] = useState<boolean>(false);
   const [isGraphsShown, setIsGraphsShown] = useState<boolean>(false);
-  const [isMusclesShown, setIsMusclesShown] = useState<boolean>(false);
   const [isNotifsShown, setIsNotifsShown] = useState<boolean>(false);
   const [isRedeemShown, setIsRedeemShown] = useState<boolean>(false);
 
@@ -42,6 +41,17 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           loading={props.loading}
           dispatch={props.dispatch}
           screenStack={props.screenStack}
+          rightButtons={[
+            <button
+              className="p-2 nm-back"
+              data-cy="navbar-back"
+              onClick={() => {
+                props.dispatch(Thunk.pullScreen());
+              }}
+            >
+              <IconClose />
+            </button>,
+          ]}
           title={
             <span>
               <span style={{ fontFamily: "sans-serif" }}>⭐</span> <span>Liftosaur Premium</span>{" "}
@@ -94,25 +104,6 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         </Modal>,
         <Modal
           noPaddings={true}
-          isHidden={!isMusclesShown}
-          onClose={() => setIsMusclesShown(false)}
-          shouldShowClose={true}
-        >
-          <h3 className="pt-4 pb-2 text-lg font-bold">Muscles</h3>
-          <p className="pb-4">
-            Shows the balance of the muscles you activate during the day, or for the whole program. You could use it to
-            find imbalances in your program.
-          </p>
-          <div className="text-center">
-            <img
-              src="/images/muscles_subs.png"
-              style={{ boxShadow: "0 25px 50px 0px rgb(0 0 0 / 25%)" }}
-              alt="Muscles screenshot"
-            />
-          </div>
-        </Modal>,
-        <Modal
-          noPaddings={true}
           isHidden={!isNotifsShown}
           onClose={() => setIsNotifsShown(false)}
           shouldShowClose={true}
@@ -132,13 +123,16 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     >
       <section className="flex flex-col flex-1 px-4">
         <div
-          className="pt-24 mt-4 mb-6 bg-no-repeat"
+          className="pt-16 mt-2 mb-2 bg-no-repeat"
           style={{
             backgroundImage: "url(/images/logo.svg)",
             backgroundPosition: "top center",
-            backgroundSize: "4rem",
+            backgroundSize: "2.5rem",
           }}
         ></div>
+        <p className="mb-4 text-sm">
+          While you can use Liftosaur for free, there're some features on Liftosaur that require premium access:
+        </p>
         <ul>
           <Feature
             icon={<IconBarbell color="#3C5063" />}
@@ -153,18 +147,20 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             onClick={() => setIsGraphsShown(true)}
           />
           <Feature
-            icon={<IconMuscles2 />}
-            title="Muscles"
-            description="To see the muscle balance of your program"
-            onClick={() => setIsMusclesShown(true)}
-          />
-          <Feature
             icon={<IconBell />}
             title="Rest Timer Notifications"
             description="When it's about to start a new set, you'll get a notification."
             onClick={() => setIsNotifsShown(true)}
           />
         </ul>
+        <p className="mb-4 text-xs text-grayv2-main">
+          You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
+          after initial 14 days free trial period) or lifetime - one-time payment, that gives access to those features
+          without recurring charges in the future.
+        </p>
+        <p className="mb-4 text-xs text-grayv2-main">
+          You can cancel subscriptions any time via Google Play or App Store subscriptions management.
+        </p>
         <div className="fixed bottom-0 left-0 w-full px-2 py-2 bg-white">
           <div className="safe-area-inset-bottom">
             {props.subscription.key === "unclaimed" ? (
@@ -311,7 +307,7 @@ interface IFeatureProps {
 
 function Feature(props: IFeatureProps): JSX.Element {
   return (
-    <li className="flex flex-row flex-1 mb-8" onClick={props.onClick}>
+    <li className="flex flex-row flex-1 mb-6" onClick={props.onClick}>
       <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
       <div className="flex-1">
         <h3 className="text-base font-bold">
