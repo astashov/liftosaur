@@ -759,11 +759,19 @@ export class ProgramToPlanner {
     globals: ISimpleGlobals;
   } {
     const firstWeight = sets[0]?.weightExpr;
+    const firstAskWeight = !!sets[0]?.askWeight;
     const firstRpe = sets[0]?.rpeExpr;
+    const firstLogRpe = !!sets[0]?.logRpe;
     const firstTimer = sets[0]?.timerExpr;
     const globals = {
-      weight: firstWeight != null && sets.every((s) => s.weightExpr === firstWeight) ? firstWeight : undefined,
-      rpe: firstRpe != null && sets.every((s) => s.rpeExpr === firstRpe) ? Number(firstRpe) : undefined,
+      weight:
+        firstWeight != null && sets.every((s) => s.weightExpr === firstWeight && !!s.askWeight === firstAskWeight)
+          ? firstWeight
+          : undefined,
+      rpe:
+        firstRpe != null && sets.every((s) => s.rpeExpr === firstRpe && !!s.logRpe === firstLogRpe)
+          ? Number(firstRpe)
+          : undefined,
       timer: firstTimer != null && sets.every((s) => s.timerExpr === firstTimer) ? Number(firstTimer) : undefined,
     };
 
@@ -794,20 +802,24 @@ export class ProgramToPlanner {
 
     const sets = PlannerProgramExercise.sets(exercise);
     const firstWeight = sets[0]?.weight;
+    const firstAskWeight = !!sets[0]?.askWeight;
     const firstRpe = sets[0]?.rpe;
+    const firstLogRpe = !!sets[0]?.logRpe;
     const firstTimer = sets[0]?.timer;
     const firstPercentage = sets[0]?.percentage;
     const globalWeight =
       firstWeight != null
-        ? sets.every((set) =>
-            Weight.eq(set.weight || { value: 0, unit: "lb" }, firstWeight || { value: 0, unit: "lb" })
+        ? sets.every(
+            (set) =>
+              Weight.eq(set.weight || { value: 0, unit: "lb" }, firstWeight || { value: 0, unit: "lb" }) &&
+              !!set.askWeight === firstAskWeight
           )
           ? firstWeight
           : undefined
-        : sets.every((set) => set.percentage === firstPercentage)
+        : sets.every((set) => set.percentage === firstPercentage && !!set.askWeight === firstAskWeight)
         ? firstPercentage
         : undefined;
-    const globalRpe = sets.every((set) => set.rpe === firstRpe) ? firstRpe : undefined;
+    const globalRpe = sets.every((set) => set.rpe === firstRpe && !!set.logRpe === firstLogRpe) ? firstRpe : undefined;
     const globalTimer = sets.every((set) => set.timer === firstTimer) ? firstTimer : undefined;
     const denormalizedSets = [];
     for (const set of sets) {
