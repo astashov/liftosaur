@@ -26,11 +26,11 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
     },
     {
       title: "4. You can change or edit the program",
-      content: "/images/onboarding-4-edit-exercise.mp4",
+      content: "/images/onboarding-4-edit-exercise2.mp4",
     },
     {
-      title: "5. Define the logic of reps/weight changes using simple scripting language",
-      content: "/images/onboarding-5-liftoscript.mp4",
+      title: "5. Ensure you have right weekly/daily volume per muscle group.",
+      content: "/images/onboarding-5-liftoscript2.mp4",
     },
   ];
 
