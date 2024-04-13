@@ -432,8 +432,12 @@ const ExerciseContentView = memo(
             ) : (
               <WeightLinesUnsubscribed weights={workoutWeights} />
             )}
-            {nextSet && (!isSubscribed || props.hidePlatesCalculator) && (
-              <NextSet nextSet={nextSet} settings={props.settings} equipment={props.entry.exercise.equipment} />
+            {(!isSubscribed || props.hidePlatesCalculator) && (
+              <div className="h-4">
+                {nextSet && (
+                  <NextSet nextSet={nextSet} settings={props.settings} equipment={props.entry.exercise.equipment} />
+                )}
+              </div>
             )}
           </div>
         </header>
