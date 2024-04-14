@@ -129,7 +129,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             )}
             {hasStateVariables && (
               <>
-                <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
+                <h2 className="mt-2 mb-2 text-lg text-center">Edit state variables</h2>
                 <ProgramStateVariables
                   settings={props.settings}
                   newState={newState}
@@ -348,7 +348,7 @@ interface IEditWeightsProps {
 function EditWeights(props: IEditWeightsProps): JSX.Element {
   return (
     <div>
-      <h2 className="mb-2 text-lg text-center">Edit program weights</h2>
+      <h2 className="mt-2 mb-2 text-lg text-center">Edit program weights</h2>
       {props.weightChanges.map((weightChange, i) => {
         return (
           <EditWeight
