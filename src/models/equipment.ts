@@ -1,4 +1,4 @@
-import { IEquipment, IEquipmentData, equipments, IAllEquipment } from "../types";
+import { IEquipment, IEquipmentData, equipments, IAllEquipment, ISettings, IWeight, IUnit } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { equipmentName } from "./exercise";
@@ -20,6 +20,19 @@ export namespace Equipment {
       fixed: [],
       isFixed: false,
     };
+  }
+
+  export function getEquipmentData(settings: ISettings, key: string): IEquipmentData | undefined {
+    return settings.equipment[key];
+  }
+
+  export function smallestPlate(equipmentData: IEquipmentData, unit: IUnit): IWeight {
+    return (
+      CollectionUtils.sort(
+        equipmentData.plates.filter((p) => p.weight.unit === unit),
+        (a, b) => Weight.compare(a.weight, b.weight)
+      )[0]?.weight || Weight.build(1, unit)
+    );
   }
 
   export function mergeEquipment(

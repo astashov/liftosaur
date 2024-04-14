@@ -973,6 +973,27 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240413": {
+    title: <span>Quickly change weights in a program exercise</span>,
+    body: (
+      <ul>
+        <li>
+          For the old programs, it was pretty convenient to just change <strong>state.weight</strong> state variable to
+          adjust the weight across the sets of the exercise.
+        </li>
+        <li>
+          In the new plain-text syntax, it got more complicated - if the program is not 1RM-based, you'd need to edit
+          the absolute weight in the program text. Which could be quite cumbersome, especially if you have multiple
+          weeks to adjust.
+        </li>
+        <li>
+          So I added a way to quickly change the weights in the program exercise, in the "Edit" modal on the workout
+          screen. It lists all the weights used by the exercise in a program, and you can quickly adjust them, either by
+          typing, or by buttons, and there's also a Rep Max Calculator for convenience.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

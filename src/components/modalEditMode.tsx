@@ -12,12 +12,16 @@ import { Weight } from "../models/weight";
 import { MenuItemEditable } from "./menuItemEditable";
 import { EditProgramConvertStateVariables } from "./editProgram/editProgramConvertStateVariables";
 import { IconCalculator } from "./icons/iconCalculator";
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
 import { ExerciseRM } from "./exerciseRm";
-import { ProgramExercise } from "../models/programExercise";
+import { IWeightChange, ProgramExercise } from "../models/programExercise";
 import { Program } from "../models/program";
+import { inputClassName } from "./input";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerToProgram } from "../models/plannerToProgram";
+import { CollectionUtils } from "../utils/collection";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -37,8 +41,46 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
       lb<IState>().p("progress").pi(props.progressId).pi("ui").p("editModal").record(undefined),
     ]);
   };
+  const onSave = (): void => {
+    ObjectUtils.entries(newState).forEach(([stateKey, newValue]) => {
+      EditProgram.properlyUpdateStateVariableInPlace(
+        props.dispatch,
+        props.program.id,
+        programExercise,
+        stateKey,
+        newValue
+      );
+    });
+    if (planner != null) {
+      const newPlanner = PlannerProgram.replaceWeight(planner, programExercise, weightChanges, props.settings);
+      if (newPlanner !== planner) {
+        const newProgram = new PlannerToProgram(
+          program.id,
+          program.nextDay,
+          program.exercises,
+          newPlanner,
+          props.settings
+        ).convertToProgram();
+        updateState(props.dispatch, [
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .recordModify((programs) => {
+              return CollectionUtils.setBy(programs, "id", program.id, newProgram);
+            }),
+        ]);
+      }
+    }
+    onClose();
+  };
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
-  const [showCalculator, setShowCalculator] = useState<[string, IUnit] | undefined>(undefined);
+  const [newState, setNewState] = useState<Record<string, string>>({});
+  const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(programExercise));
+  const [showCalculator, setShowCalculator] = useState<
+    { type: "state"; value: [string, IUnit] } | { type: "weight"; value: [number, IUnit] } | undefined
+  >(undefined);
+  const program = props.program;
+  const planner = program.planner;
   return (
     <Modal shouldShowClose={true} onClose={onClose} isFullWidth={true}>
       <div style={{ minWidth: "80%" }} data-cy="modal-edit-mode">
@@ -67,11 +109,30 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                 />
               </div>
             )}
-            {hasStateVariables ? (
+            {planner && (
+              <EditWeights
+                weightChanges={weightChanges}
+                settings={props.settings}
+                equipment={programExercise.exerciseType.equipment}
+                onCalculatorOpen={(index) => {
+                  const unit = weightChanges[index].weight.unit;
+                  if (unit !== "%") {
+                    setShowCalculator({ type: "weight", value: [index, unit] });
+                  }
+                }}
+                onEditWeight={(index, weight, unit) => {
+                  const weightChange = weightChanges[index];
+                  const newValue: IWeightChange = { ...weightChange, weight: { value: weight, unit } };
+                  setWeightChanges(CollectionUtils.setAt(weightChanges, index, newValue));
+                }}
+              />
+            )}
+            {hasStateVariables && (
               <>
                 <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
                 <ProgramStateVariables
                   settings={props.settings}
+                  newState={newState}
                   programExercise={programExercise}
                   stateMetadata={programExercise.stateMetadata}
                   onChangeStateVariableUnit={() => {
@@ -83,24 +144,22 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                     );
                   }}
                   onEditStateVariable={(stateKey, newValue) => {
-                    EditProgram.properlyUpdateStateVariableInPlace(
-                      props.dispatch,
-                      props.program.id,
-                      programExercise,
-                      stateKey,
-                      newValue
-                    );
+                    setNewState({ ...newState, [stateKey]: newValue });
                   }}
-                  onOpenCalculator={(key, unit) => setShowCalculator([key, unit])}
+                  onOpenCalculator={(key, unit) => setShowCalculator({ type: "state", value: [key, unit] })}
                 />
+              </>
+            )}
+            {hasStateVariables || planner ? (
+              <>
                 <div className="mt-4 text-center">
                   <Button
                     name="edit-mode-stave-statvars"
                     kind="orange"
-                    onClick={() => onClose()}
+                    onClick={() => onSave()}
                     data-cy="modal-edit-mode-save-statvars"
                   >
-                    Done
+                    Save
                   </Button>
                 </div>
                 <h2 className="mt-8 text-lg text-center">Or edit the whole exercise</h2>
@@ -181,16 +240,25 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
         ) : (
           <RepMaxCalculator
             backLabel="Back"
-            unit={showCalculator[1]}
+            unit={showCalculator.value[1]}
             onSelect={(weightValue) => {
               if (weightValue != null) {
-                EditProgram.properlyUpdateStateVariableInPlace(
-                  props.dispatch,
-                  props.program.id,
-                  programExercise,
-                  showCalculator[0],
-                  `${weightValue}`
-                );
+                if (showCalculator.type === "state") {
+                  EditProgram.properlyUpdateStateVariableInPlace(
+                    props.dispatch,
+                    props.program.id,
+                    programExercise,
+                    showCalculator.value[0],
+                    `${weightValue}`
+                  );
+                } else {
+                  const weightChange = weightChanges[showCalculator.value[0]];
+                  const newValue: IWeightChange = {
+                    ...weightChange,
+                    weight: { value: weightValue, unit: weightChange.weight.unit },
+                  };
+                  setWeightChanges(CollectionUtils.setAt(weightChanges, showCalculator.value[0], newValue));
+                }
               }
               setShowCalculator(undefined);
             }}
@@ -204,6 +272,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
 interface IStateProps {
   programExercise: IProgramExercise;
   stateMetadata?: IProgramStateMetadata;
+  newState: Record<string, string>;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
   onOpenCalculator: (stateKey: string, unit: IUnit) => void;
@@ -223,7 +292,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
         onConvert={props.onChangeStateVariableUnit}
       />
       {ObjectUtils.keys(state).map((stateKey, i) => {
-        const value = state[stateKey];
+        const value = props.newState[stateKey] || state[stateKey];
         const displayValue = Weight.is(value) || Weight.isPct(value) ? value.value : value;
 
         return (
@@ -265,5 +334,161 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
         );
       })}
     </section>
+  );
+}
+
+interface IEditWeightsProps {
+  weightChanges: IWeightChange[];
+  equipment?: string;
+  settings: ISettings;
+  onEditWeight: (index: number, weight: number, unit: IUnit | "%") => void;
+  onCalculatorOpen: (index: number) => void;
+}
+
+function EditWeights(props: IEditWeightsProps): JSX.Element {
+  return (
+    <div>
+      <h2 className="mb-2 text-lg text-center">Edit program weights</h2>
+      {props.weightChanges.map((weightChange, i) => {
+        return (
+          <EditWeight
+            weightChange={weightChange}
+            equipment={props.equipment}
+            settings={props.settings}
+            onEditWeight={(weight, unit) => props.onEditWeight(i, weight, unit)}
+            onCalculatorOpen={() => props.onCalculatorOpen(i)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+interface IEditWeightProps {
+  weightChange: IWeightChange;
+  equipment?: string;
+  settings: ISettings;
+  onEditWeight: (weight: number, unit: IUnit | "%") => void;
+  onCalculatorOpen: () => void;
+}
+
+function EditWeight(props: IEditWeightProps): JSX.Element {
+  const inputRef = useRef<HTMLInputElement>();
+  const unitRef = useRef<HTMLSelectElement>();
+
+  function getValueAndUnit(): [number, IUnit | "%"] | undefined {
+    const inputValue = inputRef.current.value;
+    let value = Number(inputValue);
+    if (inputValue && !isNaN(value)) {
+      value = Math.abs(value);
+      const unit = unitRef.current.value as IUnit | "%";
+      return [value, unit];
+    }
+    return undefined;
+  }
+  const { originalWeight, weight } = props.weightChange;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mt-2">
+        <div>
+          <button
+            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
+            data-cy="edit-weight-minus"
+            onClick={() => {
+              const valueAndUnit = getValueAndUnit();
+              if (valueAndUnit) {
+                const [value, unit] = valueAndUnit;
+                if (unit === "%") {
+                  const newValue = Math.max(0, value - 1);
+                  props.onEditWeight(newValue, unit);
+                } else {
+                  const newWeight = Weight.decrement(Weight.build(value, unit), props.settings, props.equipment);
+                  props.onEditWeight(newWeight.value, newWeight.unit);
+                }
+              }
+            }}
+          >
+            -
+          </button>
+        </div>
+        <div className="flex items-center flex-1 gap-2">
+          <div className="flex-1">
+            <input
+              ref={inputRef}
+              data-cy="edit-weight-input"
+              className={inputClassName}
+              type="number"
+              value={weight.value}
+              onInput={() => {
+                const valueAndUnit = getValueAndUnit();
+                if (valueAndUnit) {
+                  const [value, unit] = valueAndUnit;
+                  props.onEditWeight(value, unit);
+                }
+              }}
+            />
+          </div>
+          <div>
+            <select
+              ref={unitRef}
+              data-cy="edit-weight-unit"
+              onChange={() => {
+                const valueAndUnit = getValueAndUnit();
+                if (valueAndUnit) {
+                  const [value, unit] = valueAndUnit;
+                  props.onEditWeight(value, unit);
+                }
+              }}
+            >
+              {["kg", "lb", "%"].map((unit) => {
+                return (
+                  <option value={unit} selected={weight.unit === unit}>
+                    {unit}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        </div>
+        {props.weightChange.weight.unit !== "%" && (
+          <div>
+            <button
+              className="w-10 h-10 p-2 leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-calc"
+              data-cy="edit-weight-calculator"
+              onClick={() => {
+                props.onCalculatorOpen();
+              }}
+            >
+              <IconCalculator className="inline-block" size={16} />
+            </button>
+          </div>
+        )}
+        <div>
+          <button
+            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
+            data-cy="edit-weight-plus"
+            onClick={() => {
+              const valueAndUnit = getValueAndUnit();
+              if (valueAndUnit) {
+                const [value, unit] = valueAndUnit;
+                if (unit === "%") {
+                  const newValue = value + 1;
+                  props.onEditWeight(newValue, unit);
+                } else {
+                  const newWeight = Weight.increment(Weight.build(value, unit), props.settings, props.equipment);
+                  props.onEditWeight(newWeight.value, newWeight.unit);
+                }
+              }
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+      {!Weight.eq(originalWeight, weight) && (
+        <div className="pl-12 ml-1 text-xs text-grayv2-main">Was: {Weight.print(originalWeight)}</div>
+      )}
+    </div>
   );
 }

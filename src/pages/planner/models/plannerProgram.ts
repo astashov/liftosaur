@@ -8,6 +8,7 @@ import {
   IExerciseType,
   IPlannerProgram,
   IPlannerProgramWeek,
+  IProgramExercise,
   ISettings,
 } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
@@ -19,6 +20,8 @@ import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerKey } from "../plannerKey";
 import { PlannerEvaluator } from "../plannerEvaluator";
+import { IWeightChange } from "../../../models/programExercise";
+import { Weight } from "../../../models/weight";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -35,6 +38,39 @@ export class PlannerProgram {
   public static isValid(program: IPlannerProgram, settings: ISettings): boolean {
     const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
+  }
+
+  public static replaceWeight(
+    planner: IPlannerProgram,
+    programExercise: IProgramExercise,
+    weightChanges: IWeightChange[],
+    settings: ISettings
+  ): IPlannerProgram {
+    if (weightChanges.every((wc) => ObjectUtils.isEqual(wc.originalWeight, wc.weight))) {
+      return planner;
+    }
+    const key = PlannerKey.fromProgramExercise(programExercise, settings);
+    return this.modifyTopLineItems(planner, settings, (line) => {
+      if (line.type === "exercise" && line.value === key) {
+        const weightToRanges: [number, number, string][] = [];
+        let fakeScript = `E / ${line.sections}`;
+        const fakeTree = plannerExerciseParser.parse(fakeScript);
+        const cursor = fakeTree.cursor();
+        do {
+          if (cursor.type.name === PlannerNodeName.Weight || cursor.type.name === PlannerNodeName.Percentage) {
+            const value = fakeScript.slice(cursor.node.from, cursor.node.to);
+            const weightChange = weightChanges.find((wc) => Weight.print(wc.originalWeight) === value);
+            if (weightChange != null) {
+              const weightStr = Weight.print(weightChange.weight);
+              weightToRanges.push([cursor.node.from, cursor.node.to, weightStr]);
+            }
+          }
+        } while (cursor.next());
+        fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, weightToRanges);
+        line.sections = fakeScript.replace(/^E \//, "").trim();
+      }
+      return line;
+    });
   }
 
   public static replaceExercise(
@@ -76,7 +112,7 @@ export class PlannerProgram {
         let fakeScript = `E / ${line.sections}`;
         const fakeTree = plannerExerciseParser.parse(fakeScript);
         const cursor = fakeTree.cursor();
-        const ranges: [number, number][] = [];
+        const ranges: [number, number, string][] = [];
         let newFullName;
         do {
           if (cursor.type.name === PlannerNodeName.ExerciseName) {
@@ -84,12 +120,12 @@ export class PlannerProgram {
             const exerciseKey = PlannerKey.fromFullName(oldFullname, settings);
             if (exerciseKey === key) {
               newFullName = getNewFullName(oldFullname);
-              ranges.push([cursor.node.from, cursor.node.to]);
+              ranges.push([cursor.node.from, cursor.node.to, newFullName]);
             }
           }
         } while (cursor.next());
         if (newFullName) {
-          fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, ranges, newFullName);
+          fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, ranges);
           line.sections = fakeScript.replace(/^E \//, "").trim();
         }
       }
@@ -103,6 +139,7 @@ export class PlannerProgram {
     firstPass: (
       line: IPlannerTopLineItem,
       weekIndex: number,
+      dayInWeekIndex: number,
       dayIndex: number,
       lineIndex: number
     ) => IPlannerTopLineItem
@@ -123,24 +160,26 @@ export class PlannerProgram {
       });
     });
 
+    dayIndex = 0;
     for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
       const week = mapping[weekIndex];
-      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
-        const day = week[dayIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
+        const day = week[dayInWeekIndex];
         for (let lineIndex = 0; lineIndex < day.length; lineIndex += 1) {
           const line = day[lineIndex];
-          const newLine = firstPass(line, weekIndex, dayIndex, lineIndex);
+          const newLine = firstPass(line, weekIndex, dayInWeekIndex, dayIndex, lineIndex);
           day[lineIndex] = newLine;
         }
+        dayIndex += 1;
       }
     }
 
     for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
       const programWeek = plannerProgram.weeks[weekIndex];
       const week = mapping[weekIndex];
-      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
-        const day = week[dayIndex];
-        const programDay = programWeek.days[dayIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
+        const day = week[dayInWeekIndex];
+        const programDay = programWeek.days[dayInWeekIndex];
         let str = "";
         for (const line of day) {
           str += this.topLineItemToText(line);

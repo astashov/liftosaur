@@ -2,6 +2,7 @@ import { CollectionUtils } from "../utils/collection";
 
 import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate, IPercentage } from "../types";
 import { MathUtils } from "../utils/math";
+import { Equipment } from "./equipment";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
@@ -20,6 +21,15 @@ export namespace Weight {
 
   export function print(weight: IWeight | IPercentage): string {
     return `${weight.value}${weight.unit}`;
+  }
+
+  export function parsePct(str: string): IPercentage | IWeight | undefined {
+    const match = str.match(/^([0-9.]+)%$/);
+    if (match) {
+      return buildPct(MathUtils.roundFloat(parseFloat(match[1]), 2));
+    } else {
+      return parse(str);
+    }
   }
 
   export function parse(str: string): IWeight | undefined {
@@ -79,6 +89,35 @@ export namespace Weight {
 
   export function round(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
     return Weight.calculatePlates(weight, settings, equipment).totalWeight;
+  }
+
+  export function increment(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
+    const roundWeight = Weight.round(weight, settings, equipment);
+    const equipmentData = equipment ? Equipment.getEquipmentData(settings, equipment) : undefined;
+    if (equipmentData) {
+      const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
+      let newWeight = roundWeight;
+      let attempt = 0;
+      do {
+        newWeight = Weight.add(newWeight, smallestPlate);
+        attempt += 1;
+      } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, equipment), roundWeight));
+      return newWeight;
+    } else {
+      return Weight.build(roundWeight.value + 1, roundWeight.unit);
+    }
+  }
+
+  export function decrement(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
+    const roundWeight = Weight.round(weight, settings, equipment);
+    const equipmentData = equipment ? Equipment.getEquipmentData(settings, equipment) : undefined;
+    if (equipmentData) {
+      const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
+      const newWeight = Weight.round(Weight.subtract(roundWeight, smallestPlate), settings, equipment);
+      return Weight.build(Math.max(0, newWeight.value), newWeight.unit);
+    } else {
+      return Weight.build(Math.max(0, roundWeight.value - 1), roundWeight.unit);
+    }
   }
 
   export function getOneRepMax(weight: IWeight, reps: number): IWeight {

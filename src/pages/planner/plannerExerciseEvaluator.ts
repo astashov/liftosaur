@@ -115,10 +115,10 @@ export class PlannerExerciseEvaluator {
     return this.script.slice(node.from, node.to);
   }
 
-  public static applyChangesToScript(script: string, ranges: [number, number][], replacement: string): string {
+  public static applyChangesToScript(script: string, ranges: [number, number, string][]): string {
     let offset = 0;
     while (ranges.length > 0) {
-      const [from, to] = ranges.shift()!;
+      const [from, to, replacement] = ranges.shift()!;
       script = script.slice(0, from + offset) + replacement + script.slice(to + offset);
       offset += replacement.length - (to - from);
     }

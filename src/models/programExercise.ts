@@ -28,6 +28,11 @@ import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
 import { PlannerKey } from "../pages/planner/plannerKey";
 
+export interface IWeightChange {
+  originalWeight: IWeight | IPercentage;
+  weight: IWeight | IPercentage;
+}
+
 export interface IProgramExerciseExample {
   title: string;
   description: string;
@@ -436,6 +441,24 @@ export namespace ProgramExercise {
         return ProgramSet.isEqual(s, newSet);
       });
     });
+  }
+
+  export function weightChanges(programExercise: IProgramExercise): IWeightChange[] {
+    const results: Record<string, IWeightChange> = {};
+
+    for (let variationIndex = 0; variationIndex < programExercise.variations.length; variationIndex += 1) {
+      const variation = programExercise.variations[variationIndex];
+      for (let setIndex = 0; setIndex < variation.sets.length; setIndex += 1) {
+        const set = variation.sets[setIndex];
+        if (set.weightExpr) {
+          const weight = Weight.parsePct(set.weightExpr);
+          if (weight != null) {
+            results[set.weightExpr] = { originalWeight: weight, weight };
+          }
+        }
+      }
+    }
+    return ObjectUtils.values(results);
   }
 
   export function applyVariables(
