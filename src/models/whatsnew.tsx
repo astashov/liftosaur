@@ -994,6 +994,24 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240415": {
+    title: <span>Added a bunch of new programs</span>,
+    body: (
+      <ul>
+        <li>Namely:</li>
+        <li>
+          <ul className="ml-4 list-disc">
+            <li>5/3/1: Boring But Big</li>
+            <li>5/3/1: Building The Monolith</li>
+            <li>nSuns LP</li>
+            <li>Madcow 5x5</li>
+            <li>PHUL</li>
+            <li>Phrak's Greyskull LP</li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
