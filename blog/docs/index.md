@@ -234,7 +234,7 @@ You can add a progression like this:
 Bench Press / 3x8 / progress: lp(5lb)
 {% endplannercode %}
 
-That would increase the weight after each susccessful finishing of 3 sets x 8 reps by 5lb.
+That would increase the weight after each successful completion of 3 sets x 8 reps by 5lb.
 You only need to add it to one of the days in your program per exercise, no need to repeat it week over week or day over day. It will be applied to all such exercises in a program. You may disable progression for specific days or weeks via `progress: none` section - for example if that's a deload week. For example:
 
 {% plannercode %}
@@ -255,7 +255,7 @@ Bench Press / 3x8 / progress: none
 
 If you try to specify different progressions for the same exercise in different weeks/days, it'll give you an error - the progressions are applied for an exercise across whole program. You cannot have e.g. linear progression on day 1, and double progression on day 2.
 
-There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a color `:` after it. For example - `aux: Bench Press` or `strenght: Squat` or anything like that.
+There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a colon `:` after it. For example - `aux: Bench Press` or `strenght: Squat` or anything like that.
 
 So with labels, e.g. you have low-rep range Bench Press and high-rep range Bench Press in your program, and you want both of them have Double Progression, but in different ranges. You could do it like this:
 

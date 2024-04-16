@@ -25,12 +25,6 @@
 * Add +/- button for the set weight/reps/rpe on long press
 - Change ID when cloning a program
 
-* Programs
-  - 5/3/1s
-    - BBB
-    - Building the monolith
-  - Greyskull LP
-  - nSuns LP
 * Add achievements
 * Add ability to publish user programs
 * Versionize published programs
