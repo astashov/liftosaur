@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import "source-map-support/register";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
@@ -61,6 +62,7 @@ import { renderProgramsListHtml } from "./programsList";
 import { PlannerToProgram } from "../src/models/plannerToProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { renderMainHtml } from "./main";
+import { LftS3Buckets } from "./dao/buckets";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -75,6 +77,14 @@ interface IOpenIdResponseError {
 interface IPayload {
   event: APIGatewayProxyEvent;
   di: IDI;
+}
+
+export interface IStatsUserData {
+  userId: string;
+  email?: string;
+  userTs?: number;
+  firstAction: { ts: number; name: string };
+  lastAction: { ts: number; name: string };
 }
 
 export type IEnv = "dev" | "prod";
@@ -1820,6 +1830,134 @@ export const getLftFreeformLambda = (di: IDI): Rollbar.LambdaHandler<unknown, AP
   rollbar.lambdaHandler(
     async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(di)(event)
   ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const getLftStatsLambdaDev = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(di)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const getLftStatsLambda = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(di)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
+  return async () => {
+    const lastThreeMonths = [DateUtils.yearAndMonth(Date.now())];
+    const lastMonthlogRecords = await new LogDao(di).getAllForYearAndMonth(
+      lastThreeMonths[0][0],
+      lastThreeMonths[0][1]
+    );
+    const userIds = lastMonthlogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId);
+    const users = await new UserDao(di).getLimitedByIds(userIds);
+    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
+    const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
+    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
+
+    const usersData: IStatsUserData[] = Object.keys(logRecordsByUserId).map((userId) => {
+      const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
+      const lastAction = userLogRecords[0];
+      const firstAction = userLogRecords[userLogRecords.length - 1];
+      return {
+        userId,
+        email: usersById[userId]?.email,
+        userTs: usersById[userId]?.createdAt,
+        firstAction: { name: firstAction.action, ts: firstAction.ts },
+        lastAction: { name: lastAction.action, ts: lastAction.ts },
+      };
+    });
+
+    let lastDay;
+    const data: IStatsUserData[][] = [];
+    for (const user of usersData) {
+      const day = new Date(user.lastAction.ts).getUTCDate();
+      if (lastDay == null || lastDay !== day) {
+        data.push([]);
+        lastDay = day;
+      }
+      const dayGroup = data[data.length - 1];
+      dayGroup.push(user);
+    }
+
+    for (const dayGroup of data) {
+      dayGroup.sort((a, b) => {
+        const isANew = getIsNew(a);
+        const isANewUser = getIsNewUser(a);
+        const isBNew = getIsNew(b);
+        const isBNewUser = getIsNewUser(b);
+
+        if ((isANew || isANewUser) && !(isBNew || isBNewUser)) {
+          return -1;
+        } else if (!(isANew || isANewUser) && (isBNew || isBNewUser)) {
+          return 1;
+        } else {
+          return b.lastAction.ts - a.lastAction.ts;
+        }
+      });
+    }
+
+    const activeMontlyCount = data.reduce((acc, dayGroup) => acc + dayGroup.length, 0);
+    const activeMonthlyRegisteredCount = data.reduce(
+      (acc, dayGroup) => acc + dayGroup.filter((i) => i.email != null).length,
+      0
+    );
+    const newThisMonth = data.reduce(
+      (acc, dayGroup) => acc + dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24 * 30).length,
+      0
+    );
+    const newRegisteredThisMonth = data.reduce(
+      (acc, dayGroup) =>
+        acc + dayGroup.filter((i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24 * 30).length,
+      0
+    );
+
+    const bucket = `${LftS3Buckets.stats}${Utils.getEnv() === "dev" ? "dev" : ""}`;
+    const statsFile = await di.s3.getObject({ bucket, key: "stats.csv" });
+    let stats = statsFile?.toString();
+    if (!stats) {
+      stats = "date,monthly,monthly_registered,daily,daily_registered\n";
+    }
+    stats += `${DateUtils.formatYYYYMMDD(
+      new Date()
+    )},${activeMontlyCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth}\n`;
+    await di.s3.putObject({
+      bucket: bucket,
+      key: "stats.csv",
+      body: stats,
+      opts: { contentType: "text/csv" },
+    });
+    console.log(stats);
+
+    return {
+      statusCode: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        data: "done",
+      }),
+    };
+  };
+};
+
+function getIsNew(item: IStatsUserData): boolean {
+  const firstActionDate = new Date(item.firstAction.ts);
+  const lastActionDate = new Date(item.lastAction.ts);
+  return (
+    firstActionDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
+    firstActionDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
+    firstActionDate.getUTCDate() === lastActionDate.getUTCDate()
+  );
+}
+
+function getIsNewUser(item: IStatsUserData): boolean {
+  const lastActionDate = new Date(item.lastAction.ts);
+  const userDate = item.userTs && new Date(item.userTs);
+  return !!(
+    userDate &&
+    userDate.getUTCFullYear() === lastActionDate.getUTCFullYear() &&
+    userDate.getUTCMonth() === lastActionDate.getUTCMonth() &&
+    userDate.getUTCDate() === lastActionDate.getUTCDate()
+  );
+}
 
 export const freeformLambdaHandler = (
   di: IDI

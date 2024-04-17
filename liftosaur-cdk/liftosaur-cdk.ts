@@ -6,6 +6,7 @@ import { aws_secretsmanager as sm } from "aws-cdk-lib";
 import { aws_s3 as s3 } from "aws-cdk-lib";
 import { aws_certificatemanager as acm } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
+import { aws_events, aws_events_targets } from "aws-cdk-lib";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 
@@ -243,6 +244,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
       lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
     });
 
+    const statsBucket = new s3.Bucket(this, `LftS3Stats${suffix}`, {
+      bucketName: `${LftS3Buckets.stats}${suffix.toLowerCase()}`,
+    });
+
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
@@ -273,6 +278,30 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
+    const statsLambdaFunction = new lambda.Function(this, `LftStatsLambda${suffix}`, {
+      runtime: lambda.Runtime.NODEJS_16_X,
+      functionName: `LftStatsLambda${suffix}`,
+      code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 512,
+      layers: [depsLayer],
+      timeout: cdk.Duration.seconds(300),
+      handler: `lambda/run.LftStatsLambda${suffix}`,
+      environment: {
+        IS_DEV: `${isDev}`,
+      },
+    });
+    const rule = new aws_events.Rule(this, `LftStatsLambdaRule${suffix}`, {
+      schedule: aws_events.Schedule.cron({
+        minute: "57",
+        hour: "23",
+        month: "*",
+        weekDay: "*",
+        year: "*",
+      }),
+    });
+
+    rule.addTarget(new aws_events_targets.LambdaFunction(statsLambdaFunction));
+
     const cert = acm.Certificate.fromCertificateArn(
       this,
       `LftEndpointCert${suffix}`,
@@ -295,7 +324,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
     freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
     allSecrets.grantRead(freeformLambdaFunction);
+    allSecrets.grantRead(statsLambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
+    usersTable.grantReadWriteData(statsLambdaFunction);
+    statsBucket.grantReadWrite(lambdaFunction);
+    statsBucket.grantReadWrite(statsLambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     appleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);
@@ -304,6 +337,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     userProgramsTable.grantReadWriteData(lambdaFunction);
     subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
+    logsTable.grantReadWriteData(statsLambdaFunction);
     logsFreeformTable.grantReadWriteData(lambdaFunction);
     logsFreeformTable.grantReadWriteData(freeformLambdaFunction);
     friendsTable.grantReadWriteData(lambdaFunction);
