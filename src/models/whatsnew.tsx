@@ -1012,6 +1012,22 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240417": {
+    title: <span>update: custom() improvements</span>,
+    body: (
+      <ul>
+        <li>
+          You can use state variables defined in <strong>progress: custom()</strong> in your{" "}
+          <strong>update: custom()</strong> scripts.
+        </li>
+        <li>
+          Also kinda breaking change, but also now <strong>update: custom()</strong> script would run right after
+          starting a workout. Before completing any sets. With <strong>setIndex == 0</strong>.
+        </li>
+        <li>You can use that to programmatically configure your workout</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
