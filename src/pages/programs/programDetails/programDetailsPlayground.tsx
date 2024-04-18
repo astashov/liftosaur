@@ -63,8 +63,8 @@ export const Playground = memo(
 
     const [progress, setProgress] = useState(() => {
       const entry = Program.nextHistoryEntry(
-        programExercise.id,
-        programExercise.exerciseType,
+        programExercise,
+        props.allProgramExercises,
         dayData,
         programExerciseVariations[variationIndex].sets,
         programExerciseState,

@@ -583,25 +583,25 @@ export namespace Progress {
     }
   }
 
-  export function runUpdateScript(
-    aProgress: IHistoryRecord,
+  export function runUpdateScriptForEntry(
+    entry: IHistoryEntry,
+    dayData: IDayData,
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],
-    entryIndex: number,
     setIndex: number,
-    mode: IProgressMode,
     settings: ISettings
-  ): IHistoryRecord {
-    if (mode === "warmup") {
-      return aProgress;
+  ): IHistoryEntry {
+    if (setIndex !== -1 && entry?.sets[setIndex]?.completedReps == null) {
+      return entry;
     }
-    const entry = aProgress.entries[entryIndex];
-    if (entry?.sets[setIndex]?.completedReps == null) {
-      return aProgress;
+    const script = programExercise
+      ? ProgramExercise.getUpdateDayScript(programExercise, allProgramExercises)
+      : undefined;
+    if (!script) {
+      return entry;
     }
     const exercise = programExercise.exerciseType;
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    const dayData = Progress.getDayData(aProgress);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
       allProgramExercises,
@@ -618,41 +618,60 @@ export namespace Progress {
     );
     const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
     const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
-    const script = programExercise
-      ? ProgramExercise.getUpdateDayScript(programExercise, allProgramExercises)
-      : undefined;
-    if (script && state) {
-      const bindings = Progress.createScriptBindings(
-        Progress.getDayData(aProgress),
-        entry,
-        settings,
-        setIndex + 1,
-        setVariationIndex,
-        descriptionIndex
+    const bindings = Progress.createScriptBindings(
+      dayData,
+      entry,
+      settings,
+      setIndex + 1,
+      setVariationIndex,
+      descriptionIndex
+    );
+    try {
+      const runner = new ScriptRunner(
+        script,
+        state,
+        bindings,
+        Progress.createScriptFunctions(settings),
+        settings.units,
+        {
+          equipment: exercise.equipment,
+          unit: settings.units,
+        },
+        "update"
       );
-      try {
-        const runner = new ScriptRunner(
-          script,
-          state,
-          bindings,
-          Progress.createScriptFunctions(settings),
-          settings.units,
-          {
-            equipment: exercise.equipment,
-            unit: settings.units,
-          },
-          "update"
-        );
-        runner.execute();
-        const newEntry = Progress.applyBindings(entry, bindings);
-        const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
-        return progress;
-      } catch (e) {
-        console.error(e);
-        alert("Something went wrong");
-      }
+      runner.execute();
+      return Progress.applyBindings(entry, bindings);
+    } catch (e) {
+      console.error(e);
+      alert(`Error during executing 'update: custom()' script: ${e.message}`);
+      return entry;
     }
-    return aProgress;
+    return entry;
+  }
+
+  export function runUpdateScript(
+    aProgress: IHistoryRecord,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    entryIndex: number,
+    setIndex: number,
+    mode: IProgressMode,
+    settings: ISettings
+  ): IHistoryRecord {
+    if (mode === "warmup") {
+      return aProgress;
+    }
+    const entry = aProgress.entries[entryIndex];
+    const newEntry = runUpdateScriptForEntry(
+      entry,
+      Progress.getDayData(aProgress),
+      programExercise,
+      allProgramExercises,
+      setIndex,
+      settings
+    );
+    const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
+    return progress;
   }
 
   export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {

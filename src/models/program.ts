@@ -130,8 +130,8 @@ export namespace Program {
     const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
 
     return nextHistoryEntry(
-      programExercise.id,
-      programExercise.exerciseType,
+      programExercise,
+      allProgramExercises,
       dayData,
       sets,
       state,
@@ -144,8 +144,8 @@ export namespace Program {
   }
 
   export function nextHistoryEntry(
-    programExerciseId: string,
-    exercise: IExerciseType,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
     dayData: IDayData,
     programSets: IProgramSet[],
     state: IProgramState,
@@ -155,6 +155,7 @@ export namespace Program {
     warmupSets?: IProgramExerciseWarmupSet[],
     shouldFallback?: boolean
   ): IHistoryEntry {
+    const exercise = programExercise.exerciseType;
     const sets: ISet[] = programSets.map((set) => {
       const repsValue = ScriptRunner.safe(
         () => {
@@ -252,12 +253,21 @@ export namespace Program {
       };
     });
 
-    return {
+    const entry = {
       exercise: exercise,
-      programExerciseId,
+      programExerciseId: programExercise.id,
       sets,
       warmupSets: sets[0]?.weight != null ? Exercise.getWarmupSets(exercise, sets[0].weight, settings, warmupSets) : [],
     };
+    const newEntry = Progress.runUpdateScriptForEntry(
+      entry,
+      dayData,
+      programExercise,
+      allProgramExercises,
+      -1,
+      settings
+    );
+    return newEntry;
   }
 
   export function getProgramExerciseById(program: IProgram, id: string): IProgramExercise | undefined {

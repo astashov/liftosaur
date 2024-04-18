@@ -789,7 +789,7 @@ The `var.i` would contain the index of each set, starting from 1.
 
 `progress: ` logic updates the weights/reps/etc **in the program**, after you finish a workout. But there's also a way to update sets while you're doing a workout! For example, you want to set the number of drop sets or dropset reps based on the first set completed reps, or something like that.
 
-For that, you can use `update: custom()` syntax, which is very similar to `progress: custom()`. The difference is that you cannot change program state variables, and you cannot access the program at all - only the currently ongoing workout values. The script would be run every single time user taps on a set.
+For that, you can use `update: custom()` syntax, which is very similar to `progress: custom()`. The difference is that you cannot change program state variables, and you cannot access the program at all - only read the program state, and the currently ongoing workout values. The script would be run **before** completing any sets (with `setIndex` == 0), and then every single time user taps on a set.
 
 So, the list of variables you can get values from is pretty much the same:
 
@@ -805,7 +805,7 @@ So, the list of variables you can get values from is pretty much the same:
 - `numberOfSets`
 - `setVariationIndex`
 - `descriptionIndex`
-- `setIndex` - index of a set that was tapped
+- `setIndex` - index of a set that was tapped (it's 0 for the initial run - before completing any sets)
 
 But assigning new values is only allowed to the following:
 
@@ -842,6 +842,9 @@ Bench Press / 3x8 / update: custom() {~
 {% endplannercode %}
 
 `floor(reps[1] / 2)` makes sure that if there's a reminder when dividing by 2, we round it down. Like 5 / 2 -> 2.
+
+You usually would want to always add a condition on `setIndex`, to ensure you're running the update script at the
+right time, and also to distinguish initial run (wth `setIndex` == 0) and runs when you complete sets.
 
 We can also reuse the update scripts, similarly to the `progress: custom()` scripts, with `{ ...Squat }` syntax:
 

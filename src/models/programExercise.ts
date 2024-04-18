@@ -268,8 +268,8 @@ export namespace ProgramExercise {
     } catch (_) {}
     try {
       entry = Program.nextHistoryEntry(
-        programExercise.id,
-        programExercise.exerciseType,
+        programExercise,
+        allProgramExercises,
         dayData,
         ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets,
         state,
