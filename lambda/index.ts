@@ -1911,15 +1911,23 @@ export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayP
       0
     );
 
+    const dayGroup = data[0];
+    const activeCount = dayGroup.length;
+    const activeRegisteredCount = dayGroup.filter((i) => i.email != null).length;
+    const newThisDay = dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24).length;
+    const newRegisteredThisDay = dayGroup.filter((i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24)
+      .length;
+
     const bucket = `${LftS3Buckets.stats}${Utils.getEnv() === "dev" ? "dev" : ""}`;
     const statsFile = await di.s3.getObject({ bucket, key: "stats.csv" });
     let stats = statsFile?.toString();
     if (!stats) {
-      stats = "date,monthly,monthly_registered,daily,daily_registered\n";
+      stats =
+        "date,monthly,monthly_registered,monthly_new,monthly_new_registered,daily,daily_registered,daily_new,daily_new_registered\n";
     }
     stats += `${DateUtils.formatYYYYMMDD(
       new Date()
-    )},${activeMontlyCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth}\n`;
+    )},${activeMontlyCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth},${activeCount},${activeRegisteredCount},${newThisDay},${newRegisteredThisDay}\n`;
     await di.s3.putObject({
       bucket: bucket,
       key: "stats.csv",
