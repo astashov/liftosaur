@@ -57,6 +57,20 @@ export class ScriptRunner {
     return [liftoscriptEvaluator, liftoscriptTree];
   }
 
+  public getStateVariableKeys(): Set<string> {
+    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptEvaluator = new LiftoscriptEvaluator(
+      this.script,
+      this.state,
+      this.bindings,
+      this.fns,
+      this.context,
+      this.units,
+      this.mode
+    );
+    return liftoscriptEvaluator.getStateVariableKeys(liftoscriptTree.topNode);
+  }
+
   public static hasKeyword(script: string, name: string): boolean {
     const expr = LiftoscriptParser.parse(script);
     const cursor = expr.cursor();

@@ -139,8 +139,8 @@ export class PlannerExerciseEvaluator {
     throw PlannerSyntaxError.fromPoint(message, point);
   }
 
-  private getLineAndOffset(node: SyntaxNode): [number, number] {
-    const linesLengths = this.script.split("\n").map((l) => l.length + 1);
+  public static getLineAndOffset(script: string, node: SyntaxNode): [number, number] {
+    const linesLengths = script.split("\n").map((l) => l.length + 1);
     let offset = 0;
     for (let i = 0; i < linesLengths.length; i++) {
       const lineLength = linesLengths[i];
@@ -150,6 +150,10 @@ export class PlannerExerciseEvaluator {
       offset += lineLength;
     }
     return [linesLengths.length, linesLengths[linesLengths.length - 1]];
+  }
+
+  private getLineAndOffset(node: SyntaxNode): [number, number] {
+    return PlannerExerciseEvaluator.getLineAndOffset(this.script, node);
   }
 
   public parse(expr: SyntaxNode): void {
@@ -326,11 +330,13 @@ export class PlannerExerciseEvaluator {
       const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
       let script: string | undefined;
       let body: string | undefined;
+      let meta: { stateKeys: Set<string> } | undefined;
+      let liftoscriptNode: SyntaxNode | undefined;
       if (fnName === "custom") {
-        const liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript);
+        liftoscriptNode = valueNode.getChild(PlannerNodeName.Liftoscript) || undefined;
         script = liftoscriptNode ? this.getValueTrim(liftoscriptNode) : undefined;
         if (fnArgs.length > 0) {
-          this.error(`You cannot specify state variables for the update script`, fnNameNode);
+          this.error(`State variables for the update script are taken from "progress" block`, fnNameNode);
         }
         const reuseLiftoscriptNode = valueNode
           .getChild(PlannerNodeName.ReuseLiftoscript)
@@ -347,22 +353,8 @@ export class PlannerExerciseEvaluator {
             { equipment, unit: this.settings.units },
             "update"
           );
-          try {
-            liftoscriptEvaluator.parse();
-          } catch (e) {
-            if (e instanceof LiftoscriptSyntaxError && liftoscriptNode) {
-              const [line] = this.getLineAndOffset(liftoscriptNode);
-              throw new PlannerSyntaxError(
-                e.message,
-                line + e.line,
-                e.offset,
-                liftoscriptNode.from + e.from,
-                liftoscriptNode.from + e.to
-              );
-            } else {
-              throw e;
-            }
-          }
+          const stateKeys = liftoscriptEvaluator.getStateVariableKeys();
+          meta = { stateKeys };
         }
         if (!script && !body) {
           this.error(
@@ -377,6 +369,8 @@ export class PlannerExerciseEvaluator {
         fnArgs: fnArgs,
         script,
         body,
+        meta,
+        liftoscriptNode,
       };
     } else {
       assert(PlannerNodeName.ExerciseProperty);

@@ -2,6 +2,7 @@ import { IUndoRedoState } from "../../builder/utils/undoredo";
 import { IExerciseKind } from "../../../models/exercise";
 import { IExerciseType } from "../../../types";
 import { IPlannerSyntaxPointer } from "../plannerExerciseEvaluator";
+import { SyntaxNode } from "@lezer/common";
 import {
   IDayData,
   IPlannerProgram,
@@ -96,6 +97,10 @@ export interface IPlannerProgramProperty {
   script?: string;
   body?: string;
   reuse?: IPlannerProgramProperty;
+  liftoscriptNode?: SyntaxNode;
+  meta?: {
+    stateKeys?: Set<string>;
+  };
 }
 
 export interface IPlannerProgramExerciseRepRange {

@@ -193,6 +193,18 @@ export class LiftoscriptEvaluator {
     return false;
   }
 
+  public getStateVariableKeys(expr: SyntaxNode): Set<string> {
+    const cursor = expr.cursor();
+    const stateKeys: Set<string> = new Set();
+    do {
+      if (cursor.node.type.name === NodeName.StateVariable) {
+        const stateKey = this.getValue(cursor.node).replace("state.", "");
+        stateKeys.add(stateKey);
+      }
+    } while (cursor.next());
+    return stateKeys;
+  }
+
   public parse(expr: SyntaxNode): void {
     const cursor = expr.cursor();
     const vars: IProgramState = {};
@@ -243,9 +255,6 @@ export class LiftoscriptEvaluator {
           }
         }
       } else if (cursor.node.type.name === NodeName.StateVariable) {
-        if (this.mode === "update") {
-          this.error(`Cannot access state variables in 'update' mode`, cursor.node);
-        }
         const stateKey = this.getValue(cursor.node).replace("state.", "");
         if (!(stateKey in this.state)) {
           this.error(`There's no state variable '${stateKey}'`, cursor.node);

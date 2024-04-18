@@ -789,7 +789,7 @@ The `var.i` would contain the index of each set, starting from 1.
 
 `progress: ` logic updates the weights/reps/etc **in the program**, after you finish a workout. But there's also a way to update sets while you're doing a workout! For example, you want to set the number of drop sets or dropset reps based on the first set completed reps, or something like that.
 
-For that, you can use `update: custom()` syntax, which is very similar to `progress: custom()`. The difference is that you cannot use and access state variables, and you cannot access the program at all - only the currently ongoing workout values. The script would be run every single time user taps on a set.
+For that, you can use `update: custom()` syntax, which is very similar to `progress: custom()`. The difference is that you cannot change program state variables, and you cannot access the program at all - only the currently ongoing workout values. The script would be run every single time user taps on a set.
 
 So, the list of variables you can get values from is pretty much the same:
 

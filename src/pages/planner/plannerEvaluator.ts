@@ -17,6 +17,9 @@ import { ObjectUtils } from "../../utils/object";
 import { Weight } from "../../models/weight";
 import { PlannerProgram } from "./models/plannerProgram";
 import { PP } from "../../models/pp";
+import { ScriptRunner } from "../../parser";
+import { Progress } from "../../models/progress";
+import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 
 export type IByExercise<T> = Record<string, T>;
 export type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
@@ -365,6 +368,43 @@ export class PlannerEvaluator {
     }
   }
 
+  private static checkUpdateScript(exercise: IPlannerProgramExercise, settings: ISettings, dayData: IDayData): void {
+    const update = exercise.properties.find((p) => p.name === "update");
+    if (update?.fnName === "custom") {
+      const { script, liftoscriptNode } = update;
+      if (script && liftoscriptNode) {
+        const { equipment } = PlannerExerciseEvaluator.extractNameParts(exercise.key, settings);
+        const progress = exercise.properties.find((p) => p.name === "progress");
+        const state = progress ? PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs) : {};
+        const liftoscriptEvaluator = new ScriptRunner(
+          script,
+          state,
+          Progress.createEmptyScriptBindings(dayData, settings),
+          Progress.createScriptFunctions(settings),
+          settings.units,
+          { equipment, unit: settings.units },
+          "update"
+        );
+        try {
+          liftoscriptEvaluator.parse();
+        } catch (e) {
+          if (e instanceof LiftoscriptSyntaxError && liftoscriptNode) {
+            const [line] = PlannerExerciseEvaluator.getLineAndOffset(script, liftoscriptNode);
+            throw new PlannerSyntaxError(
+              e.message,
+              line + e.line,
+              e.offset,
+              liftoscriptNode.from + e.from,
+              liftoscriptNode.from + e.to
+            );
+          } else {
+            throw e;
+          }
+        }
+      }
+    }
+  }
+
   private static fillUpdateReuses(
     exercise: IPlannerProgramExercise,
     settings: ISettings,
@@ -389,6 +429,25 @@ export class PlannerEvaluator {
         if (originalUpdate.fnName !== "custom") {
           throw PlannerSyntaxError.fromPoint("Original exercise should specify custom update", point);
         }
+        const stateKeys = originalUpdate.meta?.stateKeys || new Set();
+        if (stateKeys.size !== 0) {
+          const progress = exercise.properties.find((p) => p.name === "progress");
+          if (progress == null) {
+            throw PlannerSyntaxError.fromPoint(
+              "If 'update' block uses state variables, exercise should define them in 'progress' block",
+              point
+            );
+          }
+          const state = PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs);
+          for (const stateKey of stateKeys) {
+            if (state[stateKey] == null) {
+              throw PlannerSyntaxError.fromPoint(
+                `Missing state variable ${stateKey} that's used in the original update block`,
+                point
+              );
+            }
+          }
+        }
         update.reuse = originalUpdate;
       }
     }
@@ -399,17 +458,22 @@ export class PlannerEvaluator {
     settings: ISettings,
     metadata: IPlannerEvalMetadata
   ): void {
-    this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayIndex, exerciseIndex, exercise) => {
-      this.fillDescriptions(exercise, evaluatedWeeks, weekIndex, dayIndex);
-      this.fillRepeats(exercise, evaluatedWeeks, dayIndex, metadata.byExerciseWeekDay);
+    this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
+      this.fillDescriptions(exercise, evaluatedWeeks, weekIndex, dayInWeekIndex);
+      this.fillRepeats(exercise, evaluatedWeeks, dayInWeekIndex, metadata.byExerciseWeekDay);
       this.fillSingleProperties(exercise, metadata);
     });
 
-    this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayIndex, exerciseIndex, exercise) => {
+    this.iterateOverExercises(evaluatedWeeks, (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
       this.fillSetReuses(exercise, evaluatedWeeks, weekIndex, settings);
       this.fillDescriptionReuses(exercise, weekIndex, metadata.byExerciseWeekDay, settings);
       this.fillProgressReuses(exercise, settings, metadata);
       this.fillUpdateReuses(exercise, settings, metadata);
+      this.checkUpdateScript(exercise, settings, {
+        week: weekIndex + 1,
+        dayInWeek: dayInWeekIndex + 1,
+        day: dayInWeekIndex + 1,
+      });
     });
   }
 
@@ -551,26 +615,34 @@ export class PlannerEvaluator {
 
   private static iterateOverExercises(
     program: IPlannerEvalResult[][],
-    cb: (weekIndex: number, dayIndex: number, exerciseIndex: number, exercise: IPlannerProgramExercise) => void
+    cb: (
+      weekIndex: number,
+      dayInWeekIndex: number,
+      dayIndex: number,
+      exerciseIndex: number,
+      exercise: IPlannerProgramExercise
+    ) => void
   ): void {
+    let dayIndex = 0;
     for (let weekIndex = 0; weekIndex < program.length; weekIndex += 1) {
       const week = program[weekIndex];
-      for (let dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
-        const day = week[dayIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
+        const day = week[dayInWeekIndex];
         try {
           if (day?.success) {
             const exercises = day.data;
             for (let exerciseIndex = 0; exerciseIndex < exercises.length; exerciseIndex += 1) {
-              cb(weekIndex, dayIndex, exerciseIndex, exercises[exerciseIndex]);
+              cb(weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercises[exerciseIndex]);
             }
           }
         } catch (e) {
           if (e instanceof PlannerSyntaxError) {
-            week[dayIndex] = { success: false, error: e };
+            week[dayInWeekIndex] = { success: false, error: e };
           } else {
             throw e;
           }
         }
+        dayIndex += 1;
       }
     }
   }
