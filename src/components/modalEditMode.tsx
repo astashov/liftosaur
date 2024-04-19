@@ -20,8 +20,8 @@ import { IWeightChange, ProgramExercise } from "../models/programExercise";
 import { Program } from "../models/program";
 import { inputClassName } from "./input";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
-import { PlannerToProgram } from "../models/plannerToProgram";
 import { CollectionUtils } from "../utils/collection";
+import { ProgramToPlanner } from "../models/programToPlanner";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -52,15 +52,14 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
       );
     });
     if (planner != null) {
-      const newPlanner = PlannerProgram.replaceWeight(planner, programExercise, weightChanges, props.settings);
-      if (newPlanner !== planner) {
-        const newProgram = new PlannerToProgram(
-          program.id,
-          program.nextDay,
-          program.exercises,
-          newPlanner,
-          props.settings
-        ).convertToProgram();
+      const newProgramExercise = PlannerProgram.replaceWeight(programExercise, weightChanges);
+      if (programExercise !== newProgramExercise) {
+        const newProgram = {
+          ...program,
+          exercises: CollectionUtils.setBy(program.exercises, "id", programExercise.id, newProgramExercise),
+        };
+        const newPlanner = new ProgramToPlanner(newProgram, planner, props.settings, {}, {}).convertToPlanner();
+        newProgram.planner = newPlanner;
         updateState(props.dispatch, [
           lb<IState>()
             .p("storage")
@@ -75,7 +74,10 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   };
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
   const [newState, setNewState] = useState<Record<string, string>>({});
-  const [weightChanges, setWeightChanges] = useState(ProgramExercise.weightChanges(programExercise));
+  const dayData = Program.getDayData(props.program, props.day);
+  const [weightChanges, setWeightChanges] = useState(
+    ProgramExercise.weightChanges(dayData, programExercise, props.program.exercises, props.settings)
+  );
   const [showCalculator, setShowCalculator] = useState<
     { type: "state"; value: [string, IUnit] } | { type: "weight"; value: [number, IUnit] } | undefined
   >(undefined);
@@ -208,7 +210,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                   buttonSize="md"
                   onClick={() => {
                     if (props.program.planner) {
-                      const dayData = Program.getDayData(props.program, props.day);
                       const plannerState = EditProgram.initPlannerState(
                         props.program.id,
                         props.program.planner,
@@ -346,19 +347,30 @@ interface IEditWeightsProps {
 }
 
 function EditWeights(props: IEditWeightsProps): JSX.Element {
+  const hasRestWeights = props.weightChanges.some((wc) => !wc.current);
+  let previousCurrent: boolean | undefined = undefined;
+
   return (
     <div>
       <h2 className="mt-2 mb-2 text-lg text-center">Edit program weights</h2>
+      {hasRestWeights && <h3 className="mb-1 text-xs leading-none text-grayv2-main">Current Workout</h3>}
       {props.weightChanges.map((weightChange, i) => {
-        return (
-          <EditWeight
-            weightChange={weightChange}
-            equipment={props.equipment}
-            settings={props.settings}
-            onEditWeight={(weight, unit) => props.onEditWeight(i, weight, unit)}
-            onCalculatorOpen={() => props.onCalculatorOpen(i)}
-          />
+        const component = (
+          <>
+            {hasRestWeights && previousCurrent != null && previousCurrent !== weightChange.current && (
+              <h3 className="mt-3 mb-1 text-xs leading-none text-grayv2-main">Rest of the program</h3>
+            )}
+            <EditWeight
+              weightChange={weightChange}
+              equipment={props.equipment}
+              settings={props.settings}
+              onEditWeight={(weight, unit) => props.onEditWeight(i, weight, unit)}
+              onCalculatorOpen={() => props.onCalculatorOpen(i)}
+            />
+          </>
         );
+        previousCurrent = weightChange.current;
+        return component;
       })}
     </div>
   );
@@ -390,7 +402,7 @@ function EditWeight(props: IEditWeightProps): JSX.Element {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mt-2">
+      <div className="flex items-center gap-2">
         <div>
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
@@ -486,8 +498,10 @@ function EditWeight(props: IEditWeightProps): JSX.Element {
           </button>
         </div>
       </div>
-      {!Weight.eq(originalWeight, weight) && (
-        <div className="pl-12 ml-1 text-xs text-grayv2-main">Was: {Weight.print(originalWeight)}</div>
+      {!Weight.eq(originalWeight, weight) ? (
+        <div className="pl-12 mb-2 ml-1 text-xs text-grayv2-main">Was: {Weight.print(originalWeight)}</div>
+      ) : (
+        <div className="mb-2" />
       )}
     </div>
   );

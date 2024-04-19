@@ -5,6 +5,7 @@ import { PlannerTestUtils } from "./utils/plannerTestUtils";
 import { IPlannerProgram } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
+import { Weight } from "../src/models/weight";
 
 describe("Planner", () => {
   it("updates weight and lp progress after completing", () => {
@@ -186,6 +187,49 @@ Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb, 1, 0, 10lb, 0
 
 
 `);
+  });
+
+  it("properly update weights", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
+`;
+    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
+      weightChanges[1].weight = Weight.build(250, "lb");
+      return weightChanges;
+    });
+    expect(newText.trim()).to.equal(`# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 250lb / 60s / progress: lp(5lb, 1, 0, 10lb, 0, 0)`);
+  });
+
+  it("properly update global weights", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 200lb / 80lb / 60s / progress: lp(80lb)
+`;
+    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
+      weightChanges[0].weight = Weight.build(100, "lb");
+      return weightChanges;
+    });
+    expect(newText.trim()).to.equal(`# Week 1
+## Day 1
+Squat / 1x5, 1x3 / 100lb / 60s / progress: lp(80lb, 1, 0, 10lb, 0, 0)`);
+  });
+
+  it("properly update default weights", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5, 1x3 / 60s / progress: lp(5lb)
+`;
+    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
+      weightChanges[0].weight = Weight.build(100, "lb");
+      weightChanges[1].weight = Weight.build(150, "lb");
+      return weightChanges;
+    });
+    expect(newText.trim()).to.equal(`# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 150lb / 60s / progress: lp(5lb, 1, 0, 10lb, 0, 0)`);
   });
 
   it("use loops", () => {

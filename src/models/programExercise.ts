@@ -31,6 +31,7 @@ import { PlannerKey } from "../pages/planner/plannerKey";
 export interface IWeightChange {
   originalWeight: IWeight | IPercentage;
   weight: IWeight | IPercentage;
+  current: boolean;
 }
 
 export interface IProgramExerciseExample {
@@ -443,8 +444,22 @@ export namespace ProgramExercise {
     });
   }
 
-  export function weightChanges(programExercise: IProgramExercise): IWeightChange[] {
+  export function weightChanges(
+    dayData: IDayData,
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    settings: ISettings
+  ): IWeightChange[] {
     const results: Record<string, IWeightChange> = {};
+    const state = ProgramExercise.getState(programExercise, allProgramExercises);
+    const currentVariationIndexResult = Program.runVariationScript(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    const currentVariationIndex = currentVariationIndexResult.success ? currentVariationIndexResult.data : 0;
 
     for (let variationIndex = 0; variationIndex < programExercise.variations.length; variationIndex += 1) {
       const variation = programExercise.variations[variationIndex];
@@ -453,12 +468,16 @@ export namespace ProgramExercise {
         if (set.weightExpr) {
           const weight = Weight.parsePct(set.weightExpr);
           if (weight != null) {
-            results[set.weightExpr] = { originalWeight: weight, weight };
+            results[set.weightExpr] = {
+              originalWeight: weight,
+              weight,
+              current: results[set.weightExpr]?.current || variationIndex + 1 === currentVariationIndex,
+            };
           }
         }
       }
     }
-    return ObjectUtils.values(results);
+    return CollectionUtils.sortBy(ObjectUtils.values(results), "current", true);
   }
 
   export function applyVariables(

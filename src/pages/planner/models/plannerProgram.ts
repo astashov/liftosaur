@@ -40,37 +40,30 @@ export class PlannerProgram {
     return evaluatedWeeks.every((week) => week.every((day) => day.success));
   }
 
-  public static replaceWeight(
-    planner: IPlannerProgram,
-    programExercise: IProgramExercise,
-    weightChanges: IWeightChange[],
-    settings: ISettings
-  ): IPlannerProgram {
+  public static replaceWeight(programExercise: IProgramExercise, weightChanges: IWeightChange[]): IProgramExercise {
     if (weightChanges.every((wc) => ObjectUtils.isEqual(wc.originalWeight, wc.weight))) {
-      return planner;
+      return programExercise;
     }
-    const key = PlannerKey.fromProgramExercise(programExercise, settings);
-    return this.modifyTopLineItems(planner, settings, (line) => {
-      if (line.type === "exercise" && line.value === key) {
-        const weightToRanges: [number, number, string][] = [];
-        let fakeScript = `E / ${line.sections}`;
-        const fakeTree = plannerExerciseParser.parse(fakeScript);
-        const cursor = fakeTree.cursor();
-        do {
-          if (cursor.type.name === PlannerNodeName.Weight || cursor.type.name === PlannerNodeName.Percentage) {
-            const value = fakeScript.slice(cursor.node.from, cursor.node.to);
-            const weightChange = weightChanges.find((wc) => Weight.print(wc.originalWeight) === value);
+    return {
+      ...programExercise,
+      variations: programExercise.variations.map((variation) => {
+        return {
+          ...variation,
+          sets: variation.sets.map((set) => {
+            const weightChange = weightChanges.find((wc) => Weight.print(wc.originalWeight) === set.weightExpr);
             if (weightChange != null) {
               const weightStr = Weight.print(weightChange.weight);
-              weightToRanges.push([cursor.node.from, cursor.node.to, weightStr]);
+              return {
+                ...set,
+                weightExpr: weightStr,
+              };
+            } else {
+              return set;
             }
-          }
-        } while (cursor.next());
-        fakeScript = PlannerExerciseEvaluator.applyChangesToScript(fakeScript, weightToRanges);
-        line.sections = fakeScript.replace(/^E \//, "").trim();
-      }
-      return line;
-    });
+          }),
+        };
+      }),
+    };
   }
 
   public static replaceExercise(

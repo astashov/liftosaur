@@ -76,11 +76,11 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("footer-program").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 2x8 61.5kg / 4x8 31%Bench Press / 3x8 50lbBicep Curl / ...Bench Press / 30lb`
+    `Squat / 3x8 52.5lb, 2x8 61.5kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`
   );
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press / 3x8 70lbBicep Curl / 1x8 80lb`
+    `Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press / 3x8 / 70lbBicep Curl / 1x8 / 80lb`
   );
 });
