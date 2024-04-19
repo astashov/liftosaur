@@ -29,6 +29,7 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
         const scriptRunnerResult = new ScriptRunner(
           script,
           props.state,
+          {},
           bindings,
           Progress.createScriptFunctions(props.settings),
           props.settings.units,

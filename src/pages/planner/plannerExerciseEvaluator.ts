@@ -313,6 +313,36 @@ export class PlannerExerciseEvaluator {
     }
   }
 
+  private evaluateId(expr: SyntaxNode): IPlannerProgramProperty {
+    if (expr.type.name === PlannerNodeName.ExerciseProperty) {
+      const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
+      if (valueNode == null) {
+        throw this.error(`Missing value for the property 'id'`, expr);
+      }
+      const fnNameNode = valueNode.getChild(PlannerNodeName.FunctionName);
+      if (fnNameNode == null) {
+        assert(PlannerNodeName.FunctionName);
+      }
+      const fnName = this.getValue(fnNameNode);
+      if (["tags"].indexOf(fnName) === -1) {
+        this.error(`There's no such id type - '${fnName}'`, fnNameNode);
+      }
+      const fnArgs = valueNode.getChildren(PlannerNodeName.FunctionArgument).map((argNode) => this.getValue(argNode));
+      if (fnName === "tags") {
+        if (fnArgs.length === 0) {
+          this.error(`You should provide the list of numbers in "tags"`, fnNameNode);
+        }
+      }
+      return {
+        name: "id",
+        fnName,
+        fnArgs: fnArgs,
+      };
+    } else {
+      assert(PlannerNodeName.ExerciseProperty);
+    }
+  }
+
   private evaluateUpdate(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
@@ -346,6 +376,7 @@ export class PlannerExerciseEvaluator {
         if (script) {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
+            {},
             {},
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
@@ -474,6 +505,7 @@ export class PlannerExerciseEvaluator {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
             state,
+            {},
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
@@ -547,6 +579,7 @@ export class PlannerExerciseEvaluator {
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
+    | { type: "id"; data: IPlannerProgramProperty }
     | { type: "used"; data: "" } {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const nameNode = expr.getChild(PlannerNodeName.ExercisePropertyName);
@@ -560,6 +593,8 @@ export class PlannerExerciseEvaluator {
         return { type: "update", data: this.evaluateUpdate(expr, equipment) };
       } else if (name === "warmup") {
         return { type: "warmup", data: this.evaluateWarmup(expr) };
+      } else if (name === "id") {
+        return { type: "id", data: this.evaluateId(expr) };
       } else if (name === "used") {
         return { type: "used", data: "" };
       } else {
@@ -613,6 +648,7 @@ export class PlannerExerciseEvaluator {
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
+    | { type: "id"; data: IPlannerProgramProperty }
     | { type: "reuse"; data: IPlannerProgramReuse }
     | { type: "warmup"; data: IPlannerProgramExerciseWarmupSet[] }
     | { type: "used"; data: "" } {
@@ -818,6 +854,7 @@ export class PlannerExerciseEvaluator {
       const order = this.getOrder(expr);
       const allProperties: IPlannerProgramProperty[] = [];
       const text = this.getValueTrim(expr).trim();
+      let tags: number[] = [];
       for (const sectionNode of sectionNodes) {
         const section = this.evaluateSection(sectionNode, equipment);
         if (section.type === "sets") {
@@ -834,6 +871,8 @@ export class PlannerExerciseEvaluator {
           allProperties.push(section.data);
         } else if (section.type === "reuse") {
           reuse = section.data;
+        } else if (section.type === "id") {
+          tags = tags.concat(section.data.fnArgs.map((t) => parseInt(t, 10))).filter((t) => !isNaN(t));
         } else if (section.type === "used") {
           notused = true;
         } else {
@@ -886,6 +925,16 @@ export class PlannerExerciseEvaluator {
         .filter((n) => n)[0];
       const updatePoint = updateNode ? this.getPoint(updateNode) : undefined;
 
+      const idNode = expr
+        .getChildren(PlannerNodeName.ExerciseSection)
+        .map((n) => {
+          const node = n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.ExercisePropertyName);
+          return node != null && this.getValueTrim(node) === "id" ? node : undefined;
+        })
+        .flat(2)
+        .filter((n) => n)[0];
+      const idPoint = idNode ? this.getPoint(idNode) : undefined;
+
       const warmupNode = expr
         .getChildren(PlannerNodeName.ExerciseSection)
         .map((n) => n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.WarmupExerciseSets))
@@ -903,6 +952,7 @@ export class PlannerExerciseEvaluator {
         name,
         equipment,
         line,
+        tags,
         notused: notused,
         sets: allSets,
         setVariations,
@@ -923,6 +973,7 @@ export class PlannerExerciseEvaluator {
           fullName: fullNamePoint,
           reuseSetPoint,
           progressPoint,
+          idPoint,
           updatePoint,
           warmupPoint,
         },

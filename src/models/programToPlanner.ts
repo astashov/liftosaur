@@ -282,6 +282,7 @@ export class ProgramToPlanner {
     const addedUpdateMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
     const addedQuickAddSet: Record<string, boolean> = {};
+    const addedIdMap: Record<string, boolean> = {};
     const allDereuseDecisions = this.getDereuseDecisions();
 
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
@@ -429,6 +430,11 @@ export class ProgramToPlanner {
                 addedUpdateMap[key] = true;
               }
 
+              if (!addedIdMap[key] && (programExercise.tags || []).length > 0) {
+                plannerExercise += this.getId(programExercise);
+                addedUpdateMap[key] = true;
+              }
+
               const skip = this.getSkipProgress(programExercise.finishDayExpr);
               if (skip.some((s) => weekIndex + 1 === s[0] && dayInWeekIndex + 1 === s[1])) {
                 plannerExercise += ` / progress: none`;
@@ -470,6 +476,10 @@ export class ProgramToPlanner {
     return plannerExercise;
   }
 
+  private getId(programExercise: IProgramExercise): string {
+    return ` / id: tags(${(programExercise.tags || []).join(", ")})`;
+  }
+
   private getProgress(programExercise: IProgramExercise): string {
     let plannerExercise = "";
     const progress = this.getBuiltinProgress(programExercise.state, programExercise.finishDayExpr);
@@ -493,6 +503,8 @@ export class ProgramToPlanner {
       } else if (programExercise.finishDayExpr) {
         const finishDayExpr = programExercise.finishDayExpr.replace(/^[\s\S]*{~/, "{~").replace(/~}[\s\S]*$/, "~}");
         plannerExercise += " " + finishDayExpr;
+      } else {
+        plannerExercise += " {~ ~}";
       }
     }
     return plannerExercise;

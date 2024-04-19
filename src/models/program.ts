@@ -162,6 +162,7 @@ export namespace Program {
           return new ScriptRunner(
             set.repsExpr,
             state,
+            {},
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
@@ -180,6 +181,7 @@ export namespace Program {
           let weight = new ScriptRunner(
             set.weightExpr,
             state,
+            {},
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
@@ -205,6 +207,7 @@ export namespace Program {
                 return new ScriptRunner(
                   rpeExpr,
                   state,
+                  {},
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
@@ -227,6 +230,7 @@ export namespace Program {
                 return new ScriptRunner(
                   minRepsExpr,
                   state,
+                  {},
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
@@ -349,6 +353,7 @@ export namespace Program {
     const scriptRunner = new ScriptRunner(
       script,
       state,
+      {},
       Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
@@ -369,6 +374,16 @@ export namespace Program {
 
   export function programMode(program?: IProgram): IProgramMode {
     return program?.planner != null ? "planner" : "regular";
+  }
+
+  export function getOtherStates(allProgramExercises: IProgramExercise[]): Record<number, IProgramState> {
+    return allProgramExercises.reduce<Record<number, IProgramState>>((acc, e) => {
+      const tags = e.tags || [];
+      for (const tag of tags) {
+        acc[tag] = ObjectUtils.clone(ProgramExercise.getState(e, allProgramExercises));
+      }
+      return acc;
+    }, {});
   }
 
   export function runExerciseFinishDayScript(
@@ -409,11 +424,13 @@ export namespace Program {
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
+    const otherStates = getOtherStates(allProgramExercises);
 
     try {
       const runner = new ScriptRunner(
         script,
         newState,
+        otherStates,
         bindings,
         fns,
         settings.units,
@@ -451,6 +468,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -486,6 +504,7 @@ export namespace Program {
             return new ScriptRunner(
               script,
               state,
+              {},
               Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
@@ -542,6 +561,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           ProgramExercise.getState(programExercise, allProgramExercises),
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -570,7 +590,15 @@ export namespace Program {
     mode: IProgramMode,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
-  ): IEither<{ state: IProgramState; updates?: ILiftoscriptEvaluatorUpdate[]; bindings: IScriptBindings }, string> {
+  ): IEither<
+    {
+      state: IProgramState;
+      otherStates: Record<number, IProgramState>;
+      updates?: ILiftoscriptEvaluatorUpdate[];
+      bindings: IScriptBindings;
+    },
+    string
+  > {
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -603,12 +631,15 @@ export namespace Program {
       ...userPromptedStateVars,
       ...staticState,
     };
+    const initialOtherStates = getOtherStates(allProgramExercises);
+    const otherStates = ObjectUtils.clone(initialOtherStates);
 
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
     try {
       const runner = new ScriptRunner(
         ProgramExercise.getFinishDayScript(programExercise, allProgramExercises),
         newState,
+        otherStates,
         bindings,
         fns,
         settings.units,
@@ -632,7 +663,20 @@ export namespace Program {
       newState[key] = (staticState || {})[key];
     }
 
-    return { success: true, data: { state: newState, updates, bindings } };
+    const diffOtherStates = ObjectUtils.keys(otherStates).reduce<Record<number, IProgramState>>((memo, key) => {
+      if (!ObjectUtils.isEqual(otherStates[key], initialOtherStates[key])) {
+        const diffState = ObjectUtils.keys(otherStates[key]).reduce<IProgramState>((memo2, key2) => {
+          if (!Weight.eq(otherStates[key][key2], initialOtherStates[key][key2])) {
+            memo2[key2] = otherStates[key][key2];
+          }
+          return memo2;
+        }, {});
+        memo[key] = diffState;
+      }
+      return memo;
+    }, {});
+
+    return { success: true, data: { state: newState, otherStates: diffOtherStates, updates, bindings } };
   }
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
@@ -665,63 +709,65 @@ export namespace Program {
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const dayData = Progress.getDayData(progress);
-    let newProgram = lf(program)
-      .p("exercises")
-      .modify((es) =>
-        es.map((e) => {
-          const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
-          if (entry != null) {
-            const staticState = (staticStates || {})[e.id];
-            const newStateResult = Program.runFinishDayScript(
-              e,
-              program.exercises,
-              dayData,
-              entry,
-              settings,
-              Program.programMode(program),
-              progress.userPromptedStateVars?.[e.id],
-              staticState
-            );
-            if (newStateResult.success) {
-              const { state, updates, bindings } = newStateResult.data;
-              const exerciseKey = Exercise.toKey(entry.exercise);
-              const onerm = Exercise.onerm(e, settings);
-              if (!Weight.eq(bindings.rm1, onerm)) {
-                exerciseData[exerciseKey] = { rm1: Weight.roundTo005(bindings.rm1) };
-              }
-              const reuseLogicId = e.reuseLogic?.selected;
-              let newExercise = ObjectUtils.clone(e);
+    let newProgram = ObjectUtils.clone(program);
+    for (const e of newProgram.exercises) {
+      const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
+      if (entry != null) {
+        const staticState = (staticStates || {})[e.id];
+        const newStateResult = Program.runFinishDayScript(
+          e,
+          program.exercises,
+          dayData,
+          entry,
+          settings,
+          Program.programMode(program),
+          progress.userPromptedStateVars?.[e.id],
+          staticState
+        );
+        if (newStateResult.success) {
+          const { state, updates, bindings, otherStates } = newStateResult.data;
+          const exerciseKey = Exercise.toKey(entry.exercise);
+          const onerm = Exercise.onerm(e, settings);
+          if (!Weight.eq(bindings.rm1, onerm)) {
+            exerciseData[exerciseKey] = { rm1: Weight.roundTo005(bindings.rm1) };
+          }
+          const reuseLogicId = e.reuseLogic?.selected;
 
-              if (Program.programMode(program) === "planner" && updates != null) {
-                newExercise = ProgramExercise.applyVariables(
-                  dayData,
-                  newExercise,
-                  program.planner!,
-                  updates,
-                  settings,
-                  setVariationIndexMap,
-                  descriptionIndexMap
-                );
-              }
-              if (reuseLogicId && newExercise.reuseLogic) {
-                newExercise.reuseLogic.states[reuseLogicId] = state;
-              } else {
-                newExercise.state = state;
-              }
-              return newExercise;
-            } else {
-              alert(
-                `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
-              );
+          if (Program.programMode(program) === "planner" && updates != null) {
+            ProgramExercise.applyVariables(
+              dayData,
+              e,
+              program.planner!,
+              updates,
+              settings,
+              setVariationIndexMap,
+              descriptionIndexMap
+            );
+          }
+          if (reuseLogicId && e.reuseLogic) {
+            e.reuseLogic.states[reuseLogicId] = state;
+          } else {
+            e.state = state;
+          }
+          for (const key of ObjectUtils.keys(otherStates || {})) {
+            const matchingExercises = newProgram.exercises.filter((ex) => ex.tags?.includes(Number(key)));
+            for (const ex of matchingExercises) {
+              const newState = { ...ex.state, ...otherStates[key] };
+              ex.state = newState;
             }
           }
-          return e;
-        })
-      );
-    if (program.planner) {
+        } else {
+          alert(
+            `There's an error while executing Finish Day Script of '${e.name}' exercise:\n\n${newStateResult.error}.\n\nState Variables won't be updated for that exercise. Please fix the program's Finish Day Script.`
+          );
+        }
+      }
+    }
+
+    if (newProgram.planner) {
       newProgram.planner = new ProgramToPlanner(
         newProgram,
-        program.planner,
+        newProgram.planner,
         settings,
         setVariationIndexMap,
         descriptionIndexMap

@@ -49,7 +49,9 @@ ForInExpression {
 AssignmentExpression { (StateVariable | Variable | VariableExpression) !assign "=" expression }
 IncAssignmentExpression { (StateVariable | Variable | VariableExpression) !assign IncAssignment expression }
 VariableExpression { Keyword (!arrindex "[" VariableIndex (":" VariableIndex)* "]")? }
+StateVariable { StateKeyword (!arrindex "[" StateVariableIndex "]")? "." Keyword }
 VariableIndex { Wildcard | expression }
+StateVariableIndex { expression }
 Wildcard { "*" }
 BuiltinFunctionExpression { Keyword !fncall "(" expression? ("," expression)* ")" }
 Ternary { expression !ternary "?" expression ":" expression }
@@ -75,10 +77,10 @@ UnaryExpression {
   @precedence { LineComment, Times }
 
   Keyword { @asciiLetter (@asciiLetter | @digit | "_")* }
-  StateVariable { "state." Keyword }
+  StateKeyword { "state" }
   Variable { "var." Keyword }
   Unit { "lb" | "kg" }
-  @precedence { StateVariable, Variable, Unit, Keyword }
+  @precedence { StateKeyword, Variable, Unit, Keyword }
 
   Number { (@digit+ ("." @digit+)*) | "." @digit+ | @digit+ "." }
   Plus { ("+" | "-") }

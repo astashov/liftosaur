@@ -35,6 +35,7 @@ export interface IPlannerProgramExercise {
   order: number;
   isRepeat?: boolean;
   text: string;
+  tags: number[];
   equipment?: string;
   name: string;
   line: number;
@@ -52,6 +53,7 @@ export interface IPlannerProgramExercise {
     reuseSetPoint?: IPlannerSyntaxPointer;
     progressPoint?: IPlannerSyntaxPointer;
     updatePoint?: IPlannerSyntaxPointer;
+    idPoint?: IPlannerSyntaxPointer;
     warmupPoint?: IPlannerSyntaxPointer;
   };
 }

@@ -569,6 +569,7 @@ export namespace ProgramExercise {
     return new ScriptRunner(
       script,
       programExercise.state,
+      {},
       Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
       Progress.createScriptFunctions(settings),
       settings.units,

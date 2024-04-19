@@ -17,6 +17,7 @@ const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
 export class ScriptRunner {
   private readonly script: string;
   private readonly state: IProgramState;
+  private readonly otherStates: Record<number, IProgramState>;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
   private readonly units: IUnit;
@@ -27,6 +28,7 @@ export class ScriptRunner {
   constructor(
     script: string,
     state: IProgramState,
+    otherStates: Record<number, IProgramState>,
     bindings: IScriptBindings,
     fns: IScriptFunctions,
     units: IUnit,
@@ -35,6 +37,7 @@ export class ScriptRunner {
   ) {
     this.script = script;
     this.state = state;
+    this.otherStates = otherStates;
     this.bindings = bindings;
     this.fns = fns;
     this.units = units;
@@ -47,6 +50,7 @@ export class ScriptRunner {
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
       this.script,
       this.state,
+      this.otherStates,
       this.bindings,
       this.fns,
       this.context,
@@ -62,6 +66,7 @@ export class ScriptRunner {
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
       this.script,
       this.state,
+      this.otherStates,
       this.bindings,
       this.fns,
       this.context,

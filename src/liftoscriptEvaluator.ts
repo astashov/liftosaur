@@ -31,6 +31,7 @@ export enum NodeName {
   AssignmentExpression = "AssignmentExpression",
   IncAssignmentExpression = "IncAssignmentExpression",
   StateVariable = "StateVariable",
+  StateVariableIndex = "StateVariableIndex",
   Variable = "Variable",
   BuiltinFunctionExpression = "BuiltinFunctionExpression",
   Keyword = "Keyword",
@@ -129,6 +130,7 @@ export type ILiftoscriptEvaluatorUpdate =
 export class LiftoscriptEvaluator {
   private readonly script: string;
   private readonly state: IProgramState;
+  private readonly otherStates: Record<number, IProgramState>;
   private readonly bindings: IScriptBindings;
   private readonly fns: IScriptFunctions;
   private readonly fnContext: IScriptFnContext;
@@ -140,6 +142,7 @@ export class LiftoscriptEvaluator {
   constructor(
     script: string,
     state: IProgramState,
+    otherStates: Record<number, IProgramState>,
     bindings: IScriptBindings,
     fns: IScriptFunctions,
     fnContext: IScriptFnContext,
@@ -148,6 +151,7 @@ export class LiftoscriptEvaluator {
   ) {
     this.script = script;
     this.state = state;
+    this.otherStates = otherStates;
     this.bindings = bindings;
     this.fns = fns;
     this.fnContext = fnContext;
@@ -198,11 +202,25 @@ export class LiftoscriptEvaluator {
     const stateKeys: Set<string> = new Set();
     do {
       if (cursor.node.type.name === NodeName.StateVariable) {
-        const stateKey = this.getValue(cursor.node).replace("state.", "");
-        stateKeys.add(stateKey);
+        const stateKey = this.getStateKey(cursor.node);
+        if (stateKey != null) {
+          stateKeys.add(stateKey);
+        }
       }
     } while (cursor.next());
     return stateKeys;
+  }
+
+  private getStateKey(expr: SyntaxNode): string | undefined {
+    const index = expr.getChild(NodeName.StateVariableIndex);
+    if (index == null) {
+      const stateKeyNode = expr.getChild(NodeName.Keyword);
+      if (stateKeyNode != null) {
+        const stateKey = this.getValue(stateKeyNode);
+        return stateKey;
+      }
+    }
+    return undefined;
   }
 
   public parse(expr: SyntaxNode): void {
@@ -255,8 +273,8 @@ export class LiftoscriptEvaluator {
           }
         }
       } else if (cursor.node.type.name === NodeName.StateVariable) {
-        const stateKey = this.getValue(cursor.node).replace("state.", "");
-        if (!(stateKey in this.state)) {
+        const stateKey = this.getStateKey(cursor.node);
+        if (stateKey != null && !(stateKey in this.state)) {
           this.error(`There's no state variable '${stateKey}'`, cursor.node);
         }
       } else if (cursor.node.type.name === NodeName.Variable) {
@@ -442,6 +460,22 @@ export class LiftoscriptEvaluator {
     return newTarget;
   }
 
+  private toNumber(value: number | boolean | IWeight | IPercentage | (number | undefined)[] | IWeight[]): number {
+    if (typeof value === "number") {
+      return value;
+    } else if (typeof value === "boolean") {
+      return 0;
+    } else if (Weight.is(value)) {
+      return value.value;
+    } else if (Weight.isPct(value)) {
+      return value.value;
+    } else if (Array.isArray(value)) {
+      return this.toNumber(value[0] ?? 0);
+    } else {
+      return 0;
+    }
+  }
+
   public evaluate(expr: SyntaxNode): number | boolean | IWeight | IPercentage | (number | undefined)[] | IWeight[] {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
       let result: number | boolean | IWeight | (number | undefined)[] | IWeight[] | IPercentage = 0;
@@ -557,6 +591,9 @@ export class LiftoscriptEvaluator {
         assert(NodeName.ParenthesisExpression);
       }
       return this.evaluate(node);
+    } else if (expr.type.name === NodeName.StateVariableIndex) {
+      const [expression] = getChildren(expr);
+      return this.evaluate(expression);
     } else if (expr.type.name === NodeName.AssignmentExpression) {
       const [variableNode, expression] = getChildren(expr);
       if (
@@ -617,17 +654,33 @@ export class LiftoscriptEvaluator {
         }
         return this.vars[varKey];
       } else {
-        const stateKey = this.getValue(variableNode).replace("state.", "");
-        if (stateKey in this.state) {
-          const value = this.evaluate(expression);
-          if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
-            this.state[stateKey] = value;
+        const indexNode = variableNode.getChild(NodeName.StateVariableIndex);
+        const stateKeyNode = variableNode.getChild(NodeName.Keyword);
+        if (stateKeyNode != null) {
+          const stateKey = this.getValue(stateKeyNode);
+          let state: IProgramState | undefined;
+          if (indexNode == null) {
+            if (stateKey in this.state) {
+              state = this.state;
+            } else {
+              this.error(`There's no state variable '${stateKey}'`, variableNode);
+            }
           } else {
-            this.state[stateKey] = value ? 1 : 0;
+            const indexEval = this.evaluate(indexNode);
+            const index = this.toNumber(indexEval);
+            state = this.otherStates[index];
           }
-          return this.state[stateKey];
+          const value = this.evaluate(expression);
+          if (state != null) {
+            if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
+              state[stateKey] = value;
+            } else {
+              state[stateKey] = value ? 1 : 0;
+            }
+          }
+          return value;
         } else {
-          this.error(`There's no state variable '${stateKey}'`, variableNode);
+          return 0;
         }
       }
     } else if (expr.type.name === NodeName.IncAssignmentExpression) {
@@ -719,27 +772,47 @@ export class LiftoscriptEvaluator {
           this.error(`Unknown variable '${variable}'`, stateVar);
         }
       } else {
-        const stateKey = this.getValue(stateVar).replace("state.", "");
-        if (stateKey in this.state) {
-          let value = this.evaluate(expression);
-          if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
-            value = value ? 1 : 0;
-          }
-          const op = this.getValue(incAssignmentExpr);
-          if (op === "+=") {
-            this.state[stateKey] = this.add(this.state[stateKey], value);
-          } else if (op === "-=") {
-            this.state[stateKey] = this.subtract(this.state[stateKey], value);
-          } else if (op === "*=") {
-            this.state[stateKey] = this.multiply(this.state[stateKey], value);
-          } else if (op === "/=") {
-            this.state[stateKey] = this.divide(this.state[stateKey], value);
+        const indexNode = stateVar.getChild(NodeName.StateVariableIndex);
+        const stateKeyNode = stateVar.getChild(NodeName.Keyword);
+        if (stateKeyNode != null) {
+          const stateKey = this.getValue(stateKeyNode);
+          let state: IProgramState | undefined;
+          if (indexNode == null) {
+            if (stateKey in this.state) {
+              state = this.state;
+            } else {
+              this.error(`There's no state variable '${stateKey}'`, stateVar);
+            }
           } else {
-            this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
+            const indexEval = this.evaluate(indexNode);
+            const index = this.toNumber(indexEval);
+            state = this.otherStates[index];
           }
-          return this.state[stateKey];
+
+          let value = this.evaluate(expression);
+          if (state != null) {
+            if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
+              value = value ? 1 : 0;
+            }
+            const op = this.getValue(incAssignmentExpr);
+            const currentValue = state[stateKey] ?? 0;
+            if (op === "+=") {
+              state[stateKey] = this.add(currentValue, value);
+            } else if (op === "-=") {
+              state[stateKey] = this.subtract(currentValue, value);
+            } else if (op === "*=") {
+              state[stateKey] = this.multiply(currentValue, value);
+            } else if (op === "/=") {
+              state[stateKey] = this.divide(currentValue, value);
+            } else {
+              this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
+            }
+            return state[stateKey];
+          } else {
+            return value;
+          }
         } else {
-          this.error(`There's no state variable '${stateKey}'`, stateVar);
+          return 0;
         }
       }
     } else if (expr.type.name === NodeName.BuiltinFunctionExpression) {
@@ -822,7 +895,10 @@ export class LiftoscriptEvaluator {
         this.error(`Can't use [1:1] syntax when reading from the ${name} variable`, expr);
       }
     } else if (expr.type.name === NodeName.StateVariable) {
-      const stateKey = this.getValue(expr).replace("state.", "");
+      const stateKey = this.getStateKey(expr);
+      if (stateKey == null) {
+        this.error(`You cannot read from other exercises states, you can only write to them`, expr);
+      }
       if (stateKey in this.state) {
         return this.state[stateKey];
       } else {

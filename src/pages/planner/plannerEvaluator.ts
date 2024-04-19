@@ -32,6 +32,7 @@ interface IPlannerEvalMetadata {
   notused: Set<string>;
   skipProgresses: IByExercise<IPlannerProgramExercise["skipProgress"]>;
   properties: {
+    id: IByExercise<{ property: IPlannerProgramProperty; dayData: Required<IDayData> }>;
     progress: IByExercise<{ property: IPlannerProgramProperty; dayData: Required<IDayData> }>;
     update: IByExercise<{ property: IPlannerProgramProperty; dayData: Required<IDayData> }>;
     warmup: IByExercise<{ warmupSets: IPlannerProgramExerciseWarmupSet[]; dayData: Required<IDayData> }>;
@@ -52,7 +53,7 @@ export class PlannerEvaluator {
         exercise.points.fullName
       );
     }
-    for (const propertyName of ["progress", "update"] as const) {
+    for (const propertyName of ["progress", "update", "id"] as const) {
       const property = exercise.properties.find((p) => p.name === propertyName);
       if (property != null) {
         const existingProperty = metadata.properties[propertyName][exercise.key];
@@ -61,12 +62,19 @@ export class PlannerEvaluator {
           property.fnName !== "none" &&
           !PlannerExerciseEvaluator.isEqualProperty(property, existingProperty.property)
         ) {
+          const point =
+            (propertyName === "progress"
+              ? exercise.points.progressPoint
+              : propertyName === "update"
+              ? exercise.points.updatePoint
+              : propertyName === "id"
+              ? exercise.points.idPoint
+              : undefined) || exercise.points.fullName;
           throw PlannerSyntaxError.fromPoint(
             `Same property '${propertyName}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
               `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
               `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
-            (propertyName === "progress" ? exercise.points.progressPoint : exercise.points.updatePoint) ||
-              exercise.points.fullName
+            point
           );
         }
         if (propertyName === "progress" && property.fnName === "none") {
@@ -118,7 +126,7 @@ export class PlannerEvaluator {
       fullNames: new Set(),
       notused: new Set(),
       skipProgresses: {},
-      properties: { progress: {}, update: {}, warmup: {} },
+      properties: { progress: {}, update: {}, warmup: {}, id: {} },
     };
     const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
@@ -166,7 +174,7 @@ export class PlannerEvaluator {
       fullNames: new Set(),
       notused: new Set(),
       skipProgresses: {},
-      properties: { progress: {}, update: {}, warmup: {} },
+      properties: { progress: {}, update: {}, warmup: {}, id: {} },
     };
     const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
     const tree = plannerExerciseParser.parse(fullProgramText);
@@ -379,6 +387,7 @@ export class PlannerEvaluator {
         const liftoscriptEvaluator = new ScriptRunner(
           script,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings),
           Progress.createScriptFunctions(settings),
           settings.units,
