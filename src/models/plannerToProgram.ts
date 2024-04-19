@@ -210,6 +210,7 @@ export class PlannerToProgram {
               }
             }
             programExercise.variations = programExercise.variations.concat(newVariations);
+            programExercise.tags = programExercise.tags || evalExercise.tags;
             programExercise.descriptions = programExercise.descriptions.concat(newDescriptions);
             programExercise.state = { ...programExercise.state, ...state };
             programExercise.stateMetadata = { ...programExercise.stateMetadata, ...metadata };

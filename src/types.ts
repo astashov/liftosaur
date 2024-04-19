@@ -536,6 +536,7 @@ export const TProgramExercise = t.intersection(
       descriptions: t.array(t.string),
     }),
     t.partial({
+      tags: t.array(t.number),
       updateDayExpr: t.string,
       diffPaths: t.array(t.string),
       description: t.string,
