@@ -489,4 +489,18 @@ export const migrations = {
     }
     return storage;
   },
+  "20240419095934_fix_null_1rm": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const exerciseKey of ObjectUtils.keys(storage.settings.exerciseData || {})) {
+      const value = storage.settings.exerciseData[exerciseKey];
+      const rm1 = value?.rm1;
+      if (rm1 && rm1.value == null) {
+        rm1.value = 0;
+      }
+      if (rm1 && rm1.unit == null) {
+        rm1.unit = storage.settings.units || "lb";
+      }
+    }
+    return storage;
+  },
 };
