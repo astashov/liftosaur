@@ -317,9 +317,9 @@ export class LiftoscriptEvaluator {
     this.bindings.w = this.bindings.weights.slice(0, evaluatedValue);
     this.bindings.r = this.bindings.reps.slice(0, evaluatedValue);
     this.bindings.mr = this.bindings.minReps.slice(0, evaluatedValue);
-    this.bindings.timers = this.bindings.minReps.slice(0, evaluatedValue);
-    this.bindings.amraps = this.bindings.minReps.slice(0, evaluatedValue);
-    this.bindings.logrpes = this.bindings.minReps.slice(0, evaluatedValue);
+    this.bindings.timers = this.bindings.timers.slice(0, evaluatedValue);
+    this.bindings.amraps = this.bindings.amraps.slice(0, evaluatedValue);
+    this.bindings.logrpes = this.bindings.logrpes.slice(0, evaluatedValue);
 
     for (let i = 0; i < evaluatedValue; i += 1) {
       if (this.bindings.weights[i] == null) {
