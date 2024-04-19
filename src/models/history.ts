@@ -435,20 +435,16 @@ export namespace History {
 
   export function getHistoricalLastDay(
     history: IHistoryRecord[],
-    progress: IHistoryRecord,
     currentEntry: IHistoryEntry
   ): IHistoryRecordAndEntry | undefined {
     for (const record of history) {
-      if (record.programId === progress.programId) {
-        for (const entry of record.entries) {
-          if (
-            Exercise.eq(currentEntry.exercise, entry.exercise) &&
-            entry.programExerciseId === currentEntry.programExerciseId &&
-            entry.sets.length > 0 &&
-            entry.sets.some((s) => (s.completedReps || 0) > 0)
-          ) {
-            return { record, entry };
-          }
+      for (const entry of record.entries) {
+        if (
+          Exercise.eq(currentEntry.exercise, entry.exercise) &&
+          entry.sets.length > 0 &&
+          entry.sets.some((s) => (s.completedReps || 0) > 0)
+        ) {
+          return { record, entry };
         }
       }
     }

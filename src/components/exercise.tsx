@@ -172,9 +172,7 @@ const ExerciseContentView = memo(
     const historicalSameDay = isCurrentProgress
       ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
       : undefined;
-    const historicalLastDay = isCurrentProgress
-      ? History.getHistoricalLastDay(props.history, props.progress, props.entry)
-      : undefined;
+    const historicalLastDay = isCurrentProgress ? History.getHistoricalLastDay(props.history, props.entry) : undefined;
     const showLastDay =
       historicalLastDay != null &&
       (historicalSameDay == null || historicalSameDay.record.startTime < historicalLastDay.record.startTime);
