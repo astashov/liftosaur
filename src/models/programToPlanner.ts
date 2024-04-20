@@ -432,7 +432,7 @@ export class ProgramToPlanner {
 
               if (!addedIdMap[key] && (programExercise.tags || []).length > 0) {
                 plannerExercise += this.getId(programExercise);
-                addedUpdateMap[key] = true;
+                addedIdMap[key] = true;
               }
 
               const skip = this.getSkipProgress(programExercise.finishDayExpr);
