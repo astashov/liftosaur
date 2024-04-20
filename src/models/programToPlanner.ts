@@ -425,14 +425,14 @@ export class ProgramToPlanner {
                 }
               }
 
-              if (!addedUpdateMap[key] && (programExercise.updateDayExpr || programExercise.reuseUpdateDayScript)) {
-                plannerExercise += this.getUpdate(programExercise);
-                addedUpdateMap[key] = true;
-              }
-
               if (!addedIdMap[key] && (programExercise.tags || []).length > 0) {
                 plannerExercise += this.getId(programExercise);
                 addedIdMap[key] = true;
+              }
+
+              if (!addedUpdateMap[key] && (programExercise.updateDayExpr || programExercise.reuseUpdateDayScript)) {
+                plannerExercise += this.getUpdate(programExercise);
+                addedUpdateMap[key] = true;
               }
 
               const skip = this.getSkipProgress(programExercise.finishDayExpr);
