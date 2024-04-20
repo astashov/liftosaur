@@ -503,6 +503,8 @@ export class ProgramToPlanner {
       } else if (programExercise.finishDayExpr) {
         const finishDayExpr = programExercise.finishDayExpr.replace(/^[\s\S]*{~/, "{~").replace(/~}[\s\S]*$/, "~}");
         plannerExercise += " " + finishDayExpr;
+      } else {
+        plannerExercise += " {~ ~}";
       }
     }
     return plannerExercise;

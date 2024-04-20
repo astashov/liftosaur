@@ -387,6 +387,7 @@ export class PlannerEvaluator {
         const liftoscriptEvaluator = new ScriptRunner(
           script,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -550,7 +551,6 @@ export class PlannerEvaluator {
   ): { evaluatedWeeks: IPlannerEvalResult[][]; exerciseFullNames: string[] } {
     const { evaluatedWeeks, metadata } = this.getPerDayEvaluatedWeeks(plannerProgram, settings);
     this.postProcess(evaluatedWeeks, settings, metadata);
-    console.log(evaluatedWeeks);
     return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
   }
 

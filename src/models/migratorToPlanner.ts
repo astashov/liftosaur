@@ -267,6 +267,7 @@ export class MigratorToPlanner {
       ? new ScriptRunner(
           expr,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -287,6 +288,7 @@ export class MigratorToPlanner {
       ? new ScriptRunner(
           expr,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -306,6 +308,7 @@ export class MigratorToPlanner {
     return new ScriptRunner(
       expr,
       state,
+      {},
       Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
       Progress.createScriptFunctions(settings),
       settings.units,

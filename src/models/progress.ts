@@ -376,6 +376,7 @@ export namespace Progress {
             new ScriptRunner(
               `${timerExpr}`.trim(),
               state,
+              {},
               bindings,
               Progress.createScriptFunctions(settings),
               settings.units,
@@ -626,10 +627,12 @@ export namespace Progress {
       setVariationIndex,
       descriptionIndex
     );
+    const otherStates = Program.getOtherStates(allProgramExercises);
     try {
       const runner = new ScriptRunner(
         script,
         state,
+        otherStates,
         bindings,
         Progress.createScriptFunctions(settings),
         settings.units,
@@ -1308,6 +1311,7 @@ export namespace Progress {
     const runner = new ScriptRunner(
       expr,
       state,
+      {},
       createEmptyScriptBindings(dayData, settings, exerciseType),
       createScriptFunctions(settings),
       settings.units,

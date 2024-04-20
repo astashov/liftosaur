@@ -172,6 +172,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
         const scriptRunnerResult = new ScriptRunner(
           script,
           propsRef.current.state,
+          {},
           Progress.createEmptyScriptBindings(
             propsRef.current.dayData,
             propsRef.current.settings,

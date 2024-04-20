@@ -162,6 +162,7 @@ export namespace Program {
           return new ScriptRunner(
             set.repsExpr,
             state,
+            {},
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
@@ -180,6 +181,7 @@ export namespace Program {
           let weight = new ScriptRunner(
             set.weightExpr,
             state,
+            {},
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
@@ -205,6 +207,7 @@ export namespace Program {
                 return new ScriptRunner(
                   rpeExpr,
                   state,
+                  {},
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
@@ -227,6 +230,7 @@ export namespace Program {
                 return new ScriptRunner(
                   minRepsExpr,
                   state,
+                  {},
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
@@ -349,6 +353,7 @@ export namespace Program {
     const scriptRunner = new ScriptRunner(
       script,
       state,
+      {},
       Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
@@ -369,6 +374,16 @@ export namespace Program {
 
   export function programMode(program?: IProgram): IProgramMode {
     return program?.planner != null ? "planner" : "regular";
+  }
+
+  export function getOtherStates(allProgramExercises: IProgramExercise[]): Record<number, IProgramState> {
+    return allProgramExercises.reduce<Record<number, IProgramState>>((acc, e) => {
+      const tags = e.tags || [];
+      for (const tag of tags) {
+        acc[tag] = ObjectUtils.clone(ProgramExercise.getState(e, allProgramExercises));
+      }
+      return acc;
+    }, {});
   }
 
   export function runExerciseFinishDayScript(
@@ -409,11 +424,13 @@ export namespace Program {
     const fns = Progress.createScriptFunctions(settings);
     const newState = { ...state, ...staticState };
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
+    const otherStates = getOtherStates(allProgramExercises);
 
     try {
       const runner = new ScriptRunner(
         script,
         newState,
+        otherStates,
         bindings,
         fns,
         settings.units,
@@ -451,6 +468,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           state,
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -486,6 +504,7 @@ export namespace Program {
             return new ScriptRunner(
               script,
               state,
+              {},
               Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
@@ -542,6 +561,7 @@ export namespace Program {
         const scriptRunnerResult = new ScriptRunner(
           script,
           ProgramExercise.getState(programExercise, allProgramExercises),
+          {},
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
@@ -570,7 +590,15 @@ export namespace Program {
     mode: IProgramMode,
     userPromptedStateVars?: IProgramState,
     staticState?: IProgramState
-  ): IEither<{ state: IProgramState; updates?: ILiftoscriptEvaluatorUpdate[]; bindings: IScriptBindings }, string> {
+  ): IEither<
+    {
+      state: IProgramState;
+      otherStates: Record<number, IProgramState>;
+      updates?: ILiftoscriptEvaluatorUpdate[];
+      bindings: IScriptBindings;
+    },
+    string
+  > {
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -603,12 +631,14 @@ export namespace Program {
       ...userPromptedStateVars,
       ...staticState,
     };
+    const otherStates = getOtherStates(allProgramExercises);
 
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
     try {
       const runner = new ScriptRunner(
         ProgramExercise.getFinishDayScript(programExercise, allProgramExercises),
         newState,
+        otherStates,
         bindings,
         fns,
         settings.units,
@@ -632,7 +662,7 @@ export namespace Program {
       newState[key] = (staticState || {})[key];
     }
 
-    return { success: true, data: { state: newState, updates, bindings } };
+    return { success: true, data: { state: newState, otherStates, updates, bindings } };
   }
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
@@ -665,6 +695,7 @@ export namespace Program {
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const dayData = Progress.getDayData(progress);
+    const allOtherStates: Record<number, IProgramState> = {};
     let newProgram = lf(program)
       .p("exercises")
       .modify((es) =>
@@ -683,7 +714,7 @@ export namespace Program {
               staticState
             );
             if (newStateResult.success) {
-              const { state, updates, bindings } = newStateResult.data;
+              const { state, updates, bindings, otherStates } = newStateResult.data;
               const exerciseKey = Exercise.toKey(entry.exercise);
               const onerm = Exercise.onerm(e, settings);
               if (!Weight.eq(bindings.rm1, onerm)) {
@@ -708,6 +739,9 @@ export namespace Program {
               } else {
                 newExercise.state = state;
               }
+              for (const key of ObjectUtils.keys(otherStates || {})) {
+                allOtherStates[key] = { ...allOtherStates[key], ...otherStates[key] };
+              }
               return newExercise;
             } else {
               alert(
@@ -718,10 +752,29 @@ export namespace Program {
           return e;
         })
       );
-    if (program.planner) {
+    newProgram = lf(newProgram)
+      .p("exercises")
+      .modify((es) =>
+        es.map((e) => {
+          const tags = e.tags || [];
+          let state = e.state;
+          for (const tag of ObjectUtils.keys(allOtherStates)) {
+            if (tags.indexOf(Number(tag)) !== -1) {
+              state = { ...state, ...allOtherStates[tag] };
+            }
+          }
+          if (e.state === state) {
+            return e;
+          } else {
+            return { ...e, state };
+          }
+        })
+      );
+
+    if (newProgram.planner) {
       newProgram.planner = new ProgramToPlanner(
         newProgram,
-        program.planner,
+        newProgram.planner,
         settings,
         setVariationIndexMap,
         descriptionIndexMap

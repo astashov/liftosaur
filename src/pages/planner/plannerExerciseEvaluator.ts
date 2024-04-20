@@ -377,6 +377,7 @@ export class PlannerExerciseEvaluator {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
             {},
+            {},
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
@@ -504,6 +505,7 @@ export class PlannerExerciseEvaluator {
           const liftoscriptEvaluator = new ScriptRunner(
             script,
             state,
+            {},
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
