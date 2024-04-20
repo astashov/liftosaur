@@ -658,34 +658,27 @@ export class LiftoscriptEvaluator {
         const stateKeyNode = variableNode.getChild(NodeName.Keyword);
         if (stateKeyNode != null) {
           const stateKey = this.getValue(stateKeyNode);
+          let state: IProgramState | undefined;
           if (indexNode == null) {
             if (stateKey in this.state) {
-              const value = this.evaluate(expression);
-              if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
-                this.state[stateKey] = value;
-              } else {
-                this.state[stateKey] = value ? 1 : 0;
-              }
-              return this.state[stateKey];
+              state = this.state;
             } else {
               this.error(`There's no state variable '${stateKey}'`, variableNode);
             }
           } else {
             const indexEval = this.evaluate(indexNode);
             const index = this.toNumber(indexEval);
-            const otherState = this.otherStates[index];
-            const value = this.evaluate(expression);
-            if (otherState != null) {
-              if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
-                otherState[stateKey] = value;
-              } else {
-                otherState[stateKey] = value ? 1 : 0;
-              }
-              return otherState[stateKey];
+            state = this.otherStates[index];
+          }
+          const value = this.evaluate(expression);
+          if (state != null) {
+            if (Weight.is(value) || Weight.isPct(value) || typeof value === "number") {
+              state[stateKey] = value;
             } else {
-              return value;
+              state[stateKey] = value ? 1 : 0;
             }
           }
+          return value;
         } else {
           return 0;
         }
@@ -779,27 +772,47 @@ export class LiftoscriptEvaluator {
           this.error(`Unknown variable '${variable}'`, stateVar);
         }
       } else {
-        const stateKey = this.getValue(stateVar).replace("state.", "");
-        if (stateKey in this.state) {
-          let value = this.evaluate(expression);
-          if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
-            value = value ? 1 : 0;
-          }
-          const op = this.getValue(incAssignmentExpr);
-          if (op === "+=") {
-            this.state[stateKey] = this.add(this.state[stateKey], value);
-          } else if (op === "-=") {
-            this.state[stateKey] = this.subtract(this.state[stateKey], value);
-          } else if (op === "*=") {
-            this.state[stateKey] = this.multiply(this.state[stateKey], value);
-          } else if (op === "/=") {
-            this.state[stateKey] = this.divide(this.state[stateKey], value);
+        const indexNode = stateVar.getChild(NodeName.StateVariableIndex);
+        const stateKeyNode = stateVar.getChild(NodeName.Keyword);
+        if (stateKeyNode != null) {
+          const stateKey = this.getValue(stateKeyNode);
+          let state: IProgramState | undefined;
+          if (indexNode == null) {
+            if (stateKey in this.state) {
+              state = this.state;
+            } else {
+              this.error(`There's no state variable '${stateKey}'`, stateVar);
+            }
           } else {
-            this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
+            const indexEval = this.evaluate(indexNode);
+            const index = this.toNumber(indexEval);
+            state = this.otherStates[index];
           }
-          return this.state[stateKey];
+
+          let value = this.evaluate(expression);
+          if (state != null) {
+            if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
+              value = value ? 1 : 0;
+            }
+            const op = this.getValue(incAssignmentExpr);
+            const currentValue = state[stateKey] ?? 0;
+            if (op === "+=") {
+              state[stateKey] = this.add(currentValue, value);
+            } else if (op === "-=") {
+              state[stateKey] = this.subtract(currentValue, value);
+            } else if (op === "*=") {
+              state[stateKey] = this.multiply(currentValue, value);
+            } else if (op === "/=") {
+              state[stateKey] = this.divide(currentValue, value);
+            } else {
+              this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
+            }
+            return state[stateKey];
+          } else {
+            return value;
+          }
         } else {
-          this.error(`There's no state variable '${stateKey}'`, stateVar);
+          return 0;
         }
       }
     } else if (expr.type.name === NodeName.BuiltinFunctionExpression) {

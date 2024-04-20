@@ -192,24 +192,23 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
   const state = programExercise ? ProgramExercise.getState(programExercise, props.allProgramExercises) : { fake: 0 };
 
   function onInput(): void {
-    props.onUpdate(
-      ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight | IPercentage>>((memo, k) => {
-        const value = textInputs[k].current?.value;
-        let numValue = value != null ? parseFloat(value) : 0;
-        numValue = isNaN(numValue) ? 0 : numValue;
-        const previousValue = state[k];
-        if (numValue == null) {
-          numValue = Weight.is(previousValue) || Weight.isPct(previousValue) ? previousValue.value : previousValue;
-        }
-        const typedValue = Weight.is(previousValue)
-          ? Weight.build(numValue, previousValue.unit)
-          : Weight.isPct(previousValue)
-          ? Weight.buildPct(numValue)
-          : numValue;
-        memo[k] = typedValue;
-        return memo;
-      }, {})
-    );
+    const values = ObjectUtils.keys(textInputs).reduce<Record<string, number | IWeight | IPercentage>>((memo, k) => {
+      const value = textInputs[k].current?.value;
+      let numValue = value != null ? parseFloat(value) : 0;
+      numValue = isNaN(numValue) ? 0 : numValue;
+      const previousValue = state[k];
+      if (numValue == null) {
+        numValue = Weight.is(previousValue) || Weight.isPct(previousValue) ? previousValue.value : previousValue;
+      }
+      const typedValue = Weight.is(previousValue)
+        ? Weight.build(numValue, previousValue.unit)
+        : Weight.isPct(previousValue)
+        ? Weight.buildPct(numValue)
+        : numValue;
+      memo[k] = typedValue;
+      return memo;
+    }, {});
+    props.onUpdate(values);
   }
 
   return (
