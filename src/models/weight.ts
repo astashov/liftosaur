@@ -49,6 +49,14 @@ export namespace Weight {
     return { value, unit: "%" };
   }
 
+  export function buildAny(value: number, unit: IUnit | "%"): IWeight | IPercentage {
+    if (unit === "%") {
+      return buildPct(value);
+    } else {
+      return build(value, unit);
+    }
+  }
+
   export function build(value: number, unit: IUnit): IWeight {
     const key = `${value}_${unit}`;
     const prebuiltWeight = prebuiltWeights[key];

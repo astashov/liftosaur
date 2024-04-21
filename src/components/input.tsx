@@ -1,5 +1,6 @@
 import { h, JSX, Ref } from "preact";
 import { forwardRef, useState, useCallback } from "preact/compat";
+import { UidFactory } from "../utils/generator";
 import { StringUtils } from "../utils/string";
 import { IEither } from "../utils/types";
 
@@ -9,11 +10,12 @@ export const inputClassName =
 export type IValidationError = "required" | "pattern-mismatch";
 
 export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
-  label: string;
+  label?: string;
   identifier?: string;
   multiline?: number;
   changeType?: "onblur" | "oninput";
   defaultValue?: number | string;
+  inputSize?: "md" | "sm";
   labelSize?: "xs" | "sm";
   errorMessage?: string;
   patternMessage?: string;
@@ -40,10 +42,11 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 
 export const Input = forwardRef(
   (props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
-    const { label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
+    const { inputSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
     const changeType = props.changeType || "onblur";
-    const identifier = props.identifier || StringUtils.dashcase(label.toLowerCase());
+    const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
+    const size = inputSize || "md";
 
     const onInputHandler = useCallback(
       (e: Event) => {
@@ -96,15 +99,24 @@ export const Input = forwardRef(
     const labelSize = props.labelSize || "sm";
     return (
       <div className={containerClassName}>
-        <label data-cy={`${identifier}-label`} className={className} style={{ minHeight: "48px" }}>
-          <div className="relative mx-4 my-1">
-            <div
-              className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
-              style={{ top: "2px", left: "0" }}
-            >
-              {props.label}
-            </div>
-            <div className="relative flex" style={{ top: "2px", left: "0" }}>
+        <label
+          data-cy={`${identifier}-label`}
+          className={className}
+          style={{ minHeight: size === "md" ? "48px" : "40px" }}
+        >
+          <div
+            className={`relative mx-4 ${size === "md" ? "my-1" : ""}`}
+            style={size !== "md" ? { marginTop: "1px", marginBottom: "1px" } : {}}
+          >
+            {props.label && (
+              <div
+                className={`leading-none relative ${labelSize === "xs" ? "text-xs" : "text-sm"} text-grayv2-700`}
+                style={{ top: "2px", left: "0" }}
+              >
+                {props.label}
+              </div>
+            )}
+            <div className="relative flex" style={{ top: props.label ? "3px" : "8px", left: "0" }}>
               {props.multiline ? (
                 <textarea
                   data-cy={`${identifier}-input`}
@@ -112,8 +124,8 @@ export const Input = forwardRef(
                   onBlur={changeType === "onblur" ? onInputHandler : undefined}
                   onInput={changeType === "oninput" ? onInputHandler : undefined}
                   onFocus={selectInputOnFocus}
-                  className="flex-1 min-w-0 text-base border-none focus:outline-none"
-                  style={{ fontSize: "16px", height: `${props.multiline * 25}px` }}
+                  className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                  style={{ fontSize: size === "md" ? "16px" : "15px", height: `${props.multiline * 25}px` }}
                   {...otherProps}
                 />
               ) : (
@@ -123,8 +135,8 @@ export const Input = forwardRef(
                   onBlur={changeType === "onblur" ? onInputHandler : undefined}
                   onInput={changeType === "oninput" ? onInputHandler : undefined}
                   onFocus={selectInputOnFocus}
-                  className="flex-1 min-w-0 text-base border-none focus:outline-none"
-                  style={{ fontSize: "16px" }}
+                  className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none"
+                  style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
                   {...otherProps}
                 />
               )}

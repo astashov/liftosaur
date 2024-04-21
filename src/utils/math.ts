@@ -32,6 +32,18 @@ export namespace MathUtils {
       return MathUtils.roundTo005(a / b);
     }
   }
+
+  export function clamp(value: number, min?: number, max?: number): number {
+    if (min != null && max != null) {
+      return Math.max(min, Math.min(max, value));
+    } else if (min != null) {
+      return Math.max(min, value);
+    } else if (max != null) {
+      return Math.min(max, value);
+    } else {
+      return value;
+    }
+  }
 }
 
 export function n(value: number, precision: number = 2): string {

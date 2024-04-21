@@ -1,17 +1,18 @@
 import { IDispatch } from "../ducks/types";
-import { JSX, h, Fragment } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, h } from "preact";
+import { useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Weight } from "../models/weight";
-import { inputClassName, selectInputOnFocus } from "./input";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
 import { ISet, IProgramExercise, ISubscription, IEquipment, ISettings } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
 import { ProgramExercise } from "../models/programExercise";
-import { SendMessage } from "../utils/sendMessage";
+import { InputNumber } from "./inputNumber";
+import { InputWeight } from "./inputWeight";
+import { MathUtils } from "../utils/math";
 
 interface IModalWeightProps {
   subscription: ISubscription;
@@ -48,29 +49,13 @@ function getPlatesStr(
 
 export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const set = props.set;
-  const repsInput = useRef<HTMLInputElement>(null);
-  const weightInput = useRef<HTMLInputElement>(null);
-  const rpeInput = useRef<HTMLInputElement>(null);
   const isAmrapInput = useRef<HTMLInputElement>(null);
-  const weightValue = Weight.is(set?.weight) ? set?.weight.value : set?.weight;
-  const [roundedWeightValue, setRoundedWeightValue] = useState(
-    Weight.round(Weight.build(weightValue || 0, props.settings.units), props.settings, props.equipment).value
+  const [roundedWeight, setRoundedWeight] = useState(
+    Weight.round(set?.weight || Weight.build(0, props.settings.units), props.settings, props.equipment)
   );
-  const prevProps = useRef<IModalWeightProps>(props);
-  useEffect(() => {
-    if (prevProps.current.isHidden && !props.isHidden) {
-      setRoundedWeightValue(
-        Weight.round(Weight.build(weightValue || 0, props.settings.units), props.settings, props.equipment).value
-      );
-    }
-  }, [props.isHidden, weightValue]);
-
-  useEffect(() => {
-    prevProps.current = props;
-  });
-
   const initialRpe = set?.rpe;
-  const classNames = inputClassName.replace(" px-4 ", " px-2 ");
+  const [rpe, setRpe] = useState(initialRpe ?? 0);
+  const [reps, setReps] = useState(set?.reps ?? 5);
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
@@ -79,13 +64,14 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
     : false;
 
   const [platesStr, setPlatesStr] = useState<string | undefined>(
-    props.set ? getPlatesStr(props.subscription, weightValue || 0, props.settings, props.equipment) : undefined
+    props.set ? getPlatesStr(props.subscription, roundedWeight.value, props.settings, props.equipment) : undefined
   );
   return (
     <Modal
       isHidden={props.isHidden}
-      autofocusInputRef={repsInput}
+      isFullWidth={true}
       shouldShowClose={true}
+      maxWidth="480px"
       onClose={() => {
         EditProgressEntry.hideEditSetModal(props.dispatch);
       }}
@@ -98,68 +84,53 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
         </h4>
       )}
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="flex items-center">
-          <div className="w-24 mr-2">
-            <input
-              ref={repsInput}
+        <div>
+          <div className="mb-2">
+            <InputNumber
               data-cy="modal-edit-set-reps-input"
-              onFocus={selectInputOnFocus}
-              className={classNames}
-              value={set?.reps}
+              value={reps}
               required
-              type="tel"
-              min="1"
-              placeholder="Reps"
+              min={1}
+              label="Reps"
+              onUpdate={(newValue) => {
+                setReps(newValue);
+              }}
             />
           </div>
-          <div>x</div>
-          <div className="w-24 mx-2">
-            <input
-              ref={weightInput}
+          <div className="mb-2">
+            <InputWeight
+              units={["kg", "lb"]}
+              settings={props.settings}
+              equipment={props.equipment}
               data-cy="modal-edit-set-weight-input"
-              onFocus={selectInputOnFocus}
-              className={classNames}
-              onInput={(e) => {
-                const target = e.target;
-                if (Subscriptions.hasSubscription(props.subscription) && target instanceof HTMLInputElement) {
-                  const targetValue = parseFloat(target.value);
-                  const value = Weight.build(targetValue, props.settings.units);
-                  const plates = Weight.calculatePlates(value, props.settings, props.equipment);
-                  const oneside = Weight.formatOneSide(props.settings, plates.plates, props.equipment);
-                  setRoundedWeightValue(isNaN(targetValue) ? 0 : targetValue);
-                  setPlatesStr(oneside);
+              onUpdate={(newWeight) => {
+                if (Weight.is(newWeight)) {
+                  setRoundedWeight(newWeight);
+                  if (Subscriptions.hasSubscription(props.subscription)) {
+                    const plates = Weight.calculatePlates(newWeight, props.settings, props.equipment);
+                    const oneside = Weight.formatOneSide(props.settings, plates.plates, props.equipment);
+                    setPlatesStr(oneside);
+                  }
                 }
               }}
-              value={roundedWeightValue}
-              required
-              type={SendMessage.isIos() ? "number" : "tel"}
-              step="0.05"
-              min="0"
-              placeholder="Weight"
+              value={roundedWeight}
+              label="Weight"
             />
           </div>
-          <div>{props.settings.units}</div>
           {!props.isWarmup && enableRpe && (
-            <>
-              <div className="ml-2 mr-1">@</div>
-              <div className="w-16">
-                <input
-                  ref={rpeInput}
-                  data-cy="modal-edit-set-rpe-input"
-                  onFocus={selectInputOnFocus}
-                  className={classNames}
-                  // @ts-ignore
-                  defaultValue={initialRpe}
-                  required
-                  type={SendMessage.isIos() ? "number" : "tel"}
-                  step="0.5"
-                  maxLength={3}
-                  min="0"
-                  max="10"
-                  placeholder="RPE"
-                />
-              </div>
-            </>
+            <div className="mb-2">
+              <InputNumber
+                data-cy="modal-edit-set-reps-input"
+                value={rpe}
+                min={0}
+                max={10}
+                step={0.5}
+                label="RPE"
+                onUpdate={(newValue) => {
+                  setRpe(newValue);
+                }}
+              />
+            </div>
           )}
         </div>
         {!props.isWarmup && (
@@ -200,40 +171,31 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             className="ls-modal-edit-set"
             type="submit"
             onClick={() => {
-              if (repsInput.current.validity.valid && weightInput.current.validity.valid) {
-                const reps = parseInt(repsInput.current.value, 10);
-                const w = parseFloat(weightInput.current.value);
-                let rpe = rpeInput.current ? parseFloat(rpeInput.current.value) : undefined;
-                if (rpe && !isNaN(rpe)) {
-                  rpe = Math.round(Math.max(0, Math.min(10, rpe)) / 0.5) * 0.5;
-                }
-                const isAmrap = !!(isAmrapInput.current?.checked || false);
-                if (!isNaN(reps) && !isNaN(w)) {
-                  const newSet: ISet = {
-                    reps,
-                    weight: Weight.build(w, props.settings.units),
-                    isAmrap,
-                    completedReps:
-                      props.programExercise != null && quickAddSets && props.setIndex == null ? reps : undefined,
-                    rpe: rpe && !isNaN(rpe) ? rpe : undefined,
-                    completedRpe:
-                      props.programExercise != null && quickAddSets && rpe && !isNaN(rpe) && props.setIndex == null
-                        ? rpe
-                        : undefined,
-                  };
-                  EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
-                  if (!props.isTimerDisabled && quickAddSets && !props.isWarmup) {
-                    props.dispatch({
-                      type: "StartTimer",
-                      timestamp: new Date().getTime(),
-                      mode: "workout",
-                      entryIndex: props.entryIndex,
-                      setIndex: props.setIndex ?? props.setsLength,
-                    });
-                  }
-                } else {
-                  EditProgressEntry.hideEditSetModal(props.dispatch);
-                }
+              const repsValue = MathUtils.round(MathUtils.clamp(reps, 1), 1);
+              const weightValue = Weight.round(roundedWeight, props.settings, props.equipment);
+              const rpeValue = enableRpe ? MathUtils.round(MathUtils.clamp(rpe, 0, 10), 0.5) : undefined;
+              const isAmrap = !!(isAmrapInput.current?.checked || false);
+              const newSet: ISet = {
+                reps: repsValue,
+                weight: weightValue,
+                isAmrap,
+                completedReps:
+                  props.programExercise != null && quickAddSets && props.setIndex == null ? repsValue : undefined,
+                rpe: rpeValue != null ? rpe : undefined,
+                completedRpe:
+                  props.programExercise != null && quickAddSets && rpeValue != null && props.setIndex == null
+                    ? rpeValue
+                    : undefined,
+              };
+              EditProgressEntry.editSet(props.dispatch, props.isWarmup, newSet, props.entryIndex, props.setIndex);
+              if (!props.isTimerDisabled && quickAddSets && !props.isWarmup) {
+                props.dispatch({
+                  type: "StartTimer",
+                  timestamp: new Date().getTime(),
+                  mode: "workout",
+                  entryIndex: props.entryIndex,
+                  setIndex: props.setIndex ?? props.setsLength,
+                });
               }
             }}
           >

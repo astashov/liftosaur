@@ -1052,6 +1052,22 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240421": {
+    title: <span>Added rich reps / weight / rpe inputs</span>,
+    body: (
+      <ul>
+        <li>
+          Now all the modals (like modal when you edit a set for the current exercise, modal when you edit weights, or
+          the AMRAP modal) have "rich" inputs for reps, weight and RPE. They have buttons allowing to adjust the values,
+          weight inputs have a Rep Max Calculator, and the buttons increment and decrement various values properly.
+        </li>
+        <li>
+          For example, it'd increment/decrement weights according to available equipment - getting next possible weight
+          with your plates. And for reps - it increments by 1, and for RPE - by 0.5
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

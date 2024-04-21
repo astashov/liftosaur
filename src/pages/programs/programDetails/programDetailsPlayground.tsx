@@ -122,20 +122,24 @@ export const Playground = memo(
             updateProgress({ programExercise: newProgramExercise });
           }}
         />
-        <ModalAmrap
-          progress={progressRef.current}
-          settings={props.settings}
-          dispatch={dispatch}
-          programExercise={programExercise}
-          allProgramExercises={props.allProgramExercises}
-        />
-        <ModalWeight
-          isHidden={progressRef.current.ui?.weightModal == null}
-          programExercise={progressRef.current.ui?.weightModal?.programExercise}
-          units={props.settings.units}
-          dispatch={dispatch}
-          weight={progressRef.current.ui?.weightModal?.weight ?? 0}
-        />
+        {progressRef.current?.ui?.amrapModal && (
+          <ModalAmrap
+            progress={progressRef.current}
+            settings={props.settings}
+            dispatch={dispatch}
+            programExercise={programExercise}
+            allProgramExercises={props.allProgramExercises}
+          />
+        )}
+        {progressRef.current.ui?.weightModal && (
+          <ModalWeight
+            isHidden={progressRef.current.ui?.weightModal == null}
+            programExercise={progressRef.current.ui?.weightModal?.programExercise}
+            settings={props.settings}
+            dispatch={dispatch}
+            weight={progressRef.current.ui?.weightModal?.weight ?? 0}
+          />
+        )}
       </>
     );
   }

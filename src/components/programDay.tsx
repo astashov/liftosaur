@@ -115,29 +115,33 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               isHidden={progress.ui?.exerciseBottomSheet == null}
               dispatch={props.dispatch}
             />
-            <ModalAmrap
-              settings={props.settings}
-              dispatch={props.dispatch}
-              programExercise={Program.getProgramExerciseFromEntry(
-                props.program?.exercises || [],
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
-              )}
-              allProgramExercises={props.program?.exercises || []}
-              progress={progress}
-              onDone={() => {
-                const amrapModal = progress.ui?.amrapModal;
-                if (amrapModal != null) {
-                  maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
-                }
-              }}
-            />
-            <ModalWeight
-              programExercise={progress.ui?.weightModal?.programExercise}
-              isHidden={progress.ui?.weightModal == null}
-              units={props.settings.units}
-              dispatch={props.dispatch}
-              weight={progress.ui?.weightModal?.weight ?? 0}
-            />
+            {progress?.ui?.amrapModal && (
+              <ModalAmrap
+                settings={props.settings}
+                dispatch={props.dispatch}
+                programExercise={Program.getProgramExerciseFromEntry(
+                  props.program?.exercises || [],
+                  progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
+                )}
+                allProgramExercises={props.program?.exercises || []}
+                progress={progress}
+                onDone={() => {
+                  const amrapModal = progress.ui?.amrapModal;
+                  if (amrapModal != null) {
+                    maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
+                  }
+                }}
+              />
+            )}
+            {progress.ui?.weightModal && (
+              <ModalWeight
+                programExercise={progress.ui?.weightModal?.programExercise}
+                isHidden={progress.ui?.weightModal == null}
+                settings={props.settings}
+                dispatch={props.dispatch}
+                weight={progress.ui?.weightModal?.weight ?? 0}
+              />
+            )}
             {editModalProgramExercise && props.program && (
               <ModalEditMode
                 program={props.program}
@@ -233,21 +237,23 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 }}
               />
             )}
-            <ModalEditSet
-              isHidden={progress.ui?.editSetModal == null}
-              setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-              subscription={props.subscription}
-              progressId={progress.id}
-              dispatch={props.dispatch}
-              settings={props.settings}
-              equipment={progress.ui?.editSetModal?.equipment}
-              programExercise={progress.ui?.editSetModal?.programExercise}
-              allProgramExercises={props.program?.exercises}
-              set={EditProgressEntry.getEditSetData(props.progress)}
-              isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-              entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-              setIndex={progress.ui?.editSetModal?.setIndex}
-            />
+            {progress.ui?.editSetModal && (
+              <ModalEditSet
+                isHidden={progress.ui?.editSetModal == null}
+                setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+                subscription={props.subscription}
+                progressId={progress.id}
+                dispatch={props.dispatch}
+                settings={props.settings}
+                equipment={progress.ui?.editSetModal?.equipment}
+                programExercise={progress.ui?.editSetModal?.programExercise}
+                allProgramExercises={props.program?.exercises}
+                set={EditProgressEntry.getEditSetData(props.progress)}
+                isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+                entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+                setIndex={progress.ui?.editSetModal?.setIndex}
+              />
+            )}
             {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
               <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
             )}

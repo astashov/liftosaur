@@ -136,37 +136,43 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           Reset Playground
         </LinkButton>
       </div>
-      <ModalAmrap
-        progress={progress}
-        dispatch={dispatch}
-        settings={props.settings}
-        programExercise={programExercise}
-        allProgramExercises={props.program.exercises}
-      />
-      <ModalWeight
-        programExercise={progress.ui?.weightModal?.programExercise}
-        isHidden={progress.ui?.weightModal == null}
-        units={props.settings.units}
-        dispatch={dispatch}
-        weight={progress.ui?.weightModal?.weight ?? 0}
-      />
-      <ModalEditSet
-        isHidden={progress.ui?.editSetModal == null}
-        key={progress.ui?.editSetModal?.setIndex}
-        setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-        subscription={props.subscription}
-        progressId={progress.id}
-        dispatch={dispatch}
-        settings={props.settings}
-        equipment={progress.ui?.editSetModal?.equipment}
-        programExercise={progress.ui?.editSetModal?.programExercise}
-        allProgramExercises={props.program.exercises}
-        isTimerDisabled={true}
-        set={EditProgressEntry.getEditSetData(props.progress)}
-        isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-        entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-        setIndex={progress.ui?.editSetModal?.setIndex}
-      />
+      {progress?.ui?.amrapModal && (
+        <ModalAmrap
+          progress={progress}
+          dispatch={dispatch}
+          settings={props.settings}
+          programExercise={programExercise}
+          allProgramExercises={props.program.exercises}
+        />
+      )}
+      {progress.ui?.weightModal && (
+        <ModalWeight
+          programExercise={progress.ui?.weightModal?.programExercise}
+          isHidden={progress.ui?.weightModal == null}
+          dispatch={dispatch}
+          weight={progress.ui?.weightModal?.weight ?? 0}
+          settings={props.settings}
+        />
+      )}
+      {progress.ui?.editSetModal && (
+        <ModalEditSet
+          isHidden={progress.ui?.editSetModal == null}
+          key={progress.ui?.editSetModal?.setIndex}
+          setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+          subscription={props.subscription}
+          progressId={progress.id}
+          dispatch={dispatch}
+          settings={props.settings}
+          equipment={progress.ui?.editSetModal?.equipment}
+          programExercise={progress.ui?.editSetModal?.programExercise}
+          allProgramExercises={props.program.exercises}
+          isTimerDisabled={true}
+          set={EditProgressEntry.getEditSetData(props.progress)}
+          isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+          entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+          setIndex={progress.ui?.editSetModal?.setIndex}
+        />
+      )}
     </Fragment>
   );
 }
