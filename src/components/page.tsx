@@ -14,6 +14,7 @@ interface IProps<T> extends IPageWrapperProps {
   postHead?: JSX.Element;
   account?: IAccount;
   nowrapper?: boolean;
+  redditPixel?: boolean;
 }
 
 declare let __COMMIT_HASH__: string;
@@ -55,6 +56,11 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           type="text/javascript"
           src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
         ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','t2_hoob2');rdt('track', 'PageVisit');`,
+          }}
+        />
         {props.ogTitle && <meta property="og:title" content={props.ogTitle} />}
         {props.ogDescription && <meta property="og:description" content={props.ogDescription} />}
         <meta property="fb:app_id" content="3448767138535273" />

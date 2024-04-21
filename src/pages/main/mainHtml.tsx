@@ -25,6 +25,7 @@ export function MainHtml(props: IProps): JSX.Element {
       account={props.account}
       client={client}
       url={"/new"}
+      redditPixel={true}
     >
       <MainContent client={client} {...data} />
     </Page>
