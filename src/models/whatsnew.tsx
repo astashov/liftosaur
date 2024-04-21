@@ -1028,6 +1028,30 @@ const whatsNew: Record<string, IWhatsNew> = {
       </ul>
     ),
   },
+  "20240420": {
+    title: <span>Added tags</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can add <strong>id: tags(123)</strong> to your exercises, and then change state variables of that
+          exercise from a progress block of another exercise. For example:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x8 / id: tags(123) / progress: custom(rating: 0) {~ ~}
+Bench Press / 3x8 / progress: custom() {~
+  state[123].rating = 2
+~}`}
+            />
+          </div>
+        </li>
+        <li>
+          That <strong>state[123].rating = 2</strong> will set state variable rating in <strong>Squat</strong> to{" "}
+          <strong>2</strong>.
+        </li>
+        <li>It's kinda a niche feature, but could be useful for some programs.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

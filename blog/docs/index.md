@@ -935,6 +935,45 @@ Squat / 1x5 @8 75% 120s, 3x8 @9 60s \
   / progress: lp(5lb)
 {% endplannercode %}
 
+### Tags
+
+Sometimes you want to change state variable of one exercise from another exercise. For that, you can use tags.
+You can add tags to an exercise using `id: tags(123)` syntax, like this:
+
+{% plannercode %}
+Squat / 3x8 / id: tags(123)
+{% endplannercode %}
+
+You may add multiple tags to the same exercise, and you may add same tags to multiple exercises, for example:
+
+{% plannercode %}
+Squat / 3x8 / id: tags(1, 100)
+Bench Press / 3x8 / id: tags(1, 101)
+{% endplannercode %}
+
+So they both will have the same tag `1`, and also Squat will have `100`, and Bench Press - `101`.
+
+And then you can change their state variables from another exercise. Let's say they specify progression like this:
+
+{% plannercode %}
+Squat / 3x8 / id: tags(1, 100) / progress: custom(rating: 0) {~ ~}
+Bench Press / 3x8 / id: tags(1, 101) / progress: custom(rating: 0) { ...Squat }
+{% endplannercode %}
+
+So, from another exercise you can change the rating state variable:
+
+{% plannercode %}
+Overhead Press / 3x8 / progress: custom() {~
+  // Changes the rating state var in both Squat and Bench Press
+  state[1].rating = 10
+
+  // Changes the rating state var only in Bench Press
+  state[101].rating = 10
+~}
+{% endplannercode %}
+
+I.e. the syntax is `state[tag].variablename = value`.
+
 ## Script Language Reference
 
 ### Types
