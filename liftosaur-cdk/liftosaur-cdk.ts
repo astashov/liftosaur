@@ -20,7 +20,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const depsLayer = new lambda.LayerVersion(this, `LftNodeDependencies${suffix}`, {
       code: lambda.Code.fromAsset("dist-lambda", {
         bundling: {
-          image: lambda.Runtime.NODEJS_16_X.bundlingImage,
+          image: lambda.Runtime.NODEJS_18_X.bundlingImage,
           command: [
             "bash",
             "-c",
@@ -251,7 +251,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 2048,
       layers: [depsLayer],
@@ -266,7 +266,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const freeformLambdaFunction = new lambda.Function(this, `LftFreeformLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       functionName: `LftFreeformLambda${suffix}`,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 512,
@@ -279,7 +279,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
 
     const statsLambdaFunction = new lambda.Function(this, `LftStatsLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       functionName: `LftStatsLambda${suffix}`,
       code: lambda.Code.fromAsset("dist-lambda"),
       memorySize: 512,
