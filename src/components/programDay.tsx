@@ -115,22 +115,24 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               isHidden={progress.ui?.exerciseBottomSheet == null}
               dispatch={props.dispatch}
             />
-            <ModalAmrap
-              settings={props.settings}
-              dispatch={props.dispatch}
-              programExercise={Program.getProgramExerciseFromEntry(
-                props.program?.exercises || [],
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
-              )}
-              allProgramExercises={props.program?.exercises || []}
-              progress={progress}
-              onDone={() => {
-                const amrapModal = progress.ui?.amrapModal;
-                if (amrapModal != null) {
-                  maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
-                }
-              }}
-            />
+            {progress?.ui?.amrapModal && (
+              <ModalAmrap
+                settings={props.settings}
+                dispatch={props.dispatch}
+                programExercise={Program.getProgramExerciseFromEntry(
+                  props.program?.exercises || [],
+                  progress.entries[progress.ui?.amrapModal?.entryIndex || 0]
+                )}
+                allProgramExercises={props.program?.exercises || []}
+                progress={progress}
+                onDone={() => {
+                  const amrapModal = progress.ui?.amrapModal;
+                  if (amrapModal != null) {
+                    maybeStartTimer("workout", amrapModal.entryIndex, amrapModal.setIndex, dispatch);
+                  }
+                }}
+              />
+            )}
             <ModalWeight
               programExercise={progress.ui?.weightModal?.programExercise}
               isHidden={progress.ui?.weightModal == null}
