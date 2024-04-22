@@ -13,6 +13,7 @@ interface IInputWeightProps {
   equipment?: IEquipment;
   units?: (IUnit | "%")[];
   settings: ISettings;
+  "data-cy"?: string;
   onUpdate: (weight: IWeight | IPercentage) => void;
 }
 
@@ -65,10 +66,10 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
             <Input
               label={props.label}
               labelSize="xs"
+              data-cy={props["data-cy"]}
               inputSize="sm"
               ref={inputRef}
               step="0.01"
-              data-cy="edit-weight-input"
               type="number"
               value={props.value.value}
               onInput={() => {

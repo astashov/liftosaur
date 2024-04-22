@@ -237,21 +237,23 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 }}
               />
             )}
-            <ModalEditSet
-              isHidden={progress.ui?.editSetModal == null}
-              setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-              subscription={props.subscription}
-              progressId={progress.id}
-              dispatch={props.dispatch}
-              settings={props.settings}
-              equipment={progress.ui?.editSetModal?.equipment}
-              programExercise={progress.ui?.editSetModal?.programExercise}
-              allProgramExercises={props.program?.exercises}
-              set={EditProgressEntry.getEditSetData(props.progress)}
-              isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-              entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-              setIndex={progress.ui?.editSetModal?.setIndex}
-            />
+            {progress.ui?.editSetModal && (
+              <ModalEditSet
+                isHidden={progress.ui?.editSetModal == null}
+                setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+                subscription={props.subscription}
+                progressId={progress.id}
+                dispatch={props.dispatch}
+                settings={props.settings}
+                equipment={progress.ui?.editSetModal?.equipment}
+                programExercise={progress.ui?.editSetModal?.programExercise}
+                allProgramExercises={props.program?.exercises}
+                set={EditProgressEntry.getEditSetData(props.progress)}
+                isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+                entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+                setIndex={progress.ui?.editSetModal?.setIndex}
+              />
+            )}
             {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
               <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
             )}

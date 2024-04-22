@@ -79,7 +79,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   }
 
   return (
-    <Modal isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
+    <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
       <form onSubmit={(e) => e.preventDefault()}>
         {isAmrap && (
           <div className="mb-2">

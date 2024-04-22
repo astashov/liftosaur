@@ -105,23 +105,25 @@ export const ProgramPreviewPlaygroundDay = memo(
             weight={props.progress.ui?.weightModal?.weight ?? 0}
           />
         )}
-        <ModalEditSet
-          isHidden={props.progress.ui?.editSetModal == null}
-          setsLength={props.progress.entries[props.progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-          key={props.progress.ui?.editSetModal?.setIndex}
-          subscription={{ google: { fake: null }, apple: {} }}
-          progressId={props.progress.id}
-          dispatch={dispatch}
-          settings={props.settings}
-          equipment={props.progress.ui?.editSetModal?.equipment}
-          programExercise={props.progress.ui?.editSetModal?.programExercise}
-          allProgramExercises={props.program.exercises}
-          isTimerDisabled={true}
-          set={EditProgressEntry.getEditSetData(props.progress)}
-          isWarmup={props.progress.ui?.editSetModal?.isWarmup || false}
-          entryIndex={props.progress.ui?.editSetModal?.entryIndex || 0}
-          setIndex={props.progress.ui?.editSetModal?.setIndex}
-        />
+        {props.progress.ui?.editSetModal && (
+          <ModalEditSet
+            isHidden={props.progress.ui?.editSetModal == null}
+            setsLength={props.progress.entries[props.progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+            key={props.progress.ui?.editSetModal?.setIndex}
+            subscription={{ google: { fake: null }, apple: {} }}
+            progressId={props.progress.id}
+            dispatch={dispatch}
+            settings={props.settings}
+            equipment={props.progress.ui?.editSetModal?.equipment}
+            programExercise={props.progress.ui?.editSetModal?.programExercise}
+            allProgramExercises={props.program.exercises}
+            isTimerDisabled={true}
+            set={EditProgressEntry.getEditSetData(props.progress)}
+            isWarmup={props.progress.ui?.editSetModal?.isWarmup || false}
+            entryIndex={props.progress.ui?.editSetModal?.entryIndex || 0}
+            setIndex={props.progress.ui?.editSetModal?.setIndex}
+          />
+        )}
         {editModalProgramExercise && (
           <ProgramPreviewPlaygroundExerciseEditModal
             onClose={() =>

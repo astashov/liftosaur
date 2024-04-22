@@ -391,6 +391,7 @@ function EditWeight(props: IEditWeightProps): JSX.Element {
     <div>
       <InputWeight
         value={weight}
+        data-cy="edit-weight-input"
         settings={props.settings}
         equipment={props.equipment}
         onUpdate={(value) => {

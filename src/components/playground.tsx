@@ -154,23 +154,25 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           settings={props.settings}
         />
       )}
-      <ModalEditSet
-        isHidden={progress.ui?.editSetModal == null}
-        key={progress.ui?.editSetModal?.setIndex}
-        setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-        subscription={props.subscription}
-        progressId={progress.id}
-        dispatch={dispatch}
-        settings={props.settings}
-        equipment={progress.ui?.editSetModal?.equipment}
-        programExercise={progress.ui?.editSetModal?.programExercise}
-        allProgramExercises={props.program.exercises}
-        isTimerDisabled={true}
-        set={EditProgressEntry.getEditSetData(props.progress)}
-        isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-        entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-        setIndex={progress.ui?.editSetModal?.setIndex}
-      />
+      {progress.ui?.editSetModal && (
+        <ModalEditSet
+          isHidden={progress.ui?.editSetModal == null}
+          key={progress.ui?.editSetModal?.setIndex}
+          setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+          subscription={props.subscription}
+          progressId={progress.id}
+          dispatch={dispatch}
+          settings={props.settings}
+          equipment={progress.ui?.editSetModal?.equipment}
+          programExercise={progress.ui?.editSetModal?.programExercise}
+          allProgramExercises={props.program.exercises}
+          isTimerDisabled={true}
+          set={EditProgressEntry.getEditSetData(props.progress)}
+          isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+          entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+          setIndex={progress.ui?.editSetModal?.setIndex}
+        />
+      )}
     </Fragment>
   );
 }

@@ -116,7 +116,7 @@ export const Input = forwardRef(
                 {props.label}
               </div>
             )}
-            <div className="relative flex" style={{ top: "2px", left: "0" }}>
+            <div className="relative flex" style={{ top: props.label ? "2px" : "7px", left: "0" }}>
               {props.multiline ? (
                 <textarea
                   data-cy={`${identifier}-input`}

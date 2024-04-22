@@ -193,23 +193,25 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           weight={progress.ui?.weightModal?.weight ?? 0}
         />
       )}
-      <ModalEditSet
-        isHidden={progress.ui?.editSetModal == null}
-        key={progress.ui?.editSetModal?.setIndex}
-        setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
-        subscription={{ google: { fake: null }, apple: {} }}
-        progressId={progress.id}
-        dispatch={dispatch}
-        settings={props.settings}
-        equipment={progress.ui?.editSetModal?.equipment}
-        programExercise={progress.ui?.editSetModal?.programExercise}
-        allProgramExercises={allProgramExercises}
-        isTimerDisabled={true}
-        set={EditProgressEntry.getEditSetData(props.progress)}
-        isWarmup={progress.ui?.editSetModal?.isWarmup || false}
-        entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
-        setIndex={progress.ui?.editSetModal?.setIndex}
-      />
+      {progress.ui?.editSetModal && (
+        <ModalEditSet
+          isHidden={progress.ui?.editSetModal == null}
+          key={progress.ui?.editSetModal?.setIndex}
+          setsLength={progress.entries[progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}
+          subscription={{ google: { fake: null }, apple: {} }}
+          progressId={progress.id}
+          dispatch={dispatch}
+          settings={props.settings}
+          equipment={progress.ui?.editSetModal?.equipment}
+          programExercise={progress.ui?.editSetModal?.programExercise}
+          allProgramExercises={allProgramExercises}
+          isTimerDisabled={true}
+          set={EditProgressEntry.getEditSetData(props.progress)}
+          isWarmup={progress.ui?.editSetModal?.isWarmup || false}
+          entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
+          setIndex={progress.ui?.editSetModal?.setIndex}
+        />
+      )}
     </section>
   );
 }
