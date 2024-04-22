@@ -84,23 +84,27 @@ export const ProgramPreviewPlaygroundDay = memo(
             </Button>
           </div>
         )}
-        <ModalAmrap
-          progress={props.progress}
-          dispatch={dispatch}
-          settings={props.settings}
-          programExercise={Program.getProgramExerciseFromEntry(
-            props.program.exercises,
-            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]
-          )}
-          allProgramExercises={props.program.exercises}
-        />
-        <ModalWeight
-          isHidden={props.progress.ui?.weightModal == null}
-          programExercise={props.progress.ui?.weightModal?.programExercise}
-          units={props.settings.units}
-          dispatch={dispatch}
-          weight={props.progress.ui?.weightModal?.weight ?? 0}
-        />
+        {props.progress.ui?.amrapModal && (
+          <ModalAmrap
+            progress={props.progress}
+            dispatch={dispatch}
+            settings={props.settings}
+            programExercise={Program.getProgramExerciseFromEntry(
+              props.program.exercises,
+              props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]
+            )}
+            allProgramExercises={props.program.exercises}
+          />
+        )}
+        {props.progress.ui?.weightModal && (
+          <ModalWeight
+            isHidden={props.progress.ui?.weightModal == null}
+            programExercise={props.progress.ui?.weightModal?.programExercise}
+            settings={props.settings}
+            dispatch={dispatch}
+            weight={props.progress.ui?.weightModal?.weight ?? 0}
+          />
+        )}
         <ModalEditSet
           isHidden={props.progress.ui?.editSetModal == null}
           setsLength={props.progress.entries[props.progress.ui?.editSetModal?.entryIndex || 0]?.sets.length || 0}

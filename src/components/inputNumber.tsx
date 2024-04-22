@@ -3,7 +3,7 @@ import { useRef } from "preact/hooks";
 import { MathUtils } from "../utils/math";
 import { Input } from "./input";
 
-interface IInputNumberProps {
+interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
   value: number;
   label?: string;
   step?: number;
@@ -13,14 +13,15 @@ interface IInputNumberProps {
 }
 
 export function InputNumber(props: IInputNumberProps): JSX.Element {
+  const { value, label, step, min, max, onUpdate, ...rest } = props;
   const inputRef = useRef<HTMLInputElement>();
-  const step = props.step ?? 1;
+  const actualStep = step ?? 1;
 
   function getValue(): number | undefined {
     const inputValue = inputRef.current.value;
-    const value = Number(inputValue);
-    if (inputValue && !isNaN(value)) {
-      return MathUtils.clamp(value, props.min, props.max);
+    const v = Number(inputValue);
+    if (inputValue && !isNaN(v)) {
+      return MathUtils.clamp(v, min, max);
     }
     return undefined;
   }
@@ -33,9 +34,9 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
             data-cy="edit-weight-minus"
             onClick={() => {
-              const value = getValue();
-              if (value != null) {
-                props.onUpdate(MathUtils.clamp(value - step, props.min, props.max));
+              const v = getValue();
+              if (v != null) {
+                onUpdate(MathUtils.clamp(v - actualStep, min, max));
               }
             }}
           >
@@ -45,20 +46,20 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         <div className="flex items-center flex-1 gap-2">
           <div className="flex-1">
             <Input
-              label={props.label}
+              label={label}
               labelSize="xs"
               inputSize="sm"
               ref={inputRef}
               step="0.01"
-              data-cy="edit-weight-input"
               type="number"
-              value={props.value}
+              value={value}
               onInput={() => {
-                const value = getValue();
-                if (value != null) {
-                  props.onUpdate(value);
+                const v = getValue();
+                if (v != null) {
+                  onUpdate(v);
                 }
               }}
+              {...rest}
             />
           </div>
         </div>
@@ -67,9 +68,9 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
             data-cy="edit-weight-plus"
             onClick={() => {
-              const value = getValue();
-              if (value != null) {
-                props.onUpdate(MathUtils.clamp(value + step, props.min, props.max));
+              const v = getValue();
+              if (v != null) {
+                onUpdate(MathUtils.clamp(v + actualStep, min, max));
               }
             }}
           >

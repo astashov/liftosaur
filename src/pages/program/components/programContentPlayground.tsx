@@ -175,20 +175,24 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           Reset
         </LinkButton>
       </div>
-      <ModalAmrap
-        dispatch={dispatch}
-        settings={props.settings}
-        programExercise={programExercise}
-        allProgramExercises={props.program.exercises}
-        progress={progress}
-      />
-      <ModalWeight
-        programExercise={progress.ui?.weightModal?.programExercise}
-        isHidden={progress.ui?.weightModal == null}
-        units={props.settings.units}
-        dispatch={dispatch}
-        weight={progress.ui?.weightModal?.weight ?? 0}
-      />
+      {progress?.ui?.amrapModal && (
+        <ModalAmrap
+          dispatch={dispatch}
+          settings={props.settings}
+          programExercise={programExercise}
+          allProgramExercises={props.program.exercises}
+          progress={progress}
+        />
+      )}
+      {progress.ui?.weightModal && (
+        <ModalWeight
+          programExercise={progress.ui?.weightModal?.programExercise}
+          isHidden={progress.ui?.weightModal == null}
+          settings={props.settings}
+          dispatch={dispatch}
+          weight={progress.ui?.weightModal?.weight ?? 0}
+        />
+      )}
       <ModalEditSet
         isHidden={progress.ui?.editSetModal == null}
         key={progress.ui?.editSetModal?.setIndex}

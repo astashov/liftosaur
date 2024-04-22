@@ -133,13 +133,15 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 }}
               />
             )}
-            <ModalWeight
-              programExercise={progress.ui?.weightModal?.programExercise}
-              isHidden={progress.ui?.weightModal == null}
-              units={props.settings.units}
-              dispatch={props.dispatch}
-              weight={progress.ui?.weightModal?.weight ?? 0}
-            />
+            {progress.ui?.weightModal && (
+              <ModalWeight
+                programExercise={progress.ui?.weightModal?.programExercise}
+                isHidden={progress.ui?.weightModal == null}
+                settings={props.settings}
+                dispatch={props.dispatch}
+                weight={progress.ui?.weightModal?.weight ?? 0}
+              />
+            )}
             {editModalProgramExercise && props.program && (
               <ModalEditMode
                 program={props.program}

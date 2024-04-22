@@ -10,6 +10,7 @@ import { Weight } from "../models/weight";
 import { ProgramExercise } from "../models/programExercise";
 import { InputWeight } from "./inputWeight";
 import { InputNumber } from "./inputNumber";
+import { MathUtils } from "../utils/math";
 
 interface IModalAmrapProps {
   progress: IHistoryRecord;
@@ -60,8 +61,8 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   ): void {
     props.dispatch({
       type: "ChangeAMRAPAction",
-      amrapValue,
-      rpeValue,
+      amrapValue: amrapValue != null ? MathUtils.round(amrapValue, 1) : undefined,
+      rpeValue: rpeValue != null ? MathUtils.round(rpeValue, 0.5) : undefined,
       weightValue,
       setIndex: setIndex,
       entryIndex: entryIndex,
@@ -80,46 +81,52 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   return (
     <Modal isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="mb-2">
-          <InputNumber
-            label="Completed reps"
-            value={repsInputValue ?? 0}
-            data-cy="modal-amrap-input"
-            data-name="modal-input-autofocus"
-            min={0}
-            step={1}
-            onUpdate={(newValue) => {
-              setRepsInputValue(newValue);
-            }}
-          />
-        </div>
-        <div className="mb-2">
-          <InputWeight
-            equipment={entry?.exercise?.equipment || props.programExercise?.exerciseType.equipment}
-            label="Weight"
-            units={["kg", "lb"]}
-            value={weightInputValue || Weight.build(0, props.settings.units)}
-            data-cy="modal-amrap-weight-input"
-            settings={props.settings}
-            onUpdate={(newValue) => {
-              setWeightInputValue(newValue);
-            }}
-          />
-        </div>
-        <div className="mb-2">
-          <InputNumber
-            label="Completed RPE"
-            value={rpeInputValue ?? 0}
-            data-cy="modal-rpe-input"
-            data-name="modal-rpe-autofocus"
-            min={0}
-            max={10}
-            step={0.5}
-            onUpdate={(newValue) => {
-              setRpeInputValue(newValue);
-            }}
-          />
-        </div>
+        {isAmrap && (
+          <div className="mb-2">
+            <InputNumber
+              label="Completed reps"
+              value={repsInputValue ?? 0}
+              data-cy="modal-amrap-input"
+              data-name="modal-input-autofocus"
+              min={0}
+              step={1}
+              onUpdate={(newValue) => {
+                setRepsInputValue(newValue);
+              }}
+            />
+          </div>
+        )}
+        {askWeight && (
+          <div className="mb-2">
+            <InputWeight
+              equipment={entry?.exercise?.equipment || props.programExercise?.exerciseType.equipment}
+              label="Weight"
+              units={["kg", "lb"]}
+              value={weightInputValue || Weight.build(0, props.settings.units)}
+              data-cy="modal-amrap-weight-input"
+              settings={props.settings}
+              onUpdate={(newValue) => {
+                setWeightInputValue(newValue);
+              }}
+            />
+          </div>
+        )}
+        {logRpe && (
+          <div className="mb-2">
+            <InputNumber
+              label="Completed RPE"
+              value={rpeInputValue ?? 0}
+              data-cy="modal-rpe-input"
+              data-name="modal-rpe-autofocus"
+              min={0}
+              max={10}
+              step={0.5}
+              onUpdate={(newValue) => {
+                setRpeInputValue(newValue);
+              }}
+            />
+          </div>
+        )}
         {props.programExercise && userVars && (
           <UserPromptedStateVars
             userVarInputValues={userVarInputValues}
