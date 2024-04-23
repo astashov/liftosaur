@@ -385,7 +385,7 @@ export class PlannerProgram {
     const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
     const tree = plannerExerciseParser.parse(fullProgramText);
     const data = evaluator.evaluate(tree.topNode);
-    return data.map((week) => {
+    const weeks = data.map((week) => {
       return {
         name: week.name,
         days: week.days.map((day) => {
@@ -396,6 +396,10 @@ export class PlannerProgram {
         }),
       };
     });
+    if (weeks.length === 0) {
+      weeks.push({ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] });
+    }
+    return weeks;
   }
 
   public static fullToWeekEvalResult(fullResult: IPlannerEvalFullResult): IPlannerEvalResult[][] {

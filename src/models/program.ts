@@ -301,7 +301,7 @@ export namespace Program {
       dayInWeek,
     };
 
-    const dayName = program.isMultiweek ? `${program.weeks[week - 1].name} - ${programDay.name}` : programDay.name;
+    const dayName = program.isMultiweek ? `${program.weeks[week - 1]?.name} - ${programDay.name}` : programDay.name;
     return {
       id: 0,
       date: new Date().toISOString(),
@@ -973,8 +973,8 @@ export namespace Program {
           break;
         }
       }
-      const dayId = program.weeks[weekIndex].days[dayIndex]?.id;
-      const programDay = program.days.find((pd) => pd.id === dayId) || program.days[0];
+      const dayId = program.weeks[weekIndex]?.days[dayIndex]?.id;
+      const programDay = program.days.find((pd) => pd.id === dayId) || program.days[0] || createDay("Day 1");
       return programDay;
     } else {
       return program.days[d];
