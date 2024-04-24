@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "preact/hooks";
 import { Progress } from "../../../models/progress";
 import { History } from "../../../models/history";
 import { buildCardsReducer } from "../../../ducks/reducer";
-import { IDayData, IHistoryRecord, IProgramExercise, ISettings, ISubscription } from "../../../types";
+import { IDayData, IHistoryRecord, IProgram, IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { IProgramMode, Program } from "../../../models/program";
 import { IDispatch } from "../../../ducks/types";
 import { ICardsAction } from "../../../ducks/reducer";
@@ -17,7 +17,7 @@ import { ProgramExercise } from "../../../models/programExercise";
 interface IPlaygroundProps {
   programId: string;
   programExercise: IProgramExercise;
-  allProgramExercises: IProgramExercise[];
+  program: IProgram;
   subscription: ISubscription;
   variationIndex: number;
   settings: ISettings;
@@ -30,6 +30,7 @@ interface IPlaygroundProps {
 export const Playground = memo(
   (props: IPlaygroundProps): JSX.Element => {
     const { settings, dayData, variationIndex, programExercise } = props;
+    const allProgramExercises = props.program.exercises;
     const updateProgress = (args: { programExercise?: IProgramExercise; progress?: IHistoryRecord }): void => {
       let newProgress;
       if (args.programExercise != null) {
@@ -37,7 +38,7 @@ export const Playground = memo(
         const newEntry = Progress.applyProgramExercise(
           entry,
           args.programExercise,
-          props.allProgramExercises,
+          allProgramExercises,
           dayData,
           settings,
           true
@@ -52,19 +53,19 @@ export const Playground = memo(
       }
     };
 
-    const programExerciseState = ProgramExercise.getState(props.programExercise, props.allProgramExercises);
-    const programExerciseVariations = ProgramExercise.getVariations(props.programExercise, props.allProgramExercises);
-    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(props.programExercise, props.allProgramExercises);
+    const programExerciseState = ProgramExercise.getState(props.programExercise, allProgramExercises);
+    const programExerciseVariations = ProgramExercise.getVariations(props.programExercise, allProgramExercises);
+    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(props.programExercise, allProgramExercises);
     const programExerciseEnableRepRanges = ProgramExercise.getEnableRepRanges(
       props.programExercise,
-      props.allProgramExercises
+      allProgramExercises
     );
-    const programExerciseEnableRpe = ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises);
+    const programExerciseEnableRpe = ProgramExercise.getEnableRpe(props.programExercise, allProgramExercises);
 
     const [progress, setProgress] = useState(() => {
       const entry = Program.nextHistoryEntry(
         programExercise,
-        props.allProgramExercises,
+        allProgramExercises,
         dayData,
         programExerciseVariations[variationIndex].sets,
         programExerciseState,
@@ -101,7 +102,7 @@ export const Playground = memo(
           showEditButtons={false}
           progress={progress}
           programExercise={programExercise}
-          allProgramExercises={props.allProgramExercises}
+          program={props.program}
           hidePlatesCalculator={props.hidePlatesCalculator}
           index={0}
           forceShowStateChanges={true}
@@ -128,7 +129,7 @@ export const Playground = memo(
             settings={props.settings}
             dispatch={dispatch}
             programExercise={programExercise}
-            allProgramExercises={props.allProgramExercises}
+            allProgramExercises={allProgramExercises}
           />
         )}
         {progressRef.current.ui?.weightModal && (

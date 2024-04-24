@@ -144,7 +144,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
         mode={Program.programMode(props.program)}
         dayData={props.dayData}
         programExercise={programExercise}
-        allProgramExercises={props.program.exercises}
+        program={props.program}
       />
       <div className="text-xs">
         <LinkButton

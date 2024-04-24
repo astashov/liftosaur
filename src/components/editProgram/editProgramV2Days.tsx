@@ -41,7 +41,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
   const evaluatedWeek = evaluatedWeeks[ui.weekIndex];
   const isInvalid = evaluatedWeeks.some((week) => week.some((day) => !day.success));
 
-  const enabledDayStats = props.ui.focusedExercise && evaluatedWeek[props.ui.focusedExercise?.dayIndex].success;
+  const enabledDayStats = props.ui.focusedExercise && evaluatedWeek[props.ui.focusedExercise?.dayIndex]?.success;
 
   return (
     <div>

@@ -33,7 +33,7 @@ import {
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
-import { ICustomExercise, IProgramContentSettings, IAllCustomExercises } from "../types";
+import { ICustomExercise, IProgramContentSettings, IAllCustomExercises, IPlannerProgram } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -45,6 +45,7 @@ import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
 import { PlannerToProgram } from "./plannerToProgram";
 import { IPlannerState } from "../pages/planner/models/types";
+import { PlannerKey } from "../pages/planner/plannerKey";
 
 declare let __HOST__: string;
 
@@ -392,10 +393,11 @@ export namespace Program {
     settings: ISettings,
     state: IProgramState,
     programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
+    program: IProgram,
     mode: IProgramMode,
     staticState?: IProgramState
   ): IEither<{ state: IProgramState; bindings: IScriptBindings; updates: ILiftoscriptEvaluatorUpdate[] }, string> {
+    const allProgramExercises = program.exercises;
     const script = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -411,8 +413,18 @@ export namespace Program {
       dayData,
       settings
     );
-    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    let setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
     const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+
+    if (mode === "planner" && program.planner != null) {
+      setVariationIndex = calculatePlannerSetVariationIndex(
+        programExercise,
+        program.planner,
+        settings,
+        setVariationIndex
+      );
+    }
+
     const bindings = Progress.createScriptBindings(
       dayData,
       entry,
@@ -581,9 +593,36 @@ export namespace Program {
     }
   }
 
+  export function calculatePlannerSetVariationIndex(
+    programExercise: IProgramExercise,
+    planner: IPlannerProgram,
+    settings: ISettings,
+    setVariationIndex: number
+  ): number {
+    let dayIndex = 0;
+    const key = PlannerKey.fromProgramExercise(programExercise, settings);
+    const variationIndexes = ProgramToPlanner.variationsMap(planner, settings)?.[key];
+    if (variationIndexes != null) {
+      for (let weekIndex = 0; weekIndex < planner.weeks.length; weekIndex++) {
+        for (let dayInWeekIndex = 0; dayInWeekIndex < planner.weeks[weekIndex].days.length; dayInWeekIndex++) {
+          const result = variationIndexes[dayIndex];
+          if (result != null) {
+            const [start, end] = variationIndexes[dayIndex];
+            if (setVariationIndex >= start && setVariationIndex <= end) {
+              setVariationIndex = setVariationIndex - start;
+              return setVariationIndex;
+            }
+          }
+          dayIndex += 1;
+        }
+      }
+    }
+    return setVariationIndex;
+  }
+
   export function runFinishDayScript(
     programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
+    program: IProgram,
     dayData: IDayData,
     entry: IHistoryEntry,
     settings: ISettings,
@@ -599,6 +638,7 @@ export namespace Program {
     },
     string
   > {
+    const allProgramExercises = program.exercises;
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
       programExercise,
@@ -614,8 +654,18 @@ export namespace Program {
       dayData,
       settings
     );
-    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
+    let setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
     const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
+
+    if (mode === "planner" && program.planner != null) {
+      setVariationIndex = calculatePlannerSetVariationIndex(
+        programExercise,
+        program.planner,
+        settings,
+        setVariationIndex
+      );
+    }
+
     const bindings = Progress.createScriptBindings(
       dayData,
       entry,
@@ -716,7 +766,7 @@ export namespace Program {
         const staticState = (staticStates || {})[e.id];
         const newStateResult = Program.runFinishDayScript(
           e,
-          program.exercises,
+          program,
           dayData,
           entry,
           settings,

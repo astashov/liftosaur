@@ -88,7 +88,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           props.settings,
           state,
           programExercise,
-          props.program.exercises,
+          props.program,
           props.program.planner ? "planner" : "regular"
         )
       : Program.parseExerciseFinishDayScript(dayData, props.settings, state, programExercise.finishDayExpr);

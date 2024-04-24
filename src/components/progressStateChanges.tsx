@@ -4,7 +4,7 @@ import { ObjectUtils } from "../utils/object";
 import { Weight } from "../models/weight";
 import { StringUtils } from "../utils/string";
 import { Reps } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData, IProgramExercise } from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IProgramExercise, IProgram } from "../types";
 import { Exercise } from "../models/exercise";
 import { ProgramExercise } from "../models/programExercise";
 
@@ -13,7 +13,7 @@ interface IProps {
   settings: ISettings;
   dayData: IDayData;
   programExercise: IProgramExercise;
-  allProgramExercises: IProgramExercise[];
+  program: IProgram;
   userPromptedStateVars?: IProgramState;
   forceShow?: boolean;
   staticState?: IProgramState;
@@ -21,7 +21,7 @@ interface IProps {
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const state = ProgramExercise.getState(props.programExercise, props.allProgramExercises);
+  const state = ProgramExercise.getState(props.programExercise, props.program.exercises);
   const { entry, settings, dayData } = props;
   const { units } = settings;
   const mergedState = { ...state, ...props.userPromptedStateVars };
@@ -31,7 +31,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     settings,
     mergedState,
     props.programExercise,
-    props.allProgramExercises,
+    props.program,
     props.mode,
     props.staticState
   );

@@ -19,6 +19,7 @@ import {
   ISubscription,
   IEquipment,
   IDayData,
+  IProgram,
 } from "../types";
 import { DateUtils } from "../utils/date";
 import { IFriendUser, IState, updateState } from "../models/state";
@@ -57,7 +58,7 @@ interface IProps {
   progress: IHistoryRecord;
   dayData: IDayData;
   programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  program?: IProgram;
   helps: string[];
   index: number;
   showEditButtons: boolean;
@@ -141,7 +142,7 @@ export const ExerciseView = memo(
       <Fragment>
         <section data-cy={dataCy} className={className}>
           <ExerciseContentView {...props} />
-          {props.programExercise && props.allProgramExercises && (
+          {props.programExercise && props.program && (
             <ProgressStateChanges
               mode={props.programMode}
               entry={props.entry}
@@ -149,7 +150,7 @@ export const ExerciseView = memo(
               settings={props.settings}
               dayData={props.dayData}
               programExercise={props.programExercise}
-              allProgramExercises={props.allProgramExercises}
+              program={props.program}
               userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.id]}
             />
           )}
@@ -202,10 +203,10 @@ const ExerciseContentView = memo(
 
     const programExercise = props.programExercise;
     let description: string | undefined;
-    if (programExercise != null && props.allProgramExercises != null) {
+    if (programExercise != null && props.program != null) {
       description = ProgramExercise.getDescription(
         programExercise,
-        props.allProgramExercises,
+        props.program.exercises,
         props.dayData,
         props.settings
       );
@@ -446,7 +447,7 @@ const ExerciseContentView = memo(
             index={props.index}
             progress={props.progress}
             programExercise={props.programExercise}
-            allProgramExercises={props.allProgramExercises}
+            allProgramExercises={props.program?.exercises}
             showHelp={props.showHelp}
             settings={props.settings}
             entry={props.entry}

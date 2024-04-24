@@ -89,7 +89,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         dayData={props.dayData}
         subscription={props.subscription}
         programExercise={programExercise}
-        allProgramExercises={allProgramExercises}
+        program={props.program}
         index={0}
         hidePlatesCalculator={true}
         forceShowStateChanges={true}

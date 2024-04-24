@@ -64,7 +64,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
                     programId={props.program.id}
                     programExercise={programExercise}
                     subscription={props.subscription}
-                    allProgramExercises={props.program.exercises}
+                    program={props.program}
                     programExerciseIndex={index}
                     dayData={dayData}
                     settings={props.settings}

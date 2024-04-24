@@ -6,7 +6,7 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { IProgramMode, Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 import { Progression } from "../../../models/progression";
-import { IDayData, IProgramExercise, ISettings, ISubscription } from "../../../types";
+import { IDayData, IProgram, IProgramExercise, ISettings, ISubscription } from "../../../types";
 import { DeloadView } from "./programDetailsDeload";
 import { FinishDayExprView } from "./programDetailsFinishDayExpr";
 import { Playground } from "./programDetailsPlayground";
@@ -18,7 +18,7 @@ interface IProgramDetailsExerciseProps {
   programId: string;
   programExercise: IProgramExercise;
   programMode: IProgramMode;
-  allProgramExercises: IProgramExercise[];
+  program: IProgram;
   programExerciseIndex: number;
   subscription: ISubscription;
   dayData: IDayData;
@@ -32,7 +32,8 @@ type IProgramDetailsExerciseMode = "details" | "playground";
 
 export const ProgramDetailsExercise = memo(
   (props: IProgramDetailsExerciseProps): JSX.Element => {
-    const { programExercise, dayData, settings, programExerciseIndex, allProgramExercises } = props;
+    const { programExercise, dayData, settings, programExerciseIndex } = props;
+    const allProgramExercises = props.program.exercises;
     const state = ProgramExercise.getState(programExercise, allProgramExercises);
     const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
     const variation = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex];
@@ -95,7 +96,7 @@ export const ProgramDetailsExercise = memo(
                   programId={props.programId}
                   subscription={props.subscription}
                   programExercise={programExercise}
-                  allProgramExercises={allProgramExercises}
+                  program={props.program}
                   variationIndex={variationIndex}
                   settings={settings}
                   dayData={dayData}
