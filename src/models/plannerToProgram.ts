@@ -372,7 +372,7 @@ export class PlannerToProgram {
 }`;
     }
     if (totalFailures > 0) {
-      finishDayExpr += `\nif (!(completedReps >= reps && completedRPE <= RPE)) {
+      finishDayExpr += `\nif (!(completedReps >= minReps && completedRPE <= RPE)) {
   state.failures += 1;
   if (state.failures >= ${totalFailures}) {
     weights -= ${decrement}
