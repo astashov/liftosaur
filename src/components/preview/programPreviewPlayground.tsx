@@ -102,12 +102,18 @@ export const ProgramPreviewPlayground = memo(
                                     ...wk,
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                       const programDay = Program.getProgramDay(newProgram, day.dayIndex);
-                                      const newProgress = Progress.applyProgramDay(
+                                      let newProgress = Progress.applyProgramDay(
                                         day.progress,
                                         newProgram,
                                         programDay,
                                         state.settings,
                                         day.states
+                                      );
+                                      newProgress = Progress.runInitialUpdateScripts(
+                                        newProgress,
+                                        undefined,
+                                        newProgram,
+                                        state.settings
                                       );
                                       return {
                                         ...day,
@@ -130,12 +136,18 @@ export const ProgramPreviewPlayground = memo(
                                     ...wk,
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
                                       const programDay = Program.getProgramDay(program, day.dayIndex);
-                                      const newProgress = Progress.applyProgramDay(
+                                      let newProgress = Progress.applyProgramDay(
                                         day.progress,
                                         program,
                                         programDay,
                                         newSettings,
                                         day.states
+                                      );
+                                      newProgress = Progress.runInitialUpdateScripts(
+                                        newProgress,
+                                        undefined,
+                                        program,
+                                        newSettings
                                       );
                                       return {
                                         ...day,

@@ -796,7 +796,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress != null) {
       const program = Program.getProgram(state, progress.programId)!;
       const programDay = Program.getProgramDay(program, progress.day);
-      const newProgress = Progress.applyProgramDay(
+      let newProgress = Progress.applyProgramDay(
         progress,
         program,
         programDay,
@@ -805,6 +805,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
         action.programExerciseIds,
         action.checkReused
       );
+      newProgress = Progress.runInitialUpdateScripts(
+        newProgress,
+        action.programExerciseIds,
+        program,
+        state.storage.settings
+      );
+
       return {
         ...state,
         progress: { ...state.progress, 0: newProgress },

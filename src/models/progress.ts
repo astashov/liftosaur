@@ -652,6 +652,41 @@ export namespace Progress {
     return entry;
   }
 
+  export function runInitialUpdateScripts(
+    aProgress: IHistoryRecord,
+    programExerciseIds: string[] | undefined,
+    program: IProgram,
+    settings: ISettings
+  ): IHistoryRecord {
+    const programExercises = programExerciseIds
+      ? CollectionUtils.compact(
+          programExerciseIds.map((id) => {
+            const programExercise = program.exercises.find((e) => e.id === id);
+            return programExercise ? ProgramExercise.getProgramExercise(programExercise, program.exercises) : undefined;
+          })
+        )
+      : program.exercises;
+
+    return {
+      ...aProgress,
+      entries: aProgress.entries.map((entry) => {
+        const programExercise =
+          entry.programExerciseId != null ? programExercises.find((e) => e.id === entry.programExerciseId) : undefined;
+        if (!programExercise) {
+          return entry;
+        }
+        return runUpdateScriptForEntry(
+          entry,
+          Progress.getDayData(aProgress),
+          programExercise,
+          program.exercises,
+          -1,
+          settings
+        );
+      }),
+    };
+  }
+
   export function runUpdateScript(
     aProgress: IHistoryRecord,
     programExercise: IProgramExercise,
