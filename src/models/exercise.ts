@@ -3769,7 +3769,7 @@ export namespace Exercise {
     const bar = exercise.defaultEquipment || "bodyweight";
     const sortedEquipment = getMetadata(type).sortedEquipment || [];
     let equipment: IEquipment | undefined = sortedEquipment.find((b) => b === bar);
-    equipment = equipment || priorities[bar].find((eqp) => sortedEquipment.indexOf(eqp) !== -1);
+    equipment = equipment || (priorities[bar] || []).find((eqp) => sortedEquipment.indexOf(eqp) !== -1);
     equipment = equipment || sortedEquipment[0];
     return equipment;
   }
