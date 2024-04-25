@@ -645,11 +645,16 @@ export class ProgramToPlanner {
     if (weightExpr != null) {
       const percentageMatch = weightExpr.match(/(.*)%/);
       if (percentageMatch != null) {
-        const percentage = MathUtils.roundFloat(parseFloat(percentageMatch[1]), 2);
+        const percentage = Math.max(0, MathUtils.roundFloat(parseFloat(percentageMatch[1]), 2));
         return `${percentage}%`;
       } else {
-        return weightExpr;
+        const weightMatch = weightExpr.match(/([\d\.\-]+)(lb|kg)?/);
+        if (weightMatch != null) {
+          const weight = Math.max(0, MathUtils.roundFloat(parseFloat(weightMatch[1]), 2));
+          return `${weight}${weightMatch[2]}`;
+        }
       }
+      return weightExpr;
     }
     return "";
   }
@@ -661,19 +666,19 @@ export class ProgramToPlanner {
       const set = group[0];
       let setStr = "";
       setStr += `${group[1]}${addQuickAddSet ? "+" : ""}x`;
-      setStr += set.minRepsExpr ? `${set.minRepsExpr}-` : "";
-      setStr += `${set.repsExpr}`;
+      setStr += set.minRepsExpr ? `${Math.max(0, parseInt(set.minRepsExpr, 10))}-` : "";
+      setStr += `${Math.max(0, parseInt(set.repsExpr, 10))}`;
       setStr += set.isAmrap ? "+" : "";
       if (globals.weight == null) {
         const weightValue = this.weightExprToStr(set.weightExpr);
         setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
       }
       if (globals.rpe == null) {
-        setStr += set.rpeExpr ? ` @${set.rpeExpr}` : "";
+        setStr += set.rpeExpr ? ` @${Math.max(0, parseFloat(set.rpeExpr))}` : "";
         setStr += set.rpeExpr && set.logRpe ? "+" : "";
       }
       if (globals.timer == null) {
-        setStr += set.timerExpr ? ` ${set.timerExpr}s` : "";
+        setStr += set.timerExpr ? ` ${Math.max(0, parseInt(set.timerExpr, 10))}s` : "";
       }
       if (set.label) {
         setStr += ` (${set.label})`;
