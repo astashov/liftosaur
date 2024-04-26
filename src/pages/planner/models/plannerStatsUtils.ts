@@ -64,6 +64,9 @@ export class PlannerStatsUtils {
         continue;
       }
       for (const plannerExercise of day.data) {
+        if (plannerExercise.notused) {
+          continue;
+        }
         const exercise = Exercise.findByName(plannerExercise.name, customExercises);
         if (exercise == null) {
           continue;
