@@ -389,6 +389,9 @@ export class LiftoscriptEvaluator {
         if (this.bindings.completedReps[i] == null && (setIndex === "*" || setIndex === i + 1)) {
           const evaluatedValue = this.evaluateToNumber(expression);
           value = MathUtils.applyOp(this.bindings[key][i] ?? 0, evaluatedValue, op);
+          if (key === "RPE") {
+            value = MathUtils.round(MathUtils.clamp(value, 0, 10), 0.5);
+          }
           this.bindings[key][i] = value;
         }
       }
