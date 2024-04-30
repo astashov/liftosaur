@@ -113,6 +113,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     props.initialProgram?.settings?.timer ??
     props.partialStorage?.settings?.timers.workout ??
     initialSettings.timers.workout;
+  initialSettings.planner = props.initialProgram?.plannerSettings || initialSettings.planner;
   const prevSettings = useRef(initialSettings);
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
