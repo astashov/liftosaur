@@ -14,6 +14,7 @@ interface IProps {
   leftExpandIcon?: boolean;
   isExpanded?: boolean;
   topPadding?: boolean;
+  highlighted?: boolean;
 }
 
 export function GroupHeader(props: IProps): JSX.Element {
@@ -38,7 +39,11 @@ export function GroupHeader(props: IProps): JSX.Element {
           </div>
         )}
         <div className="flex-1">
-          <span className={`${size === "small" ? "text-xs" : "text-base font-bold"} align-middle text-grayv2-700`}>
+          <span
+            className={`${size === "small" ? "text-xs" : "text-base font-bold"} ${
+              props.highlighted ? "text-purplev2-main" : "text-grayv2-700"
+            } align-middle`}
+          >
             {name}
           </span>
         </div>

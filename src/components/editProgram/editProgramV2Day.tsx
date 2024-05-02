@@ -1,18 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { LensBuilder, lb } from "lens-shmens";
+import { LensBuilder } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
-import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
-import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
-import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
-import { PlannerStatsUtils } from "../../pages/planner/models/plannerStatsUtils";
-import { IPlannerState, IPlannerUi, IPlannerProgramExercise } from "../../pages/planner/models/types";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
-import { IPlannerProgramDay, IPlannerProgram, ISettings } from "../../types";
+import { IPlannerProgramDay, IPlannerProgram, ISettings, IDayData } from "../../types";
 import { CollectionUtils } from "../../utils/collection";
 import { StringUtils } from "../../utils/string";
-import { TimeUtils } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { IconArrowRight } from "../icons/iconArrowRight";
@@ -20,12 +15,12 @@ import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
-import { IconWatch } from "../icons/iconWatch";
+import { EditProgramV2TextExercises } from "./editProgramV2TextExercises";
+import { EditProgramV2UiExercises } from "./editProgramV2UiExercises";
 import { applyChangesInEditor } from "./editProgramV2Utils";
 
 interface IEditProgramV2DayProps {
-  weekIndex: number;
-  dayIndex: number;
+  dayData: Required<IDayData>;
   plannerDay: IPlannerProgramDay;
   exerciseFullNames: string[];
   showDelete: boolean;
@@ -39,20 +34,13 @@ interface IEditProgramV2DayProps {
 }
 
 export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
-  const { plannerDay, plannerDispatch, lbProgram, weekIndex, dayIndex } = props;
-  const { exercises: customExercises, equipment: customEquipment } = props.settings;
-  const focusedExercise = props.ui.focusedExercise;
-  const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
-  let approxDayTime: string | undefined;
-  if (evaluatedDay.success) {
-    approxDayTime = TimeUtils.formatHHMM(
-      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
-    );
-  }
+  const { plannerDay, plannerDispatch, lbProgram } = props;
+  const weekIndex = props.dayData.week - 1;
+  const dayIndex = props.dayData.dayInWeek - 1;
   const [isCollapsed, setIsCollapsed] = useState<boolean>(
     !!(props.ui.focusedDay && props.ui.focusedDay.dayInWeek !== dayIndex + 1)
   );
-  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
+  const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
 
   return (
     <div className="flex flex-col pb-4 md:flex-row">
@@ -127,63 +115,29 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
           </div>
         </div>
         <div className="flex">
-          {!isCollapsed && (
-            <div className="flex-1 w-0">
-              <PlannerEditorView
-                name="Exercises"
+          {!isCollapsed &&
+            (props.ui.isUiMode ? (
+              <EditProgramV2UiExercises
+                ui={props.ui}
                 exerciseFullNames={props.exerciseFullNames}
-                customExercises={customExercises}
-                lineNumbers={true}
-                equipment={customEquipment}
-                error={evaluatedDay.success ? undefined : evaluatedDay.error}
-                value={plannerDay.exerciseText}
-                onCustomErrorCta={(err) => (
-                  <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
-                )}
-                onChange={(e) => {
-                  plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
-                }}
-                onBlur={(e, text) => {}}
-                onLineChange={(line) => {
-                  const exerciseIndex =
-                    dayIndex !== -1 && evaluatedDay.success
-                      ? CollectionUtils.findIndexReverse(evaluatedDay.data, (d) => d.line <= line)
-                      : -1;
-                  const exercise =
-                    exerciseIndex !== -1 && evaluatedDay.success ? evaluatedDay.data[exerciseIndex] : undefined;
-
-                  if (
-                    !focusedExercise ||
-                    focusedExercise.weekIndex !== weekIndex ||
-                    focusedExercise.dayIndex !== dayIndex ||
-                    focusedExercise.exerciseLine !== exercise?.line
-                  ) {
-                    plannerDispatch(
-                      lb<IPlannerState>()
-                        .p("ui")
-                        .p("focusedExercise")
-                        .record({ weekIndex, dayIndex, exerciseLine: exercise?.line ?? 0 })
-                    );
-                  }
-                }}
+                evaluatedWeeks={props.evaluatedWeeks}
+                settings={props.settings}
+                dayData={props.dayData}
+                plannerDispatch={plannerDispatch}
               />
-              {repeats.length > 0 && (
-                <ul className="pl-1 ml-8 overflow-x-auto list-disc">
-                  {repeats.map((e) => (
-                    <li>
-                      <PlannerCodeBlock script={e.text} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {approxDayTime && (
-                <div className="text-xs text-right text-grayv2-main">
-                  <IconWatch className="mb-1 align-middle" />
-                  <span className="pl-1 align-middle">{approxDayTime}</span>
-                </div>
-              )}
-            </div>
-          )}
+            ) : (
+              <EditProgramV2TextExercises
+                weekIndex={weekIndex}
+                dayIndex={dayIndex}
+                plannerDay={plannerDay}
+                exerciseFullNames={props.exerciseFullNames}
+                plannerDispatch={plannerDispatch}
+                lbProgram={lbProgram}
+                evaluatedDay={evaluatedDay}
+                settings={props.settings}
+                ui={props.ui}
+              />
+            ))}
         </div>
       </div>
     </div>

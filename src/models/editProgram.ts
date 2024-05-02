@@ -651,7 +651,7 @@ export namespace EditProgram {
     return {
       id,
       current: { program: plannerProgram },
-      ui: { weekIndex: 0, focusedDay },
+      ui: { weekIndex: 0, focusedDay, isUiMode: true, exerciseUi: { edit: new Set(), collapsed: new Set() } },
       history: { past: [], future: [] },
     };
   }

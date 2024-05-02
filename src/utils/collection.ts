@@ -54,6 +54,22 @@ export namespace CollectionUtils {
     return result;
   }
 
+  export function groupBy<T>(items: T[], cond: (last: T, item: T) => boolean): T[][] {
+    return items.reduce<T[][]>(
+      (memo, set) => {
+        let lastGroup = memo[memo.length - 1];
+        const last = lastGroup[lastGroup.length - 1];
+        if (last != null && cond(last, set)) {
+          memo.push([]);
+          lastGroup = memo[memo.length - 1];
+        }
+        lastGroup.push(set);
+        return memo;
+      },
+      [[]]
+    );
+  }
+
   export function repeat<T>(el: T, length: number): T[] {
     const arr: T[] = [];
     for (let i = 0; i < length; i += 1) {

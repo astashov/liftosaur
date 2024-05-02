@@ -3,8 +3,12 @@ import { ProgramSet } from "../models/programSet";
 import { Reps } from "../models/set";
 import { Weight } from "../models/weight";
 import { IProgramSet, ISet, ISettings } from "../types";
+import { CollectionUtils } from "../utils/collection";
 
-interface IDisplaySet {
+export interface IDisplaySet {
+  dimReps?: boolean;
+  dimRpe?: boolean;
+  dimWeight?: boolean;
   reps: string;
   weight: string;
   rpe?: string;
@@ -12,6 +16,14 @@ interface IDisplaySet {
   completedRpe?: string;
   isCompleted?: boolean;
   isInRange?: boolean;
+}
+
+export function groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
+  return CollectionUtils.groupBy(displaySets, (last, set) => {
+    return (
+      last.reps !== set.reps || last.rpe !== set.rpe || last.weight !== set.weight || last.askWeight !== set.askWeight
+    );
+  });
 }
 
 export function HistoryRecordSetsView(props: {
@@ -81,7 +93,7 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
     : set.isInRange
     ? "text-orange-400"
     : "text-redv2-main";
-  const rpeClassName = "relative text-xs leading-none text-center";
+  const rpeClassName = `relative text-xs leading-none text-center ${set.dimRpe ? "opacity-50" : ""}`;
   const rpeStyles = { right: "0", top: "0" };
   return (
     <div className="flex py-2 mr-2 leading-none">
@@ -115,10 +127,15 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
           }
           className="pb-1 font-bold border-b border-grayv2-200"
         >
-          {length > 1 && <span className="text-sm text-purplev2-main">{length}x</span>}
-          <span className={`${color} text-lg`}>{set.reps}</span>
+          {length > 1 && (
+            <span className={`text-sm text-purplev2-main ${set.dimReps ? "opacity-50" : ""}`}>{length}x</span>
+          )}
+          <span className={`${color} text-lg ${set.dimReps ? "opacity-50" : ""}`}>{set.reps}</span>
         </div>
-        <div data-cy="history-entry-weight" className="pt-2 text-sm font-bold text-grayv2-main">
+        <div
+          data-cy="history-entry-weight"
+          className={`pt-2 text-sm font-bold text-grayv2-main ${set.dimWeight ? "opacity-50" : ""}`}
+        >
           {set.weight}
           {set.askWeight ? "+" : ""}
         </div>

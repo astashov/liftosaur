@@ -242,6 +242,24 @@ export namespace ProgramExercise {
     return getReusedProgramExercise(programExercise, allProgramExercises) || programExercise;
   }
 
+  function warmupSetToKey(set: IProgramExerciseWarmupSet): string {
+    return `${set.reps}-${Weight.print(set.threshold)}-${Weight.printOrNumber(set.value)}`;
+  }
+
+  export function groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {
+    let lastKey: string | undefined;
+    const groups: [IProgramExerciseWarmupSet, number][] = [];
+    for (const set of sets) {
+      const key = warmupSetToKey(set);
+      if (lastKey == null || lastKey !== key) {
+        groups.push([set, 0]);
+      }
+      groups[groups.length - 1][1] += 1;
+      lastKey = key;
+    }
+    return groups;
+  }
+
   export function approxTimeMs(
     dayData: IDayData,
     programExercise: IProgramExercise,

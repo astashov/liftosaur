@@ -131,6 +131,10 @@ export interface IPlannerUi {
     exerciseKey?: string;
     customExerciseName?: string;
   };
+  exerciseUi: {
+    edit: Set<string>;
+    collapsed: Set<string>;
+  };
   editWeekDayModal?: { weekIndex: number; dayIndex?: number };
   weekIndex: number;
   subscreen?: "weeks" | "full";
@@ -140,6 +144,7 @@ export interface IPlannerUi {
   showPreview?: boolean;
   focusedDay?: IDayData;
   showSettingsModal?: boolean;
+  isUiMode?: boolean;
 }
 
 export interface IPlannerFullText {
@@ -194,4 +199,12 @@ export interface ISetSplit {
     hypertrophySets: number;
   }[];
   frequency: Partial<Record<number, true>>;
+}
+
+export function focusedToStr(focused: IPlannerUiFocusedExercise): string {
+  return JSON.stringify(focused);
+}
+
+export function strToFocused(str: string): IPlannerUiFocusedExercise {
+  return JSON.parse(str);
 }

@@ -123,7 +123,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     current: {
       program: initialProgram,
     },
-    ui: { weekIndex: 0 },
+    ui: { weekIndex: 0, exerciseUi: { edit: new Set(), collapsed: new Set() } },
     history: {
       past: [],
       future: [],

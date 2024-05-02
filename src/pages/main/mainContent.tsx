@@ -637,7 +637,7 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
     current: {
       program: planner,
     },
-    ui: { weekIndex: 0 },
+    ui: { weekIndex: 0, exerciseUi: { edit: new Set(), collapsed: new Set() } },
     history: {
       past: [],
       future: [],

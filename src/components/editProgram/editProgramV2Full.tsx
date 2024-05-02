@@ -48,11 +48,15 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           return PlannerProgram.evaluateText(text);
         }),
       lb<IPlannerState>().p("fulltext").record(undefined),
+      lb<IPlannerState>().p("ui").p("isUiMode").record(true),
     ]);
   }
 
   function cancel(): void {
-    props.plannerDispatch([lb<IPlannerState>().p("fulltext").record(undefined)]);
+    props.plannerDispatch([
+      lb<IPlannerState>().p("ui").p("isUiMode").record(true),
+      lb<IPlannerState>().p("fulltext").record(undefined),
+    ]);
   }
 
   const currentLine = props.fulltext.currentLine;

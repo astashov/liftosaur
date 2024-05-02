@@ -42,6 +42,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
   const isInvalid = evaluatedWeeks.some((week) => week.some((day) => !day.success));
 
   const enabledDayStats = props.ui.focusedExercise && evaluatedWeek[props.ui.focusedExercise?.dayIndex]?.success;
+  let dayIndex = 0;
 
   return (
     <div>
@@ -70,11 +71,15 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               disabled={isInvalid}
               onClick={() => {
                 if (!isInvalid) {
-                  props.plannerDispatch(
-                    lb<IPlannerState>()
-                      .p("fulltext")
-                      .record({ text: PlannerProgram.generateFullText(plannerProgram.weeks) })
-                  );
+                  if (ui.isUiMode) {
+                    props.plannerDispatch(props.lbUi.p("isUiMode").record(false));
+                  } else {
+                    props.plannerDispatch(
+                      lb<IPlannerState>()
+                        .p("fulltext")
+                        .record({ text: PlannerProgram.generateFullText(plannerProgram.weeks) })
+                    );
+                  }
                 }
               }}
             >
@@ -165,22 +170,23 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
                           ]);
                         });
                       }}
-                      element={(plannerDay, dayIndex, handleTouchStart) => {
+                      element={(plannerDay, dayInWeekIndex, handleTouchStart) => {
+                        const dayData = { week: weekIndex + 1, dayInWeek: dayInWeekIndex + 1, day: dayIndex + 1 };
+                        dayIndex += 1;
                         return (
-                          <div key={dayIndex}>
+                          <div key={dayInWeekIndex}>
                             <EditProgramV2Day
                               exerciseFullNames={props.exerciseFullNames}
                               evaluatedWeeks={evaluatedWeeks}
                               settings={settings}
                               showDelete={week.days.length > 1}
                               onEditDayName={() => {
-                                props.onEditDayModal({ weekIndex, dayIndex });
+                                props.onEditDayModal({ weekIndex, dayIndex: dayInWeekIndex });
                               }}
                               plannerDispatch={plannerDispatch}
                               handleTouchStart={handleTouchStart}
                               plannerDay={plannerDay}
-                              weekIndex={weekIndex}
-                              dayIndex={dayIndex}
+                              dayData={dayData}
                               ui={ui}
                               lbProgram={lbProgram}
                             />
