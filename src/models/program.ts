@@ -762,7 +762,7 @@ export namespace Program {
     let newProgram = ObjectUtils.clone(program);
     for (const e of newProgram.exercises) {
       const entry = progress.entries.filter((ent) => ent.programExerciseId === e.id)[0];
-      if (entry != null) {
+      if (entry != null && entry.sets.some((s) => s.completedReps != null)) {
         const staticState = (staticStates || {})[e.id];
         const newStateResult = Program.runFinishDayScript(
           e,
