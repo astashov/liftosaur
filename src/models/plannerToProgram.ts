@@ -110,11 +110,11 @@ export class PlannerToProgram {
                 finishDayExpr: "",
               };
             }
-            let isQuickAddSets = false;
             keyToProgramExercise[key] = programExercise;
             keyToProgramExerciseId[key] = programExercise.id;
             const newVariations: IProgramExerciseVariation[] = PlannerProgramExercise.setVariations(evalExercise).map(
               (setVariation, setVarIndex) => {
+                let isQuickAddSets = false;
                 const sets: IProgramSet[] = [];
                 for (const set of PlannerProgramExercise.sets(evalExercise, setVarIndex)) {
                   if (set.repRange != null) {
@@ -150,7 +150,7 @@ export class PlannerToProgram {
                 if (setVariation.isCurrent) {
                   variationIndexes[key][dayIndex].current = setVarIndex;
                 }
-                return { sets };
+                return { sets, quickAddSets: isQuickAddSets };
               }
             );
             const newDescriptions = evalExercise.descriptions.map((description, descriptionIndex) => {
@@ -219,7 +219,6 @@ export class PlannerToProgram {
             programExercise.enableRpe = programExercise.variations.some((v) =>
               v.sets.some((s) => s.rpeExpr != null || !!s.logRpe)
             );
-            programExercise.quickAddSets = programExercise.quickAddSets || isQuickAddSets;
             programExercise.enableRepRanges = programExercise.variations.some((v) =>
               v.sets.some((s) => s.minRepsExpr != null)
             );

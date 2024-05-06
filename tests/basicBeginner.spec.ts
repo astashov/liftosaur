@@ -171,5 +171,5 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("45");
+  ).toHaveText("47.5");
 });

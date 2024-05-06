@@ -148,6 +148,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
           {props.isPlayground ? (
             <ExerciseSets
               isEditMode={false}
+              dayData={dayData}
               warmupSets={warmupSets}
               index={props.index}
               progress={props.progress}

@@ -117,6 +117,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
       <section className="flex flex-wrap pb-2">
         <ExerciseSets
           isEditMode={false}
+          dayData={props.dayData}
           progress={progress}
           warmupSets={entry.warmupSets}
           index={0}

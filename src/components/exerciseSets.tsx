@@ -5,7 +5,16 @@ import { EditProgressEntry } from "../models/editProgressEntry";
 import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
 import { IFriendUser } from "../models/state";
-import { ISet, IHistoryRecord, ISettings, IHistoryEntry, IProgressMode, IProgramExercise, IEquipment } from "../types";
+import {
+  ISet,
+  IHistoryRecord,
+  ISettings,
+  IHistoryEntry,
+  IProgressMode,
+  IProgramExercise,
+  IEquipment,
+  IDayData,
+} from "../types";
 import { ExerciseSetView } from "./exerciseSet";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 
@@ -21,6 +30,7 @@ interface IExerciseSetsProps {
   isEditMode: boolean;
   warmupSets: ISet[];
   index: number;
+  dayData: IDayData;
   size?: "small" | "medium";
   progress: IHistoryRecord;
   programExercise?: IProgramExercise;
@@ -37,8 +47,17 @@ interface IExerciseSetsProps {
 export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
   const { isEditMode, warmupSets, friend } = props;
   const isCurrentProgress = Progress.isCurrent(props.progress);
+  const currentVariation = props.programExercise
+    ? ProgramExercise.getCurrentVariation(
+        props.programExercise,
+        props.allProgramExercises || [],
+        props.dayData,
+        props.settings
+      )
+    : undefined;
   const quickAddSets = props.programExercise
-    ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
+    ? currentVariation?.quickAddSets ||
+      ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
 
   const onStartSetChanging = props.onStartSetChanging;

@@ -496,10 +496,15 @@ export const TProgramSet = t.intersection(
 );
 export type IProgramSet = t.TypeOf<typeof TProgramSet>;
 
-export const TProgramExerciseVariation = t.type(
-  {
-    sets: t.array(TProgramSet),
-  },
+export const TProgramExerciseVariation = t.intersection(
+  [
+    t.interface({
+      sets: t.array(TProgramSet),
+    }),
+    t.partial({
+      quickAddSets: t.boolean,
+    }),
+  ],
   "TProgramExerciseVariation"
 );
 export type IProgramExerciseVariation = Readonly<t.TypeOf<typeof TProgramExerciseVariation>>;

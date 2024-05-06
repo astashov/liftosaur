@@ -281,7 +281,6 @@ export class ProgramToPlanner {
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
-    const addedQuickAddSet: Record<string, boolean> = {};
     const addedIdMap: Record<string, boolean> = {};
     const allDereuseDecisions = this.getDereuseDecisions();
 
@@ -375,12 +374,7 @@ export class ProgramToPlanner {
                     " / " +
                     variations
                       .map((v, i) => {
-                        let addQuickAddSet = false;
-                        if (!addedQuickAddSet[key] && programExercise.quickAddSets) {
-                          addQuickAddSet = true;
-                          addedQuickAddSet[key] = true;
-                        }
-                        const sets = this.setsToString(v.sets, globals, addQuickAddSet);
+                        const sets = this.setsToString(v.sets, globals, v.quickAddSets);
                         return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
                       })
                       .join(" / ");
@@ -397,12 +391,7 @@ export class ProgramToPlanner {
               } else {
                 plannerExercise += variations
                   .map((v, i) => {
-                    let addQuickAddSet = false;
-                    if (!addedQuickAddSet[key] && programExercise.quickAddSets) {
-                      addQuickAddSet = true;
-                      addedQuickAddSet[key] = true;
-                    }
-                    const sets = this.setsToString(v.sets, globals, addQuickAddSet);
+                    const sets = this.setsToString(v.sets, globals, v.quickAddSets);
                     return i !== 0 && i === currentSetVariationIndex ? `! ${sets}` : sets;
                   })
                   .join(" / ");

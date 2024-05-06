@@ -125,6 +125,23 @@ export namespace ProgramExercise {
     return getProgramExercise(programExercise, allProgramExercises).variations;
   }
 
+  export function getCurrentVariation(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    dayData: IDayData,
+    settings: ISettings
+  ): IProgramExerciseVariation {
+    const state = getState(programExercise, allProgramExercises);
+    const nextVariationIndex = Program.nextVariationIndex(
+      programExercise,
+      allProgramExercises,
+      state,
+      dayData,
+      settings
+    );
+    return getVariations(programExercise, allProgramExercises)[nextVariationIndex];
+  }
+
   export function getDescription(
     programExercise: IProgramExercise,
     allProgramExercises: IProgramExercise[],

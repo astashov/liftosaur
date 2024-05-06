@@ -443,6 +443,7 @@ const ExerciseContentView = memo(
         <section className="flex flex-wrap py-2 pt-4">
           <ExerciseSets
             isEditMode={isEditModeRef.current}
+            dayData={props.dayData}
             warmupSets={warmupSets}
             index={props.index}
             progress={props.progress}

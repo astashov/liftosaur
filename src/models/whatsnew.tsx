@@ -1068,6 +1068,26 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240506": {
+    title: <span>"Quick-add sets" is now per set variations</span>,
+    body: (
+      <ul>
+        <li>
+          It used to be per whole exercise, so even if you add <strong>1+x5</strong> in one of the days/weeks for your
+          exercise, it'd apply to ALL days/weeks (or set variations) in a program for that exercise.
+        </li>
+        <li>
+          It's a bit inconvenient if you only want to have this feature enabled on certain days/weeks. So, now
+          "Quick-add sets" is per set variation - if you have <strong>1+x5</strong> on day 1, and <strong>1x5</strong>{" "}
+          on day 2, you won't have "Quick-add sets" enabled on day 2.
+        </li>
+        <li>
+          ⚠️ This is a breaking change though! ⚠️ If you use this feature, you likely would need to change your program
+          to enable it across all weeks/days where you want to have it, not only the first week/day of the exercise!!!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
