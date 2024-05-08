@@ -214,7 +214,7 @@ export const exercises: Record<IExerciseId, IExercise> = {
     name: "Cable Kickback",
     defaultWarmup: 10,
     defaultEquipment: "cable",
-    types: ["lower", "legs"],
+    types: ["upper", "push"],
     startingWeightLb: { value: 20, unit: "lb" },
     startingWeightKg: { value: 7.5, unit: "kg" },
   },
