@@ -236,6 +236,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 30, unit: "lb" },
     startingWeightKg: { value: 12.5, unit: "kg" },
   },
+  calfJump: {
+    id: "calfJump",
+    name: "Calf Jump",
+    defaultWarmup: 0,
+    defaultEquipment: "dumbbell",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
+  },
   calfPressOnLegPress: {
     id: "calfPressOnLegPress",
     name: "Calf Press on Leg Press",
@@ -1397,6 +1406,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 25, unit: "lb" },
     startingWeightKg: { value: 10, unit: "kg" },
   },
+  splitSquatHops: {
+    id: "splitSquatHops",
+    name: "Split Squat Hops",
+    defaultWarmup: 0,
+    defaultEquipment: "bodyweight",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
+  },
   splitJerk: {
     id: "splitJerk",
     name: "Split Jerk",
@@ -1414,6 +1432,15 @@ export const exercises: Record<IExerciseId, IExercise> = {
     types: ["lower", "legs"],
     startingWeightLb: { value: 135, unit: "lb" },
     startingWeightKg: { value: 60, unit: "kg" },
+  },
+  squatHops: {
+    id: "squatHops",
+    name: "Squat Hops",
+    defaultWarmup: 0,
+    defaultEquipment: "bodyweight",
+    types: ["lower", "legs"],
+    startingWeightLb: { value: 0, unit: "lb" },
+    startingWeightKg: { value: 0, unit: "kg" },
   },
   squatRow: {
     id: "squatRow",
