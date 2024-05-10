@@ -107,3 +107,5 @@ Then, run `yarn cdk-deploy`, that should create 2 environments - one for prod, o
 # Contributing
 
 If you want to propose a feature, or found a bug - [create an issue](https://github.com/astashov/liftosaur/issues) on Github.
+
+Contribution of exercises may be made by forking this repository, making updates, and opening a PR with your additions. The Exercise must be added to the exercises constant, and the exercise metadata must be added to the metadata constant. Exercise entries in the constants must be in alphabetical order and be entirely populated. The order of attributes should follow the existing order for other exercises.
