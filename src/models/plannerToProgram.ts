@@ -290,7 +290,12 @@ export class PlannerToProgram {
   }
 
   private labelKeyToExerciseId(key: string, allExercises: IProgramExercise[]): string | undefined {
-    const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(key, this.settings);
+    // eslint-disable-next-line prefer-const
+    let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(key, this.settings);
+    if (equipment == null) {
+      const exercise = Exercise.findByName(name, this.settings.exercises);
+      equipment = exercise?.defaultEquipment;
+    }
     const programExerciseName = [label, name].filter((p) => p).join(": ");
     const originalProgramExercise = allExercises.find(
       (e) =>

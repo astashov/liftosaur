@@ -417,4 +417,31 @@ Bicep Curl[2-5] / 5x5 / 86.53%
 
 `);
   });
+
+  it("uses the right exercise for reuse", () => {
+    const programText = `# Week 1
+## Day 1
+Pec Deck / 1x1 100lb / progress: custom() { ...Squat }
+Squat, Smith Machine / 1x1 100lb / progress: custom() { ...Squat }
+
+## Day 2
+Squat / 1x1 100lb / progress: custom() {~ weights += 5lb ~}
+`;
+    const { program } = PlannerTestUtils.finish(programText, {
+      completedReps: [[1], [1]],
+    });
+    const weight = program.exercises.find((e) => e.name === "Pec Deck")!.variations[0].sets[0].weightExpr;
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(weight).to.equal("105lb");
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Pec Deck / 1x1 / 105lb / progress: custom() { ...Squat }
+Squat, Smith Machine / 1x1 / 105lb / progress: custom() { ...Squat }
+
+## Day 2
+Squat / 1x1 / 100lb / progress: custom() {~ weights += 5lb ~}
+
+
+`);
+  });
 });
