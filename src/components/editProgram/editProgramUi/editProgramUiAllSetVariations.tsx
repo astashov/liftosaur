@@ -24,11 +24,93 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
       : plannerExercise.setVariations;
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const reuse = plannerExercise.reuse;
+  let currentSetVariation = plannerExercise.setVariations.findIndex((v) => v.isCurrent) + 1;
+  if (currentSetVariation === 0) {
+    currentSetVariation = 1;
+  }
 
   return (
     <div className="my-4">
       <GroupHeader name={plannerExercise.setVariations.length > 1 ? "Set Variations" : "Working sets"} />
-      {reuse && <div className="mb-2 text-xs">Reusing sets from {reuse.fullName}</div>}
+      {plannerExercise.setVariations.length > 1 && (
+        <div className="flex items-center">
+          <span className="mr-2">Current set variation:</span>
+          <select
+            value={currentSetVariation}
+            onChange={(event) => {
+              const target = event.target as HTMLSelectElement | undefined;
+              const value = target?.value;
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers.changeCurrentInstance(
+                    program,
+                    props.dayData,
+                    props.exerciseLine,
+                    props.settings,
+                    (ex) => {
+                      ex.setVariations.forEach((sv) => (sv.isCurrent = false));
+                      ex.setVariations[Number(value) - 1].isCurrent = true;
+                    }
+                  );
+                })
+              );
+            }}
+          >
+            {Array.from({ length: plannerExercise.setVariations.length }, (_, i) => i + 1).map((i) => {
+              return (
+                <option value={i} selected={i === currentSetVariation}>
+                  {i}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      )}
+      {reuse && (
+        <div className="mb-2 text-xs">
+          <div>Reusing sets from {reuse.fullName}</div>
+          <div>
+            <LinkButton
+              name="sets-override-reuse"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbProgram.recordModify((program) => {
+                    return EditProgramUiHelpers.changeCurrentInstance(
+                      program,
+                      props.dayData,
+                      props.exerciseLine,
+                      props.settings,
+                      (e) => {
+                        e.globals = {};
+                        if (e.setVariations.length === 0) {
+                          e.setVariations.push({
+                            sets: [
+                              {
+                                repRange: {
+                                  minrep: 1,
+                                  maxrep: 1,
+                                  isAmrap: false,
+                                  isQuickAddSet: false,
+                                  numberOfSets: 1,
+                                },
+                              },
+                            ],
+                            isCurrent: true,
+                          });
+                        } else {
+                          e.setVariations = [];
+                        }
+                      }
+                    );
+                  })
+                );
+              }}
+            >
+              {plannerExercise.setVariations.length === 0 ? "Override reused sets" : "Switch to reused sets"}
+            </LinkButton>
+          </div>
+        </div>
+      )}
       {setVariations.map((_, index) => {
         return (
           <div
@@ -37,7 +119,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
             }`}
           >
             <EditProgramUiSetVariation
-              disabled={!!plannerExercise.reuse}
+              disabled={plannerExercise.setVariations.length === 0}
               plannerExercise={plannerExercise}
               dayData={props.dayData}
               exerciseLine={props.exerciseLine}

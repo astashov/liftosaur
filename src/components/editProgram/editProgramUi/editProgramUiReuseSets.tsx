@@ -56,12 +56,17 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const reuseCandidates = getReuseSetsCandidates(plannerExercise.fullName, props.evaluatedWeeks, props.dayData);
   const reuseCandidate = reuseFullName ? reuseCandidates[reuseFullName] : undefined;
+  const isMultipleSetVariations = plannerExercise.setVariations.length > 1;
 
   return (
     <div>
-      <div>
+      {isMultipleSetVariations && (
+        <span className="text-xs text-grayv2-main">Cannot reuse sets with set variations enabled</span>
+      )}
+      <div className={isMultipleSetVariations ? "opacity-50" : ""}>
         <span className="mr-2">Reuse sets from:</span>
         <select
+          disabled={isMultipleSetVariations}
           value={reuseFullName || ""}
           onChange={(event) => {
             const target = event.target as HTMLSelectElement | undefined;
@@ -97,6 +102,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
                           ? Array.from(newReuseCandidate.weekAndDays[week ?? props.dayData.week])[0]
                           : undefined;
                       ex.reuse = { fullName: value.trim(), week, day };
+                      ex.setVariations = [];
                       console.log(ex);
                     }
                   }

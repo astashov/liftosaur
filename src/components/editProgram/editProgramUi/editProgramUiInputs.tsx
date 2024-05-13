@@ -5,12 +5,12 @@ import { IWeight, IPercentage, IEquipment, ISettings } from "../../../types";
 import { MathUtils } from "../../../utils/math";
 
 interface INumInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"> {
-  value: number;
+  value?: number;
   label?: string;
   step?: number;
   min?: number;
   max?: number;
-  onUpdate: (value: number) => void;
+  onUpdate: (value?: number) => void;
 }
 
 export function NumInput(props: INumInputProps): JSX.Element {
@@ -35,8 +35,8 @@ export function NumInput(props: INumInputProps): JSX.Element {
             className="p-1 font-bold text-center border rounded border-grayv2-200 bg-grayv2-50"
             data-cy="num-input-minus"
             onClick={() => {
-              const v = getValue();
-              if (!props.disabled && v != null) {
+              const v = getValue() ?? props.min ?? 0;
+              if (!props.disabled) {
                 onUpdate(MathUtils.clamp(v - actualStep, min, max));
               }
             }}
@@ -52,7 +52,7 @@ export function NumInput(props: INumInputProps): JSX.Element {
               type="num"
               onInput={() => {
                 const v = getValue();
-                if (!props.disabled && v != null) {
+                if (!props.disabled) {
                   onUpdate(v);
                 }
               }}
@@ -80,11 +80,11 @@ export function NumInput(props: INumInputProps): JSX.Element {
 }
 
 interface IWeightInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref" | "value"> {
-  value: IWeight | IPercentage;
+  value?: IWeight | IPercentage;
   label?: string;
   equipment?: IEquipment;
   settings: ISettings;
-  onUpdate: (weight: IWeight | IPercentage) => void;
+  onUpdate: (weight?: IWeight | IPercentage) => void;
 }
 
 export function WeightInput(props: IWeightInputProps): JSX.Element {
@@ -93,9 +93,11 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
     <div className="flex items-center w-full">
       <NumInput
         disabled={props.disabled}
-        value={props.value.value}
+        value={props.value?.value}
         onUpdate={(newValue) => {
-          if (selectRef.current.value === "%") {
+          if (newValue == null) {
+            props.onUpdate(newValue);
+          } else if (selectRef.current.value === "%") {
             props.onUpdate(Weight.buildPct(newValue));
           } else {
             props.onUpdate(Weight.build(newValue, selectRef.current.value as "kg" | "lb"));
@@ -108,16 +110,18 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
           data-cy="edit-weight-unit"
           disabled={props.disabled}
           onChange={() => {
-            if (selectRef.current.value === "%") {
-              props.onUpdate(Weight.buildPct(props.value.value));
-            } else {
-              props.onUpdate(Weight.build(props.value.value, selectRef.current.value as "kg" | "lb"));
+            if (props.value != null) {
+              if (selectRef.current.value === "%") {
+                props.onUpdate(Weight.buildPct(props.value.value));
+              } else {
+                props.onUpdate(Weight.build(props.value.value, selectRef.current.value as "kg" | "lb"));
+              }
             }
           }}
         >
-          {(["kg", "lb", "%"] as const).map((u) => {
+          {(props.settings.units === "lb" ? (["lb", "kg", "%"] as const) : (["kg", "lb", "%"] as const)).map((u) => {
             return (
-              <option value={u} selected={props.value.unit === u}>
+              <option value={u} selected={props.value?.unit === u}>
                 {u}
               </option>
             );

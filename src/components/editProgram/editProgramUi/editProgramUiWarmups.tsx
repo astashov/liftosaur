@@ -35,12 +35,6 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
   return (
     <div>
       <GroupHeader name="Warmups" />
-      <div className="flex gap-4 text-xs">
-        <div style={{ flex: 5 }}>Sets</div>
-        <div style={{ flex: 5 }}>Reps</div>
-        <div style={{ flex: 8 }}>Weight</div>
-        <div className="w-8" />
-      </div>
       {ownWarmups == null && defaultWarmups.length > 0 ? (
         <div className="mb-1">
           <span className="mr-2 text-xs">{reuseWarmups ? "Reused warmups" : "Default warmups"}</span>
@@ -79,6 +73,12 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
           </LinkButton>
         </div>
       )}
+      <div className="flex gap-4 text-xs">
+        <div style={{ flex: 5 }}>Sets</div>
+        <div style={{ flex: 5 }}>Reps</div>
+        <div style={{ flex: 8 }}>Weight</div>
+        <div className="w-8" />
+      </div>
       {(warmupSets || defaultWarmups).map((warmupSet, index) => {
         return (
           <WarmupRow
@@ -149,14 +149,14 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
         <NumInput
           disabled={props.disabled}
           value={props.warmupSet.numberOfSets}
-          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, numberOfSets: val })}
+          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, numberOfSets: val ?? 1 })}
         />
       </div>
       <div style={{ flex: 5 }}>
         <NumInput
           disabled={props.disabled}
           value={props.warmupSet.reps}
-          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, reps: val })}
+          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, reps: val ?? 1 })}
         />
       </div>
       {weight && (

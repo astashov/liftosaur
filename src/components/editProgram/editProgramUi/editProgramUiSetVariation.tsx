@@ -273,7 +273,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             disabled={props.disabled}
             value={repRange.numberOfSets}
             min={0}
-            onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, numberOfSets: val } })}
+            onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, numberOfSets: val ?? 1 } })}
           />
         </div>
         {!showMinReps && (
@@ -282,7 +282,9 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
               disabled={props.disabled}
               min={0}
               value={repRange.maxrep}
-              onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, maxrep: val } })}
+              onUpdate={(val) =>
+                props.onUpdate({ ...set, repRange: { ...repRange, minrep: val ?? 1, maxrep: val ?? 1 } })
+              }
             />
           </div>
         )}
@@ -311,7 +313,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                 disabled={props.disabled}
                 min={0}
                 value={repRange.minrep}
-                onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, minrep: val } })}
+                onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, minrep: val ?? 1 } })}
               />
             </div>
             <div style={{ flex: 4 }}>
@@ -319,7 +321,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                 disabled={props.disabled}
                 min={0}
                 value={repRange.maxrep}
-                onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, maxrep: val } })}
+                onUpdate={(val) => props.onUpdate({ ...set, repRange: { ...repRange, maxrep: val ?? 1 } })}
               />
             </div>
           </div>
@@ -358,8 +360,8 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
           </div>
         </>
       )}
-      <div className={`flex items-center mt-2 ${props.disabled ? "opacity-50" : ""}`}>
-        <label className="flex items-center flex-1">
+      <div className={`text-xs flex items-center gap-4 mt-2 ${props.disabled ? "opacity-50" : ""}`}>
+        <label className="flex items-center">
           <div className="leading-none">
             <input
               disabled={props.disabled}
@@ -372,10 +374,25 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
               }}
             />
           </div>
-          <div className="ml-1 leading-none">Is AMRAP?</div>
+          <div className="ml-1 leading-none">AMRAP?</div>
+        </label>
+        <label className="flex items-center">
+          <div className="leading-none">
+            <input
+              disabled={props.disabled}
+              checked={set.askWeight}
+              className="block align-middle checkbox text-bluev2"
+              type="checkbox"
+              onChange={(e) => {
+                const target = e.target as HTMLInputElement;
+                props.onUpdate({ ...set, askWeight: target.checked });
+              }}
+            />
+          </div>
+          <div className="ml-1 leading-none">Ask Weight?</div>
         </label>
         {set.rpe != null && (
-          <label className="flex items-center flex-1">
+          <label className="flex items-center">
             <div className="leading-none">
               <input
                 disabled={props.disabled}

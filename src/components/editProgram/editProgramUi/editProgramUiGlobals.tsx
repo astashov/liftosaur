@@ -1,0 +1,94 @@
+import { lb } from "lens-shmens";
+import { JSX, h } from "preact";
+import { Weight } from "../../../models/weight";
+import { IPlannerProgramExercise, IPlannerProgramReuse, IPlannerState } from "../../../pages/planner/models/types";
+import { IDayData, ISettings } from "../../../types";
+import { ILensDispatch } from "../../../utils/useLensReducer";
+import { GroupHeader } from "../../groupHeader";
+import { EditProgramUiHelpers } from "./editProgramUiHelpers";
+import { WeightInput, NumInput } from "./editProgramUiInputs";
+
+interface IEditProgramUiGlobalsProps {
+  plannerExercise: IPlannerProgramExercise;
+  reuse: IPlannerProgramReuse;
+  settings: ISettings;
+  dayData: Required<IDayData>;
+  exerciseLine: number;
+  plannerDispatch: ILensDispatch<IPlannerState>;
+}
+
+export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Element {
+  const plannerExercise = props.plannerExercise;
+  const globals = plannerExercise.globals;
+  const lbProgram = lb<IPlannerState>().p("current").p("program");
+
+  function modify(cb: (ex: IPlannerProgramExercise) => void): void {
+    props.plannerDispatch(
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers.changeCurrentInstance(
+          program,
+          props.dayData,
+          props.exerciseLine,
+          props.settings,
+          cb
+        );
+      })
+    );
+  }
+
+  return (
+    <div className="my-4">
+      <GroupHeader name="Override Globals" />
+      <div className="flex gap-1 text-xs">
+        <div style={{ flex: 8 }}>Weight</div>
+        <div style={{ flex: 4 }}>RPE</div>
+        <div style={{ flex: 4 }}>Timer</div>
+      </div>
+      <div className="flex items-center gap-1">
+        <div style={{ flex: 8 }}>
+          <WeightInput
+            value={globals.weight}
+            settings={props.settings}
+            equipment={plannerExercise.equipment}
+            onUpdate={(val) => {
+              modify((ex) => {
+                if (!val) {
+                  ex.globals.weight = undefined;
+                } else if (Weight.isPct(val)) {
+                  ex.globals.percentage = val.value;
+                } else {
+                  ex.globals.weight = val;
+                }
+              });
+            }}
+          />
+        </div>
+        <div style={{ flex: 4 }}>
+          <NumInput
+            value={globals.rpe}
+            min={0}
+            step={0.5}
+            max={10}
+            onUpdate={(val) => {
+              modify((ex) => {
+                ex.globals.rpe = val;
+              });
+            }}
+          />
+        </div>
+        <div style={{ flex: 4 }}>
+          <NumInput
+            min={0}
+            step={5}
+            value={globals.timer}
+            onUpdate={(val) => {
+              modify((ex) => {
+                ex.globals.timer = val;
+              });
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

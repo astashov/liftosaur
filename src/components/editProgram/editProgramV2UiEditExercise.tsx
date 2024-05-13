@@ -18,6 +18,7 @@ import { DropdownMenu } from "./editProgramUi/editProgramUiDropdownMenu";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiGlobals } from "./editProgramUi/editProgramUiGlobals";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -87,20 +88,24 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
                             props.settings,
                             (e) => {
                               if (e.setVariations.length < 2) {
-                                e.setVariations.push({
-                                  sets: [
-                                    {
-                                      repRange: {
-                                        minrep: 1,
-                                        maxrep: 1,
-                                        isAmrap: false,
-                                        isQuickAddSet: false,
-                                        numberOfSets: 1,
+                                e.reuse = undefined;
+                                e.globals = {};
+                                while (e.setVariations.length < 2) {
+                                  e.setVariations.push({
+                                    sets: [
+                                      {
+                                        repRange: {
+                                          minrep: 1,
+                                          maxrep: 1,
+                                          isAmrap: false,
+                                          isQuickAddSet: false,
+                                          numberOfSets: 1,
+                                        },
                                       },
-                                    },
-                                  ],
-                                  isCurrent: false,
-                                });
+                                    ],
+                                    isCurrent: false,
+                                  });
+                                }
                               } else {
                                 e.setVariations.splice(1);
                               }
@@ -179,6 +184,16 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         plannerExercise={plannerExercise}
         settings={props.settings}
       />
+      {plannerExercise.reuse && plannerExercise.setVariations.length === 0 && (
+        <EditProgramUiGlobals
+          dayData={props.dayData}
+          exerciseLine={exerciseLine}
+          plannerDispatch={props.plannerDispatch}
+          reuse={plannerExercise.reuse}
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+        />
+      )}
     </div>
   );
 }
