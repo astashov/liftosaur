@@ -29,7 +29,7 @@ export function GroupHeader(props: IProps): JSX.Element {
       <div
         data-cy={testId}
         onClick={props.children ? () => setIsExpanded(!isExpanded) : undefined}
-        className={`flex pb-1 text-sm text-grayv2-700 ${props.children ? "cursor-pointer" : ""} ${
+        className={`flex items-center pb-1 text-sm text-grayv2-700 ${props.children ? "cursor-pointer" : ""} ${
           props.topPadding ? "mt-6 pt-4" : ""
         }`}
       >

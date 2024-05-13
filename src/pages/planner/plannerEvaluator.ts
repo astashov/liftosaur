@@ -494,7 +494,9 @@ export class PlannerEvaluator {
     settings: ISettings
   ): IEither<IPlannerProgram, PlannerSyntaxError> {
     const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run();
+    console.log(result);
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
+    console.log("ev week", newEvaluatedWeeks);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
     if (error) {
       return { success: false, error: error };

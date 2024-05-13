@@ -145,6 +145,18 @@ input[type="checkbox"].checkbox {
   font: inherit;
 }
 
+.add-tip {
+  position: absolute;
+  top: 8px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  /* border-left-color: #fff; */
+  background: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transform: rotate(45deg);
+}
+
 input[type="checkbox"].checkbox:checked {
   background-color: #28839f;
 }

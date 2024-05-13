@@ -32,6 +32,9 @@ function getReuseSetsCandidates(
     if (exercise.fullName === fullname && dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) {
       return;
     }
+    if (exercise.setVariations.length > 1) {
+      return;
+    }
     let reuseSetCandidate = result[exercise.fullName];
     if (!reuseSetCandidate) {
       reuseSetCandidate = {

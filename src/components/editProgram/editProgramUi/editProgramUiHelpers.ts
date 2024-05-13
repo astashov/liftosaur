@@ -54,6 +54,7 @@ export class EditProgramUiHelpers {
       console.log(text);
       return result.data;
     } else {
+      console.log(evaluatedWeeks);
       alert(result.error.message);
       return program;
     }

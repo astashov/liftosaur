@@ -13,6 +13,11 @@ import { lb } from "lens-shmens";
 import { EditProgramUiWarmups } from "./editProgramUi/editProgramUiWarmups";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { EditProgramUiReuseSets } from "./editProgramUi/editProgramUiReuseSets";
+import { EditProgramUiAllSetVariations } from "./editProgramUi/editProgramUiAllSetVariations";
+import { DropdownMenu } from "./editProgramUi/editProgramUiDropdownMenu";
+import { IconKebab } from "../icons/iconKebab";
+import { useState } from "preact/hooks";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -33,6 +38,9 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const exercise = Exercise.findByName(plannerExercise.name, props.settings.exercises);
   const exerciseType = exercise != null ? { id: exercise.id, equipment: plannerExercise.equipment } : undefined;
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
+  const lbProgram = lb<IPlannerState>().p("current").p("program");
+
+  const [showMenu, setShowMenu] = useState(false);
 
   return (
     <div
@@ -53,27 +61,84 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           </div>
           {repeatStr && <div className="ml-4 text-xs font-bold text-grayv2-main">[{repeatStr}]</div>}
         </div>
-        <div className="">
-          <button
-            data-cy="edit-exercise"
-            className="px-2 align-middle ls-edit-day-v2 button nm-edit-day-v2"
-            onClick={() => {
-              props.plannerDispatch(
-                lb<IPlannerState>()
-                  .p("ui")
-                  .p("exerciseUi")
-                  .p("edit")
-                  .recordModify((edit) => {
-                    const newEdit = new Set(Array.from(edit));
-                    const key = focusedToStr({ weekIndex, dayIndex, exerciseLine });
-                    newEdit.delete(key);
-                    return newEdit;
-                  })
-              );
-            }}
-          >
-            <IconCloseCircleOutline />
-          </button>
+        <div className="flex items-center">
+          <div className="relative">
+            <button
+              data-cy="edit-menu-exercise"
+              className={`px-1 py-2 nm-edit-menu-exercise`}
+              onClick={() => {
+                setShowMenu(true);
+              }}
+            >
+              <IconKebab />
+            </button>
+            {showMenu && (
+              <DropdownMenu onClose={() => setShowMenu(false)}>
+                <div className="text-right">
+                  <button
+                    className="block w-full px-2 text-right whitespace-no-wrap"
+                    onClick={() => {
+                      props.plannerDispatch(
+                        lbProgram.recordModify((program) => {
+                          return EditProgramUiHelpers.changeCurrentInstance(
+                            program,
+                            props.dayData,
+                            props.exerciseLine,
+                            props.settings,
+                            (e) => {
+                              if (e.setVariations.length < 2) {
+                                e.setVariations.push({
+                                  sets: [
+                                    {
+                                      repRange: {
+                                        minrep: 1,
+                                        maxrep: 1,
+                                        isAmrap: false,
+                                        isQuickAddSet: false,
+                                        numberOfSets: 1,
+                                      },
+                                    },
+                                  ],
+                                  isCurrent: false,
+                                });
+                              } else {
+                                e.setVariations.splice(1);
+                              }
+                            }
+                          );
+                        })
+                      );
+                      setShowMenu(false);
+                    }}
+                  >
+                    {plannerExercise.setVariations.length > 1 ? "Disable" : "Enable"} Set Variations
+                  </button>
+                </div>
+              </DropdownMenu>
+            )}
+          </div>
+          <div>
+            <button
+              data-cy="close-edit-exercise"
+              className="px-2 align-middle ls-edit-day-v2 button nm-close-edit-exercise"
+              onClick={() => {
+                props.plannerDispatch(
+                  lb<IPlannerState>()
+                    .p("ui")
+                    .p("exerciseUi")
+                    .p("edit")
+                    .recordModify((edit) => {
+                      const newEdit = new Set(Array.from(edit));
+                      const key = focusedToStr({ weekIndex, dayIndex, exerciseLine });
+                      newEdit.delete(key);
+                      return newEdit;
+                    })
+                );
+              }}
+            >
+              <IconCloseCircleOutline />
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex items-center flex-1">
@@ -103,6 +168,13 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         evaluatedWeeks={props.evaluatedWeeks}
       />
       <EditProgramUiWarmups
+        plannerDispatch={props.plannerDispatch}
+        plannerExercise={plannerExercise}
+        settings={props.settings}
+      />
+      <EditProgramUiAllSetVariations
+        dayData={props.dayData}
+        exerciseLine={exerciseLine}
         plannerDispatch={props.plannerDispatch}
         plannerExercise={plannerExercise}
         settings={props.settings}
