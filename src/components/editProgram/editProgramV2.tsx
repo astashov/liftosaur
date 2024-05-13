@@ -35,6 +35,7 @@ import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { Nux } from "../nux";
 import { IconHelp } from "../icons/iconHelp";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
 
 interface IProps {
   editProgram: IProgram;
@@ -66,9 +67,14 @@ export function EditProgramV2(props: IProps): JSX.Element {
         lensRecordings.map((recording) => recording.prepend(lb<IState>().pi("editProgramV2"))),
         desc
       );
+      const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
+      if (!(desc === "undo") && changesCurrent) {
+        undoRedoMiddleware(plannerDispatch, plannerState);
+      }
     },
     [plannerState]
   );
+  useUndoRedo(plannerState, plannerDispatch);
   const modalExerciseUi = plannerState.ui.modalExercise;
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -369,6 +375,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
             />
           ) : (
             <EditProgramV2PerDay
+              state={plannerState}
               plannerProgram={plannerState.current.program}
               ui={plannerState.ui}
               settings={props.settings}

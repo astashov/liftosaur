@@ -10,6 +10,7 @@ import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 
 export interface IPlannerContentPerDayProps {
+  state: IPlannerState;
   plannerProgram: IPlannerProgram;
   settings: ISettings;
   ui: IPlannerUi;
@@ -27,13 +28,23 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
   return (
     <div>
       {props.ui.subscreen !== "weeks" && (
-        <div className="px-4">
-          <LinkButton
-            name="planner-edit-weeks"
-            onClick={() => props.plannerDispatch(lb<IPlannerState>().pi("ui").p("subscreen").record("weeks"))}
-          >
-            Edit Weeks
-          </LinkButton>
+        <div className="flex items-center px-4">
+          <div>
+            <LinkButton
+              name="planner-edit-weeks"
+              onClick={() => props.plannerDispatch(lb<IPlannerState>().pi("ui").p("subscreen").record("weeks"))}
+            >
+              Edit Weeks
+            </LinkButton>
+          </div>
+          <div className="ml-auto">
+            <LinkButton
+              name="planner-edit-settings"
+              onClick={() => props.plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
+            >
+              Settings
+            </LinkButton>
+          </div>
         </div>
       )}
       {props.ui.subscreen === "weeks" ? (
@@ -49,6 +60,7 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
         />
       ) : (
         <EditProgramV2Days
+          state={props.state}
           exerciseFullNames={exerciseFullNames}
           plannerProgram={plannerProgram}
           evaluatedWeeks={evaluatedWeeks}

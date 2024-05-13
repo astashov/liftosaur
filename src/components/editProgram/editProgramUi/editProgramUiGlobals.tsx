@@ -89,6 +89,40 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
           />
         </div>
       </div>
+      <div className="flex items-center gap-4 mt-2 text-xs">
+        <label className="flex items-center">
+          <div className="leading-none">
+            <input
+              checked={globals.askWeight}
+              className="block align-middle checkbox text-bluev2"
+              type="checkbox"
+              onChange={(e) => {
+                const target = e.target as HTMLInputElement;
+                modify((ex) => {
+                  ex.globals.askWeight = target.checked;
+                });
+              }}
+            />
+          </div>
+          <div className="ml-1 leading-none">Ask Weight?</div>
+        </label>
+        <label className="flex items-center">
+          <div className="leading-none">
+            <input
+              checked={globals.logRpe}
+              className="block align-middle checkbox text-bluev2"
+              type="checkbox"
+              onChange={(e) => {
+                const target = e.target as HTMLInputElement;
+                modify((ex) => {
+                  ex.globals.logRpe = target.checked;
+                });
+              }}
+            />
+          </div>
+          <div className="ml-1 leading-none">Log RPE?</div>
+        </label>
+      </div>
     </div>
   );
 }

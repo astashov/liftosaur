@@ -21,9 +21,11 @@ import { PlannerExerciseStats } from "../../pages/planner/components/plannerExer
 import { IconDoc } from "../icons/iconDoc";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { IconPreview } from "../icons/iconPreview";
-import { IconCog2 } from "../icons/iconCog2";
+import { IconUndo } from "../icons/iconUndo";
+import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
 
 export interface IEditProgramV2DaysProps {
+  state: IPlannerState;
   plannerProgram: IPlannerProgram;
   ui: IPlannerUi;
   settings: ISettings;
@@ -46,7 +48,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
 
   return (
     <div>
-      <div className="sticky z-20 w-full px-4 py-1 bg-white border-b border-grayv2-100" style={{ top: "3.7rem" }}>
+      <div className="sticky z-20 w-full py-1 pl-4 pr-2 bg-white border-b border-grayv2-100" style={{ top: "3.7rem" }}>
         <div className="flex items-center">
           <div className="mr-2">
             <Button
@@ -65,6 +67,29 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             </Button>
           </div>
           <div className="ml-auto">
+            <button
+              style={{ cursor: canUndo(props.state) ? "pointer" : "default" }}
+              title="Undo"
+              className="p-2 nm-program-undo"
+              disabled={!canUndo(props.state)}
+              onClick={() => undo(props.plannerDispatch, props.state)}
+            >
+              <IconUndo width={20} height={20} color={!canUndo(props.state) ? "#BAC4CD" : "#171718"} />
+            </button>
+            <button
+              style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
+              title="Redo"
+              className="p-2 nm-program-redo"
+              disabled={!canRedo(props.state)}
+              onClick={() => redo(props.plannerDispatch, props.state)}
+            >
+              <IconUndo
+                width={20}
+                height={20}
+                style={{ transform: "scale(-1,  1)" }}
+                color={!canRedo(props.state) ? "#BAC4CD" : "#171718"}
+              />
+            </button>
             <button
               className="p-2"
               data-cy="editor-v2-full-program"
@@ -129,13 +154,6 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               }}
             >
               <IconPreview />
-            </button>
-            <button
-              title="Settings"
-              onClick={() => props.plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true))}
-              className="p-2 nm-planner-settings"
-            >
-              <IconCog2 style={{ display: "block" }} />
             </button>
           </div>
         </div>
