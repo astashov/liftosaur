@@ -19,7 +19,7 @@ import { IconTrash } from "../../icons/iconTrash";
 import { EditProgramUiHelpers } from "./editProgramUiHelpers";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../../linkButton";
-import { DropdownMenu } from "./editProgramUiDropdownMenu";
+import { DropdownMenu, DropdownMenuItem } from "./editProgramUiDropdownMenu";
 
 interface IEditProgramUiSetVariationProps {
   plannerExercise: IPlannerProgramExercise;
@@ -46,7 +46,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
         return EditProgramUiHelpers.changeCurrentInstance(
           program,
           props.dayData,
-          props.exerciseLine,
+          plannerExercise.fullName,
           props.settings,
           cb
         );
@@ -183,50 +183,45 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             </button>
             {showMenu && (
               <DropdownMenu onClose={() => setShowMenu(false)}>
-                <div className="text-right">
-                  <button
-                    className="block w-full px-2 text-right whitespace-no-wrap"
-                    onClick={() => {
-                      props.onUpdate({ ...set, label: showLabel ? undefined : set.label });
-                      setShowLabel(!showLabel);
-                      setShowMenu(false);
-                    }}
-                  >
-                    {showLabel ? "Disable" : "Enable"} Label
-                  </button>
-                  <button
-                    className="block w-full px-2 pt-1 mt-1 text-right whitespace-no-wrap border-t border-grayv2-50"
-                    onClick={() => {
-                      props.onUpdate({ ...set, logRpe: showRpe ? false : set.logRpe, rpe: showRpe ? undefined : 8 });
-                      setShowRpe(!showRpe);
-                      setShowMenu(false);
-                    }}
-                  >
-                    {showRpe ? "Disable" : "Enable"} RPE
-                  </button>
-                  <button
-                    onClick={() => {
-                      props.onUpdate({ ...set, timer: showTimer ? undefined : 180 });
-                      setShowTimer(!showTimer);
-                      setShowMenu(false);
-                    }}
-                    className="block w-full px-2 pt-1 mt-1 text-right whitespace-no-wrap border-t border-grayv2-50"
-                  >
-                    {showTimer ? "Disable" : "Enable"} Timer
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (showMinReps) {
-                        props.onUpdate({ ...set, repRange: { ...repRange, minrep: repRange.maxrep } });
-                      }
-                      setShowMinReps(!showMinReps);
-                      setShowMenu(false);
-                    }}
-                    className="block w-full px-2 pt-1 mt-1 text-right whitespace-no-wrap border-t border-grayv2-50"
-                  >
-                    {showMinReps ? "Disable" : "Enable"} Rep Ranges
-                  </button>
-                </div>
+                <DropdownMenuItem
+                  isTop={true}
+                  onClick={() => {
+                    props.onUpdate({ ...set, label: showLabel ? undefined : set.label });
+                    setShowLabel(!showLabel);
+                    setShowMenu(false);
+                  }}
+                >
+                  {showLabel ? "Disable" : "Enable"} Label
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    props.onUpdate({ ...set, logRpe: showRpe ? false : set.logRpe, rpe: showRpe ? undefined : 8 });
+                    setShowRpe(!showRpe);
+                    setShowMenu(false);
+                  }}
+                >
+                  {showRpe ? "Disable" : "Enable"} RPE
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    props.onUpdate({ ...set, timer: showTimer ? undefined : 180 });
+                    setShowTimer(!showTimer);
+                    setShowMenu(false);
+                  }}
+                >
+                  {showTimer ? "Disable" : "Enable"} Timer
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (showMinReps) {
+                      props.onUpdate({ ...set, repRange: { ...repRange, minrep: repRange.maxrep } });
+                    }
+                    setShowMinReps(!showMinReps);
+                    setShowMenu(false);
+                  }}
+                >
+                  {showMinReps ? "Disable" : "Enable"} Rep Ranges
+                </DropdownMenuItem>
               </DropdownMenu>
             )}
           </div>

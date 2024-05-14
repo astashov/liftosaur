@@ -45,7 +45,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
                   return EditProgramUiHelpers.changeCurrentInstance(
                     program,
                     props.dayData,
-                    props.exerciseLine,
+                    plannerExercise.fullName,
                     props.settings,
                     (ex) => {
                       ex.setVariations.forEach((sv) => (sv.isCurrent = false));
@@ -78,7 +78,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
                     return EditProgramUiHelpers.changeCurrentInstance(
                       program,
                       props.dayData,
-                      props.exerciseLine,
+                      plannerExercise.fullName,
                       props.settings,
                       (e) => {
                         e.globals = {};
@@ -142,7 +142,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
                   return EditProgramUiHelpers.changeCurrentInstance(
                     program,
                     props.dayData,
-                    props.exerciseLine,
+                    plannerExercise.fullName,
                     props.settings,
                     (e) => {
                       e.setVariations.push({

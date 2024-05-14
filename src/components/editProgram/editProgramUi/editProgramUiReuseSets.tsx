@@ -76,7 +76,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
                 return EditProgramUiHelpers.changeCurrentInstance(
                   program,
                   props.dayData,
-                  props.exerciseLine,
+                  plannerExercise.fullName,
                   props.settings,
                   (ex) => {
                     if (!value) {
@@ -122,7 +122,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
       </div>
       {reuseCandidate && reuse && (
         <ReuseAtWeekDay
-          exerciseLine={props.exerciseLine}
+          fullName={plannerExercise.fullName}
           settings={props.settings}
           reuse={reuse}
           reuseCandidate={reuseCandidate}
@@ -139,7 +139,7 @@ interface IReuseAtWeekDayProps {
   dayData: Required<IDayData>;
   reuse: IPlannerProgramReuse;
   settings: ISettings;
-  exerciseLine: number;
+  fullName: string;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -169,7 +169,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
               return EditProgramUiHelpers.changeCurrentInstance(
                 program,
                 props.dayData,
-                props.exerciseLine,
+                props.fullName,
                 props.settings,
                 (ex) => {
                   if (valueStr) {
@@ -210,7 +210,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
               return EditProgramUiHelpers.changeCurrentInstance(
                 program,
                 props.dayData,
-                props.exerciseLine,
+                props.fullName,
                 props.settings,
                 (ex) => {
                   if (valueStr && ex.reuse) {

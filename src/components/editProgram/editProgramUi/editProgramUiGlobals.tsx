@@ -28,7 +28,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
         return EditProgramUiHelpers.changeCurrentInstance(
           program,
           props.dayData,
-          props.exerciseLine,
+          plannerExercise.fullName,
           props.settings,
           cb
         );

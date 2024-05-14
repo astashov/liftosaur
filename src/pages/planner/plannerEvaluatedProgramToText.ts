@@ -46,12 +46,25 @@ export class PlannerEvaluatedProgramToText {
             case "exercise": {
               const evalDay = this.newEvaluatedWeeks[weekIndex][dayInWeekIndex];
               const evalExercise = evalDay.success ? evalDay.data.find((e) => e.key === line.value) : undefined;
-              if (!evalExercise) {
+              if (!evalExercise || evalExercise.isRepeat) {
                 break;
               }
               const key = PlannerKey.fromFullName(evalExercise.fullName, this.settings);
               let plannerExercise = "";
               plannerExercise += evalExercise.fullName;
+              console.log("ee", evalExercise.fullName, weekIndex, dayInWeekIndex, evalExercise.repeat);
+              const orderAndRepeat: string[] = [];
+              if (evalExercise.order !== 0) {
+                orderAndRepeat.push(`${evalExercise.order}`);
+              }
+              if (evalExercise.repeat.length > 0) {
+                const from = evalExercise.repeat[0];
+                const to = evalExercise.repeat[evalExercise.repeat.length - 1];
+                orderAndRepeat.push(`${from}-${to}`);
+              }
+              if (orderAndRepeat.length > 0) {
+                plannerExercise += `[${orderAndRepeat.join(",")}]`;
+              }
               if (evalExercise.notused) {
                 plannerExercise += " / used: none";
               }
@@ -120,6 +133,7 @@ export class PlannerEvaluatedProgramToText {
                 }
               }
               exerciseTextArr.push(plannerExercise);
+              console.log(plannerExercise);
               break;
             }
           }

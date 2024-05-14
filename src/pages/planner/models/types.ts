@@ -30,8 +30,10 @@ export interface IPlannerProgramExerciseGlobals {
 export interface IPlannerProgramExercise {
   key: string;
   fullName: string;
+  shortName: string;
   label?: string;
   repeat: number[];
+  repeating: number[];
   order: number;
   isRepeat?: boolean;
   text: string;

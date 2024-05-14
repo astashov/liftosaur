@@ -82,7 +82,7 @@ export class PlannerProgramExercise {
   }
 
   public static repeatToRangeStr(plannerExercise: IPlannerProgramExercise): string {
-    const repeat = plannerExercise.repeat;
+    const repeat = plannerExercise.repeating;
     const ranges: [number, number][] = [];
     for (const rep of repeat) {
       if (ranges.length === 0) {

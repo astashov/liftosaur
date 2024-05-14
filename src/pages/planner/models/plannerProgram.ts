@@ -22,6 +22,7 @@ import { PlannerKey } from "../plannerKey";
 import { PlannerEvaluator } from "../plannerEvaluator";
 import { IWeightChange } from "../../../models/programExercise";
 import { Weight } from "../../../models/weight";
+import { PP } from "../../../models/pp";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -219,15 +220,12 @@ export class PlannerProgram {
   ): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
-    for (const w of originalToplineItems) {
-      for (const d of w) {
-        for (const e of d) {
-          if (e.type === "exercise" && e.repeat != null && e.repeat.length > 0) {
-            repeatingExercises.add(e.value);
-          }
-        }
+    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings);
+    PP.iterate(evaluatedWeeks, (exercise) => {
+      if (exercise.repeat != null && exercise.repeat.length > 0) {
+        repeatingExercises.add(exercise.fullName);
       }
-    }
+    });
 
     const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {

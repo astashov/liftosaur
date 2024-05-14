@@ -36,14 +36,21 @@ export class EditProgramUiHelpers {
   public static changeCurrentInstance(
     program: IPlannerProgram,
     dayData: Required<IDayData>,
-    exerciseLine: number,
+    fullName: string,
     settings: ISettings,
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const { evaluatedWeeks } = PlannerEvaluator.evaluate(program, settings);
+    const day = evaluatedWeeks[dayData.week - 1][dayData.dayInWeek - 1];
+    let week = dayData.week;
+    if (day.success) {
+      const exercise = day.data.find((e) => e.fullName === fullName);
+      if (exercise?.isRepeat) {
+        week = exercise.repeating[0];
+      }
+    }
     PP.iterate(evaluatedWeeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-      const current =
-        dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && exerciseLine === exerciseIndex;
+      const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
       if (current) {
         cb(e);
       }

@@ -14,11 +14,12 @@ import { EditProgramUiWarmups } from "./editProgramUi/editProgramUiWarmups";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { EditProgramUiReuseSets } from "./editProgramUi/editProgramUiReuseSets";
 import { EditProgramUiAllSetVariations } from "./editProgramUi/editProgramUiAllSetVariations";
-import { DropdownMenu } from "./editProgramUi/editProgramUiDropdownMenu";
+import { DropdownMenu, DropdownMenuItem } from "./editProgramUi/editProgramUiDropdownMenu";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramUiGlobals } from "./editProgramUi/editProgramUiGlobals";
+import { NumInput } from "./editProgramUi/editProgramUiInputs";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -33,6 +34,7 @@ interface IEditProgramV2UiEditExerciseProps {
 
 export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseProps): JSX.Element {
   const { plannerExercise, exerciseLine } = props;
+  console.log("Planner exercise", plannerExercise);
   const { week, dayInWeek } = props.dayData;
   const weekIndex = week - 1;
   const dayIndex = dayInWeek - 1;
@@ -42,6 +44,26 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   const [showMenu, setShowMenu] = useState(false);
+  const [showLabel, setShowLabel] = useState(!!plannerExercise.label);
+  const [showRepeat, setShowRepeat] = useState(plannerExercise.repeating.length > 0);
+  const [showOrder, setShowOrder] = useState(plannerExercise.order !== 0);
+
+  function modify(cb: (ex: IPlannerProgramExercise) => void): void {
+    props.plannerDispatch(
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers.changeCurrentInstance(
+          program,
+          props.dayData,
+          plannerExercise.fullName,
+          props.settings,
+          cb
+        );
+      })
+    );
+  }
+
+  const repeatFrom = plannerExercise.repeating[0] ?? props.dayData.week;
+  const repeatTo = plannerExercise.repeating[plannerExercise.repeating.length - 1] ?? props.dayData.week;
 
   return (
     <div
@@ -75,50 +97,79 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
             </button>
             {showMenu && (
               <DropdownMenu onClose={() => setShowMenu(false)}>
-                <div className="text-right">
-                  <button
-                    className="block w-full px-2 text-right whitespace-no-wrap"
-                    onClick={() => {
-                      props.plannerDispatch(
-                        lbProgram.recordModify((program) => {
-                          return EditProgramUiHelpers.changeCurrentInstance(
-                            program,
-                            props.dayData,
-                            props.exerciseLine,
-                            props.settings,
-                            (e) => {
-                              if (e.setVariations.length < 2) {
-                                e.reuse = undefined;
-                                e.globals = {};
-                                while (e.setVariations.length < 2) {
-                                  e.setVariations.push({
-                                    sets: [
-                                      {
-                                        repRange: {
-                                          minrep: 1,
-                                          maxrep: 1,
-                                          isAmrap: false,
-                                          isQuickAddSet: false,
-                                          numberOfSets: 1,
-                                        },
-                                      },
-                                    ],
-                                    isCurrent: false,
-                                  });
-                                }
-                              } else {
-                                e.setVariations.splice(1);
-                              }
-                            }
-                          );
-                        })
-                      );
-                      setShowMenu(false);
-                    }}
-                  >
-                    {plannerExercise.setVariations.length > 1 ? "Disable" : "Enable"} Set Variations
-                  </button>
-                </div>
+                <DropdownMenuItem
+                  isTop={true}
+                  onClick={() => {
+                    modify((e) => {
+                      if (e.setVariations.length < 2) {
+                        e.reuse = undefined;
+                        e.globals = {};
+                        while (e.setVariations.length < 2) {
+                          e.setVariations.push({
+                            sets: [
+                              {
+                                repRange: {
+                                  minrep: 1,
+                                  maxrep: 1,
+                                  isAmrap: false,
+                                  isQuickAddSet: false,
+                                  numberOfSets: 1,
+                                },
+                              },
+                            ],
+                            isCurrent: false,
+                          });
+                        }
+                      } else {
+                        e.setVariations.splice(1);
+                      }
+                    });
+                    setShowMenu(false);
+                  }}
+                >
+                  {plannerExercise.setVariations.length > 1 ? "Disable" : "Enable"} Set Variations
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (showLabel) {
+                      modify((e) => {
+                        e.label = undefined;
+                        e.fullName = e.shortName;
+                      });
+                    }
+                    setShowLabel(!showLabel);
+                    setShowMenu(false);
+                  }}
+                >
+                  {plannerExercise.label ? "Disable" : "Enable"} Label
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (showRepeat) {
+                      modify((e) => {
+                        e.repeat = [];
+                        e.repeating = [];
+                      });
+                    }
+                    setShowRepeat(!showRepeat);
+                    setShowMenu(false);
+                  }}
+                >
+                  {plannerExercise.repeating.length > 0 ? "Disable" : "Enable"} Repeat
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (showOrder) {
+                      modify((e) => {
+                        e.order = 0;
+                      });
+                    }
+                    setShowOrder(!showOrder);
+                    setShowMenu(false);
+                  }}
+                >
+                  {plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order
+                </DropdownMenuItem>
               </DropdownMenu>
             )}
           </div>
@@ -164,6 +215,76 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           </div>
         </div>
       </div>
+      {showLabel && (
+        <label className="flex items-center mb-2">
+          <span className="mr-2">Label:</span>
+          <input
+            className="w-full p-1 text-sm text-left border rounded border-grayv2-200"
+            value={plannerExercise.label}
+            type="text"
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              const value = target.value;
+              modify((ex) => {
+                ex.label = value;
+                ex.fullName = `${value}: ${ex.shortName}`;
+              });
+            }}
+          />
+        </label>
+      )}
+      {showRepeat && (
+        <label className="flex items-center mb-2">
+          <span className="mr-2">Repeat from week {repeatFrom} to week: </span>
+          <select
+            value={repeatTo}
+            onChange={(event) => {
+              const target = event.target as HTMLSelectElement;
+              const value = target.value;
+              const numValue = Number(value);
+              if (!isNaN(numValue)) {
+                modify((ex) => {
+                  if (numValue === repeatFrom) {
+                    ex.repeat = [];
+                    ex.repeating = [];
+                  } else {
+                    const result: number[] = [];
+                    for (let i = repeatFrom; i <= numValue; i += 1) {
+                      result.push(i);
+                    }
+                    ex.repeat = result;
+                    ex.repeating = [...result];
+                  }
+                });
+              }
+            }}
+          >
+            {Array.from({ length: props.evaluatedWeeks.length }, (_, i) => i + 1).map((w) => {
+              return (
+                <option value={w} selected={repeatTo === w}>
+                  {w}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+      )}
+      {showOrder && (
+        <div className="flex items-center mb-2">
+          <span className="mr-2">Forced order: </span>
+          <NumInput
+            value={plannerExercise.order}
+            min={0}
+            onUpdate={(val) => {
+              if (val != null) {
+                modify((ex) => {
+                  ex.order = val;
+                });
+              }
+            }}
+          />
+        </div>
+      )}
       <EditProgramUiReuseSets
         plannerDispatch={props.plannerDispatch}
         plannerExercise={plannerExercise}
