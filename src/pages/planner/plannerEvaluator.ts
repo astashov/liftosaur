@@ -382,7 +382,7 @@ export class PlannerEvaluator {
       const { script, liftoscriptNode } = update;
       if (script && liftoscriptNode) {
         const { equipment } = PlannerExerciseEvaluator.extractNameParts(exercise.key, settings);
-        const progress = exercise.properties.find((p) => p.name === "progress");
+        const progress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
         const state = progress ? PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs) : {};
         const liftoscriptEvaluator = new ScriptRunner(
           script,
