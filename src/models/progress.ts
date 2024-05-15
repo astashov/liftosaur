@@ -1138,6 +1138,17 @@ export namespace Progress {
                   "reps"
                 )
               : undefined,
+            rpe: programSet.rpeExpr
+              ? executeEntryScript(
+                  programSet.rpeExpr,
+                  programExercise.exerciseType,
+                  dayData,
+                  state,
+                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  settings,
+                  "rpe"
+                )
+              : undefined,
             weight,
             isAmrap: programSet.isAmrap,
             logRpe: programSet.logRpe,
