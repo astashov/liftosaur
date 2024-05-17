@@ -8,7 +8,6 @@ import { ExerciseImage } from "../exerciseImage";
 import { IconHandle } from "../icons/iconHandle";
 import { SetNumber } from "./editProgramSets";
 import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
-import { IconSwap } from "../icons/iconSwap";
 import { lb } from "lens-shmens";
 import { EditProgramUiWarmups } from "./editProgramUi/editProgramUiWarmups";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -20,6 +19,9 @@ import { useState } from "preact/hooks";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramUiGlobals } from "./editProgramUi/editProgramUiGlobals";
 import { NumInput } from "./editProgramUi/editProgramUiInputs";
+import { IconDoc } from "../icons/iconDoc";
+import { LinkButton } from "../linkButton";
+import { PlannerKey } from "../../pages/planner/plannerKey";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -64,6 +66,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
 
   const repeatFrom = plannerExercise.repeating[0] ?? props.dayData.week;
   const repeatTo = plannerExercise.repeating[plannerExercise.repeating.length - 1] ?? props.dayData.week;
+  const exerciseKey = PlannerKey.fromPlannerExercise(plannerExercise, props.settings);
 
   return (
     <div
@@ -208,12 +211,55 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
             {plannerExercise.label ? `${plannerExercise.label}: ` : ""}
             {plannerExercise.name}
           </div>
-          <div>
-            <button className="w-8 p-2 mr-1 text-center nm-edit-program-v2-expand-collapse-exercise" onClick={() => {}}>
-              <IconSwap />
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="mb-2 leading-none">
+        <LinkButton
+          name="change-exercise-this-week-day"
+          className="mr-4 text-xs"
+          onClick={() => {
+            props.plannerDispatch(
+              lb<IPlannerState>().p("ui").p("modalExercise").record({
+                focusedExercise: {
+                  weekIndex,
+                  dayIndex,
+                  exerciseLine,
+                },
+                types: [],
+                muscleGroups: [],
+                exerciseKey,
+                fullName: plannerExercise.fullName,
+                exerciseType,
+                change: "one",
+              })
+            );
+          }}
+        >
+          Change here
+        </LinkButton>
+        <LinkButton
+          name="change-exercise-this-week-day"
+          className="text-xs"
+          onClick={() => {
+            props.plannerDispatch(
+              lb<IPlannerState>().p("ui").p("modalExercise").record({
+                focusedExercise: {
+                  weekIndex,
+                  dayIndex,
+                  exerciseLine,
+                },
+                types: [],
+                muscleGroups: [],
+                exerciseKey,
+                fullName: plannerExercise.fullName,
+                exerciseType,
+                change: "all",
+              })
+            );
+          }}
+        >
+          Change everywhere
+        </LinkButton>
       </div>
       {showLabel && (
         <label className="flex items-center mb-2">
@@ -315,6 +361,11 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           settings={props.settings}
         />
       )}
+      <div className="text-xs text-grayv2-main">
+        To edit <strong>progress</strong> and <strong>update</strong> scripts, switch to the{" "}
+        <strong>text editor mode </strong>
+        by tapping on <IconDoc width={13} height={17} /> in the header.
+      </div>
     </div>
   );
 }

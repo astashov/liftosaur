@@ -4,7 +4,6 @@ import { Exercise } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { focusedToStr, IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
-import { StringUtils } from "../../utils/string";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ExerciseImage } from "../exerciseImage";
 import { GroupHeader } from "../groupHeader";
@@ -86,9 +85,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
           <button
             data-cy="clone-exercise"
             className="px-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
-            onClick={() => {
-              const newName = StringUtils.nextName(plannerExercise.name);
-            }}
+            onClick={() => {}}
           >
             <IconDuplicate2 />
           </button>

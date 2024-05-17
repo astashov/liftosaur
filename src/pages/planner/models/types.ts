@@ -131,7 +131,9 @@ export interface IPlannerUi {
     muscleGroups: IScreenMuscle[];
     exerciseType?: IExerciseType;
     exerciseKey?: string;
+    fullName?: string;
     customExerciseName?: string;
+    change?: "all" | "one";
   };
   exerciseUi: {
     edit: Set<string>;

@@ -27,7 +27,7 @@ import { ProgramPreviewOrPlayground } from "../programPreviewOrPlayground";
 import { Modal } from "../modal";
 import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
 import { ModalExercise } from "../modalExercise";
-import { Exercise } from "../../models/exercise";
+import { equipmentName, Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
 import { ObjectUtils } from "../../utils/object";
 import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
@@ -36,6 +36,7 @@ import { Nux } from "../nux";
 import { IconHelp } from "../icons/iconHelp";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 interface IProps {
   editProgram: IProgram;
@@ -162,13 +163,35 @@ export function EditProgramV2(props: IProps): JSX.Element {
                     const newText = PlannerProgram.generateFullText(newPlannerProgram.weeks);
                     plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
                   } else {
-                    const newPlannerProgram = PlannerProgram.replaceExercise(
-                      plannerState.current.program,
-                      modalExerciseUi.exerciseKey,
-                      exerciseType,
-                      props.settings
-                    );
-                    plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                    if (modalExerciseUi.change === "one") {
+                      const focusedExercise = modalExerciseUi.focusedExercise;
+                      const exercise = Exercise.find(exerciseType, props.settings.exercises);
+                      if (exercise && modalExerciseUi.fullName) {
+                        const newShortName = `${exercise.name}${
+                          exerciseType.equipment != null && exerciseType.equipment !== exercise?.defaultEquipment
+                            ? `, ${equipmentName(exerciseType.equipment, props.settings.equipment)}`
+                            : ""
+                        }`;
+                        const newPlannerProgram = EditProgramUiHelpers.changeCurrentInstance(
+                          plannerState.current.program,
+                          { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
+                          modalExerciseUi.fullName,
+                          props.settings,
+                          (e) => {
+                            e.fullName = `${e.label ? `${e.label}: ` : ""}${newShortName}`;
+                          }
+                        );
+                        plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                      }
+                    } else {
+                      const newPlannerProgram = PlannerProgram.replaceExercise(
+                        plannerState.current.program,
+                        modalExerciseUi.exerciseKey,
+                        exerciseType,
+                        props.settings
+                      );
+                      plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                    }
                   }
                 } else {
                   plannerDispatch([
