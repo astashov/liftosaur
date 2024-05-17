@@ -24,6 +24,7 @@
     "jimp": "^0.16.1",
     "jsonwebtoken": "^8.5.1",
     "lens-shmens": "^1.0.3",
+    "micro-memoize": "^4.1.2",
     "micromark": "^2.11.4",
     "micromark-extension-gfm": "^0.3.3",
     "node-fetch": "^2.6.1",

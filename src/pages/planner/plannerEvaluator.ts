@@ -1,5 +1,6 @@
 import { IPlannerProgram, ISettings, IDayData } from "../../types";
 import { parser as plannerExerciseParser } from "./plannerExerciseParser";
+import memoize from "micro-memoize";
 import {
   IPlannerEvalFullResult,
   IPlannerEvalResult,
@@ -545,14 +546,20 @@ export class PlannerEvaluator {
     return originalExercises;
   }
 
-  public static evaluate(
-    plannerProgram: IPlannerProgram,
-    settings: ISettings
-  ): { evaluatedWeeks: IPlannerEvalResult[][]; exerciseFullNames: string[] } {
-    const { evaluatedWeeks, metadata } = this.getPerDayEvaluatedWeeks(plannerProgram, settings);
-    this.postProcess(evaluatedWeeks, settings, metadata);
-    return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
-  }
+  public static evaluate = memoize(
+    (
+      plannerProgram: IPlannerProgram,
+      settings: ISettings
+    ): {
+      evaluatedWeeks: IPlannerEvalResult[][];
+      exerciseFullNames: string[];
+    } => {
+      const { evaluatedWeeks, metadata } = PlannerEvaluator.getPerDayEvaluatedWeeks(plannerProgram, settings);
+      PlannerEvaluator.postProcess(evaluatedWeeks, settings, metadata);
+      return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
+    },
+    { maxSize: 10 }
+  );
 
   public static evaluateFull(
     fullProgramText: string,
