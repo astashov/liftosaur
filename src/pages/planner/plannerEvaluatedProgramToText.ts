@@ -1,9 +1,10 @@
-import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
+import { IDayData, IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
 import { PlannerProgram } from "./models/plannerProgram";
 import { PlannerKey } from "./plannerKey";
-import { IPlannerEvalResult } from "./plannerExerciseEvaluator";
+import { IPlannerEvalResult, IPlannerTopLineItem } from "./plannerExerciseEvaluator";
 import { IPlannerProgramExerciseSet, IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { Weight } from "../../models/weight";
+import { ObjectUtils } from "../../utils/object";
 
 export class PlannerEvaluatedProgramToText {
   constructor(
@@ -12,9 +13,54 @@ export class PlannerEvaluatedProgramToText {
     private readonly settings: ISettings
   ) {}
 
-  public run(): IPlannerProgram {
+  private reorderTopLine(
+    topLine: IPlannerTopLineItem[][][],
+    reorder: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }
+  ): IPlannerTopLineItem[][][] {
+    const groupedTopLine: IPlannerTopLineItem[][][][] = [];
+    for (let weekIndex = 0; weekIndex < topLine.length; weekIndex += 1) {
+      const topLineWeek = topLine[weekIndex];
+      groupedTopLine.push([]);
+      for (let dayInWeekIndex = 0; dayInWeekIndex < topLineWeek.length; dayInWeekIndex += 1) {
+        const topLineDay = topLineWeek[dayInWeekIndex];
+        const group: IPlannerTopLineItem[][] = [];
+        groupedTopLine[weekIndex].push(group);
+        let reset = true;
+        for (let lineIndex = 0; lineIndex < topLineDay.length; lineIndex += 1) {
+          if (reset) {
+            group.push([]);
+            reset = false;
+          }
+          const line = topLineDay[lineIndex];
+          group[group.length - 1] = group[group.length - 1] || [];
+          group[group.length - 1].push(line);
+          if (line.type === "exercise") {
+            reset = true;
+          }
+        }
+      }
+    }
+
+    const groupedDay = groupedTopLine[reorder.dayData.week - 1][reorder.dayData.dayInWeek - 1];
+    const from = groupedDay[reorder.fromIndex];
+    groupedDay.splice(reorder.fromIndex, 1);
+    groupedDay.splice(reorder.toIndex, 0, from);
+
+    const newTopLine: IPlannerTopLineItem[][][] = [];
+    for (const week of groupedTopLine) {
+      newTopLine.push([]);
+      for (const day of week) {
+        newTopLine[newTopLine.length - 1].push(day.flat());
+      }
+    }
+
+    return newTopLine;
+  }
+
+  public run(reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
-    const topLineMap = PlannerProgram.topLineItems(this.plannerProgram, this.settings);
+    let topLineMap = ObjectUtils.clone(PlannerProgram.topLineItems(this.plannerProgram, this.settings));
+    topLineMap = reorder ? this.reorderTopLine(topLineMap, reorder) : topLineMap;
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};
     const addedWarmupsMap: Record<string, boolean> = {};
@@ -52,7 +98,6 @@ export class PlannerEvaluatedProgramToText {
               const key = PlannerKey.fromFullName(evalExercise.fullName, this.settings);
               let plannerExercise = "";
               plannerExercise += evalExercise.fullName;
-              console.log("ee", evalExercise.fullName, weekIndex, dayInWeekIndex, evalExercise.repeat);
               const orderAndRepeat: string[] = [];
               if (evalExercise.order !== 0) {
                 orderAndRepeat.push(`${evalExercise.order}`);
@@ -122,7 +167,7 @@ export class PlannerEvaluatedProgramToText {
               if (progress != null) {
                 if (progress.fnName === "none") {
                   plannerExercise += ` / progress: none`;
-                } else if (!addedProgressMap[key] && (progress.body || progress.script)) {
+                } else if (!addedProgressMap[key]) {
                   plannerExercise += ` / progress: ${progress.fnName}(${progress.fnArgs.join(", ")})`;
                   if (progress.body) {
                     plannerExercise += ` { ...${progress.body} }`;
@@ -133,7 +178,6 @@ export class PlannerEvaluatedProgramToText {
                 }
               }
               exerciseTextArr.push(plannerExercise);
-              console.log(plannerExercise);
               break;
             }
           }
@@ -144,7 +188,7 @@ export class PlannerEvaluatedProgramToText {
       plannerWeeks.push(plannerWeek);
     }
     const result: IPlannerProgram = { name: this.plannerProgram.name, weeks: plannerWeeks };
-    return PlannerProgram.compact(topLineMap, result, this.settings);
+    return PlannerProgram.compact(result, this.settings);
   }
 
   private setsToString(sets: IPlannerProgramExerciseSet[], isCurrent: boolean): string {

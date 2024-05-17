@@ -213,11 +213,7 @@ export class PlannerProgram {
     return str;
   }
 
-  public static compact(
-    originalToplineItems: IPlannerTopLineItem[][][],
-    plannerProgram: IPlannerProgram,
-    settings: ISettings
-  ): IPlannerProgram {
+  public static compact(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
     const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings);

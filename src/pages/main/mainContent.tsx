@@ -14,8 +14,8 @@ import { UidFactory } from "../../utils/generator";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { PlannerCodeBlock } from "../planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../planner/components/plannerEditorView";
+import { PlannerProgram } from "../planner/models/plannerProgram";
 import { IPlannerState } from "../planner/models/types";
-import { PlannerEvaluator } from "../planner/plannerEvaluator";
 
 interface IProps {
   client: Window["fetch"];
@@ -646,7 +646,7 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
   const [state, dispatch] = useLensReducer(initialState, {});
   const lbDay = lb<IPlannerState>().p("current").pi("program").p("weeks").i(0).p("days").i(0);
   const { evaluatedWeeks, exerciseFullNames } = useMemo(
-    () => PlannerEvaluator.evaluate(state.current.program, settings),
+    () => PlannerProgram.evaluate(state.current.program, settings),
     [state.current.program]
   );
   const evaluatedDay = evaluatedWeeks[0][0];

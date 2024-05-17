@@ -1,9 +1,11 @@
+import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { focusedToStr, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { DraggableList } from "../draggableList";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramV2UiEditExercise } from "./editProgramV2UiEditExercise";
 import { EditProgramV2UiExercise } from "./editProgramV2UiExercise";
 
@@ -21,6 +23,8 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
   if (!evaluatedDay?.success) {
     return <div />;
   }
+  const lbProgram = lb<IPlannerState>().p("current").p("program");
+
   return (
     <div className="w-full">
       <DraggableList
@@ -35,6 +39,7 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
           if (props.ui.exerciseUi.edit.has(focusedKey)) {
             return (
               <EditProgramV2UiEditExercise
+                key={plannerExercise.fullName}
                 ui={props.ui}
                 evaluatedWeeks={props.evaluatedWeeks}
                 settings={props.settings}
@@ -48,6 +53,7 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
           } else {
             return (
               <EditProgramV2UiExercise
+                key={plannerExercise.fullName}
                 ui={props.ui}
                 settings={props.settings}
                 dayData={props.dayData}
@@ -59,8 +65,18 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
             );
           }
         }}
-        onDragEnd={(items) => {
-          console.log(items);
+        onDragEnd={(startIndex, endIndex) => {
+          props.plannerDispatch(
+            lbProgram.recordModify((program) => {
+              return EditProgramUiHelpers.changeCurrentInstancePosition(
+                program,
+                props.dayData,
+                startIndex,
+                endIndex,
+                props.settings
+              );
+            })
+          );
         }}
       />
     </div>

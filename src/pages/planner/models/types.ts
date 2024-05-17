@@ -27,7 +27,7 @@ export interface IPlannerProgramExerciseGlobals {
   askWeight?: boolean;
 }
 
-export interface IPlannerProgramExercise {
+export type IPlannerProgramExercise = {
   key: string;
   fullName: string;
   shortName: string;
@@ -58,7 +58,7 @@ export interface IPlannerProgramExercise {
     idPoint?: IPlannerSyntaxPointer;
     warmupPoint?: IPlannerSyntaxPointer;
   };
-}
+};
 
 export interface IPlannerProgramExerciseSetVariation {
   sets: IPlannerProgramExerciseSet[];

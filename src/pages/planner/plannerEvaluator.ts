@@ -52,6 +52,7 @@ export class PlannerEvaluator {
   ): void {
     if (metadata.byWeekDayExercise[weekIndex]?.[dayInWeekIndex]?.[exercise.key] != null) {
       throw PlannerSyntaxError.fromPoint(
+        exercise.fullName,
         `Exercise ${exercise.key} is already used in this day. Combine them together, or add a label to separate out.`,
         exercise.points.fullName
       );
@@ -74,6 +75,7 @@ export class PlannerEvaluator {
               ? exercise.points.idPoint
               : undefined) || exercise.points.fullName;
           throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
             `Same property '${propertyName}' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
               `week ${existingProperty.dayData.week + 1}, day ${existingProperty.dayData.dayInWeek + 1} ` +
               `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
@@ -99,6 +101,7 @@ export class PlannerEvaluator {
       const ws = metadata.properties.warmup[exercise.key];
       if (ws != null && JSON.stringify(ws.warmupSets) !== scheme) {
         throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
           `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
             `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
             `and week ${weekIndex + 1}, day ${dayInWeekIndex + 1}`,
@@ -258,6 +261,7 @@ export class PlannerEvaluator {
       );
       if (originalExercises.length > 1) {
         throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
           `There're several exercises matching, please be more specific with [week:day] syntax`,
           exercise.points.reuseSetPoint
         );
@@ -265,6 +269,7 @@ export class PlannerEvaluator {
       const originalExercise = originalExercises[0];
       if (!originalExercise) {
         throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
           `No such exercise ${reuse.fullName} at week: ${reuse.week ?? weekIndex + 1}${
             reuse.day != null ? `, day: ${reuse.day}` : ""
           }`,
@@ -273,12 +278,14 @@ export class PlannerEvaluator {
       }
       if (originalExercise.exercise.reuse?.fullName != null) {
         throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
           `Original exercise cannot reuse another exercise's sets x reps`,
           exercise.points.reuseSetPoint
         );
       }
       if (originalExercise.exercise.setVariations.length > 1) {
         throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
           `Original exercise cannot have mutliple set variations`,
           exercise.points.reuseSetPoint
         );
@@ -360,17 +367,25 @@ export class PlannerEvaluator {
         const key = PlannerKey.fromFullName(progress.body, settings);
         const point = exercise.points.progressPoint || exercise.points.fullName;
         if (!metadata.byExerciseWeekDay[key] == null) {
-          throw PlannerSyntaxError.fromPoint(`No such exercise ${progress.body}`, point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${progress.body}`, point);
         }
         const originalProgress = metadata.properties.progress[key]?.property;
         if (!originalProgress) {
-          throw PlannerSyntaxError.fromPoint("Original exercise should specify progress", point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point);
         }
         if (originalProgress.body != null) {
-          throw PlannerSyntaxError.fromPoint(`Original exercise cannot reuse another progress`, point);
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            `Original exercise cannot reuse another progress`,
+            point
+          );
         }
         if (originalProgress.fnName !== "custom") {
-          throw PlannerSyntaxError.fromPoint("Original exercise should specify custom progress", point);
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            "Original exercise should specify custom progress",
+            point
+          );
         }
         const fnArgs = progress.fnArgs;
         const originalState = PlannerExerciseEvaluator.fnArgsToStateVars(originalProgress.fnArgs);
@@ -378,10 +393,10 @@ export class PlannerEvaluator {
         for (const stateKey of ObjectUtils.keys(originalState)) {
           const value = originalState[stateKey];
           if (state[stateKey] == null) {
-            throw PlannerSyntaxError.fromPoint(`Missing state variable ${stateKey}`, point);
+            throw PlannerSyntaxError.fromPoint(exercise.fullName, `Missing state variable ${stateKey}`, point);
           }
           if (Weight.type(value) !== Weight.type(state[stateKey])) {
-            throw PlannerSyntaxError.fromPoint(`Wrong type of state variable ${stateKey}`, point);
+            throw PlannerSyntaxError.fromPoint(exercise.fullName, `Wrong type of state variable ${stateKey}`, point);
           }
         }
         progress.reuse = originalProgress;
@@ -439,23 +454,28 @@ export class PlannerEvaluator {
         const point = exercise.points.updatePoint || exercise.points.fullName;
 
         if (!metadata.byExerciseWeekDay[key] == null) {
-          throw PlannerSyntaxError.fromPoint(`No such exercise ${update.body}`, point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${update.body}`, point);
         }
         const originalUpdate = metadata.properties.update[key]?.property;
         if (!originalUpdate) {
-          throw PlannerSyntaxError.fromPoint("Original exercise should specify update", point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point);
         }
         if (originalUpdate.body != null) {
-          throw PlannerSyntaxError.fromPoint(`Original exercise cannot reuse another update`, point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another update`, point);
         }
         if (originalUpdate.fnName !== "custom") {
-          throw PlannerSyntaxError.fromPoint("Original exercise should specify custom update", point);
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            "Original exercise should specify custom update",
+            point
+          );
         }
         const stateKeys = originalUpdate.meta?.stateKeys || new Set();
         if (stateKeys.size !== 0) {
           const progress = exercise.properties.find((p) => p.name === "progress");
           if (progress == null) {
             throw PlannerSyntaxError.fromPoint(
+              exercise.fullName,
               "If 'update' block uses state variables, exercise should define them in 'progress' block",
               point
             );
@@ -464,6 +484,7 @@ export class PlannerEvaluator {
           for (const stateKey of stateKeys) {
             if (state[stateKey] == null) {
               throw PlannerSyntaxError.fromPoint(
+                exercise.fullName,
                 `Missing state variable ${stateKey} that's used in the original update block`,
                 point
               );
@@ -491,12 +512,12 @@ export class PlannerEvaluator {
   public static evaluatedProgramToText(
     oldPlannerProgram: IPlannerProgram,
     evaluatedWeeks: IPlannerEvalResult[][],
-    settings: ISettings
+    settings: ISettings,
+    reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }
   ): IEither<IPlannerProgram, PlannerSyntaxError> {
-    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run();
+    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(reorder);
     console.log(result);
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
-    console.log("ev week", newEvaluatedWeeks);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
     if (error) {
       return { success: false, error: error };

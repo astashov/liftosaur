@@ -15,6 +15,7 @@ import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
 import { SetNumber } from "./editProgramSets";
+import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramV2UiExerciseProps {
   plannerExercise: IPlannerProgramExercise;
@@ -42,6 +43,9 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
   const progress = plannerExercise.properties.find((p) => p.name === "progress");
   const update = plannerExercise.properties.find((p) => p.name === "update");
+
+  const lbProgram = lb<IPlannerState>().p("current").p("program");
+
   return (
     <div
       className="px-2 py-1 mb-2 rounded-lg bg-purplev2-100"
@@ -93,8 +97,16 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             data-cy={`delete-day-v2`}
             className="px-2 align-middle ls-delete-day-v2 button nm-delete-day-v2"
             onClick={() => {
-              if (confirm("Are you sure?")) {
-              }
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers.deleteCurrentInstance(
+                    program,
+                    props.dayData,
+                    plannerExercise.fullName,
+                    props.settings
+                  );
+                })
+              );
             }}
           >
             <IconTrash />

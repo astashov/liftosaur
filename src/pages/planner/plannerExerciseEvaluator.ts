@@ -45,9 +45,13 @@ export class PlannerSyntaxError extends SyntaxError {
   public readonly from: number;
   public readonly to: number;
 
-  public static fromPoint(message: string, point: IPlannerSyntaxPointer): PlannerSyntaxError {
+  public static fromPoint(
+    fullName: string | undefined,
+    message: string,
+    point: IPlannerSyntaxPointer
+  ): PlannerSyntaxError {
     return new PlannerSyntaxError(
-      `${message} (${point.line}:${point.offset})`,
+      `${fullName ? `${fullName}: ` : ""}${message} (${point.line}:${point.offset})`,
       point.line,
       point.offset,
       point.from,
@@ -136,7 +140,7 @@ export class PlannerExerciseEvaluator {
 
   private error(message: string, node: SyntaxNode): never {
     const point = this.getPoint(node);
-    throw PlannerSyntaxError.fromPoint(message, point);
+    throw PlannerSyntaxError.fromPoint(undefined, message, point);
   }
 
   public static getLineAndOffset(script: string, node: SyntaxNode): [number, number] {
