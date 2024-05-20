@@ -41,6 +41,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
     !!(props.ui.focusedDay && props.ui.focusedDay.dayInWeek !== dayIndex + 1)
   );
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
+  const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
 
   return (
     <div className="flex flex-col pb-4 md:flex-row">
@@ -116,7 +117,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
         </div>
         <div className="flex">
           {!isCollapsed &&
-            (props.ui.isUiMode ? (
+            (props.ui.isUiMode && isValidProgram ? (
               <EditProgramV2UiExercises
                 ui={props.ui}
                 exerciseFullNames={props.exerciseFullNames}

@@ -144,11 +144,14 @@ interface ISetRowProps {
 function SetRow(props: ISetRowProps): JSX.Element | null {
   const set = props.set;
   const rawWeight = set.percentage || set.weight;
-  const weight = typeof rawWeight === "number" ? Weight.buildPct(rawWeight) : rawWeight;
+  let weight = typeof rawWeight === "number" ? Weight.buildPct(rawWeight) : rawWeight;
+  const isDefaultWeight = weight == null;
+
   const repRange = set.repRange;
   if (!repRange) {
     return null;
   }
+  weight = weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep, set.rpe ?? 10) * 100));
   const [showMinReps, setShowMinReps] = useState(repRange.maxrep !== repRange.minrep);
   const [showRpe, setShowRpe] = useState(set.rpe != null);
   const [showTimer, setShowTimer] = useState(set.timer != null);
@@ -286,7 +289,8 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
         <div style={{ flex: 8 }}>
           <WeightInput
             disabled={props.disabled}
-            value={weight ?? Weight.buildPct(Math.round(Weight.rpeMultiplier(repRange.maxrep, set.rpe ?? 10) * 100))}
+            dimmed={isDefaultWeight}
+            value={weight}
             settings={props.settings}
             equipment={props.equipment}
             onUpdate={(val) => {

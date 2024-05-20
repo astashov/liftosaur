@@ -6,6 +6,7 @@ import { MathUtils } from "../../../utils/math";
 
 interface INumInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"> {
   value?: number;
+  dimmed?: boolean;
   label?: string;
   step?: number;
   min?: number;
@@ -48,7 +49,9 @@ export function NumInput(props: INumInputProps): JSX.Element {
           <div className="flex-1">
             <input
               ref={inputRef}
-              className="w-full p-1 text-sm text-center border rounded border-grayv2-200"
+              className={`w-full p-1 text-sm text-center border rounded border-grayv2-200 ${
+                props.dimmed ? "text-grayv2-300" : ""
+              }`}
               type="num"
               onInput={() => {
                 const v = getValue();
@@ -82,6 +85,7 @@ export function NumInput(props: INumInputProps): JSX.Element {
 interface IWeightInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref" | "value"> {
   value?: IWeight | IPercentage;
   label?: string;
+  dimmed?: boolean;
   equipment?: IEquipment;
   settings: ISettings;
   onUpdate: (weight?: IWeight | IPercentage) => void;
@@ -92,6 +96,7 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
   return (
     <div className="flex items-center w-full">
       <NumInput
+        dimmed={props.dimmed}
         disabled={props.disabled}
         value={props.value?.value}
         onUpdate={(newValue) => {

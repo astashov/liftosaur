@@ -376,7 +376,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         />
       )}
       <div className="text-xs text-grayv2-main">
-        To edit <strong>progress</strong> and <strong>update</strong> scripts, switch to the{" "}
+        To edit <strong>progress</strong>, <strong>update</strong> scripts, and <strong>tags</strong> - switch to the{" "}
         <strong>text editor mode </strong>
         by tapping on <IconDoc width={13} height={17} /> in the header.
       </div>
