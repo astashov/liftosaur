@@ -6,6 +6,11 @@ import { IPlannerProgramExerciseSet, IPlannerProgramExerciseWarmupSet } from "./
 import { Weight } from "../../models/weight";
 import { ObjectUtils } from "../../utils/object";
 
+export interface IPlannerEvaluatedProgramToTextOpts {
+  reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number };
+  add?: { dayData: Required<IDayData>; index: number; fullName: string };
+}
+
 export class PlannerEvaluatedProgramToText {
   constructor(
     private readonly plannerProgram: IPlannerProgram,
@@ -15,8 +20,11 @@ export class PlannerEvaluatedProgramToText {
 
   private reorderGroupedTopLine(
     groupedTopLine: IPlannerTopLineItem[][][][],
-    reorder: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }
+    reorder: IPlannerEvaluatedProgramToTextOpts["reorder"]
   ): IPlannerTopLineItem[][][][] {
+    if (!reorder) {
+      return groupedTopLine;
+    }
     const groupedDay = groupedTopLine[reorder.dayData.week - 1][reorder.dayData.dayInWeek - 1];
     const from = groupedDay[reorder.fromIndex];
     groupedDay.splice(reorder.fromIndex, 1);
@@ -24,11 +32,26 @@ export class PlannerEvaluatedProgramToText {
     return groupedTopLine;
   }
 
-  public run(reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }): IPlannerProgram {
+  private addGroupedTopLine(
+    groupedTopLine: IPlannerTopLineItem[][][][],
+    add: IPlannerEvaluatedProgramToTextOpts["add"]
+  ): IPlannerTopLineItem[][][][] {
+    if (!add) {
+      return groupedTopLine;
+    }
+    const groupedDay = groupedTopLine[add.dayData.week - 1][add.dayData.dayInWeek - 1];
+    groupedDay.splice(add.index, 0, [
+      { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings) },
+    ]);
+    return groupedTopLine;
+  }
+
+  public run(opts: IPlannerEvaluatedProgramToTextOpts = {}): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const topLineMap = ObjectUtils.clone(PlannerProgram.topLineItems(this.plannerProgram, this.settings));
     let groupedTopLineMap = PlannerProgram.groupedTopLines(topLineMap);
-    groupedTopLineMap = reorder ? this.reorderGroupedTopLine(groupedTopLineMap, reorder) : groupedTopLineMap;
+    groupedTopLineMap = opts.reorder ? this.reorderGroupedTopLine(groupedTopLineMap, opts.reorder) : groupedTopLineMap;
+    groupedTopLineMap = opts.add ? this.addGroupedTopLine(groupedTopLineMap, opts.add) : groupedTopLineMap;
 
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};

@@ -133,7 +133,7 @@ export interface IPlannerUi {
     exerciseKey?: string;
     fullName?: string;
     customExerciseName?: string;
-    change?: "all" | "one";
+    change?: "all" | "one" | "duplicate";
   };
   exerciseUi: {
     edit: Set<string>;

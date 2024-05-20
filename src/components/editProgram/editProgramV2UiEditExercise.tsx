@@ -269,7 +269,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
             className="w-full p-1 text-sm text-left border rounded border-grayv2-200"
             value={plannerExercise.label}
             type="text"
-            onInput={(e) => {
+            onBlur={(e) => {
               const target = e.target as HTMLInputElement;
               const value = target.value;
               modify((ex) => {

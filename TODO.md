@@ -53,7 +53,6 @@
 - Bug - swap exercise and changing weight returns exercise back
 
 
-- Current set variation
 - Add cloning exercises
 - Add creating exercises
 - Fallback to text mode in case of errors

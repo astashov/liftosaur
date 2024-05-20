@@ -3,6 +3,7 @@ import { h, JSX, Fragment } from "preact";
 import { Exercise } from "../../models/exercise";
 import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
 import { focusedToStr, IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { PlannerKey } from "../../pages/planner/plannerKey";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ExerciseImage } from "../exerciseImage";
@@ -89,7 +90,26 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
           <button
             data-cy="clone-exercise"
             className="px-2 align-middle ls-clone-day-v2 button nm-clone-day-v2"
-            onClick={() => {}}
+            onClick={() => {
+              props.plannerDispatch(
+                lb<IPlannerState>()
+                  .p("ui")
+                  .p("modalExercise")
+                  .record({
+                    focusedExercise: {
+                      weekIndex,
+                      dayIndex,
+                      exerciseLine,
+                    },
+                    types: [],
+                    muscleGroups: [],
+                    exerciseKey: PlannerKey.fromFullName(plannerExercise.fullName, props.settings),
+                    fullName: plannerExercise.fullName,
+                    exerciseType,
+                    change: "duplicate",
+                  })
+              );
+            }}
           >
             <IconDuplicate2 />
           </button>
@@ -162,11 +182,21 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
               const hasCurrentSets = !!plannerExercise.setVariations[i]?.sets;
               const globals = plannerExercise.globals;
               const displayGroups = PlannerProgramExercise.setsToDisplaySets(sets, hasCurrentSets, globals);
+              let currentIndex = plannerExercise.setVariations.findIndex((v) => v.isCurrent);
+              currentIndex = currentIndex === -1 ? 0 : currentIndex;
               return (
                 <div>
                   <div>
                     {plannerExercise.setVariations.length > 1 && (
-                      <GroupHeader highlighted={true} name={`Set Variation ${i + 1}`} />
+                      <GroupHeader
+                        highlighted={true}
+                        name={`Set Variation ${i + 1}`}
+                        rightAddOn={
+                          plannerExercise.setVariations.length > 1 && currentIndex === i ? (
+                            <div className="px-1 text-xs font-bold text-white rounded bg-grayv2-main">CURRENT</div>
+                          ) : undefined
+                        }
+                      />
                     )}
                   </div>
                   <div className="flex items-end">

@@ -183,6 +183,19 @@ export function EditProgramV2(props: IProps): JSX.Element {
                         );
                         plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
                       }
+                    } else if (modalExerciseUi.change === "duplicate") {
+                      const focusedExercise = modalExerciseUi.focusedExercise;
+                      const exercise = Exercise.find(exerciseType, props.settings.exercises);
+                      if (exercise && modalExerciseUi.fullName) {
+                        const newPlannerProgram = EditProgramUiHelpers.duplicateCurrentInstance(
+                          plannerState.current.program,
+                          { week: focusedExercise.weekIndex + 1, dayInWeek: focusedExercise.dayIndex + 1, day: 1 },
+                          modalExerciseUi.fullName,
+                          exerciseType,
+                          props.settings
+                        );
+                        plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                      }
                     } else {
                       const newPlannerProgram = PlannerProgram.replaceExercise(
                         plannerState.current.program,

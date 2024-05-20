@@ -4,6 +4,7 @@ import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { GroupHeader } from "../../groupHeader";
 import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
 import { Markdown } from "../../markdown";
+import { IconDoc } from "../../icons/iconDoc";
 
 interface IEditProgramUiDescriptionsProps {
   header: string;
@@ -23,7 +24,14 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
 
   return (
     <div className="my-4">
-      <GroupHeader name={props.header} />
+      <GroupHeader
+        name={props.header}
+        help={
+          <span className="text-xs">
+            To edit description text, switch to the text mode (<IconDoc /> at the top)
+          </span>
+        }
+      />
       <div className="relative">
         {!atLeft && (
           <button
@@ -68,8 +76,8 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
             props.plannerExercise.descriptions.length > 1 &&
             props.plannerExercise.descriptions[descriptionIndex]?.isCurrent && (
               <div
-                className="absolute right-0 px-1 text-xs font-bold text-white rounded bg-grayv2-main"
-                style={{ top: "-20px" }}
+                className="absolute px-1 text-xs font-bold text-white rounded bg-grayv2-main"
+                style={{ top: "-23px", right: "2rem" }}
               >
                 CURRENT
               </div>

@@ -21,7 +21,7 @@ import { PP } from "../../models/pp";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
-import { PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
+import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
 import { IEither } from "../../utils/types";
 
 export type IByExercise<T> = Record<string, T>;
@@ -513,9 +513,9 @@ export class PlannerEvaluator {
     oldPlannerProgram: IPlannerProgram,
     evaluatedWeeks: IPlannerEvalResult[][],
     settings: ISettings,
-    reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }
+    opts: IPlannerEvaluatedProgramToTextOpts = {}
   ): IEither<IPlannerProgram, PlannerSyntaxError> {
-    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(reorder);
+    const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(opts);
     console.log(result);
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);

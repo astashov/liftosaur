@@ -3,9 +3,11 @@ import { PlannerProgram } from "../../../pages/planner/models/plannerProgram";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { PlannerEvaluator } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey } from "../../../pages/planner/plannerKey";
-import { IPlannerProgram, ISettings, IDayData } from "../../../types";
+import { IPlannerProgram, ISettings, IDayData, IExerciseType } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { IPlannerEvalResult } from "../../../pages/planner/plannerExerciseEvaluator";
+import { equipmentName, Exercise } from "../../../models/exercise";
+import { IPlannerEvaluatedProgramToTextOpts } from "../../../pages/planner/plannerEvaluatedProgramToText";
 
 export class EditProgramUiHelpers {
   public static changeFirstInstance(
@@ -55,9 +57,9 @@ export class EditProgramUiHelpers {
     program: IPlannerProgram,
     evaluatedWeeks: IPlannerEvalResult[][],
     settings: ISettings,
-    reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }
+    opts: IPlannerEvaluatedProgramToTextOpts = {}
   ): IPlannerProgram {
-    const result = PlannerEvaluator.evaluatedProgramToText(program, evaluatedWeeks, settings, reorder);
+    const result = PlannerEvaluator.evaluatedProgramToText(program, evaluatedWeeks, settings, opts);
     if (result.success) {
       const text = PlannerProgram.generateFullText(result.data.weeks);
       console.log(text);
@@ -65,6 +67,48 @@ export class EditProgramUiHelpers {
     } else {
       console.log(evaluatedWeeks);
       alert(result.error.message);
+      return program;
+    }
+  }
+
+  public static duplicateCurrentInstance(
+    program: IPlannerProgram,
+    dayData: Required<IDayData>,
+    fullName: string,
+    newExerciseType: IExerciseType,
+    settings: ISettings
+  ): IPlannerProgram {
+    const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
+
+    const week = this.getWeek(evaluatedWeeks, dayData, fullName);
+    const targetDay = evaluatedWeeks[week - 1][dayData.dayInWeek - 1];
+
+    let index = 0;
+    let newFullName: string | undefined;
+    if (targetDay.success) {
+      index = targetDay.data.findIndex((e) => e.fullName === fullName);
+      const previousExercise = targetDay.data[index];
+      if (index !== -1 && previousExercise) {
+        const exercise = Exercise.get(newExerciseType, settings.exercises);
+        newFullName = `${exercise.name}${
+          newExerciseType.equipment === exercise.defaultEquipment ? "" : `, ${equipmentName(newExerciseType.equipment)}`
+        }`;
+        const newExercise = {
+          ...ObjectUtils.clone(previousExercise),
+          fullName: newFullName,
+          shortName: newFullName,
+          key: PlannerKey.fromFullName(newFullName, settings),
+          name: exercise.name,
+        };
+        targetDay.data.splice(index + 1, 0, newExercise);
+      }
+    }
+
+    if (index !== -1 && newFullName != null) {
+      return this.validateAndReturnProgram(program, evaluatedWeeks, settings, {
+        add: { dayData, fullName: newFullName, index: index + 1 },
+      });
+    } else {
       return program;
     }
   }
@@ -98,7 +142,9 @@ export class EditProgramUiHelpers {
     settings: ISettings
   ): IPlannerProgram {
     const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
-    return this.validateAndReturnProgram(program, evaluatedWeeks, settings, { dayData, fromIndex, toIndex });
+    return this.validateAndReturnProgram(program, evaluatedWeeks, settings, {
+      reorder: { dayData, fromIndex, toIndex },
+    });
   }
 
   public static changeCurrentInstance(
