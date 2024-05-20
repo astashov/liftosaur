@@ -238,7 +238,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                               return exerciseText;
                             }
                             const exercise = Exercise.getById(exerciseType.id, props.settings.exercises);
-                            return exerciseText + `\n${exercise.name}`;
+                            return exerciseText + `\n${exercise.name} / 1x1`;
                           }),
                   ]);
                 }

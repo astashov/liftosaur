@@ -5,6 +5,7 @@ import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { DraggableList } from "../draggableList";
+import { LinkButton } from "../linkButton";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 import { EditProgramV2UiEditExercise } from "./editProgramV2UiEditExercise";
 import { EditProgramV2UiExercise } from "./editProgramV2UiExercise";
@@ -79,6 +80,29 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
           );
         }}
       />
+      <div>
+        <LinkButton
+          name="add-exercise"
+          onClick={() => {
+            props.plannerDispatch(
+              lb<IPlannerState>()
+                .p("ui")
+                .p("modalExercise")
+                .record({
+                  focusedExercise: {
+                    weekIndex: props.dayData.week - 1,
+                    dayIndex: props.dayData.dayInWeek - 1,
+                    exerciseLine: evaluatedDay.data.length,
+                  },
+                  types: [],
+                  muscleGroups: [],
+                })
+            );
+          }}
+        >
+          Add Exercise
+        </LinkButton>
+      </div>
     </div>
   );
 }
