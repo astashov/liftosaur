@@ -202,7 +202,7 @@ export class PlannerEvaluatedProgramToText {
       plannerWeeks.push(plannerWeek);
     }
     const result: IPlannerProgram = { name: this.plannerProgram.name, weeks: plannerWeeks };
-    return PlannerProgram.compact(result, this.settings);
+    return PlannerProgram.compact(this.plannerProgram, result, this.settings);
   }
 
   private setsToString(sets: IPlannerProgramExerciseSet[], isCurrent: boolean): string {

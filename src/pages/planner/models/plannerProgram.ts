@@ -213,13 +213,17 @@ export class PlannerProgram {
     return str;
   }
 
-  public static compact(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
+  public static compact(
+    oldPlannerProgram: IPlannerProgram,
+    plannerProgram: IPlannerProgram,
+    settings: ISettings
+  ): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
-    const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, settings);
+    const { evaluatedWeeks } = PlannerProgram.evaluate(oldPlannerProgram, settings);
     PP.iterate(evaluatedWeeks, (exercise) => {
       if (exercise.repeat != null && exercise.repeat.length > 0) {
-        repeatingExercises.add(exercise.fullName);
+        repeatingExercises.add(exercise.key);
       }
     });
 
