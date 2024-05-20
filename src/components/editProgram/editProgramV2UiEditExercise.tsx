@@ -22,6 +22,7 @@ import { NumInput } from "./editProgramUi/editProgramUiInputs";
 import { IconDoc } from "../icons/iconDoc";
 import { LinkButton } from "../linkButton";
 import { PlannerKey } from "../../pages/planner/plannerKey";
+import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescriptions";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -331,6 +332,19 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           />
         </div>
       )}
+      <EditProgramUiDescriptions
+        header="Current Description"
+        plannerExercise={plannerExercise}
+        onUpdate={(index) => {
+          modify((ex) => {
+            const description = ex.descriptions[index];
+            if (description != null) {
+              ex.descriptions.forEach((d) => (d.isCurrent = false));
+              description.isCurrent = true;
+            }
+          });
+        }}
+      />
       <EditProgramUiReuseSets
         plannerDispatch={props.plannerDispatch}
         plannerExercise={plannerExercise}

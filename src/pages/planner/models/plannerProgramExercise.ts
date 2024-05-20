@@ -162,6 +162,11 @@ export class PlannerProgramExercise {
     return index === -1 ? 0 : index;
   }
 
+  public static currentDescriptionIndex(exercise: IPlannerProgramExercise): number {
+    const index = exercise.descriptions.findIndex((d) => d.isCurrent);
+    return index === -1 ? 0 : index;
+  }
+
   public static numberOfSetsThisWeek(exerciseName: string, week: IPlannerEvalResult[]): number {
     return week.reduce((acc, days) => {
       if (days.success) {

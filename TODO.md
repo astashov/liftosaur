@@ -52,3 +52,10 @@
 - Set variations when multi-week
 - Bug - swap exercise and changing weight returns exercise back
 
+
+- Current set variation
+- Add cloning exercises
+- Add creating exercises
+- Fallback to text mode in case of errors
+- Add NUX on UI vs text editor
+- Mention tags in the progress hint 

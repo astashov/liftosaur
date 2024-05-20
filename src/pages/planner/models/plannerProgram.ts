@@ -323,6 +323,34 @@ export class PlannerProgram {
     return plannerProgram;
   }
 
+  public static groupedTopLines(topLine: IPlannerTopLineItem[][][]): IPlannerTopLineItem[][][][] {
+    const groupedTopLine: IPlannerTopLineItem[][][][] = [];
+    for (let weekIndex = 0; weekIndex < topLine.length; weekIndex += 1) {
+      const topLineWeek = topLine[weekIndex];
+      groupedTopLine.push([]);
+      for (let dayInWeekIndex = 0; dayInWeekIndex < topLineWeek.length; dayInWeekIndex += 1) {
+        const topLineDay = topLineWeek[dayInWeekIndex];
+        const group: IPlannerTopLineItem[][] = [];
+        groupedTopLine[weekIndex].push(group);
+        let reset = true;
+        for (let lineIndex = 0; lineIndex < topLineDay.length; lineIndex += 1) {
+          if (reset) {
+            group.push([]);
+            reset = false;
+          }
+          const line = topLineDay[lineIndex];
+          group[group.length - 1] = group[group.length - 1] || [];
+          group[group.length - 1].push(line);
+          if (line.type === "exercise") {
+            reset = true;
+          }
+        }
+      }
+    }
+
+    return groupedTopLine;
+  }
+
   public static topLineItems(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerTopLineItem[][][] {
     let dayIndex = 0;
 

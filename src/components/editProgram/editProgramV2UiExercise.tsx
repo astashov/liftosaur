@@ -15,6 +15,7 @@ import { IconEditSquare } from "../icons/iconEditSquare";
 import { IconHandle } from "../icons/iconHandle";
 import { IconTrash } from "../icons/iconTrash";
 import { SetNumber } from "./editProgramSets";
+import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescriptions";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramV2UiExerciseProps {
@@ -43,7 +44,6 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
   const progress = plannerExercise.properties.find((p) => p.name === "progress");
   const update = plannerExercise.properties.find((p) => p.name === "update");
-
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   return (
@@ -153,6 +153,9 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
       </div>
       {!isCollapsed && (
         <>
+          {plannerExercise.descriptions.length > 0 && (
+            <EditProgramUiDescriptions header="Descriptions" showCurrent={true} plannerExercise={plannerExercise} />
+          )}
           <div className="px-1">
             {PlannerProgramExercise.setVariations(plannerExercise).map((_, i) => {
               const sets = PlannerProgramExercise.sets(plannerExercise, i);
