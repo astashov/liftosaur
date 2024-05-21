@@ -10,6 +10,7 @@ test("replaces exercises", async ({ page }) => {
   await page.getByTestId("modal-create-experimental-program-submit").click();
 
   await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
     page,
@@ -37,6 +38,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("menu-item-my-program").click();
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
 
   await page.getByTestId("planner-editor").first().locator(".cm-content").click();
   await page.getByTestId("editor-v2-exercise-stats").click();
@@ -78,6 +80,7 @@ Bicep Curl / 1x5`
   await expect(page.getByTestId("entry-squat").getByTestId("exercise-equipment")).toHaveText("Dumbbell");
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
 
   await page.getByTestId("footer-workout").click();
@@ -91,6 +94,7 @@ Bicep Curl / 1x5`
   await expect(page.getByTestId("entry-hack-squat").getByTestId("exercise-equipment")).toHaveText("Dumbbell");
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
     "Hack Squat, Dumbbell / 3x8"
   );

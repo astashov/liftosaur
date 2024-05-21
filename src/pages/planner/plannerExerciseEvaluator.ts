@@ -843,7 +843,7 @@ export class PlannerExerciseEvaluator {
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const key = PlannerKey.fromFullName(fullName, this.settings);
-      const shortName = `${name}${equipment ? ` ,${equipment}` : ""}`;
+      const shortName = `${name}${equipment ? `, ${equipmentName(equipment, this.settings.equipment)}` : ""}`;
       const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);

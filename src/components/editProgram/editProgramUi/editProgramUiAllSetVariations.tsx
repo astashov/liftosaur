@@ -37,6 +37,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
           <span className="mr-2">Current set variation:</span>
           <select
             value={currentSetVariation}
+            data-cy="edit-exercise-set-variation-index"
             onChange={(event) => {
               const target = event.target as HTMLSelectElement | undefined;
               const value = target?.value;
@@ -72,6 +73,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
           <div>
             <LinkButton
               name="sets-override-reuse"
+              data-cy="edit-exercise-set-variation-reuse-override"
               onClick={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
@@ -135,6 +137,7 @@ export function EditProgramUiAllSetVariations(props: IEditProgramUiAllSetVariati
         <div>
           <LinkButton
             className="text-xs"
+            data-cy="edit-exercise-set-variation-add"
             name="add-set-variation"
             onClick={() => {
               props.plannerDispatch(

@@ -35,6 +35,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
       <div className="relative">
         {!atLeft && (
           <button
+            data-cy="edit-exercise-description-left"
             className="absolute left-0 z-10 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none nm-scroller-left"
             style={{
               boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
@@ -55,6 +56,7 @@ export function EditProgramUiDescriptions(props: IEditProgramUiDescriptionsProps
         {!atRight && (
           <button
             className="absolute right-0 z-10 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-white rounded-full outline-none focus:outline-none nm-scroller-right"
+            data-cy="edit-exercise-description-right"
             style={{
               boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
               top: "0px",

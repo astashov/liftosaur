@@ -32,6 +32,7 @@ interface IEditProgramV2UiExerciseProps {
 export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): JSX.Element {
   const { plannerExercise, exerciseLine } = props;
   const { week, dayInWeek } = props.dayData;
+  const key = PlannerKey.fromPlannerExercise(plannerExercise, props.settings);
   const weekIndex = week - 1;
   const dayIndex = dayInWeek - 1;
   const exercise = Exercise.findByName(plannerExercise.name, props.settings.exercises);
@@ -49,6 +50,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
 
   return (
     <div
+      data-cy={`exercise-${key}`}
       className="px-2 py-1 mb-2 rounded-lg bg-purplev2-100"
       style={{ border: "1px solid rgb(125 103 189 / 15%)", minHeight: "5rem" }}
     >
@@ -78,8 +80,8 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
                   .p("edit")
                   .recordModify((edit) => {
                     const newEdit = new Set(Array.from(edit));
-                    const key = focusedToStr({ weekIndex, dayIndex, exerciseLine });
-                    newEdit.add(key);
+                    const exKey = focusedToStr({ weekIndex, dayIndex, exerciseLine });
+                    newEdit.add(exKey);
                     return newEdit;
                   })
               );
@@ -114,7 +116,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             <IconDuplicate2 />
           </button>
           <button
-            data-cy={`delete-day-v2`}
+            data-cy={`delete-exercise`}
             className="px-2 align-middle ls-delete-day-v2 button nm-delete-day-v2"
             onClick={() => {
               props.plannerDispatch(
@@ -147,6 +149,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
           <div>
             <button
               className="w-8 p-2 mr-1 text-center nm-edit-program-v2-expand-collapse-exercise"
+              data-cy="collapse-exercise"
               onClick={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -155,11 +158,11 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
                     .p("collapsed")
                     .recordModify((collapsed) => {
                       const newCollapsed = new Set(Array.from(collapsed));
-                      const key = focusedToStr({ weekIndex, dayIndex, exerciseLine });
-                      if (newCollapsed.has(key)) {
-                        newCollapsed.delete(key);
+                      const exKey = focusedToStr({ weekIndex, dayIndex, exerciseLine });
+                      if (newCollapsed.has(exKey)) {
+                        newCollapsed.delete(exKey);
                       } else {
-                        newCollapsed.add(key);
+                        newCollapsed.add(exKey);
                       }
                       return newCollapsed;
                     })

@@ -47,6 +47,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
       <div className="flex items-center gap-1">
         <div style={{ flex: 8 }}>
           <WeightInput
+            name="edit-exercise-globals-weight"
             value={globals.weight}
             settings={props.settings}
             equipment={plannerExercise.equipment}
@@ -65,6 +66,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
         </div>
         <div style={{ flex: 4 }}>
           <NumInput
+            name="edit-exercise-globals-rpe"
             value={globals.rpe}
             min={0}
             step={0.5}
@@ -78,6 +80,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
         </div>
         <div style={{ flex: 4 }}>
           <NumInput
+            name="edit-exercise-globals-timer"
             min={0}
             step={5}
             value={globals.timer}
@@ -94,6 +97,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
           <div className="leading-none">
             <input
               checked={globals.askWeight}
+              data-cy="edit-exercise-globals-ask-weight"
               className="block align-middle checkbox text-bluev2"
               type="checkbox"
               onChange={(e) => {
@@ -111,6 +115,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
             <input
               checked={globals.logRpe}
               className="block align-middle checkbox text-bluev2"
+              data-cy="edit-exercise-globals-log-rpe"
               type="checkbox"
               onChange={(e) => {
                 const target = e.target as HTMLInputElement;

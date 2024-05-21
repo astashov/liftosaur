@@ -10,6 +10,7 @@ test("reuses sets", async ({ page }) => {
   await page.getByTestId("modal-create-program-input").type("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
   await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
 
   await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
   await PlaywrightUtils.typeCodeMirror(
@@ -74,6 +75,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
 
   expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
   expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");

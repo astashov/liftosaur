@@ -67,6 +67,7 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
         <span className="mr-2">Reuse sets from:</span>
         <select
           disabled={isMultipleSetVariations}
+          data-cy="edit-exercise-reuse-sets-select"
           value={reuseFullName || ""}
           onChange={(event) => {
             const target = event.target as HTMLSelectElement | undefined;
@@ -161,6 +162,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
       <span>At week</span>
       <select
         value={week || ""}
+        data-cy="edit-exercise-reuse-sets-week"
         onChange={(event) => {
           const target = event.target as HTMLSelectElement | undefined;
           const valueStr = target?.value;
@@ -202,6 +204,7 @@ function ReuseAtWeekDay(props: IReuseAtWeekDayProps): JSX.Element {
       <span className="ml-2">day</span>
       <select
         value={day || ""}
+        data-cy="edit-exercise-reuse-sets-day"
         onChange={(event) => {
           const target = event.target as HTMLSelectElement | undefined;
           const valueStr = target?.value;

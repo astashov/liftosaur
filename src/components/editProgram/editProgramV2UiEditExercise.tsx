@@ -102,6 +102,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
             {showMenu && (
               <DropdownMenu onClose={() => setShowMenu(false)}>
                 <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-set-variations"
                   isTop={true}
                   onClick={() => {
                     modify((e) => {
@@ -134,6 +135,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
                   {plannerExercise.setVariations.length > 1 ? "Disable" : "Enable"} Set Variations
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-label"
                   onClick={() => {
                     if (showLabel) {
                       modify((e) => {
@@ -148,6 +150,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
                   {plannerExercise.label ? "Disable" : "Enable"} Label
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-repeat"
                   onClick={() => {
                     if (showRepeat) {
                       modify((e) => {
@@ -162,6 +165,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
                   {plannerExercise.repeating.length > 0 ? "Disable" : "Enable"} Repeat
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-menu-exercise-toggle-order"
                   onClick={() => {
                     if (showOrder) {
                       modify((e) => {
@@ -208,7 +212,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           </div>
         )}
         <div className="flex items-center flex-1 mr-2 text-lg">
-          <div>
+          <div data-cy="edit-exercise-name">
             {plannerExercise.label ? `${plannerExercise.label}: ` : ""}
             {plannerExercise.name}
           </div>
@@ -217,6 +221,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
       <div className="mb-2 leading-none">
         <LinkButton
           name="change-exercise-this-week-day"
+          data-cy="edit-exercise-change-here"
           className="mr-4 text-xs"
           onClick={() => {
             props.plannerDispatch(
@@ -240,6 +245,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         </LinkButton>
         <LinkButton
           name="change-exercise-this-week-day"
+          data-cy="edit-exercise-change-everywhere"
           className="text-xs"
           onClick={() => {
             props.plannerDispatch(
@@ -266,6 +272,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         <label className="flex items-center mb-2">
           <span className="mr-2">Label:</span>
           <input
+            data-cy="edit-exercise-label"
             className="w-full p-1 text-sm text-left border rounded border-grayv2-200"
             value={plannerExercise.label}
             type="text"
@@ -285,6 +292,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           <span className="mr-2">Repeat from week {repeatFrom} to week: </span>
           <select
             value={repeatTo}
+            data-cy="edit-exercise-repeat"
             onChange={(event) => {
               const target = event.target as HTMLSelectElement;
               const value = target.value;
@@ -320,6 +328,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         <div className="flex items-center mb-2">
           <span className="mr-2">Forced order: </span>
           <NumInput
+            name="edit-exercise-order"
             value={plannerExercise.order}
             min={0}
             onUpdate={(val) => {

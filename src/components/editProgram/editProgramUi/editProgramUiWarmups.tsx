@@ -8,7 +8,7 @@ import {
   IPlannerProgramExerciseWarmupSet,
   IPlannerState,
 } from "../../../pages/planner/models/types";
-import { ISettings } from "../../../types";
+import { IEquipment, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { GroupHeader } from "../../groupHeader";
 import { IconTrash } from "../../icons/iconTrash";
@@ -40,6 +40,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
           <span className="mr-2 text-xs">{reuseWarmups ? "Reused warmups" : "Default warmups"}</span>
           <LinkButton
             className="text-xs"
+            data-cy="edit-exercise-warmups-customize"
             name="customize-warmups"
             onClick={() => {
               props.plannerDispatch(
@@ -59,6 +60,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
           <LinkButton
             className="text-xs"
             name="defaultize-warmups"
+            data-cy="edit-exercise-warmups-defaultize"
             onClick={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
@@ -83,6 +85,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
         return (
           <WarmupRow
             warmupSet={warmupSet}
+            equipment={plannerExercise.equipment}
             disabled={ownWarmups == null}
             settings={props.settings}
             onUpdate={(newWarmupSet) => {
@@ -108,6 +111,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
           <LinkButton
             className="text-xs"
             name="add-warmup-set"
+            data-cy="edit-exercise-warmups-add"
             onClick={() => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
@@ -135,6 +139,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
 interface IWarmupRowProps {
   warmupSet: IPlannerProgramExerciseWarmupSet;
   disabled?: boolean;
+  equipment?: IEquipment;
   onUpdate: (newWarmupSet: IPlannerProgramExerciseWarmupSet | undefined) => void;
   settings: ISettings;
 }
@@ -147,6 +152,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
     <div className="flex items-center gap-1 mb-1">
       <div style={{ flex: 5 }}>
         <NumInput
+          name="edit-exercise-warmupset-numofsets"
           disabled={props.disabled}
           value={props.warmupSet.numberOfSets}
           onUpdate={(val) => props.onUpdate({ ...props.warmupSet, numberOfSets: val ?? 1 })}
@@ -154,6 +160,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
       </div>
       <div style={{ flex: 5 }}>
         <NumInput
+          name="edit-exercise-warmupset-reps"
           disabled={props.disabled}
           value={props.warmupSet.reps}
           onUpdate={(val) => props.onUpdate({ ...props.warmupSet, reps: val ?? 1 })}
@@ -162,8 +169,10 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
       {weight && (
         <div style={{ flex: 8 }}>
           <WeightInput
+            name="edit-exercise-warmupset-weight"
             disabled={props.disabled}
             settings={props.settings}
+            equipment={props.equipment}
             value={weight}
             onUpdate={(val) => {
               const newWeight = Weight.isPct(val)
@@ -177,6 +186,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
       )}
       <div className="leading-none">
         <button
+          data-cy="edit-exercise-warmupset-delete"
           className={`px-1 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
           onClick={() => {
             if (!props.disabled) {

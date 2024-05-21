@@ -113,6 +113,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
         <div>
           <LinkButton
             className="text-xs"
+            data-cy="edit-exercise-set-group-add"
             name="add-set-group"
             onClick={() => {
               modify((ex) => {
@@ -176,6 +177,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
           <div className="relative">
             <button
               className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              data-cy="edit-exercise-set-group-more"
               onClick={() => {
                 if (!props.disabled) {
                   setShowMenu(true);
@@ -187,6 +189,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             {showMenu && (
               <DropdownMenu onClose={() => setShowMenu(false)}>
                 <DropdownMenuItem
+                  data-cy="edit-exercise-set-group-more-toggle-label"
                   isTop={true}
                   onClick={() => {
                     props.onUpdate({ ...set, label: showLabel ? undefined : set.label });
@@ -197,6 +200,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                   {showLabel ? "Disable" : "Enable"} Label
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-exercise-set-group-more-toggle-rpe"
                   onClick={() => {
                     props.onUpdate({ ...set, logRpe: showRpe ? false : set.logRpe, rpe: showRpe ? undefined : 8 });
                     setShowRpe(!showRpe);
@@ -206,6 +210,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                   {showRpe ? "Disable" : "Enable"} RPE
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-exercise-set-group-more-toggle-timer"
                   onClick={() => {
                     props.onUpdate({ ...set, timer: showTimer ? undefined : 180 });
                     setShowTimer(!showTimer);
@@ -215,6 +220,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
                   {showTimer ? "Disable" : "Enable"} Timer
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  data-cy="edit-exercise-set-group-more-toggle-rep-range"
                   onClick={() => {
                     if (showMinReps) {
                       props.onUpdate({ ...set, repRange: { ...repRange, minrep: repRange.maxrep } });
@@ -231,6 +237,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
           {!props.isOnlySet && (
             <div className="ml-2">
               <button
+                data-cy="edit-exercise-set-delete"
                 className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 onClick={() => {
                   props.onUpdate(undefined);
@@ -250,6 +257,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             maxLength={8}
             value={set.label}
             type="text"
+            data-cy="edit-exercise-set-label"
             onInput={(e) => {
               const target = e.target as HTMLInputElement;
               const value = target.value;
@@ -268,6 +276,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
       <div className="flex items-center gap-1">
         <div style={{ flex: 4 }}>
           <NumInput
+            name="edit-exercise-numofsets"
             disabled={props.disabled}
             value={repRange.numberOfSets}
             min={0}
@@ -277,6 +286,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
         {!showMinReps && (
           <div style={{ flex: 4 }}>
             <NumInput
+              name="edit-exercise-minreps"
               disabled={props.disabled}
               min={0}
               value={repRange.maxrep}
@@ -288,6 +298,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
         )}
         <div style={{ flex: 8 }}>
           <WeightInput
+            name="edit-exercise-set-weight"
             disabled={props.disabled}
             dimmed={isDefaultWeight}
             value={weight}
@@ -309,6 +320,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
           <div className="flex items-center gap-1">
             <div style={{ flex: 4 }}>
               <NumInput
+                name="edit-exercise-set-minreps"
                 disabled={props.disabled}
                 min={0}
                 value={repRange.minrep}
@@ -317,6 +329,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             </div>
             <div style={{ flex: 4 }}>
               <NumInput
+                name="edit-exercise-set-maxreps"
                 disabled={props.disabled}
                 min={0}
                 value={repRange.maxrep}
@@ -336,6 +349,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             {showRpe && set.rpe != null && (
               <div style={{ flex: 5 }}>
                 <NumInput
+                  name="edit-exercise-set-rpe"
                   disabled={props.disabled}
                   min={0}
                   max={10}
@@ -348,6 +362,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             {showTimer && set.timer != null && (
               <div style={{ flex: 5 }}>
                 <NumInput
+                  name="edit-exercise-set-timer"
                   min={0}
                   step={5}
                   disabled={props.disabled}
@@ -365,6 +380,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             <input
               disabled={props.disabled}
               checked={repRange.isAmrap}
+              data-cy="edit-exercise-set-group-amrap"
               className="block align-middle checkbox text-bluev2"
               type="checkbox"
               onChange={(e) => {
@@ -380,6 +396,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             <input
               disabled={props.disabled}
               checked={set.askWeight}
+              data-cy="edit-exercise-set-group-ask-weight"
               className="block align-middle checkbox text-bluev2"
               type="checkbox"
               onChange={(e) => {
@@ -395,6 +412,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             <div className="leading-none">
               <input
                 disabled={props.disabled}
+                data-cy="edit-exercise-set-group-log-rpe"
                 checked={set.logRpe}
                 className="block align-middle checkbox text-bluev2"
                 type="checkbox"

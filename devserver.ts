@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import http from "http";
 import https from "https";
 import * as path from "path";
@@ -86,8 +87,8 @@ const server = https.createServer(
   }
 );
 // eslint-disable-next-line prefer-const
-global.__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
-global.__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
+(global as any).__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+(global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 
 server.listen(3000, "0.0.0.0", () => {
   console.log(`--------- Server is running ----------`);

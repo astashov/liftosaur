@@ -31,7 +31,8 @@
     "upload-source-maps": "NODE_ENV=production yarn build:dev && ./uploadsourcemaps.sh",
     "cdk-deploy": "yarn upload-source-maps && yarn build:lambda && rm -rf ./dist-lambda/node_modules && cdk deploy --all",
     "test": "mocha -r ts-node/register test/**/*.test.ts",
-    "onetest": "TS_NODE_TRANSPILE_ONLY=1 yarn mocha -r ts-node/register"
+    "onetest": "TS_NODE_TRANSPILE_ONLY=1 yarn mocha -r ts-node/register",
+    "testgen": "playwright codegen --test-id-attribute data-cy 'https://local.liftosaur.com:8080/app/?skipintro=1'"
   },
   "author": "Anton Astashov",
   "license": "AGPL-3.0",
@@ -43,7 +44,7 @@
     "@babel/preset-env": "^7.20.2",
     "@fullhuman/postcss-purgecss": "^2.1.0",
     "@lezer/generator": "^1.2.3",
-    "@playwright/test": "^1.36.0",
+    "@playwright/test": "^1.44.0",
     "@types/aws-lambda": "^8.10.72",
     "@types/chai": "^4.3.11",
     "@types/cookie": "^0.3.3",
