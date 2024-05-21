@@ -142,7 +142,7 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
           </div>
         )}
         <div className="flex items-center flex-1 mr-2 text-lg">
-          <div>
+          <div data-cy="planner-ui-exercise-name">
             {plannerExercise.label ? `${plannerExercise.label}: ` : ""}
             {plannerExercise.name}
           </div>

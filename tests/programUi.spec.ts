@@ -1,0 +1,165 @@
+import { test, expect } from "@playwright/test";
+import { PlaywrightUtils } from "./playwrightUtils";
+
+test("Warmups", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+
+  await page.getByTestId("add-exercise").click();
+  await page.getByTestId("menu-item-bench-press").getByText("Bench Press").click();
+  await page.getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-warmups-customize").click();
+
+  await page.getByTestId("num-input-edit-exercise-warmupset-numofsets-plus").first().click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-reps-minus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await page.getByTestId("edit-exercise-warmupset-weight-weight-unit").nth(2).selectOption("lb");
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(2).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(2).click();
+  await page.getByTestId("close-edit-exercise").click();
+
+  await page.getByTestId("editor-v2-full-program").click();
+  await expect(page.getByTestId("planner-editor")).toContainText(
+    "Bench Press / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 85lb"
+  );
+});
+
+test("Sets", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("add-exercise").click();
+  await page.getByTestId("menu-item-bench-press").getByText("Bench Press").click();
+  await page.getByTestId("edit-exercise").click();
+
+  await page.getByTestId("num-input-edit-exercise-numofsets-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-minus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-minus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByText("AMRAP?").click();
+  await expect(page.getByTestId("num-input-edit-exercise-set-weight-weight-value")).toHaveValue("87");
+
+  await page.getByTestId("edit-exercise-set-weight-weight-unit").selectOption("lb");
+  await page.getByTestId("num-input-edit-exercise-set-weight-weight-plus").click();
+  await page.getByTestId("num-input-edit-exercise-set-weight-weight-plus").click();
+  await page.getByTestId("edit-exercise-set-group-add").click();
+  await page.getByTestId("num-input-edit-exercise-numofsets-plus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").nth(1).click();
+  await page.getByText("Ask Weight?").first().click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 90lb+, 2x2");
+});
+
+test("Change exercise", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("add-exercise").click();
+  await page.getByText("Arnold Press").click();
+  await page.getByRole("button", { name: "Add Day" }).click();
+  await page.getByTestId("add-exercise").nth(1).click();
+  await page.getByTestId("menu-item-arnold-press").getByText("Arnold Press").click();
+  await page.getByTestId("edit-exercise").first().click();
+  await page.getByTestId("edit-exercise-change-here").click();
+  await page.getByText("Around The World").click();
+  await page.getByTestId("close-edit-exercise").click();
+  await expect(page.getByTestId("exercise-around the world-dumbbell")).toContainText("Around The World");
+  await expect(page.getByTestId("exercise-arnold press-dumbbell")).toContainText("Arnold Press");
+  await page.getByTestId("exercise-arnold press-dumbbell").getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-change-here").click();
+  await page.getByTestId("menu-item-around-the-world").getByText("Around The World").click();
+  await page.getByTestId("edit-exercise-change-everywhere").click();
+  await page.getByTestId("menu-item-bench-press").getByText("Bench Press").click();
+  await page.getByTestId("close-edit-exercise").click();
+  await expect(page.getByTestId("planner-ui-exercise-name").nth(0)).toContainText("Bench Press");
+  await expect(page.getByTestId("planner-ui-exercise-name").nth(1)).toContainText("Bench Press");
+});
+
+test("Reuse without overwrite", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+
+Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
+  );
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("planner-add-day").click();
+  await page.getByTestId("add-exercise").nth(1).click();
+  await page.getByPlaceholder("Filter by name").click();
+  await page.getByPlaceholder("Filter by name").fill("bench");
+  await page.getByTestId("menu-item-bench-press").getByText("Bench Press").click();
+  await page.getByTestId("exercise-bench press-barbell").getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-reuse-sets-select").selectOption("Squat");
+  await page.getByTestId("num-input-edit-exercise-globals-rpe-value").click();
+  await page.getByTestId("num-input-edit-exercise-globals-rpe-value").fill("8");
+  await page.getByTestId("close-edit-exercise").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Bench Press / ...Squat / @8");
+});
+
+test("Reuse with overwrites", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+
+Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
+  );
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("planner-add-day").click();
+  await page.getByTestId("add-exercise").nth(1).click();
+  await page.getByTestId("menu-item-bench-press").getByText("Bench Press").click();
+  await page.getByTestId("exercise-bench press-barbell").getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-reuse-sets-select").selectOption("Squat");
+  await page.getByTestId("edit-exercise-warmups-customize").click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-numofsets-plus").first().click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-reps-plus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await expect(page.getByTestId("num-input-edit-exercise-warmupset-numofsets-value").first()).toHaveValue("2");
+  await expect(page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-value").nth(1)).toHaveValue("140");
+  await page.getByTestId("edit-exercise-warmups-defaultize").click();
+  await expect(page.getByTestId("num-input-edit-exercise-warmupset-numofsets-value").first()).toHaveValue("1");
+  await expect(page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-value").nth(1)).toHaveValue("135");
+  await page.getByTestId("edit-exercise-warmups-customize").click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-numofsets-plus").first().click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
+  await page.getByTestId("edit-exercise-set-variation-reuse-override").click();
+  await page.getByTestId("num-input-edit-exercise-numofsets-plus").click();
+  await page.getByTestId("num-input-edit-exercise-minreps-plus").click();
+  await page.getByText("AMRAP?").click();
+
+  await page.getByTestId("close-edit-exercise").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText(
+    "Bench Press / ...Squat / 2x2+ / warmup: 2x5 45lb, 1x3 140lb"
+  );
+});

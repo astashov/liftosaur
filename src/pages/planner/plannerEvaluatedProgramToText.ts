@@ -136,7 +136,10 @@ export class PlannerEvaluatedProgramToText {
                 }
                 if (evalExercise.setVariations.length > 0) {
                   plannerExercise +=
-                    ` / ` + evalExercise.setVariations.map((v) => this.setsToString(v.sets, v.isCurrent)).join(" / ");
+                    ` / ` +
+                    evalExercise.setVariations
+                      .map((v, i) => this.setsToString(v.sets, v.isCurrent && i !== 0))
+                      .join(" / ");
                 }
 
                 if (reuse && evalExercise.setVariations.length === 0) {
