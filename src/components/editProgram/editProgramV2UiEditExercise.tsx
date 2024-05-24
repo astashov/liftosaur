@@ -42,7 +42,6 @@ interface IEditProgramV2UiEditExerciseProps {
 
 export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseProps): JSX.Element {
   const { plannerExercise, exerciseLine } = props;
-  console.log("Planner exercise", plannerExercise);
   const { week, dayInWeek } = props.dayData;
   const weekIndex = week - 1;
   const dayIndex = dayInWeek - 1;

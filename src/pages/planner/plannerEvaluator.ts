@@ -516,7 +516,6 @@ export class PlannerEvaluator {
     opts: IPlannerEvaluatedProgramToTextOpts = {}
   ): IEither<IPlannerProgram, PlannerSyntaxError> {
     const result = new PlannerEvaluatedProgramToText(oldPlannerProgram, evaluatedWeeks, settings).run(opts);
-    console.log(result);
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
     if (error) {

@@ -205,17 +205,21 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
                     )}
                   </div>
                   <div className="flex items-end">
-                    <div>
-                      <div className="text-xs text-center text-grayv2-main">Warmups</div>
-                      <div>
-                        <div className="flex">
-                          {displayWarmupSets.map((g) => (
-                            <HistoryRecordSet sets={g} isNext={true} />
-                          ))}
+                    {displayWarmupSets.flat().length > 0 && (
+                      <>
+                        <div>
+                          <div className="text-xs text-center text-grayv2-main">Warmups</div>
+                          <div>
+                            <div className="flex">
+                              {displayWarmupSets.map((g) => (
+                                <HistoryRecordSet sets={g} isNext={true} />
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="ml-2 mr-4 bg-grayv2-100" style={{ width: "1px", height: "60px" }} />
+                        <div className="ml-2 mr-4 bg-grayv2-100" style={{ width: "1px", height: "60px" }} />
+                      </>
+                    )}
                     <div>
                       {reusingSets && <div className="text-xs text-grayv2-main">Reusing {reusingSets}</div>}
                       <div className="flex flex-wrap">

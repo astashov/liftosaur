@@ -61,11 +61,10 @@ export class EditProgramUiHelpers {
   ): IPlannerProgram {
     const result = PlannerEvaluator.evaluatedProgramToText(program, evaluatedWeeks, settings, opts);
     if (result.success) {
-      const text = PlannerProgram.generateFullText(result.data.weeks);
-      console.log(text);
+      // const text = PlannerProgram.generateFullText(result.data.weeks);
+      // console.log(text);
       return result.data;
     } else {
-      console.log(evaluatedWeeks);
       alert(result.error.message);
       return program;
     }

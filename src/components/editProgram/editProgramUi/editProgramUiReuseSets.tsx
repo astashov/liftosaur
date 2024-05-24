@@ -104,7 +104,6 @@ export function EditProgramUiReuseSets(props: IEditProgramUiReuseSetsProps): JSX
                           : undefined;
                       ex.reuse = { fullName: value.trim(), week, day };
                       ex.setVariations = [];
-                      console.log(ex);
                     }
                   }
                 );

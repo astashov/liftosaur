@@ -178,7 +178,6 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
               const newWeight = Weight.isPct(val)
                 ? { ...props.warmupSet, percentage: val.value }
                 : { ...props.warmupSet, weight: val };
-              console.log(newWeight);
               props.onUpdate(newWeight);
             }}
           />
