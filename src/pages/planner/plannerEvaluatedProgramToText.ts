@@ -8,8 +8,8 @@ import { ObjectUtils } from "../../utils/object";
 import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export interface IPlannerEvaluatedProgramToTextOpts {
-  reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number };
-  add?: { dayData: Required<IDayData>; index: number; fullName: string };
+  reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number }[];
+  add?: { dayData: Required<IDayData>; index: number; fullName: string }[];
 }
 
 export class PlannerEvaluatedProgramToText {
@@ -21,29 +21,33 @@ export class PlannerEvaluatedProgramToText {
 
   private reorderGroupedTopLine(
     groupedTopLine: IPlannerTopLineItem[][][][],
-    reorder: IPlannerEvaluatedProgramToTextOpts["reorder"]
+    reorders: IPlannerEvaluatedProgramToTextOpts["reorder"]
   ): IPlannerTopLineItem[][][][] {
-    if (!reorder) {
+    if (!reorders) {
       return groupedTopLine;
     }
-    const groupedDay = groupedTopLine[reorder.dayData.week - 1][reorder.dayData.dayInWeek - 1];
-    const from = groupedDay[reorder.fromIndex];
-    groupedDay.splice(reorder.fromIndex, 1);
-    groupedDay.splice(reorder.toIndex, 0, from);
+    for (const reorder of reorders) {
+      const groupedDay = groupedTopLine[reorder.dayData.week - 1][reorder.dayData.dayInWeek - 1];
+      const from = groupedDay[reorder.fromIndex];
+      groupedDay.splice(reorder.fromIndex, 1);
+      groupedDay.splice(reorder.toIndex, 0, from);
+    }
     return groupedTopLine;
   }
 
   private addGroupedTopLine(
     groupedTopLine: IPlannerTopLineItem[][][][],
-    add: IPlannerEvaluatedProgramToTextOpts["add"]
+    adds: IPlannerEvaluatedProgramToTextOpts["add"]
   ): IPlannerTopLineItem[][][][] {
-    if (!add) {
+    if (!adds) {
       return groupedTopLine;
     }
-    const groupedDay = groupedTopLine[add.dayData.week - 1][add.dayData.dayInWeek - 1];
-    groupedDay.splice(add.index, 0, [
-      { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings) },
-    ]);
+    for (const add of adds) {
+      const groupedDay = groupedTopLine[add.dayData.week - 1][add.dayData.dayInWeek - 1];
+      groupedDay.splice(add.index, 0, [
+        { type: "exercise", value: PlannerKey.fromFullName(add.fullName, this.settings) },
+      ]);
+    }
     return groupedTopLine;
   }
 
@@ -106,7 +110,7 @@ export class PlannerEvaluatedProgramToText {
               case "exercise": {
                 const evalDay = this.newEvaluatedWeeks[weekIndex][dayInWeekIndex];
                 const evalExercise = evalDay.success ? evalDay.data.find((e) => e.key === line.value) : undefined;
-                if (!evalExercise || evalExercise.isRepeat) {
+                if (!evalExercise || (evalExercise.isRepeat && evalExercise.repeating.indexOf(weekIndex + 1) === -1)) {
                   break;
                 }
                 const key = PlannerKey.fromFullName(evalExercise.fullName, this.settings);
@@ -239,6 +243,9 @@ export class PlannerEvaluatedProgramToText {
   }
 
   private getWarmupSets(sets: IPlannerProgramExerciseWarmupSet[]): string {
+    if (sets.length === 0) {
+      return "none";
+    }
     const result: string[] = [];
     for (const set of sets) {
       let setStr = "";

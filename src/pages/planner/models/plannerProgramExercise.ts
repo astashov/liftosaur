@@ -43,8 +43,10 @@ export class PlannerProgramExercise {
       if (currentGlobals.weight != null || currentGlobals.percentage != null) {
         if (currentGlobals.weight != null) {
           set.weight = currentGlobals.weight;
+          set.percentage = undefined;
         } else {
           set.percentage = currentGlobals.percentage;
+          set.weight = undefined;
         }
       } else {
         set.weight = set.weight ?? reusedGlobals.weight;
@@ -146,10 +148,12 @@ export class PlannerProgramExercise {
           dimReps: !hasCurrentSets,
           dimRpe: !hasCurrentSets && globals.rpe == null,
           dimWeight: !hasCurrentSets && globals.weight == null && globals.percentage == null,
+          dimTimer: !hasCurrentSets && globals.timer == null,
           reps: `${minReps !== maxReps ? `${minReps}-` : ""}${maxReps}${set.repRange?.isAmrap ? "+" : ""}`,
           rpe: set.rpe?.toString(),
           weight: weight,
           askWeight: set.askWeight,
+          timer: set.timer,
         });
       }
     }

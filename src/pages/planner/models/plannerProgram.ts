@@ -220,12 +220,15 @@ export class PlannerProgram {
   ): IPlannerProgram {
     let dayIndex = 0;
     const repeatingExercises = new Set<string>();
-    const { evaluatedWeeks } = PlannerProgram.evaluate(oldPlannerProgram, settings);
-    PP.iterate(evaluatedWeeks, (exercise) => {
-      if (exercise.repeat != null && exercise.repeat.length > 0) {
-        repeatingExercises.add(exercise.key);
-      }
-    });
+    const { evaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(oldPlannerProgram), settings);
+    const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram.evaluate(ObjectUtils.clone(plannerProgram), settings);
+    for (const ev of [evaluatedWeeks, newEvaluatedWeeks]) {
+      PP.iterate(ev, (exercise) => {
+        if (exercise.repeat != null && exercise.repeat.length > 0) {
+          repeatingExercises.add(exercise.key);
+        }
+      });
+    }
 
     const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {

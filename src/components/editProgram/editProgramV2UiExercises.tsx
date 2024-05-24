@@ -69,9 +69,11 @@ export function EditProgramV2UiExercises(props: IEditProgramV2UiExercisesProps):
         onDragEnd={(startIndex, endIndex) => {
           props.plannerDispatch(
             lbProgram.recordModify((program) => {
+              const fullName = evaluatedDay.data[startIndex].fullName;
               return EditProgramUiHelpers.changeCurrentInstancePosition(
                 program,
                 props.dayData,
+                fullName,
                 startIndex,
                 endIndex,
                 props.settings

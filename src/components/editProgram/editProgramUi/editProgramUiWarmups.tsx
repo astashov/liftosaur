@@ -155,7 +155,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
           name="edit-exercise-warmupset-numofsets"
           disabled={props.disabled}
           value={props.warmupSet.numberOfSets}
-          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, numberOfSets: val ?? 1 })}
+          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, numberOfSets: Math.max(1, val ?? 1) })}
         />
       </div>
       <div style={{ flex: 5 }}>
@@ -163,7 +163,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
           name="edit-exercise-warmupset-reps"
           disabled={props.disabled}
           value={props.warmupSet.reps}
-          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, reps: val ?? 1 })}
+          onUpdate={(val) => props.onUpdate({ ...props.warmupSet, reps: Math.max(1, val ?? 1) })}
         />
       </div>
       {weight && (
@@ -176,8 +176,11 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
             value={weight}
             onUpdate={(val) => {
               const newWeight = Weight.isPct(val)
-                ? { ...props.warmupSet, percentage: val.value }
-                : { ...props.warmupSet, weight: val };
+                ? { ...props.warmupSet, percentage: Math.max(0, val.value) }
+                : {
+                    ...props.warmupSet,
+                    weight: Weight.build(Math.max(0, val?.value ?? 0), val?.unit ?? props.settings.units),
+                  };
               props.onUpdate(newWeight);
             }}
           />

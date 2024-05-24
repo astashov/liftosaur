@@ -9,6 +9,7 @@ export interface IDisplaySet {
   dimReps?: boolean;
   dimRpe?: boolean;
   dimWeight?: boolean;
+  dimTimer?: boolean;
   reps: string;
   weight: string;
   rpe?: string;
@@ -16,12 +17,17 @@ export interface IDisplaySet {
   completedRpe?: string;
   isCompleted?: boolean;
   isInRange?: boolean;
+  timer?: number;
 }
 
 export function groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
   return CollectionUtils.groupBy(displaySets, (last, set) => {
     return (
-      last.reps !== set.reps || last.rpe !== set.rpe || last.weight !== set.weight || last.askWeight !== set.askWeight
+      last.reps !== set.reps ||
+      last.rpe !== set.rpe ||
+      last.weight !== set.weight ||
+      last.askWeight !== set.askWeight ||
+      last.timer !== set.timer
     );
   });
 }
@@ -140,6 +146,11 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
           {set.askWeight ? "+" : ""}
         </div>
       </div>
+      {set.timer != null && (
+        <div className={`flex items-center text-xs font-bold text-grayv2-main ${set.dimTimer ? "opacity-50" : ""}`}>
+          {set.timer}s
+        </div>
+      )}
     </div>
   );
 }

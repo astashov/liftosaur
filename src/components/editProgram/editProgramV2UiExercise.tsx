@@ -46,6 +46,8 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
   const isCollapsed = props.ui.exerciseUi.collapsed.has(focusedToStr({ weekIndex, dayIndex, exerciseLine }));
   const reusingSets = plannerExercise.reuse?.fullName;
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
+  const order = plannerExercise.order !== 0 ? plannerExercise.order : undefined;
+  const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
   const progress = plannerExercise.properties.find((p) => p.name === "progress");
   const update = plannerExercise.properties.find((p) => p.name === "update");
   const lbProgram = lb<IPlannerState>().p("current").p("program");
@@ -68,7 +70,10 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
           <div>
             <SetNumber setIndex={props.exerciseLine} />
           </div>
-          {repeatStr && <div className="ml-4 text-xs font-bold text-grayv2-main">[{repeatStr}]</div>}
+          {orderAndRepeat && <div className="ml-4 text-xs font-bold text-grayv2-main">[{orderAndRepeat}]</div>}
+          {plannerExercise.notused && (
+            <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
+          )}
         </div>
         <div className="">
           <button

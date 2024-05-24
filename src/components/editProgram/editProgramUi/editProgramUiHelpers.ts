@@ -28,29 +28,26 @@ export class EditProgramUiHelpers {
         }
       }
     });
-    const result = PlannerEvaluator.evaluatedProgramToText(program, evaluatedWeeks, settings);
-    if (result.success) {
-      return result.data;
-    } else {
-      alert(result.error.message);
-      return program;
-    }
+    return this.validateAndReturnProgram(program, evaluatedWeeks, settings);
   }
 
-  private static getWeek(
+  private static getWeeks(
     evaluatedWeeks: IPlannerEvalResult[][],
     dayData: Required<IDayData>,
     fullName: string
-  ): number {
+  ): number[] {
     const day = evaluatedWeeks[dayData.week - 1][dayData.dayInWeek - 1];
-    let week = dayData.week;
+    const weeks: Set<number> = new Set();
+    weeks.add(dayData.week);
     if (day.success) {
       const exercise = day.data.find((e) => e.fullName === fullName);
-      if (exercise?.isRepeat) {
-        week = exercise.repeating[0];
+      if (exercise != null) {
+        for (const repeating of exercise.repeating) {
+          weeks.add(repeating);
+        }
       }
     }
-    return week;
+    return Array.from(weeks);
   }
 
   private static validateAndReturnProgram(
@@ -61,8 +58,8 @@ export class EditProgramUiHelpers {
   ): IPlannerProgram {
     const result = PlannerEvaluator.evaluatedProgramToText(program, evaluatedWeeks, settings, opts);
     if (result.success) {
-      // const text = PlannerProgram.generateFullText(result.data.weeks);
-      // console.log(text);
+      const text = PlannerProgram.generateFullText(result.data.weeks);
+      console.log(text);
       return result.data;
     } else {
       alert(result.error.message);
@@ -79,34 +76,39 @@ export class EditProgramUiHelpers {
   ): IPlannerProgram {
     const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
 
-    const week = this.getWeek(evaluatedWeeks, dayData, fullName);
-    const targetDay = evaluatedWeeks[week - 1][dayData.dayInWeek - 1];
+    const weeks = this.getWeeks(evaluatedWeeks, dayData, fullName);
+    const adds = [];
+    for (const week of weeks) {
+      const targetDay = evaluatedWeeks[week - 1][dayData.dayInWeek - 1];
 
-    let index = 0;
-    let newFullName: string | undefined;
-    if (targetDay.success) {
-      index = targetDay.data.findIndex((e) => e.fullName === fullName);
-      const previousExercise = targetDay.data[index];
-      if (index !== -1 && previousExercise) {
-        const exercise = Exercise.get(newExerciseType, settings.exercises);
-        newFullName = `${exercise.name}${
-          newExerciseType.equipment === exercise.defaultEquipment ? "" : `, ${equipmentName(newExerciseType.equipment)}`
-        }`;
-        const newExercise = {
-          ...ObjectUtils.clone(previousExercise),
-          fullName: newFullName,
-          shortName: newFullName,
-          key: PlannerKey.fromFullName(newFullName, settings),
-          name: exercise.name,
-        };
-        targetDay.data.splice(index + 1, 0, newExercise);
+      let newFullName: string | undefined;
+      let index = 0;
+      if (targetDay.success) {
+        index = targetDay.data.findIndex((e) => e.fullName === fullName);
+        const previousExercise = targetDay.data[index];
+        if (index !== -1 && previousExercise) {
+          const exercise = Exercise.get(newExerciseType, settings.exercises);
+          newFullName = `${exercise.name}${
+            newExerciseType.equipment === exercise.defaultEquipment
+              ? ""
+              : `, ${equipmentName(newExerciseType.equipment)}`
+          }`;
+          const newExercise = {
+            ...ObjectUtils.clone(previousExercise),
+            fullName: newFullName,
+            shortName: newFullName,
+            key: PlannerKey.fromFullName(newFullName, settings),
+            name: exercise.name,
+          };
+          targetDay.data.splice(index + 1, 0, newExercise);
+        }
+      }
+      if (newFullName != null && index !== -1) {
+        adds.push({ dayData: { ...dayData, week }, fullName: newFullName, index: index + 1 });
       }
     }
-
-    if (index !== -1 && newFullName != null) {
-      return this.validateAndReturnProgram(program, evaluatedWeeks, settings, {
-        add: { dayData, fullName: newFullName, index: index + 1 },
-      });
+    if (adds.length > 0) {
+      return this.validateAndReturnProgram(program, evaluatedWeeks, settings, { add: adds });
     } else {
       return program;
     }
@@ -120,13 +122,15 @@ export class EditProgramUiHelpers {
   ): IPlannerProgram {
     const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
 
-    const week = this.getWeek(evaluatedWeeks, dayData, fullName);
-    const targetDay = evaluatedWeeks[week - 1][dayData.dayInWeek - 1];
+    const weeks = this.getWeeks(evaluatedWeeks, dayData, fullName);
+    for (const week of weeks) {
+      const targetDay = evaluatedWeeks[week - 1][dayData.dayInWeek - 1];
 
-    if (targetDay.success) {
-      const index = targetDay.data.findIndex((e) => e.fullName === fullName);
-      if (index !== -1) {
-        targetDay.data.splice(index, 1);
+      if (targetDay.success) {
+        const index = targetDay.data.findIndex((e) => e.fullName === fullName);
+        if (index !== -1) {
+          targetDay.data.splice(index, 1);
+        }
       }
     }
 
@@ -136,14 +140,15 @@ export class EditProgramUiHelpers {
   public static changeCurrentInstancePosition(
     program: IPlannerProgram,
     dayData: Required<IDayData>,
+    fullName: string,
     fromIndex: number,
     toIndex: number,
     settings: ISettings
   ): IPlannerProgram {
     const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
-    return this.validateAndReturnProgram(program, evaluatedWeeks, settings, {
-      reorder: { dayData, fromIndex, toIndex },
-    });
+    const weeks = this.getWeeks(evaluatedWeeks, dayData, fullName);
+    const reorders = weeks.map((week) => ({ dayData: { ...dayData, week }, fromIndex, toIndex }));
+    return this.validateAndReturnProgram(program, evaluatedWeeks, settings, { reorder: reorders });
   }
 
   public static changeCurrentInstance(
@@ -154,32 +159,34 @@ export class EditProgramUiHelpers {
     cb: (exercise: IPlannerProgramExercise) => void
   ): IPlannerProgram {
     const { evaluatedWeeks } = ObjectUtils.clone(PlannerProgram.evaluate(program, settings));
-    const week = this.getWeek(evaluatedWeeks, dayData, fullName);
+    const weeks = this.getWeeks(evaluatedWeeks, dayData, fullName);
 
-    let newFullName: string | undefined;
-    const newFullNameDays: [number, number][] = [];
-    PP.iterate(evaluatedWeeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-      const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
-      if (current) {
-        const prevExercise = ObjectUtils.clone(e);
-        cb(e);
-        if (prevExercise.fullName !== e.fullName) {
-          newFullName = e.fullName;
-          newFullNameDays.push([weekIndex + 1, dayInWeekIndex + 1]);
-        }
-      }
-    });
-    if (newFullName != null) {
-      PP.iterate(evaluatedWeeks, (e) => {
-        const reuse = e.reuse;
-        if (reuse) {
-          if (reuse.fullName === fullName && newFullName != null) {
-            if (newFullNameDays.some(([w, d]) => w === reuse.exerciseWeek && d === reuse.exerciseDayInWeek)) {
-              reuse.fullName = newFullName;
-            }
+    for (const week of weeks) {
+      let newFullName: string | undefined;
+      const newFullNameDays: [number, number][] = [];
+      PP.iterate(evaluatedWeeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
+        const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
+        if (current) {
+          const prevExercise = ObjectUtils.clone(e);
+          cb(e);
+          if (prevExercise.fullName !== e.fullName) {
+            newFullName = e.fullName;
+            newFullNameDays.push([weekIndex + 1, dayInWeekIndex + 1]);
           }
         }
       });
+      if (newFullName != null) {
+        PP.iterate(evaluatedWeeks, (e) => {
+          const reuse = e.reuse;
+          if (reuse) {
+            if (reuse.fullName === fullName && newFullName != null) {
+              if (newFullNameDays.some(([w, d]) => w === reuse.exerciseWeek && d === reuse.exerciseDayInWeek)) {
+                reuse.fullName = newFullName;
+              }
+            }
+          }
+        });
+      }
     }
 
     return this.validateAndReturnProgram(program, evaluatedWeeks, settings);

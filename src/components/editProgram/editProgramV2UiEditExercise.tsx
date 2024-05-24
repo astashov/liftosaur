@@ -23,7 +23,6 @@ import { IconDoc } from "../icons/iconDoc";
 import { LinkButton } from "../linkButton";
 import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescriptions";
-import { CollectionUtils } from "../../utils/collection";
 import { EditProgramUiProgressReuse } from "./editProgramUi/editProgramUiProgressReuse";
 import { EditProgramUiProgress } from "./editProgramUi/editProgramUiProgress";
 import { EditProgramUiUpdate } from "./editProgramUi/editProgramUiUpdate";
@@ -48,6 +47,8 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const exercise = Exercise.findByName(plannerExercise.name, props.settings.exercises);
   const exerciseType = exercise != null ? { id: exercise.id, equipment: plannerExercise.equipment } : undefined;
   const repeatStr = PlannerProgramExercise.repeatToRangeStr(plannerExercise);
+  const order = plannerExercise.order !== 0 ? plannerExercise.order : undefined;
+  const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
   const lbProgram = lb<IPlannerState>().p("current").p("program");
 
   const [showMenu, setShowMenu] = useState(false);
@@ -93,7 +94,10 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           <div>
             <SetNumber setIndex={props.exerciseLine} />
           </div>
-          {repeatStr && <div className="ml-4 text-xs font-bold text-grayv2-main">[{repeatStr}]</div>}
+          {orderAndRepeat && <div className="ml-4 text-xs font-bold text-grayv2-main">[{orderAndRepeat}]</div>}
+          {plannerExercise.notused && (
+            <div className="px-1 ml-3 text-xs font-bold text-white rounded bg-grayv2-main">UNUSED</div>
+          )}
         </div>
         <div className="flex items-center">
           <div className="relative">
@@ -214,7 +218,7 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
       </div>
       <div className="flex items-center flex-1">
         {exerciseType && (
-          <div className="mr-3">
+          <div className="mr-3" style={{ minHeight: "2rem" }}>
             <ExerciseImage settings={props.settings} className="w-8" exerciseType={exerciseType} size="small" />
           </div>
         )}
@@ -306,10 +310,11 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
               const numValue = Number(value);
               if (!isNaN(numValue)) {
                 modify((ex) => {
-                  if (numValue === repeatFrom) {
-                    ex.repeat = [];
-                    ex.repeating = [];
-                  } else {
+                  ex.repeat = [];
+                  ex.repeating = [];
+                });
+                modify((ex) => {
+                  if (numValue !== repeatFrom) {
                     const result: number[] = [];
                     for (let i = repeatFrom; i <= numValue; i += 1) {
                       result.push(i);

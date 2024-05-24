@@ -519,6 +519,7 @@ export class PlannerEvaluator {
     const { evaluatedWeeks: newEvaluatedWeeks } = this.evaluate(result, settings);
     const error = this.getFirstErrorFromEvaluatedWeeks(newEvaluatedWeeks);
     if (error) {
+      console.log(result.weeks);
       return { success: false, error: error };
     } else {
       return { success: true, data: result };

@@ -23,7 +23,7 @@ export function NumInput(props: INumInputProps): JSX.Element {
   const actualStep = step ?? 1;
 
   function getValue(): number | undefined {
-    const inputValue = inputRef.current.value;
+    const inputValue = inputRef.current.value || "0";
     const v = Number(inputValue);
     if (inputValue && !isNaN(v)) {
       return MathUtils.clamp(v, min, max);
@@ -61,7 +61,7 @@ export function NumInput(props: INumInputProps): JSX.Element {
                 props.dimmed ? "text-grayv2-300" : ""
               }`}
               type="num"
-              onInput={() => {
+              onBlur={() => {
                 const v = getValue();
                 if (!props.disabled) {
                   onUpdate(v);
