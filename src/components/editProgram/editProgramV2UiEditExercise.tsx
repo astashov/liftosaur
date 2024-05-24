@@ -23,6 +23,11 @@ import { IconDoc } from "../icons/iconDoc";
 import { LinkButton } from "../linkButton";
 import { PlannerKey } from "../../pages/planner/plannerKey";
 import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescriptions";
+import { CollectionUtils } from "../../utils/collection";
+import { EditProgramUiProgressReuse } from "./editProgramUi/editProgramUiProgressReuse";
+import { EditProgramUiProgress } from "./editProgramUi/editProgramUiProgress";
+import { EditProgramUiUpdate } from "./editProgramUi/editProgramUiUpdate";
+import { EditProgramUiUpdateReuse } from "./editProgramUi/editProgramUiUpdateReuse";
 
 interface IEditProgramV2UiEditExerciseProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -50,6 +55,9 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
   const [showLabel, setShowLabel] = useState(!!plannerExercise.label);
   const [showRepeat, setShowRepeat] = useState(plannerExercise.repeating.length > 0);
   const [showOrder, setShowOrder] = useState(plannerExercise.order !== 0);
+
+  const progress = plannerExercise.properties.find((p) => p.name === "progress");
+  const update = plannerExercise.properties.find((p) => p.name === "update");
 
   function modify(cb: (ex: IPlannerProgramExercise) => void): void {
     props.plannerDispatch(
@@ -384,7 +392,29 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
           settings={props.settings}
         />
       )}
-      <div className="text-xs text-grayv2-main">
+      <div className="my-2">
+        <EditProgramUiProgressReuse
+          dayData={props.dayData}
+          evaluatedWeeks={props.evaluatedWeeks}
+          exerciseLine={exerciseLine}
+          plannerDispatch={props.plannerDispatch}
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+        />
+        {progress && <EditProgramUiProgress progress={progress} />}
+      </div>
+      <div className="my-2">
+        <EditProgramUiUpdateReuse
+          dayData={props.dayData}
+          evaluatedWeeks={props.evaluatedWeeks}
+          exerciseLine={exerciseLine}
+          plannerDispatch={props.plannerDispatch}
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+        />
+        {update && <EditProgramUiUpdate update={update} />}
+      </div>
+      <div className="mt-2 text-xs text-grayv2-main">
         To edit <strong>progress</strong>, <strong>update</strong> scripts, and <strong>tags</strong> - switch to the{" "}
         <strong>text editor mode </strong>
         by tapping on <IconDoc width={13} height={17} /> in the header.

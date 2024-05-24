@@ -5,6 +5,7 @@ import { IPlannerEvalResult, IPlannerTopLineItem } from "./plannerExerciseEvalua
 import { IPlannerProgramExerciseSet, IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { Weight } from "../../models/weight";
 import { ObjectUtils } from "../../utils/object";
+import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export interface IPlannerEvaluatedProgramToTextOpts {
   reorder?: { dayData: Required<IDayData>; fromIndex: number; toIndex: number };
@@ -138,7 +139,9 @@ export class PlannerEvaluatedProgramToText {
                   plannerExercise +=
                     ` / ` +
                     evalExercise.setVariations
-                      .map((v, i) => this.setsToString(v.sets, v.isCurrent && i !== 0))
+                      .map((v, i) =>
+                        this.setsToString(PlannerProgramExercise.sets(evalExercise, i), v.isCurrent && i !== 0)
+                      )
                       .join(" / ");
                 }
 

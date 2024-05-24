@@ -18,6 +18,8 @@ import { IconTrash } from "../icons/iconTrash";
 import { SetNumber } from "./editProgramSets";
 import { EditProgramUiDescriptions } from "./editProgramUi/editProgramUiDescriptions";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiProgress } from "./editProgramUi/editProgramUiProgress";
+import { EditProgramUiUpdate } from "./editProgramUi/editProgramUiUpdate";
 
 interface IEditProgramV2UiExerciseProps {
   plannerExercise: IPlannerProgramExercise;
@@ -228,32 +230,8 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
             })}
           </div>
           <div className="px-1 pb-2 text-xs text-grayv2-main">
-            {progress && (
-              <div>
-                <span className="font-bold">Progress: </span>
-                {progress.fnName === "none" ? (
-                  "none"
-                ) : (
-                  <>
-                    {progress.fnName}({progress.fnArgs.join(", ")}){progress.body && ` { ...${progress.body} }`}
-                    {progress.script && ` { ... }`}
-                  </>
-                )}
-              </div>
-            )}
-            {update && (
-              <div>
-                <span className="font-bold">Update: </span>
-                {update.fnName}({update.fnArgs.join(", ")}){update.body && ` { ...${update.body} }`}
-                {update.script && ` { ... }`}
-              </div>
-            )}
-            {plannerExercise.tags.length > 0 && (
-              <div>
-                <span className="font-bold">Tags: </span>
-                {plannerExercise.tags.join(", ")}
-              </div>
-            )}
+            {progress && <EditProgramUiProgress progress={progress} />}
+            {update && <EditProgramUiUpdate update={update} />}
           </div>
         </>
       )}

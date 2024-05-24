@@ -163,3 +163,69 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
     "Bench Press / ...Squat / 2x2+ / warmup: 2x5 45lb, 1x3 140lb"
   );
 });
+
+test("Reuse progresses", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+
+Squat / 3x8 60lb / progress: lp(5lb)
+Bench Press / 3x8 60lb / progress: lp(10lb)
+Deadlift / 3x8 60lb / progress: dp(5lb, 8, 12)
+Overhead Press / 3x3 / progress: custom(foo: 1) {~ reps = state.foo ~}
+Bent Over Row / 3x3 / progress: custom(foo: 1) { ...Overhead Press }
+Bicep Curl / 3x3`
+  );
+
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("exercise-bicep curl-dumbbell").getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Squat");
+  await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: lp(5lb)");
+  await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Bench Press");
+  await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: lp(10lb)");
+  await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Deadlift");
+  await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: dp(5lb, 8, 12)");
+  await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Overhead Press");
+  await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText(
+    "Progress: custom(foo: 1) { ...Overhead Press }"
+  );
+});
+
+test("Converts global weights into per-set weights", async ({ page }) => {
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.getByTestId("create-program").click();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+
+Squat / 4x3, 1x3+ / 5x2, 1x2+ / 75% / progress: custom() {~ weights += 5lb ~}
+Bench Press / 3x3`
+  );
+
+  await page.getByTestId("editor-v2-save-full").click();
+
+  await page.getByTestId("exercise-bench press-barbell").getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Squat");
+  await page.getByTestId("editor-v2-full-program").click();
+
+  await expect(page.getByTestId("planner-editor")).toContainText(
+    "Squat / 4x3 75%, 1x3+ 75% / 5x2 75%, 1x2+ 75% / progress: custom() {~ weights += 5lb ~}Bench Press / 3x3 / progress: custom() { ...Squat }"
+  );
+});
