@@ -374,11 +374,13 @@ export function EditProgramV2UiEditExercise(props: IEditProgramV2UiEditExerciseP
         exerciseLine={exerciseLine}
         evaluatedWeeks={props.evaluatedWeeks}
       />
-      <EditProgramUiWarmups
-        plannerDispatch={props.plannerDispatch}
-        plannerExercise={plannerExercise}
-        settings={props.settings}
-      />
+      <div className="mt-2">
+        <EditProgramUiWarmups
+          plannerDispatch={props.plannerDispatch}
+          plannerExercise={plannerExercise}
+          settings={props.settings}
+        />
+      </div>
       <EditProgramUiAllSetVariations
         dayData={props.dayData}
         exerciseLine={exerciseLine}
