@@ -1088,6 +1088,30 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240525": {
+    title: <span>Add UI for tweaking programs</span>,
+    body: (
+      <ul>
+        <li>
+          Liftoscript is an amazing way to define weightlifting programs, but typing on the phone could be tedious.
+          Sometimes you need to tweak your program on a phone, while you're in a gym - adjust warmups, reps, weights,
+          replace/add some exercises. But it's not very convenient to do it in a plain text editor on a phone.
+        </li>
+        <li>
+          So now there's a UI mode for editing the programs, which is the default mode on a phone. You can do almost
+          anything you could do in a plain text editor except defining progress, update blocks, descriptions and tags.
+        </li>
+        <li>
+          You can still switch to the plain text mode by tapping on <IconDoc />, and adjust the program text. Also, for
+          the Web Editor the plain text mode is still the main way of editing programs.
+        </li>
+        <li>
+          That's a very big feature, so could be bugs - don't hesitate to email me at{" "}
+          <strong>info@liftosaur.com</strong> or contact via Discord if there're issues.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
