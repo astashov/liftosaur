@@ -8,24 +8,26 @@ type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" |
 
 export class PlannerStatsUtils {
   public static dayApproxTimeMs(exercises: IPlannerProgramExercise[], restTimer: number): number {
-    return exercises.reduce((acc, e) => {
-      return (
-        acc +
-        PlannerProgramExercise.sets(e).reduce((acc2, set) => {
-          const repRange = set.repRange;
-          if (!repRange) {
-            return acc2;
-          }
-          const reps = repRange.maxrep;
-          const secondsPerRep = 7;
-          const prepareTime = 20;
-          const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
-          const timeToRest = (set.timer || restTimer || 0) * 1000;
-          const totalTime = timeToRep + timeToRest;
-          return acc2 + repRange.numberOfSets * totalTime;
-        }, 0)
-      );
-    }, 0);
+    return exercises
+      .filter((e) => !e.notused)
+      .reduce((acc, e) => {
+        return (
+          acc +
+          PlannerProgramExercise.sets(e).reduce((acc2, set) => {
+            const repRange = set.repRange;
+            if (!repRange) {
+              return acc2;
+            }
+            const reps = repRange.maxrep;
+            const secondsPerRep = 7;
+            const prepareTime = 20;
+            const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
+            const timeToRest = (set.timer || restTimer || 0) * 1000;
+            const totalTime = timeToRep + timeToRest;
+            return acc2 + repRange.numberOfSets * totalTime;
+          }, 0)
+        );
+      }, 0);
   }
 
   public static calculateSetResults(
