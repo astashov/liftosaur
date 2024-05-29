@@ -12,6 +12,7 @@ import {
   IExerciseKind,
   screenMuscles,
   IExerciseType,
+  equipments,
 } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { forwardRef } from "preact/compat";
@@ -19,7 +20,6 @@ import { Button } from "./button";
 import { ObjectUtils } from "../utils/object";
 import { HtmlUtils } from "../utils/html";
 import { LabelAndInput } from "./labelAndInput";
-import { LabelAndSelect } from "./labelAndSelect";
 import { Multiselect } from "./multiselect";
 import { equipmentName, Exercise, IExercise } from "../models/exercise";
 import { LinkButton } from "./linkButton";
@@ -29,8 +29,6 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
 import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
-import { Equipment } from "../models/equipment";
-import { MenuItemEditable } from "./menuItemEditable";
 import { ScrollableTabs } from "./scrollableTabs";
 
 interface IModalExerciseProps {
@@ -43,7 +41,6 @@ interface IModalExerciseProps {
   onCreateOrUpdate: (
     shouldClose: boolean,
     name: string,
-    equipment: IEquipment,
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
@@ -142,12 +139,15 @@ const ExercisesList = forwardRef(
   (props: IExercisesListProps): JSX.Element => {
     const { textInput, setFilter, filter } = props;
 
-    let exercises = Exercise.all({});
+    let exercises = Exercise.allExpanded({});
     let customExercises = props.settings.exercises;
-    const filterOptions = [...exerciseKinds.map(StringUtils.capitalize), ...screenMuscles.map(StringUtils.capitalize)];
+    const filterOptions = [
+      ...equipments.map((e) => equipmentName(e, props.settings.equipment)),
+      ...exerciseKinds.map(StringUtils.capitalize),
+      ...screenMuscles.map(StringUtils.capitalize),
+    ];
     const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
     const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
-    const [equipment, setEquipment] = useState<IEquipment | undefined>(props.exerciseType?.equipment);
     if (filter) {
       exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
       customExercises = ObjectUtils.filter(customExercises, (e, v) =>
@@ -162,7 +162,8 @@ const ExercisesList = forwardRef(
           return (
             targetMuscleGroups.indexOf(ft) !== -1 ||
             synergistMuscleGroups.indexOf(ft) !== -1 ||
-            e.types.map(StringUtils.capitalize).indexOf(ft) !== -1
+            e.types.map(StringUtils.capitalize).indexOf(ft) !== -1 ||
+            equipmentName(e.equipment, props.settings.equipment) === ft
           );
         });
       });
@@ -187,30 +188,16 @@ const ExercisesList = forwardRef(
     }
 
     exercises.sort((a, b) => {
-      const aAvailableEquipment = Exercise.getMetadata(a.id)?.sortedEquipment || [];
-      const bAvailableEquipment = Exercise.getMetadata(b.id)?.sortedEquipment || [];
-      if (equipment) {
-        const aIndex = aAvailableEquipment.indexOf(equipment);
-        const bIndex = bAvailableEquipment.indexOf(equipment);
-        if (aIndex !== -1 && bIndex !== -1) {
-          const exerciseType = props.exerciseType;
-          if (props.isSubstitute && exerciseType) {
-            const aRating = Exercise.similarRating(exerciseType, a, props.settings.exercises);
-            const bRating = Exercise.similarRating(exerciseType, b, props.settings.exercises);
-            return bRating - aRating;
-          } else {
-            return a.name.localeCompare(b.name);
-          }
-        } else if (aIndex !== -1) {
-          return -1;
-        } else if (bIndex !== -1) {
-          return 1;
-        }
+      const exerciseType = props.exerciseType;
+      if (props.isSubstitute && exerciseType) {
+        const aRating = Exercise.similarRating(exerciseType, a, props.settings.exercises);
+        const bRating = Exercise.similarRating(exerciseType, b, props.settings.exercises);
+        return bRating - aRating;
+      } else {
+        return a.name.localeCompare(b.name);
       }
-      return a.name.localeCompare(b.name);
     });
 
-    const availableEquipment = Equipment.availableEquipmentKeyByNames(props.settings.equipment);
     const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
 
     return (
@@ -219,7 +206,7 @@ const ExercisesList = forwardRef(
           <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
         )}
         {exercise && (
-          <div className="px-4 py-2 bg-purple-100 rounded-2xl">
+          <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
             <GroupHeader name="Current" />
             <ExerciseItem
               showMuscles={props.isSubstitute}
@@ -229,15 +216,6 @@ const ExercisesList = forwardRef(
             />
           </div>
         )}
-        <MenuItemEditable
-          type="select"
-          name="Equipment"
-          value={equipment || "barbell"}
-          values={availableEquipment}
-          onChange={(newEquipment) => {
-            setEquipment(newEquipment);
-          }}
-        />
         <input
           ref={textInput}
           className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
@@ -269,7 +247,7 @@ const ExercisesList = forwardRef(
                     className="w-full px-2 py-1 text-left border-b border-gray-200"
                     onClick={(event) => {
                       if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-                        props.onChange({ id: e.id, equipment: equipment }, true);
+                        props.onChange({ id: e.id }, true);
                       }
                     }}
                   >
@@ -337,7 +315,7 @@ const ExercisesList = forwardRef(
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
               className="w-full px-2 py-1 text-left border-b border-gray-200"
               onClick={() => {
-                props.onChange({ id: e.id, equipment: equipment }, true);
+                props.onChange(e, true);
               }}
             >
               <ExerciseItem
@@ -345,7 +323,7 @@ const ExercisesList = forwardRef(
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
                 exercise={e}
-                equipment={equipment}
+                equipment={e.equipment}
               />
             </section>
           );
@@ -394,7 +372,6 @@ interface IEditCustomExerciseProps {
   onCreateOrUpdate: (
     shouldClose: boolean,
     name: string,
-    equipment: IEquipment,
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
@@ -405,13 +382,8 @@ interface IEditCustomExerciseProps {
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const customExercises = props.settings.exercises;
-  const equipmentOptions: [IEquipment, string][] = Exercise.sortedEquipments("squat", props.settings).map((e) => [
-    e,
-    equipmentName(e, props.settings.equipment),
-  ]);
   const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
-  const [equipment, setEquipment] = useState<IEquipment>(props.exercise?.defaultEquipment || "barbell");
   const [targetMuscles, setTargetMuscles] = useState<IMuscle[]>(props.exercise?.meta.targetMuscles || []);
   const [synergistMuscles, setSynergistMuscles] = useState<IMuscle[]>(props.exercise?.meta.synergistMuscles || []);
   const [types, setTypes] = useState<IExerciseKind[]>(props.exercise?.types || []);
@@ -430,23 +402,6 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           }
         }}
       />
-      <LabelAndSelect
-        identifier="custom-exercise-equipment"
-        label="Default Equipment"
-        value={equipment}
-        onChange={(event) => {
-          const value = event.currentTarget.value;
-          if (value != null) {
-            setEquipment(value as IEquipment);
-          }
-        }}
-      >
-        {equipmentOptions.map(([key, value]) => (
-          <option value={key} selected={key === equipment}>
-            {value}
-          </option>
-        ))}
-      </LabelAndSelect>
       <Multiselect
         id="target_muscles"
         label="Target Muscles"
@@ -498,7 +453,6 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
                 props.onCreateOrUpdate(
                   !!props.customExerciseName,
                   name,
-                  equipment,
                   targetMuscles,
                   synergistMuscles,
                   types,

@@ -1005,19 +1005,14 @@ export namespace Progress {
     updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})]);
   }
 
-  export function addExercise(
-    dispatch: IDispatch,
-    progressId: number,
-    exerciseId: IExerciseId,
-    settings: ISettings
-  ): void {
+  export function addExercise(dispatch: IDispatch, progressId: number, exerciseType: IExerciseType): void {
     updateState(dispatch, [
       lb<IState>()
         .p("progress")
         .pi(progressId)
         .p("entries")
         .recordModify((entries) => {
-          return [...entries, History.createCustomEntry(exerciseId, settings)];
+          return [...entries, History.createCustomEntry(exerciseType)];
         }),
     ]);
   }

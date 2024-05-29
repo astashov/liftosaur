@@ -22,6 +22,7 @@ import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";
 import { IAllEquipment } from "../types";
+import { ExerciseImageUtils } from "./exerciseImage";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -3585,9 +3586,15 @@ export namespace Exercise {
   }
 
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
-    const exerciseNames = ObjectUtils.values(exercises)
-      .filter((exercise) => StringUtils.fuzzySearch(query.toLowerCase(), exercise.name.toLowerCase()))
-      .map((e) => e.name);
+    const allExercises = allExpanded({});
+    const exerciseNames = allExercises
+      .filter((e) =>
+        StringUtils.fuzzySearch(
+          query.toLowerCase(),
+          `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`.toLowerCase()
+        )
+      )
+      .map((e) => `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`);
     const customExerciseNames = ObjectUtils.values(customExercises)
       .filter((ce) => (ce ? StringUtils.fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
       .map((e) => e!.name);
@@ -3632,6 +3639,33 @@ export namespace Exercise {
     return { ...exercise, equipment: exercise.defaultEquipment };
   }
 
+  export function findByNameAndEquipment(
+    nameAndEquipment: string,
+    customExercises: IAllCustomExercises
+  ): IExercise | undefined {
+    const parts = nameAndEquipment.split(",").map((p) => p.trim());
+    let name: string | undefined;
+    let equipment: IEquipment | undefined;
+    if (parts.length > 1) {
+      const foundEquipment = equipments.filter((e) => equipmentName(e).indexOf(parts[parts.length - 1]) !== -1)[0];
+      if (foundEquipment != null) {
+        equipment = foundEquipment;
+        name = parts.slice(0, parts.length - 1).join(", ");
+      }
+    }
+    if (name == null) {
+      name = nameAndEquipment;
+    }
+    const exerciseId = findIdByName(name, customExercises);
+    if (exerciseId != null) {
+      const exercise = findById(exerciseId, customExercises);
+      if (exercise != null) {
+        return { ...exercise, equipment: equipment };
+      }
+    }
+    return undefined;
+  }
+
   export function findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
     const exerciseId = findIdByName(name, customExercises);
     if (exerciseId != null) {
@@ -3654,6 +3688,21 @@ export namespace Exercise {
     return ObjectUtils.keys(customExercises)
       .map((id) => getExercise(id, customExercises))
       .concat(ObjectUtils.keys(exercises).map((k) => ({ ...exercises[k], equipment: exercises[k].defaultEquipment })));
+  }
+
+  export function allExpanded(customExercises: IAllCustomExercises): IExercise[] {
+    return ObjectUtils.keys(customExercises)
+      .map((id) => getExercise(id, customExercises))
+      .concat(
+        ObjectUtils.keys(exercises).flatMap((k) => {
+          return CollectionUtils.compact(
+            equipments.map((equipment) => {
+              const exerciseType = { id: k, equipment };
+              return ExerciseImageUtils.exists(exerciseType, "small") ? { ...exercises[k], equipment } : undefined;
+            })
+          );
+        })
+      );
   }
 
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
@@ -3863,7 +3912,6 @@ export namespace Exercise {
   export function createOrUpdateCustomExercise<T>(
     allExercises: IAllCustomExercises,
     name: string,
-    equipment: IEquipment,
     tMuscles: IMuscle[],
     sMuscles: IMuscle[],
     types: IExerciseKind[],
@@ -3873,7 +3921,6 @@ export namespace Exercise {
       const newExercise: ICustomExercise = {
         ...exercise,
         name,
-        defaultEquipment: equipment,
         types,
         meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
       };
@@ -3889,7 +3936,6 @@ export namespace Exercise {
           [deletedExercise.id]: {
             ...deletedExercise,
             name,
-            defaultEquipment: equipment,
             types,
             isDeleted: false,
             meta: {
@@ -3904,14 +3950,13 @@ export namespace Exercise {
         const newExercise: ICustomExercise = {
           id,
           name,
-          defaultEquipment: equipment,
           isDeleted: false,
           types,
           meta: {
             targetMuscles: tMuscles,
             synergistMuscles: sMuscles,
             bodyParts: [],
-            sortedEquipment: [equipment],
+            sortedEquipment: [],
           },
         };
         return { ...allExercises, [id]: newExercise };

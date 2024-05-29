@@ -9,7 +9,7 @@ import { Button } from "../button";
 import { useState, useCallback, useEffect, useRef } from "preact/hooks";
 import { ModalPublishProgram } from "../modalPublishProgram";
 import { Thunk } from "../../ducks/thunks";
-import { ICustomExercise, IEquipment, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
+import { ICustomExercise, IExerciseKind, IMuscle, IProgram, ISettings } from "../../types";
 import { IScreen, Screen } from "../../models/screen";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -254,7 +254,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
               onCreateOrUpdate={(
                 shouldClose: boolean,
                 name: string,
-                equipment: IEquipment,
                 targetMuscles: IMuscle[],
                 synergistMuscles: IMuscle[],
                 types: IExerciseKind[],
@@ -263,7 +262,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 const exercises = Exercise.createOrUpdateCustomExercise(
                   props.settings.exercises,
                   name,
-                  equipment,
                   targetMuscles,
                   synergistMuscles,
                   types,

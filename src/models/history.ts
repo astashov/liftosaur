@@ -48,10 +48,7 @@ export namespace History {
     };
   }
 
-  export function createCustomEntry(exerciseId: IExerciseId, settings: ISettings): IHistoryEntry {
-    const equipment = Exercise.defaultEquipment(exerciseId, settings.exercises);
-    const exerciseType: IExerciseType = { id: exerciseId, equipment };
-
+  export function createCustomEntry(exerciseType: IExerciseType): IHistoryEntry {
     return {
       exercise: exerciseType,
       sets: [],

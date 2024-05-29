@@ -351,11 +351,11 @@ export const TCustomExercise = t.intersection(
     t.interface({
       id: TExerciseId,
       name: t.string,
-      defaultEquipment: TEquipment,
       isDeleted: t.boolean,
       meta: TMetaExercises,
     }),
     t.partial({
+      defaultEquipment: TEquipment,
       types: t.array(TExerciseKind),
     }),
   ],

@@ -7,7 +7,6 @@ import { PlannerEditor } from "./plannerEditor";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
 import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
-import { Equipment } from "../../models/equipment";
 import { liftoscriptLanguage } from "../../liftoscriptLanguage";
 import { StringUtils } from "../../utils/string";
 
@@ -27,31 +26,19 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
   const completion = language.data.of({
     autocomplete: (context: CompletionContext): CompletionResult | undefined => {
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
+      console.log(exerciseMatch);
       if (exerciseMatch) {
         let text = exerciseMatch.text;
-        if (text.match(/,\s*\w*$/)) {
-          const offsetMatch = text.match(/(,\s*)(\w*)/);
-          const offset = offsetMatch ? text.length - offsetMatch[2].length : text.length;
-          text = text.substring(offset);
-          const availableEquipment = Equipment.availableEquipmentNames(plannerEditor.args.equipment);
-          const equipment = availableEquipment.filter((eq) => eq.startsWith(text));
-          return {
-            from: exerciseMatch.from + offset,
-            options: equipment.map((eq) => ({ label: eq as string, type: "method" })),
-            validFor: /.*/,
-          };
-        } else {
-          const newText = text.replace(/^[^:]*:/, "");
-          const offset = text.length - newText.length;
-          text = newText;
-          const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
-          const result = {
-            from: exerciseMatch.from + offset,
-            options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
-            validFor: /.*/,
-          };
-          return result;
-        }
+        const newText = text.replace(/^[^:]*:/, "");
+        const offset = text.length - newText.length;
+        text = newText;
+        const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
+        const result = {
+          from: exerciseMatch.from + offset,
+          options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
+          validFor: /.*/,
+        };
+        return result;
       }
       const reuseMatch = context.matchBefore(/\.\.\.[^\/]*/);
       if (reuseMatch) {

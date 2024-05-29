@@ -16,7 +16,6 @@ import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { BuilderCopyLink } from "../builder/components/builderCopyLink";
 import {
   ICustomExercise,
-  IEquipment,
   IExerciseKind,
   IMuscle,
   IPartialStorage,
@@ -503,7 +502,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onCreateOrUpdate={(
             shouldClose: boolean,
             name: string,
-            equipment: IEquipment,
             targetMuscles: IMuscle[],
             synergistMuscles: IMuscle[],
             types: IExerciseKind[],
@@ -512,7 +510,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             const exercises = Exercise.createOrUpdateCustomExercise(
               settings.exercises,
               name,
-              equipment,
               targetMuscles,
               synergistMuscles,
               types,

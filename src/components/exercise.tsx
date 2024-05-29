@@ -304,39 +304,11 @@ const ExerciseContentView = memo(
                 </div>
               )}
             </div>
-            {equipment &&
-              (programExercise ? (
-                <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
-                  {equipmentName(equipment, props.settings.equipment)}
-                </div>
-              ) : (
-                <div className="text-sm text-grayv2-600">
-                  <select
-                    className="border rounded border-grayv2-main"
-                    value={props.entry.exercise.equipment}
-                    data-cy="change-exercise-equipment"
-                    onChange={(e) => {
-                      const target = e.target;
-                      if (target instanceof HTMLSelectElement) {
-                        Progress.changeEquipment(
-                          props.dispatch,
-                          props.progress.id,
-                          props.index,
-                          target.value as IEquipment
-                        );
-                      }
-                    }}
-                  >
-                    {Exercise.sortedEquipments(props.entry.exercise.id, props.settings).map((eq) => {
-                      return (
-                        <option value={eq} selected={eq === props.entry.exercise.equipment}>
-                          {equipmentName(eq, props.settings.equipment)}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              ))}
+            {equipment && (
+              <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
+                {equipmentName(equipment, props.settings.equipment)}
+              </div>
+            )}
             {description && (
               <div className="mt-2">
                 <Markdown value={description} />

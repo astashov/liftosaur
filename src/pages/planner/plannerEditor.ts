@@ -17,7 +17,7 @@ import {
 import { highlightSelectionMatches } from "@codemirror/search";
 import { tags } from "@lezer/highlight";
 import { buildPlannerExerciseLanguageSupport } from "./plannerExerciseCodemirror";
-import { Exercise } from "../../models/exercise";
+import { equipmentName, Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { StringUtils } from "../../utils/string";
 import { IAllCustomExercises, IAllEquipment } from "../../types";
@@ -79,7 +79,10 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
           {
             render: (completion) => {
               if (completion.type === "keyword") {
-                const exercise = Exercise.findByName(completion.label, plannerEditor.args.customExercises || {});
+                const exercise = Exercise.findByNameAndEquipment(
+                  completion.label,
+                  plannerEditor.args.customExercises || {}
+                );
                 const url =
                   exercise && ExerciseImageUtils.exists(exercise, "small")
                     ? ExerciseImageUtils.url(exercise, "small")
@@ -131,7 +134,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
             render: (completion) => {
               if (completion.type === "keyword") {
                 const customExercises = plannerEditor.args.customExercises || {};
-                const exercise = Exercise.findByName(completion.label, customExercises);
+                const exercise = Exercise.findByNameAndEquipment(completion.label, customExercises);
                 if (exercise == null) {
                   return document.createElement("span");
                 }
@@ -140,7 +143,7 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
 
                 const title = document.createElement("div");
                 title.classList.add("exercise-completion-title");
-                title.textContent = completion.label;
+                title.textContent = `${exercise.name}, ${equipmentName(exercise.equipment)}`;
 
                 const description = document.createElement("div");
                 description.classList.add("exercise-completion-description");
