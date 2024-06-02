@@ -1,7 +1,16 @@
-import { IEquipment, IEquipmentData, equipments, IAllEquipment, ISettings, IWeight, IUnit } from "../types";
+import {
+  IEquipment,
+  IEquipmentData,
+  equipments,
+  IAllEquipment,
+  ISettings,
+  IWeight,
+  IUnit,
+  IExerciseType,
+} from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
-import { equipmentName } from "./exercise";
+import { equipmentName, Exercise } from "./exercise";
 import { Weight } from "./weight";
 
 export namespace Equipment {
@@ -22,8 +31,38 @@ export namespace Equipment {
     };
   }
 
+  export function getEquipmentOfGym(settings: ISettings, key?: string): IAllEquipment {
+    const firstEquipment = settings.gyms[0].equipment;
+    if (key != null) {
+      return settings.gyms.find((g) => g.id === key)?.equipment ?? firstEquipment;
+    } else {
+      return firstEquipment;
+    }
+  }
+
+  export function getEquipmentForExerciseType(
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): IEquipmentData | undefined {
+    if (exerciseType == null) {
+      return undefined;
+    }
+
+    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
+    const exerciseEquipment = exerciseData?.equipment;
+    if (exerciseEquipment == null) {
+      return undefined;
+    }
+
+    const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+    const equipment = exerciseEquipment[currentGym.id];
+
+    return equipment ? currentGym.equipment[equipment] : undefined;
+  }
+
   export function getEquipmentData(settings: ISettings, key: string): IEquipmentData | undefined {
-    return settings.equipment[key];
+    const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+    return currentGym.equipment[key];
   }
 
   export function smallestPlate(equipmentData: IEquipmentData, unit: IUnit): IWeight {

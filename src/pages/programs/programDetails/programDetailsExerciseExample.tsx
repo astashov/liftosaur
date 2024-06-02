@@ -86,7 +86,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView
                             noWrap={true}
-                            sets={Reps.roundSets(week.entry.sets, props.settings, week.entry.exercise.equipment)}
+                            sets={Reps.roundSets(week.entry.sets, props.settings, week.entry.exercise)}
                             isNext={true}
                             settings={props.settings}
                           />
@@ -107,7 +107,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             yAxisLabel="Weight"
             color="red"
             getValue={(entry) =>
-              Weight.roundConvertTo(entry.sets[0].weight, settings, props.programExercise.exerciseType.equipment).value
+              Weight.roundConvertTo(entry.sets[0].weight, settings, props.programExercise.exerciseType).value
             }
           />
         </div>

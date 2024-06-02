@@ -594,7 +594,7 @@ export const TProgressUi = t.partial(
     editSetModal: t.type({
       isWarmup: t.boolean,
       entryIndex: t.number,
-      equipment: t.union([TEquipment, t.undefined]),
+      exerciseType: t.union([TExerciseType, t.undefined]),
       programExercise: t.union([TProgramExercise, t.undefined]),
       setIndex: t.union([t.number, t.undefined]),
     }),
@@ -893,6 +893,8 @@ export type IGraphOptions = t.TypeOf<typeof TGraphOptions>;
 export const TExerciseDataValue = t.partial(
   {
     rm1: TWeight,
+    rounding: t.number,
+    equipment: dictionary(t.string, t.string),
   },
   "TExerciseDataValue"
 );
@@ -934,11 +936,22 @@ export const TPlannerSettings = t.type(
 );
 export type IPlannerSettings = t.TypeOf<typeof TPlannerSettings>;
 
+export const TGym = t.type(
+  {
+    id: t.string,
+    name: t.string,
+    equipment: dictionary(TEquipment, TEquipmentData),
+  },
+  "TGym"
+);
+export type IGym = t.TypeOf<typeof TGym>;
+
 export const TSettings = t.intersection(
   [
     t.interface({
       timers: TSettingsTimers,
       equipment: dictionary(TEquipment, TEquipmentData),
+      gyms: t.array(TGym),
       graphs: t.array(TGraph),
       graphOptions: dictionary(t.string, TGraphOptions),
       graphsSettings: t.partial({
@@ -964,6 +977,7 @@ export const TSettings = t.intersection(
       planner: TPlannerSettings,
     }),
     t.partial({
+      currentGymId: t.string,
       isPublicProfile: t.boolean,
       nickname: t.string,
       alwaysOnDisplay: t.boolean,

@@ -40,9 +40,7 @@ export const HistoryEntryView = memo(
               <HistoryRecordSetsView
                 sets={entry.sets.map((set) => ({
                   ...set,
-                  weight: isNext
-                    ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise.equipment)
-                    : set.weight,
+                  weight: isNext ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise) : set.weight,
                 }))}
                 settings={props.settings}
                 isNext={isNext}

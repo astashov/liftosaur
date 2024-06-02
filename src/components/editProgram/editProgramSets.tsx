@@ -159,7 +159,7 @@ interface ISetFieldsProps {
 }
 
 function SetFields(props: ISetFieldsProps): JSX.Element {
-  const { set, state, equipment, settings } = props;
+  const { set, state, settings } = props;
   const propsRef = useRef<ISetFieldsProps>(props);
   propsRef.current = props;
 
@@ -180,7 +180,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           ),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment, unit: settings.units },
+          { exerciseType: props.exerciseType, unit: settings.units },
           "regular"
         );
         if (type === "reps") {

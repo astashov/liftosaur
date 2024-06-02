@@ -91,7 +91,7 @@ export function EditProgramExtraFeatures(props: IProps): JSX.Element {
                 dayData={props.dayData}
                 settings={props.settings}
                 state={programExercise.state}
-                equipment={programExercise.exerciseType.equipment}
+                exerciseType={programExercise.exerciseType}
                 timerExpr={programExercise.timerExpr}
                 onValid={props.onValid}
                 onChangeTimer={props.onChangeTimer}

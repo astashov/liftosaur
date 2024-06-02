@@ -1,7 +1,7 @@
-import { lb, Lens } from "lens-shmens";
+import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { h, JSX, Fragment } from "preact";
 import { Weight } from "../models/weight";
-import { ISettings, IEquipmentData, IEquipment } from "../types";
+import { ISettings, IEquipmentData, IEquipment, IAllEquipment } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -17,12 +17,25 @@ import { equipmentName } from "../models/exercise";
 import { ModalNewEquipment } from "./modalNewEquipment";
 import { UidFactory } from "../utils/generator";
 import { Equipment } from "../models/equipment";
+import { Thunk } from "../ducks/thunks";
+import { IDispatch } from "../ducks/types";
+import { IState } from "../models/state";
 
 interface IProps<T> {
-  dispatch: ILensDispatch<T>;
-  lensPrefix: Lens<T, ISettings>;
+  dispatch: IDispatch;
+  lensPrefix: Lens<IState, IAllEquipment>;
   expandedEquipment?: IEquipment;
+  allEquipment: IAllEquipment;
   settings: ISettings;
+}
+
+function buildDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
+  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>) => {
+    originalDispatch({
+      type: "UpdateState",
+      lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
+    });
+  };
 }
 
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
@@ -31,12 +44,20 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
     undefined
   );
   const [modalNewEquipment, setModalNewEquipment] = useState(false);
+  const dispatch = buildDispatch(props.dispatch);
   return (
     <>
-      {ObjectUtils.keys(props.settings.equipment)
-        .filter((e) => !props.settings.equipment[e]?.isDeleted)
+      {props.settings.gyms.length === 1 && (
+        <div className="mb-2 text-right">
+          <LinkButton name="add-new-gym" onClick={() => props.dispatch(Thunk.pushScreen("gyms"))}>
+            Manage Gyms
+          </LinkButton>
+        </div>
+      )}
+      {ObjectUtils.keys(props.allEquipment)
+        .filter((e) => !props.allEquipment[e]?.isDeleted)
         .map((bar, i) => {
-          const equipmentData = props.settings.equipment[bar];
+          const equipmentData = props.allEquipment[bar];
           if (equipmentData) {
             return (
               <div
@@ -48,7 +69,8 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                 <EquipmentSettingsContent
                   key={bar}
                   lensPrefix={props.lensPrefix}
-                  dispatch={props.dispatch}
+                  allEquipment={props.allEquipment}
+                  dispatch={dispatch}
                   isExpanded={props.expandedEquipment === bar}
                   equipment={bar}
                   setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
@@ -71,16 +93,14 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         isHidden={!modalNewEquipment}
         onInput={(name) => {
           if (name) {
-            const lensRecording = props.lensPrefix
-              .then(lb<ISettings>().p("equipment").get())
-              .recordModify((oldEquipment) => {
-                const id = `equipment-${UidFactory.generateUid(8)}`;
-                return {
-                  ...oldEquipment,
-                  [id]: Equipment.build(name),
-                };
-              });
-            props.dispatch(lensRecording);
+            const lensRecording = props.lensPrefix.then(lb<IAllEquipment>().get()).recordModify((oldEquipment) => {
+              const id = `equipment-${UidFactory.generateUid(8)}`;
+              return {
+                ...oldEquipment,
+                [id]: Equipment.build(name),
+              };
+            });
+            dispatch(lensRecording);
           }
           setModalNewEquipment(false);
         }}
@@ -93,14 +113,14 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           if (weight != null && modalNewPlateEquipmentToShow != null) {
             const newWeight = Weight.build(weight, props.settings.units);
             const plates =
-              props.settings.equipment[modalNewPlateEquipmentToShow]?.plates.filter(
+              props.allEquipment[modalNewPlateEquipmentToShow]?.plates.filter(
                 (p) => p.weight.unit === props.settings.units
               ) || [];
             if (plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
               const lensRecording = props.lensPrefix
-                .then(lb<ISettings>().p("equipment").pi(modalNewPlateEquipmentToShow).p("plates").get())
+                .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
                 .recordModify((p) => [...p, { weight: newWeight, num: 2 }]);
-              props.dispatch(lensRecording);
+              dispatch(lensRecording);
             }
           }
         }}
@@ -114,14 +134,14 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           if (weight != null && modalNewFixedWeightEquipmentToShow != null) {
             const newWeight = Weight.build(weight, props.settings.units);
             const fixedWeights =
-              props.settings.equipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter(
+              props.allEquipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter(
                 (p) => p.unit === props.settings.units
               ) || [];
             if (fixedWeights.every((p) => !Weight.eqeq(p, newWeight))) {
               const lensRecording = props.lensPrefix
-                .then(lb<ISettings>().p("equipment").pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
+                .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
                 .recordModify((p) => [...p, newWeight]);
-              props.dispatch(lensRecording);
+              dispatch(lensRecording);
             }
           }
         }}
@@ -132,8 +152,9 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
 
 interface IEquipmentSettingsContentProps<T> {
   dispatch: ILensDispatch<T>;
-  lensPrefix: Lens<T, ISettings>;
+  lensPrefix: Lens<T, IAllEquipment>;
   equipment: IEquipment;
+  allEquipment: IAllEquipment;
   isExpanded?: boolean;
   setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
   setModalNewFixedWeightEquipmentToShow: (equipment: IEquipment) => void;
@@ -144,11 +165,7 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   return (
     <div>
-      <GroupHeader
-        size="large"
-        name={equipmentName(props.equipment, props.settings.equipment)}
-        isExpanded={props.isExpanded}
-      >
+      <GroupHeader size="large" name={equipmentName(props.equipment, props.allEquipment)} isExpanded={props.isExpanded}>
         {props.equipmentData.name && (
           <MenuItemEditable
             name="Name"
@@ -157,29 +174,10 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
             onChange={(newValue?: string) => {
               if (newValue) {
                 const lensRecording = props.lensPrefix
-                  .then(lb<ISettings>().p("equipment").pi(props.equipment).p("name").get())
+                  .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
                   .record(newValue || undefined);
                 props.dispatch(lensRecording);
               }
-            }}
-          />
-        )}
-        {props.equipmentData.name && (
-          <MenuItemEditable
-            name="Similar To"
-            type="select"
-            value={props.equipmentData.similarTo ?? ""}
-            values={[
-              ["", "None"],
-              ...ObjectUtils.keys(props.settings.equipment)
-                .filter((e) => props.settings.equipment[e]?.name == null)
-                .map<[string, string]>((e) => [e, equipmentName(e, props.settings.equipment)]),
-            ]}
-            onChange={(newValue?: string) => {
-              const lensRecording = props.lensPrefix
-                .then(lb<ISettings>().p("equipment").pi(props.equipment).p("similarTo").get())
-                .record(newValue || undefined);
-              props.dispatch(lensRecording);
             }}
           />
         )}
@@ -189,7 +187,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           value={props.equipmentData.isFixed ? "true" : "false"}
           onChange={(newValue?: string) => {
             const lensRecording = props.lensPrefix
-              .then(lb<ISettings>().p("equipment").pi(props.equipment).p("isFixed").get())
+              .then(lb<IAllEquipment>().pi(props.equipment).p("isFixed").get())
               .record(newValue === "true");
             props.dispatch(lensRecording);
           }}
@@ -198,6 +196,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           <EquipmentSettingsFixed
             lensPrefix={props.lensPrefix}
             equipmentData={props.equipmentData}
+            allEquipment={props.allEquipment}
             setModalNewFixedWeightEquipmentToShow={props.setModalNewFixedWeightEquipmentToShow}
             name={props.equipment}
             settings={props.settings}
@@ -207,6 +206,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           <EquipmentSettingsPlates
             lensPrefix={props.lensPrefix}
             equipmentData={props.equipmentData}
+            allEquipment={props.allEquipment}
             setModalNewPlateEquipmentToShow={props.setModalNewPlateEquipmentToShow}
             name={props.equipment}
             settings={props.settings}
@@ -220,7 +220,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
               onClick={() => {
                 if (confirm("Are you sure?")) {
                   const lensRecording = props.lensPrefix
-                    .then(lb<ISettings>().p("equipment").pi(props.equipment).p("isDeleted").get())
+                    .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
                     .record(true);
                   props.dispatch(lensRecording);
                 }
@@ -237,7 +237,8 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
 
 interface IEquipmentSettingsFixedProps<T> {
   dispatch: ILensDispatch<T>;
-  lensPrefix: Lens<T, ISettings>;
+  lensPrefix: Lens<T, IAllEquipment>;
+  allEquipment: IAllEquipment;
   name: IEquipment;
   setModalNewFixedWeightEquipmentToShow: (equipment: IEquipment) => void;
   settings: ISettings;
@@ -254,7 +255,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
     <div className="mb-4">
       <GroupHeader
         topPadding={true}
-        name={`Available fixed weight for ${equipmentName(props.name, props.settings.equipment)}`}
+        name={`Available fixed weight for ${equipmentName(props.name, props.allEquipment)}`}
       />
       {fixed.map((weight, i) => {
         return (
@@ -267,7 +268,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
                 onClick={() => {
                   const newFixedWeights = equipmentData.fixed.filter((p) => !Weight.eqeq(p, weight));
                   const lensRecording = props.lensPrefix
-                    .then(lb<ISettings>().p("equipment").pi(props.name).p("fixed").get())
+                    .then(lb<IAllEquipment>().pi(props.name).p("fixed").get())
                     .record(newFixedWeights);
                   props.dispatch(lensRecording);
                 }}
@@ -287,7 +288,8 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
 
 interface IEquipmentSettingsPlatesProps<T> {
   dispatch: ILensDispatch<T>;
-  lensPrefix: Lens<T, ISettings>;
+  lensPrefix: Lens<T, IAllEquipment>;
+  allEquipment: IAllEquipment;
   settings: ISettings;
   name: IEquipment;
   setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
@@ -312,7 +314,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
           if (v != null) {
             const lensRecording = props.lensPrefix
-              .then(lb<ISettings>().p("equipment").pi(props.name).p("bar").p(props.settings.units).get())
+              .then(lb<IAllEquipment>().pi(props.name).p("bar").p(props.settings.units).get())
               .record(Weight.build(v, props.settings.units));
             props.dispatch(lensRecording);
           }
@@ -327,18 +329,16 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           if (v != null) {
             const value = Math.min(Math.max(1, v), 2);
             const lensRecording = [
-              props.lensPrefix.then(lb<ISettings>().p("equipment").pi(props.name).p("multiplier").get()).record(value),
-              props.lensPrefix
-                .then(lb<ISettings>().p("equipment").pi(props.name).p("plates").get())
-                .recordModify((pl) => {
-                  const newPlates = pl.map((plate) => {
-                    return {
-                      ...plate,
-                      num: Math.floor(plate.num / value) * value,
-                    };
-                  });
-                  return newPlates;
-                }),
+              props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("multiplier").get()).record(value),
+              props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("plates").get()).recordModify((pl) => {
+                const newPlates = pl.map((plate) => {
+                  return {
+                    ...plate,
+                    num: Math.floor(plate.num / value) * value,
+                  };
+                });
+                return newPlates;
+              }),
             ];
             props.dispatch(lensRecording);
           }
@@ -346,7 +346,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       />
       <GroupHeader
         topPadding={true}
-        name={`Number of ${equipmentName(props.name, props.settings.equipment)} plates available`}
+        name={`Number of ${equipmentName(props.name, props.allEquipment)} plates available`}
       />
       {plates.map((plate) => {
         return (
@@ -358,7 +358,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             onChange={(newValue?: string) => {
               const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
               const lensRecording = props.lensPrefix
-                .then(lb<ISettings>().p("equipment").pi(props.name).p("plates").get())
+                .then(lb<IAllEquipment>().pi(props.name).p("plates").get())
                 .recordModify((pl) => {
                   let newPlates;
                   if (v != null) {

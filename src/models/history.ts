@@ -8,12 +8,10 @@ import {
   IHistoryRecord,
   ISet,
   IExerciseType,
-  IExerciseId,
   IUnit,
   IWeight,
   ISettings,
   IProgram,
-  IEquipment,
   IDayData,
   IScreenMuscle,
   screenMuscles,
@@ -56,8 +54,12 @@ export namespace History {
     };
   }
 
-  export function roundSetsInEntry(entry: IHistoryEntry, settings: ISettings, equipment?: IEquipment): IHistoryEntry {
-    return { ...entry, sets: Reps.roundSets(entry.sets, settings, equipment) };
+  export function roundSetsInEntry(
+    entry: IHistoryEntry,
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): IHistoryEntry {
+    return { ...entry, sets: Reps.roundSets(entry.sets, settings, exerciseType) };
   }
 
   export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
@@ -70,7 +72,7 @@ export namespace History {
           entry = {
             ...entry,
             sets: entry.sets.map((set) => {
-              return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment) };
+              return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise) };
             }),
           };
           if (programExercise != null) {

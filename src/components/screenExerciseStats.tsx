@@ -7,7 +7,7 @@ import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { Exercise } from "../models/exercise";
+import { equipmentName, Exercise } from "../models/exercise";
 import { MenuItemEditable } from "./menuItemEditable";
 import { CollectionUtils } from "../utils/collection";
 import { lb } from "lens-shmens";
@@ -29,6 +29,7 @@ import { useGradualList } from "../utils/useGradualList";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "../models/set";
 import { ExerciseRM } from "./exerciseRm";
+import { InputNumber } from "./inputNumber";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -92,6 +93,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     })
   );
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
+  const exerciseData = props.settings.exerciseData[Exercise.toKey(fullExercise)] || {};
+  const equipmentMap = exerciseData.equipment;
+
   return (
     <Surface
       ref={containerRef}
@@ -121,6 +125,56 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           />
         )}
         <section className="my-2">
+          <InputNumber
+            type="number"
+            label="Default Rounding"
+            min={0}
+            step={0.5}
+            max={100}
+            value={Exercise.defaultRounding(fullExercise, props.settings)}
+            onUpdate={(value) => {
+              if (!isNaN(value)) {
+                updateState(props.dispatch, [
+                  lb<IState>()
+                    .p("storage")
+                    .p("settings")
+                    .p("exerciseData")
+                    .recordModify((data) => {
+                      const k = Exercise.toKey(fullExercise);
+                      return { ...data, [k]: { ...data[k], rounding: value } };
+                    }),
+                ]);
+              }
+            }}
+          />
+          {props.settings.gyms.length > 1 && <GroupHeader name="Equipments for each Gym" topPadding={true} />}
+          {props.settings.gyms.map((gym, i) => {
+            const equipment = equipmentMap?.[gym.id];
+            const values: [string, string][] = [
+              ["", ""],
+              ...ObjectUtils.keys(gym.equipment).map<[string, string]>((id) => [id, equipmentName(id, gym.equipment)]),
+            ];
+            return (
+              <MenuItemEditable
+                type="select"
+                name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
+                value={equipment ?? ""}
+                values={values}
+                onChange={(value) => {
+                  updateState(props.dispatch, [
+                    lb<IState>()
+                      .p("storage")
+                      .p("settings")
+                      .p("exerciseData")
+                      .recordModify((data) => {
+                        const k = Exercise.toKey(fullExercise);
+                        return { ...data, [k]: { ...data[k], equipment: { ...data[k]?.equipment, [gym.id]: value } } };
+                      }),
+                  ]);
+                }}
+              />
+            );
+          })}
           <ExerciseRM
             name="1 Rep Max"
             rmKey="rm1"

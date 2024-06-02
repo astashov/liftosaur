@@ -1,7 +1,7 @@
 import { JSX, h } from "preact";
 import { useRef } from "preact/hooks";
 import { Weight } from "../../../models/weight";
-import { IWeight, IPercentage, IEquipment, ISettings, IUnit } from "../../../types";
+import { IWeight, IPercentage, ISettings, IUnit, IExerciseType } from "../../../types";
 import { MathUtils } from "../../../utils/math";
 
 interface INumInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"> {
@@ -99,7 +99,7 @@ interface IWeightInputProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "
   value?: IWeight | IPercentage;
   label?: string;
   dimmed?: boolean;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   settings: ISettings;
   onUpdate: (weight?: IWeight | IPercentage) => void;
 }
@@ -120,7 +120,7 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
               const newValue = Math.max(0, value + 1);
               props.onUpdate(Weight.buildPct(newValue));
             } else {
-              const newWeight = Weight.increment(Weight.build(value, unit), props.settings, props.equipment);
+              const newWeight = Weight.increment(Weight.build(value, unit), props.settings, props.exerciseType);
               props.onUpdate(newWeight);
             }
           }
@@ -132,7 +132,7 @@ export function WeightInput(props: IWeightInputProps): JSX.Element {
               const newValue = Math.max(0, value - 1);
               props.onUpdate(Weight.buildPct(newValue));
             } else {
-              const newWeight = Weight.decrement(Weight.build(value, unit), props.settings, props.equipment);
+              const newWeight = Weight.decrement(Weight.build(value, unit), props.settings, props.exerciseType);
               props.onUpdate(newWeight);
             }
           }

@@ -17,7 +17,7 @@ import {
   IProgressMode,
   ISubscription,
   IProgramExercise,
-  IEquipment,
+  IExerciseType,
 } from "../types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -244,7 +244,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 progressId={progress.id}
                 dispatch={props.dispatch}
                 settings={props.settings}
-                equipment={progress.ui?.editSetModal?.equipment}
+                exerciseType={progress.ui?.editSetModal?.exerciseType}
                 programExercise={progress.ui?.editSetModal?.programExercise}
                 allProgramExercises={props.program?.exercises}
                 set={EditProgressEntry.getEditSetData(props.progress)}
@@ -289,7 +289,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             entryIndex: number,
             setIndex?: number,
             programExercise?: IProgramExercise,
-            equipment?: IEquipment
+            exerciseType?: IExerciseType
           ) => {
             EditProgressEntry.showEditSetModal(
               props.dispatch,
@@ -297,7 +297,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               entryIndex,
               setIndex,
               programExercise,
-              equipment
+              exerciseType
             );
           }}
         />

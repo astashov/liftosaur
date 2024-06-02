@@ -1,7 +1,6 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
-import { EquipmentSettings } from "../../../components/equipmentSettings";
 import { GroupHeader } from "../../../components/groupHeader";
 import { MenuItemEditable } from "../../../components/menuItemEditable";
 import { ISettings } from "../../../types";
@@ -48,11 +47,6 @@ export function ProgramDetailsSettings(props: IProgramDetailsSettingsProps): JSX
                   );
                 }
               }}
-            />
-            <EquipmentSettings
-              lensPrefix={lb<IProgramDetailsState>().p("settings").get()}
-              dispatch={props.dispatch}
-              settings={props.settings}
             />
           </div>
         </div>

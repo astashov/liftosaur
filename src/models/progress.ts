@@ -33,7 +33,7 @@ import {
 import { SendMessage } from "../utils/sendMessage";
 import { ProgramExercise } from "./programExercise";
 import { Subscriptions } from "../utils/subscriptions";
-import { IExerciseId, IPercentage } from "../types";
+import { IPercentage } from "../types";
 import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
 import { MathUtils } from "../utils/math";
@@ -66,7 +66,7 @@ export interface IScriptBindings {
 
 export interface IScriptFnContext {
   unit: IUnit;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
 }
 
 export interface IScriptFinishContext {
@@ -243,7 +243,7 @@ export namespace Progress {
   ): IScriptBindings {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
-      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment));
+      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise));
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps);
       bindings.completedReps.push(set.completedReps);
@@ -271,13 +271,13 @@ export namespace Progress {
         if (!Weight.is(num)) {
           num = Weight.build(num, settings.units);
         }
-        return Weight.round(num, settings, context?.equipment || "barbell");
+        return Weight.round(num, settings, context?.exerciseType);
       },
       calculateTrainingMax: (weight, reps, context) => {
         if (!Weight.is(weight)) {
           weight = Weight.build(weight, settings.units);
         }
-        return Weight.getTrainingMax(weight, reps || 0, settings, "barbell");
+        return Weight.getTrainingMax(weight, reps || 0, settings);
       },
       calculate1RM: (weight, reps, context) => {
         if (!Weight.is(weight)) {
@@ -381,7 +381,7 @@ export namespace Progress {
               Progress.createScriptFunctions(settings),
               settings.units,
               {
-                equipment: exercise.equipment,
+                exerciseType: exercise,
                 unit: settings.units,
               },
               "regular"
@@ -436,11 +436,10 @@ export namespace Progress {
         const { entry, set } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
-          const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
+          const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise);
           subtitleHeader = "Next Set";
           subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
-          const formattedPlates =
-            plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise.equipment) : "None";
+          const formattedPlates = plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise) : "None";
           bodyHeader = "Plates per side";
           body = formattedPlates;
         }
@@ -636,10 +635,7 @@ export namespace Progress {
         bindings,
         Progress.createScriptFunctions(settings),
         settings.units,
-        {
-          equipment: exercise.equipment,
-          unit: settings.units,
-        },
+        { exerciseType: exercise, unit: settings.units },
         "update"
       );
       runner.execute();
@@ -943,8 +939,11 @@ export namespace Progress {
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map((progressEntry) => {
           const eq = (a: IWeight, b: IWeight): boolean => {
-            const bar = progressEntry.exercise.equipment;
-            return Weight.eq(Weight.roundConvertTo(a, settings, bar), Weight.roundConvertTo(b, settings, bar));
+            const exerciseType = progressEntry.exercise;
+            return Weight.eq(
+              Weight.roundConvertTo(a, settings, exerciseType),
+              Weight.roundConvertTo(b, settings, exerciseType)
+            );
           };
           if (Exercise.eq(progressEntry.exercise, exercise)) {
             const firstWeight = progressEntry.sets[0]?.weight;
@@ -952,7 +951,7 @@ export namespace Progress {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
                 if (eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise.equipment) };
+                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise) };
                 } else {
                   return set;
                 }
@@ -1087,7 +1086,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units },
             settings,
             "weight"
           )
@@ -1107,7 +1106,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units },
             settings,
             "weight"
           );
@@ -1118,7 +1117,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+              { exerciseType: programExercise.exerciseType, unit: settings.units },
               settings,
               "reps"
             ),
@@ -1128,7 +1127,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units },
                   settings,
                   "reps"
                 )
@@ -1139,7 +1138,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units },
                   settings,
                   "rpe"
                 )
@@ -1173,7 +1172,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units },
             settings,
             "weight"
           );
@@ -1183,7 +1182,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+              { exerciseType: programExercise.exerciseType, unit: settings.units },
               settings,
               "reps"
             ),
@@ -1193,7 +1192,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units },
                   settings,
                   "reps"
                 )
@@ -1205,7 +1204,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units },
                   settings,
                   "rpe"
                 )

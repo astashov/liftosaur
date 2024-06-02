@@ -7,6 +7,7 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { GroupHeader } from "../../groupHeader";
 import { EditProgramUiHelpers } from "./editProgramUiHelpers";
 import { WeightInput, NumInput } from "./editProgramUiInputs";
+import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
 
 interface IEditProgramUiGlobalsProps {
   plannerExercise: IPlannerProgramExercise;
@@ -50,7 +51,7 @@ export function EditProgramUiGlobals(props: IEditProgramUiGlobalsProps): JSX.Ele
             name="edit-exercise-globals-weight"
             value={globals.weight}
             settings={props.settings}
-            equipment={plannerExercise.equipment}
+            exerciseType={PlannerProgramExercise.getExercise(plannerExercise, props.settings)}
             onUpdate={(val) => {
               modify((ex) => {
                 if (!val) {

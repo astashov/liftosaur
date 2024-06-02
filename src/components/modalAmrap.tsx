@@ -99,7 +99,7 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
         {askWeight && (
           <div className="mb-2">
             <InputWeight
-              equipment={entry?.exercise?.equipment || props.programExercise?.exerciseType.equipment}
+              exerciseType={entry?.exercise || props.programExercise?.exerciseType}
               label="Weight"
               units={["kg", "lb"]}
               value={weightInputValue || Weight.build(0, props.settings.units)}

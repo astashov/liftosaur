@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
-import { ISet, IProgramExercise, ISubscription, IEquipment, ISettings } from "../types";
+import { ISet, IProgramExercise, ISubscription, ISettings, IExerciseType } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
 import { ProgramExercise } from "../models/programExercise";
@@ -20,7 +20,7 @@ interface IModalWeightProps {
   settings: ISettings;
   isWarmup: boolean;
   progressId: number;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   programExercise?: IProgramExercise;
   allProgramExercises?: IProgramExercise[];
   entryIndex: number;
@@ -35,12 +35,12 @@ function getPlatesStr(
   subscription: ISubscription,
   weight: number,
   settings: ISettings,
-  equipment?: IEquipment
+  exerciseType: IExerciseType
 ): string | undefined {
   if (Subscriptions.hasSubscription(subscription)) {
     const value = Weight.build(weight, settings.units);
-    const plates = Weight.calculatePlates(value, settings, equipment);
-    const oneside = Weight.formatOneSide(settings, plates.plates, equipment);
+    const plates = Weight.calculatePlates(value, settings, exerciseType);
+    const oneside = Weight.formatOneSide(settings, plates.plates, exerciseType);
     return oneside;
   } else {
     return undefined;
@@ -51,7 +51,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const set = props.set;
   const isAmrapInput = useRef<HTMLInputElement>(null);
   const [roundedWeight, setRoundedWeight] = useState(
-    Weight.round(set?.weight || Weight.build(0, props.settings.units), props.settings, props.equipment)
+    Weight.round(set?.weight || Weight.build(0, props.settings.units), props.settings, props.exerciseType)
   );
   const initialRpe = set?.rpe;
   const [rpe, setRpe] = useState(initialRpe ?? 0);
@@ -64,7 +64,9 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
     : false;
 
   const [platesStr, setPlatesStr] = useState<string | undefined>(
-    props.set ? getPlatesStr(props.subscription, roundedWeight.value, props.settings, props.equipment) : undefined
+    props.set && props.exerciseType
+      ? getPlatesStr(props.subscription, roundedWeight.value, props.settings, props.exerciseType)
+      : undefined
   );
   return (
     <Modal
@@ -101,14 +103,14 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             <InputWeight
               units={["kg", "lb"]}
               settings={props.settings}
-              equipment={props.equipment}
+              exerciseType={props.exerciseType}
               data-cy="modal-edit-set-weight-input"
               onUpdate={(newWeight) => {
                 if (Weight.is(newWeight)) {
                   setRoundedWeight(newWeight);
-                  if (Subscriptions.hasSubscription(props.subscription)) {
-                    const plates = Weight.calculatePlates(newWeight, props.settings, props.equipment);
-                    const oneside = Weight.formatOneSide(props.settings, plates.plates, props.equipment);
+                  if (Subscriptions.hasSubscription(props.subscription) && props.exerciseType) {
+                    const plates = Weight.calculatePlates(newWeight, props.settings, props.exerciseType);
+                    const oneside = Weight.formatOneSide(props.settings, plates.plates, props.exerciseType);
                     setPlatesStr(oneside);
                   }
                 }
@@ -172,7 +174,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             type="submit"
             onClick={() => {
               const repsValue = MathUtils.round(MathUtils.clamp(reps, 1), 1);
-              const weightValue = Weight.round(roundedWeight, props.settings, props.equipment);
+              const weightValue = Weight.round(roundedWeight, props.settings, props.exerciseType);
               const rpeValue = enableRpe ? MathUtils.round(MathUtils.clamp(rpe, 0, 10), 0.5) : undefined;
               const isAmrap = !!(isAmrapInput.current?.checked || false);
               const newSet: ISet = {

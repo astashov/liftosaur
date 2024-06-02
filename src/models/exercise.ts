@@ -3511,30 +3511,29 @@ export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerc
   };
 }
 
-function warmup45(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues(settings.units)[45] || [])(weight, settings, equipment);
+function warmup45(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+  return warmup(warmupValues(settings.units)[45] || [])(weight, settings, exerciseType);
 }
 
-function warmup95(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues(settings.units)[95] || [])(weight, settings, equipment);
+function warmup95(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+  return warmup(warmupValues(settings.units)[95] || [])(weight, settings, exerciseType);
 }
 
-function warmup10(weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] {
-  return warmup(warmupValues(settings.units)[10] || [])(weight, settings, equipment);
+function warmup10(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
+  return warmup(warmupValues(settings.units)[10] || [])(weight, settings, exerciseType);
 }
 
 function warmup(
   programExerciseWarmupSets: IProgramExerciseWarmupSet[]
-): (weight: IWeight, settings: ISettings, equipment?: IEquipment) => ISet[] {
-  return (weight: IWeight, settings: ISettings, equipment?: IEquipment): ISet[] => {
-    const bar = equipmentToBarKey(equipment);
+): (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
+  return (weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
       if (Weight.gt(weight, programExerciseWarmupSet.threshold)) {
         const value = programExerciseWarmupSet.value;
         const warmupWeight = Weight.roundConvertTo(
           typeof value === "number" ? Weight.multiply(weight, value) : value,
           settings,
-          bar
+          exerciseType
         );
         memo.push({ reps: programExerciseWarmupSet.reps, weight: warmupWeight });
       }
@@ -3629,6 +3628,10 @@ export namespace Exercise {
     return settings.units === "kg" ? exercise.startingWeightKg : exercise.startingWeightLb;
   }
 
+  export function defaultRounding(type: IExerciseType, settings: ISettings): number {
+    return settings.exerciseData[Exercise.toKey(type)]?.rounding ?? 0.5;
+  }
+
   export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {
     const exercise = maybeGetExercise(type.id, customExercises);
     return exercise ? { ...exercise, equipment: type.equipment } : undefined;
@@ -3717,15 +3720,15 @@ export namespace Exercise {
   ): ISet[] {
     const ex = get(exercise, settings.exercises);
     if (programExerciseWarmupSets != null) {
-      return warmup(programExerciseWarmupSets)(weight, settings, exercise.equipment);
+      return warmup(programExerciseWarmupSets)(weight, settings, exercise);
     } else {
       let warmupSets = warmupEmpty(weight);
       if (ex.defaultWarmup === 10) {
-        warmupSets = warmup10(weight, settings, exercise.equipment);
+        warmupSets = warmup10(weight, settings, exercise);
       } else if (ex.defaultWarmup === 45) {
-        warmupSets = warmup45(weight, settings, exercise.equipment);
+        warmupSets = warmup45(weight, settings, exercise);
       } else if (ex.defaultWarmup === 95) {
-        warmupSets = warmup95(weight, settings, exercise.equipment);
+        warmupSets = warmup95(weight, settings, exercise);
       }
       return warmupSets;
     }
@@ -3791,12 +3794,12 @@ export namespace Exercise {
   }
 
   export function toKey(type: IExerciseType): string {
-    return `${type.id}_${type.equipment || "bodyweight"}`;
+    return `${type.id}${type.equipment ? `_${type.equipment}` : ""}`;
   }
 
   export function fromKey(type: string): IExerciseType {
     const [id, equipment] = type.split("_");
-    return { id: id as IExerciseId, equipment: (equipment || "bodyweight") as IEquipment };
+    return { id: id as IExerciseId, equipment: equipment };
   }
 
   export function defaultEquipment(type: IExerciseId, customExercises: IAllCustomExercises): IEquipment | undefined {

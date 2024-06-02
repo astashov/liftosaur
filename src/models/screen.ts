@@ -14,6 +14,7 @@ export type IScreen =
   | "account"
   | "timers"
   | "plates"
+  | "gyms"
   | "programs"
   | "progress"
   | "graphs"
@@ -108,6 +109,9 @@ export namespace Screen {
         return "settings";
       }
       case "plates": {
+        return "settings";
+      }
+      case "gyms": {
         return "settings";
       }
       case "programs": {

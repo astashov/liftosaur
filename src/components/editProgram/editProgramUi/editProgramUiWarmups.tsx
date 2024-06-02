@@ -8,7 +8,7 @@ import {
   IPlannerProgramExerciseWarmupSet,
   IPlannerState,
 } from "../../../pages/planner/models/types";
-import { IEquipment, ISettings } from "../../../types";
+import { ISettings, IExerciseType } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { GroupHeader } from "../../groupHeader";
 import { IconTrash } from "../../icons/iconTrash";
@@ -85,7 +85,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
         return (
           <WarmupRow
             warmupSet={warmupSet}
-            equipment={plannerExercise.equipment}
+            exerciseType={PlannerProgramExercise.getExercise(plannerExercise, props.settings)}
             disabled={ownWarmups == null}
             settings={props.settings}
             onUpdate={(newWarmupSet) => {
@@ -139,7 +139,7 @@ export function EditProgramUiWarmups(props: IEditProgramUiWarmupsProps): JSX.Ele
 interface IWarmupRowProps {
   warmupSet: IPlannerProgramExerciseWarmupSet;
   disabled?: boolean;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   onUpdate: (newWarmupSet: IPlannerProgramExerciseWarmupSet | undefined) => void;
   settings: ISettings;
 }
@@ -172,7 +172,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
             name="edit-exercise-warmupset-weight"
             disabled={props.disabled}
             settings={props.settings}
-            equipment={props.equipment}
+            exerciseType={props.exerciseType}
             value={weight}
             onUpdate={(val) => {
               const newWeight = Weight.isPct(val)

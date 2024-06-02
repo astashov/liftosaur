@@ -161,10 +161,32 @@ export function ScreenSettings(props: IProps): JSX.Element {
           onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
           shouldShowRightArrow={true}
         />
+        {props.settings.gyms.length > 1 && (
+          <MenuItemEditable
+            type="select"
+            name="Current Gym"
+            value={props.settings.currentGymId ?? props.settings.gyms[0].id}
+            values={props.settings.gyms.map((g) => [g.id, g.name])}
+            onChange={(newValue) => {
+              if (newValue != null) {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>().p("currentGymId").record(newValue),
+                });
+              }
+            }}
+          />
+        )}
         <MenuItem
           shouldShowRightArrow={true}
           name="Available Equipment"
-          onClick={() => props.dispatch(Thunk.pushScreen("plates"))}
+          onClick={() => {
+            if (props.settings.gyms.length > 1) {
+              props.dispatch(Thunk.pushScreen("gyms"));
+            } else {
+              props.dispatch(Thunk.pushScreen("plates"));
+            }
+          }}
         />
         <MenuItemEditable
           type="select"

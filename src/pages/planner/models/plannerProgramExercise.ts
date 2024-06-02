@@ -10,12 +10,21 @@ import { ObjectUtils } from "../../../utils/object";
 import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
-import { IExercise, warmupValues } from "../../../models/exercise";
+import { Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
 
 export class PlannerProgramExercise {
   public static numberOfSets(exercise: IPlannerProgramExercise): number {
     return PlannerProgramExercise.sets(exercise).reduce((acc, set) => acc + (set.repRange?.numberOfSets || 0), 0);
+  }
+
+  public static getExercise(plannerExercise: IPlannerProgramExercise, settings: ISettings): IExercise | undefined {
+    const exercise = Exercise.findByName(plannerExercise.name, settings.exercises);
+    if (exercise == null) {
+      return undefined;
+    }
+    exercise.equipment = plannerExercise.equipment || exercise?.equipment || exercise?.defaultEquipment;
+    return exercise;
   }
 
   public static setVariations(exercise: IPlannerProgramExercise): IPlannerProgramExerciseSetVariation[] {

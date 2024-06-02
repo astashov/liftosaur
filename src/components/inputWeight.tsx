@@ -1,7 +1,7 @@
 import { JSX, h } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { Weight } from "../models/weight";
-import { IEquipment, IPercentage, ISettings, IUnit, IWeight } from "../types";
+import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Input } from "./input";
 import { Modal } from "./modal";
@@ -10,7 +10,7 @@ import { RepMaxCalculator } from "./repMaxCalculator";
 interface IInputWeightProps {
   value: IWeight | IPercentage;
   label?: string;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   units?: (IUnit | "%")[];
   settings: ISettings;
   "data-cy"?: string;
@@ -52,7 +52,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
                   const newValue = Math.max(0, value.value - 1);
                   props.onUpdate(Weight.buildPct(newValue));
                 } else {
-                  const newWeight = Weight.decrement(value, props.settings, props.equipment);
+                  const newWeight = Weight.decrement(value, props.settings, props.exerciseType);
                   props.onUpdate(newWeight);
                 }
               }
@@ -127,7 +127,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
                   const newValue = value.value + 1;
                   props.onUpdate(Weight.buildPct(newValue));
                 } else {
-                  const newWeight = Weight.increment(value, props.settings, props.equipment);
+                  const newWeight = Weight.increment(value, props.settings, props.exerciseType);
                   props.onUpdate(newWeight);
                 }
               }

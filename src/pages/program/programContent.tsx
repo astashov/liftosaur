@@ -14,7 +14,6 @@ import { ClipboardUtils } from "../../utils/clipboard";
 import { ProgramContentModalSettings } from "./components/programContentModalSettings";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { useCopyPaste } from "./utils/programCopypaste";
-import { ProgramContentModalEquipment } from "./components/programContentModalEquipment";
 import { lb } from "lens-shmens";
 import { Encoder } from "../../utils/encoder";
 import { UrlUtils } from "../../utils/url";
@@ -112,7 +111,6 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [programUrl, setProgramUrl] = useState<string | undefined>(undefined);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
 
   useEffect(() => {
     if (props.shouldSync) {
@@ -276,22 +274,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
       )}
       <ProgramContentModalSettings
         isMobile={props.isMobile}
-        onShowEquipment={() => {
-          setShowSettingsModal(false);
-          setShowEquipmentModal(true);
-        }}
         program={state.current.program}
         isHidden={!showSettingsModal}
         settings={state.settings}
         dispatch={dispatch}
         onClose={() => setShowSettingsModal(false)}
-      />
-      <ProgramContentModalEquipment
-        lensPrefix={lb<IProgramEditorState>().p("settings").get()}
-        isHidden={!showEquipmentModal}
-        settings={state.settings}
-        dispatch={dispatch}
-        onClose={() => setShowEquipmentModal(false)}
       />
     </div>
   );

@@ -44,7 +44,7 @@ export function ModalWeight(props: IModalWeightProps): JSX.Element {
             }
           }}
           settings={props.settings}
-          equipment={props.programExercise?.exerciseType.equipment}
+          exerciseType={props.programExercise?.exerciseType}
         />
         <div className="mt-4 text-right">
           <Button

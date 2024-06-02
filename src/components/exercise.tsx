@@ -17,7 +17,6 @@ import {
   IHistoryRecord,
   ISet,
   ISubscription,
-  IEquipment,
   IDayData,
   IProgram,
 } from "../types";
@@ -73,7 +72,7 @@ interface IProps {
     entryIndex: number,
     setIndex?: number,
     programExercise?: IProgramExercise,
-    equipment?: IEquipment
+    exerciseType?: IExerciseType
   ) => void;
   onExerciseInfoClick?: (exercise: IExerciseType) => void;
   onChangeReps: (mode: IProgressMode, entryIndex: number, setIndex: number) => void;
@@ -180,7 +179,7 @@ const ExerciseContentView = memo(
     const workoutWeights = CollectionUtils.compatBy(
       props.entry.sets.map((s) => ({
         original: s.weight,
-        rounded: Weight.roundConvertTo(s.weight, props.settings, equipment),
+        rounded: Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise),
       })),
       (w) => w.rounded.value.toString()
     );
@@ -190,9 +189,9 @@ const ExerciseContentView = memo(
     workoutWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
     const warmupSets = props.entry.warmupSets;
     const warmupWeights = CollectionUtils.compatBy(
-      props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, equipment)),
+      props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise)),
       (w) => w.value.toString()
-    ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, equipment).plates).length > 0);
+    ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise).plates).length > 0);
     warmupWeights.sort(Weight.compare);
     const isEditModeRef = useRef(false);
     isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
@@ -341,10 +340,7 @@ const ExerciseContentView = memo(
                     {warmupWeights.map((w) => {
                       const isCurrent =
                         nextSet != null &&
-                        Weight.eq(
-                          Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment),
-                          w
-                        );
+                        Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise), w);
                       const className = isCurrent ? "font-bold" : "";
                       return (
                         <div className={`${className} flex items-start`}>
@@ -405,9 +401,7 @@ const ExerciseContentView = memo(
             )}
             {(!isSubscribed || props.hidePlatesCalculator) && (
               <div className="h-4">
-                {nextSet && (
-                  <NextSet nextSet={nextSet} settings={props.settings} equipment={props.entry.exercise.equipment} />
-                )}
+                {nextSet && <NextSet nextSet={nextSet} settings={props.settings} exerciseType={props.entry.exercise} />}
               </div>
             )}
           </div>
@@ -510,7 +504,7 @@ const ExerciseContentView = memo(
   }
 );
 
-function NextSet(props: { nextSet: ISet; settings: ISettings; equipment?: IEquipment }): JSX.Element {
+function NextSet(props: { nextSet: ISet; settings: ISettings; exerciseType?: IExerciseType }): JSX.Element {
   const nextSet = props.nextSet;
   return (
     <div className="pt-2 text-xs text-grayv2-main" data-cy="next-set">
@@ -518,7 +512,7 @@ function NextSet(props: { nextSet: ISet; settings: ISettings; equipment?: IEquip
       <strong>
         {nextSet.isAmrap ? "at least " : ""}
         {nextSet.minReps != null ? `${nextSet.minReps}-` : ""}
-        {nextSet.reps} reps x {Weight.print(Weight.roundConvertTo(nextSet.weight, props.settings, props.equipment))}
+        {nextSet.reps} reps x {Weight.print(Weight.roundConvertTo(nextSet.weight, props.settings, props.exerciseType))}
         {nextSet.rpe != null ? ` @${nextSet.rpe} RPE` : ""}
       </strong>
     </div>
@@ -579,18 +573,14 @@ function HistoricalAmrapSets(props: {
 
 const WeightView = memo(
   (props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element | null => {
-    const { plates, totalWeight: weight } = Weight.calculatePlates(
-      props.weight,
-      props.settings,
-      props.exercise.equipment
-    );
+    const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.settings, props.exercise);
     const className = Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600";
     return (
       <>
         <span className="px-1">-</span>
         <span className="break-all">
           <span className={className}>
-            {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exercise.equipment) : "None"}
+            {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exercise) : "None"}
           </span>
         </span>
       </>
@@ -612,7 +602,7 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
   const { weight: w, nextSet, isFriend } = props;
   const isCurrent =
     nextSet != null &&
-    Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise.equipment), w.rounded);
+    Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise), w.rounded);
   const isEqual = Weight.eq(w.original, w.rounded);
   const className = isCurrent ? "font-bold" : "";
   return (

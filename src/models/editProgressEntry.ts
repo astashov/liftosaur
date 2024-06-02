@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { IState } from "./state";
-import { IProgramExercise, ISet, IEquipment, IHistoryRecord } from "../types";
+import { IProgramExercise, ISet, IHistoryRecord, IExerciseType } from "../types";
 
 export namespace EditProgressEntry {
   export function showEditSetModal(
@@ -10,7 +10,7 @@ export namespace EditProgressEntry {
     entryIndex: number,
     setIndex?: number,
     programExercise?: IProgramExercise,
-    equipment?: IEquipment
+    exerciseType?: IExerciseType
   ): void {
     dispatch({
       type: "UpdateProgress",
@@ -20,7 +20,7 @@ export namespace EditProgressEntry {
           isWarmup,
           entryIndex,
           setIndex,
-          equipment,
+          exerciseType,
         }),
       ],
     });

@@ -11,7 +11,7 @@ import {
   IPlannerProgramProperty,
   IPlannerProgramReuse,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IEquipment, equipments } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, equipments, IExerciseType } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
@@ -347,7 +347,7 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateUpdate(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
+  private evaluateUpdate(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -385,7 +385,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { equipment, unit: this.settings.units },
+            { exerciseType, unit: this.settings.units },
             "update"
           );
           const stateKeys = liftoscriptEvaluator.getStateVariableKeys();
@@ -412,7 +412,7 @@ export class PlannerExerciseEvaluator {
     }
   }
 
-  private evaluateProgress(expr: SyntaxNode, equipment?: IEquipment): IPlannerProgramProperty {
+  private evaluateProgress(expr: SyntaxNode, exerciseType?: IExerciseType): IPlannerProgramProperty {
     if (expr.type.name === PlannerNodeName.ExerciseProperty) {
       const valueNode = expr.getChild(PlannerNodeName.FunctionExpression);
       if (valueNode == null) {
@@ -513,7 +513,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { equipment, unit: this.settings.units },
+            { exerciseType, unit: this.settings.units },
             "planner"
           );
           try {
@@ -578,7 +578,7 @@ export class PlannerExerciseEvaluator {
 
   private evaluateProperty(
     expr: SyntaxNode,
-    equipment?: IEquipment
+    exerciseType?: IExerciseType
   ):
     | { type: "progress"; data: IPlannerProgramProperty }
     | { type: "update"; data: IPlannerProgramProperty }
@@ -592,9 +592,9 @@ export class PlannerExerciseEvaluator {
       }
       const name = this.getValue(nameNode);
       if (name === "progress") {
-        return { type: "progress", data: this.evaluateProgress(expr, equipment) };
+        return { type: "progress", data: this.evaluateProgress(expr, exerciseType) };
       } else if (name === "update") {
-        return { type: "update", data: this.evaluateUpdate(expr, equipment) };
+        return { type: "update", data: this.evaluateUpdate(expr, exerciseType) };
       } else if (name === "warmup") {
         return { type: "warmup", data: this.evaluateWarmup(expr) };
       } else if (name === "id") {
@@ -647,7 +647,7 @@ export class PlannerExerciseEvaluator {
 
   private evaluateSection(
     expr: SyntaxNode,
-    equipment?: IEquipment
+    exerciseType?: IExerciseType
   ):
     | { type: "sets"; data: IPlannerProgramExerciseSet[]; isCurrent: boolean }
     | { type: "progress"; data: IPlannerProgramProperty }
@@ -671,7 +671,7 @@ export class PlannerExerciseEvaluator {
       }
       const property = expr.getChild(PlannerNodeName.ExerciseProperty);
       if (property != null) {
-        return this.evaluateProperty(property, equipment);
+        return this.evaluateProperty(property, exerciseType);
       } else {
         assert(PlannerNodeName.ExerciseProperty);
       }
@@ -861,7 +861,7 @@ export class PlannerExerciseEvaluator {
       const text = this.getValueTrim(expr).trim();
       let tags: number[] = [];
       for (const sectionNode of sectionNodes) {
-        const section = this.evaluateSection(sectionNode, equipment);
+        const section = this.evaluateSection(sectionNode, { id: exercise.id, equipment });
         if (section.type === "sets") {
           allSets.push(...section.data);
           if (section.data.some((set) => set.repRange != null)) {

@@ -13,7 +13,7 @@ import { Thunk } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
-import { ScreenPlates } from "./screenPlates";
+import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
 import { Progress } from "../models/progress";
@@ -44,6 +44,8 @@ import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
+import { Equipment } from "../models/equipment";
+import { ScreenGyms } from "./screenGyms";
 
 interface IProps {
   client: Window["fetch"];
@@ -365,11 +367,24 @@ export function AppView(props: IProps): JSX.Element | null {
         timers={state.storage.settings.timers}
       />
     );
-  } else if (Screen.current(state.screenStack) === "plates") {
+  } else if (Screen.current(state.screenStack) === "gyms") {
     content = (
-      <ScreenPlates
+      <ScreenGyms
         screenStack={state.screenStack}
         expandedEquipment={state.defaultEquipmentExpanded}
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
+  } else if (Screen.current(state.screenStack) === "plates") {
+    const allEquipment = Equipment.getEquipmentOfGym(state.storage.settings, state.selectedGymId);
+    content = (
+      <ScreenEquipment
+        allEquipment={allEquipment}
+        screenStack={state.screenStack}
+        expandedEquipment={state.defaultEquipmentExpanded}
+        selectedGymId={state.selectedGymId}
         loading={state.loading}
         dispatch={dispatch}
         settings={state.storage.settings}

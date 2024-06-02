@@ -5,7 +5,7 @@ import { ExerciseSets } from "../exerciseSets";
 import { Markdown } from "../markdown";
 import { equipmentName, Exercise } from "../../models/exercise";
 import {
-  IEquipment,
+  IExerciseType,
   IHistoryEntry,
   IHistoryRecord,
   IProgram,
@@ -164,9 +164,9 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
                 entryIndex: number,
                 setIndex?: number,
                 pe?: IProgramExercise,
-                eq?: IEquipment
+                exerciseType?: IExerciseType
               ) => {
-                EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex, pe, eq);
+                EditProgressEntry.showEditSetModal(props.dispatch, isWarmup, entryIndex, setIndex, pe, exerciseType);
               }}
               onChangeReps={() => undefined}
               dispatch={props.dispatch}
@@ -175,7 +175,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
             <HistoryRecordSetsView
               sets={props.entry.sets.map((set) => ({
                 ...set,
-                weight: Weight.roundConvertTo(set.weight, props.settings, props.entry.exercise.equipment),
+                weight: Weight.roundConvertTo(set.weight, props.settings, props.entry.exercise),
               }))}
               settings={props.settings}
               isNext={true}

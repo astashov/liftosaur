@@ -148,6 +148,7 @@ export interface IState {
   freshMigrations: boolean;
   errors: IStateErrors;
   nosync: boolean;
+  selectedGymId?: string;
 }
 
 export interface ILocalStorage {

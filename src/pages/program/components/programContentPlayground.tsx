@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { h, JSX } from "preact";
-import { IDayData, IEquipment, IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
+import { IDayData, IExerciseType, IHistoryRecord, IProgram, IProgramExercise, ISettings } from "../../../types";
 import { useRef } from "preact/hooks";
 import { IDispatch } from "../../../ducks/types";
 import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
@@ -56,7 +56,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
   const workoutWeights = CollectionUtils.compatBy(
     entry.sets.map((s) => ({
       original: s.weight,
-      rounded: Weight.roundConvertTo(s.weight, props.settings, entry.exercise.equipment),
+      rounded: Weight.roundConvertTo(s.weight, props.settings, entry.exercise),
     })),
     (w) => w.rounded.value.toString()
   );
@@ -132,9 +132,9 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
             entryIndex: number,
             setIndex?: number,
             pe?: IProgramExercise,
-            equipment?: IEquipment
+            exerciseType?: IExerciseType
           ) => {
-            EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, equipment);
+            EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, exerciseType);
           }}
           onChangeReps={() => undefined}
         />
@@ -203,7 +203,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
           progressId={progress.id}
           dispatch={dispatch}
           settings={props.settings}
-          equipment={progress.ui?.editSetModal?.equipment}
+          exerciseType={progress.ui?.editSetModal?.exerciseType}
           programExercise={progress.ui?.editSetModal?.programExercise}
           allProgramExercises={allProgramExercises}
           isTimerDisabled={true}

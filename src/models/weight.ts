@@ -1,8 +1,9 @@
 import { CollectionUtils } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IEquipment, IBarKey, IPlate, IPercentage } from "../types";
+import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType } from "../types";
 import { MathUtils } from "../utils/math";
 import { Equipment } from "./equipment";
+import { Exercise } from "./exercise";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
 
@@ -95,13 +96,16 @@ export namespace Weight {
     );
   }
 
-  export function round(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
-    return Weight.calculatePlates(weight, settings, equipment).totalWeight;
+  export function round(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
+    if (exerciseType == null) {
+      return roundTo005(weight);
+    }
+    return Weight.calculatePlates(weight, settings, exerciseType).totalWeight;
   }
 
-  export function increment(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
-    const roundWeight = Weight.round(weight, settings, equipment);
-    const equipmentData = equipment ? Equipment.getEquipmentData(settings, equipment) : undefined;
+  export function increment(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
+    const roundWeight = Weight.round(weight, settings, exerciseType);
+    const equipmentData = Equipment.getEquipmentForExerciseType(settings, exerciseType);
     if (equipmentData) {
       const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
       let newWeight = roundWeight;
@@ -109,19 +113,19 @@ export namespace Weight {
       do {
         newWeight = Weight.add(newWeight, smallestPlate);
         attempt += 1;
-      } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, equipment), roundWeight));
+      } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, exerciseType), roundWeight));
       return newWeight;
     } else {
       return Weight.build(roundWeight.value + 1, roundWeight.unit);
     }
   }
 
-  export function decrement(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
-    const roundWeight = Weight.round(weight, settings, equipment);
-    const equipmentData = equipment ? Equipment.getEquipmentData(settings, equipment) : undefined;
+  export function decrement(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
+    const roundWeight = Weight.round(weight, settings, exerciseType);
+    const equipmentData = exerciseType ? Equipment.getEquipmentForExerciseType(settings, exerciseType) : undefined;
     if (equipmentData) {
       const smallestPlate = Equipment.smallestPlate(equipmentData, weight.unit);
-      const newWeight = Weight.round(Weight.subtract(roundWeight, smallestPlate), settings, equipment);
+      const newWeight = Weight.round(Weight.subtract(roundWeight, smallestPlate), settings, exerciseType);
       return Weight.build(Math.max(0, newWeight.value), newWeight.unit);
     } else {
       return Weight.build(Math.max(0, roundWeight.value - 1), roundWeight.unit);
@@ -150,8 +154,8 @@ export namespace Weight {
     }
   }
 
-  export function getTrainingMax(weight: IWeight, reps: number, settings: ISettings, bar: IBarKey): IWeight {
-    return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps), 0.9), settings, bar);
+  export function getTrainingMax(weight: IWeight, reps: number, settings: ISettings): IWeight {
+    return Weight.round(Weight.multiply(Weight.getOneRepMax(weight, reps), 0.9), settings);
   }
 
   export function platesWeight(plates: IPlate[]): IWeight {
@@ -162,8 +166,8 @@ export namespace Weight {
     );
   }
 
-  export function formatOneSide(settings: ISettings, platesArr: IPlate[], equipment?: IEquipment): string {
-    const equipmentSettings = equipment ? settings.equipment[equipment] : undefined;
+  export function formatOneSide(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): string {
+    const equipmentSettings = Equipment.getEquipmentForExerciseType(settings, exerciseType);
     const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
     plates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const arr: number[] = [];
@@ -188,14 +192,26 @@ export namespace Weight {
   export function calculatePlates(
     allWeight: IWeight,
     settings: ISettings,
-    equipment?: IEquipment
+    exerciseType: IExerciseType
   ): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
     const units = settings.units;
-    const equipmentType = equipment ? settings.equipment[equipment] : undefined;
-    if (!equipmentType) {
-      allWeight = roundTo005(Weight.build(parseFloat(allWeight.value.toFixed(2)), allWeight.unit));
+    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
+    if (exerciseData?.equipment == null) {
+      const rounding = exerciseData?.rounding ?? 0.5;
+      allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
+
+    const gym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+    const equipment = exerciseData.equipment[gym.id];
+    const equipmentType = equipment ? gym.equipment[equipment] : undefined;
+
+    if (!equipmentType) {
+      const rounding = exerciseData?.rounding ?? 0.5;
+      allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
+      return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
+    }
+
     if (equipmentType.isFixed) {
       const fixed = CollectionUtils.sort(
         equipmentType.fixed.filter((w) => w.unit === units),
@@ -333,8 +349,8 @@ export namespace Weight {
     return CollectionUtils.sort(weights, Weight.compareReverse)[0];
   }
 
-  export function roundConvertTo(weight: IWeight, settings: ISettings, equipment?: IEquipment): IWeight {
-    return round(convertTo(weight, settings.units), settings, equipment);
+  export function roundConvertTo(weight: IWeight, settings: ISettings, exerciseType?: IExerciseType): IWeight {
+    return round(convertTo(weight, settings.units), settings, exerciseType);
   }
 
   export function type(value: number | IWeight | IPercentage): "weight" | "percentage" | "number" {

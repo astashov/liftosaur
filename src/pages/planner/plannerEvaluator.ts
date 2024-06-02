@@ -23,6 +23,7 @@ import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
 import { IPlannerEvaluatedProgramToTextOpts, PlannerEvaluatedProgramToText } from "./plannerEvaluatedProgramToText";
 import { IEither } from "../../utils/types";
+import { PlannerProgramExercise } from "./models/plannerProgramExercise";
 
 export type IByExercise<T> = Record<string, T>;
 export type IByExerciseWeekDay<T> = Record<string, Record<number, Record<number, T>>>;
@@ -409,7 +410,7 @@ export class PlannerEvaluator {
     if (update?.fnName === "custom") {
       const { script, liftoscriptNode } = update;
       if (script && liftoscriptNode) {
-        const { equipment } = PlannerExerciseEvaluator.extractNameParts(exercise.key, settings);
+        const exerciseType = PlannerProgramExercise.getExercise(exercise, settings);
         const progress = exercise.properties.find((p) => p.name === "progress" && p.fnName === "custom");
         const state = progress ? PlannerExerciseEvaluator.fnArgsToStateVars(progress.fnArgs) : {};
         const liftoscriptEvaluator = new ScriptRunner(
@@ -419,7 +420,7 @@ export class PlannerEvaluator {
           Progress.createEmptyScriptBindings(dayData, settings),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { equipment, unit: settings.units },
+          { exerciseType, unit: settings.units },
           "update"
         );
         try {

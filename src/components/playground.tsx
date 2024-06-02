@@ -3,7 +3,15 @@ import { buildCardsReducer, ICardsAction } from "../ducks/reducer";
 import { IDispatch } from "../ducks/types";
 import { Program } from "../models/program";
 import { History } from "../models/history";
-import { IDayData, IEquipment, IHistoryRecord, IProgram, IProgramExercise, ISettings, ISubscription } from "../types";
+import {
+  IDayData,
+  IExerciseType,
+  IHistoryRecord,
+  IProgram,
+  IProgramExercise,
+  ISettings,
+  ISubscription,
+} from "../types";
 import { ExerciseView } from "./exercise";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -101,9 +109,9 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           entryIndex: number,
           setIndex?: number,
           pe?: IProgramExercise,
-          equipment?: IEquipment
+          exerciseType?: IExerciseType
         ) => {
-          EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, equipment);
+          EditProgressEntry.showEditSetModal(dispatch, isWarmup, entryIndex, setIndex, pe, exerciseType);
         }}
         progress={props.progress}
       />
@@ -163,7 +171,7 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
           progressId={progress.id}
           dispatch={dispatch}
           settings={props.settings}
-          equipment={progress.ui?.editSetModal?.equipment}
+          exerciseType={progress.ui?.editSetModal?.exerciseType}
           programExercise={progress.ui?.editSetModal?.programExercise}
           allProgramExercises={props.program.exercises}
           isTimerDisabled={true}

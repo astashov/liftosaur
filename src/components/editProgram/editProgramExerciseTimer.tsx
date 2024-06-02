@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { Progress } from "../../models/progress";
 import { ScriptRunner } from "../../parser";
-import { IDayData, IEquipment, IHistoryEntry, IProgramState, ISettings } from "../../types";
+import { IDayData, IExerciseType, IHistoryEntry, IProgramState, ISettings } from "../../types";
 import { IEither } from "../../utils/types";
 import { OneLineTextEditor } from "./oneLineTextEditor";
 
@@ -13,7 +13,7 @@ interface IProps {
   dayData: IDayData;
   settings: ISettings;
   state: IProgramState;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   entry?: IHistoryEntry;
 }
 
@@ -33,7 +33,7 @@ export function EditProgramExerciseTimer(props: IProps): JSX.Element {
           bindings,
           Progress.createScriptFunctions(props.settings),
           props.settings.units,
-          { equipment: props.equipment, unit: props.settings.units },
+          { exerciseType: props.exerciseType, unit: props.settings.units },
           "regular"
         );
         return { success: true, data: scriptRunnerResult.execute("timer") };

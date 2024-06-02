@@ -7,7 +7,7 @@ import {
   IPlannerState,
   IPlannerProgramExerciseSet,
 } from "../../../pages/planner/models/types";
-import { IDayData, IEquipment, ISettings } from "../../../types";
+import { IDayData, IExerciseType, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { DraggableList } from "../../draggableList";
 import { GroupHeader } from "../../groupHeader";
@@ -84,7 +84,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
             <SetRow
               disabled={props.disabled}
               handleTouchStart={handleTouchStart}
-              equipment={plannerExercise.equipment}
+              exerciseType={PlannerProgramExercise.getExercise(plannerExercise, props.settings)}
               set={set}
               isOnlySet={sets.length === 1}
               onUpdate={(newSet) => {
@@ -134,7 +134,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
 interface ISetRowProps {
   set: IPlannerProgramExerciseSet;
   disabled?: boolean;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   index: number;
   isOnlySet: boolean;
   handleTouchStart: (e: TouchEvent | MouseEvent) => void;
@@ -303,7 +303,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             dimmed={isDefaultWeight}
             value={weight}
             settings={props.settings}
-            equipment={props.equipment}
+            exerciseType={props.exerciseType}
             onUpdate={(val) => {
               const newWeight = Weight.isPct(val) ? { ...set, percentage: val.value } : { ...set, weight: val };
               props.onUpdate(newWeight);

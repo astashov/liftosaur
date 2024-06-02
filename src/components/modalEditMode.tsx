@@ -1,7 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { Modal } from "./modal";
 import { Button } from "./button";
-import { ISettings, IProgramExercise, IProgram, IProgramStateMetadata, IUnit } from "../types";
+import { ISettings, IProgramExercise, IProgram, IProgramStateMetadata, IUnit, IExerciseType } from "../types";
 import { Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -115,7 +115,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
               <EditWeights
                 weightChanges={weightChanges}
                 settings={props.settings}
-                equipment={programExercise.exerciseType.equipment}
+                exerciseType={programExercise.exerciseType}
                 onCalculatorOpen={(index) => {
                   const unit = weightChanges[index].weight.unit;
                   if (unit !== "%") {
@@ -340,7 +340,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
 
 interface IEditWeightsProps {
   weightChanges: IWeightChange[];
-  equipment?: string;
+  exerciseType?: IExerciseType;
   settings: ISettings;
   onEditWeight: (index: number, weight: number, unit: IUnit | "%") => void;
   onCalculatorOpen: (index: number) => void;
@@ -362,7 +362,7 @@ function EditWeights(props: IEditWeightsProps): JSX.Element {
             )}
             <EditWeight
               weightChange={weightChange}
-              equipment={props.equipment}
+              exerciseType={props.exerciseType}
               settings={props.settings}
               onEditWeight={(weight, unit) => props.onEditWeight(i, weight, unit)}
               onCalculatorOpen={() => props.onCalculatorOpen(i)}
@@ -378,7 +378,7 @@ function EditWeights(props: IEditWeightsProps): JSX.Element {
 
 interface IEditWeightProps {
   weightChange: IWeightChange;
-  equipment?: string;
+  exerciseType?: IExerciseType;
   settings: ISettings;
   onEditWeight: (weight: number, unit: IUnit | "%") => void;
   onCalculatorOpen: () => void;
@@ -393,7 +393,7 @@ function EditWeight(props: IEditWeightProps): JSX.Element {
         value={weight}
         data-cy="edit-weight-input"
         settings={props.settings}
-        equipment={props.equipment}
+        exerciseType={props.exerciseType}
         onUpdate={(value) => {
           props.onEditWeight(value.value, value.unit);
         }}

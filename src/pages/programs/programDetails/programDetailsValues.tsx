@@ -15,7 +15,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
             props.programExercise.exerciseType,
             props.dayData,
             ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-            { equipment: props.programExercise.exerciseType.equipment, unit: props.settings.units },
+            { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
             props.settings,
             "reps"
           )
@@ -25,7 +25,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
       props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-      { equipment: props.programExercise.exerciseType.equipment, unit: props.settings.units },
+      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
       props.settings,
       "reps"
     );
@@ -40,11 +40,11 @@ function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
       props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-      { equipment: props.programExercise.exerciseType.equipment, unit: props.settings.units },
+      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
       props.settings,
       "weight"
     );
-    return Weight.roundConvertTo(value, props.settings, props.programExercise.exerciseType.equipment);
+    return Weight.roundConvertTo(value, props.settings, props.programExercise.exerciseType);
   }, []);
 }
 

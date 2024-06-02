@@ -99,7 +99,7 @@ export const ExerciseSetView = memo(
 
 function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExerciseType, isCurrent: boolean): IWeight {
   if (isCurrent) {
-    return Weight.roundConvertTo(weight, settings, exercise.equipment);
+    return Weight.roundConvertTo(weight, settings, exercise);
   } else {
     return Weight.convertTo(weight, settings.units);
   }
