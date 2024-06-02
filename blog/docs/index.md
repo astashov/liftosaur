@@ -1178,3 +1178,13 @@ sets(2, 4, 6, 6, 0, 50lb, 8, 0)
 ```
 
 This will set 6 reps, 50lb, non-AMRAP, 50lb, @8 RPE (without logging RPE) to sets from 2 to 4.
+
+<h2 id="how-to-delete-your-account">How to delete your account</h2>
+
+If you want to delete your account, go to Settings (cog icon at the bottom right corner), then Account - and there's a button to delete an account.
+
+You can also email to `info@liftosaur.com`, and I can help with that.
+
+You can delete both local account (all your data stored on a device) and remote account - all your data stored on the servers. All the data there would be deleted permanently.
+
+There're 30 days backups on the servers, so the remote account data will be still in the backups for the next 30 days, and after that it'll be gone completely.
