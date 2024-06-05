@@ -4,10 +4,12 @@ import { CollectionUtils } from "../utils/collection";
 import { History } from "../models/history";
 import { UidFactory } from "../utils/generator";
 import { ObjectUtils } from "../utils/object";
-import { IStorage, IExerciseId } from "../types";
+import { IStorage, IExerciseId, IExerciseType, equipments, ICustomExercise } from "../types";
 import { Weight } from "../models/weight";
 import { SendMessage } from "../utils/sendMessage";
 import { Settings } from "../models/settings";
+import { equipmentName, Exercise } from "../models/exercise";
+import { ProgramToPlanner } from "../models/programToPlanner";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -499,6 +501,99 @@ export const migrations = {
       }
       if (rm1 && rm1.unit == null) {
         rm1.unit = storage.settings.units || "lb";
+      }
+    }
+    return storage;
+  },
+  "20240419095934_migrate_to_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.settings.gyms == null) {
+      storage.settings.gyms = [
+        {
+          id: UidFactory.generateUid(8),
+          name: "Main",
+          equipment: ObjectUtils.clone(storage.settings.equipment),
+        },
+      ];
+
+      const usedCustom: Record<string, IExerciseType> = {};
+      for (const record of storage.history) {
+        for (const entries of record.entries) {
+          const exerciseType = entries.exercise;
+          if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
+            const key = Exercise.toKey(exerciseType);
+            usedCustom[key] = exerciseType;
+          }
+          const customExercise = storage.settings.exercises[exerciseType.id];
+          if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
+            const key = Exercise.toKey(exerciseType);
+            usedCustom[key] = exerciseType;
+          }
+        }
+      }
+      for (const program of storage.programs) {
+        for (const exercise of program.exercises) {
+          const exerciseType = exercise.exerciseType;
+          if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
+            const key = Exercise.toKey(exerciseType);
+            usedCustom[key] = exerciseType;
+          }
+          const customExercise = storage.settings.exercises[exerciseType.id];
+          if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
+            const key = Exercise.toKey(exerciseType);
+            usedCustom[key] = exerciseType;
+          }
+        }
+      }
+
+      const newCustom: Record<string, { type: IExerciseType; exercise: ICustomExercise }> = {};
+      for (const key of ObjectUtils.keys(usedCustom)) {
+        const exerciseType = usedCustom[key];
+        const exercise = Exercise.get(exerciseType, storage.settings.exercises);
+        const targetMuscles = Exercise.targetMuscles(exerciseType, storage.settings.exercises);
+        const synergistMuscles = Exercise.synergistMuscles(exerciseType, storage.settings.exercises);
+        newCustom[key] = {
+          type: exerciseType,
+          exercise: {
+            id: exerciseType.id,
+            name: `${exercise.name}, ${equipmentName(exerciseType.equipment)}`,
+            isDeleted: false,
+            defaultEquipment: exerciseType.equipment,
+            meta: {
+              targetMuscles,
+              synergistMuscles,
+              bodyParts: [],
+              sortedEquipment: [],
+            },
+            types: exercise.types,
+          },
+        };
+      }
+      for (const key of ObjectUtils.keys(newCustom)) {
+        const { exercise } = newCustom[key];
+        storage.settings.exercises[exercise.id] = exercise;
+      }
+
+      for (const record of storage.history) {
+        for (const entry of record.entries) {
+          const exerciseType = entry.exercise;
+          const custom = newCustom[Exercise.toKey(exerciseType)];
+          entry.exercise = { id: custom.exercise.id };
+        }
+      }
+
+      for (const program of storage.programs) {
+        for (const exercise of program.exercises) {
+          const exerciseType = exercise.exerciseType;
+          const custom = newCustom[Exercise.toKey(exerciseType)];
+          exercise.exerciseType = { id: custom.exercise.id };
+        }
+      }
+
+      for (const program of storage.programs) {
+        if (program.planner) {
+          program.planner = new ProgramToPlanner(program, program.planner, storage.settings, {}, {}).convertToPlanner();
+        }
       }
     }
     return storage;
