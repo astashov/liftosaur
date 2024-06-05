@@ -305,7 +305,7 @@ const ExerciseContentView = memo(
             </div>
             {equipment && (
               <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
-                {equipmentName(equipment, props.settings.equipment)}
+                {equipmentName(equipment)}
               </div>
             )}
             {description && (
@@ -579,7 +579,7 @@ const WeightView = memo(
       <>
         <span className="px-1">-</span>
         <span className="break-all">
-          <span className={className}>
+          <span className={className} data-cy="plates-list">
             {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.exercise) : "None"}
           </span>
         </span>

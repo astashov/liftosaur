@@ -25,12 +25,10 @@ describe("Custom Exercises", () => {
     g("menu-item-exercise").click();
     g("custom-exercise-create").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise");
-    g("custom-exercise-equipment-select").select("Band");
     g("custom-exercise-create").click();
 
     g("custom-exercise-edit-my-exercise").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise 2");
-    g("custom-exercise-equipment-select").select("Cable");
     g("custom-exercise-create").click();
 
     g("menu-item-my-exercise-2").click({ force: true });
@@ -51,7 +49,6 @@ describe("Custom Exercises", () => {
 
     g("custom-exercise-create").click({ force: true });
     g("custom-exercise-name-input").clear().type("Blah One");
-    g("custom-exercise-equipment-select").select("Barbell");
     g("custom-exercise-create").click({ force: true });
 
     g("menu-item-blah-one").click({ force: true });
@@ -67,12 +64,10 @@ describe("Custom Exercises", () => {
     g("custom-exercise-create").click({ force: true });
 
     g("custom-exercise-name-input").clear().type("My Exercise 2");
-    g("custom-exercise-equipment-select").select("Barbell");
     g("custom-exercise-create").click({ force: true });
 
     g("custom-exercise-edit-my-exercise-2").click({ force: true });
     g("custom-exercise-name-input").clear().type("My Exercise 3");
-    g("custom-exercise-equipment-select").select("Band");
     g("multiselect-target_muscles").clear().type("Adductor Magnus");
     g("multiselect-option-adductor-magnus").click();
     g("multiselect-target_muscles").clear().type("Deltoid Posterior");

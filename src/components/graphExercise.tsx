@@ -105,7 +105,7 @@ function getData(
 
 export function GraphExercise(props: IGraphProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
-  const eqName = equipmentName(props.exercise.equipment, props.settings.equipment);
+  const eqName = equipmentName(props.exercise.equipment);
 
   return (
     <div className="relative mx-1">

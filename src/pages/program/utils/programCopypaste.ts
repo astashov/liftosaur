@@ -2,7 +2,7 @@ import { lb } from "lens-shmens";
 import { useEffect } from "preact/hooks";
 import { IProgramEditorState, IProgramEditorUiSelected } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { ICustomExercise, IEquipmentData, IProgramExercise } from "../../../types";
+import { ICustomExercise, IProgramExercise } from "../../../types";
 import { Program } from "../../../models/program";
 import { ProgramExercise } from "../../../models/programExercise";
 import { ClipboardUtils } from "../../../utils/clipboard";
@@ -12,7 +12,6 @@ type ICopyPaste = {
   type: "exercise";
   exercise: IProgramExercise;
   customExercise?: ICustomExercise;
-  customEquipment?: { id: string; data: IEquipmentData };
 };
 
 export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch<IProgramEditorState>): void {
@@ -37,16 +36,12 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
               );
               const customExercise: ICustomExercise | undefined =
                 state.settings.exercises[programExercise.exerciseType.id];
-              const exerciseEquipment = programExercise.exerciseType.equipment;
-              const equipment = exerciseEquipment ? state.settings.equipment[exerciseEquipment] : undefined;
-              const customEquipment = equipment?.name ? { id: exerciseEquipment!, data: equipment! } : undefined;
 
               copypaste.push({
                 app: "program",
                 type: "exercise",
                 exercise: resolvedProgramExercise,
                 customExercise,
-                customEquipment,
               });
             }
           }
@@ -92,21 +87,6 @@ export function useCopyPaste(state: IProgramEditorState, dispatch: ILensDispatch
                     .recordModify((exercises) => ({
                       ...exercises,
                       [customExercise.id]: customExercise,
-                    }))
-                );
-              }
-            }
-            const customEquipment = copypaste.customEquipment;
-            if (customEquipment) {
-              const existingCustomEquipment = state.settings.equipment[customEquipment.id];
-              if (!existingCustomEquipment) {
-                dispatch(
-                  lb<IProgramEditorState>()
-                    .p("settings")
-                    .p("equipment")
-                    .recordModify((equipment) => ({
-                      ...equipment,
-                      [customEquipment.id]: customEquipment.data,
                     }))
                 );
               }

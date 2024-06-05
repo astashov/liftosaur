@@ -142,7 +142,7 @@ const ExercisesList = forwardRef(
     let exercises = Exercise.allExpanded({});
     let customExercises = props.settings.exercises;
     const filterOptions = [
-      ...equipments.map((e) => equipmentName(e, props.settings.equipment)),
+      ...equipments.map((e) => equipmentName(e)),
       ...exerciseKinds.map(StringUtils.capitalize),
       ...screenMuscles.map(StringUtils.capitalize),
     ];
@@ -163,7 +163,7 @@ const ExercisesList = forwardRef(
             targetMuscleGroups.indexOf(ft) !== -1 ||
             synergistMuscleGroups.indexOf(ft) !== -1 ||
             e.types.map(StringUtils.capitalize).indexOf(ft) !== -1 ||
-            equipmentName(e.equipment, props.settings.equipment) === ft
+            equipmentName(e.equipment) === ft
           );
         });
       });
@@ -312,7 +312,9 @@ const ExercisesList = forwardRef(
         {exercises.map((e) => {
           return (
             <section
-              data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+              data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
+                e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
+              }`}
               className="w-full px-2 py-1 text-left border-b border-gray-200"
               onClick={() => {
                 props.onChange(e, true);

@@ -122,8 +122,11 @@ export class MigratorToPlanner {
 
   private getExerciseName(programExercise: IProgramExercise, exercise: IExercise): string {
     let plannerExercise = `${programExercise.name}`;
-    if (programExercise.exerciseType.equipment !== exercise.defaultEquipment) {
-      plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}`;
+    if (
+      programExercise.exerciseType.equipment != null &&
+      programExercise.exerciseType.equipment !== exercise.defaultEquipment
+    ) {
+      plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment)}`;
     }
     return plannerExercise;
   }
@@ -185,9 +188,11 @@ export class MigratorToPlanner {
 
   private getExerciseKey(programExercise: IProgramExercise): string {
     const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-    const isDefaultEquipment = programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
+    const isDefaultEquipment =
+      programExercise.exerciseType.equipment != null &&
+      programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
     return `${programExercise.name}${
-      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}` : ""
+      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""
     }`;
   }
 

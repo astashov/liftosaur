@@ -21,8 +21,7 @@ describe("Program", () => {
     cy.contains("Add New Exercise").click();
 
     g("menu-item-exercise").click();
-    g("modal-exercise").find("[data-cy='menu-item-deadlift']").click({ force: true });
-    g("menu-item-value-equipment").should("have.text", "Barbell");
+    g("modal-exercise").find("[data-cy='menu-item-deadlift-barbell']").click({ force: true });
 
     g("tab-advanced").click();
 
@@ -36,7 +35,8 @@ describe("Program", () => {
     g("tab-advanced").click();
 
     g("menu-item-name-selected-variation").click();
-    g("menu-item-selected-variation", "scroll-barrel-item-1").click();
+    g("menu-item-selected-variation", "scroll-barrel-item-variation-2").click();
+    cy.wait(1000);
     cy.contains("Delete Current Variation").click();
 
     g("tab-simple").click();

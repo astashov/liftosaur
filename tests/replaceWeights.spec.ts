@@ -36,6 +36,11 @@ Bicep Curl / 1x8 80lb`
 
   await page.getByTestId("exercise-edit-mode").first().click();
 
+  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+
   await expect(page.getByTestId("edit-weight-input").nth(0)).toHaveValue("51");
   await expect(page.getByTestId("edit-weight-unit").nth(0)).toHaveValue("lb");
 

@@ -79,8 +79,8 @@ export class PlannerProgram {
     function getNewFullName(oldFullName: string): string {
       const { label } = PlannerExerciseEvaluator.extractNameParts(oldFullName, settings);
       return `${label ? `${label}: ` : ""}${exercise.name}${
-        exercise.defaultEquipment !== exerciseType.equipment
-          ? `, ${equipmentName(exerciseType.equipment, settings.equipment)}`
+        exerciseType.equipment != null && exercise.defaultEquipment !== exerciseType.equipment
+          ? `, ${equipmentName(exerciseType.equipment)}`
           : ""
       }`;
     }

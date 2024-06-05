@@ -12,6 +12,13 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout A
 
   // First exercise is successful
+  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-edit-mode-save-statvars").click();
+
   PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy^=set-]"));
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("5");
@@ -23,6 +30,13 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("modal-weight-submit").click();
 
   // Second exercise is successful
+  await page.locator("[data-cy^=exercise-]:has-text('Squat')").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-edit-mode-save-statvars").click();
+
   await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("5");
@@ -47,6 +61,13 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("modal-amrap-submit").click();
 
   // Second exercise is successful
+  await page.locator("[data-cy^=exercise-]:has-text('Deadlift')").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-edit-mode-save-statvars").click();
+
   await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Deadlift') >> [data-cy^=set-]"));
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("5");
@@ -58,6 +79,13 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("modal-weight-submit").click();
 
   // Third exercise is unsuccessful
+  await page.locator("[data-cy^=exercise-]:has-text('Overhead Press')").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("modal-edit-mode").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-edit-mode-save-statvars").click();
+
   await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Overhead Press') >> [data-cy^=set-]"));
   await page.getByTestId("modal-amrap-input").clear();
   await page.getByTestId("modal-amrap-input").type("5");

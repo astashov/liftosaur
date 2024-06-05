@@ -61,8 +61,12 @@ export namespace Equipment {
   }
 
   export function getEquipmentData(settings: ISettings, key: string): IEquipmentData | undefined {
+    return currentEquipment(settings)?.[key];
+  }
+
+  export function currentEquipment(settings: ISettings): Partial<Record<IEquipment, IEquipmentData>> {
     const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
-    return currentGym.equipment[key];
+    return currentGym?.equipment;
   }
 
   export function smallestPlate(equipmentData: IEquipmentData, unit: IUnit): IWeight {
@@ -114,12 +118,12 @@ export namespace Equipment {
 
   export function availableEquipmentNames(equipmentSettings?: IAllEquipment): string[] {
     const equipmentIds = Array.from(new Set([...equipments, ...ObjectUtils.keys(equipmentSettings || {})]));
-    return Array.from(new Set([...equipmentIds.map((e) => equipmentName(e, equipmentSettings || {}))]));
+    return Array.from(new Set([...equipmentIds.map((e) => equipmentName(e))]));
   }
 
   export function availableEquipmentKeyByNames(equipmentSettings?: IAllEquipment): [string, string][] {
     const equipmentIds = Array.from(new Set([...equipments, ...ObjectUtils.keys(equipmentSettings || {})]));
-    return equipmentIds.map((e) => [e, equipmentName(e, equipmentSettings || {})]);
+    return equipmentIds.map((e) => [e, equipmentName(e)]);
   }
 
   export function customEquipment(equipmentSettings?: IAllEquipment): IAllEquipment {
@@ -132,15 +136,13 @@ export namespace Equipment {
       return builtInEquipmentKey;
     }
 
-    const builtInEquipmentName = equipments.find(
-      (eq) => equipmentName(eq, equipmentSettings).toLowerCase() === name.toLowerCase()
-    );
+    const builtInEquipmentName = equipments.find((eq) => equipmentName(eq).toLowerCase() === name.toLowerCase());
     if (builtInEquipmentName) {
       return builtInEquipmentName;
     }
 
     const customEquipmentKey = ObjectUtils.keys(equipmentSettings || {}).find((eq) => {
-      return equipmentName(eq, equipmentSettings).toLowerCase() === name.toLowerCase();
+      return equipmentName(eq).toLowerCase() === name.toLowerCase();
     });
     return customEquipmentKey;
   }

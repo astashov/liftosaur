@@ -344,6 +344,17 @@ export class ProgramToPlanner {
               const dayExercise = this.program.exercises.find(
                 (e) => PlannerKey.fromProgramExercise(e, this.settings) === line.value
               )!;
+              // console.log(this.plannerProgram.name);
+              // console.log(PlannerProgram.generateFullText(this.plannerProgram.weeks));
+              // console.log(
+              //   "dy",
+              //   line.value,
+              //   this.program.exercises.map((e) => PlannerKey.fromProgramExercise(e, this.settings))
+              // );
+              // console.log(
+              //   "ty",
+              //   topLines.map((l) => [l.fullName, l.value])
+              // );
               const evalDay = this.getEvaluatedWeeks()[weekIndex][dayInWeekIndex];
               const evalExercise = evalDay.success ? evalDay.data.find((e) => e.key === line.value) : undefined;
               const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;
@@ -501,8 +512,11 @@ export class ProgramToPlanner {
 
   private getExerciseName(programExercise: IProgramExercise, exercise: IExercise, line: IPlannerTopLineItem): string {
     let plannerExercise = `${programExercise.name}`;
-    if (programExercise.exerciseType.equipment !== exercise.defaultEquipment) {
-      plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}`;
+    if (
+      programExercise.exerciseType.equipment &&
+      programExercise.exerciseType.equipment !== exercise.defaultEquipment
+    ) {
+      plannerExercise += `, ${equipmentName(programExercise.exerciseType.equipment)}`;
     }
     if (line.order != null && line.order !== 0) {
       plannerExercise += `[${line.order}]`;
@@ -559,9 +573,11 @@ export class ProgramToPlanner {
 
   private getExerciseKey(programExercise: IProgramExercise): string {
     const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-    const isDefaultEquipment = programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
+    const isDefaultEquipment =
+      programExercise.exerciseType.equipment != null &&
+      programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
     return `${programExercise.name}${
-      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment, this.settings.equipment)}` : ""
+      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""
     }`;
   }
 

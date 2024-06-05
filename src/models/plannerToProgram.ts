@@ -20,7 +20,7 @@ import { MathUtils } from "../utils/math";
 import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
-import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
+import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
 
 export class PlannerToProgram {
   constructor(
@@ -58,11 +58,21 @@ export class PlannerToProgram {
 
   public convertToProgram(): IProgram {
     const { evaluatedWeeks } = PlannerProgram.evaluate(this.plannerProgram, this.settings);
-    const isValid = evaluatedWeeks.every((week) => week.every((day) => day.success));
+    let error: PlannerSyntaxError | undefined;
+    for (const week of evaluatedWeeks) {
+      for (const day of week) {
+        if (!day.success) {
+          error = day.error;
+        }
+      }
+    }
+    const isValid = !error;
 
     if (!isValid) {
-      console.log(this.plannerProgram);
+      console.log(this.plannerProgram.name);
+      console.log(PlannerProgram.generateFullText(this.plannerProgram.weeks));
       console.log(evaluatedWeeks);
+      console.log(error);
       throw new Error("Invalid program");
     }
 
@@ -93,7 +103,7 @@ export class PlannerToProgram {
               programExercise = keyToProgramExercise[key];
             } else {
               const name = `${evalExercise.label ? `${evalExercise.label}: ` : ""}${evalExercise.name}`;
-              const exerciseType = { id: exercise.id, equipment: evalExercise.equipment || "bodyweight" };
+              const exerciseType = { id: exercise.id, equipment: evalExercise.equipment || exercise.defaultEquipment };
               const oldProgramExercise = this.programExercises.find(
                 (pe) => pe.name === name && pe.exerciseType.equipment === exerciseType.equipment
               );

@@ -64,7 +64,7 @@ describe("Stats", () => {
     g("input-stats-value").eq(0).should("have.value", "20");
     g("input-stats-unit").eq(0).should("have.text", "in");
 
-    g("menu-item-type", "scroll-barrel-item-forearmleft").click();
+    g("menu-item-type", "scroll-barrel-item-left-forearm").click();
     g("input-stats-value").should("have.length", 3);
     g("input-stats-value").eq(0).should("have.value", "40");
     g("input-stats-value").eq(1).should("have.value", "35");

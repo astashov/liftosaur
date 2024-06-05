@@ -457,8 +457,8 @@ if (!(completedReps >= reps)) {
         results: [[3, 5, 150]],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
-    expect(result).to.eql(Weight.build(322.5, "lb"));
+    expect(state).to.eql({ weight: Weight.build(323, "lb") });
+    expect(result).to.eql(Weight.build(323, "lb"));
   });
 
   it("fn in assignment", () => {
@@ -473,7 +473,7 @@ if (!(completedReps >= reps)) {
         results: [[3, 5, 150]],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
+    expect(state).to.eql({ weight: Weight.build(323.1, "lb") });
   });
 
   it("nested conditions 2", () => {

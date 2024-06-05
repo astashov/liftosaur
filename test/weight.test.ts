@@ -3,11 +3,17 @@ import { expect } from "chai";
 import { Settings } from "../src/models/settings";
 import { Weight } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
+import { Exercise } from "../src/models/exercise";
 
 function buildSettings(plates: IPlate[], bar: number = 45): ISettings {
   const settings = Settings.build();
-  settings.equipment.barbell!.plates = plates;
-  settings.equipment.barbell!.bar = { lb: Weight.build(bar, "lb"), kg: Weight.build(Math.floor(bar / 2), "kg") };
+  settings.gyms[0].equipment.barbell!.plates = plates;
+  settings.gyms[0].equipment.barbell!.bar = {
+    lb: Weight.build(bar, "lb"),
+    kg: Weight.build(Math.floor(bar / 2), "kg"),
+  };
+  settings.exerciseData = settings.exerciseData || {};
+  settings.exerciseData[Exercise.toKey(exerciseType)] = { equipment: { [settings.gyms[0].id]: "barbell" } };
   return settings;
 }
 

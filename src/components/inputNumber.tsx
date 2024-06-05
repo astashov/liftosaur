@@ -1,6 +1,7 @@
 import { JSX, h } from "preact";
 import { useRef } from "preact/hooks";
 import { MathUtils } from "../utils/math";
+import { StringUtils } from "../utils/string";
 import { Input } from "./input";
 
 interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
@@ -32,7 +33,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         <div>
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
-            data-cy="edit-weight-minus"
+            data-cy={`input-${StringUtils.dashcase(props.label || "")}-minus`}
             onClick={() => {
               const v = getValue();
               if (v != null) {
@@ -53,6 +54,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
               step="0.01"
               type="number"
               value={value}
+              data-cy={`input-${StringUtils.dashcase(props.label || "")}-field`}
               onInput={() => {
                 const v = getValue();
                 if (v != null) {
@@ -66,7 +68,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         <div>
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
-            data-cy="edit-weight-plus"
+            data-cy={`input-${StringUtils.dashcase(props.label || "")}-plus`}
             onClick={() => {
               const v = getValue();
               if (v != null) {

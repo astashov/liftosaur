@@ -20,7 +20,7 @@ import { buildPlannerExerciseLanguageSupport } from "./plannerExerciseCodemirror
 import { equipmentName, Exercise } from "../../models/exercise";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { StringUtils } from "../../utils/string";
-import { IAllCustomExercises, IAllEquipment } from "../../types";
+import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils } from "../../utils/object";
 
@@ -317,7 +317,6 @@ interface IArgs {
   value?: string;
   customExercises?: IAllCustomExercises;
   exerciseFullNames?: string[];
-  equipment?: IAllEquipment;
   height?: number;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
@@ -352,11 +351,6 @@ export class PlannerEditor {
       this.args.exerciseFullNames = names;
       this.relint();
     }
-  }
-
-  public setEquipment(equipment: IAllEquipment): void {
-    this.args.equipment = equipment;
-    this.relint();
   }
 
   public setError(error?: PlannerSyntaxError): void {

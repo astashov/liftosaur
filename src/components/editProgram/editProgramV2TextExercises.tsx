@@ -27,7 +27,7 @@ interface IEditProgramV2TextExercisesProps {
 }
 
 export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesProps): JSX.Element {
-  const { exercises: customExercises, equipment: customEquipment } = props.settings;
+  const { exercises: customExercises } = props.settings;
   const { plannerDay, plannerDispatch, dayIndex, evaluatedDay, lbProgram, weekIndex } = props;
   const focusedExercise = props.ui.focusedExercise;
   const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
@@ -44,7 +44,6 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         exerciseFullNames={props.exerciseFullNames}
         customExercises={customExercises}
         lineNumbers={true}
-        equipment={customEquipment}
         error={evaluatedDay.success ? undefined : evaluatedDay.error}
         value={plannerDay.exerciseText}
         onCustomErrorCta={(err) => (

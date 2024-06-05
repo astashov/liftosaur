@@ -49,9 +49,9 @@ function Edit(props: IProps): JSX.Element {
         value={
           <div>
             <div>{Exercise.get(programExercise.exerciseType, props.settings.exercises).name}</div>
-            <div className="text-xs text-grayv2-main">
-              {equipmentName(programExercise.exerciseType.equipment, props.settings.equipment)}
-            </div>
+            {programExercise.exerciseType.equipment && (
+              <div className="text-xs text-grayv2-main">{equipmentName(programExercise.exerciseType.equipment)}</div>
+            )}
           </div>
         }
       />

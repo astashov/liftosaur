@@ -140,7 +140,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
               </div>
               <div className="pt-2">
                 {CollectionUtils.uniqByExpr(program.exercises, (e) => Exercise.toKey(e.exerciseType))
-                  .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small", state.storage.settings))
+                  .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small"))
                   .map((e) => (
                     <ExerciseImage
                       settings={state.storage.settings}

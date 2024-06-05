@@ -211,7 +211,6 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
             name="Program"
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
-            equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fullText.text}
             onCustomErrorCta={(err) => (

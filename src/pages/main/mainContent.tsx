@@ -661,7 +661,6 @@ Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
           exerciseFullNames={exerciseFullNames}
           customExercises={{}}
           lineNumbers={true}
-          equipment={{}}
           error={evaluatedDay.success ? undefined : evaluatedDay.error}
           value={text}
           onChange={(e) => {

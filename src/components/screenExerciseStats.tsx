@@ -7,7 +7,7 @@ import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
-import { equipmentName, Exercise } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { MenuItemEditable } from "./menuItemEditable";
 import { CollectionUtils } from "../utils/collection";
 import { lb } from "lens-shmens";
@@ -28,8 +28,7 @@ import { StringUtils } from "../utils/string";
 import { useGradualList } from "../utils/useGradualList";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "../models/set";
-import { ExerciseRM } from "./exerciseRm";
-import { InputNumber } from "./inputNumber";
+import { ExerciseDataSettings } from "./exerciseDataSettings";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -86,15 +85,13 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       if (e != null) {
         const exercise = Exercise.find(e, props.settings.exercises);
         if (exercise != null) {
-          return [Exercise.toKey(e), Exercise.fullName(exercise, props.settings.equipment)];
+          return [Exercise.toKey(e), Exercise.fullName(exercise)];
         }
       }
       return undefined;
     })
   );
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
-  const exerciseData = props.settings.exerciseData[Exercise.toKey(fullExercise)] || {};
-  const equipmentMap = exerciseData.equipment;
 
   return (
     <Surface
@@ -124,76 +121,12 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             }}
           />
         )}
-        <section className="my-2">
-          <InputNumber
-            type="number"
-            label="Default Rounding"
-            min={0}
-            step={0.5}
-            max={100}
-            value={Exercise.defaultRounding(fullExercise, props.settings)}
-            onUpdate={(value) => {
-              if (!isNaN(value)) {
-                updateState(props.dispatch, [
-                  lb<IState>()
-                    .p("storage")
-                    .p("settings")
-                    .p("exerciseData")
-                    .recordModify((data) => {
-                      const k = Exercise.toKey(fullExercise);
-                      return { ...data, [k]: { ...data[k], rounding: value } };
-                    }),
-                ]);
-              }
-            }}
-          />
-          {props.settings.gyms.length > 1 && <GroupHeader name="Equipments for each Gym" topPadding={true} />}
-          {props.settings.gyms.map((gym, i) => {
-            const equipment = equipmentMap?.[gym.id];
-            const values: [string, string][] = [
-              ["", ""],
-              ...ObjectUtils.keys(gym.equipment).map<[string, string]>((id) => [id, equipmentName(id, gym.equipment)]),
-            ];
-            return (
-              <MenuItemEditable
-                type="select"
-                name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
-                value={equipment ?? ""}
-                values={values}
-                onChange={(value) => {
-                  updateState(props.dispatch, [
-                    lb<IState>()
-                      .p("storage")
-                      .p("settings")
-                      .p("exerciseData")
-                      .recordModify((data) => {
-                        const k = Exercise.toKey(fullExercise);
-                        return { ...data, [k]: { ...data[k], equipment: { ...data[k]?.equipment, [gym.id]: value } } };
-                      }),
-                  ]);
-                }}
-              />
-            );
-          })}
-          <ExerciseRM
-            name="1 Rep Max"
-            rmKey="rm1"
-            exercise={fullExercise}
-            settings={props.settings}
-            onEditVariable={(value) => {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("exerciseData")
-                  .recordModify((data) => {
-                    const k = Exercise.toKey(fullExercise);
-                    return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
-                  }),
-              ]);
-            }}
-          />
-        </section>
+        <ExerciseDataSettings
+          fullExercise={fullExercise}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          show1RM={true}
+        />
 
         <div data-cy="exercise-stats-image">
           <ExerciseImage
@@ -273,7 +206,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         <section data-cy="exercise-stats-history">
           <GroupHeader
             topPadding={true}
-            name={`${Exercise.fullName(fullExercise, props.settings.equipment)} History`}
+            name={`${Exercise.fullName(fullExercise)} History`}
             rightAddOn={
               <button
                 className="p-2 nm-exercise-stats-navbar-filter"

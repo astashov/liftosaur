@@ -692,13 +692,17 @@ export class PlannerExerciseEvaluator {
       label = label.trim();
     }
     const nameEquipment = nameEquipmentItems.join(":");
+    const matchingExercise = Exercise.findByName(nameEquipment, settings.exercises);
+    if (matchingExercise) {
+      return { name: matchingExercise.name, label: label ? label : undefined };
+    }
     let equipment: string | undefined;
     const parts = nameEquipment.split(",");
     if (parts.length > 1) {
       const potentialEquipment = parts[parts.length - 1]?.trim();
       const allowedEquipments = [
         ...equipments,
-        ...equipments.map((e) => equipmentName(e, settings.equipment)),
+        ...equipments.map((e) => equipmentName(e)),
         ...ObjectUtils.keys(settings.equipment),
         ...ObjectUtils.keys(settings.equipment).map((e) => equipmentName(e, settings.equipment)),
       ].map((e) => e.toLowerCase().trim());
@@ -843,12 +847,11 @@ export class PlannerExerciseEvaluator {
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const key = PlannerKey.fromFullName(fullName, this.settings);
-      const shortName = `${name}${equipment ? `, ${equipmentName(equipment, this.settings.equipment)}` : ""}`;
+      const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
       const exercise = Exercise.findByName(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }
-      equipment = equipment || exercise.defaultEquipment;
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);
       const setVariations: IPlannerProgramExerciseSetVariation[] = [];
       const allSets: IPlannerProgramExerciseSet[] = [];

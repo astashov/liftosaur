@@ -16,12 +16,12 @@ import {
   IUnit,
   ICustomExercise,
   IScreenMuscle,
+  IAllEquipment,
 } from "../types";
 import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";
-import { IAllEquipment } from "../types";
 import { ExerciseImageUtils } from "./exerciseImage";
 
 export const exercises: Record<IExerciseId, IExercise> = {
@@ -3431,14 +3431,8 @@ export function equipmentName(equipment: IEquipment | undefined, equipmentSettin
     case "trapbar":
       return "Trap Bar";
     default:
-      return "Bodyweight";
+      return "";
   }
-}
-
-function getCustomEquipment(settings: ISettings): string[] {
-  return Object.keys(settings.equipment).filter(
-    (e) => settings.equipment[e]?.name && !settings.equipment[e]?.isDeleted
-  );
 }
 
 export type IExerciseKind = "core" | "pull" | "push" | "legs" | "upper" | "lower";
@@ -3579,8 +3573,8 @@ export namespace Exercise {
     return !!exercise;
   }
 
-  export function fullName(exercise: IExercise, equipmentSettings: IAllEquipment): string {
-    const eqName = exercise.equipment ? equipmentName(exercise.equipment, equipmentSettings) : undefined;
+  export function fullName(exercise: IExercise): string {
+    const eqName = exercise.equipment ? equipmentName(exercise.equipment) : undefined;
     return `${exercise.name}${eqName ? `, ${eqName}` : ""}`;
   }
 
@@ -3609,8 +3603,8 @@ export namespace Exercise {
   export function findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
     const lowercaseName = name.toLowerCase();
     return (
-      ObjectUtils.values(customExercises).find((ce) => ce?.name?.toLowerCase() === lowercaseName)?.id ||
-      nameToIdMapping[lowercaseName]
+      nameToIdMapping[lowercaseName] ||
+      ObjectUtils.values(customExercises).find((ce) => ce?.name?.toLowerCase() === lowercaseName)?.id
     );
   }
 
@@ -3709,7 +3703,7 @@ export namespace Exercise {
   }
 
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
-    return a.id === b.id && (a.equipment || "bodyweight") === (b.equipment || "bodyweight");
+    return a.id === b.id && a.equipment === b.equipment;
   }
 
   export function getWarmupSets(
@@ -3732,21 +3726,6 @@ export namespace Exercise {
       }
       return warmupSets;
     }
-  }
-
-  export function sortedEquipments(id: IExerciseId, settings?: ISettings): IEquipment[] {
-    const sorted = [...equipments, ...(settings ? getCustomEquipment(settings) : [])];
-    sorted.sort((a, b) => {
-      const eqs = getMetadata(id).sortedEquipment || [];
-      if (eqs.indexOf(a) !== -1 && eqs.indexOf(b) === -1) {
-        return -1;
-      } else if (eqs.indexOf(a) === -1 && eqs.indexOf(b) !== -1) {
-        return 1;
-      } else {
-        return a.localeCompare(b);
-      }
-    });
-    return sorted;
   }
 
   export function targetMuscles(type: IExerciseType, customExercises: IAllCustomExercises): IMuscle[] {

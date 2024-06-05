@@ -1112,6 +1112,84 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240612": {
+    title: <span>Changed how equipment works and added multi-gym support</span>,
+    body: (
+      <ul>
+        <li>⚠️ This is a breaking change! Please read! ⚠️</li>
+
+        <li>
+          Exercises in Liftosaur used to consist of 2 parts - exercise name and equipment. For example:{" "}
+          <strong>Bench Press</strong> and <strong>Dumbbell</strong>, or <strong>Squat</strong> and{" "}
+          <strong>Barbell</strong>. And when you select an exercise, you have to pick both equipment and name.
+        </li>
+
+        <li>There were several issues with that, but mainly two:</li>
+        <li>
+          <ul className="ml-4 list-disc">
+            <li>
+              It was confusing for new users to <strong>pick the equipment AND exercise name</strong>. The fact that you
+              need to pick equipment first, and then tap on the exercise name, even if you just want to change the
+              equipment for the current exercise was very weird.
+            </li>
+            <li>
+              <strong>Equipment was tied to the available plates</strong>. So, if you wanted to change bar/plates (like
+              to a different barbell) - but keep the old ones - you'd get a new exercise, with the new history, graphs,
+              etc - which sometimes was undesirable.
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          In this change I'm trying to simplify it - now exercise only consists of the exercise name. So, there're
+          exercises like <strong>Bench Press, Dumbbell</strong> and <strong>Bench Press, Barbell</strong> - but those
+          are 2 different exercises and exercise names.
+        </li>
+
+        <li>
+          Equipment is separated from the exercise now, and it defines only the plates/bar/fixed weights. You can attach
+          equipment to your exercises, and that will be used for rounding and plates calculator - but that's optional!
+        </li>
+
+        <li>
+          So, for example, you can have <strong>Squat, Barbell</strong> exercise, and attach e.g.{" "}
+          <strong>Olymplic Barbell</strong> equipment with 45lb bar and one set of plates. Or attach{" "}
+          <strong>Standard Barbell</strong> with 35lb bar, and a different set of plates. Or don't attach any equipment
+          - and just specify the default rounding - but in that case you won't have plates calculated.
+        </li>
+
+        <li>
+          Or you may have <strong>Bicep Curl, Dumbbell</strong>, and attach <strong>Fixed Dumbbells</strong> or{" "}
+          <strong>Loaded Dumbbells</strong> to it for rounding and plates calculation.
+        </li>
+
+        <li>
+          It also changes how custom exercises work. You cannot choose equipment for custom exercises anymore - only the
+          name. So, if you had custom exercises with different equipment or even custom equipment - they will be
+          migrated to "equipment-less" new exercises.
+        </li>
+
+        <li>
+          Another new feature is <strong>Gyms</strong>. You can create another <strong>Gym</strong> and specify
+          different set of equipment for it. For each exercise you can specify equipment from each gym. And you can
+          change the current gym in Settings, and that will define what equipment would be used for exercises.
+        </li>
+
+        <li>
+          Gyms are totally optional, and by default you only have one. But it could be useful if you{" "}
+          <strong>go to multiple gyms</strong>, or if you're <strong>travelling</strong> - then you can just create a
+          new gym but don't attach equipment from it to exercises. In that case they'd just use default rounding, which
+          could be good enough for travelling - you probably don't want to enter all the equipment details for temporary
+          gyms.
+        </li>
+
+        <li>
+          I know I say that a lot, but - that's a very big new feature, so could be bugs - so don't hesitate to email me
+          at <strong>info@liftosaur.com</strong> or contact via Discord/Reddit if there're issues!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

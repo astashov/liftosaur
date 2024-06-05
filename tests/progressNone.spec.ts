@@ -17,24 +17,24 @@ test("disable progress on marked days", async ({ page }) => {
     "planner-editor",
     `# Week 1
 ## Day 1
-Squat / 1x5 / warmup: none
+Squat / 1x5 115lb / warmup: none
 
 ## Day 2
-Squat / 1x5 / progress: lp(5lb) / warmup: none
+Squat / 1x5 115lb / progress: lp(5lb) / warmup: none
 
 # Week 2
 ## Day 1
-Squat / 1x5 / warmup: none
+Squat / 1x5 115lb / warmup: none
 
 ## Day 2
-Squat / 1x5 / progress: none / warmup: none
+Squat / 1x5 115lb / progress: none / warmup: none
 
 # Week 3
 ## Day 1
-Squat / 1x5 / progress: none / warmup: none
+Squat / 1x5 115lb / progress: none / warmup: none
 
 ## Day 2
-Squat / 1x5 / warmup: none`
+Squat / 1x5 115lb / warmup: none`
   );
 
   await page.getByTestId("editor-v2-save-full").click();

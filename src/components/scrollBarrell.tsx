@@ -106,7 +106,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
         ))}
         {props.values.map(([value, label], index) => (
           <button
-            data-cy={`scroll-barrel-item-${StringUtils.dashcase(value)}`}
+            data-cy={`scroll-barrel-item-${StringUtils.dashcase(label)}`}
             className="flex items-center justify-center w-full cursor-pointer scroll-barrel-item"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
             onClick={() => {

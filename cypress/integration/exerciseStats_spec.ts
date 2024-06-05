@@ -9,7 +9,7 @@ function finishExercise(name: string): void {
 function switchBackToFirstDay(): void {
   g("footer-program").click({ force: true });
   g("menu-item-name-next-day").click();
-  g("scroll-barrel-item-1").click();
+  g("scroll-barrel-item-week-1---workout-a").eq(0).click();
   g("navbar-back").click();
 }
 

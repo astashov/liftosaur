@@ -61,8 +61,7 @@ describe("Edit Sets", () => {
     g("entry-bent-over-row").should("not.exist");
 
     g("add-exercise-button").click();
-    g("menu-item-arnold-press").click();
-    g("change-exercise-equipment").select("kettlebell");
+    g("menu-item-arnold-press-kettlebell").click();
 
     g("add-workout-set").click();
     g("modal-edit-set-reps-input").clear().type("8");
@@ -71,7 +70,7 @@ describe("Edit Sets", () => {
 
     const arnoldPressSelector = "[data-cy^=exercise-]:contains('Arnold Press') [data-cy^=set-]";
     cy.get(arnoldPressSelector).eq(0).find("[data-cy=reps-value]").should("have.text", "8");
-    cy.get(arnoldPressSelector).eq(0).find("[data-cy=weight-value]").should("have.text", "40");
+    cy.get(arnoldPressSelector).eq(0).find("[data-cy=weight-value]").should("have.text", "250");
     cy.get(arnoldPressSelector).eq(0).should("have.data", "cy", "set-nonstarted");
 
     g("entry-squat").find("[data-cy=exercise-edit-mode]").click();

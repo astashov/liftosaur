@@ -164,7 +164,6 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
             name="Program"
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
-            equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fulltext.text}
             onCustomErrorCta={(err) => (

@@ -40,13 +40,13 @@ state.dayInWeek = dayInWeek`
   await page.getByTestId("menu-item-squat").getByTestId("clone-exercise").click();
   await page.getByTestId("menu-item-squat-copy").getByTestId("edit-exercise").click();
   await page.getByTestId("menu-item-exercise").click();
-  await page.getByTestId("modal-exercise").getByTestId("menu-item-bench-press").click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("menu-item-squat").getByTestId("clone-exercise").click();
   await page.getByTestId("menu-item-squat-copy").getByTestId("edit-exercise").click();
   await page.getByTestId("menu-item-exercise").click();
-  await page.getByTestId("modal-exercise").getByTestId("menu-item-deadlift").click();
+  await page.getByTestId("modal-exercise").getByTestId("menu-item-deadlift-barbell").click();
   await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("add-day").click();

@@ -169,7 +169,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
                       if (exercise && modalExerciseUi.fullName) {
                         const newShortName = `${exercise.name}${
                           exerciseType.equipment != null && exerciseType.equipment !== exercise?.defaultEquipment
-                            ? `, ${equipmentName(exerciseType.equipment, props.settings.equipment)}`
+                            ? `, ${equipmentName(exerciseType.equipment)}`
                             : ""
                         }`;
                         const newPlannerProgram = EditProgramUiHelpers.changeCurrentInstance(

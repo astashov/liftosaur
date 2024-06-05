@@ -6,10 +6,15 @@ import memoize from "micro-memoize";
 
 export class PlannerKey {
   public static fromProgramExercise(programExercise: IProgramExercise, settings: ISettings): string {
-    return this.fromFullName(
-      `${programExercise.name},${equipmentName(programExercise.exerciseType.equipment, settings.equipment)}`,
-      settings
-    );
+    const exerciseTypeEquipment = programExercise.exerciseType.equipment;
+    const exercise = Exercise.get(programExercise.exerciseType, settings.exercises);
+    const equipment =
+      exerciseTypeEquipment != null && exerciseTypeEquipment !== exercise.defaultEquipment
+        ? exerciseTypeEquipment
+        : undefined;
+    const fullName = `${programExercise.name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
+    // console.log("pe", fullName);
+    return this.fromFullName(fullName, settings);
   }
 
   public static fromPlannerExercise(plannerExercise: IPlannerProgramExercise, settings: ISettings): string {
@@ -20,9 +25,8 @@ export class PlannerKey {
     (fullName: string, settings: ISettings): string => {
       const { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings);
       const exercise = Exercise.findByName(name, settings.exercises);
-      return `${label ? `${label}-` : ""}${name}-${
-        equipment || exercise?.defaultEquipment || "bodyweight"
-      }`.toLowerCase();
+      const eq = equipment != null && equipment !== exercise?.defaultEquipment ? equipment : undefined;
+      return `${label ? `${label}-` : ""}${name}${eq ? `-${eq}` : ""}`.toLowerCase();
     },
     { maxSize: 500 }
   );

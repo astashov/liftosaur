@@ -2,7 +2,7 @@ import { JSX, h, Fragment } from "preact";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { ISettings, IProgramExercise, IProgram, IProgramStateMetadata, IUnit, IExerciseType } from "../types";
-import { equipmentName, Exercise } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -15,15 +15,13 @@ import { IconCalculator } from "./icons/iconCalculator";
 import { useState } from "preact/hooks";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { StringUtils } from "../utils/string";
-import { ExerciseRM } from "./exerciseRm";
 import { IWeightChange, ProgramExercise } from "../models/programExercise";
 import { Program } from "../models/program";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
 import { ProgramToPlanner } from "../models/programToPlanner";
 import { InputWeight } from "./inputWeight";
-import { GroupHeader } from "./groupHeader";
-import { InputNumber } from "./inputNumber";
+import { ExerciseDataSettings } from "./exerciseDataSettings";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -85,8 +83,6 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   >(undefined);
   const program = props.program;
   const planner = program.planner;
-  const exerciseData = props.settings.exerciseData[Exercise.toKey(exercise)] || {};
-  const equipmentMap = exerciseData.equipment;
 
   return (
     <Modal shouldShowClose={true} onClose={onClose} isFullWidth={true}>
@@ -94,93 +90,12 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
         {!showCalculator ? (
           <>
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
-            <div className="my-2">
-              <InputNumber
-                type="number"
-                label="Default Rounding"
-                min={0}
-                step={0.5}
-                max={100}
-                value={Exercise.defaultRounding(exercise, props.settings)}
-                onUpdate={(value) => {
-                  if (!isNaN(value)) {
-                    updateState(props.dispatch, [
-                      lb<IState>()
-                        .p("storage")
-                        .p("settings")
-                        .p("exerciseData")
-                        .recordModify((data) => {
-                          const k = Exercise.toKey(exercise);
-                          return { ...data, [k]: { ...data[k], rounding: value } };
-                        }),
-                    ]);
-                  }
-                }}
-              />
-              {props.settings.gyms.length > 1 && (
-                <GroupHeader
-                  name="Equipments for each Gym"
-                  topPadding={true}
-                  help={<span>Used for plates calculator and rounding weights to your available equipment</span>}
-                />
-              )}
-              {props.settings.gyms.map((gym, i) => {
-                const equipment = equipmentMap?.[gym.id];
-                const values: [string, string][] = [
-                  ["", ""],
-                  ...ObjectUtils.keys(gym.equipment).map<[string, string]>((id) => [
-                    id,
-                    equipmentName(id, gym.equipment),
-                  ]),
-                ];
-                return (
-                  <MenuItemEditable
-                    type="select"
-                    name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
-                    value={equipment ?? ""}
-                    values={values}
-                    onChange={(value) => {
-                      updateState(props.dispatch, [
-                        lb<IState>()
-                          .p("storage")
-                          .p("settings")
-                          .p("exerciseData")
-                          .recordModify((data) => {
-                            const k = Exercise.toKey(exercise);
-                            return {
-                              ...data,
-                              [k]: { ...data[k], equipment: { ...data[k]?.equipment, [gym.id]: value } },
-                            };
-                          }),
-                      ]);
-                    }}
-                  />
-                );
-              })}
-              {props.settings.gyms.length <= 1 && (
-                <div className="text-xs text-right text-grayv2-main">For plates calculator and rounding weights</div>
-              )}
-              {(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1")) && (
-                <ExerciseRM
-                  exercise={exercise}
-                  rmKey="rm1"
-                  name="1 Rep Max"
-                  settings={props.settings}
-                  onEditVariable={(value) => {
-                    updateState(props.dispatch, [
-                      lb<IState>()
-                        .p("storage")
-                        .p("settings")
-                        .p("exerciseData")
-                        .recordModify((data) => {
-                          const k = Exercise.toKey(exercise);
-                          return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
-                        }),
-                    ]);
-                  }}
-                />
-              )}
-            </div>
+            <ExerciseDataSettings
+              fullExercise={exercise}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              show1RM={!!(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1"))}
+            />
             {planner && (
               <EditWeights
                 weightChanges={weightChanges}
@@ -201,7 +116,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             )}
             {hasStateVariables && (
               <>
-                <h2 className="mt-2 mb-2 text-lg text-center">Edit state variables</h2>
+                <h2 className="mt-4 mb-2 text-lg text-center">Edit state variables</h2>
                 <ProgramStateVariables
                   settings={props.settings}
                   newState={newState}
@@ -422,7 +337,7 @@ function EditWeights(props: IEditWeightsProps): JSX.Element {
 
   return (
     <div>
-      <h2 className="mt-2 mb-2 text-lg text-center">Edit program weights</h2>
+      <h2 className="mt-4 mb-2 text-lg text-center">Edit program weights</h2>
       {hasRestWeights && <h3 className="mb-1 text-xs leading-none text-grayv2-main">Current Workout</h3>}
       {props.weightChanges.map((weightChange, i) => {
         const component = (

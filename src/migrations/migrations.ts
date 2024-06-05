@@ -10,6 +10,14 @@ import { SendMessage } from "../utils/sendMessage";
 import { Settings } from "../models/settings";
 import { equipmentName, Exercise } from "../models/exercise";
 import { ProgramToPlanner } from "../models/programToPlanner";
+import { ExerciseImageUtils } from "../models/exerciseImage";
+import RB from "rollbar";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { PlannerKey } from "../pages/planner/plannerKey";
+import { PP } from "../models/pp";
+import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
+import { PlannerToProgram } from "../models/plannerToProgram";
+declare let Rollbar: RB;
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -487,7 +495,7 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const equipmentKey of ObjectUtils.keys(storage.settings.equipment)) {
       const equipment = storage.settings.equipment[equipmentKey]!;
-      equipment.plates = equipment.plates.filter((p) => p.num != null && p.weight != null);
+      equipment.plates = (equipment.plates || []).filter((p) => p.num != null && p.weight != null);
     }
     return storage;
   },
@@ -507,95 +515,190 @@ export const migrations = {
   },
   "20240419095934_migrate_to_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    if (storage.settings.gyms == null) {
+    try {
+      if (storage.settings.gyms == null) {
+        const gymId = UidFactory.generateUid(8);
+        storage.settings.gyms = [
+          {
+            id: gymId,
+            name: "Main",
+            equipment: ObjectUtils.clone(storage.settings.equipment),
+          },
+        ];
+        storage.settings.currentGymId = gymId;
+
+        const usedCustom: Record<string, IExerciseType> = {};
+        for (const record of storage.history) {
+          for (const entries of record.entries) {
+            const exerciseType = entries.exercise;
+            const customExercise = storage.settings.exercises[exerciseType.id];
+            if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            } else if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            } else if (!ExerciseImageUtils.exists(exerciseType, "small")) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            }
+          }
+        }
+        for (const program of storage.programs) {
+          for (const exercise of program.exercises) {
+            const exerciseType = exercise.exerciseType;
+            const customExercise = storage.settings.exercises[exerciseType.id];
+            if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            } else if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            } else if (!ExerciseImageUtils.exists(exerciseType, "small")) {
+              const key = Exercise.toKey(exerciseType);
+              usedCustom[key] = exerciseType;
+            }
+          }
+        }
+
+        const newCustom: Record<string, { type: IExerciseType; exercise: ICustomExercise }> = {};
+        for (const key of ObjectUtils.keys(usedCustom)) {
+          const exerciseType = usedCustom[key];
+          const exercise = Exercise.get(exerciseType, storage.settings.exercises);
+          const targetMuscles = Exercise.targetMuscles(exerciseType, storage.settings.exercises);
+          const synergistMuscles = Exercise.synergistMuscles(exerciseType, storage.settings.exercises);
+          const equipment =
+            exerciseType.equipment != null && exerciseType.equipment !== exercise.defaultEquipment
+              ? exerciseType.equipment
+              : undefined;
+          const name = `${exercise.name}${
+            equipment ? `, ${equipmentName(equipment, storage.settings.equipment)}` : ""
+          }`;
+          newCustom[key] = {
+            type: exerciseType,
+            exercise: {
+              id: UidFactory.generateUid(8),
+              name,
+              isDeleted: false,
+              meta: {
+                targetMuscles,
+                synergistMuscles,
+                bodyParts: [],
+                sortedEquipment: [],
+              },
+              types: exercise.types,
+            },
+          };
+        }
+        for (const key of ObjectUtils.keys(newCustom)) {
+          const { exercise } = newCustom[key];
+          storage.settings.exercises[exercise.id] = exercise;
+        }
+
+        for (const record of storage.history) {
+          for (const entry of record.entries) {
+            const exerciseType = entry.exercise;
+            const custom = newCustom[Exercise.toKey(exerciseType)];
+            if (custom) {
+              entry.exercise = { id: custom.exercise.id };
+            }
+          }
+        }
+
+        for (const program of storage.programs) {
+          for (const exercise of program.exercises) {
+            const exerciseType = exercise.exerciseType;
+            const custom = newCustom[Exercise.toKey(exerciseType)];
+            if (custom) {
+              exercise.exerciseType = { id: custom.exercise.id };
+              const { label } = PlannerExerciseEvaluator.extractNameParts(exercise.name, storage.settings);
+              const newName = storage.settings.exercises[custom.exercise.id]?.name;
+              exercise.name = `${label ? `${label}-` : ""}${newName}`;
+            }
+          }
+        }
+
+        for (let i = 0; i < storage.programs.length; i += 1) {
+          try {
+            let program = storage.programs[i];
+            let plannerProgram = program.planner;
+            if (plannerProgram) {
+              program = new PlannerToProgram(
+                program.id,
+                program.nextDay,
+                program.exercises,
+                plannerProgram,
+                storage.settings
+              ).convertToProgram();
+
+              for (const exerciseKey of ObjectUtils.keys(newCustom)) {
+                const { evaluatedWeeks } = PlannerProgram.evaluate(plannerProgram, storage.settings);
+                const keys: Set<string> = new Set();
+                const custom = newCustom[exerciseKey];
+                PP.iterate(evaluatedWeeks, (ex) => {
+                  const exercise = Exercise.findByNameAndEquipment(ex.name, storage.settings.exercises);
+                  if (exercise) {
+                    const exerciseType = { id: exercise.id, equipment: ex.equipment };
+                    if (Exercise.eq(exerciseType, custom.type)) {
+                      keys.add(PlannerKey.fromPlannerExercise(ex, storage.settings));
+                    }
+                  }
+                });
+                const newExerciseType = { id: custom.exercise.id };
+                for (const key of keys) {
+                  plannerProgram = PlannerProgram.replaceExercise(
+                    plannerProgram,
+                    key,
+                    newExerciseType,
+                    storage.settings
+                  );
+                }
+              }
+              const newPlanner = new ProgramToPlanner(
+                program,
+                plannerProgram,
+                storage.settings,
+                {},
+                {}
+              ).convertToPlanner();
+              program.planner = newPlanner;
+              storage.programs[i] = program;
+            }
+          } catch (e) {
+            Rollbar.error(e);
+            console.error(e);
+          }
+        }
+
+        for (const record of storage.history) {
+          for (const entry of record.entries) {
+            const exerciseType = entry.exercise;
+            const equipment = exerciseType.equipment;
+            if (equipment != null) {
+              const key = Exercise.toKey(exerciseType);
+              const gym = storage.settings.gyms[0];
+              storage.settings.exerciseData[key] = {
+                ...storage.settings.exerciseData[key],
+                equipment: { [gym.id]: exerciseType.equipment },
+              };
+            }
+          }
+        }
+      }
+      return storage;
+    } catch (e) {
+      Rollbar.error(e);
+      console.error(e);
+      const id = UidFactory.generateUid(8);
       storage.settings.gyms = [
         {
-          id: UidFactory.generateUid(8),
+          id,
           name: "Main",
           equipment: ObjectUtils.clone(storage.settings.equipment),
         },
       ];
-
-      const usedCustom: Record<string, IExerciseType> = {};
-      for (const record of storage.history) {
-        for (const entries of record.entries) {
-          const exerciseType = entries.exercise;
-          if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
-            const key = Exercise.toKey(exerciseType);
-            usedCustom[key] = exerciseType;
-          }
-          const customExercise = storage.settings.exercises[exerciseType.id];
-          if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
-            const key = Exercise.toKey(exerciseType);
-            usedCustom[key] = exerciseType;
-          }
-        }
-      }
-      for (const program of storage.programs) {
-        for (const exercise of program.exercises) {
-          const exerciseType = exercise.exerciseType;
-          if (exerciseType.equipment && equipments.indexOf(exerciseType.equipment as any) === -1) {
-            const key = Exercise.toKey(exerciseType);
-            usedCustom[key] = exerciseType;
-          }
-          const customExercise = storage.settings.exercises[exerciseType.id];
-          if (customExercise && customExercise.defaultEquipment !== exerciseType.equipment) {
-            const key = Exercise.toKey(exerciseType);
-            usedCustom[key] = exerciseType;
-          }
-        }
-      }
-
-      const newCustom: Record<string, { type: IExerciseType; exercise: ICustomExercise }> = {};
-      for (const key of ObjectUtils.keys(usedCustom)) {
-        const exerciseType = usedCustom[key];
-        const exercise = Exercise.get(exerciseType, storage.settings.exercises);
-        const targetMuscles = Exercise.targetMuscles(exerciseType, storage.settings.exercises);
-        const synergistMuscles = Exercise.synergistMuscles(exerciseType, storage.settings.exercises);
-        newCustom[key] = {
-          type: exerciseType,
-          exercise: {
-            id: exerciseType.id,
-            name: `${exercise.name}, ${equipmentName(exerciseType.equipment)}`,
-            isDeleted: false,
-            defaultEquipment: exerciseType.equipment,
-            meta: {
-              targetMuscles,
-              synergistMuscles,
-              bodyParts: [],
-              sortedEquipment: [],
-            },
-            types: exercise.types,
-          },
-        };
-      }
-      for (const key of ObjectUtils.keys(newCustom)) {
-        const { exercise } = newCustom[key];
-        storage.settings.exercises[exercise.id] = exercise;
-      }
-
-      for (const record of storage.history) {
-        for (const entry of record.entries) {
-          const exerciseType = entry.exercise;
-          const custom = newCustom[Exercise.toKey(exerciseType)];
-          entry.exercise = { id: custom.exercise.id };
-        }
-      }
-
-      for (const program of storage.programs) {
-        for (const exercise of program.exercises) {
-          const exerciseType = exercise.exerciseType;
-          const custom = newCustom[Exercise.toKey(exerciseType)];
-          exercise.exerciseType = { id: custom.exercise.id };
-        }
-      }
-
-      for (const program of storage.programs) {
-        if (program.planner) {
-          program.planner = new ProgramToPlanner(program, program.planner, storage.settings, {}, {}).convertToPlanner();
-        }
-      }
+      storage.settings.currentGymId = id;
+      return storage;
     }
-    return storage;
   },
 };

@@ -92,9 +92,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
                 {exercise.name}
               </LinkButton>
               ,{" "}
-              <span className="text-xs text-grayv2-main">
-                {equipmentName(programExercise.exerciseType.equipment, props.settings.equipment)}
-              </span>
+              <span className="text-xs text-grayv2-main">{equipmentName(programExercise.exerciseType.equipment)}</span>
             </div>
           </div>
         </div>

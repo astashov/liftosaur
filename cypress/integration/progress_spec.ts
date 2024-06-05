@@ -67,6 +67,12 @@ describe("Progress", () => {
     cy.get("@thirdSet").should("have.data", "cy", "set-amrap-incompleted");
 
     // Testing changing weight
+    cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy=exercise-edit-mode]").click();
+    g("modal-edit-mode").find("[data-cy=menu-item-value-equipment]").click();
+    g("scroll-barrel-item-barbell").click();
+    cy.wait(1000);
+    g("modal-edit-mode-save-statvars").click();
+
     cy.get("[data-cy^=exercise-]:contains('Bent Over Row') [data-cy=change-weight]").click();
     cy.get("[data-cy=modal-weight-input]").clear().type("200");
     cy.get("[data-cy=modal-weight-submit]").click();

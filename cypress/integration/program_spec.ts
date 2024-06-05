@@ -25,8 +25,7 @@ describe("Program", () => {
     g("tab-advanced").click();
 
     g("menu-item-exercise").click();
-    g("modal-exercise").find("[data-cy='menu-item-deadlift']").click({ force: true });
-    g("menu-item-value-equipment").should("have.text", "Barbell");
+    g("modal-exercise").find("[data-cy='menu-item-deadlift-barbell']").click({ force: true });
     g("menu-item-value-name").should("have.value", "Deadlift");
 
     clearCodeMirror("oneline-editor-reps");
@@ -52,7 +51,7 @@ describe("Program", () => {
     typeCodeMirror("multiline-editor-finish-day", "if (cr[1] == r[1]) {\n  state.weight = w[1] + 10lb\n}");
 
     g("menu-item-name-choose-day").click();
-    g("menu-item-choose-day", "scroll-barrel-item-2").click();
+    g("menu-item-choose-day", "scroll-barrel-item-day-2").click();
 
     // Edit warmups
     g("edit-warmup-set").eq(0).find("[data-cy=edit-warmup-set-delete]").click();
@@ -119,7 +118,7 @@ describe("Program", () => {
     g("state-changes-value-weight").should("not.exist");
 
     g("menu-item-value-weight").clear().type("110");
-    g("menu-item-choose-day", "scroll-barrel-item-1").click();
+    g("menu-item-choose-day", "scroll-barrel-item-day-1").click();
 
     cy.get("[data-cy^=exercise-]:contains('Deadlift') [data-cy^=set-]")
       .eq(2)
