@@ -2,7 +2,7 @@ import { JSX, h, Fragment } from "preact";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { ISettings, IProgramExercise, IProgram, IProgramStateMetadata, IUnit, IExerciseType } from "../types";
-import { Exercise } from "../models/exercise";
+import { equipmentName, Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -22,6 +22,8 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
 import { ProgramToPlanner } from "../models/programToPlanner";
 import { InputWeight } from "./inputWeight";
+import { GroupHeader } from "./groupHeader";
+import { InputNumber } from "./inputNumber";
 
 interface IModalEditModeProps {
   programExerciseId: string;
@@ -83,14 +85,82 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   >(undefined);
   const program = props.program;
   const planner = program.planner;
+  const exerciseData = props.settings.exerciseData[Exercise.toKey(exercise)] || {};
+  const equipmentMap = exerciseData.equipment;
+
   return (
     <Modal shouldShowClose={true} onClose={onClose} isFullWidth={true}>
       <div style={{ minWidth: "80%" }} data-cy="modal-edit-mode">
         {!showCalculator ? (
           <>
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
-            {(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1")) && (
-              <div className="my-2">
+            <div className="my-2">
+              <InputNumber
+                type="number"
+                label="Default Rounding"
+                min={0}
+                step={0.5}
+                max={100}
+                value={Exercise.defaultRounding(exercise, props.settings)}
+                onUpdate={(value) => {
+                  if (!isNaN(value)) {
+                    updateState(props.dispatch, [
+                      lb<IState>()
+                        .p("storage")
+                        .p("settings")
+                        .p("exerciseData")
+                        .recordModify((data) => {
+                          const k = Exercise.toKey(exercise);
+                          return { ...data, [k]: { ...data[k], rounding: value } };
+                        }),
+                    ]);
+                  }
+                }}
+              />
+              {props.settings.gyms.length > 1 && (
+                <GroupHeader
+                  name="Equipments for each Gym"
+                  topPadding={true}
+                  help={<span>Used for plates calculator and rounding weights to your available equipment</span>}
+                />
+              )}
+              {props.settings.gyms.map((gym, i) => {
+                const equipment = equipmentMap?.[gym.id];
+                const values: [string, string][] = [
+                  ["", ""],
+                  ...ObjectUtils.keys(gym.equipment).map<[string, string]>((id) => [
+                    id,
+                    equipmentName(id, gym.equipment),
+                  ]),
+                ];
+                return (
+                  <MenuItemEditable
+                    type="select"
+                    name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
+                    value={equipment ?? ""}
+                    values={values}
+                    onChange={(value) => {
+                      updateState(props.dispatch, [
+                        lb<IState>()
+                          .p("storage")
+                          .p("settings")
+                          .p("exerciseData")
+                          .recordModify((data) => {
+                            const k = Exercise.toKey(exercise);
+                            return {
+                              ...data,
+                              [k]: { ...data[k], equipment: { ...data[k]?.equipment, [gym.id]: value } },
+                            };
+                          }),
+                      ]);
+                    }}
+                  />
+                );
+              })}
+              {props.settings.gyms.length <= 1 && (
+                <div className="text-xs text-right text-grayv2-main">For plates calculator and rounding weights</div>
+              )}
+              {(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1")) && (
                 <ExerciseRM
                   exercise={exercise}
                   rmKey="rm1"
@@ -109,8 +179,8 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                     ]);
                   }}
                 />
-              </div>
-            )}
+              )}
+            </div>
             {planner && (
               <EditWeights
                 weightChanges={weightChanges}

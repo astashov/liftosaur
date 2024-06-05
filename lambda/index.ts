@@ -1484,10 +1484,6 @@ const postUserPlannerProgramHandler: RouteHandler<
       ...user.storage.settings.exercises,
       ...exportedPlannerProgram.settings.exercises,
     },
-    equipment: {
-      ...user.storage.settings.equipment,
-      ...exportedPlannerProgram.settings.equipment,
-    },
   };
   const oldProgram = Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id);
   const program = new PlannerToProgram(
@@ -1685,7 +1681,6 @@ const getProgramShorturlHandler: RouteHandler<
               version: getLatestMigrationVersion(),
               settings: {
                 exercises: program.customExercises,
-                equipment: program.customEquipment || {},
                 timer: program.settings.timers.workout ?? 180,
               },
             };

@@ -33,7 +33,6 @@ import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { ObjectUtils } from "../../utils/object";
 import { PlannerContentFull } from "./plannerContentFull";
-import { Equipment } from "../../models/equipment";
 import { useRef } from "preact/compat";
 import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
@@ -69,7 +68,6 @@ function buildExportedProgram(id: string, program: IPlannerProgram, settings: IS
     plannerSettings: settings.planner,
     settings: {
       exercises: PlannerProgram.usedExercises(settings.exercises, evaluatedWeeks),
-      equipment: PlannerProgram.usedEquipment(Equipment.customEquipment(settings.equipment), evaluatedWeeks),
       timer: settings.timers.workout ?? 0,
     },
   };
@@ -102,11 +100,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     ...initialSettings.exercises,
     ...props.partialStorage?.settings?.exercises,
     ...props.initialProgram?.settings?.exercises,
-  };
-  initialSettings.equipment = {
-    ...initialSettings.equipment,
-    ...props.partialStorage?.settings?.equipment,
-    ...props.initialProgram?.settings?.equipment,
   };
   initialSettings.timers.workout =
     props.initialProgram?.settings?.timer ??

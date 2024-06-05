@@ -485,7 +485,6 @@ export class PlannerProgram {
     const newSettings: ISettings = {
       ...settings,
       exercises: { ...settings.exercises, ...planner.settings.exercises },
-      equipment: { ...settings.equipment, ...planner.settings.equipment },
     };
     const program = new PlannerToProgram(
       newProgram.id,
@@ -501,7 +500,6 @@ export class PlannerProgram {
         units: newSettings.units,
       },
       customExercises: planner.settings.exercises,
-      customEquipment: planner.settings.equipment,
       version: planner.version,
     };
   }

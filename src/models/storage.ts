@@ -301,6 +301,7 @@ export namespace Storage {
       },
       settings: {
         equipment: mergeAs2("settings", "equipment", (a, b) => Equipment.mergeEquipment(a, b)),
+        gyms: deepmerge(oldStorage.settings.gyms, newStorage.settings.gyms),
         graphsSettings: merge2("settings", "graphsSettings"),
         graphOptions: merge2("settings", "graphOptions"),
         exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
@@ -308,6 +309,7 @@ export namespace Storage {
         statsEnabled: merge2("settings", "statsEnabled"),
         exercises: mergeAs2("settings", "exercises", (a, b) => Exercise.mergeExercises(a, b)),
         graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
+        currentGymId: merge2("settings", "currentGymId"),
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         units: merge2("settings", "units"),
         isPublicProfile: merge2("settings", "isPublicProfile"),

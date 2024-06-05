@@ -10,7 +10,6 @@ import {
   IScreenMuscle,
   IWeight,
   IAllCustomExercises,
-  IAllEquipment,
 } from "../../../types";
 
 export interface IPlannerProgramExerciseDescription {
@@ -173,7 +172,6 @@ export interface IExportedPlannerProgram {
 
 export interface IPlannerMainSettings {
   exercises: IAllCustomExercises;
-  equipment: IAllEquipment;
   timer: number;
 }
 

@@ -48,20 +48,17 @@ export namespace ImportExporter {
     payload.settings.timers.workout = exportedProgram.settings.timers.workout || payload.settings.timers.workout;
     payload.settings.units = exportedProgram.settings.units || payload.settings.units;
     payload.settings.exercises = exportedProgram.customExercises;
-    payload.settings.equipment = exportedProgram.customEquipment || {};
     payload.programs.push(exportedProgram.program);
     payload.version = exportedProgram.version;
     const result = await Storage.get(client, payload, false);
     if (result.success) {
       const storage = result.data;
       const customExercises = storage.settings.exercises;
-      const customEquipment = storage.settings.equipment;
       const program = storage.programs.filter((p) => p.id === exportedProgram.program.id)[0];
       return {
         success: true,
         data: {
           customExercises,
-          customEquipment,
           program,
           version: getLatestMigrationVersion(),
           settings: ObjectUtils.pick(payload.settings, ["timers", "units"]),

@@ -6,7 +6,7 @@ import { ISubscription } from "../types";
 
 export namespace Subscriptions {
   export function hasSubscription(subscription: ISubscription): boolean {
-    // return true;
+    return true;
     if (subscription.key && subscription.key !== "unclaimed") {
       return true;
     }

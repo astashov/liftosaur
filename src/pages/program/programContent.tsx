@@ -40,7 +40,6 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     ...defaultSettings,
     ...programContentSettings,
     exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
-    equipment: { ...defaultSettings.equipment, ...(props.exportedProgram?.customEquipment || {}) },
   };
   const initialProgram = props.exportedProgram?.program || {
     id: UidFactory.generateUid(8),
@@ -178,12 +177,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                     state.settings
                   );
                   if (result.success) {
-                    const { program, customExercises, customEquipment } = result.data;
+                    const { program, customExercises } = result.data;
                     const newProgram: IProgram = { ...program, clonedAt: Date.now() };
                     const newSettings: ISettings = {
                       ...state.settings,
                       exercises: { ...state.settings.exercises, ...customExercises },
-                      equipment: { ...state.settings.equipment, ...customEquipment },
                     };
                     props.onUpdate({ program: newProgram });
                     props.onUpdate({ settings: newSettings });
