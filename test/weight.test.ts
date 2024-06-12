@@ -93,6 +93,7 @@ describe("Weight", () => {
         { weight: { value: 5, unit: "lb" }, num: 2 },
         { weight: { value: 3, unit: "lb" }, num: 2 },
         { weight: { value: 0.5, unit: "lb" }, num: 2 },
+        { weight: { value: 0.25, unit: "lb" }, num: 2 },
       ]);
     });
 

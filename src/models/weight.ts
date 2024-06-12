@@ -283,6 +283,7 @@ export namespace Weight {
   }
 
   function calculatePlatesInternalFast(weight: IWeight, availablePlates: IPlate[], multiplier: number): IPlate[] {
+    const originalPlates = availablePlates;
     let total = Weight.build(0, weight.unit);
     const plates: IPlate[] = [];
     while (true) {
@@ -304,7 +305,35 @@ export namespace Weight {
         break;
       }
     }
-    return plates;
+    if (Weight.eq(total, weight)) {
+      return plates;
+    }
+
+    const delta = Weight.subtract(weight, total);
+
+    // The idea is to add the smallest weight available, just surpassing the goal weight.
+    // Stop tracking the actual plates, because this algorithm won't find the best solution.
+    // It will only show that there is a solution that can be made, a recursive call is then used to
+    // find that exact solution.
+    const smallestAvailablePlate = availablePlates
+      .filter((p) => p.num >= multiplier)
+      .sort((a, b) => Weight.compare(a.weight, b.weight))
+      .slice(0, 1);
+    let newTotal = Weight.add(total, Weight.multiply(smallestAvailablePlate[0].weight, multiplier));
+
+    const smallPlatesUsed = plates.filter((p) => Weight.lt(p.weight, smallestAvailablePlate[0].weight));
+    for (const smallPlate of smallPlatesUsed){
+      const overshoot = Weight.subtract(newTotal, weight);
+      const nPlatesInOvershoot = Weight.divide(overshoot, smallPlate.weight);
+      const nPlateSetsInOvershoot = Math.floor(nPlatesInOvershoot.value / multiplier)*multiplier;
+      const nPlatesToRemove = Math.min(smallPlate.num, nPlateSetsInOvershoot);
+      newTotal = Weight.subtract(newTotal, Weight.multiply(smallPlate.weight, nPlatesToRemove));
+    }
+    if (Weight.lte(delta,(Weight.subtract(newTotal,weight)))) {
+      return plates;
+    } else {
+      return calculatePlatesInternalFast(newTotal, originalPlates, multiplier);
+    }
   }
 
   export function add(weight: IWeight, value: IWeight | number): IWeight {
