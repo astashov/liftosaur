@@ -4,6 +4,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IExerciseType, ISettings } from "../types";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
 import { ExerciseImageUtils } from "../models/exerciseImage";
+import { Exercise } from "../models/exercise";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -13,7 +14,13 @@ interface IProps {
 }
 
 export function ExerciseImage(props: IProps): JSX.Element | null {
-  const { exerciseType, size } = props;
+  const { size } = props;
+  const exercise = Exercise.get(props.exerciseType, props.settings?.exercises || {});
+  const exerciseType = {
+    id: props.exerciseType.id,
+    equipment: props.exerciseType.equipment || exercise.defaultEquipment,
+  };
+
   const imgRef = useRef<HTMLImageElement>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
