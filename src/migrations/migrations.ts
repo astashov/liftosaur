@@ -701,4 +701,18 @@ export const migrations = {
       return storage;
     }
   },
+  "20240614183557_fix_duplicate_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const gymIds = new Set<string>();
+    const gyms = storage.settings.gyms;
+    const newGyms = gyms.filter((g) => {
+      if (gymIds.has(g.id)) {
+        return false;
+      }
+      gymIds.add(g.id);
+      return true;
+    });
+    storage.settings.gyms = newGyms;
+    return storage;
+  },
 };
