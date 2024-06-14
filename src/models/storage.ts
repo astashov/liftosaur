@@ -301,7 +301,7 @@ export namespace Storage {
       },
       settings: {
         equipment: mergeAs2("settings", "equipment", (a, b) => Equipment.mergeEquipment(a, b)),
-        gyms: deepmerge(oldStorage.settings.gyms, newStorage.settings.gyms),
+        gyms: mergeAs2("settings", "gyms", (_, b) => b || []),
         graphsSettings: merge2("settings", "graphsSettings"),
         graphOptions: merge2("settings", "graphOptions"),
         exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
