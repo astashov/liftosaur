@@ -715,4 +715,20 @@ export const migrations = {
     storage.settings.gyms = newGyms;
     return storage;
   },
+  "20240614191251_fix_empty_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const id = UidFactory.generateUid(8);
+    storage.settings.gyms =
+      storage.settings.gyms == null || storage.settings.gyms.length === 0
+        ? [
+            {
+              id,
+              name: "Main",
+              equipment: ObjectUtils.clone(storage.settings.equipment),
+            },
+          ]
+        : storage.settings.gyms;
+    storage.settings.currentGymId = storage.settings.currentGymId || id;
+    return storage;
+  },
 };
