@@ -72,7 +72,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               step="0.01"
               type="number"
               value={props.value.value}
-              onInput={() => {
+              onBlur={() => {
                 const value = getValue();
                 if (value != null) {
                   props.onUpdate(value);

@@ -53,3 +53,7 @@
 - Bug - swap exercise and changing weight returns exercise back
 
 - Add tests for the new UI
+
+
+- Program sync is still unreliable
+- Need to tighten up the edit link in the program screen

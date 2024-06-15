@@ -55,7 +55,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
               type="number"
               value={value}
               data-cy={`input-${StringUtils.dashcase(props.label || "")}-field`}
-              onInput={() => {
+              onBlur={() => {
                 const v = getValue();
                 if (v != null) {
                   onUpdate(v);
