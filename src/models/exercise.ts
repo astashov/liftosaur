@@ -17,6 +17,7 @@ import {
   ICustomExercise,
   IScreenMuscle,
   IAllEquipment,
+  IStorage,
 } from "../types";
 import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";

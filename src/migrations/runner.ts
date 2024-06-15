@@ -2,6 +2,8 @@ import { getLatestMigrationVersion, migrations } from "./migrations";
 import { ObjectUtils } from "../utils/object";
 import { IPartialStorage, IStorage } from "../types";
 import { Storage } from "../models/storage";
+import RB from "rollbar";
+declare const Rollbar: RB;
 
 export function unrunMigrations(storage: { version: string }, maxVersion?: string): Array<keyof typeof migrations> {
   const currentVersion = storage.version != null ? parseInt(storage.version.toString(), 10) : 0;
@@ -22,7 +24,15 @@ export async function runMigrations(
   const newVersions = unrunMigrations(storage, maxVersion);
   let result = Storage.partialStorageToStorage(storage);
   for (const version of newVersions) {
-    result = await migrations[version](client, result);
+    try {
+      result = await migrations[version](client, result);
+    } catch (e) {
+      console.error(`Error running migration ${version}: ${e}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== "undefined" && (window as any).Rollbar != null) {
+        Rollbar.error(e);
+      }
+    }
   }
   result = { ...result, version: getLatestMigrationVersion() };
   return result;

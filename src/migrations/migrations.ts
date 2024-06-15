@@ -788,4 +788,32 @@ export const migrations = {
     }
     return storage;
   },
+  "20240615180323_refill_exerciseData_for_new_postgym_exercises": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+      const exerciseData = storage.settings.exerciseData[key];
+      const exerciseType = Exercise.fromKey(key);
+      const exercise = Exercise.get(exerciseType, {});
+      const exerciseFullName = Exercise.fullName(exercise, storage.settings);
+      const fullExercise = Exercise.findByName(exerciseFullName, storage.settings.exercises);
+      const foundCustom = fullExercise ? storage.settings.exercises[fullExercise.id] : undefined;
+      if (foundCustom) {
+        const data = storage.settings.exerciseData[foundCustom.id];
+        if (!data) {
+          const gym = storage.settings.gyms[0];
+          const gymEquipment = (gym.equipment || {})[exerciseType.equipment ?? ""];
+          if (gymEquipment) {
+            storage.settings.exerciseData[foundCustom.id] = {
+              ...exerciseData,
+              equipment: { [gym.id]: exerciseType.equipment },
+            };
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };

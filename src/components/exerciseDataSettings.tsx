@@ -57,7 +57,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
       {props.settings.gyms.map((gym, i) => {
         const equipment = equipmentMap?.[gym.id];
         const values: [string, string][] = [
-          ["", ""],
+          ["", "None"],
           ...ObjectUtils.keys(gym.equipment)
             .filter((e) => !gym.equipment[e]?.isDeleted)
             .map<[string, string]>((id) => [id, equipmentName(id, gym.equipment)]),
