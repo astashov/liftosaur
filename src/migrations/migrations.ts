@@ -731,4 +731,61 @@ export const migrations = {
     storage.settings.currentGymId = storage.settings.currentGymId || id;
     return storage;
   },
+  "20240615162837_fix_duplicate_custom_exercises": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const nameToId: Record<string, string> = {};
+    const duplicateIdsToIds: Record<string, string> = {};
+    for (const key of ObjectUtils.keys(storage.settings.exercises)) {
+      const exercise = storage.settings.exercises[key]!;
+      const name = exercise.name;
+      if (nameToId[name] == null) {
+        nameToId[name] = key;
+      } else {
+        duplicateIdsToIds[key] = nameToId[name];
+        exercise.isDeleted = true;
+      }
+    }
+    if (ObjectUtils.keys(duplicateIdsToIds).length !== 0) {
+      for (const history of storage.history) {
+        for (const entry of history.entries) {
+          const exercise = entry.exercise;
+          const id = duplicateIdsToIds[exercise.id];
+          if (id) {
+            entry.exercise = { id };
+          }
+        }
+      }
+      for (const program of storage.programs) {
+        for (const exercise of program.exercises) {
+          const id = duplicateIdsToIds[exercise.exerciseType.id];
+          if (id) {
+            exercise.exerciseType = { id };
+          }
+        }
+      }
+    }
+    return storage;
+  },
+  "20240615164027_switch_history_to_custom_exercises": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const history of storage.history) {
+      for (const entry of history.entries) {
+        const exerciseType = entry.exercise;
+        const exercise = Exercise.get(exerciseType, {});
+        const exerciseFullName = Exercise.fullName(exercise, storage.settings);
+        const fullExercise = Exercise.findByName(exerciseFullName, storage.settings.exercises);
+        const foundCustom = fullExercise ? storage.settings.exercises[fullExercise.id] : undefined;
+        if (foundCustom) {
+          entry.exercise = { id: foundCustom.id };
+        }
+      }
+    }
+    return storage;
+  },
 };

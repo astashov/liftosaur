@@ -3573,8 +3573,8 @@ export namespace Exercise {
     return !!exercise;
   }
 
-  export function fullName(exercise: IExercise): string {
-    const eqName = exercise.equipment ? equipmentName(exercise.equipment) : undefined;
+  export function fullName(exercise: IExercise, settings?: ISettings): string {
+    const eqName = exercise.equipment ? equipmentName(exercise.equipment, settings?.equipment) : undefined;
     return `${exercise.name}${eqName ? `, ${eqName}` : ""}`;
   }
 
@@ -3604,7 +3604,13 @@ export namespace Exercise {
     const lowercaseName = name.toLowerCase();
     return (
       nameToIdMapping[lowercaseName] ||
-      ObjectUtils.values(customExercises).find((ce) => ce?.name?.toLowerCase() === lowercaseName)?.id
+      ObjectUtils.values(customExercises).find((ce) => {
+        const thisLowercaseName = ce?.name?.toLowerCase() || "";
+        return (
+          thisLowercaseName === lowercaseName ||
+          thisLowercaseName.replace(/\s*,\s*/g, ",") === lowercaseName.replace(/\s*,\s*/g, ",")
+        );
+      })?.id
     );
   }
 
@@ -3664,7 +3670,7 @@ export namespace Exercise {
   }
 
   export function findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
-    const exerciseId = findIdByName(name, customExercises);
+    const exerciseId = findIdByName(name.trim(), customExercises);
     if (exerciseId != null) {
       const exercise = findById(exerciseId, customExercises);
       if (exercise != null) {

@@ -691,7 +691,7 @@ export class PlannerExerciseEvaluator {
     } else {
       label = label.trim();
     }
-    const nameEquipment = nameEquipmentItems.join(":");
+    const nameEquipment = nameEquipmentItems.join(":").trim();
     const matchingExercise = Exercise.findByName(nameEquipment, settings.exercises);
     if (matchingExercise) {
       return { name: matchingExercise.name, label: label ? label : undefined };

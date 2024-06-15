@@ -26,7 +26,6 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
   const completion = language.data.of({
     autocomplete: (context: CompletionContext): CompletionResult | undefined => {
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
-      console.log(exerciseMatch);
       if (exerciseMatch) {
         let text = exerciseMatch.text;
         const newText = text.replace(/^[^:]*:/, "");
@@ -34,7 +33,7 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
         text = newText;
         const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
         const result = {
-          from: exerciseMatch.from + offset,
+          from: exerciseMatch.from + offset + 1,
           options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
           validFor: /.*/,
         };
