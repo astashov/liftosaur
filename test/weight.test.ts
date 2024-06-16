@@ -122,9 +122,7 @@ describe("Weight", () => {
       ]);
       const result = Weight.calculatePlates(Weight.build(215, "lb"), settings, exerciseType).plates;
       expect(result).to.eql([
-        { weight: Weight.build(45, "lb"), num: 2 },
-        { weight: Weight.build(5, "lb"), num: 4 },
-        { weight: Weight.build(2.5, "lb"), num: 4 },
+        { weight: Weight.build(45, "lb"), num: 4 },
       ]);
     });
   });

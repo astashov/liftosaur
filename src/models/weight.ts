@@ -249,7 +249,7 @@ export namespace Weight {
     let exactMatchFound = false;
 
     function backtrack(index: number, remainingWeight: IWeight, currentResult: IPlate[]): void {
-      if (Weight.lt(remainingWeight, 0) || exactMatchFound) {
+      if (exactMatchFound) {
         return;
       }
 
@@ -259,7 +259,14 @@ export namespace Weight {
         return;
       }
 
-      if (Weight.lt(remainingWeight, closestWeightDifference)) {
+      if (Weight.lt(remainingWeight, 0)) {
+        const negRemainingWeight = Weight.build(-remainingWeight.value, remainingWeight.unit);
+        if (Weight.lt(negRemainingWeight, closestWeightDifference)) {
+          closestWeightDifference = negRemainingWeight
+          result = currentResult.map((plate) => ({ ...plate }));
+        }
+        return;
+      } else if (Weight.lt(remainingWeight, closestWeightDifference)) {
         closestWeightDifference = remainingWeight;
         result = currentResult.map((plate) => ({ ...plate }));
       }
