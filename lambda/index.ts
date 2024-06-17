@@ -789,21 +789,24 @@ const getDashboardsUsersHandler: RouteHandler<
     const userIds = Array.from(
       new Set(last3MonthslogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId))
     );
-    const users = await new UserDao(di).getLimitedByIds(userIds);
-    const userPrograms = await new UserDao(di).getProgramsByUserIds(userIds);
+    const [users, userPrograms, unsortedLogRecords, freeUsers, subscriptionDetailsDaos] = await Promise.all([
+      new UserDao(di).getLimitedByIds(userIds),
+      new UserDao(di).getProgramsByUserIds(userIds),
+      new LogDao(di).getForUsers(userIds),
+      new FreeUserDao(di).getAll(userIds),
+      new SubscriptionDetailsDao(di).getAll(userIds),
+    ]);
+    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
     const userIdToProgramNames = userPrograms.reduce<Record<string, { id: string; name: string }[]>>((memo, p) => {
       memo[p.userId] = memo[p.userId] || [];
       memo[p.userId].push({ id: p.id, name: `${p.name} ${p.planner ? "🎯" : ""}` });
       return memo;
     }, {});
-    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
-    const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
-    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
-    const freeUsers = await new FreeUserDao(di).getAll(userIds);
-    const subscriptionDetailsDaos = await new SubscriptionDetailsDao(di).getAll(userIds);
     const subscriptionDetailsById = CollectionUtils.groupByKeyUniq(subscriptionDetailsDaos, "userId");
+    const logRecords = CollectionUtils.sortBy(unsortedLogRecords, "ts", true);
     const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
 
+    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
     const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
       const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
       const programNames = CollectionUtils.sort(userIdToProgramNames[userId] || [], (a, b) => {
