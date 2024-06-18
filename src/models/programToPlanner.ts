@@ -573,12 +573,10 @@ export class ProgramToPlanner {
 
   private getExerciseKey(programExercise: IProgramExercise): string {
     const originalExercise = Exercise.get(programExercise.exerciseType, this.settings.exercises);
-    const isDefaultEquipment =
+    const addEqupment =
       programExercise.exerciseType.equipment != null &&
-      programExercise.exerciseType.equipment === originalExercise.defaultEquipment;
-    return `${programExercise.name}${
-      !isDefaultEquipment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""
-    }`;
+      programExercise.exerciseType.equipment !== originalExercise.defaultEquipment;
+    return `${programExercise.name}${addEqupment ? `, ${equipmentName(programExercise.exerciseType.equipment)}` : ""}`;
   }
 
   private groupWarmupsSets(sets: IProgramExerciseWarmupSet[]): [IProgramExerciseWarmupSet, number][] {

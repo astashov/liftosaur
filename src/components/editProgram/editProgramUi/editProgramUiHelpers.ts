@@ -89,9 +89,9 @@ export class EditProgramUiHelpers {
         if (index !== -1 && previousExercise) {
           const exercise = Exercise.get(newExerciseType, settings.exercises);
           newFullName = `${exercise.name}${
-            newExerciseType.equipment != null && newExerciseType.equipment === exercise.defaultEquipment
-              ? ""
-              : `, ${equipmentName(newExerciseType.equipment)}`
+            newExerciseType.equipment != null && newExerciseType.equipment !== exercise.defaultEquipment
+              ? `, ${equipmentName(newExerciseType.equipment)}`
+              : ""
           }`;
           const newExercise = {
             ...ObjectUtils.clone(previousExercise),
