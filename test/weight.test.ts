@@ -125,6 +125,59 @@ describe("Weight", () => {
         { weight: Weight.build(45, "lb"), num: 4 },
       ]);
     });
+
+    it("backtrack method prefers low plate counts, example rounding up", () => {
+      const settings = buildSettings([
+        { weight: Weight.build(20, "lb"), num: 4 },
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(5, "lb"), num: 4 },
+        { weight: Weight.build(2.5, "lb"), num: 4 },
+      ]);
+      const result = Weight.calculatePlates(Weight.build(62.5, "lb"), settings, exerciseType).plates;
+      expect(result).to.eql([
+        { weight: { value: 10, unit: "lb" }, num: 2 },
+      ]);
+    });
+
+    it("backtrack method prefers low plate counts, example rounding down", () => {
+      const settings = buildSettings([
+        { weight: Weight.build(20, "lb"), num: 4 },
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(5, "lb"), num: 4 },
+        { weight: Weight.build(2.5, "lb"), num: 4 },
+      ]);
+      const result = Weight.calculatePlates(Weight.build(67.5, "lb"), settings, exerciseType).plates;
+      expect(result).to.eql([
+        { weight: { value: 10, unit: "lb" }, num: 2 },
+      ]);
+    });
+
+    it("greedy method returns the first solution, always rounding down", () => {
+      const settings = buildSettings([
+        { weight: Weight.build(20, "lb"), num: 400 },
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(5, "lb"), num: 4 },
+        { weight: Weight.build(2.5, "lb"), num: 4 },
+      ]);
+      const result = Weight.calculatePlates(Weight.build(62.5, "lb"), settings, exerciseType).plates;
+      expect(result).to.eql([
+        { weight: { value: 5, unit: "lb" }, num: 2 },
+        { weight: { value: 2.5, unit: "lb" }, num: 2 },
+      ]);
+    });
+
+    it("greedy method example adding small plates and then removing them", () => {
+      const settings = buildSettings([
+        { weight: Weight.build(20, "lb"), num: 400 },
+        { weight: Weight.build(10, "lb"), num: 4 },
+        { weight: Weight.build(5, "lb"), num: 4 },
+        { weight: Weight.build(2.5, "lb"), num: 2 },
+      ]);
+      const result = Weight.calculatePlates(Weight.build(63.5, "lb"), settings, exerciseType).plates;
+      expect(result).to.eql([
+        { weight: { value: 10, unit: "lb" }, num: 2 },
+      ]);
+    });
   });
 
   describe(".platesWeight()", () => {
