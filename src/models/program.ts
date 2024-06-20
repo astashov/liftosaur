@@ -743,7 +743,8 @@ export namespace Program {
     program: IProgram,
     progress: IHistoryRecord,
     settings: ISettings,
-    staticStates?: Partial<Record<string, IProgramState>>
+    staticStates?: Partial<Record<string, IProgramState>>,
+    retry?: boolean
   ): { program: IProgram; exerciseData: IExerciseData } {
     const exerciseData: IExerciseData = {};
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
@@ -804,21 +805,36 @@ export namespace Program {
       }
     }
 
-    if (newProgram.planner) {
-      newProgram.planner = new ProgramToPlanner(
-        newProgram,
-        newProgram.planner,
-        settings,
-        setVariationIndexMap,
-        descriptionIndexMap
-      ).convertToPlanner();
-      newProgram = new PlannerToProgram(
-        newProgram.id,
-        newProgram.nextDay,
-        newProgram.exercises,
-        newProgram.planner,
-        settings
-      ).convertToProgram();
+    const planner = newProgram.planner;
+    if (planner) {
+      try {
+        newProgram.planner = new ProgramToPlanner(
+          newProgram,
+          planner,
+          settings,
+          setVariationIndexMap,
+          descriptionIndexMap
+        ).convertToPlanner();
+        newProgram = new PlannerToProgram(
+          newProgram.id,
+          newProgram.nextDay,
+          newProgram.exercises,
+          newProgram.planner,
+          settings
+        ).convertToProgram();
+      } catch (e) {
+        if (retry) {
+          throw e;
+        }
+        const reProgram = new PlannerToProgram(
+          program.id,
+          program.nextDay,
+          program.exercises,
+          planner,
+          settings
+        ).convertToProgram();
+        return runAllFinishDayScripts(reProgram, progress, settings, staticStates, true);
+      }
     }
 
     return {
