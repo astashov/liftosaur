@@ -28,12 +28,12 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
       if (exerciseMatch) {
         let text = exerciseMatch.text;
-        const newText = text.replace(/^[^:]*:/, "");
+        const newText = text.replace(/^[^:]*:\s*/, "");
         const offset = text.length - newText.length;
         text = newText;
         const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
         const result = {
-          from: exerciseMatch.from + offset + 1,
+          from: exerciseMatch.from + offset,
           options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
           validFor: /.*/,
         };

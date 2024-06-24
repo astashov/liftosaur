@@ -57,3 +57,13 @@
 
 - Program sync is still unreliable
 - Need to tighten up the edit link in the program screen
+- Made numberOfSets = 0 work in update blocks
+
+---
+
+- Program text - YDoc -> S3 object
+- Custom exercises, planner settings - YDoc -> DynamoDB 
+- History, stats, settings -> DynamoDB
+
+- Wake up the app - fetch new data
+- Implement pull to refresh
