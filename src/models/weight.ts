@@ -229,8 +229,7 @@ export namespace Weight {
     const weight = Weight.subtract(allWeight, barWeight);
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
-    const totalNumberOfPlates = availablePlates.reduce((memo, p) => memo + p.num, 0);
-    const useFastMethod = (availablePlates.length > 6 && totalNumberOfPlates > 100) || totalNumberOfPlates > 300;
+    const useFastMethod = true;
     const plates: IPlate[] = useFastMethod
       ? calculatePlatesInternalFast(weight, availablePlates, multiplier)
       : calculatePlatesInternal(weight, availablePlates, multiplier);
