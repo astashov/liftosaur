@@ -124,13 +124,6 @@ export function ProgramListView(props: IProps): JSX.Element {
                 }}
               />
             ))}
-            <div className="px-4 py-4 text-center border border-yellow-700 rounded-lg">
-              If you didn't find a program you need, and don't want to create one yourself, shoot me an email at{" "}
-              <a className="font-bold underline text-bluev2" href="mailto:info@liftosaur.com">
-                info@liftosaur.com
-              </a>
-              , and I'll create one for you for free!
-            </div>
           </div>
         </Fragment>
       )}
