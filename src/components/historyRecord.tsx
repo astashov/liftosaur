@@ -6,37 +6,27 @@ import { Progress } from "../models/progress";
 import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
-import { IconComments } from "./icons/iconComments";
-import { IAllComments, IAllLikes } from "../models/state";
 import { HtmlUtils } from "../utils/html";
-import { ButtonLike } from "./buttonLike";
 import { IconWatch } from "./icons/iconWatch";
-import { IconProfile } from "./icons/iconProfile";
 import { HistoryEntryView } from "./historyEntry";
 
 interface IProps {
   historyRecord: IHistoryRecord;
   isOngoing: boolean;
   settings: ISettings;
-  comments: IAllComments;
   dispatch: IDispatch;
-  likes?: IAllLikes;
   userId?: string;
-  friendId?: string;
-  nickname?: string;
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
-  const { historyRecord, dispatch, nickname, friendId } = props;
+  const { historyRecord, dispatch } = props;
 
   const entries = historyRecord.entries;
   return (
     <div
       data-cy="history-record"
-      className={`history-record-${nickname} rounded-2xl mx-4 mb-4 px-4 text-sm ${
-        props.nickname
-          ? "bg-orange-100"
-          : Progress.isCurrent(historyRecord)
+      className={`history-record rounded-2xl mx-4 mb-4 px-4 text-sm ${
+        Progress.isCurrent(historyRecord)
           ? props.isOngoing
             ? "bg-yellow-100 border border-yellow-400"
             : "bg-purplev2-200"
@@ -51,19 +41,13 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             editHistoryRecord(
               historyRecord,
               dispatch,
-              Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
-              props.friendId
+              Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)
             );
           }
         }
       }}
     >
       <div className="py-4">
-        {props.nickname && (
-          <div>
-            <IconProfile /> {props.nickname}
-          </div>
-        )}
         <div className="flex">
           <div className="flex-1 font-bold" data-cy="history-record-date">
             {Progress.isCurrent(historyRecord) ? (
@@ -107,21 +91,6 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                 {TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}
               </span>
             </div>
-            <div className="flex-1 text-right">
-              <ButtonLike
-                dispatch={dispatch}
-                historyRecordId={historyRecord.id}
-                userId={props.userId}
-                friendId={friendId}
-                likes={props.likes}
-              />
-              {props.comments.comments[historyRecord.id] != null ? (
-                <span className="p-2 align-center">
-                  <IconComments />
-                  <span className="pl-1">{props.comments.comments[historyRecord.id]?.length || 0}</span>
-                </span>
-              ) : undefined}
-            </div>
           </div>
         )}
       </div>
@@ -129,8 +98,8 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   );
 }, ComparerUtils.noFns);
 
-function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean, userId?: string): void {
+function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean): void {
   if (!isNext) {
-    dispatch({ type: "EditHistoryRecord", historyRecord, userId });
+    dispatch({ type: "EditHistoryRecord", historyRecord });
   }
 }

@@ -26,8 +26,6 @@ export type IScreen =
   | "editProgramDay"
   | "editProgramDayScript"
   | "editProgramWeek"
-  | "friends"
-  | "friendsAdd"
   | "measurements"
   | "subscription"
   | "exerciseStats"
@@ -146,12 +144,6 @@ export namespace Screen {
       }
       case "editProgramDayScript": {
         return "program";
-      }
-      case "friends": {
-        return "settings";
-      }
-      case "friendsAdd": {
-        return "settings";
       }
       case "measurements": {
         return "measurements";

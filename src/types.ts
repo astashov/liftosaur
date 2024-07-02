@@ -971,7 +971,6 @@ export const TSettings = t.intersection(
       statsEnabled: TStatsEnabled,
       units: TUnit,
       lengthUnits: TLengthUnit,
-      shouldShowFriendsHistory: t.boolean,
       volume: t.number,
       exerciseData: dictionary(t.string, TExerciseDataValue),
       planner: TPlannerSettings,

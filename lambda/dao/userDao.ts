@@ -55,10 +55,6 @@ export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
   storage: IPartialStorage;
 };
 
-export type IFriendUserDao = Pick<IUserDao, "id" | "nickname"> & {
-  storage: Omit<IUserDao["storage"], "programs" | "stats">;
-};
-
 interface IStatDb {
   name: string;
   value: IWeight | ILength | IPercentage;

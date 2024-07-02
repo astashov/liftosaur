@@ -1,4 +1,3 @@
-import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
 import { IExportedPlannerProgram } from "../pages/planner/models/types";
 import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
@@ -322,96 +321,11 @@ export class Service {
     return !!(json as { result: boolean }).result;
   }
 
-  public async getFriends(username: string): Promise<IFriend[]> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/friends`);
-    url.searchParams.set("username", username);
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { friends: IFriend[] } = await result.json();
-    return json.friends;
-  }
-
-  public async getFriendsHistory(startDate: string, endDate?: string): Promise<Partial<Record<string, IFriendUser>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/friendshistory`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
-    }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    if (!result.ok) {
-      return {};
-    } else {
-      const json: { friends: Partial<Record<string, IFriendUser>> } = await result.json();
-      return json.friends;
-    }
-  }
-
-  public async inviteFriend(friendId: string, message: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/invite/${friendId}`);
-    return this.makeFriendCall("POST", url.toString(), JSON.stringify({ message }));
-  }
-
-  public async removeFriend(friendId: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/removefriend/${friendId}`);
-    return this.makeFriendCall("DELETE", url.toString());
-  }
-
-  public async acceptFrienshipInvitation(friendId: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
-    return this.makeFriendCall("POST", url.toString());
-  }
-
-  public async getComments(startDate: string, endDate?: string): Promise<Partial<Record<number, IComment[]>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
-    }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { comments: Partial<Record<number, IComment[]>> } = await result.json();
-    return json.comments;
-  }
-
-  public async postComment(historyRecordId: string, friendId: string, text: string): Promise<IComment> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
-    const body = JSON.stringify({ historyRecordId, friendId, text });
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      credentials: "include",
-      body,
-      headers: { "Content-Type": "application/json" },
-    });
-    const json: { comment: IComment } = await result.json();
-    return json.comment;
-  }
-
-  public async deleteComment(id: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments/${id}`);
-    await this.client(url.toString(), { method: "DELETE", credentials: "include" });
-  }
-
   public async deleteAccount(): Promise<boolean> {
     const url = UrlUtils.build(`${__API_HOST__}/api/deleteaccount`);
     const response = await this.client(url.toString(), { method: "DELETE", credentials: "include" });
     const json = await response.json();
     return json.data === "ok";
-  }
-
-  public async getLikes(startDate: string, endDate?: string): Promise<Partial<Record<string, ILike[]>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/likes`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
-    }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { likes: Partial<Record<string, ILike[]>> } = await result.json();
-    return json.likes;
-  }
-
-  public async like(friendId: string, historyRecordId: number): Promise<boolean | undefined> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/likes/${friendId}/${historyRecordId}`);
-    const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
-    const json: { result?: boolean } = await result.json();
-    return json.result;
   }
 
   public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
@@ -437,21 +351,6 @@ export class Service {
       return json;
     } else {
       throw new Error(`Couldn't parse short url: ${url.toString()}`);
-    }
-  }
-
-  private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {
-    const result = await this.client(url, {
-      method: method,
-      credentials: "include",
-      ...(body ? { headers: { "Content-Type": "application/json" } } : {}),
-      body,
-    });
-    const json = await result.json();
-    if (result.ok) {
-      return "error" in json ? { success: false, error: json.error } : { success: true, data: true };
-    } else {
-      return { success: false, error: "error" in json ? json.error : "Error" };
     }
   }
 

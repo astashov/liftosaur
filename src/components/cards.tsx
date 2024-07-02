@@ -13,8 +13,7 @@ import {
   ISubscription,
   IExerciseType,
 } from "../types";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser, IState, updateState } from "../models/state";
-import { Comments } from "./comments";
+import { IState, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IconEditSquare } from "./icons/iconEditSquare";
@@ -24,7 +23,6 @@ import { IconNotebook } from "./icons/iconNotebook";
 import { LinkButton } from "./linkButton";
 import { Program } from "../models/program";
 import { lb } from "lens-shmens";
-import { Features } from "../utils/features";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
 
@@ -32,13 +30,9 @@ interface ICardsViewProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
   program?: IProgram;
-  friend?: IFriendUser;
   userId?: string;
-  friends: IAllFriends;
   nickname?: string;
   helps: string[];
-  comments: IAllComments;
-  likes: IAllLikes;
   isTimerShown: boolean;
   subscription: ISubscription;
   settings: ISettings;
@@ -56,7 +50,7 @@ interface ICardsViewProps {
 
 export const CardsView = memo(
   (props: ICardsViewProps): JSX.Element => {
-    const { friend, userId, program } = props;
+    const { program } = props;
     return (
       <section className="px-4 pb-4">
         <div className="flex pb-2">
@@ -102,7 +96,7 @@ export const CardsView = memo(
               </div>
             </div>
           </div>
-          {!friend && !Progress.isCurrent(props.progress) && (
+          {!Progress.isCurrent(props.progress) && (
             <div className="pt-1 pl-2">
               <Button
                 name="finish-day-share"
@@ -121,7 +115,6 @@ export const CardsView = memo(
             </div>
           )}
         </div>
-        {friend?.nickname && <div className="px-3 py-1 italic">{friend?.nickname}</div>}
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;
           if (props.program) {
@@ -140,7 +133,6 @@ export const CardsView = memo(
               showHelp={true}
               showEditButtons={true}
               progress={props.progress}
-              friend={friend}
               settings={props.settings}
               index={index}
               entry={entry}
@@ -195,38 +187,24 @@ export const CardsView = memo(
             className={`${inputClassName} h-32`}
           />
         </div>
-        {Features.areFriendsEnabled() && !Progress.isCurrent(props.progress) && userId && (
-          <Comments
-            nickname={props.nickname}
-            currentUserId={userId}
-            friends={props.friends}
-            likes={props.likes}
-            historyRecordId={props.progress.id}
-            friendId={friend?.id}
-            comments={props.comments}
-            dispatch={props.dispatch}
-          />
-        )}
-        {!friend && (
-          <div className="pt-1 pb-3 text-center">
-            <Button
-              name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
-              kind="orange"
-              data-cy="finish-workout"
-              className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
-              onClick={() => {
-                if (
-                  (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
-                  confirm("Are you sure?")
-                ) {
-                  props.dispatch({ type: "FinishProgramDayAction" });
-                }
-              }}
-            >
-              {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
-            </Button>
-          </div>
-        )}
+        <div className="pt-1 pb-3 text-center">
+          <Button
+            name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+            kind="orange"
+            data-cy="finish-workout"
+            className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+            onClick={() => {
+              if (
+                (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
+                confirm("Are you sure?")
+              ) {
+                props.dispatch({ type: "FinishProgramDayAction" });
+              }
+            }}
+          >
+            {Progress.isCurrent(props.progress) ? "Finish the workout" : "Save"}
+          </Button>
+        </div>
       </section>
     );
   }

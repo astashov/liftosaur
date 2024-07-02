@@ -156,7 +156,6 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
               settings={props.settings}
               size="small"
               entry={props.entry}
-              friend={undefined}
               onStartSetChanging={(
                 isWarmup: boolean,
                 entryIndex: number,
