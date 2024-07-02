@@ -5,7 +5,7 @@ import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
 import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
 import { HistoryRecordsList } from "./historyRecordsList";
-import { IAllComments, IAllLikes, IFriendUser, ILoading } from "../models/state";
+import { ILoading } from "../models/state";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen, Screen } from "../models/screen";
@@ -25,10 +25,7 @@ interface IProps {
   editProgramId?: string;
   history: IHistoryRecord[];
   screenStack: IScreen[];
-  friendsHistory: Partial<Record<string, IFriendUser>>;
   stats: IStats;
-  comments: IAllComments;
-  likes: IAllLikes;
   userId?: string;
   settings: ISettings;
   loading: ILoading;
@@ -42,13 +39,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   });
   const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
   const history = [nextHistoryRecord, ...sortedHistory];
-  const [containerRef, visibleRecords] = useGradualList(history, 20, (vr, nextVr) => {
-    const enddate = sortedHistory[vr - 1]?.date;
-    const startdate = sortedHistory[nextVr - 1]?.date;
-    dispatch(Thunk.fetchFriendsHistory(startdate || "2019-01-01T00:00:00.000Z", enddate));
-    dispatch(Thunk.fetchLikes(startdate || "2019-01-01T00:00:00.000Z", enddate));
-    dispatch(Thunk.getComments(startdate || "2019-01-01T00:00:00.000Z", enddate));
-  });
+  const [containerRef, visibleRecords] = useGradualList(history, 20, () => undefined);
 
   const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
   const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
@@ -112,15 +103,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </div>
       )}
       <HistoryRecordsList
-        comments={props.comments}
         history={history}
         progress={props.progress}
         settings={props.settings}
         dispatch={dispatch}
-        likes={props.likes}
         visibleRecords={visibleRecords}
         currentUserId={props.userId}
-        friendsHistory={props.friendsHistory}
       />
     </Surface>
   );

@@ -22,8 +22,6 @@ import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
 import { ScreenStats } from "./screenStats";
-import { ScreenFriends } from "./screenFriends";
-import { ScreenFriendsAdd } from "./screenFriendsAdd";
 import { Notification } from "./notification";
 import { WhatsNew } from "../models/whatsnew";
 import { ModalWhatsnew } from "./modalWhatsnew";
@@ -195,13 +193,10 @@ export function AppView(props: IProps): JSX.Element | null {
         <ProgramHistoryView
           editProgramId={state.progress[0]?.programId}
           screenStack={state.screenStack}
-          comments={state.comments}
-          likes={state.likes}
           loading={state.loading}
           program={currentProgram}
           progress={state.progress?.[0]}
           userId={state.user?.id}
-          friendsHistory={state.friendsHistory}
           stats={state.storage.stats}
           settings={state.storage.settings}
           history={state.storage.history}
@@ -213,50 +208,23 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   } else if (Screen.current(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
-    if (state.currentHistoryRecordUserId && state.friendsHistory[state.currentHistoryRecordUserId]) {
-      const friend = state.friendsHistory[state.currentHistoryRecordUserId]!;
-      content = (
-        <ProgramDayView
-          friends={state.allFriends}
-          loading={state.loading}
-          helps={state.storage.helps}
-          subscription={state.storage.subscription}
-          likes={state.likes}
-          comments={state.comments}
-          userId={state.user?.id}
-          history={[]}
-          friend={friend}
-          progress={progress}
-          program={undefined}
-          dispatch={dispatch}
-          nickname={state.storage.settings.nickname}
-          settings={friend.storage.settings}
-          screenStack={state.screenStack}
-        />
-      );
-    } else {
-      const program = Progress.isCurrent(progress)
-        ? Program.getProgram(state, progress.programId) || currentProgram
-        : undefined;
-      content = (
-        <ProgramDayView
-          friends={state.allFriends}
-          nickname={state.storage.settings.nickname}
-          helps={state.storage.helps}
-          loading={state.loading}
-          history={state.storage.history}
-          subscription={state.storage.subscription}
-          userId={state.user?.id}
-          progress={progress}
-          program={program}
-          comments={state.comments}
-          likes={state.likes}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          screenStack={state.screenStack}
-        />
-      );
-    }
+    const program = Progress.isCurrent(progress)
+      ? Program.getProgram(state, progress.programId) || currentProgram
+      : undefined;
+    content = (
+      <ProgramDayView
+        helps={state.storage.helps}
+        loading={state.loading}
+        history={state.storage.history}
+        subscription={state.storage.subscription}
+        userId={state.user?.id}
+        progress={progress}
+        program={program}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        screenStack={state.screenStack}
+      />
+    );
   } else if (Screen.current(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
@@ -266,15 +234,6 @@ export function AppView(props: IProps): JSX.Element | null {
         user={state.user}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
         settings={state.storage.settings}
-      />
-    );
-  } else if (Screen.current(state.screenStack) === "friends") {
-    content = (
-      <ScreenFriends
-        screenStack={state.screenStack}
-        loading={state.loading}
-        allFriends={state.allFriends}
-        dispatch={dispatch}
       />
     );
   } else if (Screen.current(state.screenStack) === "programPreview") {
@@ -296,15 +255,6 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
-  } else if (Screen.current(state.screenStack) === "friendsAdd") {
-    content = (
-      <ScreenFriendsAdd
-        screenStack={state.screenStack}
-        loading={state.loading}
-        allFriends={state.allFriends}
-        dispatch={dispatch}
-      />
-    );
   } else if (Screen.current(state.screenStack) === "stats") {
     content = (
       <ScreenStats

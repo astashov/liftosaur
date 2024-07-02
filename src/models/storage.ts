@@ -313,7 +313,6 @@ export namespace Storage {
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         units: merge2("settings", "units"),
         isPublicProfile: merge2("settings", "isPublicProfile"),
-        shouldShowFriendsHistory: merge2("settings", "shouldShowFriendsHistory"),
         nickname: merge2("settings", "nickname"),
         vibration: merge2("settings", "vibration"),
         volume: merge2("settings", "volume"),

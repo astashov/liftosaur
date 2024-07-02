@@ -21,7 +21,7 @@ import {
   IProgram,
 } from "../types";
 import { DateUtils } from "../utils/date";
-import { IFriendUser, IState, updateState } from "../models/state";
+import { IState, updateState } from "../models/state";
 import { StringUtils } from "../utils/string";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { lb } from "lens-shmens";
@@ -61,7 +61,6 @@ interface IProps {
   helps: string[];
   index: number;
   showEditButtons: boolean;
-  friend?: IFriendUser;
   forceShowStateChanges?: boolean;
   subscription: ISubscription;
   hidePlatesCalculator?: boolean;
@@ -162,7 +161,6 @@ export const ExerciseView = memo(
 const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {
     const isCurrentProgress = Progress.isCurrent(props.progress);
-    const friend = props.friend;
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
     const equipment = exercise.equipment;
@@ -365,7 +363,6 @@ const ExerciseContentView = memo(
                           entry={props.entry}
                           settings={props.settings}
                           dispatch={props.dispatch}
-                          isFriend={!!friend}
                           nextSet={nextSet}
                           programExercise={props.programExercise}
                         />
@@ -418,7 +415,6 @@ const ExerciseContentView = memo(
             showHelp={props.showHelp}
             settings={props.settings}
             entry={props.entry}
-            friend={friend}
             onStartSetChanging={props.onStartSetChanging}
             onChangeReps={props.onChangeReps}
             dispatch={props.dispatch}
@@ -593,13 +589,12 @@ interface IWeightLineProps {
   entry: IHistoryEntry;
   weight: { rounded: IWeight; original: IWeight };
   nextSet: ISet;
-  isFriend: boolean;
   programExercise?: IProgramExercise;
   dispatch: IDispatch;
 }
 
 function WeightLine(props: IWeightLineProps): JSX.Element {
-  const { weight: w, nextSet, isFriend } = props;
+  const { weight: w, nextSet } = props;
   const isCurrent =
     nextSet != null &&
     Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise), w.rounded);
@@ -627,14 +622,12 @@ function WeightLine(props: IWeightLineProps): JSX.Element {
           className="text-left underline whitespace-no-wrap cursor-pointer text-bluev2 ls-progress-open-change-weight-modal nm-workout-open-change-weight-modal"
           style={{ fontWeight: "inherit" }}
           onClick={() => {
-            if (!isFriend) {
-              props.dispatch({
-                type: "ChangeWeightAction",
-                weight: w.rounded,
-                exercise: props.entry.exercise,
-                programExercise: props.programExercise,
-              });
-            }
+            props.dispatch({
+              type: "ChangeWeightAction",
+              weight: w.rounded,
+              exercise: props.entry.exercise,
+              programExercise: props.programExercise,
+            });
           }}
         >
           {n(w.rounded.value)} {w.rounded.unit}

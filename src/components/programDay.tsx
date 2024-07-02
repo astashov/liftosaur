@@ -5,7 +5,7 @@ import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
 import { ModalDate } from "./modalDate";
-import { IAllComments, IAllFriends, IAllLikes, IFriendUser, ILoading, IState, updateState } from "../models/state";
+import { ILoading, IState, updateState } from "../models/state";
 import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
@@ -45,16 +45,11 @@ interface IProps {
   history: IHistoryRecord[];
   program?: IProgram;
   settings: ISettings;
-  friends: IAllFriends;
   userId?: string;
   helps: string[];
   dispatch: IDispatch;
   loading: ILoading;
   subscription: ISubscription;
-  friend?: IFriendUser;
-  comments: IAllComments;
-  likes: IAllLikes;
-  nickname?: string;
   timerSince?: number;
   timerMode?: IProgressMode;
   screenStack: IScreen[];
@@ -62,7 +57,6 @@ interface IProps {
 
 export function ProgramDayView(props: IProps): JSX.Element | null {
   const progress = props.progress;
-  const friend = props.friend;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const editModalProgramExercise = progress.ui?.editModal?.programExercise.id;
@@ -77,7 +71,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             screenStack={props.screenStack}
             helpContent={<HelpWorkout />}
             onTitleClick={() => {
-              if (!friend && !Progress.isCurrent(progress)) {
+              if (!Progress.isCurrent(progress)) {
                 props.dispatch({ type: "ChangeDate", date: progress.date });
               }
             }}
@@ -90,20 +84,16 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
               )
             }
             rightButtons={[
-              ...(friend
-                ? []
-                : [
-                    <button
-                      className="p-2 nm-delete-progress ls-delete-progress"
-                      onClick={() => {
-                        if (confirm("Are you sure?")) {
-                          props.dispatch({ type: "DeleteProgress" });
-                        }
-                      }}
-                    >
-                      <IconTrash />
-                    </button>,
-                  ]),
+              <button
+                className="p-2 nm-delete-progress ls-delete-progress"
+                onClick={() => {
+                  if (confirm("Are you sure?")) {
+                    props.dispatch({ type: "DeleteProgress" });
+                  }
+                }}
+              >
+                <IconTrash />
+              </button>,
             ]}
           />
         }
@@ -253,24 +243,19 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 setIndex={progress.ui?.editSetModal?.setIndex}
               />
             )}
-            {isShareShown && !friend && !Progress.isCurrent(progress) && props.userId != null && (
+            {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (
               <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
             )}
           </>
         }
       >
         <CardsView
-          friends={props.friends}
           subscription={props.subscription}
-          nickname={props.nickname}
           history={props.history}
           helps={props.helps}
           settings={props.settings}
           program={props.program}
-          friend={props.friend}
           userId={props.userId}
-          comments={props.comments}
-          likes={props.likes}
           progress={progress}
           isTimerShown={!!props.timerSince}
           dispatch={props.dispatch}

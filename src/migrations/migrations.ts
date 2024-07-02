@@ -110,8 +110,6 @@ export const migrations = {
     aStorage: IStorage
   ): Promise<IStorage> => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    storage.settings.shouldShowFriendsHistory =
-      storage.settings.shouldShowFriendsHistory == null ? true : storage.settings.shouldShowFriendsHistory;
     return storage;
   },
   "20220807182403_migrate_plates_to_new_format": async (

@@ -20,7 +20,6 @@ import { Footer2View } from "./footer2";
 import { IScreen, Screen } from "../models/screen";
 import { GroupHeader } from "./groupHeader";
 import { HelpSettings } from "./help/helpSettings";
-import { Features } from "../utils/features";
 import { StringUtils } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
 import { SendMessage } from "../utils/sendMessage";
@@ -283,35 +282,6 @@ export function ScreenSettings(props: IProps): JSX.Element {
               </div>
             </MenuItemWrapper>
           </div>
-        )}
-        {props.user && Features.areFriendsEnabled() && (
-          <>
-            <GroupHeader topPadding={true} name="Friends" />
-            <MenuItem
-              shouldShowRightArrow={true}
-              name="Friends"
-              onClick={() => {
-                props.dispatch({ type: "PushScreen", screen: "friends" });
-              }}
-            />
-            <MenuItemEditable
-              type="select"
-              name="Show friends history?"
-              value={props.settings.shouldShowFriendsHistory ? "true" : "false"}
-              values={[
-                ["true", "Yes"],
-                ["false", "No"],
-              ]}
-              onChange={(newValue) => {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>()
-                    .p("shouldShowFriendsHistory")
-                    .record(newValue === "true"),
-                });
-              }}
-            />
-          </>
         )}
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">

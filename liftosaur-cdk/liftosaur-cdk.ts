@@ -53,14 +53,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    const friendsTable = new dynamodb.Table(this, `LftFriendsStatuses${suffix}`, {
-      tableName: `lftFriendsStatuses${suffix}`,
-      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-    });
-
     const affiliatesTable = new dynamodb.Table(this, `LftAffiliates${suffix}`, {
       tableName: `lftAffiliates${suffix}`,
       partitionKey: { name: "affiliateId", type: dynamodb.AttributeType.STRING },
@@ -152,40 +144,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecovery: true,
-    });
-
-    const commentsTable = new dynamodb.Table(this, `LftComments${suffix}`, {
-      tableName: `lftComments${suffix}`,
-      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-    });
-    commentsTable.addGlobalSecondaryIndex({
-      indexName: `lftCommentsFriends${suffix}`,
-      partitionKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-
-    const likesTable = new dynamodb.Table(this, `LftLikes${suffix}`, {
-      tableName: `lftLikes${suffix}`,
-      partitionKey: { name: "friendIdHistoryRecordId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-    });
-    likesTable.addGlobalSecondaryIndex({
-      indexName: `lftLikesFriends${suffix}`,
-      partitionKey: { name: "friendId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-    likesTable.addGlobalSecondaryIndex({
-      indexName: `lftLikesUsers${suffix}`,
-      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
-      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     const urlsTable = new dynamodb.Table(this, `LftUrls${suffix}`, {
@@ -340,9 +298,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     logsTable.grantReadWriteData(statsLambdaFunction);
     logsFreeformTable.grantReadWriteData(lambdaFunction);
     logsFreeformTable.grantReadWriteData(freeformLambdaFunction);
-    friendsTable.grantReadWriteData(lambdaFunction);
-    commentsTable.grantReadWriteData(lambdaFunction);
-    likesTable.grantReadWriteData(lambdaFunction);
     urlsTable.grantReadWriteData(lambdaFunction);
     affiliatesTable.grantReadWriteData(lambdaFunction);
     freeUsersTable.grantReadWriteData(lambdaFunction);

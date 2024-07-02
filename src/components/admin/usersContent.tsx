@@ -59,7 +59,6 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                   {user.history.map((record) => (
                     <HistoryRecordView
                       isOngoing={false}
-                      comments={{ comments: {}, isLoading: false, isPosting: false, isRemoving: {} }}
                       historyRecord={record}
                       settings={user.settings}
                       dispatch={() => undefined}

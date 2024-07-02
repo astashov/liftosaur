@@ -112,14 +112,10 @@ export async function getInitialState(
     return {
       storage: finalStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
-      allFriends: { friends: {}, sortedIds: [], isLoading: false },
-      friendsHistory: {},
-      likes: { likes: {}, isLoading: false },
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
       currentHistoryRecord: 0,
-      comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
       screenStack,
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
@@ -241,7 +237,6 @@ export type IReplaceStateAction = {
 
 export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
-  userId?: string;
   historyRecord: IHistoryRecord;
 };
 
@@ -576,7 +571,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: progress.id,
-        currentHistoryRecordUserId: undefined,
         screenStack:
           Screen.current(state.screenStack) !== "progress"
             ? Screen.push(state.screenStack, "progress")
@@ -589,7 +583,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return {
         ...state,
         currentHistoryRecord: 0,
-        currentHistoryRecordUserId: undefined,
         screenStack: Screen.push(state.screenStack, "progress"),
         progress: { ...state.progress, 0: newProgress },
       };
@@ -600,7 +593,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       currentHistoryRecord: action.historyRecord.id,
-      currentHistoryRecordUserId: action.userId,
       screenStack: Screen.push(state.screenStack, "progress"),
       progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
     };

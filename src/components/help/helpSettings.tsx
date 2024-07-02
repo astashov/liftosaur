@@ -1,5 +1,4 @@
 import { h, JSX, Fragment } from "preact";
-import { Features } from "../../utils/features";
 
 export function HelpSettings(): JSX.Element {
   return (
@@ -13,8 +12,6 @@ export function HelpSettings(): JSX.Element {
         Under <strong>Account</strong> section, you can go to the account screen, and log in there. For now, we only
         support <strong>login via Google</strong>. After you log in, your data will be synced to the cloud, so even if
         you lose your phone, your progress won't be lost.
-        {Features.areFriendsEnabled() &&
-          "Also, you'll be able to add friends, see their progress, comment and like their workouts."}
       </p>
       <p className="pb-2">
         Make sure to set your <strong>Available Equipment</strong>. The plates you specify there would be used when

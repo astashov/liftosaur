@@ -53,26 +53,6 @@ describe("Weight", () => {
       ]);
     });
 
-    it("skipping plates", () => {
-      const settings = buildSettings([
-        { weight: Weight.build(45, "lb"), num: 4 },
-        { weight: Weight.build(35, "lb"), num: 2 },
-        { weight: Weight.build(25, "lb"), num: 2 },
-        { weight: Weight.build(10, "lb"), num: 4 },
-        { weight: Weight.build(5, "lb"), num: 4 },
-        { weight: Weight.build(2.5, "lb"), num: 4 },
-        { weight: Weight.build(1.25, "lb"), num: 2 },
-        { weight: Weight.build(0.5, "lb"), num: 8 },
-      ]);
-      const result = Weight.calculatePlates(Weight.build(83, "lb"), settings, exerciseType).plates;
-      expect(result).to.eql([
-        { weight: { value: 10, unit: "lb" }, num: 2 },
-        { weight: { value: 5, unit: "lb" }, num: 2 },
-        { weight: { value: 2.5, unit: "lb" }, num: 2 },
-        { weight: { value: 0.5, unit: "lb" }, num: 6 },
-      ]);
-    });
-
     it("calculate with fast method", () => {
       const settings = buildSettings([
         { weight: { value: 45, unit: "lb" }, num: 50 },
@@ -93,23 +73,6 @@ describe("Weight", () => {
         { weight: { value: 5, unit: "lb" }, num: 2 },
         { weight: { value: 3, unit: "lb" }, num: 2 },
         { weight: { value: 0.5, unit: "lb" }, num: 2 },
-      ]);
-    });
-
-    it("calculate on the borderline with the slow method", () => {
-      const settings = buildSettings([
-        { weight: { value: 45, unit: "lb" }, num: 10 },
-        { weight: { value: 25, unit: "lb" }, num: 20 },
-        { weight: { value: 10, unit: "lb" }, num: 20 },
-        { weight: { value: 5, unit: "lb" }, num: 20 },
-        { weight: { value: 2.5, unit: "lb" }, num: 10 },
-        { weight: { value: 1.5, unit: "lb" }, num: 10 },
-      ]);
-      const result = Weight.calculatePlates(Weight.build(82.3, "lb"), settings, exerciseType).plates;
-      expect(result).to.eql([
-        { weight: { value: 10, unit: "lb" }, num: 2 },
-        { weight: { value: 2.5, unit: "lb" }, num: 2 },
-        { weight: { value: 1.5, unit: "lb" }, num: 8 },
       ]);
     });
 

@@ -230,10 +230,6 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
-      "/acceptfriendinvitation": {
-        target: "https://local-api.liftosaur.com:3000/api",
-        secure: false,
-      },
       "/profileimage/*": {
         target: "https://local-api.liftosaur.com:3000",
         secure: false,

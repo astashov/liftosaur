@@ -4,7 +4,6 @@ import { IDispatch } from "../ducks/types";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { ProgramExercise } from "../models/programExercise";
 import { Progress } from "../models/progress";
-import { IFriendUser } from "../models/state";
 import {
   ISet,
   IHistoryRecord,
@@ -38,14 +37,13 @@ interface IExerciseSetsProps {
   showHelp: boolean;
   settings: ISettings;
   entry: IHistoryEntry;
-  friend?: IFriendUser;
   onStartSetChanging?: IOnStartSetChanging;
   onChangeReps: (mode: IProgressMode, entryIndex: number, setIndex: number) => void;
   dispatch: IDispatch;
 }
 
 export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
-  const { isEditMode, warmupSets, friend } = props;
+  const { isEditMode, warmupSets } = props;
   const isCurrentProgress = Progress.isCurrent(props.progress);
   const currentVariation = props.programExercise
     ? ProgramExercise.getCurrentVariation(
@@ -81,7 +79,6 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                 showHelp={
                   props.showHelp && props.index === 0 && setIndex === 0 && Progress.isFullyEmptySet(props.progress)
                 }
-                friend={friend}
                 set={set}
                 isCurrentProgress={!!isCurrentProgress}
                 onLongPress={
@@ -89,22 +86,20 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
                   (() => onStartSetChanging(true, props.index, setIndex, props.programExercise, props.entry.exercise))
                 }
                 onClick={useCallback(() => {
-                  if (!friend) {
-                    if (isEditMode && onStartSetChanging) {
-                      onStartSetChanging(true, props.index, setIndex, props.programExercise, props.entry.exercise);
-                    } else {
-                      handleClick(
-                        props.dispatch,
-                        props.index,
-                        setIndex,
-                        "warmup",
-                        props.programExercise,
-                        props.allProgramExercises
-                      );
-                      props.onChangeReps("warmup", props.index, setIndex);
-                    }
+                  if (isEditMode && onStartSetChanging) {
+                    onStartSetChanging(true, props.index, setIndex, props.programExercise, props.entry.exercise);
+                  } else {
+                    handleClick(
+                      props.dispatch,
+                      props.index,
+                      setIndex,
+                      "warmup",
+                      props.programExercise,
+                      props.allProgramExercises
+                    );
+                    props.onChangeReps("warmup", props.index, setIndex);
                   }
-                }, [!!friend, isEditMode, props.index, props.entry, props.dispatch])}
+                }, [isEditMode, props.index, props.entry, props.dispatch])}
                 dispatch={props.dispatch}
               />
             );
@@ -148,7 +143,6 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               setIndex === 0 &&
               Progress.isFullyEmptySet(props.progress)
             }
-            friend={friend}
             set={set}
             isCurrentProgress={!!isCurrentProgress}
             onLongPress={
@@ -156,22 +150,20 @@ export function ExerciseSets(props: IExerciseSetsProps): JSX.Element {
               (() => onStartSetChanging(false, props.index, setIndex, props.programExercise, props.entry.exercise))
             }
             onClick={useCallback(() => {
-              if (!friend) {
-                if (isEditMode && onStartSetChanging) {
-                  onStartSetChanging(false, props.index, setIndex, props.programExercise, props.entry.exercise);
-                } else {
-                  handleClick(
-                    props.dispatch,
-                    props.index,
-                    setIndex,
-                    "workout",
-                    props.programExercise,
-                    props.allProgramExercises
-                  );
-                  props.onChangeReps("workout", props.index, setIndex);
-                }
+              if (isEditMode && onStartSetChanging) {
+                onStartSetChanging(false, props.index, setIndex, props.programExercise, props.entry.exercise);
+              } else {
+                handleClick(
+                  props.dispatch,
+                  props.index,
+                  setIndex,
+                  "workout",
+                  props.programExercise,
+                  props.allProgramExercises
+                );
+                props.onChangeReps("workout", props.index, setIndex);
               }
-            }, [!!friend, isEditMode, props.index, props.entry, props.dispatch])}
+            }, [isEditMode, props.index, props.entry, props.dispatch])}
             dispatch={props.dispatch}
           />
         );
@@ -202,7 +194,6 @@ interface IExerciseSetContainerProps {
   settings: ISettings;
   entry: IHistoryEntry;
   showHelp: boolean;
-  friend?: IFriendUser;
   set: ISet;
   isCurrentProgress: boolean;
   onClick: () => void;

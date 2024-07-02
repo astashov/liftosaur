@@ -21,10 +21,7 @@ import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
 import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
-import { FriendDao } from "./dao/friendDao";
 import { IEither } from "../src/utils/types";
-import { CommentsDao } from "./dao/commentsDao";
-import { LikesDao } from "./dao/likesDao";
 import { ResponseUtils } from "./utils/response";
 import { ImageCacher } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
@@ -988,180 +985,6 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   }
 };
 
-const getFriendsEndpoint = Endpoint.build("/api/friends", { username: "string" });
-const getFriendsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFriendsEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event, di } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const friends = await new FriendDao(di).getAllByUsernameOrId(currentUserId, params.username);
-    return ResponseUtils.json(200, event, { friends });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-const inviteFriendEndpoint = Endpoint.build("/api/invite/:friendId");
-const inviteFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof inviteFriendEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const message = getBodyJson(event).message;
-  const host = ResponseUtils.getReferer(event);
-  const userDao = new UserDao(payload.di);
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const [currentUser, friend] = await Promise.all([
-      userDao.getLimitedById(currentUserId),
-      userDao.getLimitedById(params.friendId),
-    ]);
-    if (currentUser != null && friend != null) {
-      const friendDao = new FriendDao(payload.di);
-      const result = await friendDao.invite(currentUser, friend, host, message);
-      if (result.success) {
-        return ResponseUtils.json(200, event, {});
-      } else {
-        return ResponseUtils.json(400, event, { error: result.error });
-      }
-    }
-  }
-  return ResponseUtils.json(401, event, {});
-};
-
-export const acceptFriendInvitationEndpoint = Endpoint.build("/api/acceptfriendinvitation/:friendId");
-const acceptFriendInvitationHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof acceptFriendInvitationEndpoint
-> = async ({ payload, match: { params } }) => {
-  const { event } = payload;
-  const friendDao = new FriendDao(payload.di);
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const result = await friendDao.acceptInvitation(currentUserId, params.friendId);
-    if (result.success) {
-      return ResponseUtils.json(200, event, {});
-    } else {
-      return ResponseUtils.json(400, event, { error: result.error });
-    }
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const removeFriendEndpoint = Endpoint.build("/api/removefriend/:friendId");
-const removeFriendHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof removeFriendEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const friendDao = new FriendDao(payload.di);
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const result = await friendDao.removeFriend(currentUserId, params.friendId);
-    if (result.success) {
-      return ResponseUtils.json(200, event, {});
-    } else {
-      return ResponseUtils.json(400, event, { error: result.error });
-    }
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const acceptFriendInvitationByHashEndpoint = Endpoint.build("/api/acceptfriendinvitation", { hash: "string" });
-const acceptFriendInvitationByHashHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof acceptFriendInvitationByHashEndpoint
-> = async ({ payload, match: { params } }) => {
-  const { event } = payload;
-  const host = ResponseUtils.getHost(event);
-  const friendDao = new FriendDao(payload.di);
-  const result = await friendDao.acceptInvitationByHash(params.hash);
-  const redirectUrl = host ? UrlUtils.build(`https://${host}`) : UrlUtils.build("https://www.liftosaur.com");
-  if (result.success) {
-    redirectUrl.searchParams.set("messagesuccess", result.data);
-  } else {
-    redirectUrl.searchParams.set("messageerror", result.error);
-  }
-  return { statusCode: 303, body: "Redirecting...", headers: { Location: redirectUrl.toString() } };
-};
-
-export const getFriendsHistoryEndpoint = Endpoint.build("/api/friendshistory", {
-  startdate: "string",
-  enddate: "string?",
-});
-const getFriendsHistoryHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof getFriendsHistoryEndpoint
-> = async ({ payload, match: { params } }) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const friendDao = new FriendDao(payload.di);
-    const friends = await friendDao.getFriendsWithHistories(currentUserId, params.startdate, params.enddate);
-    return ResponseUtils.json(200, event, { friends: CollectionUtils.groupByKeyUniq(friends, "id") });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const getCommentsEndpoint = Endpoint.build("/api/comments", {
-  startdate: "string",
-  enddate: "string?",
-});
-const getCommentsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getCommentsEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const commentsDao = new CommentsDao(payload.di);
-    const comments = await commentsDao.getForUser(currentUserId, params.startdate, params.enddate);
-    return ResponseUtils.json(200, event, { comments });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const postCommentEndpoint = Endpoint.build("/api/comments");
-const postCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postCommentEndpoint> = async ({
-  payload,
-}) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const body = getBodyJson(event);
-    const commentsDao = new CommentsDao(payload.di);
-    const comment = await commentsDao.post(currentUserId, body);
-    return ResponseUtils.json(200, event, { comment });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const deleteCommentEndpoint = Endpoint.build("/api/comments/:id");
-const deleteCommentHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteCommentEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const commentsDao = new CommentsDao(payload.di);
-    await commentsDao.remove(currentUserId, params.id);
-    return ResponseUtils.json(200, event, {});
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
 export const deleteAccountEndpoint = Endpoint.build("/api/deleteaccount");
 const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteAccountEndpoint> = async ({
   payload,
@@ -1173,44 +996,6 @@ const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     const userDao = new UserDao(payload.di);
     await userDao.removeUser(currentUserId);
     return ResponseUtils.json(200, event, { data: "ok" });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const getLikesEndpoint = Endpoint.build("/api/likes", {
-  startdate: "string",
-  enddate: "string?",
-});
-const getLikesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getLikesEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const likesDao = new LikesDao(payload.di);
-    const likes = await likesDao.getForUser(currentUserId, params.startdate, params.enddate);
-    return ResponseUtils.json(200, event, { likes });
-  } else {
-    return ResponseUtils.json(401, event, {});
-  }
-};
-
-export const toggleLikeEndpoint = Endpoint.build("/api/likes/:friendId/:historyRecordId|i");
-const toggleLikeHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof toggleLikeEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event } = payload;
-  const currentUserId = await getCurrentUserId(payload.event, payload.di);
-  if (currentUserId != null) {
-    const likesDao = new LikesDao(payload.di);
-    const result = await likesDao.toggle(currentUserId, {
-      friendId: params.friendId,
-      historyRecordId: params.historyRecordId,
-    });
-    return ResponseUtils.json(200, event, { result });
   } else {
     return ResponseUtils.json(401, event, {});
   }
@@ -2056,17 +1841,6 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProfileImageEndpoint, getProfileImageHandler)
       .get(getAdminUsersEndpoint, getAdminUsersHandler)
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
-      .get(getFriendsEndpoint, getFriendsHandler)
-      .post(inviteFriendEndpoint, inviteFriendHandler)
-      .get(acceptFriendInvitationByHashEndpoint, acceptFriendInvitationByHashHandler)
-      .post(acceptFriendInvitationEndpoint, acceptFriendInvitationHandler)
-      .delete(removeFriendEndpoint, removeFriendHandler)
-      .get(getFriendsHistoryEndpoint, getFriendsHistoryHandler)
-      .get(getCommentsEndpoint, getCommentsHandler)
-      .post(postCommentEndpoint, postCommentHandler)
-      .delete(deleteCommentEndpoint, deleteCommentHandler)
-      .get(getLikesEndpoint, getLikesHandler)
-      .post(toggleLikeEndpoint, toggleLikeHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)

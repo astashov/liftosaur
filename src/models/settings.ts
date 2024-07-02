@@ -241,7 +241,6 @@ export namespace Settings {
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },
       equipment: defaultEquipment(),
-      shouldShowFriendsHistory: true,
       exercises: {},
       graphs: [],
       planner: buildPlannerSettings(),
