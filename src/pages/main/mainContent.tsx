@@ -141,7 +141,7 @@ function HowItWorks(): JSX.Element {
         <strong>change the sets</strong>, <strong>reps</strong> or <strong>weight</strong> in Squat or Bench Press, or
         e.g. try to add "
         <strong>
-          Bicep Curl / <span style={{ color: "#994400" }}>3x10-12</span>
+          Biceps Curl, Dumbbell / <span style={{ color: "#994400" }}>3x10-12</span>
         </strong>
         " on the new line. You'll see it gets applied to the playground on the right.
       </p>
@@ -169,7 +169,7 @@ function HowItWorks(): JSX.Element {
       </p>
       <div className="m-2 overflow-x-auto">
         <PlannerCodeBlock
-          script={`Bench Press / 3x12-15 / progress: custom() {~
+          script={`Bench Press, Barbell / 3x12-15 / progress: custom() {~
   for (var.i in completedReps) {
     if (completedReps[var.i] >= reps[var.i]) {
       weights[var.i] += 5lb;
@@ -617,7 +617,7 @@ function Bubbles(props: IBubblesProps): JSX.Element {
 function MainEditorAndPlayground(): JSX.Element {
   const initialDay: IPlannerProgramDay = {
     name: "What you'll see in the app:",
-    exerciseText: `Squat / 5x5 / progress: lp(5lb)
+    exerciseText: `Squat, Barbell / 5x5 / progress: lp(5lb)
 Leg Curl / 3x8 / progress: dp(5lb, 8, 12)`,
   };
 

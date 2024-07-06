@@ -19,32 +19,32 @@ test("reuses sets", async ({ page }) => {
     `# Week 1
 ## Day 1
 
-Squat / 1x1 / 100% / progress: lp(5lb)
-Bench Press / 1x1 / 100%
-Bicep Curl / 1x1 / 100%
+Squat, Barbell / 1x1 / 100% / progress: lp(5lb)
+Bench Press, Barbell / 1x1 / 100%
+Biceps Curl, Dumbbell / 1x1 / 100%
 
 ## Day 2
-a: Squat / 1x2 / 95%
-Triceps Extension / 1x2 95%
-Leg Press / 1x2 / 95%
-Squat / 1x2 / 95%
-Bench Press / 1x2 / 95%
-Hack Squat / ...Squat[_:1]
+a: Squat, Barbell / 1x2 / 95%
+Triceps Extension, Cable / 1x2 95%
+Leg Press, LeverageMachine / 1x2 / 95%
+Squat, Barbell / 1x2 / 95%
+Bench Press, Barbell / 1x2 / 95%
+Hack Squat, Barbell / ...Squat, Barbell[_:1]
 
 ## Day 3
-Deadlift / ...Leg Press
-Front Raise / ...Bench Press[2]
+Deadlift, Barbell / ...Leg Press
+Front Raise / ...Bench Press, Barbell[2]
 
 
 # Week 2
 ## Day 1
-Squat / ...Bench Press
-Bench Press / 2x1 / 100%
-Bicep Curl / ...Triceps Extension[1:2]
+Squat, Barbell / ...Bench Press, Barbell
+Bench Press, Barbell / 2x1 / 100%
+Biceps Curl, Dumbbell / ...Triceps Extension[1:2]
 
 ## Day 2
-a: Squat / ...Squat[1:2]
-Triceps Extension / ...Bench Press[1]`
+a: Squat, Barbell / ...Squat, Barbell[1:2]
+Triceps Extension, Cable / ...Bench Press, Barbell[1]`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
@@ -77,17 +77,17 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("footer-program").click();
   await page.getByTestId("editor-v2-full-program").click();
 
-  expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
-  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");
-  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Hack Squat / ...Squat[1] / 100%");
-  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Deadlift / ...Leg Press");
-  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Front Raise / ...Bench Press[2]");
+  expect(page.getByTestId("planner-editor").first()).toContainText("Squat, Barbell / 1x1 / 140lb");
+  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat, Barbell / 1x2 / 133.25lb");
+  expect(page.getByTestId("planner-editor").nth(1)).toContainText("Hack Squat, Barbell / ...Squat, Barbell[1] / 100%");
+  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Deadlift, Barbell / ...Leg Press");
+  expect(page.getByTestId("planner-editor").nth(2)).toContainText("Front Raise / ...Bench Press, Barbell[2]");
 
   await page.getByTestId("tab-week-2").click();
   expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Triceps Extension / ...Bench Press[1]"
+    "Triceps Extension, Cable / ...Bench Press, Barbell[1]"
   );
   expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "a: Squat / ...Squat[1:2] / 95%"
+    "a: Squat, Barbell / ...Squat, Barbell[1:2] / 95%"
   );
 });

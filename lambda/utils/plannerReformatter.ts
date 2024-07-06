@@ -25,14 +25,14 @@ function plannerReformatterFullPrompt(): string {
 Example:
 # Week 1
 ## Day 1
-Bench Press / 3x3
-Bicep Curl / 3x8
-Bicep Curl / 3x8 @8
-Incline Bench Press / 3x8 @8
+Bench Press, Barbell / 3x3
+Biceps Curl, Dumbbell / 3x8
+Biceps Curl, Dumbbell / 3x8 @8
+Incline Bench Press, Barbell / 3x8 @8
 
 ## Day 2
-Squat / 5x5 @9 120s
-Leg Press / 1x8 @9 120s, 4x4 @8 60s
+Squat, Barbell / 5x5 @9 120s
+Leg Press, LeverageMachine / 1x8 @9 120s, 4x4 @8 60s
 
 There's a list of built-in exercises. If user provided exercise has slightly different name, but means the same
 exercise - use the exercise from the list. Usually you can drop the equipment name from the exercise name,
@@ -63,8 +63,8 @@ function plannerReformatterPrompt(): string {
 * If there are multiple sets of different reps, separate them with comma. E.g. "3x3, 2x4-8, 1x10-12", or "3, 4, 5", or "1x3, 1x4, 1x5" or "3x3-6, 5, 5, 5".
 
 Example:
-Bench Press / 3x3
-Bicep Curl / 3x8
+Bench Press, Barbell / 3x3
+Biceps Curl, Dumbbell / 3x8
 
 There's a list of built-in exercises. If user provided exercise has slightly different name, but means the same
 exercise - use the exercise from the list. Usually you can drop the equipment name from the exercise name.
@@ -125,7 +125,7 @@ Crunch
 Cycling
 Deadlift
 Deadlift High Pull
-Decline Bench Press
+Decli...Bench Press, Barbell
 Decline Crunch
 Deficit Deadlift
 Elliptical Machine
@@ -172,7 +172,7 @@ Lateral Raise
 Leg Curl
 Leg Extension
 Leg Press
-Legs Up Bench Press
+Legs ...Bench Press, Barbell
 Lunge
 Lying Bicep Curl
 Lying Leg Curl
@@ -230,7 +230,7 @@ Single Leg Hip Thrust
 Sissy Squat
 Sit Up
 Skullcrusher
-Sling Shot Bench Press
+Sling Sh...Bench Press, Barbell
 Snatch
 Snatch Pull
 Split Jerk

@@ -61,7 +61,7 @@ Fitness Basic Beginner
       2x5 state.barbellRow
       1x5 state.barbellRow AMRAP
 
-    Bench Press
+ ...Bench Press, Barbell
       2x5 state.benchPress
       1x5 state.benchPress AMRAP
 

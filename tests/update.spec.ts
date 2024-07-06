@@ -14,7 +14,7 @@ test("updates reps in a workout", async ({ page }) => {
   await PlaywrightUtils.typeCodeMirror(
     page,
     "planner-editor",
-    `Squat / 1x6+, 3x3 / 100lb / update: custom() {~
+    `Squat, Barbell / 1x6+, 3x3 / 100lb / update: custom() {~
   if (setIndex == 1) {
     reps = floor(completedReps[1] / 2)
   }

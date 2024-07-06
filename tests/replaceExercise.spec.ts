@@ -17,20 +17,20 @@ test("replaces exercises", async ({ page }) => {
     "planner-editor",
     `# Week 1
 ## Day 1
-Squat / 3x8
-Bench Press[1-2] / 3x8 / progress: custom() {~ weights = 5lb ~} / update: custom() {~ weights = 5lb ~}
+Squat, Barbell / 3x8
+Bench Press, Barbell[1-2] / 3x8 / progress: custom() {~ weights = 5lb ~} / update: custom() {~ weights = 5lb ~}
 
 ## Day 2
-Bicep Curl / ...Bench Press / progress: custom() { ...Bench Press } / update: custom() { ...Bench Press }
-t1: Bench Press / 3x5
+Biceps Curl, Dumbbell / ...Bench Press, Barbell / progress: custom() { ...Bench Press, Barbell} / update: custom() { ...Bench Press, Barbell}
+t1: Bench Press, Barbell / 3x5
 
 # Week 2
 ## Day 1
-Squat / 3x8
-t1: Squat / 3x5
+Squat, Barbell / 3x8
+t1: Squat, Barbell / 3x5
 
 ## Day 2
-Bicep Curl / 1x5`
+Biceps Curl, Dumbbell / 1x5`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
@@ -46,25 +46,25 @@ Bicep Curl / 1x5`
 
   await page.getByTestId("modal-exercise").getByTestId("menu-item-bent-over-row-dumbbell").click();
 
-  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
+  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat, Barbell / 3x8");
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
     "Bent Over Row, Dumbbell[1-2] / 3x8 / progress: custom() {~ weights = 5lb ~} / update: custom() {~ weights = 5lb ~}"
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / ...Bent Over Row, Dumbbell / progress: custom() { ...Bent Over Row, Dumbbell } / update: custom() { ...Bent Over Row, Dumbbell }"
+    "Biceps Curl, Dumbbell / ...Bent Over Row, Dumbbell / progress: custom() { ...Bent Over Row, Dumbbell } / update: custom() { ...Bent Over Row, Dumbbell }"
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "t1: Bench Press / 3x5"
+    "t1: Bench Press, Barbell / 3x5"
   );
 
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8t1: Squat / 3x5`
+    `Squat, Barbell / 3x8t1: Squat, Barbell / 3x5`
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / 1x5"
+    "Biceps Curl, Dumbbell / 1x5"
   );
 
   await page.getByTestId("editor-save-v2-top").click();
@@ -76,7 +76,7 @@ Bicep Curl / 1x5`
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat / 3x8");
+  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText("Squat, Barbell / 3x8");
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
@@ -96,15 +96,15 @@ Bicep Curl / 1x5`
   );
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / ...Bent Over Row, Dumbbell / progress: custom() { ...Bent Over Row, Dumbbell } / update: custom() { ...Bent Over Row, Dumbbell }t1: Bench Press / 3x5"
+    "Biceps Curl, Dumbbell / ...Bent Over Row, Dumbbell / progress: custom() { ...Bent Over Row, Dumbbell } / update: custom() { ...Bent Over Row, Dumbbell }t1: Bench Press, Barbell / 3x5"
   );
 
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Hack Squat, Smith Machine / 3x8t1: Squat / 3x5`
+    `Hack Squat, Smith Machine / 3x8t1: Squat, Barbell / 3x5`
   );
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).nth(1)).toContainText(
-    "Bicep Curl / 1x5"
+    "Biceps Curl, Dumbbell / 1x5"
   );
 });

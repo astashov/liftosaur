@@ -38,9 +38,9 @@ The software development industry has decades of experience in developing tools 
 We can come up with formalized syntax to describe a workout. For example, each line would be an exercise in a workout, and various properties (sets x reps, RPE, etc) would be separated by slashes. For example:
 
 ```
-Bench Press / 3x5 / @9 / 180s
-Shoulder Press / 8+ @9 180s, 3x5 @7 60s
-Bicep Curl / 3x8-12 / @8 / 90s
+Bench Press, Barbell / 3x5 / @9 / 180s
+Shoulder Press, Dumbbell / 8+ @9 180s, 3x5 @7 60s
+Biceps Curl, Dumbbell / 3x8-12 / @8 / 90s
 ... etc
 ```
 

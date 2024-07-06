@@ -7,8 +7,8 @@ import { InternalLink } from "../../internalLink";
 import { IconDoc } from "../icons/iconDoc";
 
 export function HelpEditProgramV2(): JSX.Element {
-  const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
-  const script2 = "Squat / 3x3-5 65%\nRomanian Deadlift / 3x8 150lb";
+  const script = "Squat, Barbell / 3x3-5\nRomanian Deadlift, Barbell / 3x8";
+  const script2 = "Squat, Barbell / 3x3-5 65%\nRomanian Deadlift, Barbell / 3x8 150lb";
 
   return (
     <>

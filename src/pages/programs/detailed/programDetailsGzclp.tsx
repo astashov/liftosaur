@@ -150,7 +150,7 @@ export function ProgramDetailsGzclp(props: IProgramDetailsGzclpProps): JSX.Eleme
           </p>
           <p>
             There are also 3 stages in T2, but you don't do AMRAP on the last set. You use the same progression rules as
-            in T1 - if you successfully finish all sets, you increase the weight by <strong>5lb</strong> for Bench Press
+            in T1 - if you successfully finish all sets, you increase the weight by <strong>5lb</strong> f...Bench Press, Barbell
             and Overhead Press, and by <strong>10lb</strong> for Squat and Deadlift. If you couldn't finish all sets,
             you switch to the next stage.
           </p>
