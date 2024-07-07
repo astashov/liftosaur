@@ -743,7 +743,7 @@ export namespace EditProgramLenses {
   }
 }
 
-function updateStateVariable(state: IProgramState, stateKey: string, newValue?: string): IProgramState {
+export function updateStateVariable(state: IProgramState, stateKey: string, newValue?: string): IProgramState {
   if (newValue === "") {
     newValue = "0";
   }

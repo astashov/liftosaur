@@ -45,8 +45,9 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     ObjectUtils.entries(newState).forEach(([stateKey, newValue]) => {
       EditProgram.properlyUpdateStateVariableInPlace(
         props.dispatch,
-        props.program.id,
+        props.program,
         programExercise,
+        props.settings,
         stateKey,
         newValue
       );
@@ -233,8 +234,9 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                 if (showCalculator.type === "state") {
                   EditProgram.properlyUpdateStateVariableInPlace(
                     props.dispatch,
-                    props.program.id,
+                    props.program,
                     programExercise,
+                    props.settings,
                     showCalculator.value[0],
                     `${weightValue}`
                   );

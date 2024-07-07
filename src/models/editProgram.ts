@@ -17,7 +17,7 @@ import {
   IPlannerProgram,
   IDayData,
 } from "../types";
-import { EditProgramLenses } from "./editProgramLenses";
+import { EditProgramLenses, updateStateVariable } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
 import { IPlannerState } from "../pages/planner/models/types";
 import { IPercentageUnit } from "../types";
@@ -52,20 +52,41 @@ export namespace EditProgram {
 
   export function properlyUpdateStateVariableInPlace(
     dispatch: IDispatch,
-    programId: string,
+    program: IProgram,
     programExercise: IProgramExercise,
+    settings: ISettings,
     stateKey: string,
     newValue?: string
   ): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.properlyUpdateStateVariable(
-        lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
-        programExercise,
-        stateKey,
-        newValue
-      )
-    );
+    if (program.planner) {
+      const programCopy = ObjectUtils.clone(program);
+      const ex = programCopy.exercises.find((e) => e.id === programExercise.id);
+      if (ex != null) {
+        if (newValue == null) {
+          delete ex?.stateMetadata?.[stateKey];
+        }
+        ex.state = updateStateVariable(ex.state, stateKey, newValue);
+        const newPlanner = new ProgramToPlanner(programCopy, program.planner, settings, {}, {}).convertToPlanner();
+        updateState(dispatch, [
+          lb<IState>().p("storage").p("programs").findBy("id", program.id).p("planner").record(newPlanner),
+        ]);
+      }
+    } else {
+      updateState(
+        dispatch,
+        EditProgramLenses.properlyUpdateStateVariable(
+          lb<IState>()
+            .p("storage")
+            .p("programs")
+            .findBy("id", program.id)
+            .p("exercises")
+            .findBy("id", programExercise.id),
+          programExercise,
+          stateKey,
+          newValue
+        )
+      );
+    }
   }
 
   export function switchStateVariablesToUnit(dispatch: IDispatch, settings: ISettings): void {
