@@ -18,7 +18,6 @@ import { ObjectUtils } from "../../utils/object";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { PlannerContent } from "../planner/plannerContent";
 import { IExportedPlannerProgram } from "../planner/models/types";
-import { PlannerToProgram } from "../../models/plannerToProgram";
 import { PlannerProgram } from "../planner/models/plannerProgram";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 
@@ -106,13 +105,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
             if ("program" in args && args.program) {
               const oldProgram = props.exportedProgram?.program;
               if (oldProgram && PlannerProgram.isValid(args.program, state.storage.settings)) {
-                const newProgram = new PlannerToProgram(
-                  oldProgram.id,
-                  oldProgram.nextDay,
-                  oldProgram.exercises,
-                  args.program,
-                  state.storage.settings
-                ).convertToProgram();
+                const newProgram = Program.cleanPlannerProgram(oldProgram);
                 updateState(dispatch, [
                   lb<IState>()
                     .p("storage")

@@ -787,11 +787,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = state.progress[0];
     if (progress != null) {
       const program = Program.getProgram(state, progress.programId)!;
-      const programDay = Program.getProgramDay(program, progress.day);
       let newProgress = Progress.applyProgramDay(
         progress,
         program,
-        programDay,
+        progress.day,
         state.storage.settings,
         undefined,
         action.programExerciseIds,

@@ -54,12 +54,13 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     if (planner != null) {
       const newProgramExercise = PlannerProgram.replaceWeight(programExercise, weightChanges);
       if (programExercise !== newProgramExercise) {
-        const newProgram = {
+        let newProgram = {
           ...program,
           exercises: CollectionUtils.setBy(program.exercises, "id", programExercise.id, newProgramExercise),
         };
         const newPlanner = new ProgramToPlanner(newProgram, planner, props.settings, {}, {}).convertToPlanner();
         newProgram.planner = newPlanner;
+        newProgram = Program.cleanPlannerProgram(newProgram);
         updateState(props.dispatch, [
           lb<IState>()
             .p("storage")
@@ -74,7 +75,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   };
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
   const [newState, setNewState] = useState<Record<string, string>>({});
-  const dayData = Program.getDayData(props.program, props.day);
+  const dayData = Program.getDayData(props.program, props.day, props.settings);
   const [weightChanges, setWeightChanges] = useState(
     ProgramExercise.weightChanges(dayData, programExercise, props.program.exercises, props.settings)
   );

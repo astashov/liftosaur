@@ -209,7 +209,8 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "progress") {
     const progress = state.progress[state.currentHistoryRecord!]!;
     const program = Progress.isCurrent(progress)
-      ? Program.getProgram(state, progress.programId) || currentProgram
+      ? Program.getFullProgram(state, progress.programId) ||
+        (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
       : undefined;
     content = (
       <ProgramDayView
@@ -394,10 +395,11 @@ export function AppView(props: IProps): JSX.Element | null {
     if (type.programId == null) {
       throw new Error("Opened 'muscles' screen, but 'state.storage.currentProgramId' is null");
     }
-    const program = Program.getProgram(state, type.programId);
+    let program = Program.getProgram(state, type.programId);
     if (program == null) {
       throw new Error("Opened 'muscles' screen, but 'program' is null");
     }
+    program = Program.fullProgram(program, state.storage.settings);
     if (type.type === "program") {
       content = (
         <ScreenMusclesProgram

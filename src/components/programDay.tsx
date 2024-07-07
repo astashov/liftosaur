@@ -37,7 +37,6 @@ import { Program } from "../models/program";
 import { EditProgram } from "../models/editProgram";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
-import { PlannerToProgram } from "../models/plannerToProgram";
 import { PlannerKey } from "../pages/planner/plannerKey";
 
 interface IProps {
@@ -187,13 +186,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                               exerciseType,
                               props.settings
                             );
-                            const newProgram = new PlannerToProgram(
-                              program.id,
-                              program.nextDay,
-                              program.exercises,
-                              newPlanner,
-                              props.settings
-                            ).convertToProgram();
+                            const newProgram = Program.cleanPlannerProgram({ ...program, planner: newPlanner });
                             updateState(props.dispatch, [
                               lb<IState>()
                                 .p("storage")

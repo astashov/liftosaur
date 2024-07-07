@@ -66,7 +66,7 @@ export const CardsView = memo(
                     className="px-2 ml-1 align-middle nm-workout-edit-day"
                     onClick={() => {
                       if (program.planner) {
-                        const dayData = Program.getDayData(program, props.progress.day);
+                        const dayData = Program.getDayData(program, props.progress.day, props.settings);
                         const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
                         Program.editAction(props.dispatch, program.id, plannerState);
                       } else {

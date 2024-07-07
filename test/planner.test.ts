@@ -6,6 +6,7 @@ import { IPlannerProgram } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
+import { Program } from "../src/models/program";
 
 describe("Planner", () => {
   it("updates weight and lp progress after completing", () => {
@@ -372,12 +373,13 @@ Bicep Curl[2-5] / 5x5
 # Week 5
 ## Day 1
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    let { program } = PlannerTestUtils.finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
+    program = Program.fullProgram(program, Settings.build());
     const exerciseNamesWeek3 = program.weeks[2].days
       .map((d1) =>
         program.days
@@ -427,9 +429,10 @@ Squat, Smith Machine / 1x1 100lb / progress: custom() { ...Squat }
 ## Day 2
 Squat / 1x1 100lb / progress: custom() {~ weights += 5lb ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    let { program } = PlannerTestUtils.finish(programText, {
       completedReps: [[1], [1]],
     });
+    program = Program.fullProgram(program, Settings.build());
     const weight = program.exercises.find((e) => e.name === "Pec Deck")!.variations[0].sets[0].weightExpr;
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(weight).to.equal("105lb");

@@ -34,16 +34,16 @@ interface IProgramPreviewPlaygroundState {
   progresses: IProgramPreviewPlaygroundProgresses;
 }
 
-function prepareProgram(program: IProgram): IProgram {
-  const newProgram = ObjectUtils.clone(program);
+function prepareProgram(program: IProgram, settings: ISettings): IProgram {
+  const newProgram = Program.fullProgram(ObjectUtils.clone(program), settings);
   return newProgram;
 }
 
 export const ProgramPreviewPlayground = memo(
   (props: IProgramPreviewPlaygroundProps): JSX.Element => {
-    const program = prepareProgram(props.program);
+    const program = prepareProgram(props.program, props.settings);
     const initialState: IProgramPreviewPlaygroundState = {
-      program: prepareProgram(program),
+      program,
       settings: props.settings,
       isPlayground: props.isPlayground,
       progresses: props.weekSetup.map((week) => {
@@ -101,11 +101,10 @@ export const ProgramPreviewPlayground = memo(
                                   return {
                                     ...wk,
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      const programDay = Program.getProgramDay(newProgram, day.dayIndex);
                                       let newProgress = Progress.applyProgramDay(
                                         day.progress,
                                         newProgram,
-                                        programDay,
+                                        day.dayIndex,
                                         state.settings,
                                         day.states
                                       );
@@ -135,11 +134,10 @@ export const ProgramPreviewPlayground = memo(
                                   return {
                                     ...wk,
                                     days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                                      const programDay = Program.getProgramDay(program, day.dayIndex);
                                       let newProgress = Progress.applyProgramDay(
                                         day.progress,
                                         program,
-                                        programDay,
+                                        day.dayIndex,
                                         newSettings,
                                         day.states
                                       );
@@ -193,7 +191,9 @@ export const ProgramPreviewPlayground = memo(
                                   };
                                 });
                               }),
-                            lb<IProgramPreviewPlaygroundState>().p("program").record(newProgram),
+                            lb<IProgramPreviewPlaygroundState>()
+                              .p("program")
+                              .record(Program.fullProgram(newProgram, newSettings)),
                             lb<IProgramPreviewPlaygroundState>().p("settings").record(newSettings),
                           ]);
                         }}

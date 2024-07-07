@@ -71,7 +71,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
   const warmupSets = props.entry.warmupSets;
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
-  const dayData = Program.getDayData(props.program, props.dayIndex);
+  const dayData = Program.getDayData(props.program, props.dayIndex, props.settings);
   const description = ProgramExercise.getDescription(
     programExercise,
     props.program.exercises || [],

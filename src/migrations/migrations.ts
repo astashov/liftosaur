@@ -624,7 +624,6 @@ export const migrations = {
               program = new PlannerToProgram(
                 program.id,
                 program.nextDay,
-                program.exercises,
                 plannerProgram,
                 storage.settings
               ).convertToProgram();

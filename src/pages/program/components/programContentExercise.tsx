@@ -32,7 +32,7 @@ export function ProgramContentExercise(props: IProgramContentExerciseProps): JSX
   const { programExercise, program, settings } = props;
   const isUnassigned = props.dayIndex == null;
   const dayIndex = props.dayIndex || 0;
-  const dayData = Program.getDayData(program, dayIndex + 1);
+  const dayData = Program.getDayData(program, dayIndex + 1, settings);
   const approxTime = TimeUtils.formatHHMM(
     ProgramExercise.approxTimeMs(dayData, programExercise, program.exercises, settings)
   );

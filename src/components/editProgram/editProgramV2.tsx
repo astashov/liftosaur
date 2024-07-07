@@ -113,7 +113,6 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 program={new PlannerToProgram(
                   props.editProgram.id,
                   props.editProgram.nextDay,
-                  props.editProgram.exercises,
                   plannerState.current.program,
                   props.settings
                 ).convertToProgram()}
@@ -376,12 +375,12 @@ export function EditProgramV2(props: IProps): JSX.Element {
           <MenuItemEditable
             type="select"
             name="Next Day:"
-            values={Program.getListOfDays(props.editProgram)}
+            values={Program.getListOfDays(props.editProgram, props.settings)}
             value={props.editProgram.nextDay.toString()}
             onChange={(newValueStr) => {
               const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
               if (newValue != null && !isNaN(newValue)) {
-                const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram)));
+                const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram, props.settings)));
                 EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
               }
             }}
@@ -415,14 +414,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
               settings={props.settings}
               plannerDispatch={plannerDispatch}
               onSave={() => {
-                const newProgram = new PlannerToProgram(
-                  props.editProgram.id,
-                  props.editProgram.nextDay,
-                  props.editProgram.exercises,
-                  props.plannerState.current.program,
-                  props.settings
-                ).convertToProgram();
-                newProgram.planner = props.plannerState.current.program;
+                const newProgram: IProgram = {
+                  ...Program.cleanPlannerProgram(props.editProgram),
+                  planner: props.plannerState.current.program,
+                };
                 updateState(props.dispatch, [
                   lb<IState>()
                     .p("storage")

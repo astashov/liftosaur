@@ -227,7 +227,7 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
             hideBorders={true}
             items={program.days}
             element={(day, i, handleTouchStart) => {
-              const dayData = Program.getDayData(program, i + 1);
+              const dayData = Program.getDayData(program, i + 1, state.settings);
               const approxDayTime = TimeUtils.formatHHMM(Program.dayApproxTimeMs(dayData, program, state.settings));
               return (
                 <section className="flex w-full px-2 py-1 text-left">

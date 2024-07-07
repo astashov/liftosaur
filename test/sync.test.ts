@@ -5,7 +5,7 @@ import { Storage } from "../src/models/storage";
 import { Service } from "../src/api/service";
 import { MockAudioInterface } from "../src/lib/audioInterface";
 import { AsyncQueue } from "../src/utils/asyncQueue";
-import { IEnv, IState, updateState } from "../src/models/state";
+import { IEnv, IState } from "../src/models/state";
 import { UrlUtils } from "../src/utils/url";
 import { getRawHandler } from "../lambda";
 import { MockLogUtil } from "./utils/mockLogUtil";
@@ -174,49 +174,6 @@ describe("sync", () => {
     mockReducer.state.storage.version = "20231009191950";
     await mockReducer.run([Thunk.sync({ withHistory: true, withPrograms: true, withStats: true })]);
     expect(mockReducer.state.storage.deletedHistory).to.eql([]);
-  });
-
-  it("merges programs properly", async () => {
-    const { mockReducer, env } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await mockReducer.run([
-      mockDispatch((ds) =>
-        updateState(ds, [
-          lb<IState>().p("storage").p("programs").i(0).p("exercises").i(0).p("name").record("New Name!"),
-        ])
-      ),
-    ]);
-    await mockReducer2.run([
-      mockDispatch((ds) =>
-        updateState(ds, [
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .i(0)
-            .p("exercises")
-            .i(0)
-            .p("exerciseType")
-            .p("equipment")
-            .record("band"),
-        ])
-      ),
-    ]);
-    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("Bent Over Row");
-    expect(mockReducer2.state.storage.programs[0].exercises[0].exerciseType.equipment).to.equal("band");
-  });
-
-  it("ignores diff paths and uses new storage during storage fetching", async () => {
-    const { mockReducer, env } = await initTheAppAndRecordWorkout();
-    const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
-    await mockReducer.run([
-      mockDispatch((ds) =>
-        updateState(ds, [
-          lb<IState>().p("storage").p("programs").i(0).p("exercises").i(0).p("name").record("New Name!"),
-        ])
-      ),
-    ]);
-    await mockReducer2.run([Thunk.fetchStorage()]);
-    expect(mockReducer2.state.storage.programs[0].exercises[0].name).to.equal("New Name!");
   });
 });
 

@@ -686,7 +686,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const { planner } = props;
   const [settings, setSettings] = useState(props.settings);
   const [program, setProgram] = useState(
-    new PlannerToProgram(UidFactory.generateUid(8), 1, [], planner, settings).convertToProgram()
+    new PlannerToProgram(UidFactory.generateUid(8), 1, planner, settings).convertToProgram()
   );
   const [progress, setProgress] = useState(Program.nextProgramRecord(program, settings, 1, {}));
 
@@ -708,13 +708,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
       }}
       onSettingsChange={(newSettings) => {
         setSettings(newSettings);
-        const newProgram = new PlannerToProgram(
-          UidFactory.generateUid(8),
-          1,
-          [],
-          planner,
-          newSettings
-        ).convertToProgram();
+        const newProgram = new PlannerToProgram(UidFactory.generateUid(8), 1, planner, newSettings).convertToProgram();
         setProgram(newProgram);
         setProgress(Program.nextProgramRecord(newProgram, newSettings, 1, {}));
       }}

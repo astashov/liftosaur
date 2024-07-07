@@ -174,7 +174,7 @@ export namespace Muscle {
     return programDay.exercises.reduce(
       (memo, exerciseId) => {
         const programExercise = program.exercises.find((e) => e.id === exerciseId.id)!;
-        const dayData = Program.getDayData(program, program.nextDay);
+        const dayData = Program.getDayData(program, program.nextDay, settings);
         return mergePoints(memo, getPointsForExercise(programExercise, program.exercises, dayData, settings));
       },
       { screenMusclePoints, exercisePoints }

@@ -44,6 +44,7 @@ import { MathUtils } from "../utils/math";
 import { PlannerToProgram } from "./plannerToProgram";
 import { IPlannerState } from "../pages/planner/models/types";
 import { PlannerKey } from "../pages/planner/plannerKey";
+import memoize from "micro-memoize";
 
 declare let __HOST__: string;
 
@@ -59,6 +60,42 @@ export type IProgramMode = "planner" | "regular" | "update";
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
     return state.storage.programs.find((p) => p.id === id);
+  }
+
+  export function getFullProgram(state: IState, id?: string): IProgram | undefined {
+    const program = getProgram(state, id);
+    if (program) {
+      return fullProgram(program, state.storage.settings);
+    } else {
+      return undefined;
+    }
+  }
+
+  export const fullProgram = memoize(
+    (program: IProgram, settings: ISettings): IProgram => {
+      if (program.planner != null) {
+        return new PlannerToProgram(program.id, program.nextDay, program.planner, settings).convertToProgram();
+      } else {
+        return program;
+      }
+    },
+    { maxSize: 10 }
+  );
+
+  export function cleanPlannerProgram(program: IProgram): IProgram {
+    if (program.planner != null) {
+      return {
+        ...program,
+        exercises: [],
+        days: [],
+        weeks: [],
+        deletedDays: [],
+        deletedWeeks: [],
+        deletedExercises: [],
+      };
+    } else {
+      return program;
+    }
   }
 
   export function getEditingProgram(state: IState): IProgram | undefined {
@@ -92,7 +129,7 @@ export namespace Program {
     }
     const settings = storage.settings;
     return {
-      program: program,
+      program: Program.cleanPlannerProgram(program),
       customExercises: settings.exercises,
       version: storage.version,
       settings: settings,
@@ -288,7 +325,8 @@ export namespace Program {
     dayIndex?: number,
     staticStates?: Partial<Record<string, IProgramState>>
   ): IHistoryRecord {
-    const day = Math.max(1, Math.min(numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
+    const day = Math.max(1, Math.min(numberOfDays(program, settings), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
+    program = fullProgram(program, settings);
     const programDay = getProgramDay(program, day);
     const week = getWeekFromDay(program, day);
     const dayInWeek = getDayInWeek(program, day);
@@ -721,7 +759,7 @@ export namespace Program {
 
   export function dayAverageTimeMs(program: IProgram, settings: ISettings): number {
     const dayApproxTimes = program.days.map((d, i) => {
-      const dayData = Program.getDayData(program, i + 1);
+      const dayData = Program.getDayData(program, i + 1, settings);
       return dayApproxTimeMs(dayData, program, settings);
     });
     return dayApproxTimes.reduce((acc, t) => acc + t, 0) / dayApproxTimes.length;
@@ -746,6 +784,7 @@ export namespace Program {
     staticStates?: Partial<Record<string, IProgramState>>,
     retry?: boolean
   ): { program: IProgram; exerciseData: IExerciseData } {
+    program = Program.fullProgram(program, settings);
     const exerciseData: IExerciseData = {};
     const setVariationIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
     const descriptionIndexMap: Record<string, ILiftoscriptVariableValue<number>[]> = {};
@@ -805,6 +844,7 @@ export namespace Program {
       }
     }
 
+    const theNextDay = Program.nextDay(newProgram, settings, progress.day);
     const planner = newProgram.planner;
     if (planner) {
       try {
@@ -815,30 +855,18 @@ export namespace Program {
           setVariationIndexMap,
           descriptionIndexMap
         ).convertToPlanner();
-        newProgram = new PlannerToProgram(
-          newProgram.id,
-          newProgram.nextDay,
-          newProgram.exercises,
-          newProgram.planner,
-          settings
-        ).convertToProgram();
+        newProgram = Program.cleanPlannerProgram(newProgram);
       } catch (e) {
         if (retry) {
           throw e;
         }
-        const reProgram = new PlannerToProgram(
-          program.id,
-          program.nextDay,
-          program.exercises,
-          planner,
-          settings
-        ).convertToProgram();
+        const reProgram = new PlannerToProgram(program.id, program.nextDay, planner, settings).convertToProgram();
         return runAllFinishDayScripts(reProgram, progress, settings, staticStates, true);
       }
     }
 
     return {
-      program: lf(newProgram).p("nextDay").set(nextDay(newProgram, progress.day)),
+      program: lf(newProgram).p("nextDay").set(theNextDay),
       exerciseData,
     };
   }
@@ -921,7 +949,8 @@ export namespace Program {
     ]);
   }
 
-  export function numberOfDays(program: IProgram): number {
+  export function numberOfDays(program: IProgram, settings: ISettings): number {
+    program = fullProgram(program, settings);
     return program.isMultiweek ? program.weeks.reduce((memo, w) => memo + w.days.length, 0) : program.days.length;
   }
 
@@ -965,7 +994,8 @@ export namespace Program {
     return 1;
   }
 
-  export function getDayData(program: IProgram, day: number): IDayData {
+  export function getDayData(program: IProgram, day: number, settings: ISettings): IDayData {
+    program = fullProgram(program, settings);
     return {
       day,
       week: Program.getWeekFromDay(program, day),
@@ -990,7 +1020,8 @@ export namespace Program {
     return day;
   }
 
-  export function getListOfDays(program: IProgram): [string, string][] {
+  export function getListOfDays(program: IProgram, settings: ISettings): [string, string][] {
+    program = fullProgram(program, settings);
     if (program.isMultiweek) {
       const result: [string, string][] = [];
       let dayIndex = 1;
@@ -1037,8 +1068,8 @@ export namespace Program {
     }
   }
 
-  export function nextDay(program: IProgram, day?: number): number {
-    const nd = (day != null ? day % numberOfDays(program) : 0) + 1;
+  export function nextDay(program: IProgram, settings: ISettings, day?: number): number {
+    const nd = (day != null ? day % numberOfDays(program, settings) : 0) + 1;
     return isNaN(nd) ? 1 : nd;
   }
 

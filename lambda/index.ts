@@ -56,7 +56,6 @@ import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
-import { PlannerToProgram } from "../src/models/plannerToProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
@@ -1273,14 +1272,10 @@ const postUserPlannerProgramHandler: RouteHandler<
       ...exportedPlannerProgram.settings.exercises,
     },
   };
-  const oldProgram = Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id);
-  const program = new PlannerToProgram(
-    oldProgram.id,
-    oldProgram.nextDay,
-    oldProgram.exercises,
-    exportedPlannerProgram.program,
-    user.storage.settings
-  ).convertToProgram();
+  const program = {
+    ...Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id),
+    planner: exportedPlannerProgram.program,
+  };
 
   await userDao.store(user);
   await userDao.saveProgram(user.id, program);

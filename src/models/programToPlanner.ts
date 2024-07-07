@@ -344,17 +344,6 @@ export class ProgramToPlanner {
               const dayExercise = this.program.exercises.find(
                 (e) => PlannerKey.fromProgramExercise(e, this.settings) === line.value
               )!;
-              // console.log(this.plannerProgram.name);
-              // console.log(PlannerProgram.generateFullText(this.plannerProgram.weeks));
-              // console.log(
-              //   "dy",
-              //   line.value,
-              //   this.program.exercises.map((e) => PlannerKey.fromProgramExercise(e, this.settings))
-              // );
-              // console.log(
-              //   "ty",
-              //   topLines.map((l) => [l.fullName, l.value])
-              // );
               const evalDay = this.getEvaluatedWeeks()[weekIndex][dayInWeekIndex];
               const evalExercise = evalDay.success ? evalDay.data.find((e) => e.key === line.value) : undefined;
               const programExercise = this.program.exercises.find((e) => e.id === dayExercise.id)!;

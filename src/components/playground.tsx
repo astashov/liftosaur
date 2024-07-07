@@ -61,10 +61,10 @@ export function Playground(props: IPlaygroundProps): JSX.Element {
         name="Choose Day"
         type="select"
         value={`${props.progress.day}`}
-        values={Program.getListOfDays(props.program)}
+        values={Program.getListOfDays(props.program, props.settings)}
         onChange={(newValue) => {
           const newDay = parseInt(newValue || "1", 10);
-          const dayData = Program.getDayData(props.program, newDay);
+          const dayData = Program.getDayData(props.program, newDay, props.settings);
           const state = ProgramExercise.getState(programExercise, allProgramExercises);
           const nextVariationIndex = Program.nextVariationIndex(
             programExercise,

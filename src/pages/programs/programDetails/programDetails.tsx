@@ -57,7 +57,7 @@ export function ProgramDetails(props: IProgramDetailsProps): JSX.Element {
             <ul>
               {day.exercises.map((dayEntry, index) => {
                 const programExercise = props.program.exercises.filter((e) => e.id === dayEntry.id)[0];
-                const dayData = Program.getDayData(props.program, dayIndex + 1);
+                const dayData = Program.getDayData(props.program, dayIndex + 1, props.settings);
                 return (
                   <ProgramDetailsExercise
                     programMode={Program.programMode(props.program)}

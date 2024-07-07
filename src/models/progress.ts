@@ -25,7 +25,6 @@ import {
   IProgramExercise,
   ISubscription,
   ISet,
-  IProgramDay,
   IDayData,
   IExerciseDataValue,
   IUnit,
@@ -1225,12 +1224,14 @@ export namespace Progress {
   export function applyProgramDay(
     progress: IHistoryRecord,
     program: IProgram,
-    programDay: IProgramDay,
+    dayIndex: number,
     settings: ISettings,
     staticStates?: Partial<Record<string, IProgramState>>,
     programExerciseIds?: string[],
     checkReused?: boolean
   ): IHistoryRecord {
+    program = Program.fullProgram(program, settings);
+    const programDay = Program.getProgramDay(program, dayIndex);
     const affectedProgramExerciseIds = programExerciseIds
       ? checkReused
         ? CollectionUtils.flat(

@@ -33,7 +33,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
   };
   const weeks = props.weekSetup.map((week, weekIndex) => {
     const dayIndex = week.days[day].dayIndex;
-    const dayData = Program.getDayData(props.program, dayIndex);
+    const dayData = Program.getDayData(props.program, dayIndex, props.settings);
 
     return {
       label: week.name,

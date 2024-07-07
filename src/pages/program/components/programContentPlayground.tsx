@@ -73,7 +73,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
             onChange={(e) => {
               const newValue = (e.target as HTMLSelectElement).value;
               const newDay = parseInt(newValue || "1", 10);
-              const newDayData = Program.getDayData(props.program, newDay);
+              const newDayData = Program.getDayData(props.program, newDay, props.settings);
               const state = ProgramExercise.getState(programExercise, allProgramExercises);
               const nextVariationIndex = Program.nextVariationIndex(
                 programExercise,
@@ -96,7 +96,7 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
               props.onProgressChange(History.buildFromEntry(newEntry, newDayData));
             }}
           >
-            {Program.getListOfDays(props.program).map(([value, name]) => {
+            {Program.getListOfDays(props.program, props.settings).map(([value, name]) => {
               return (
                 <option value={value} selected={Number(value) === progressRef.current.day}>
                   {name}

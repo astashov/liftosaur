@@ -153,12 +153,12 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         <MenuItemEditable
           type="select"
           name="Next Day:"
-          values={Program.getListOfDays(props.editProgram)}
+          values={Program.getListOfDays(props.editProgram, props.settings)}
           value={props.editProgram.nextDay.toString()}
           onChange={(newValueStr) => {
             const newValue = newValueStr != null ? parseInt(newValueStr, 10) : undefined;
             if (newValue != null && !isNaN(newValue)) {
-              const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram)));
+              const newDay = Math.max(1, Math.min(newValue, Program.numberOfDays(props.editProgram, props.settings)));
               EditProgram.setNextDay(props.dispatch, props.editProgram, newDay);
             }
           }}

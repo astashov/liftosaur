@@ -26,7 +26,6 @@ export class PlannerToProgram {
   constructor(
     private readonly programId: string,
     private readonly nextDay: number,
-    private readonly programExercises: IProgramExercise[],
     private readonly plannerProgram: IPlannerProgram,
     private readonly settings: ISettings
   ) {}
@@ -104,10 +103,7 @@ export class PlannerToProgram {
             } else {
               const name = `${evalExercise.label ? `${evalExercise.label}: ` : ""}${evalExercise.name}`;
               const exerciseType = { id: exercise.id, equipment: evalExercise.equipment || exercise.defaultEquipment };
-              const oldProgramExercise = this.programExercises.find(
-                (pe) => pe.name === name && pe.exerciseType.equipment === exerciseType.equipment
-              );
-              const id = oldProgramExercise?.id || UidFactory.generateUid(8);
+              const id = key;
               programExercise = {
                 descriptions: [""],
                 exerciseType,

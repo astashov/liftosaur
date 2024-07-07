@@ -16,7 +16,6 @@ import { equipmentName, Exercise } from "../../../models/exercise";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import { IExportedProgram, Program } from "../../../models/program";
-import { PlannerToProgram } from "../../../models/plannerToProgram";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerKey } from "../plannerKey";
 import { PlannerEvaluator } from "../plannerEvaluator";
@@ -486,13 +485,7 @@ export class PlannerProgram {
       ...settings,
       exercises: { ...settings.exercises, ...planner.settings.exercises },
     };
-    const program = new PlannerToProgram(
-      newProgram.id,
-      newProgram.nextDay,
-      newProgram.exercises,
-      planner.program,
-      newSettings
-    ).convertToProgram();
+    const program = { ...newProgram, planner: planner.program };
     return {
       program: program,
       settings: {

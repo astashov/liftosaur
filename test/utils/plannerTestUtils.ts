@@ -18,7 +18,7 @@ export class PlannerTestUtils {
     settings: ISettings = Settings.build()
   ): { program: IProgram; planner: IPlannerProgram } {
     const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
-    const program = new PlannerToProgram(UidFactory.generateUid(8), 1, [], planner, settings).convertToProgram();
+    const program = new PlannerToProgram(UidFactory.generateUid(8), 1, planner, settings).convertToProgram();
     return { program, planner };
   }
 

@@ -402,7 +402,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             program={new PlannerToProgram(
               UidFactory.generateUid(8),
               1,
-              [],
               state.current.program,
               settings
             ).convertToProgram()}
