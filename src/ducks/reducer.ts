@@ -787,7 +787,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "ApplyProgramChangesToProgress") {
     const progress = state.progress[0];
     if (progress != null) {
-      const program = Program.getProgram(state, progress.programId)!;
+      const program = Program.fullProgram(Program.getProgram(state, progress.programId)!, state.storage.settings);
       let newProgress = Progress.applyProgramDay(
         progress,
         program,
