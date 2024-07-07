@@ -691,8 +691,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     }
   } else if (action.type === "StartTimer") {
     const progress = Progress.getProgress(state);
-    const program = progress ? Program.getProgram(state, progress.programId) : undefined;
+    let program = progress ? Program.getProgram(state, progress.programId) : undefined;
     if (progress && program) {
+      program = Program.fullProgram(program, state.storage.settings);
       return Progress.setProgress(
         state,
         Progress.startTimer(
