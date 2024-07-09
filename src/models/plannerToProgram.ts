@@ -71,8 +71,8 @@ export class PlannerToProgram {
       console.log(this.plannerProgram.name);
       console.log(PlannerProgram.generateFullText(this.plannerProgram.weeks));
       console.log(evaluatedWeeks);
-      console.log(error);
-      throw new Error("Invalid program");
+      console.error(error);
+      throw error;
     }
 
     const programDays: IProgramDay[] = [];

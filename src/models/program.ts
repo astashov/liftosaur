@@ -74,7 +74,16 @@ export namespace Program {
   export const fullProgram = memoize(
     (program: IProgram, settings: ISettings): IProgram => {
       if (program.planner != null) {
-        return new PlannerToProgram(program.id, program.nextDay, program.planner, settings).convertToProgram();
+        try {
+          return new PlannerToProgram(program.id, program.nextDay, program.planner, settings).convertToProgram();
+        } catch (e) {
+          if (typeof window !== "undefined" && window.alert != null) {
+            window.alert(
+              `There's an error executing your program code. Go to 'Program' in the footer to fix it.\n\n${e.message}`
+            );
+          }
+          return program;
+        }
       } else {
         return program;
       }
