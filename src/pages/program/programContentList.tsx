@@ -78,6 +78,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
       </div>
       <ul>
         {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
+          program = Program.fullProgram(program, state.storage.settings);
           const isCreating = creatingPrograms.has(program.name);
           return (
             <li className="mb-8">

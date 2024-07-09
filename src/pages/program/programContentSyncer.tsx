@@ -105,7 +105,7 @@ export function ProgramContentSyncer(props: IProgramContentSyncerProps): JSX.Ele
             if ("program" in args && args.program) {
               const oldProgram = props.exportedProgram?.program;
               if (oldProgram && PlannerProgram.isValid(args.program, state.storage.settings)) {
-                const newProgram = Program.cleanPlannerProgram(oldProgram);
+                const newProgram = { ...Program.cleanPlannerProgram(oldProgram), planner: args.program };
                 updateState(dispatch, [
                   lb<IState>()
                     .p("storage")
