@@ -346,6 +346,7 @@ export namespace Program {
     };
 
     const dayName = program.isMultiweek ? `${program.weeks[week - 1]?.name} - ${programDay.name}` : programDay.name;
+    const now = Date.now();
     return {
       id: 0,
       date: new Date().toISOString(),
@@ -355,7 +356,8 @@ export namespace Program {
       week,
       dayInWeek,
       dayName,
-      startTime: Date.now(),
+      startTime: now,
+      updatedAt: now,
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
         const staticState = staticStates?.[id];

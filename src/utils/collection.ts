@@ -111,10 +111,11 @@ export namespace CollectionUtils {
     }, {});
   }
 
-  export function groupByKeyUniq<T, K extends keyof T, U extends T[K] extends string ? string : never>(
-    arr: T[],
-    key: K
-  ): Partial<Record<U, T>> {
+  export function groupByKeyUniq<
+    T,
+    K extends keyof T,
+    U extends T[K] extends string ? string : T[K] extends number ? number : never
+  >(arr: T[], key: K): Partial<Record<U, T>> {
     return arr.reduce<Partial<Record<U, T>>>((memo, item) => {
       const value = (item[key] as unknown) as U;
       memo[value] = item;

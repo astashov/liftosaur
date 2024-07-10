@@ -644,6 +644,7 @@ export const THistoryRecord = t.intersection(
       timerEntryIndex: t.number,
       timerSetIndex: t.number,
       notes: t.string,
+      updatedAt: t.number,
     }),
   ],
   "THistoryRecord"
@@ -747,6 +748,7 @@ export const TProgram = t.intersection(
       clonedAt: t.number,
       shortDescription: t.string,
       planner: TPlannerProgram,
+      updatedAt: t.number,
     }),
   ],
   "TProgram"
@@ -767,7 +769,10 @@ export type ILengthUnit = t.TypeOf<typeof TLengthUnit>;
 export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength");
 export type ILength = t.TypeOf<typeof TLength>;
 
-export const TStatsWeightValue = t.type({ value: TWeight, timestamp: t.number }, "TStatsWeightValue");
+export const TStatsWeightValue = t.intersection(
+  [t.interface({ value: TWeight, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  "TStatsWeightValue"
+);
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
 
 export const statsWeightDef = {
@@ -776,7 +781,10 @@ export const statsWeightDef = {
 export const TStatsWeight = t.partial(statsWeightDef, "TStatsWeight");
 export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
 
-export const TStatsLengthValue = t.type({ value: TLength, timestamp: t.number }, "TStatsLengthValue");
+export const TStatsLengthValue = t.intersection(
+  [t.interface({ value: TLength, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  "TStatsLengthValue"
+);
 export type IStatsLengthValue = t.TypeOf<typeof TStatsLengthValue>;
 
 export const statsLengthDef = {
@@ -797,7 +805,10 @@ export const statsLengthDef = {
 export const TStatsLength = t.partial(statsLengthDef, "TStatsLength");
 export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
-export const TStatsPercentageValue = t.type({ value: TPercentage, timestamp: t.number }, "TStatsPercentageValue");
+export const TStatsPercentageValue = t.intersection(
+  [t.interface({ value: TPercentage, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  "TStatsPercentageValue"
+);
 export type IStatsPercentageValue = t.TypeOf<typeof TStatsPercentageValue>;
 
 export const statsPercentageDef = {

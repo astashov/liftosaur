@@ -5,9 +5,9 @@ import { StateError } from "./stateError";
 import { History } from "../models/history";
 import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
-import { ILensRecordingPayload, lf } from "lens-shmens";
+import { ILensRecordingPayload, lb, lf } from "lens-shmens";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
+import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
   THistoryRecord,
@@ -350,6 +350,23 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
             });
           } else {
             dispatch({ type: "ApplyProgramChangesToProgress" });
+          }
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const oldPrograms = oldState.storage.programs;
+      const newPrograms = newState.storage.programs;
+      const isUpdateAtAction = "type" in action && action.type === "UpdateState" && action.desc === "skip-updated-at";
+      if (!isUpdateAtAction && oldPrograms !== newPrograms) {
+        const changedIds = new Set(CollectionUtils.diff(oldPrograms, newPrograms).map((p) => p.id));
+        for (const program of newPrograms) {
+          if (changedIds.has(program.id)) {
+            updateState(
+              dispatch,
+              [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("updatedAt").record(Date.now())],
+              "skip-updated-at"
+            );
           }
         }
       }

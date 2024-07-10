@@ -38,7 +38,10 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
-                memo[key] = [{ value: payload[key]!, timestamp: Date.now() }, ...(memo[key] || [])];
+                memo[key] = [
+                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  ...(memo[key] || []),
+                ];
                 return memo;
               },
               { ...st }
@@ -59,7 +62,10 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
-                memo[key] = [{ value: payload[key]!, timestamp: Date.now() }, ...(memo[key] || [])];
+                memo[key] = [
+                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  ...(memo[key] || []),
+                ];
                 return memo;
               },
               { ...st }
@@ -83,7 +89,10 @@ export namespace EditStats {
           .recordModify((st) => {
             return ObjectUtils.keys(payload).reduce(
               (memo, key) => {
-                memo[key] = [{ value: payload[key]!, timestamp: Date.now() }, ...(memo[key] || [])];
+                memo[key] = [
+                  { value: payload[key]!, timestamp: Date.now(), updatedAt: Date.now() },
+                  ...(memo[key] || []),
+                ];
                 return memo;
               },
               { ...st }
@@ -108,7 +117,7 @@ export namespace EditStats {
           .p("weight")
           .p(key)
           .i(index)
-          .recordModify((v) => ({ ...v, value })),
+          .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
     });
   }
@@ -128,7 +137,7 @@ export namespace EditStats {
           .p("length")
           .p(key)
           .i(index)
-          .recordModify((v) => ({ ...v, value })),
+          .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
     });
   }
@@ -148,7 +157,7 @@ export namespace EditStats {
           .p("percentage")
           .p(key)
           .i(index)
-          .recordModify((v) => ({ ...v, value })),
+          .recordModify((v) => ({ ...v, value, updatedAt: Date.now() })),
       ],
     });
   }
@@ -169,7 +178,7 @@ export namespace EditStats {
           .p(key)
           .recordModify((coll) => {
             return CollectionUtils.sort(
-              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp } : v)),
+              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp, updatedAt: Date.now() } : v)),
               (a, b) => b.timestamp - a.timestamp
             );
           }),
@@ -193,7 +202,7 @@ export namespace EditStats {
           .p(key)
           .recordModify((coll) => {
             return CollectionUtils.sort(
-              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp } : v)),
+              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp, updatedAt: Date.now() } : v)),
               (a, b) => b.timestamp - a.timestamp
             );
           }),
@@ -217,7 +226,7 @@ export namespace EditStats {
           .p(key)
           .recordModify((coll) => {
             return CollectionUtils.sort(
-              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp } : v)),
+              [...(coll || [])].map((v, i) => (i === index ? { ...v, timestamp, updatedAt: Date.now() } : v)),
               (a, b) => b.timestamp - a.timestamp
             );
           }),
