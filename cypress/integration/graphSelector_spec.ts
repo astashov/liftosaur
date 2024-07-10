@@ -9,7 +9,7 @@ describe("Graphs", () => {
   });
 
   it("edits sets properly", () => {
-    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&nosync=true");
     cy.get("button:contains('Basic Beginner Routine')").click();
     disableSubscriptions();
     g("clone-program").click();

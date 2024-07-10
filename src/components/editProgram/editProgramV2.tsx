@@ -29,7 +29,6 @@ import { ModalPlannerSettings } from "../../pages/planner/components/modalPlanne
 import { ModalExercise } from "../modalExercise";
 import { equipmentName, Exercise } from "../../models/exercise";
 import { StringUtils } from "../../utils/string";
-import { ObjectUtils } from "../../utils/object";
 import { EditProgramV2EditWeekDayModal } from "./editProgramV2EditWeekDayModal";
 import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { Nux } from "../nux";
@@ -277,7 +276,8 @@ export function EditProgramV2(props: IProps): JSX.Element {
                   lb<ISettings>()
                     .p("exercises")
                     .recordModify((exercises) => {
-                      return ObjectUtils.omit(exercises, [id]);
+                      const exercise = exercises[id];
+                      return exercise != null ? { ...exercises, [id]: { ...exercise, isDeleted: true } } : exercises;
                     })
                 );
               }}

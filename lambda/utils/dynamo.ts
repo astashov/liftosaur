@@ -10,7 +10,7 @@ export interface IDynamoUtil {
     indexName?: string;
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, string | string[] | number>>;
+    values?: Partial<Record<string, string | string[] | number | number[]>>;
   }): Promise<T[]>;
   scan<T>(args: {
     tableName: string;
@@ -212,52 +212,66 @@ export class DynamoUtil implements IDynamoUtil {
   }
 
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
-    const startTime = Date.now();
-    try {
-      await this.dynamo
-        .batchWrite({
-          RequestItems: {
-            [args.tableName]: args.keys.map((key) => ({
-              DeleteRequest: {
-                Key: key,
-              },
-            })),
-          },
-        })
-        .promise();
-    } catch (e) {
-      this.log.log(`FAILED Dynamo batch delete: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
-      throw e;
+    if (args.keys.length === 0) {
+      return;
     }
-    this.log.log(`Dynamo batch delete: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
+    await Promise.all(
+      CollectionUtils.inGroupsOf(25, args.keys).map(async (group) => {
+        const startTime = Date.now();
+        try {
+          await this.dynamo
+            .batchWrite({
+              RequestItems: {
+                [args.tableName]: group.map((key) => ({
+                  DeleteRequest: {
+                    Key: key,
+                  },
+                })),
+              },
+            })
+            .promise();
+        } catch (e) {
+          this.log.log(`FAILED Dynamo batch delete: ${args.tableName} - `, group, ` - ${Date.now() - startTime}ms`);
+          throw e;
+        }
+        this.log.log(`Dynamo batch delete: ${args.tableName} - `, group, ` - ${Date.now() - startTime}ms`);
+      })
+    );
   }
 
   public async batchPut(args: {
     tableName: string;
     items: DynamoDB.DocumentClient.PutItemInputAttributeMap[];
   }): Promise<void> {
-    const startTime = Date.now();
-    try {
-      await this.dynamo
-        .batchWrite({
-          RequestItems: {
-            [args.tableName]: args.items.map((item) => ({
-              PutRequest: {
-                Item: item,
-              },
-            })),
-          },
-        })
-        .promise();
-    } catch (e) {
-      this.log.log(
-        `FAILED Dynamo batch put: ${args.tableName}`,
-        `${args.items.length} items`,
-        ` - ${Date.now() - startTime}ms`
-      );
-      throw e;
+    if (args.items.length === 0) {
+      return;
     }
-    this.log.log(`Dynamo batch put: ${args.tableName}`, `${args.items.length} items`, ` - ${Date.now() - startTime}ms`);
+    await Promise.all(
+      CollectionUtils.inGroupsOf(25, args.items).map(async (group) => {
+        const startTime = Date.now();
+        try {
+          await this.dynamo
+            .batchWrite({
+              RequestItems: {
+                [args.tableName]: group.map((item) => ({
+                  PutRequest: {
+                    Item: item,
+                  },
+                })),
+              },
+            })
+            .promise();
+        } catch (e) {
+          this.log.log(
+            `FAILED Dynamo batch put: ${args.tableName}`,
+            `${group.length} items`,
+            ` - ${Date.now() - startTime}ms`
+          );
+          throw e;
+        }
+        this.log.log(`Dynamo batch put: ${args.tableName}`, `${group.length} items`, ` - ${Date.now() - startTime}ms`);
+      })
+    );
   }
 }
 

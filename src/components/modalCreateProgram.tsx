@@ -5,10 +5,12 @@ import { useRef } from "preact/hooks";
 import { Input } from "./input";
 import { LinkButton } from "./linkButton";
 import { UrlUtils } from "../utils/url";
+import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
   onSelect: (name: string, isV2: boolean) => void;
   onClose: () => void;
+  isLoading?: boolean;
   isHidden: boolean;
 }
 
@@ -50,15 +52,16 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           data-cy="modal-create-experimental-program-submit"
           name="modal-create-program-submit"
           type="button"
+          disabled={props.isLoading}
           kind="orange"
           className="ls-modal-create-program"
           onClick={() => {
-            if (textInput.current.value) {
+            if (!props.isLoading && textInput.current.value) {
               props.onSelect(textInput.current.value, true);
             }
           }}
         >
-          Create
+          {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Create"}
         </Button>
       </p>
       {hasLegacyProgram() && (

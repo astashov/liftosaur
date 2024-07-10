@@ -1,14 +1,16 @@
-import { ISettings, IProgramContentSettings, IPlannerSettings, IAllEquipment } from "../types";
+import { ISettings, IPlannerSettings, IAllEquipment } from "../types";
 import { Weight } from "./weight";
+import { IExportedProgram } from "./program";
 
 export namespace Settings {
-  export function programContentBuild(): IProgramContentSettings {
+  export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
     return {
       timers: {
         warmup: 90,
         workout: 180,
       },
       units: "lb",
+      planner: buildPlannerSettings(),
     };
   }
 
@@ -278,6 +280,23 @@ export namespace Settings {
         forearms: 2,
       },
       synergistMultiplier: 0.5,
+    };
+  }
+
+  export function applyExportedProgram(settings: ISettings, exportedProgram: IExportedProgram): ISettings {
+    return {
+      ...settings,
+      exercises: {
+        ...settings.exercises,
+        ...exportedProgram.customExercises,
+      },
+      units: exportedProgram.settings.units || settings.units,
+      timers: {
+        ...settings.timers,
+        workout: exportedProgram.settings.timers?.workout || settings.timers.workout,
+        warmup: exportedProgram.settings.timers?.warmup || settings.timers.warmup,
+      },
+      planner: exportedProgram.settings.planner || settings.planner,
     };
   }
 }

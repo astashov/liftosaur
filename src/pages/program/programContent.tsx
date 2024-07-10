@@ -1,12 +1,12 @@
 import { h, JSX, Fragment } from "preact";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { IProgramEditorState } from "./models/types";
-import { IExportedProgram } from "../../models/program";
+import { IExportedProgram, Program } from "../../models/program";
 import { Settings } from "../../models/settings";
 import { undoRedoMiddleware } from "../builder/utils/undoredo";
 import { UidFactory } from "../../utils/generator";
 import { ProgramPreview } from "../../components/programPreview";
-import { ProgramContentEditor } from "./programContentEditor";
+import { ProgramContentEditor, saveProgram } from "./programContentEditor";
 import { IconLink } from "../../components/icons/iconLink";
 import { IconLogo } from "../../components/icons/iconLogo";
 import { useEffect, useState } from "preact/hooks";
@@ -30,8 +30,9 @@ export interface IProgramContentProps {
   account?: IAccount;
   exportedProgram?: IExportedProgram;
   shouldSync: boolean;
-  onUpdate: (args: { program: IProgram } | { settings: ISettings }) => void;
 }
+
+declare let __HOST__: string;
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const defaultSettings = Settings.build();
@@ -39,6 +40,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const initialSettings = {
     ...defaultSettings,
     ...programContentSettings,
+    timers: { ...defaultSettings.timers, ...programContentSettings.timers },
     exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
   };
   const initialProgram = props.exportedProgram?.program || {
@@ -96,15 +98,6 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     async (action, oldState, newState) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).state = newState;
-    },
-    async (action, oldState, newState) => {
-      if (props.shouldSync) {
-        if (oldState.current.program !== newState.current.program) {
-          props.onUpdate({ program: newState.current.program });
-        } else if (oldState.settings !== newState.settings) {
-          props.onUpdate({ settings: newState.settings });
-        }
-      }
     },
   ]);
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
@@ -183,9 +176,12 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       ...state.settings,
                       exercises: { ...state.settings.exercises, ...customExercises },
                     };
-                    props.onUpdate({ program: newProgram });
-                    props.onUpdate({ settings: newSettings });
                     alert("Starting to import!");
+                    const exportedProgram = Program.exportProgram(newProgram, newSettings);
+                    const id = await saveProgram(props.client, exportedProgram);
+                    if (id != null) {
+                      window.location.href = `${__HOST__}/user/p/${id}`;
+                    }
                   } else {
                     alert(result.error.join("\n"));
                   }
@@ -260,11 +256,11 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
         </>
       ) : (
         <ProgramContentEditor
+          shouldSync={props.shouldSync}
           client={props.client}
           selected={state.ui.selected}
           state={state}
           dispatch={dispatch}
-          isChangesWarningOn={!props.shouldSync}
           initialEncodedProgramUrl={state.initialEncodedProgramUrl}
           encodedProgramUrl={state.encodedProgramUrl}
           onShowSettingsModal={() => setShowSettingsModal(true)}

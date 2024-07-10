@@ -20,8 +20,10 @@ import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerKey } from "../plannerKey";
 import { PlannerEvaluator } from "../plannerEvaluator";
 import { IWeightChange } from "../../../models/programExercise";
+import { Storage } from "../../../models/storage";
 import { Weight } from "../../../models/weight";
 import { PP } from "../../../models/pp";
+import { IEither } from "../../../utils/types";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -490,10 +492,44 @@ export class PlannerProgram {
       program: program,
       settings: {
         timers: newSettings.timers,
+        planner: newSettings.planner,
         units: newSettings.units,
       },
       customExercises: planner.settings.exercises,
       version: planner.version,
     };
+  }
+
+  public static async getExportedPlannerProgram(
+    client: Window["fetch"],
+    program: IExportedPlannerProgram,
+    settings: ISettings
+  ): Promise<IEither<IExportedPlannerProgram, string[]>> {
+    const storage = Storage.getDefault();
+    storage.version = program.version;
+    storage.programs = [{ ...Program.create(program.program.name), planner: program.program }];
+    storage.settings = { ...storage.settings, planner: program.plannerSettings || storage.settings.planner };
+    storage.settings.exercises = { ...storage.settings.exercises, ...settings.exercises };
+
+    const result = await Storage.get(client, storage);
+    if (result.success) {
+      const newStorage = result.data;
+      return {
+        success: true,
+        data: {
+          id: program.id,
+          type: "v2",
+          version: newStorage.version,
+          program: newStorage.programs[0].planner!,
+          plannerSettings: storage.settings.planner,
+          settings: {
+            exercises: storage.settings.exercises || {},
+            timer: storage.settings.timers?.workout || 180,
+          },
+        },
+      };
+    } else {
+      return { success: false, error: result.error };
+    }
   }
 }

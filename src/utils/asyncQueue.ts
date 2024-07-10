@@ -6,21 +6,21 @@ export class AsyncQueue {
 
   public enqueue<T, V>(operation: (deps: V) => Promise<T>, deps?: V): Promise<void> {
     const key = JSON.stringify(deps);
-    if (this.queue.length > 0 && this.queue[this.queue.length - 1][0] === key) {
-      return Promise.resolve();
-    } else {
-      return new Promise<void>((resolve) => {
-        this.queue.push([
-          key,
-          deps,
-          async (...d) => {
+    return new Promise<void>((resolve, reject) => {
+      this.queue.push([
+        key,
+        deps,
+        async (...d) => {
+          try {
             await operation(...d);
             resolve();
-          },
-        ]);
-        this.processQueue();
-      });
-    }
+          } catch (e) {
+            reject(e);
+          }
+        },
+      ]);
+      this.processQueue();
+    });
   }
 
   private async processQueue(): Promise<void> {

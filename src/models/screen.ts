@@ -56,6 +56,11 @@ export namespace Screen {
     return stack[stack.length - 2];
   }
 
+  export function enablePtr(stack: IScreen[]): boolean {
+    const curr = Screen.current(stack);
+    return ["first", "onboarding", "finishDay", "subscription", "programs"].indexOf(curr) === -1;
+  }
+
   export function shouldConfirmNavigation(state: IState): string | undefined {
     if (state.currentHistoryRecord) {
       const progress = state.progress[state.currentHistoryRecord];

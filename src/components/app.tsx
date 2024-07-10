@@ -44,6 +44,9 @@ import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import { Equipment } from "../models/equipment";
 import { ScreenGyms } from "./screenGyms";
+import PullToRefresh from "pulltorefreshjs";
+import { renderToString } from "preact-render-to-string";
+import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
   client: Window["fetch"];
@@ -62,25 +65,47 @@ export function AppView(props: IProps): JSX.Element | null {
     env,
     defaultOnActions(env)
   );
+  const stateRef = useRef<IState>(state);
+  useEffect(() => {
+    stateRef.current = state;
+  });
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
-  const lastPingRef = useRef<number>(Date.now());
-
-  useEffect(() => {
-    if (lastPingRef.current < Date.now() - 60 * 3 * 1000) {
-      lastPingRef.current = Date.now();
-      dispatch(Thunk.ping());
-    }
-  });
 
   useLoopCatcher();
 
   useEffect(() => {
-    dispatch(Thunk.fetchStorage());
+    const url =
+      typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
+    const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
+    if (state.adminKey != null && urlUserId != null) {
+      dispatch(Thunk.fetchStorage());
+    } else {
+      dispatch(Thunk.sync2({ force: true }));
+    }
+    const ptr = PullToRefresh.init({
+      mainElement: "body",
+      iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
+      shouldPullToRefresh: () => {
+        return !window.scrollY && Screen.enablePtr(stateRef.current.screenStack);
+      },
+      onRefresh: () => {
+        return new Promise((resolve) => {
+          dispatch(
+            Thunk.sync2({
+              force: true,
+              cb: () => {
+                resolve();
+              },
+            })
+          );
+        });
+      },
+    });
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
@@ -104,6 +129,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+      } else if (event.data?.type === "wake") {
+        dispatch(Thunk.sync2({ force: true }));
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "universalLink") {
@@ -135,8 +162,7 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
     if (typeof window !== "undefined") {
-      const url = UrlUtils.build(window.location.href, "https://liftosaur.com");
-      const source = url.searchParams.get("s");
+      const source = url?.searchParams.get("s");
       if (source) {
         updateState(dispatch, [
           lb<IState>()
@@ -152,6 +178,9 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     SendMessage.toIos({ type: "loaded" });
     SendMessage.toAndroid({ type: "loaded" });
+    return () => {
+      ptr.destroy();
+    };
   }, []);
 
   const currentProgram =

@@ -6,7 +6,6 @@ import { History } from "../models/history";
 import { Storage } from "../models/storage";
 import { Screen, IScreen } from "../models/screen";
 import { ILensRecordingPayload, lf } from "lens-shmens";
-import { getLatestMigrationVersion } from "../migrations/migrations";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
 import { UidFactory } from "../utils/generator";
 import {
@@ -99,6 +98,13 @@ export async function getInitialState(
       await service.signout();
       finalStorage = Storage.getDefault();
     }
+
+    let finalLastSyncedStorage: IStorage | undefined = undefined;
+    if (storage.lastSyncedStorage) {
+      const maybeLastSyncedStorage = await Storage.get(client, storage.lastSyncedStorage, true);
+      finalLastSyncedStorage = maybeLastSyncedStorage.success ? maybeLastSyncedStorage.data : undefined;
+    }
+
     const isProgressValid =
       storage.progress != null
         ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
@@ -111,6 +117,7 @@ export async function getInitialState(
       : ["first"];
     return {
       storage: finalStorage,
+      lastSyncedStorage: finalLastSyncedStorage,
       progress: isProgressValid ? { 0: storage.progress } : {},
       notification,
       loading: { items: {} },
@@ -316,13 +323,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        dispatch(
-          Thunk.sync({
-            withHistory: oldState.storage.history !== newState.storage.history,
-            withStats: oldState.storage.stats !== newState.storage.stats,
-            withPrograms: oldState.storage.programs !== newState.storage.programs,
-          })
-        );
+        dispatch(Thunk.sync2());
       }
     },
     (dispatch, action, oldState, newState) => {
@@ -420,37 +421,6 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     ];
   }
   const newState = reducer(state, action);
-  if (Storage.isChanged(state.storage, newState.storage)) {
-    const dateNow = Date.now();
-
-    const newPrograms = newState.storage.programs.map((p) => {
-      const oldProgram = state.storage.programs.find((op) => op.id === p.id);
-      if (oldProgram == null || !Program.isChanged(oldProgram, p)) {
-        return p;
-      }
-      return {
-        ...p,
-        version: Date.now(),
-        exercises: p.exercises.map((e) => {
-          const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
-          if (oldExercise && !ObjectUtils.isEqual(oldExercise, e)) {
-            const diffPaths = Array.from(new Set([...(e.diffPaths || []), ...ObjectUtils.diffPaths(oldExercise, e)]));
-            return { ...e, diffPaths };
-          } else {
-            return e;
-          }
-        }),
-      };
-    });
-
-    newState.storage = {
-      ...newState.storage,
-      id: dateNow,
-      programs: newPrograms,
-      originalId: newState.storage.originalId ?? dateNow,
-      version: getLatestMigrationVersion(),
-    };
-  }
   if (typeof window !== "undefined") {
     if (timerId != null) {
       window.clearTimeout(timerId);
@@ -466,6 +436,7 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
         const userId = newState2.user?.id || newState.storage.tempUserId;
         const localStorage: ILocalStorage = {
           storage: newState2.storage,
+          lastSyncedStorage: newState2.lastSyncedStorage,
           progress: newState2.progress[0],
         };
         try {
@@ -736,8 +707,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return newState;
     }, state);
   } else if (action.type === "SyncStorage") {
-    const oldStorage = state.storage.id < action.storage.id ? state.storage : action.storage;
-    const newStorage = state.storage.id < action.storage.id ? action.storage : state.storage;
+    const oldStorage = state.storage;
+    const newStorage = action.storage;
     if (newStorage.id != null && oldStorage.id != null) {
       return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage, true) };
     } else {

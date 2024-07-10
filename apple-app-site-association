@@ -11,10 +11,10 @@
             "/": "googleauthcallback.html"
           },
           {
-            "/": "program"
+            "/": "p/*"
           },
           {
-            "/": "p/*"
+            "/": "n/*"
           }
         ]
       }

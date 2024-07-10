@@ -9,6 +9,7 @@ import {
   IPercentage,
 } from "../../src/types";
 import { Settings } from "../../src/models/settings";
+import { Storage } from "../../src/models/storage";
 import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
@@ -17,6 +18,8 @@ import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
+import { IStorageUpdate } from "../../src/utils/sync";
+import { IEither } from "../../src/utils/types";
 
 export const userTableNames = {
   dev: {
@@ -84,6 +87,100 @@ export class UserDao {
     }
   }
 
+  public async applySafeSync(
+    limitedUser: ILimitedUserDao,
+    storageUpdate: IStorageUpdate
+  ): Promise<IEither<number, string>> {
+    const env = Utils.getEnv();
+    const result = await Storage.get(fetch, limitedUser.storage);
+    if (!result.success) {
+      return { success: false, error: "corrupted_server_storage" };
+    }
+    const limitedUserStorage = result.data;
+    if (limitedUserStorage.version !== storageUpdate.version) {
+      return { success: false, error: "outdated_client_storage" };
+    }
+    const { originalId: oldOriginalId, version, settings, ...restStorageUpdate } = storageUpdate;
+    if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils.keys(settings).length === 0) {
+      return { success: true, data: oldOriginalId || Date.now() };
+    }
+
+    const originalId = Date.now();
+    const newStorage = {
+      ...Storage.applyUpdate(limitedUserStorage, storageUpdate),
+      originalId,
+    };
+
+    const historyDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].historyRecords,
+      keys: (storageUpdate.deletedHistory || []).map((id) => ({ id, userId: limitedUser.id })),
+    });
+    const historyUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].historyRecords,
+      items: CollectionUtils.uniqBy(storageUpdate.history || [], "id").map((record) => ({
+        ...record,
+        userId: limitedUser.id,
+      })),
+    });
+
+    const userPrograms =
+      (storageUpdate.deletedPrograms || []).length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
+    const programIdsToDelete = userPrograms
+      .filter((p) => p.clonedAt != null && (storageUpdate.deletedPrograms || []).indexOf(p.clonedAt) !== -1)
+      .map((p) => p.id);
+    const programDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].programs,
+      keys: programIdsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+    });
+
+    const programUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].programs,
+      items: (storageUpdate.programs || []).map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
+    const stats = storageUpdate.stats;
+    const statsDb = ObjectUtils.keys(stats || {})
+      .map((type) => {
+        return (stats?.[type] || []).map((stat) => {
+          const name = `${stat.timestamp}_${type}`;
+          const statDb: IStatDb = { ...stat, name };
+          return statDb;
+        });
+      })
+      .flat();
+    const statsDeletes =
+      (storageUpdate.deletedStats || []).length > 0
+        ? (async () => {
+            const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
+              tableName: userTableNames[env].stats,
+              expression: "#userId = :userId",
+              attrs: { "#userId": "userId" },
+              values: { ":userId": limitedUser.id },
+            });
+            const statsIdToDelete = userStats.filter((s) => storageUpdate.deletedStats?.indexOf(s.timestamp) !== -1);
+            return this.di.dynamo.batchDelete({
+              tableName: userTableNames[env].stats,
+              keys: statsIdToDelete.map((s) => ({ userId: limitedUser.id, name: s.name })),
+            });
+          })()
+        : Promise.resolve();
+    const statsUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].stats,
+      items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
+    await Promise.all([
+      this.store({ ...limitedUser, storage: newStorage }),
+      historyUpdates,
+      historyDeletes,
+      programUpdates,
+      programDeletes,
+      statsDeletes,
+      statsUpdates,
+    ]);
+    return { data: originalId, success: true };
+  }
+
   public async getByAppleId(appleId: string): Promise<IUserDao | undefined> {
     const env = Utils.getEnv();
 
@@ -135,10 +232,10 @@ export class UserDao {
         currentProgramId: undefined,
         version: getLatestMigrationVersion(),
         helps: [],
-        tempUserId: "",
+        tempUserId: id,
         settings: Settings.build(),
         subscription: { apple: {}, google: {} },
-        email: undefined,
+        email,
         whatsNew: undefined,
       },
     };
@@ -149,6 +246,14 @@ export class UserDao {
     await this.di.dynamo.put({
       tableName: userTableNames[env].programs,
       item: { ...program, userId },
+    });
+  }
+
+  public async deleteProgram(userId: string, id: string): Promise<void> {
+    const env = Utils.getEnv();
+    await this.di.dynamo.remove({
+      tableName: userTableNames[env].programs,
+      key: { id, userId },
     });
   }
 
@@ -228,8 +333,8 @@ export class UserDao {
     });
     return convertStatsFromDb(
       statsDb.map((s) => {
-        delete s.userId;
-        return s;
+        const { userId: uid, ...rest } = s;
+        return rest;
       })
     );
   }
@@ -265,6 +370,14 @@ export class UserDao {
       })
     );
     return result.flat();
+  }
+
+  public getProgram(userId: string, id: string): Promise<IProgram | undefined> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.get<IProgram & { userId?: string }>({
+      tableName: userTableNames[env].programs,
+      key: { id, userId },
+    });
   }
 
   public async transfer(fromEmail: string, toEmail: string): Promise<void> {

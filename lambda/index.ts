@@ -56,9 +56,11 @@ import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
-import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
+import { IStorageUpdate } from "../src/utils/sync";
+import { IPostSyncResponse } from "../src/api/service";
+import { Settings } from "../src/models/settings";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -179,6 +181,75 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
+const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
+const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSyncEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  let userId: string | undefined = undefined;
+  let setCookie: string | undefined = undefined;
+  const bodyJson = getBodyJson(event);
+  const storageUpdate = bodyJson.storageUpdate as IStorageUpdate;
+  if (params.adminkey != null && params.userid != null && params.adminkey === (await di.secrets.getApiKey())) {
+    userId = params.userid;
+    const cookieSecret = await di.secrets.getCookieSecret();
+    const session = JWT.sign({ userId: userId }, cookieSecret);
+    setCookie = Cookie.serialize("session", session, {
+      httpOnly: true,
+      domain: ".liftosaur.com",
+      path: "/",
+      expires: new Date(new Date().getFullYear() + 10, 0, 1),
+    });
+  } else {
+    userId = await getCurrentUserId(event, di);
+  }
+  let keyResult: { key: string; isClaimed: boolean } | undefined;
+  if (params.tempuserid) {
+    keyResult = await new FreeUserDao(di).getKey(params.tempuserid);
+  }
+  const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
+  const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
+    ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+  if (userId != null) {
+    const userDao = new UserDao(di);
+    const limitedUser = await userDao.getLimitedById(userId);
+    if (limitedUser != null) {
+      di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
+      if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
+        di.log.log("Fetch: Safe update");
+        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
+        if (result.success) {
+          return response(200, {
+            type: "clean",
+            new_original_id: result.data,
+            email: limitedUser.email,
+            user_id: limitedUser.id,
+            key,
+          });
+        } else {
+          return response(400, { type: "error", error: result.error, key });
+        }
+      } else {
+        di.log.log("Fetch: Merging update");
+        storageUpdate.originalId = Date.now();
+        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
+        if (result.success) {
+          const fullUser = (await userDao.getById(userId))!;
+          const storage = fullUser.storage;
+          if (key) {
+            storage.subscription.key = key;
+          }
+          return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
+        } else {
+          return response(400, { type: "error", error: result.error, key });
+        }
+      }
+    }
+  }
+  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
+};
+
 const getStorageEndpoint = Endpoint.build("/api/storage", { tempuserid: "string?", key: "string?", userid: "string?" });
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
@@ -285,8 +356,8 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         if (fullUser != null) {
           const aStorage = await runMigrations(di.fetch, fullUser.storage);
           const bStorage = await runMigrations(di.fetch, storage);
-          const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
-          const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
+          const oldStorage = (aStorage.id || 0) < (bStorage.id || 0) ? aStorage : bStorage;
+          const newStorage = (aStorage.id || 0) < (bStorage.id || 0) ? bStorage : aStorage;
           const mergedStorage = Storage.mergeStorage(oldStorage, newStorage, false, fields);
 
           const exceptionDao = new ExceptionDao(di);
@@ -368,7 +439,6 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const userDao = new UserDao(di);
         let user = await userDao.getByAppleId(result.sub);
         let userId = user?.id;
-        const initialUserId = userId;
 
         if (userId == null) {
           userId = (id as string) || UidFactory.generateUid(12);
@@ -380,7 +450,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const resp = {
           email: email,
           user_id: userId,
-          storage: initialUserId == null ? undefined : user!.storage,
+          storage: user!.storage,
         };
 
         return {
@@ -442,7 +512,6 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const userDao = new UserDao(di);
   let user = await userDao.getByGoogleId(openIdJson.sub);
   let userId = user?.id;
-  const initialUserId = userId;
 
   if (userId == null) {
     userId = (id as string) || UidFactory.generateUid(12);
@@ -454,7 +523,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const resp = {
     email: openIdJson.email,
     user_id: userId,
-    storage: initialUserId == null ? undefined : user!.storage,
+    storage: user!.storage,
   };
 
   return {
@@ -488,6 +557,51 @@ const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signo
     },
     body: "{}",
   };
+};
+
+const postSaveProgramEndpoint = Endpoint.build("/api/program");
+const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSaveProgramEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user != null) {
+    const bodyJson = getBodyJson(event);
+    const exportedProgram: IExportedProgram = bodyJson.program;
+    const userDao = new UserDao(di);
+    user.storage = {
+      ...user.storage,
+      settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
+      originalId: Date.now(),
+    };
+    await Promise.all([userDao.saveProgram(user.id, exportedProgram.program), userDao.store(user)]);
+    return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
+  }
+  return ResponseUtils.json(400, event, { error: "Not Authorized" });
+};
+
+const deleteProgramEndpoint = Endpoint.build("/api/program/:id");
+const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user != null) {
+    const userDao = new UserDao(di);
+    const program = await userDao.getProgram(user.id, params.id);
+    if (program == null) {
+      return ResponseUtils.json(404, event, { error: "Not Found" });
+    }
+    user.storage = {
+      ...user.storage,
+      deletedPrograms: user.storage.deletedPrograms.concat([program.clonedAt || Date.now()]),
+      originalId: Date.now(),
+    };
+    await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user)]);
+    return ResponseUtils.json(200, event, { data: { id: program.id } });
+  }
+  return ResponseUtils.json(400, event, { error: "Not Authorized" });
 };
 
 const getProgramsEndpoint = Endpoint.build("/api/programs");
@@ -1461,10 +1575,10 @@ const getProgramShorturlHandler: RouteHandler<
               id: program.program.id,
               program: program.program.planner,
               type: "v2",
-              version: getLatestMigrationVersion(),
+              version: program.version,
               settings: {
                 exercises: program.customExercises,
-                timer: program.settings.timers.workout ?? 180,
+                timer: program.settings.timers?.workout ?? 180,
               },
             };
             redirectUrl.searchParams.set("data", await NodeEncoder.encode(JSON.stringify(exportedProgram)));
@@ -1712,7 +1826,6 @@ export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayP
       body: stats,
       opts: { contentType: "text/csv" },
     });
-    console.log(stats);
 
     return {
       statusCode: 200,
@@ -1808,6 +1921,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getFreeformEndpoint, getFreeformHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
+      .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .post(postPlannerReformatterFullEndpoint, postPlannerReformatterFullHandler)
       .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
@@ -1815,6 +1929,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
+      .post(postSyncEndpoint, postSyncHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
@@ -1843,6 +1958,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(saveDebugEndpoint, saveDebugHandler)
       .get(pingEndpoint, pingHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
+      .delete(deleteProgramEndpoint, deleteProgramHandler)
       .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");

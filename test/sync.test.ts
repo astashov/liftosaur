@@ -17,7 +17,7 @@ import { IDispatch, IThunk } from "../src/ducks/types";
 import { Program } from "../src/models/program";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { IHistoryRecord, IProgram, ISettings } from "../src/types";
-import { userTableNames } from "../lambda/dao/userDao";
+import { userTableNames, IUserDao } from "../lambda/dao/userDao";
 import { ObjectUtils } from "../src/utils/object";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
@@ -64,7 +64,7 @@ async function initTheAppAndRecordWorkout(): Promise<{
   const url = UrlUtils.build("https://www.liftosaur.com");
   const initialState = await getInitialState(fetch, { url, storage: aStorage });
   const mockReducer = MockReducer.build(initialState, env);
-  await mockReducer.run([Thunk.fetchStorage(), Thunk.fetchInitial()]);
+  await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
 
   await mockReducer.run([mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram))]);
   await logWorkout(mockReducer, basicBeginnerProgram, [
@@ -98,7 +98,8 @@ describe("sync", () => {
   it("properly runs appendable safe syncs", async () => {
     const { di, mockReducer, log } = await initTheAppAndRecordWorkout();
 
-    expect(log.logs.filter((l) => l === "Appendable safe update")).to.length(2);
+    expect(log.logs.filter((l) => l === "Fetch: Safe update")).to.length(3);
+    expect(log.logs.filter((l) => l === "Fetch: Merging update")).to.length(1);
     expect(mockReducer.state.storage.currentProgramId).to.equal(basicBeginnerProgram.id);
     expect(mockReducer.state.storage.programs).to.length(1);
     expect(mockReducer.state.storage.history).to.length(1);
@@ -107,8 +108,8 @@ describe("sync", () => {
     expect(await di.dynamo.scan({ tableName: userTableNames.prod.programs })).to.length(1);
   });
 
-  it("request full storage before merging", async () => {
-    const { mockReducer, log, env } = await initTheAppAndRecordWorkout();
+  it("merge history and settings update", async () => {
+    const { mockReducer, log, env, di } = await initTheAppAndRecordWorkout();
     const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
     await logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
@@ -118,13 +119,27 @@ describe("sync", () => {
     await mockReducer.run([
       { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true) },
     ]);
+    expect(mockReducer.state.storage.settings.isPublicProfile).to.equal(true);
+    expect(mockReducer.state.storage.history.length).to.equal(2);
 
-    const filteredLogs = log.logs.filter((l) => l === "Requesting full storage" || l === "Merging the storages");
-    expect(filteredLogs).to.eql(["Requesting full storage", "Merging the storages"]);
+    const dbHistoryRecords = await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords });
+    const dbUsers = await di.dynamo.scan<IUserDao>({ tableName: userTableNames.prod.users });
+    expect(dbHistoryRecords.length).to.equal(2);
+    expect(dbUsers[0].storage.settings.isPublicProfile).to.equal(true);
+
+    const filteredLogs = log.logs.filter((l) => l.startsWith("Fetch:"));
+    expect(filteredLogs).to.eql([
+      "Fetch: Merging update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Merging update",
+    ]);
   });
 
-  it("merge runs appendable safe syncs", async () => {
-    const { mockReducer, log, env } = await initTheAppAndRecordWorkout();
+  it("merge 2 history updates", async () => {
+    const { mockReducer, log, env, di } = await initTheAppAndRecordWorkout();
     const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
     await logWorkout(mockReducer2, basicBeginnerProgram, [
       [5, 5, 5],
@@ -136,8 +151,18 @@ describe("sync", () => {
       [5, 4, 3],
       [5, 4, 3],
     ]);
-    expect(log.logs.filter((l) => l === "Appendable safe update")).to.length(3);
-    expect(log.logs.filter((l) => l === "Merging the storages")).to.length(1);
+    const dbHistoryRecords = await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords });
+    expect(dbHistoryRecords.length).to.equal(3);
+
+    const filteredLogs = log.logs.filter((l) => l.startsWith("Fetch:"));
+    expect(filteredLogs).to.eql([
+      "Fetch: Merging update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Safe update",
+      "Fetch: Merging update",
+    ]);
   });
 
   it("deletes the stats properly during merging", async () => {
@@ -157,11 +182,11 @@ describe("sync", () => {
     ]);
     await logStat(mockReducer2, 150);
     expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
-    await mockReducer.run([Thunk.fetchStorage()]);
+    await mockReducer.run([Thunk.sync2({ force: true })]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
   });
 
-  it("runs migrations before merging", async () => {
+  it("cancels sync if not the latest version", async () => {
     const { mockReducer, env } = await initTheAppAndRecordWorkout();
     const mockReducer2 = MockReducer.build(ObjectUtils.clone(mockReducer.state), env);
     await logWorkout(mockReducer2, basicBeginnerProgram, [
@@ -170,10 +195,16 @@ describe("sync", () => {
       [5, 5, 5],
     ]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (mockReducer.state as any).storage.deletedHistory;
     mockReducer.state.storage.version = "20231009191950";
-    await mockReducer.run([Thunk.sync({ withHistory: true, withPrograms: true, withStats: true })]);
-    expect(mockReducer.state.storage.deletedHistory).to.eql([]);
+    // expect to throw
+    let threw = false;
+    try {
+      await mockReducer.run([Thunk.sync2({ force: true })]);
+    } catch (e) {
+      expect(e.message).to.eql("outdated_client_storage");
+      threw = true;
+    }
+    expect(threw).to.eql(true);
   });
 });
 

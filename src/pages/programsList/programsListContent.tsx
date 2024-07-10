@@ -19,5 +19,13 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
   const audio = new MockAudioInterface();
   const service = new Service(props.client);
   const env: IEnv = { queue, audio, service };
-  return <ProgramContentList isMobile={props.isMobile} account={props.account} storage={props.storage} env={env} />;
+  return (
+    <ProgramContentList
+      service={service}
+      isMobile={props.isMobile}
+      account={props.account}
+      storage={props.storage}
+      env={env}
+    />
+  );
 }

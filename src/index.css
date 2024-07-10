@@ -7,6 +7,16 @@
 @import "~prismjs/themes/prism.css";
 @import "fonts.css";
 
+.ptr--refresh {
+  margin-top: 3.5rem;
+  margin-bottom: -3.5rem;
+}
+
+.ptr--pull {
+  margin-top: 3.5rem;
+  margin-bottom: -3.5rem;
+}
+
 body {
   font-size: 14px;
   background: white;
@@ -30,8 +40,9 @@ body {
   user-select: none;
 }
 
+.ptr--ptr,
 .has-shadow {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
 }
 
 .cm-editor {

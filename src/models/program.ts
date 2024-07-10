@@ -42,7 +42,7 @@ import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../lifto
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
 import { PlannerToProgram } from "./plannerToProgram";
-import { IPlannerState } from "../pages/planner/models/types";
+import { IPlannerState, IExportedPlannerProgram } from "../pages/planner/models/types";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
 
@@ -346,6 +346,7 @@ export namespace Program {
     };
 
     const dayName = program.isMultiweek ? `${program.weeks[week - 1]?.name} - ${programDay.name}` : programDay.name;
+    const now = Date.now();
     return {
       id: 0,
       date: new Date().toISOString(),
@@ -355,7 +356,8 @@ export namespace Program {
       week,
       dayInWeek,
       dayName,
-      startTime: Date.now(),
+      startTime: now,
+      updatedAt: now,
       entries: programDay.exercises.map(({ id }) => {
         const programExercise = program.exercises.find((e) => id === e.id)!;
         const staticState = staticStates?.[id];
@@ -1155,7 +1157,7 @@ export namespace Program {
     return url.toString();
   }
 
-  function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
+  export function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
     const customExerciseIds = program.exercises.reduce<string[]>((memo, programExercise) => {
       const id = programExercise.exerciseType.id;
       const isBuiltIn = !!Exercise.findById(id, {});
@@ -1170,8 +1172,29 @@ export namespace Program {
       customExercises,
       program,
       version: version || getLatestMigrationVersion(),
-      settings: ObjectUtils.pick(settings, ["units", "timers"]),
+      settings: ObjectUtils.pick(settings, ["units", "timers", "planner"]),
     };
+  }
+
+  export function exportedPlannerProgramToExportedProgram(
+    exportedPlannerProgram: IExportedPlannerProgram
+  ): IExportedProgram {
+    const program = {
+      ...Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id),
+      planner: exportedPlannerProgram.program,
+    };
+    const exportedProgram: IExportedProgram = {
+      customExercises: exportedPlannerProgram.settings.exercises,
+      program,
+      version: exportedPlannerProgram.version,
+      settings: {
+        timers: {
+          workout: exportedPlannerProgram.settings.timer,
+        },
+        planner: exportedPlannerProgram.plannerSettings,
+      },
+    };
+    return exportedProgram;
   }
 
   export function switchToUnit(program: IProgram, settings: ISettings): IProgram {

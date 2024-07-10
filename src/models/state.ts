@@ -60,6 +60,7 @@ export interface IStateErrors {
 export interface IState {
   user?: IUser;
   storage: IStorage;
+  lastSyncedStorage?: IStorage;
   programs: IProgram[];
   notification?: INotification;
   screenStack: IScreen[];
@@ -97,6 +98,7 @@ export interface IState {
 export interface ILocalStorage {
   storage?: IStorage;
   progress?: IHistoryRecord;
+  lastSyncedStorage?: IStorage;
   editDay?: IProgramDay;
 }
 

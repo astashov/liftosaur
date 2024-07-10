@@ -1,13 +1,12 @@
 import { IThunk, IDispatch } from "./types";
 import { IScreen } from "../models/screen";
 import RB from "rollbar";
-import { IGetStorageResponse, Service } from "../api/service";
+import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IEnv, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IPartialStorage, IExerciseType, ISettings } from "../types";
-import { runMigrations } from "../migrations/runner";
+import { IProgram, IStorage, IExerciseType, ISettings } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
@@ -30,8 +29,14 @@ import { LogUtils } from "../utils/log";
 import { RollbarUtils } from "../utils/rollbar";
 import { UrlUtils } from "../utils/url";
 import { ImportFromLiftosaur } from "../utils/importFromLiftosaur";
+import { Sync } from "../utils/sync";
+import { ObjectUtils } from "../utils/object";
 
 declare let Rollbar: RB;
+
+export class NoRetryError extends Error {
+  public noretry = true;
+}
 
 export namespace Thunk {
   export function googleSignIn(): IThunk {
@@ -46,19 +51,15 @@ export namespace Thunk {
           const result = await load(dispatch, "Logging in", async () =>
             env.service.googleSignIn(accessToken, userId, {})
           );
-          await load(dispatch, "Logging in", () =>
-            handleLogin("Google sign in", dispatch, getState, result, env.service.client, userId)
-          );
-          dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
+          await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+          dispatch(sync2());
         }
       } else {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await env.service.googleSignIn("test", userId, { forcedUserEmail });
-        await load(dispatch, "Logging in", () =>
-          handleLogin("Google Sign in", dispatch, getState, result, env.service.client, userId)
-        );
-        dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
+        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        dispatch(sync2());
       }
     };
   }
@@ -88,10 +89,8 @@ export namespace Thunk {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
-        await load(dispatch, "Logging in", () =>
-          handleLogin("Apple sign in", dispatch, getState, result, env.service.client, userId)
-        );
-        dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
+        await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+        dispatch(sync2());
       }
     };
   }
@@ -120,6 +119,7 @@ export namespace Thunk {
       if (getState().user?.id) {
         await env.service.signout();
         dispatch({ type: "Logout" });
+        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)]);
       }
       if (cb) {
         cb();
@@ -135,87 +135,97 @@ export namespace Thunk {
     };
   }
 
-  async function _sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
+  async function _sync2(
     dispatch: IDispatch,
     getState: () => IState,
     env: IEnv,
-    additionalRequests: ("programs" | "history" | "stats")[] = [],
-    cb?: (storage: IStorage, type: "success" | "merged") => void
+    args?: { force: boolean }
   ): Promise<void> {
     const state = getState();
-    const storage: IPartialStorage = { ...state.storage };
-    if (!state.freshMigrations) {
-      if (!args.withHistory && additionalRequests.indexOf("history") === -1) {
-        storage.history = undefined;
-      }
-      if (!args.withStats && additionalRequests.indexOf("stats") === -1) {
-        storage.stats = undefined;
-      }
-      if (!args.withPrograms && additionalRequests.indexOf("programs") === -1) {
-        storage.programs = undefined;
-      }
-    }
-    const result = await env.service.postStorage(storage, args.fields);
-    if (result.status === "success") {
-      updateState(
-        dispatch,
-        [
-          lb<IState>().p("storage").p("originalId").record(result.newOriginalId),
+    function handleResponse(result: IPostSyncResponse, lastSyncedStorage?: IStorage): boolean {
+      if (result.type === "clean") {
+        updateState(dispatch, [
           lb<IState>()
-            .p("storage")
-            .p("programs")
-            .recordModify((ps) =>
-              ps.map((p) => ({ ...p, exercises: p.exercises.map((e) => ({ ...e, diffPaths: [] })) }))
-            ),
-        ],
-        "Set original id and clean diffpaths"
-      );
-      if (state.freshMigrations) {
-        updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)], "Clean fresh migrations flag");
+            .p("lastSyncedStorage")
+            .record(lastSyncedStorage || getState().lastSyncedStorage),
+          lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
+          lb<IState>().p("storage").p("originalId").record(result.new_original_id),
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+        ]);
+        if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
+          dispatch({ type: "Login", email: result.email, userId: result.user_id });
+        }
+        return true;
+      } else if (result.type === "dirty") {
+        updateState(dispatch, [
+          lb<IState>().p("lastSyncedStorage").record(result.storage),
+          lb<IState>().p("storage").record(result.storage),
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+        ]);
+        if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
+          dispatch({ type: "Login", email: result.email, userId: result.user_id });
+        }
+        return true;
+      } else if (result.type === "error" && result.error === "not_authorized") {
+        updateState(dispatch, [
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+          lb<IState>().p("lastSyncedStorage").record(undefined),
+        ]);
+        return false;
+      } else if (result.type === "error") {
+        throw new NoRetryError(result.error);
       }
-      if (cb != null) {
-        cb(getState().storage, "success");
+      return false;
+    }
+    if (state.lastSyncedStorage == null) {
+      const result = await env.service.postSync({
+        tempUserId: state.storage.tempUserId,
+        storageUpdate: {
+          settings: {},
+          version: state.storage.version,
+        },
+      });
+      const handled = handleResponse(result);
+      if (handled) {
+        await _sync2(dispatch, getState, env, args);
       }
-    } else if (result.status === "request") {
-      await _sync(args, dispatch, getState, env, result.data, cb);
-    } else if (result.status === "merged") {
-      updateState(dispatch, [lb<IState>().p("storage").record(result.storage)], "Merge Storage");
-      if (cb != null) {
-        cb(getState().storage, "merged");
+    } else {
+      const storageUpdate = Sync.getStorageUpdate(state.storage, state.lastSyncedStorage);
+      const { settings, originalId, version, ...rest } = storageUpdate;
+      const lastSyncedStorage = state.storage;
+      if (args?.force || Object.keys(rest).length > 0 || Object.keys(settings || {}).length > 0) {
+        const result = await env.service.postSync({
+          tempUserId: state.storage.tempUserId,
+          storageUpdate: storageUpdate,
+        });
+        handleResponse(result, lastSyncedStorage);
       }
     }
   }
 
-  export function sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
-    cb?: (storage: IStorage, status: "merged" | "success") => void
-  ): IThunk {
+  export function sync2(args?: { force: boolean; cb?: () => void }): IThunk {
     return async (dispatch, getState, env) => {
-      const state = getState();
-      if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
-        await env.queue.enqueue(async (deps) => {
-          await load(dispatch, "Sync", async () => {
-            await _sync(deps, dispatch, getState, env, [], cb);
-          });
-        }, args);
-      }
-    };
-  }
-
-  export function ping(): IThunk {
-    return async (dispatch, getState, env) => {
-      const state = getState();
-      if (state.user?.id != null && getState().storage.originalId != null) {
-        await env.queue.enqueue(async () => {
-          const originalId = getState().storage.originalId;
-          if (originalId != null) {
-            const result = await env.service.ping(originalId);
-            if (result) {
-              dispatch(Thunk.fetchStorage());
-            }
-          }
-        });
+      try {
+        const state = getState();
+        if (
+          state.errors.corruptedstorage == null &&
+          state.adminKey == null &&
+          !state.nosync &&
+          (state.user != null || args?.force)
+        ) {
+          await env.queue.enqueue(
+            async (args2) => {
+              await load(dispatch, "Sync", async () => {
+                await _sync2(dispatch, getState, env, args2);
+              });
+            },
+            { force: !!args?.force }
+          );
+        }
+      } finally {
+        if (args?.cb) {
+          args.cb();
+        }
       }
     };
   }
@@ -235,6 +245,15 @@ export namespace Thunk {
     };
   }
 
+  export function playAudioNotification(): IThunk {
+    return async (dispatch, getState, env) => {
+      if (getState().adminKey == null) {
+        const settings = getState().storage.settings;
+        env.audio.play(settings.volume, !!settings.vibration);
+      }
+    };
+  }
+
   export function fetchStorage(): IThunk {
     return async (dispatch, getState, env) => {
       if (getState().errors.corruptedstorage == null) {
@@ -244,23 +263,7 @@ export namespace Thunk {
           const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
           return env.service.getStorage(state.storage.tempUserId, userId || undefined, state.adminKey);
         });
-        await handleLogin(
-          "Fetch Storage",
-          dispatch,
-          getState,
-          result,
-          env.service.client,
-          getState().user?.id || getState().storage.tempUserId
-        );
-      }
-    };
-  }
-
-  export function playAudioNotification(): IThunk {
-    return async (dispatch, getState, env) => {
-      if (getState().adminKey == null) {
-        const settings = getState().storage.settings;
-        env.audio.play(settings.volume, !!settings.vibration);
+        await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
       }
     };
   }
@@ -779,7 +782,7 @@ function _load<T>(
       resolve(r);
     })
     .catch((e) => {
-      if (attempt >= 3) {
+      if (attempt >= 3 || (e instanceof NoRetryError && e.noretry)) {
         updateState(
           dispatch,
           [
@@ -798,32 +801,27 @@ function _load<T>(
 }
 
 async function handleLogin(
-  prefix: string,
   dispatch: IDispatch,
-  getState: () => IState,
   result: IGetStorageResponse,
   client: Window["fetch"],
   oldUserId?: string
 ): Promise<void> {
-  if (result.email != null && result.storage != null) {
+  if (result.email != null) {
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     let storage: IStorage;
-    const finalStorage = await runMigrations(client, result.storage);
-    const storageResult = await Storage.get(client, finalStorage, true);
+    const storageResult = await Storage.get(client, result.storage, true);
     const service = new Service(client);
     if (storageResult.success) {
       storage = storageResult.data;
     } else {
-      storage = finalStorage;
+      storage = result.storage;
       const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory.generateUid(8)}`;
       await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
     }
     storage.tempUserId = result.user_id;
     storage.email = result.email;
     if (oldUserId === result.user_id) {
-      const oldStorage = getState().storage;
-      dispatch({ type: "SyncStorage", storage });
-      service.saveDebugStorage(prefix, oldStorage, storage, getState().storage);
+      updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)]);
       dispatch({ type: "Login", email: result.email, userId: result.user_id });
       if (storage.subscription.key !== result.key) {
         updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
@@ -831,6 +829,7 @@ async function handleLogin(
     } else {
       storage.subscription.key = result.key;
       const newState = await getInitialState(client, { storage });
+      newState.lastSyncedStorage = ObjectUtils.clone(newState.storage);
       newState.user = { id: result.user_id, email: result.email };
       dispatch({ type: "ReplaceState", state: newState });
     }

@@ -64,6 +64,7 @@ export namespace History {
 
   export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
+    const updatedAt = Date.now();
     return {
       ...historyRecord,
       entries: historyRecord.entries.map((entry) => {
@@ -88,7 +89,8 @@ export namespace History {
         }
         return entry;
       }),
-      id: Progress.isCurrent(progress) ? Date.now() : progress.id,
+      id: Progress.isCurrent(progress) ? progress.startTime : progress.id,
+      updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,
       ...(Progress.isCurrent(progress) ? { endTime: Date.now() } : {}),

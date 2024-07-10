@@ -2,13 +2,36 @@ import { IExportedPlannerProgram } from "../pages/planner/models/types";
 import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
+import { IStorageUpdate } from "../utils/sync";
+import { IExportedProgram } from "../models/program";
 
 export interface IGetStorageResponse {
   email: string;
-  storage?: IStorage;
+  storage: IStorage;
   user_id: string;
   key?: string;
 }
+
+export type IPostSyncResponse =
+  | {
+      type: "dirty";
+      storage: IStorage;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "clean";
+      new_original_id: number;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "error";
+      error: string;
+      key?: string;
+    };
 
 export type IPostStorageResponse =
   | {
@@ -124,6 +147,23 @@ export class Service {
     return json;
   }
 
+  public async postSync(args: {
+    storageUpdate: IStorageUpdate;
+    tempUserId: string | undefined;
+  }): Promise<IPostSyncResponse> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
+    if (args.tempUserId) {
+      url.searchParams.set("tempuserid", args.tempUserId);
+    }
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ storageUpdate: args.storageUpdate }),
+      credentials: "include",
+    });
+    const json = await result.json();
+    return json;
+  }
+
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
       const response = await this.client(`${__API_HOST__}/api/debug`, {
@@ -165,6 +205,45 @@ export class Service {
     });
     const json = await response.json();
     return json;
+  }
+
+  public async postSaveProgram(program: IExportedProgram): Promise<IEither<string, string>> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/program`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ program }),
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  public async deleteProgram(id: string): Promise<IEither<string, string>> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/program/${id}`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   }
 
   public async postFreeformGenerator(prompt: string): Promise<string> {

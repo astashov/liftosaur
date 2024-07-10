@@ -1190,6 +1190,33 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240731": {
+    title: <span>Updates related to syncing and program saving</span>,
+    body: (
+      <ul>
+        <li>
+          I did a massive under the hood update how the app syncs changes with the server, to ensure it only sends the
+          necessary (that actually changed) data. Hopefully it'll make the data sync faster and more reliable. There're
+          also some user-facing changes related to that:
+        </li>
+        <li>
+          <ul className="ml-4 list-disc">
+            <li>
+              The Web Editor now has the "Save" button, and the programs don't autosave anymore. Autosaving sometimes
+              worked pretty inconsistently, and it wasn't clear whether the changes got saved or not, so I'm trying to
+              solve it with explicit saving.
+            </li>
+            <li>
+              The app now has "Pull-to-refresh" functionality - pull the screen to the bottom to force fetch the data
+              from the server. Could be useful if you make the changes on the Web Editor, and want to sync them
+              immediately to the app.
+            </li>
+            <li>The app also will try to sync when it goes from background to foreground.</li>
+          </ul>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
