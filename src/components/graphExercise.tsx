@@ -53,7 +53,7 @@ function getData(
     const entry = i.entries.filter((e) => Exercise.eq(e.exercise, exerciseType))[0];
     if (entry != null) {
       const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
-        return b.weight !== a.weight
+        return !Weight.eq(b.weight, a.weight)
           ? Weight.compare(b.weight, a.weight)
           : (b.completedReps || 0) - (a.completedReps || 0);
       }).find((s) => s.completedReps != null && s.completedReps > 0);

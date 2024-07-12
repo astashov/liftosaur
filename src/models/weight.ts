@@ -140,7 +140,6 @@ export namespace Weight {
     } else if (reps === 1) {
       return weight;
     } else {
-      // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
       return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, 10)));
     }
   }
@@ -151,7 +150,6 @@ export namespace Weight {
     } else if (reps === 1) {
       return oneRepMax;
     } else {
-      // Epley formula (https://en.wikipedia.org/wiki/One-repetition_maximum)
       return Weight.roundTo005(Weight.multiply(oneRepMax, Weight.rpeMultiplier(reps, 10)));
     }
   }
