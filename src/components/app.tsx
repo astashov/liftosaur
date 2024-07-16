@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -68,19 +68,19 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
-  const lastPingRef = useRef<number>(Date.now());
+  // const lastPingRef = useRef<number>(Date.now());
 
-  useEffect(() => {
-    if (lastPingRef.current < Date.now() - 60 * 3 * 1000) {
-      lastPingRef.current = Date.now();
-      dispatch(Thunk.ping());
-    }
-  });
+  // useEffect(() => {
+  //   if (lastPingRef.current < Date.now() - 60 * 3 * 1000) {
+  //     lastPingRef.current = Date.now();
+  //     dispatch(Thunk.ping());
+  //   }
+  // });
 
   useLoopCatcher();
 
   useEffect(() => {
-    dispatch(Thunk.fetchStorage());
+    dispatch(Thunk.sync2({ force: true }));
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;

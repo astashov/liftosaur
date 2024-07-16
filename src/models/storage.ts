@@ -17,6 +17,7 @@ import { ObjectUtils } from "../utils/object";
 import { Program } from "./program";
 import { DateUtils } from "../utils/date";
 import { Exercise } from "./exercise";
+import { IStorageUpdate } from "../utils/sync";
 
 declare let Rollbar: RB;
 
@@ -167,6 +168,47 @@ export namespace Storage {
     }
   }
 
+  export function applyUpdate(storage: IPartialStorage, update: IStorageUpdate): IPartialStorage {
+    const lastGyms = CollectionUtils.groupByKeyUniq(storage.settings.gyms || [], "id");
+    const newGyms = CollectionUtils.groupByKeyUniq(update.settings?.gyms || [], "id");
+    const gymsObj = { ...lastGyms, ...newGyms };
+    const gymsArr = CollectionUtils.compact(ObjectUtils.values(gymsObj));
+
+    const deletedHistory = Array.from(new Set([...storage.deletedHistory, ...(update.deletedHistory || [])]));
+    const deletedPrograms = Array.from(new Set([...storage.deletedPrograms, ...(update.deletedPrograms || [])]));
+    const deletedStats = Array.from(new Set([...storage.deletedStats, ...(update.deletedStats || [])]));
+    const deletedExercises = Array.from(
+      new Set([...storage.settings.deletedExercises, ...(update.settings?.deletedExercises || [])])
+    );
+
+    const reviewRequests = Array.from(new Set([...storage.reviewRequests, ...(update.reviewRequests || [])]));
+    const signupRequests = Array.from(new Set([...storage.signupRequests, ...(update.signupRequests || [])]));
+    const helps = Array.from(new Set([...storage.helps, ...(update.helps || [])]));
+
+    const exercises = { ...storage.settings.exercises, ...(update.settings?.exercises || {}) };
+    const exerciseData = { ...storage.settings.exerciseData, ...(update.settings?.exerciseData || {}) };
+
+    const newStorage: IPartialStorage = {
+      ...storage,
+      ...update,
+      deletedHistory,
+      deletedPrograms,
+      deletedStats,
+      reviewRequests,
+      signupRequests,
+      helps,
+      settings: {
+        ...storage.settings,
+        ...update.settings,
+        deletedExercises,
+        exercises,
+        exerciseData,
+        gyms: gymsArr,
+      },
+    };
+    return newStorage;
+  }
+
   export function mergeStorage(
     oldStorage: IStorage,
     newStorage: IStorage,
@@ -310,6 +352,7 @@ export namespace Storage {
         exercises: mergeAs2("settings", "exercises", (a, b) => Exercise.mergeExercises(a, b)),
         graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
         currentGymId: merge2("settings", "currentGymId"),
+        deletedExercises: merge2("settings", "deletedExercises"),
         timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
         units: merge2("settings", "units"),
         isPublicProfile: merge2("settings", "isPublicProfile"),

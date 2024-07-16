@@ -58,6 +58,7 @@
 - Program sync is still unreliable
 - Need to tighten up the edit link in the program screen
 - Made numberOfSets = 0 work in update blocks
+- Need to add lb to kg converter properly.
 
 ---
 

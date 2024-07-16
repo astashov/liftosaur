@@ -816,6 +816,11 @@ export const migrations = {
     }
     return storage;
   },
+  "20240715205232_add_deleted_exercises": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.deletedExercises = storage.settings.deletedExercises || [];
+    return storage;
+  },
   "20240720152051_fix_null_entries_set_weights": async (
     client: Window["fetch"],
     aStorage: IStorage

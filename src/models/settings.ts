@@ -237,6 +237,7 @@ export namespace Settings {
         },
       ],
       volume: 1.0,
+      deletedExercises: [],
       vibration: false,
       lengthUnits: "in",
       statsEnabled: { weight: { weight: true }, length: {}, percentage: {} },

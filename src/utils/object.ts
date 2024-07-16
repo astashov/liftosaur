@@ -9,7 +9,11 @@ export namespace ObjectUtils {
   }
 
   export function values<T extends {}>(obj: T): Array<T[keyof T]> {
-    return ObjectUtils.keys(obj).map((key) => obj[key]);
+    if ("values" in Object) {
+      return Object.values(obj);
+    } else {
+      return ObjectUtils.keys(obj).map((key) => obj[key]);
+    }
   }
 
   export function entries<T extends {}>(obj: T): Array<[keyof T, T[keyof T]]> {
@@ -99,7 +103,8 @@ export namespace ObjectUtils {
 
   export function changedKeys<T extends {}>(
     oldObj: T,
-    newObj: T
+    newObj: T,
+    eq: (a: any, b: any) => boolean = (a, b) => a === b
   ): Partial<Record<keyof T, "delete" | "update" | "add">> {
     let oldKeys = keys(oldObj);
     const newKeys = keys(newObj);
@@ -111,7 +116,7 @@ export namespace ObjectUtils {
       } else if (newObj[newKey] == null && oldObj[newKey] != null) {
         changes[newKey] = "delete";
       } else if (newObj[newKey] != null && oldObj[newKey] != null) {
-        if (newObj[newKey] !== oldObj[newKey]) {
+        if (!eq(newObj[newKey], oldObj[newKey])) {
           changes[newKey] = "update";
         }
       }

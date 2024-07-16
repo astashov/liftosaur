@@ -89,7 +89,7 @@ export namespace History {
         }
         return entry;
       }),
-      id: Progress.isCurrent(progress) ? updatedAt : progress.id,
+      id: Progress.isCurrent(progress) ? progress.startTime : progress.id,
       updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,

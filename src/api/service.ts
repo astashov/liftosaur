@@ -2,6 +2,7 @@ import { IExportedPlannerProgram } from "../pages/planner/models/types";
 import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
+import { IStorageUpdate } from "../utils/sync";
 
 export interface IGetStorageResponse {
   email: string;
@@ -9,6 +10,26 @@ export interface IGetStorageResponse {
   user_id: string;
   key?: string;
 }
+
+export type IPostSyncResponse =
+  | {
+      type: "dirty";
+      storage: IStorage;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "clean";
+      new_original_id: number;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "error";
+      error: string;
+    };
 
 export type IPostStorageResponse =
   | {
@@ -118,6 +139,20 @@ export class Service {
     const result = await this.client(`${__API_HOST__}/api/storage`, {
       method: "POST",
       body: JSON.stringify({ storage, fields }),
+      credentials: "include",
+    });
+    const json = await result.json();
+    return json;
+  }
+
+  public async postSync(args: { storageUpdate?: IStorageUpdate; tempUserId?: string }): Promise<IPostSyncResponse> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
+    if (args.tempUserId) {
+      url.searchParams.set("tempuserid", args.tempUserId);
+    }
+    const result = await this.client(`${__API_HOST__}/api/sync`, {
+      method: "POST",
+      body: JSON.stringify({ storageUpdate: args.storageUpdate }),
       credentials: "include",
     });
     const json = await result.json();

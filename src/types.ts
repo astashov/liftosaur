@@ -978,6 +978,7 @@ export const TSettings = t.intersection(
         hideWithoutWorkoutNotes: t.boolean,
         hideWithoutExerciseNotes: t.boolean,
       }),
+      deletedExercises: t.array(t.string),
       exercises: dictionary(t.string, TCustomExercise),
       statsEnabled: TStatsEnabled,
       units: TUnit,
@@ -1020,7 +1021,6 @@ export type ISubscription = t.TypeOf<typeof TSubscription>;
 export const TStorage = t.intersection(
   [
     t.interface({
-      id: t.number,
       history: t.array(THistoryRecord),
       deletedHistory: t.array(t.number),
       stats: TStats,
@@ -1041,6 +1041,7 @@ export const TStorage = t.intersection(
     }),
     t.partial({
       originalId: t.number,
+      id: t.number,
       referrer: t.string,
     }),
   ],

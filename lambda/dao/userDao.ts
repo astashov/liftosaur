@@ -9,6 +9,7 @@ import {
   IPercentage,
 } from "../../src/types";
 import { Settings } from "../../src/models/settings";
+import { Storage } from "../../src/models/storage";
 import { Utils } from "../utils";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ObjectUtils } from "../../src/utils/object";
@@ -17,6 +18,8 @@ import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
+import { IStorageUpdate } from "../../src/utils/sync";
+import { IEither } from "../../src/utils/types";
 
 export const userTableNames = {
   dev: {
@@ -82,6 +85,62 @@ export class UserDao {
     } else {
       return undefined;
     }
+  }
+
+  public async applySafeSync(
+    limitedUser: ILimitedUserDao,
+    storageUpdate: IStorageUpdate
+  ): Promise<IEither<number, string>> {
+    const env = Utils.getEnv();
+    const result = await Storage.get(fetch, limitedUser.storage);
+    if (!result.success) {
+      return { success: false, error: "corrupted_server_storage" };
+    }
+    const limitedUserStorage = result.data;
+    if (limitedUserStorage.version !== storageUpdate.version) {
+      return { success: false, error: "outdated_client_storage" };
+    }
+    const originalId = Date.now();
+    const newStorage = {
+      ...Storage.applyUpdate(limitedUserStorage, storageUpdate),
+      originalId,
+    };
+
+    const historyDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].historyRecords,
+      keys: (storageUpdate.deletedHistory || []).map((id) => ({ id, userId: limitedUser.id })),
+    });
+    const historyUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].historyRecords,
+      items: CollectionUtils.uniqBy(storageUpdate.history || [], "id").map((record) => ({
+        ...record,
+        userId: limitedUser.id,
+      })),
+    });
+
+    const userPrograms =
+      (storageUpdate.deletedPrograms || []).length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
+    const programIdsToDelete = userPrograms
+      .filter((p) => p.clonedAt != null && (storageUpdate.deletedPrograms || []).indexOf(p.clonedAt) !== -1)
+      .map((p) => p.id);
+    const programDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].programs,
+      keys: programIdsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+    });
+
+    const programUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].programs,
+      items: (storageUpdate.programs || []).map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
+    await Promise.all([
+      this.store({ ...limitedUser, storage: newStorage }),
+      historyUpdates,
+      historyDeletes,
+      programUpdates,
+      programDeletes,
+    ]);
+    return { data: originalId, success: true };
   }
 
   public async getByAppleId(appleId: string): Promise<IUserDao | undefined> {

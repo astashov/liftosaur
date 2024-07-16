@@ -59,6 +59,8 @@ import { renderProgramsListHtml } from "./programsList";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
+import { IStorageUpdate } from "../src/utils/sync";
+import { IPostSyncResponse } from "../src/api/service";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -179,6 +181,75 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
+const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
+const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSyncEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  let userId: string | undefined = undefined;
+  let setCookie: string | undefined = undefined;
+  const bodyJson = getBodyJson(event);
+  const storageUpdate = bodyJson.storageUpdate as IStorageUpdate;
+  if (params.adminkey != null && params.userid != null && params.adminkey === (await di.secrets.getApiKey())) {
+    userId = params.userid;
+    const cookieSecret = await di.secrets.getCookieSecret();
+    const session = JWT.sign({ userId: userId }, cookieSecret);
+    setCookie = Cookie.serialize("session", session, {
+      httpOnly: true,
+      domain: ".liftosaur.com",
+      path: "/",
+      expires: new Date(new Date().getFullYear() + 10, 0, 1),
+    });
+  } else {
+    userId = await getCurrentUserId(event, di);
+  }
+  let keyResult: { key: string; isClaimed: boolean } | undefined;
+  if (params.tempuserid) {
+    keyResult = await new FreeUserDao(di).getKey(params.tempuserid);
+  }
+  const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
+  const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
+    ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+  if (userId != null) {
+    const userDao = new UserDao(di);
+    const limitedUser = await userDao.getLimitedById(userId);
+    if (limitedUser != null) {
+      di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
+      if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
+        di.log.log("Fetch: Safe update");
+        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
+        if (result.success) {
+          return response(200, {
+            type: "clean",
+            new_original_id: result.data,
+            email: limitedUser.email,
+            user_id: limitedUser.id,
+            key,
+          });
+        } else {
+          return response(400, { type: "error", error: result.error });
+        }
+      } else {
+        di.log.log("Fetch: Merging update");
+        storageUpdate.originalId = Date.now();
+        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
+        if (result.success) {
+          const fullUser = (await userDao.getById(userId))!;
+          const storage = fullUser.storage;
+          if (key) {
+            storage.subscription.key = key;
+          }
+          return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
+        } else {
+          return response(400, { type: "error", error: result.error });
+        }
+      }
+    }
+  }
+  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized" });
+};
+
 const getStorageEndpoint = Endpoint.build("/api/storage", { tempuserid: "string?", key: "string?", userid: "string?" });
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
@@ -285,8 +356,8 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         if (fullUser != null) {
           const aStorage = await runMigrations(di.fetch, fullUser.storage);
           const bStorage = await runMigrations(di.fetch, storage);
-          const oldStorage = aStorage.id < bStorage.id ? aStorage : bStorage;
-          const newStorage = aStorage.id < bStorage.id ? bStorage : aStorage;
+          const oldStorage = aStorage;
+          const newStorage = bStorage;
           const mergedStorage = Storage.mergeStorage(oldStorage, newStorage, false, fields);
 
           const exceptionDao = new ExceptionDao(di);
@@ -1815,6 +1886,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postShortUrlEndpoint, postShortUrlHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
+      .post(postSyncEndpoint, postSyncHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
