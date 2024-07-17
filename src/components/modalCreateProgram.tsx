@@ -4,11 +4,21 @@ import { Modal } from "./modal";
 import { useRef } from "preact/hooks";
 import { Input } from "./input";
 import { LinkButton } from "./linkButton";
+import { UrlUtils } from "../utils/url";
 
 interface IProps {
   onSelect: (name: string, isV2: boolean) => void;
   onClose: () => void;
   isHidden: boolean;
+}
+
+function hasLegacyProgram(): boolean {
+  if (typeof window !== "undefined") {
+    const url = UrlUtils.build(window.location.href);
+    return !!url.searchParams.get("legacy");
+  } else {
+    return false;
+  }
 }
 
 export function ModalCreateProgram(props: IProps): JSX.Element {
@@ -51,21 +61,23 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           Create
         </Button>
       </p>
-      <div className="mt-2 text-center">
-        <LinkButton
-          name="modal-create-experimental-program-submit"
-          kind="grayv2"
-          data-cy="modal-create-program-submit"
-          className="text-xs ls-modal-create-legacy-program"
-          onClick={() => {
-            if (textInput.current.value) {
-              props.onSelect(textInput.current.value, false);
-            }
-          }}
-        >
-          Create legacy program
-        </LinkButton>
-      </div>
+      {hasLegacyProgram() && (
+        <div className="mt-2 text-center">
+          <LinkButton
+            name="modal-create-experimental-program-submit"
+            kind="grayv2"
+            data-cy="modal-create-program-submit"
+            className="text-xs ls-modal-create-legacy-program"
+            onClick={() => {
+              if (textInput.current.value) {
+                props.onSelect(textInput.current.value, false);
+              }
+            }}
+          >
+            Create legacy program
+          </LinkButton>
+        </div>
+      )}
     </Modal>
   );
 }

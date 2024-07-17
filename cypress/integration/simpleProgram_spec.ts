@@ -9,7 +9,7 @@ describe("Program", () => {
   });
 
   it("creates a new exercise using Simple editor", () => {
-    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1");
+    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1");
 
     // Creating the program
 

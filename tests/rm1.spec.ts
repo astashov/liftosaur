@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PlaywrightUtils } from "./playwrightUtils";
 
 test("rm1", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1");
   await page.getByTestId("create-program").click();
 
   await page.getByTestId("modal-create-program-input").clear();
