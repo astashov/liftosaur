@@ -857,8 +857,8 @@ export type IStatsEnabled = Readonly<t.TypeOf<typeof TStatsEnabled>>;
 
 export const TSettingsTimers = t.type(
   {
-    warmup: t.union([t.number, t.null]),
-    workout: t.union([t.number, t.null]),
+    warmup: t.union([t.number, t.undefined]),
+    workout: t.union([t.number, t.undefined]),
   },
   "TSettingsTimers"
 );
@@ -1052,7 +1052,9 @@ export type IStorage = t.TypeOf<typeof TStorage>;
 export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
   Partial<Pick<IStorage, "history" | "stats" | "programs">>;
 
-export type IProgramContentSettings = Pick<ISettings, "timers" | "units">;
+export type IProgramContentSettings = Partial<
+  Pick<ISettings, "units" | "planner"> & { timers: Partial<ISettings["timers"]> }
+>;
 
 export type IDayData = {
   week?: number;

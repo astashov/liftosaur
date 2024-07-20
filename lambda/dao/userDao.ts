@@ -326,6 +326,14 @@ export class UserDao {
     return result.flat();
   }
 
+  public getProgram(userId: string, id: string): Promise<IProgram | undefined> {
+    const env = Utils.getEnv();
+    return this.di.dynamo.get<IProgram & { userId?: string }>({
+      tableName: userTableNames[env].programs,
+      key: { id, userId },
+    });
+  }
+
   public async transfer(fromEmail: string, toEmail: string): Promise<void> {
     const fromUser = await this.getByEmail(fromEmail);
     const toUser = await this.getByEmail(toEmail);

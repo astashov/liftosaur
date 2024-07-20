@@ -42,7 +42,7 @@ import { ILiftoscriptVariableValue, ILiftoscriptEvaluatorUpdate } from "../lifto
 import { ProgramToPlanner } from "./programToPlanner";
 import { MathUtils } from "../utils/math";
 import { PlannerToProgram } from "./plannerToProgram";
-import { IPlannerState } from "../pages/planner/models/types";
+import { IPlannerState, IExportedPlannerProgram } from "../pages/planner/models/types";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
 
@@ -1172,8 +1172,29 @@ export namespace Program {
       customExercises,
       program,
       version: version || getLatestMigrationVersion(),
-      settings: ObjectUtils.pick(settings, ["units", "timers"]),
+      settings: ObjectUtils.pick(settings, ["units", "timers", "planner"]),
     };
+  }
+
+  export function exportedPlannerProgramToExportedProgram(
+    exportedPlannerProgram: IExportedPlannerProgram
+  ): IExportedProgram {
+    const program = {
+      ...Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id),
+      planner: exportedPlannerProgram.program,
+    };
+    const exportedProgram: IExportedProgram = {
+      customExercises: exportedPlannerProgram.settings.exercises,
+      program,
+      version: exportedPlannerProgram.version,
+      settings: {
+        timers: {
+          workout: exportedPlannerProgram.settings.timer,
+        },
+        planner: exportedPlannerProgram.plannerSettings,
+      },
+    };
+    return exportedProgram;
   }
 
   export function switchToUnit(program: IProgram, settings: ISettings): IProgram {

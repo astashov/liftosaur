@@ -56,11 +56,11 @@ import { UrlUtils } from "../src/utils/url";
 import { RollbarUtils } from "../src/utils/rollbar";
 import { Account, IAccount } from "../src/models/account";
 import { renderProgramsListHtml } from "./programsList";
-import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate } from "../src/utils/sync";
 import { IPostSyncResponse } from "../src/api/service";
+import { Settings } from "../src/models/settings";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -559,6 +559,26 @@ const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signo
     },
     body: "{}",
   };
+};
+
+const postSaveProgramEndpoint = Endpoint.build("/api/program");
+const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSaveProgramEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user != null) {
+    const bodyJson = getBodyJson(event);
+    const exportedProgram: IExportedProgram = bodyJson.program;
+    const userDao = new UserDao(di);
+    user.storage = {
+      ...user.storage,
+      settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
+    };
+    await Promise.all([userDao.saveProgram(user.id, exportedProgram.program), userDao.store(user)]);
+    return ResponseUtils.json(200, event, { data: "ok" });
+  }
+  return ResponseUtils.json(400, event, { error: "Not Authorized" });
 };
 
 const getProgramsEndpoint = Endpoint.build("/api/programs");
@@ -1532,10 +1552,10 @@ const getProgramShorturlHandler: RouteHandler<
               id: program.program.id,
               program: program.program.planner,
               type: "v2",
-              version: getLatestMigrationVersion(),
+              version: program.version,
               settings: {
                 exercises: program.customExercises,
-                timer: program.settings.timers.workout ?? 180,
+                timer: program.settings.timers?.workout ?? 180,
               },
             };
             redirectUrl.searchParams.set("data", await NodeEncoder.encode(JSON.stringify(exportedProgram)));
@@ -1879,6 +1899,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getFreeformEndpoint, getFreeformHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
+      .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .post(postPlannerReformatterFullEndpoint, postPlannerReformatterFullHandler)
       .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)

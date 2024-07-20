@@ -30,7 +30,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       url="/planner"
       client={client}
     >
-      <PlannerContent client={client} onUpdate={() => undefined} {...data} />
+      <PlannerContent client={client} {...data} />
     </Page>
   );
 }

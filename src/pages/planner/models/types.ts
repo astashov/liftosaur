@@ -159,6 +159,8 @@ export interface IPlannerState extends IUndoRedoState<{ program: IPlannerProgram
   id: string;
   ui: IPlannerUi;
   fulltext?: IPlannerFullText;
+  initialEncodedProgram?: string;
+  encodedProgram?: string;
 }
 
 export interface IExportedPlannerProgram {

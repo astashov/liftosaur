@@ -4,7 +4,7 @@ import { IAccount } from "../../models/account";
 import { IExportedProgram } from "../../models/program";
 import { IStorage } from "../../types";
 import { HtmlUtils } from "../../utils/html";
-import { ProgramContentSyncer } from "./programContentSyncer";
+import { ProgramOrPlannerSyncer } from "./programOrPlannerSyncer";
 
 interface IProps {
   exportedProgram?: IExportedProgram;
@@ -33,7 +33,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
       client={client}
       url={data.exportedProgram?.program?.planner ? "/planner" : "/program"}
     >
-      <ProgramContentSyncer client={client} {...data} />
+      <ProgramOrPlannerSyncer client={client} {...data} />
     </Page>
   );
 }

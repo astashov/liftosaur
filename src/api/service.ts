@@ -3,6 +3,7 @@ import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "
 import { IEither } from "../utils/types";
 import { UrlUtils } from "../utils/url";
 import { IStorageUpdate } from "../utils/sync";
+import { IExportedProgram } from "../models/program";
 
 export interface IGetStorageResponse {
   email: string;
@@ -145,6 +146,16 @@ export class Service {
     return json;
   }
 
+  public async postProgram(program: IExportedProgram): Promise<void> {
+    const result = await this.client(`${__API_HOST__}/api/program`, {
+      method: "POST",
+      body: JSON.stringify({ program: program }),
+      credentials: "include",
+    });
+    const json = await result.json();
+    return json;
+  }
+
   public async postSync(args: { storageUpdate?: IStorageUpdate; tempUserId?: string }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
     if (args.tempUserId) {
@@ -200,6 +211,17 @@ export class Service {
     });
     const json = await response.json();
     return json;
+  }
+
+  public async postSaveProgram(program: IExportedProgram): Promise<boolean> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/program`);
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ program }),
+      credentials: "include",
+    });
+    const json = await response.json();
+    return json.data === "ok";
   }
 
   public async postFreeformGenerator(prompt: string): Promise<string> {

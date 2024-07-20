@@ -39,6 +39,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   const initialSettings = {
     ...defaultSettings,
     ...programContentSettings,
+    timers: { ...defaultSettings.timers, ...programContentSettings.timers },
     exercises: { ...defaultSettings.exercises, ...(props.exportedProgram?.customExercises || {}) },
   };
   const initialProgram = props.exportedProgram?.program || {

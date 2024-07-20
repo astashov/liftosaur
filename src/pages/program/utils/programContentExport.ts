@@ -9,7 +9,7 @@ export namespace ProgramContentExport {
       program: state.current.program,
       customExercises: state.settings.exercises,
       version: getLatestMigrationVersion(),
-      settings: ObjectUtils.pick(state.settings, ["timers", "units"]),
+      settings: ObjectUtils.pick(state.settings, ["timers", "units", "planner"]),
     };
   }
 }
