@@ -813,4 +813,20 @@ export const migrations = {
     }
     return storage;
   },
+  "20240720152051_fix_null_entries_set_weights": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        for (const set of entry.sets) {
+          if (set.weight.value == null) {
+            set.weight = Weight.build(0, storage.settings.units || "lb");
+          }
+        }
+      }
+    }
+    return storage;
+  },
 };
