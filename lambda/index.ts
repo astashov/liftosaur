@@ -574,9 +574,34 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     user.storage = {
       ...user.storage,
       settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
+      originalId: Date.now(),
     };
     await Promise.all([userDao.saveProgram(user.id, exportedProgram.program), userDao.store(user)]);
-    return ResponseUtils.json(200, event, { data: "ok" });
+    return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
+  }
+  return ResponseUtils.json(400, event, { error: "Not Authorized" });
+};
+
+const deleteProgramEndpoint = Endpoint.build("/api/program/:id");
+const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user != null) {
+    const userDao = new UserDao(di);
+    const program = await userDao.getProgram(user.id, params.id);
+    if (program == null) {
+      return ResponseUtils.json(404, event, { error: "Not Found" });
+    }
+    user.storage = {
+      ...user.storage,
+      deletedPrograms: user.storage.deletedPrograms.concat([program.clonedAt || Date.now()]),
+      originalId: Date.now(),
+    };
+    await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user)]);
+    return ResponseUtils.json(200, event, { data: { id: program.id } });
   }
   return ResponseUtils.json(400, event, { error: "Not Authorized" });
 };
@@ -1936,6 +1961,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(saveDebugEndpoint, saveDebugHandler)
       .get(pingEndpoint, pingHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
+      .delete(deleteProgramEndpoint, deleteProgramHandler)
       .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");

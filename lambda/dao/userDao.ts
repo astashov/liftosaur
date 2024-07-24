@@ -211,6 +211,14 @@ export class UserDao {
     });
   }
 
+  public async deleteProgram(userId: string, id: string): Promise<void> {
+    const env = Utils.getEnv();
+    await this.di.dynamo.remove({
+      tableName: userTableNames[env].programs,
+      key: { id, userId },
+    });
+  }
+
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils.getEnv();
     const item = { ...user, nickname: user.storage.settings.nickname?.toLowerCase() };

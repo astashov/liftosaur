@@ -146,9 +146,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
         const exportedProgram = buildExportedProgram(newState.id, newState.current.program, settings);
-        // const url = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href);
-        console.log("initial", newState.initialEncodedProgram);
-        console.log("exported", exportedProgram);
         dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportedProgram)));
         if (!props.shouldSync) {
           updateUrl(newState.id, newState.current.program, settings);

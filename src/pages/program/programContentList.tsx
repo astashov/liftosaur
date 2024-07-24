@@ -1,56 +1,72 @@
-import { h, JSX, Fragment } from "preact";
-import { IStorage } from "../../types";
+import { h, JSX } from "preact";
+import { IStorage, IProgram } from "../../types";
 import { IAccount } from "../../models/account";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 import { IconTrash } from "../../components/icons/iconTrash";
-import { IEnv, IState, buildState, updateState } from "../../models/state";
-import { Storage } from "../../models/storage";
-import { Thunk } from "../../ducks/thunks";
+import { IEnv, buildState, updateState, IState } from "../../models/state";
 import { useThunkReducer } from "../../utils/useThunkReducer";
 import { reducerWrapper } from "../../ducks/reducer";
-import { lb } from "lens-shmens";
 import { UidFactory } from "../../utils/generator";
-import { EditProgram } from "../../models/editProgram";
+import { Service } from "../../api/service";
 import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { StringUtils } from "../../utils/string";
 import { Button } from "../../components/button";
 import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
-import { IconSpinner } from "../../components/icons/iconSpinner";
 import { CollectionUtils } from "../../utils/collection";
 import { Exercise } from "../../models/exercise";
-import { Program } from "../../models/program";
+import { IExportedProgram, Program } from "../../models/program";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
+import { UrlUtils } from "../../utils/url";
+import { IconSpinner } from "../../components/icons/iconSpinner";
+import { lb } from "lens-shmens";
 
 export interface IProgramContentListProps {
+  service: Service;
   env: IEnv;
   storage: IStorage;
   account: IAccount;
   isMobile: boolean;
 }
 
+async function saveProgram(newProgram: IProgram, service: Service): Promise<void> {
+  const exportedProgram: IExportedProgram = {
+    program: newProgram,
+    customExercises: {},
+    settings: {},
+    version: getLatestMigrationVersion(),
+  };
+  const result = await service.postSaveProgram(exportedProgram);
+  if (result.success) {
+    window.location.href = UrlUtils.build(
+      `/user/p/${encodeURIComponent(result.data)}`,
+      window.location.href
+    ).toString();
+  } else {
+    alert("Error while saving the program, try again");
+  }
+}
+
+async function deleteProgram(id: string, service: Service): Promise<boolean> {
+  const result = await service.deleteProgram(id);
+  if (result.success) {
+    return true;
+  } else {
+    alert("Error while deleting the program, try again");
+    return false;
+  }
+}
+
 export function ProgramContentList(props: IProgramContentListProps): JSX.Element {
   const { storage } = props;
 
   const [showCreateProgramModal, setShowCreateProgramModal] = useState(false);
-  const [creatingPrograms, setCreatingPrograms] = useState<Set<string>>(new Set());
-
   const initialState = buildState({ storage, userId: props.account.id });
-  const [state, dispatch] = useThunkReducer(reducerWrapper(false), initialState, props.env, [
-    (aDispatch, action, oldState, newState) => {
-      if (Storage.isChanged(oldState.storage, newState.storage)) {
-        aDispatch(
-          Thunk.sync({ withHistory: false, withStats: false, withPrograms: true }, (newStorage) => {
-            const newCreatingPrograms = new Set(creatingPrograms);
-            for (const program of newStorage.programs) {
-              newCreatingPrograms.delete(program.name);
-            }
-            setCreatingPrograms(newCreatingPrograms);
-          })
-        );
-      }
-    },
-  ]);
+  const [state, dispatch] = useThunkReducer(reducerWrapper(false), initialState, props.env, []);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState<string | undefined>(undefined);
+  const [isDeleting, setIsDeleting] = useState<string | undefined>(undefined);
 
   return (
     <div className="mx-4">
@@ -79,49 +95,47 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
       <ul>
         {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
           program = Program.fullProgram(program, state.storage.settings);
-          const isCreating = creatingPrograms.has(program.name);
           return (
             <li className="mb-8">
               <div>
                 <a
-                  className={`text-lg font-bold ${isCreating ? "text-grayv2-main" : "text-bluev2 underline"}`}
+                  className={`text-lg font-bold text-bluev2 underline`}
                   target="_blank"
                   href={`/user/p/${encodeURIComponent(program.id)}`}
-                  onClick={(event) => {
-                    if (isCreating) {
-                      event.preventDefault();
-                    }
-                  }}
                 >
-                  {isCreating ? <IconSpinner width={18} height={18} /> : <></>} {program.name}
+                  {program.name}
                 </a>
                 <span className="ml-4">
                   <button
                     className="px-2 align-middle ls-programs-list-copy-program button"
-                    onClick={() => {
+                    disabled={isDuplicating === program.id}
+                    onClick={async () => {
+                      setIsDuplicating(program.id);
                       const newName = `${program.name} Copy`;
-                      updateState(dispatch, [
-                        lb<IState>()
-                          .p("storage")
-                          .p("programs")
-                          .recordModify((programs) => {
-                            const newPrograms = [...programs];
-                            newPrograms.push({
-                              ...program,
-                              name: newName,
-                              id: UidFactory.generateUid(8),
-                              clonedAt: Date.now(),
-                            });
-                            return newPrograms;
-                          }),
-                      ]);
+                      const newProgram: IProgram = {
+                        ...program,
+                        name: newName,
+                        id: UidFactory.generateUid(8),
+                        clonedAt: Date.now(),
+                        planner: program.planner ? { ...program.planner, name: newName } : undefined,
+                      };
+                      try {
+                        await saveProgram(newProgram, props.service);
+                      } finally {
+                        setIsDuplicating(undefined);
+                      }
                     }}
                   >
-                    <IconDuplicate2 />
+                    {isDuplicating === program.id ? (
+                      <IconSpinner color="black" width={16} height={16} />
+                    ) : (
+                      <IconDuplicate2 />
+                    )}
                   </button>
                   <button
                     className="px-2 align-middle ls-programs-list-delete-program button"
-                    onClick={() => {
+                    disabled={isDeleting === program.id}
+                    onClick={async () => {
                       if (state.storage.programs.length < 2) {
                         alert("You cannot delete all your programs, you should have at least one");
                       } else {
@@ -130,12 +144,23 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                             ? "Are you sure? This will delete your current program!"
                             : "Are you sure?";
                         if (confirm(confirmText)) {
-                          EditProgram.deleteProgram(dispatch, program, state.storage.programs);
+                          setIsDeleting(program.id);
+                          try {
+                            await deleteProgram(program.id, props.service);
+                            updateState(dispatch, [
+                              lb<IState>()
+                                .p("storage")
+                                .p("programs")
+                                .recordModify((programs) => CollectionUtils.removeBy(programs, "id", program.id)),
+                            ]);
+                          } finally {
+                            setIsDeleting(undefined);
+                          }
                         }
                       }
                     }}
                   >
-                    <IconTrash />
+                    {isDeleting === program.id ? <IconSpinner color="black" width={16} height={16} /> : <IconTrash />}
                   </button>
                 </span>
               </div>
@@ -165,8 +190,9 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
       {showCreateProgramModal && (
         <ModalCreateProgram
           isHidden={!showCreateProgramModal}
+          isLoading={isCreating}
           onClose={() => setShowCreateProgramModal(false)}
-          onSelect={(name, isV2) => {
+          onSelect={async (name, isV2) => {
             if (isV2) {
               const newProgram = {
                 ...Program.create(name),
@@ -175,17 +201,16 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                   weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
                 },
               };
-              updateState(dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((pgms) => [...pgms, newProgram]),
-              ]);
+              setIsCreating(true);
+              try {
+                await saveProgram(newProgram, props.service);
+              } finally {
+                setIsCreating(false);
+              }
             } else {
               dispatch({ type: "CreateProgramAction", name });
             }
             setShowCreateProgramModal(false);
-            setCreatingPrograms((prev) => new Set([...prev, name]));
           }}
         />
       )}

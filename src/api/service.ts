@@ -213,15 +213,43 @@ export class Service {
     return json;
   }
 
-  public async postSaveProgram(program: IExportedProgram): Promise<boolean> {
+  public async postSaveProgram(program: IExportedProgram): Promise<IEither<string, string>> {
     const url = UrlUtils.build(`${__API_HOST__}/api/program`);
-    const response = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ program }),
-      credentials: "include",
-    });
-    const json = await response.json();
-    return json.data === "ok";
+    try {
+      const response = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ program }),
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  public async deleteProgram(id: string): Promise<IEither<string, string>> {
+    const url = UrlUtils.build(`${__API_HOST__}/api/program/${id}`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   }
 
   public async postFreeformGenerator(prompt: string): Promise<string> {
