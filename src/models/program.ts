@@ -1157,7 +1157,7 @@ export namespace Program {
     return url.toString();
   }
 
-  function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
+  export function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
     const customExerciseIds = program.exercises.reduce<string[]>((memo, programExercise) => {
       const id = programExercise.exerciseType.id;
       const isBuiltIn = !!Exercise.findById(id, {});

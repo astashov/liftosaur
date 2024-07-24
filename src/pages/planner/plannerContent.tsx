@@ -58,17 +58,22 @@ export interface IPlannerContentProps {
   shouldSync?: boolean;
 }
 
-async function saveProgram(client: Window["fetch"], exportedPlannerProgram: IExportedPlannerProgram): Promise<void> {
+async function saveProgram(
+  client: Window["fetch"],
+  exportedPlannerProgram: IExportedPlannerProgram
+): Promise<string | undefined> {
   const exportedProgram = Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram);
   const service = new Service(client);
   const result = await service.postSaveProgram(exportedProgram);
-  if (!result) {
+  if (result.success) {
+    return result.data;
+  } else {
     alert("Failed to save the program");
+    return undefined;
   }
 }
 
 function isChanged(state: IPlannerState): boolean {
-  console.dir(["\n", state.encodedProgram, state.initialEncodedProgram].join("\n"));
   return (
     state.encodedProgram != null &&
     state.initialEncodedProgram != null &&
@@ -304,8 +309,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onAddProgram={async () => {
             const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
             setIsBannerLoading(true);
-            const { id } = await service.postSaveUserProgram(exportedProgram);
-            window.location.href = `${__HOST__}/user/p/${id}`;
+            const id = await saveProgram(props.client, exportedProgram);
+            if (id != null) {
+              window.location.href = `${__HOST__}/user/p/${id}`;
+            }
           }}
         />
       )}

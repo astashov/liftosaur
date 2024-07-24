@@ -6,7 +6,7 @@ import { BuilderLinkInlineInput } from "../builder/components/builderInlineInput
 import { IProgramEditorState, IProgramEditorUiSelected } from "./models/types";
 import { IconWatch } from "../../components/icons/iconWatch";
 import { TimeUtils } from "../../utils/time";
-import { Program } from "../../models/program";
+import { IExportedProgram, Program } from "../../models/program";
 import { IconHandle } from "../../components/icons/iconHandle";
 import { EditProgramLenses } from "../../models/editProgramLenses";
 import { LinkButton } from "../../components/linkButton";
@@ -41,16 +41,41 @@ import { ProgramContentExport } from "./utils/programContentExport";
 import { UrlUtils } from "../../utils/url";
 import { Encoder } from "../../utils/encoder";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
+import { Button } from "../../components/button";
+import { Service } from "../../api/service";
+import { IconSpinner } from "../../components/icons/iconSpinner";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
   dispatch: ILensDispatch<IProgramEditorState>;
   state: IProgramEditorState;
   selected: IProgramEditorUiSelected[];
-  isChangesWarningOn?: boolean;
   initialEncodedProgramUrl?: string;
   encodedProgramUrl?: string;
   onShowSettingsModal: () => void;
+  shouldSync: boolean;
+}
+
+export async function saveProgram(
+  client: Window["fetch"],
+  exportedProgram: IExportedProgram
+): Promise<string | undefined> {
+  const service = new Service(client);
+  const result = await service.postSaveProgram(exportedProgram);
+  if (result.success) {
+    return result.data;
+  } else {
+    alert("Failed to save the program");
+    return undefined;
+  }
+}
+
+function isProgramChanged(state: IProgramEditorState): boolean {
+  return (
+    state.encodedProgramUrl != null &&
+    state.initialEncodedProgramUrl != null &&
+    state.encodedProgramUrl !== state.initialEncodedProgramUrl
+  );
 }
 
 function selectExercise(
@@ -99,10 +124,11 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
     : undefined;
   const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
   const hasChanges =
-    props.isChangesWarningOn &&
+    !props.shouldSync &&
     props.encodedProgramUrl != null &&
     props.initialEncodedProgramUrl != null &&
     props.encodedProgramUrl !== props.initialEncodedProgramUrl;
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <section className="px-4 py-2">
       {hasChanges && !clearHasChanges && (
@@ -136,6 +162,31 @@ export function ProgramContentEditor(props: IProgramContentProps): JSX.Element {
               </button>
             </h1>
             <div className="flex">
+              {props.shouldSync && (
+                <div className="mr-2">
+                  <Button
+                    className="w-20"
+                    buttonSize="md"
+                    kind="orange"
+                    name="web-save-planner"
+                    disabled={isLoading || !isProgramChanged(state)}
+                    onClick={async () => {
+                      setIsLoading(true);
+                      try {
+                        const exportedProgram = Program.exportProgram(program, state.settings);
+                        await saveProgram(props.client, exportedProgram);
+                        dispatch(
+                          lb<IProgramEditorState>().p("initialEncodedProgramUrl").record(state.encodedProgramUrl)
+                        );
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Save"}
+                  </Button>
+                </div>
+              )}
               {(props.encodedProgramUrl || props.initialEncodedProgramUrl) && (
                 <BuilderCopyLink
                   type="p"
