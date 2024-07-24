@@ -757,9 +757,12 @@ export const migrations = {
       }
       for (const program of storage.programs) {
         for (const exercise of program.exercises) {
-          const id = duplicateIdsToIds[exercise.exerciseType.id];
-          if (id) {
-            exercise.exerciseType = { id };
+          const exerciseType = exercise.exerciseType;
+          if (exerciseType) {
+            const id = duplicateIdsToIds[exerciseType.id];
+            if (id) {
+              exercise.exerciseType = { id };
+            }
           }
         }
       }
