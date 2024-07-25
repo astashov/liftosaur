@@ -116,7 +116,7 @@ export namespace Weight {
       } while (attempt < 20 && Weight.eq(Weight.round(newWeight, settings, exerciseType), roundWeight));
       return newWeight;
     } else {
-      const rounding = exerciseType ? settings.exerciseData[Exercise.toKey(exerciseType)]?.rounding ?? 0.5 : 1;
+      const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(roundWeight.value + rounding, roundWeight.unit);
     }
   }
@@ -129,7 +129,7 @@ export namespace Weight {
       const newWeight = Weight.round(Weight.subtract(roundWeight, smallestPlate), settings, exerciseType);
       return Weight.build(Math.max(0, newWeight.value), newWeight.unit);
     } else {
-      const rounding = exerciseType ? settings.exerciseData[Exercise.toKey(exerciseType)]?.rounding ?? 0.5 : 1;
+      const rounding = exerciseType ? Exercise.defaultRounding(exerciseType, settings) : 1;
       return Weight.build(Math.max(0, roundWeight.value - rounding), roundWeight.unit);
     }
   }
@@ -197,7 +197,7 @@ export namespace Weight {
     const units = settings.units;
     const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
     if (exerciseData?.equipment == null) {
-      const rounding = exerciseData?.rounding ?? 0.5;
+      const rounding = Exercise.defaultRounding(exerciseType, settings);
       allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }
@@ -207,7 +207,7 @@ export namespace Weight {
     const equipmentType = equipment ? gym.equipment[equipment] : undefined;
 
     if (!equipmentType) {
-      const rounding = exerciseData?.rounding ?? 0.5;
+      const rounding = Exercise.defaultRounding(exerciseType, settings);
       allWeight = Weight.build(MathUtils.round(allWeight.value, rounding), allWeight.unit);
       return { plates: [], platesWeight: allWeight, totalWeight: allWeight };
     }

@@ -42,7 +42,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
                 .p("exerciseData")
                 .recordModify((data) => {
                   const k = Exercise.toKey(fullExercise);
-                  return { ...data, [k]: { ...data[k], rounding: value } };
+                  return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
                 }),
             ]);
           }
