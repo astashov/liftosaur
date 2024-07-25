@@ -9,13 +9,17 @@ export class AsyncQueue {
     if (this.queue.length > 0 && this.queue[this.queue.length - 1][0] === key) {
       return Promise.resolve();
     } else {
-      return new Promise<void>((resolve) => {
+      return new Promise<void>((resolve, reject) => {
         this.queue.push([
           key,
           deps,
           async (...d) => {
-            await operation(...d);
-            resolve();
+            try {
+              await operation(...d);
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
           },
         ]);
         this.processQueue();

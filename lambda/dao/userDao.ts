@@ -100,6 +100,11 @@ export class UserDao {
     if (limitedUserStorage.version !== storageUpdate.version) {
       return { success: false, error: "outdated_client_storage" };
     }
+    const { originalId: oldOriginalId, version, settings, ...restStorageUpdate } = storageUpdate;
+    if (Object.keys(restStorageUpdate).length === 0) {
+      return { success: true, data: oldOriginalId || Date.now() };
+    }
+
     const originalId = Date.now();
     const newStorage = {
       ...Storage.applyUpdate(limitedUserStorage, storageUpdate),

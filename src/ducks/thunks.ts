@@ -189,7 +189,7 @@ export namespace Thunk {
     args?: { force: boolean }
   ): Promise<void> {
     const state = getState();
-    function handleResponse(result: IPostSyncResponse): void {
+    function handleResponse(result: IPostSyncResponse): boolean {
       if (result.type === "clean") {
         updateState(dispatch, [
           lb<IState>().p("lastSyncedStorage").record(getState().storage),
@@ -200,6 +200,7 @@ export namespace Thunk {
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
+        return true;
       } else if (result.type === "dirty") {
         updateState(dispatch, [
           lb<IState>().p("lastSyncedStorage").record(result.storage),
@@ -208,14 +209,23 @@ export namespace Thunk {
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
+        return true;
       }
+      return false;
     }
     if (state.lastSyncedStorage == null) {
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
+        storageUpdate: {
+          settings: {},
+          originalId: state.storage.originalId,
+          version: state.storage.version,
+        },
       });
-      handleResponse(result);
-      await _sync2(dispatch, getState, env, args);
+      const handled = handleResponse(result);
+      if (handled) {
+        await _sync2(dispatch, getState, env, args);
+      }
     } else {
       const storageUpdate = Sync.getStorageUpdate(state.storage, state.lastSyncedStorage);
       console.log("Sening original id", storageUpdate.originalId);
@@ -230,16 +240,22 @@ export namespace Thunk {
     }
   }
 
-  export function sync2(args?: { force: boolean }): IThunk {
+  export function sync2(args?: { force: boolean; cb?: () => void }): IThunk {
     return async (dispatch, getState, env) => {
-      const state = getState();
-      // TODO: nosync
-      if (state.errors.corruptedstorage == null && state.adminKey == null && (state.user != null || args?.force)) {
-        await env.queue.enqueue(async (args2) => {
-          await load(dispatch, "Sync", async () => {
-            await _sync2(dispatch, getState, env, args2);
-          });
-        }, args);
+      try {
+        const state = getState();
+        // TODO: nosync
+        if (state.errors.corruptedstorage == null && state.adminKey == null && (state.user != null || args?.force)) {
+          await env.queue.enqueue(async (args2) => {
+            await load(dispatch, "Sync", async () => {
+              await _sync2(dispatch, getState, env, args2);
+            });
+          }, args);
+        }
+      } finally {
+        if (args?.cb) {
+          args.cb();
+        }
       }
     };
   }

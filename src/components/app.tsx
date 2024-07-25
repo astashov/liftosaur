@@ -44,6 +44,9 @@ import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import { Equipment } from "../models/equipment";
 import { ScreenGyms } from "./screenGyms";
+import PullToRefresh from "pulltorefreshjs";
+import { renderToString } from "preact-render-to-string";
+import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
   client: Window["fetch"];
@@ -81,6 +84,22 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useEffect(() => {
     dispatch(Thunk.sync2({ force: true }));
+    const ptr = PullToRefresh.init({
+      mainElement: "body",
+      iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
+      onRefresh: () => {
+        return new Promise((resolve) => {
+          dispatch(
+            Thunk.sync2({
+              force: true,
+              cb: () => {
+                resolve();
+              },
+            })
+          );
+        });
+      },
+    });
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
       let el: HTMLElement | undefined = e.target as HTMLElement;
@@ -152,6 +171,9 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     SendMessage.toIos({ type: "loaded" });
     SendMessage.toAndroid({ type: "loaded" });
+    return () => {
+      ptr.destroy();
+    };
   }, []);
 
   const currentProgram =

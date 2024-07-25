@@ -156,7 +156,7 @@ export class Service {
     return json;
   }
 
-  public async postSync(args: { storageUpdate?: IStorageUpdate; tempUserId?: string }): Promise<IPostSyncResponse> {
+  public async postSync(args: { storageUpdate: IStorageUpdate; tempUserId?: string }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);

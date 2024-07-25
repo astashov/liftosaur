@@ -1791,6 +1791,11 @@
   version "1.16.6"
   resolved "https://registry.yarnpkg.com/@types/prismjs/-/prismjs-1.16.6.tgz#377054f72f671b36dbe78c517ce2b279d83ecc40"
 
+"@types/pulltorefreshjs@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@types/pulltorefreshjs/-/pulltorefreshjs-0.1.7.tgz#1948638b0c7071282e47bd236d2ccb88bdf66753"
+  integrity sha512-Y0g/yfuycIvpvUmP97n5NE2+HDAOwfREGVERjhMWw2Y0ODh5wvbflcQ5gXPZ+ihgoq+BQZjA1DL8apw2wAsJXA==
+
 "@types/q@^1.5.1":
   version "1.5.4"
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.4.tgz#15925414e0ad2cd765bfef58842f7e26a7accb24"
@@ -8320,6 +8325,11 @@ pug@^2.0.4:
     pug-parser "^5.0.1"
     pug-runtime "^2.0.5"
     pug-strip-comments "^1.0.4"
+
+pulltorefreshjs@^0.1.22:
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/pulltorefreshjs/-/pulltorefreshjs-0.1.22.tgz#ddb5e3feee0b2a49fd46e1b18e84fffef2c47ac0"
+  integrity sha512-haxNVEHnS4NCQA7NeG7TSV69z4uqy/N7nfPRuc4dPWe8H6ygUrMjdNeohE+6v0lVVX/ukSjbLYwPUGUYtFKfvQ==
 
 pump@^2.0.0:
   version "2.0.1"

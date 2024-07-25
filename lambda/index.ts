@@ -1828,7 +1828,6 @@ export const statsLambdaHandler = (di: IDI): ((event: {}) => Promise<APIGatewayP
       body: stats,
       opts: { contentType: "text/csv" },
     });
-    console.log(stats);
 
     return {
       statusCode: 200,

@@ -4,11 +4,11 @@ import { ISettings, IStorage } from "../types";
 import { CollectionUtils } from "./collection";
 import { ObjectUtils } from "./object";
 
-export type IStorageUpdate = Partial<
-  Omit<IStorage, "stats" | "settings"> & {
-    settings: ISettingsUpdate;
-  }
->;
+export type IStorageUpdate = Partial<Omit<IStorage, "stats" | "settings" | "originalId" | "version">> & {
+  settings: ISettingsUpdate;
+  originalId: IStorage["originalId"];
+  version: IStorage["version"];
+};
 
 export type ISettingsUpdate = Partial<ISettings>;
 
@@ -63,7 +63,7 @@ export class Sync {
       ...diffVal(lastStorage, currentStorage, "affiliates"),
       ...diffVal(lastStorage, currentStorage, "subscription"),
       ...diffVal(lastStorage, currentStorage, "whatsNew"),
-      ...(settingsUpdate ? { settings: settingsUpdate } : {}),
+      settings: settingsUpdate || {},
       originalId: currentStorage.originalId,
       version: currentStorage.version,
     };
