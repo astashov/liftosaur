@@ -10,7 +10,7 @@ export interface IDynamoUtil {
     indexName?: string;
     scanIndexForward?: boolean;
     attrs?: Record<string, DynamoDB.DocumentClient.AttributeName>;
-    values?: Partial<Record<string, string | string[] | number>>;
+    values?: Partial<Record<string, string | string[] | number | number[]>>;
   }): Promise<T[]>;
   scan<T>(args: {
     tableName: string;

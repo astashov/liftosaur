@@ -30,6 +30,7 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
+    statsTimestamp: "lftStatsTimestampDev",
     programs: "lftUserProgramsDev",
   },
   prod: {
@@ -40,6 +41,7 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
+    statsTimestamp: "lftStatsTimestamp",
     programs: "lftUserPrograms",
   },
 } as const;
@@ -101,7 +103,7 @@ export class UserDao {
       return { success: false, error: "outdated_client_storage" };
     }
     const { originalId: oldOriginalId, version, settings, ...restStorageUpdate } = storageUpdate;
-    if (Object.keys(restStorageUpdate).length === 0) {
+    if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils.keys(settings).length === 0) {
       return { success: true, data: oldOriginalId || Date.now() };
     }
 
@@ -138,12 +140,46 @@ export class UserDao {
       items: (storageUpdate.programs || []).map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
+    const stats = storageUpdate.stats;
+    const statsDb = ObjectUtils.keys(stats || {})
+      .map((type) => {
+        return (stats?.[type] || []).map((stat) => {
+          const name = `${stat.timestamp}_${type}`;
+          const statDb: IStatDb = { ...stat, name };
+          return statDb;
+        });
+      })
+      .flat();
+    const statsDeletes =
+      (storageUpdate.deletedStats || []).length > 0
+        ? (async () => {
+            const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
+              tableName: userTableNames[env].stats,
+              indexName: userTableNames[env].statsTimestamp,
+              expression: "#userId = :userId",
+              attrs: { "#userId": "userId" },
+              values: { ":userId": limitedUser.id },
+            });
+            const statsIdToDelete = userStats.filter((s) => storageUpdate.deletedStats?.indexOf(s.timestamp) !== -1);
+            return this.di.dynamo.batchDelete({
+              tableName: userTableNames[env].stats,
+              keys: statsIdToDelete.map((s) => ({ name: s.name, userId: limitedUser.id })),
+            });
+          })()
+        : Promise.resolve();
+    const statsUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].stats,
+      items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
+    });
+
     await Promise.all([
       this.store({ ...limitedUser, storage: newStorage }),
       historyUpdates,
       historyDeletes,
       programUpdates,
       programDeletes,
+      statsDeletes,
+      statsUpdates,
     ]);
     return { data: originalId, success: true };
   }

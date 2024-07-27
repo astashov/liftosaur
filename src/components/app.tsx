@@ -71,14 +71,6 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
-  // const lastPingRef = useRef<number>(Date.now());
-
-  // useEffect(() => {
-  //   if (lastPingRef.current < Date.now() - 60 * 3 * 1000) {
-  //     lastPingRef.current = Date.now();
-  //     dispatch(Thunk.ping());
-  //   }
-  // });
 
   useLoopCatcher();
 
@@ -123,6 +115,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+      } else if (event.data?.type === "wake") {
+        dispatch(Thunk.sync2({ force: true }));
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "universalLink") {

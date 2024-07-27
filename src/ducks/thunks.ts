@@ -86,7 +86,7 @@ export namespace Thunk {
         const userId = state.user?.id || state.storage.tempUserId;
         const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
         await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
-        dispatch(sync({ withHistory: true, withPrograms: true, withStats: true }));
+        dispatch(sync2());
       }
     };
   }
@@ -189,10 +189,12 @@ export namespace Thunk {
     args?: { force: boolean }
   ): Promise<void> {
     const state = getState();
-    function handleResponse(result: IPostSyncResponse): boolean {
+    function handleResponse(result: IPostSyncResponse, lastSyncedStorage?: IStorage): boolean {
       if (result.type === "clean") {
         updateState(dispatch, [
-          lb<IState>().p("lastSyncedStorage").record(getState().storage),
+          lb<IState>()
+            .p("lastSyncedStorage")
+            .record(lastSyncedStorage || getState().lastSyncedStorage),
           lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("originalId").record(result.new_original_id),
         ]);
@@ -228,14 +230,15 @@ export namespace Thunk {
       }
     } else {
       const storageUpdate = Sync.getStorageUpdate(state.storage, state.lastSyncedStorage);
-      console.log("Sening original id", storageUpdate.originalId);
+      console.log("Get storage update", args?.force, storageUpdate);
       const { settings, originalId, version, ...rest } = storageUpdate;
+      const lastSyncedStorage = state.storage;
       if (args?.force || Object.keys(rest).length > 0 || Object.keys(settings || {}).length > 0) {
         const result = await env.service.postSync({
           storageUpdate: storageUpdate,
           tempUserId: state.storage.tempUserId,
         });
-        handleResponse(result);
+        handleResponse(result, lastSyncedStorage);
       }
     }
   }
@@ -246,11 +249,14 @@ export namespace Thunk {
         const state = getState();
         // TODO: nosync
         if (state.errors.corruptedstorage == null && state.adminKey == null && (state.user != null || args?.force)) {
-          await env.queue.enqueue(async (args2) => {
-            await load(dispatch, "Sync", async () => {
-              await _sync2(dispatch, getState, env, args2);
-            });
-          }, args);
+          await env.queue.enqueue(
+            async (args2) => {
+              await load(dispatch, "Sync", async () => {
+                await _sync2(dispatch, getState, env, args2);
+              });
+            },
+            { force: !!args?.force }
+          );
         }
       } finally {
         if (args?.cb) {
@@ -272,23 +278,6 @@ export namespace Thunk {
             await _sync(deps, dispatch, getState, env, [], cb);
           });
         }, args);
-      }
-    };
-  }
-
-  export function ping(): IThunk {
-    return async (dispatch, getState, env) => {
-      const state = getState();
-      if (state.user?.id != null && getState().storage.originalId != null) {
-        await env.queue.enqueue(async () => {
-          const originalId = getState().storage.originalId;
-          if (originalId != null) {
-            const result = await env.service.ping(originalId);
-            if (result) {
-              dispatch(Thunk.fetchStorage());
-            }
-          }
-        });
       }
     };
   }

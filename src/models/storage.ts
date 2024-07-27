@@ -168,7 +168,8 @@ export namespace Storage {
     }
   }
 
-  export function applyUpdate(storage: IPartialStorage, update: IStorageUpdate): IPartialStorage {
+  export function applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {
+    const { stats, ...update } = updateWithStats;
     const lastGyms = CollectionUtils.groupByKeyUniq(storage.settings.gyms || [], "id");
     const newGyms = CollectionUtils.groupByKeyUniq(update.settings?.gyms || [], "id");
     const gymsObj = { ...lastGyms, ...newGyms };

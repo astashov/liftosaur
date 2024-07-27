@@ -34,7 +34,6 @@ import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
-import { Sync } from "../utils/sync";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -324,9 +323,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       if (Storage.isChanged(oldState.storage, newState.storage)) {
-        if (newState.lastSyncedStorage) {
-          console.log(Sync.getStorageUpdate(newState.lastSyncedStorage, newState.storage));
-        }
         dispatch(Thunk.sync2());
       }
     },
@@ -425,6 +421,7 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     ];
   }
   const newState = reducer(state, action);
+  console.log("neck", newState.storage.settings.statsEnabled.length.neck);
   if (typeof window !== "undefined") {
     if (timerId != null) {
       window.clearTimeout(timerId);
