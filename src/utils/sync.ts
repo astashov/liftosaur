@@ -6,7 +6,7 @@ import { ObjectUtils } from "./object";
 
 export type IStorageUpdate = Partial<Omit<IStorage, "stats" | "settings" | "originalId" | "version">> & {
   settings: ISettingsUpdate;
-  originalId: IStorage["originalId"];
+  originalId?: IStorage["originalId"];
   version: IStorage["version"];
   stats?: IStatsUpdate;
 };

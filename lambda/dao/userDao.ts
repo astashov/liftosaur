@@ -163,7 +163,7 @@ export class UserDao {
             const statsIdToDelete = userStats.filter((s) => storageUpdate.deletedStats?.indexOf(s.timestamp) !== -1);
             return this.di.dynamo.batchDelete({
               tableName: userTableNames[env].stats,
-              keys: statsIdToDelete.map((s) => ({ name: s.name, userId: limitedUser.id })),
+              keys: statsIdToDelete.map((s) => ({ userId: limitedUser.id, name: s.name })),
             });
           })()
         : Promise.resolve();
@@ -336,8 +336,8 @@ export class UserDao {
     });
     return convertStatsFromDb(
       statsDb.map((s) => {
-        delete s.userId;
-        return s;
+        const { userId: uid, ...rest } = s;
+        return rest;
       })
     );
   }

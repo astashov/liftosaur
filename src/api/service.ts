@@ -161,7 +161,6 @@ export class Service {
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
-    console.log("sync", args);
     const result = await this.client(`${__API_HOST__}/api/sync`, {
       method: "POST",
       body: JSON.stringify({ storageUpdate: args.storageUpdate }),

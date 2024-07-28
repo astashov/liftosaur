@@ -100,9 +100,12 @@ export class MockDynamoUtil implements IDynamoUtil {
   }): Promise<void> {
     // console.log("update", args);
   }
+
   public async remove(args: { tableName: string; key: DynamoDB.DocumentClient.Key }): Promise<void> {
-    // console.log("remove", args);
+    const key = JSON.stringify(args.key);
+    delete this.data[args.tableName]?.[key];
   }
+
   public async batchGet<T>(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<T[]> {
     return CollectionUtils.compact(
       await Promise.all(
@@ -111,7 +114,9 @@ export class MockDynamoUtil implements IDynamoUtil {
     );
   }
   public async batchDelete(args: { tableName: string; keys: DynamoDB.DocumentClient.Key[] }): Promise<void> {
-    // console.log("batchDelete", args);
+    for (const key of args.keys) {
+      await this.remove({ tableName: args.tableName, key });
+    }
   }
   public async batchPut(args: {
     tableName: string;

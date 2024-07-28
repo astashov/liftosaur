@@ -21,15 +21,8 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
   public static build(state: IState, env: IEnv): MockReducer<IState, IAction, IEnv> {
     return new MockReducer(reducerWrapper(true), state, env, [
       async (dispatch, action, oldState, newState) => {
-        const desc = "desc" in action && action.desc;
-        if (desc !== "Merge Storage" && Storage.isChanged(oldState.storage, newState.storage)) {
-          await dispatch(
-            Thunk.sync({
-              withHistory: oldState.storage.history !== newState.storage.history,
-              withStats: oldState.storage.stats !== newState.storage.stats,
-              withPrograms: oldState.storage.programs !== newState.storage.programs,
-            })
-          );
+        if (Storage.isChanged(oldState.storage, newState.storage)) {
+          await dispatch(Thunk.sync2());
         }
       },
     ]);
@@ -39,15 +32,23 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
     return this.state;
   };
 
-  private readonly dispatch = async (action: IGThunk<TState, TAction, TEnv> | TAction): Promise<void> => {
+  private readonly dispatch = (action: IGThunk<TState, TAction, TEnv> | TAction): Promise<void> | void => {
     if (typeof action === "function") {
-      await action(
-        (a) => {
-          this.runningActions.push(a);
-        },
-        this.getState,
-        this.env
-      );
+      return new Promise(async (resolve, reject) => {
+        try {
+          await action(
+            (a) => {
+              this.runningActions.push(a);
+              this.dispatch(a);
+            },
+            this.getState,
+            this.env
+          );
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
     } else {
       this.state = this.reducer(this.state, action);
     }

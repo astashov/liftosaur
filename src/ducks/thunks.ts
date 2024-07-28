@@ -6,7 +6,7 @@ import { lb } from "lens-shmens";
 import { Program } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { IEnv, IState, updateState } from "../models/state";
-import { IProgram, IStorage, IPartialStorage, IExerciseType, ISettings } from "../types";
+import { IProgram, IStorage, IExerciseType, ISettings } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ImportExporter } from "../lib/importexporter";
 import { Storage } from "../models/storage";
@@ -33,6 +33,10 @@ import { Sync } from "../utils/sync";
 import { ObjectUtils } from "../utils/object";
 
 declare let Rollbar: RB;
+
+export class NoRetryError extends Error {
+  public noretry = true;
+}
 
 export namespace Thunk {
   export function googleSignIn(): IThunk {
@@ -130,58 +134,6 @@ export namespace Thunk {
     };
   }
 
-  async function _sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
-    dispatch: IDispatch,
-    getState: () => IState,
-    env: IEnv,
-    additionalRequests: ("programs" | "history" | "stats")[] = [],
-    cb?: (storage: IStorage, type: "success" | "merged") => void
-  ): Promise<void> {
-    const state = getState();
-    const storage: IPartialStorage = { ...state.storage };
-    if (!state.freshMigrations) {
-      if (!args.withHistory && additionalRequests.indexOf("history") === -1) {
-        storage.history = undefined;
-      }
-      if (!args.withStats && additionalRequests.indexOf("stats") === -1) {
-        storage.stats = undefined;
-      }
-      if (!args.withPrograms && additionalRequests.indexOf("programs") === -1) {
-        storage.programs = undefined;
-      }
-    }
-    const result = await env.service.postStorage(storage, args.fields);
-    if (result.status === "success") {
-      updateState(
-        dispatch,
-        [
-          lb<IState>().p("storage").p("originalId").record(result.newOriginalId),
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .recordModify((ps) =>
-              ps.map((p) => ({ ...p, exercises: p.exercises.map((e) => ({ ...e, diffPaths: [] })) }))
-            ),
-        ],
-        "Set original id and clean diffpaths"
-      );
-      if (state.freshMigrations) {
-        updateState(dispatch, [lb<IState>().p("freshMigrations").record(false)], "Clean fresh migrations flag");
-      }
-      if (cb != null) {
-        cb(getState().storage, "success");
-      }
-    } else if (result.status === "request") {
-      await _sync(args, dispatch, getState, env, result.data, cb);
-    } else if (result.status === "merged") {
-      updateState(dispatch, [lb<IState>().p("storage").record(result.storage)], "Merge Storage");
-      if (cb != null) {
-        cb(getState().storage, "merged");
-      }
-    }
-  }
-
   async function _sync2(
     dispatch: IDispatch,
     getState: () => IState,
@@ -198,7 +150,6 @@ export namespace Thunk {
           lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("originalId").record(result.new_original_id),
         ]);
-        console.log("Setting original id", result.new_original_id);
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
@@ -212,6 +163,8 @@ export namespace Thunk {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
         return true;
+      } else if (result.type === "error") {
+        throw new NoRetryError(result.error);
       }
       return false;
     }
@@ -220,7 +173,6 @@ export namespace Thunk {
         tempUserId: state.storage.tempUserId,
         storageUpdate: {
           settings: {},
-          originalId: state.storage.originalId,
           version: state.storage.version,
         },
       });
@@ -230,7 +182,6 @@ export namespace Thunk {
       }
     } else {
       const storageUpdate = Sync.getStorageUpdate(state.storage, state.lastSyncedStorage);
-      console.log("Get storage update", args?.force, storageUpdate);
       const { settings, originalId, version, ...rest } = storageUpdate;
       const lastSyncedStorage = state.storage;
       if (args?.force || Object.keys(rest).length > 0 || Object.keys(settings || {}).length > 0) {
@@ -266,22 +217,6 @@ export namespace Thunk {
     };
   }
 
-  export function sync(
-    args: { withHistory: boolean; withStats: boolean; withPrograms: boolean; fields?: string[] },
-    cb?: (storage: IStorage, status: "merged" | "success") => void
-  ): IThunk {
-    return async (dispatch, getState, env) => {
-      const state = getState();
-      if (!state.nosync && state.errors.corruptedstorage == null && state.adminKey == null && state.user != null) {
-        await env.queue.enqueue(async (deps) => {
-          await load(dispatch, "Sync", async () => {
-            await _sync(deps, dispatch, getState, env, [], cb);
-          });
-        }, args);
-      }
-    };
-  }
-
   export function cloneAndSelectProgram(id: string): IThunk {
     return async (dispatch, getState, env) => {
       const program = CollectionUtils.findBy(getState().programs, "id", id);
@@ -293,20 +228,6 @@ export namespace Thunk {
           Program.selectProgram(dispatch, clonedProgram.id);
           dispatch({ type: "StartProgramDayAction" });
         }
-      }
-    };
-  }
-
-  export function fetchStorage(): IThunk {
-    return async (dispatch, getState, env) => {
-      if (getState().errors.corruptedstorage == null) {
-        const result = await load(dispatch, "Loading from cloud", () => {
-          const state = getState();
-          const url = typeof window !== "undefined" ? UrlUtils.build(window.location.href) : undefined;
-          const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
-          return env.service.getStorage(state.storage.tempUserId, userId || undefined, state.adminKey);
-        });
-        await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
       }
     };
   }
@@ -834,7 +755,7 @@ function _load<T>(
       resolve(r);
     })
     .catch((e) => {
-      if (attempt >= 3) {
+      if (attempt >= 3 || (e instanceof NoRetryError && e.noretry)) {
         updateState(
           dispatch,
           [

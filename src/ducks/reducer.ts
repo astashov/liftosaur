@@ -421,7 +421,6 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     ];
   }
   const newState = reducer(state, action);
-  console.log("neck", newState.storage.settings.statsEnabled.length.neck);
   if (typeof window !== "undefined") {
     if (timerId != null) {
       window.clearTimeout(timerId);
