@@ -119,6 +119,7 @@ export namespace Thunk {
       if (getState().user?.id) {
         await env.service.signout();
         dispatch({ type: "Logout" });
+        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)]);
       }
       if (cb) {
         cb();
@@ -149,6 +150,7 @@ export namespace Thunk {
             .record(lastSyncedStorage || getState().lastSyncedStorage),
           lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("originalId").record(result.new_original_id),
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
         ]);
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -158,11 +160,18 @@ export namespace Thunk {
         updateState(dispatch, [
           lb<IState>().p("lastSyncedStorage").record(result.storage),
           lb<IState>().p("storage").record(result.storage),
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
         ]);
         if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
         return true;
+      } else if (result.type === "error" && result.error === "not_authorized") {
+        updateState(dispatch, [
+          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+          lb<IState>().p("lastSyncedStorage").record(undefined),
+        ]);
+        return false;
       } else if (result.type === "error") {
         throw new NoRetryError(result.error);
       }
@@ -186,8 +195,8 @@ export namespace Thunk {
       const lastSyncedStorage = state.storage;
       if (args?.force || Object.keys(rest).length > 0 || Object.keys(settings || {}).length > 0) {
         const result = await env.service.postSync({
-          storageUpdate: storageUpdate,
           tempUserId: state.storage.tempUserId,
+          storageUpdate: storageUpdate,
         });
         handleResponse(result, lastSyncedStorage);
       }
@@ -198,8 +207,12 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       try {
         const state = getState();
-        // TODO: nosync
-        if (state.errors.corruptedstorage == null && state.adminKey == null && (state.user != null || args?.force)) {
+        if (
+          state.errors.corruptedstorage == null &&
+          state.adminKey == null &&
+          !state.nosync &&
+          (state.user != null || args?.force)
+        ) {
           await env.queue.enqueue(
             async (args2) => {
               await load(dispatch, "Sync", async () => {
@@ -237,6 +250,20 @@ export namespace Thunk {
       if (getState().adminKey == null) {
         const settings = getState().storage.settings;
         env.audio.play(settings.volume, !!settings.vibration);
+      }
+    };
+  }
+
+  export function fetchStorage(): IThunk {
+    return async (dispatch, getState, env) => {
+      if (getState().errors.corruptedstorage == null) {
+        const result = await load(dispatch, "Loading from cloud", () => {
+          const state = getState();
+          const url = typeof window !== "undefined" ? UrlUtils.build(window.location.href) : undefined;
+          const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
+          return env.service.getStorage(state.storage.tempUserId, userId || undefined, state.adminKey);
+        });
+        await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
       }
     };
   }
@@ -779,7 +806,7 @@ async function handleLogin(
   client: Window["fetch"],
   oldUserId?: string
 ): Promise<void> {
-  if (result.email != null && result.storage != null) {
+  if (result.email != null) {
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     let storage: IStorage;
     const storageResult = await Storage.get(client, result.storage, true);

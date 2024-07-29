@@ -7,7 +7,7 @@ import { IExportedProgram } from "../models/program";
 
 export interface IGetStorageResponse {
   email: string;
-  storage?: IStorage;
+  storage: IStorage;
   user_id: string;
   key?: string;
 }
@@ -30,6 +30,7 @@ export type IPostSyncResponse =
   | {
       type: "error";
       error: string;
+      key?: string;
     };
 
 export type IPostStorageResponse =
@@ -156,12 +157,15 @@ export class Service {
     return json;
   }
 
-  public async postSync(args: { storageUpdate: IStorageUpdate; tempUserId?: string }): Promise<IPostSyncResponse> {
+  public async postSync(args: {
+    storageUpdate: IStorageUpdate;
+    tempUserId: string | undefined;
+  }): Promise<IPostSyncResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/sync`);
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
-    const result = await this.client(`${__API_HOST__}/api/sync`, {
+    const result = await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ storageUpdate: args.storageUpdate }),
       credentials: "include",

@@ -228,7 +228,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
             key,
           });
         } else {
-          return response(400, { type: "error", error: result.error });
+          return response(400, { type: "error", error: result.error, key });
         }
       } else {
         di.log.log("Fetch: Merging update");
@@ -242,12 +242,12 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {
-          return response(400, { type: "error", error: result.error });
+          return response(400, { type: "error", error: result.error, key });
         }
       }
     }
   }
-  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized" });
+  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
 };
 
 const getStorageEndpoint = Endpoint.build("/api/storage", { tempuserid: "string?", key: "string?", userid: "string?" });
@@ -439,7 +439,6 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const userDao = new UserDao(di);
         let user = await userDao.getByAppleId(result.sub);
         let userId = user?.id;
-        const initialUserId = userId;
 
         if (userId == null) {
           userId = (id as string) || UidFactory.generateUid(12);
@@ -451,7 +450,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const resp = {
           email: email,
           user_id: userId,
-          storage: initialUserId == null ? undefined : user!.storage,
+          storage: user!.storage,
         };
 
         return {
@@ -513,7 +512,6 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const userDao = new UserDao(di);
   let user = await userDao.getByGoogleId(openIdJson.sub);
   let userId = user?.id;
-  const initialUserId = userId;
 
   if (userId == null) {
     userId = (id as string) || UidFactory.generateUid(12);
@@ -525,7 +523,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const resp = {
     email: openIdJson.email,
     user_id: userId,
-    storage: initialUserId == null ? undefined : user!.storage,
+    storage: user!.storage,
   };
 
   return {

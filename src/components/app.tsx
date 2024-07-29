@@ -75,7 +75,14 @@ export function AppView(props: IProps): JSX.Element | null {
   useLoopCatcher();
 
   useEffect(() => {
-    dispatch(Thunk.sync2({ force: true }));
+    const url =
+      typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
+    const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
+    if (state.adminKey != null && urlUserId != null) {
+      dispatch(Thunk.fetchStorage());
+    } else {
+      dispatch(Thunk.sync2({ force: true }));
+    }
     const ptr = PullToRefresh.init({
       mainElement: "body",
       iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
@@ -148,8 +155,7 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
     if (typeof window !== "undefined") {
-      const url = UrlUtils.build(window.location.href, "https://liftosaur.com");
-      const source = url.searchParams.get("s");
+      const source = url?.searchParams.get("s");
       if (source) {
         updateState(dispatch, [
           lb<IState>()
