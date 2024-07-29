@@ -235,10 +235,10 @@ export class UserDao {
         currentProgramId: undefined,
         version: getLatestMigrationVersion(),
         helps: [],
-        tempUserId: "",
+        tempUserId: id,
         settings: Settings.build(),
         subscription: { apple: {}, google: {} },
-        email: undefined,
+        email,
         whatsNew: undefined,
       },
     };
