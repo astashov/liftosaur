@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ProgramDayView } from "./programDay";
 import { ChooseProgramView } from "./chooseProgram";
@@ -65,6 +65,10 @@ export function AppView(props: IProps): JSX.Element | null {
     env,
     defaultOnActions(env)
   );
+  const stateRef = useRef<IState>(state);
+  useEffect(() => {
+    stateRef.current = state;
+  });
   const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
@@ -86,6 +90,9 @@ export function AppView(props: IProps): JSX.Element | null {
     const ptr = PullToRefresh.init({
       mainElement: "body",
       iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
+      shouldPullToRefresh: () => {
+        return !window.scrollY && Screen.enablePtr(stateRef.current.screenStack);
+      },
       onRefresh: () => {
         return new Promise((resolve) => {
           dispatch(
