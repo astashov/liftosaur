@@ -147,16 +147,6 @@ export class Service {
     return json;
   }
 
-  public async postProgram(program: IExportedProgram): Promise<void> {
-    const result = await this.client(`${__API_HOST__}/api/program`, {
-      method: "POST",
-      body: JSON.stringify({ program: program }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json;
-  }
-
   public async postSync(args: {
     storageUpdate: IStorageUpdate;
     tempUserId: string | undefined;

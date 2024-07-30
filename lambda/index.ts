@@ -356,8 +356,8 @@ const saveStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof s
         if (fullUser != null) {
           const aStorage = await runMigrations(di.fetch, fullUser.storage);
           const bStorage = await runMigrations(di.fetch, storage);
-          const oldStorage = aStorage;
-          const newStorage = bStorage;
+          const oldStorage = (aStorage.id || 0) < (bStorage.id || 0) ? aStorage : bStorage;
+          const newStorage = (aStorage.id || 0) < (bStorage.id || 0) ? bStorage : aStorage;
           const mergedStorage = Storage.mergeStorage(oldStorage, newStorage, false, fields);
 
           const exceptionDao = new ExceptionDao(di);

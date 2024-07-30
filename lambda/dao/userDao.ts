@@ -30,7 +30,6 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
-    statsTimestamp: "lftStatsTimestampDev",
     programs: "lftUserProgramsDev",
   },
   prod: {
@@ -41,7 +40,6 @@ export const userTableNames = {
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
-    statsTimestamp: "lftStatsTimestamp",
     programs: "lftUserPrograms",
   },
 } as const;
@@ -155,7 +153,6 @@ export class UserDao {
         ? (async () => {
             const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
               tableName: userTableNames[env].stats,
-              indexName: userTableNames[env].statsTimestamp,
               expression: "#userId = :userId",
               attrs: { "#userId": "userId" },
               values: { ":userId": limitedUser.id },

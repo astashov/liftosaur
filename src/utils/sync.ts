@@ -135,7 +135,6 @@ export class Sync {
       ...diffVal(lastSettings, currentSettings, "graphOptions"),
       ...diffVal(lastSettings, currentSettings, "graphsSettings"),
       ...diffVal(lastSettings, currentSettings, "exerciseStatsSettings"),
-      ...diffArr(lastSettings, currentSettings, "deletedExercises"),
       ...diffObj(lastSettings, currentSettings, "exercises"),
       ...diffVal(lastSettings, currentSettings, "statsEnabled"),
       ...diffVal(lastSettings, currentSettings, "units"),
