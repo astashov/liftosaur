@@ -631,6 +631,7 @@ This is the list of available variables you can get values from in your `progres
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
+- `timers[n]` - if the exercise sets have explicit timer set up - value of that timer
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
@@ -646,7 +647,7 @@ The weights/reps/RPE and timers:
 - `weights`
 - `reps`
 - `RPE`
-- `timer`
+- `timers`
 
 For those, you can specify what set, set variation, day or week you want to change it in. To target specific set, you use the following syntax:
 
@@ -812,7 +813,7 @@ But assigning new values is only allowed to the following:
 - `weights`
 - `reps`
 - `RPE`
-- `timer`
+- `timers`
 - `numberOfSets`
 
 So, to change the 2nd set, you do `weights[2] = 60lb`, and to change all sets, you do `weights = 50lb`.
@@ -1072,7 +1073,7 @@ You assign new values to them.
 - `weights[day:week:setvariation:set]` - weight of a set
 - `reps[day:week:setvariation:set]` - number of reps for a set.
 - `RPE[day:week:setvariation:set]` - RPE that's required for a set.
-- `timer[day:week:setvariation:set]` - timer that's assigned for a set.
+- `timers[day:week:setvariation:set]` - timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
 - `setVariationIndex` - index of the current set variation
 - `descriptionIndex` - index of the current description
@@ -1082,7 +1083,7 @@ You assign new values to them.
 - `weights[set]` - weight of a set
 - `reps[set]` - number of reps for a set.
 - `RPE[set]` - RPE that's required for a set.
-- `timer[set]` - timer that's assigned for a set.
+- `timers[set]` - timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
 - `numberOfSets` - number of sets for the exercise in this workout
 

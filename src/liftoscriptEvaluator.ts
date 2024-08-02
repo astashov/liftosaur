@@ -124,7 +124,7 @@ export type ILiftoscriptEvaluatorUpdate =
   | { type: "reps"; value: ILiftoscriptVariableValue<number> }
   | { type: "minReps"; value: ILiftoscriptVariableValue<number> }
   | { type: "weights"; value: ILiftoscriptVariableValue<number | IPercentage | IWeight> }
-  | { type: "timer"; value: ILiftoscriptVariableValue<number> }
+  | { type: "timers"; value: ILiftoscriptVariableValue<number> }
   | { type: "RPE"; value: ILiftoscriptVariableValue<number> };
 
 export class LiftoscriptEvaluator {
@@ -260,7 +260,7 @@ export class LiftoscriptEvaluator {
               }
             }
             if (this.mode === "update") {
-              if (["reps", "weights", "RPE", "minReps", "numberOfSets"].indexOf(name) === -1) {
+              if (["reps", "weights", "RPE", "minReps", "numberOfSets", "timers"].indexOf(name) === -1) {
                 this.error(`Cannot assign to '${name}'`, variableNode);
               }
               const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
@@ -294,6 +294,7 @@ export class LiftoscriptEvaluator {
             "reps",
             "minReps",
             "completedReps",
+            "timers",
             "w",
             "r",
             "cr",
@@ -306,7 +307,7 @@ export class LiftoscriptEvaluator {
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
           }
-        } else if (name !== "timer" && !(name in this.bindings)) {
+        } else if (!(name in this.bindings)) {
           this.error(`${name} is not a valid variable`, nameNode);
         }
       }
@@ -361,7 +362,7 @@ export class LiftoscriptEvaluator {
   }
 
   private changeBinding(
-    key: "reps" | "weights" | "RPE" | "minReps",
+    key: "reps" | "weights" | "RPE" | "minReps" | "timers",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -400,7 +401,7 @@ export class LiftoscriptEvaluator {
   }
 
   private recordVariableUpdate(
-    key: "reps" | "weights" | "timer" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex",
+    key: "reps" | "weights" | "timers" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -632,7 +633,7 @@ export class LiftoscriptEvaluator {
             variable === "weights" ||
             variable === "RPE" ||
             variable === "minReps" ||
-            variable === "timer" ||
+            variable === "timers" ||
             variable === "setVariationIndex" ||
             variable === "descriptionIndex")
         ) {
@@ -641,7 +642,11 @@ export class LiftoscriptEvaluator {
           return this.changeNumberOfSets(expression, "=");
         } else if (
           this.mode === "update" &&
-          (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")
+          (variable === "reps" ||
+            variable === "weights" ||
+            variable === "RPE" ||
+            variable === "minReps" ||
+            variable === "timers")
         ) {
           return this.changeBinding(variable, expression, indexExprs, "=");
         } else {
@@ -747,7 +752,7 @@ export class LiftoscriptEvaluator {
             variable === "weights" ||
             variable === "RPE" ||
             variable === "minReps" ||
-            variable === "timer" ||
+            variable === "timers" ||
             variable === "setVariationIndex" ||
             variable === "descriptionIndex")
         ) {
@@ -764,7 +769,11 @@ export class LiftoscriptEvaluator {
           return this.changeNumberOfSets(expression, op);
         } else if (
           this.mode === "update" &&
-          (variable === "reps" || variable === "weights" || variable === "RPE" || variable === "minReps")
+          (variable === "reps" ||
+            variable === "weights" ||
+            variable === "RPE" ||
+            variable === "minReps" ||
+            variable === "timers")
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {

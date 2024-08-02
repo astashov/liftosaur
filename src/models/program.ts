@@ -288,12 +288,37 @@ export namespace Program {
               !shouldFallback
             )
           : undefined;
+      const timerExpr = set.timerExpr?.trim();
+      const timer = timerExpr
+        ? ScriptRunner.safe(
+            () =>
+              new ScriptRunner(
+                `${timerExpr}`.trim(),
+                state,
+                {},
+                Progress.createEmptyScriptBindings(dayData, settings, exercise),
+                Progress.createScriptFunctions(settings),
+                settings.units,
+                {
+                  exerciseType: exercise,
+                  unit: settings.units,
+                },
+                "regular"
+              ).execute("timer"),
+            (e) => {
+              return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
+            },
+            undefined,
+            false
+          )
+        : undefined;
       return {
         isAmrap: set.isAmrap,
         label: set.label,
         reps: repsValue,
         minReps: minRepsValue,
         rpe: rpeValue,
+        timer: timer,
         logRpe: set.logRpe,
         askWeight: set.askWeight,
         weight: weightValue,

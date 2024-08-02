@@ -569,7 +569,7 @@ export namespace ProgramExercise {
                     operation(programExercise, sets[setIndex], dayData, settings, "repsExpr", value.value, value.op);
                   } else if (key === "minReps") {
                     operation(programExercise, sets[setIndex], dayData, settings, "minRepsExpr", value.value, value.op);
-                  } else if (key === "timer") {
+                  } else if (key === "timers") {
                     operation(programExercise, sets[setIndex], dayData, settings, "timerExpr", value.value, value.op);
                   } else if (key === "weights") {
                     operation(programExercise, sets[setIndex], dayData, settings, "weightExpr", value.value, value.op);
