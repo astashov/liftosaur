@@ -12,6 +12,8 @@ export interface IProgramOrPlannerSyncerProps {
   account?: IAccount;
   exportedProgram?: IExportedProgram;
   shouldSyncProgram: boolean;
+  revisions: string[];
+  currentRevision?: string;
 }
 
 export function ProgramOrPlannerSyncer(props: IProgramOrPlannerSyncerProps): JSX.Element {

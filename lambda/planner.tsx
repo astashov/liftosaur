@@ -13,6 +13,12 @@ export function renderPlannerHtml(
   partialStorage?: IPartialStorage
 ): string {
   return renderPage(
-    <PlannerHtml client={client} initialProgram={initialProgram} account={account} partialStorage={partialStorage} />
+    <PlannerHtml
+      client={client}
+      initialProgram={initialProgram}
+      account={account}
+      partialStorage={partialStorage}
+      revisions={[]}
+    />
   );
 }

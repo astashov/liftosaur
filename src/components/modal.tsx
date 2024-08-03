@@ -12,6 +12,7 @@ interface IProps {
   noPaddings?: boolean;
   shouldShowClose?: boolean;
   overflowHidden?: boolean;
+  innerClassName?: string;
   maxWidth?: string;
   style?: Record<string, string | undefined>;
   onClose?: () => void;
@@ -71,7 +72,11 @@ export function Modal(props: IProps): JSX.Element {
           ...props.style,
         }}
       >
-        <div className={`relative h-full px-6 ${props.overflowHidden ? "overflow-hidden" : "overflow-auto"}`}>
+        <div
+          className={`relative h-full ${props.noPaddings ? "" : "px-6"} ${
+            props.overflowHidden ? "overflow-hidden" : "overflow-auto"
+          } ${props.innerClassName}`}
+        >
           {props.children}
         </div>
         {props.shouldShowClose && (

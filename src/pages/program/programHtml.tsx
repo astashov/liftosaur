@@ -11,6 +11,8 @@ interface IProps {
   account?: IAccount;
   isMobile: boolean;
   shouldSyncProgram: boolean;
+  revisions: string[];
+  currentRevision?: string;
   storage?: IStorage;
   client: Window["fetch"];
 }

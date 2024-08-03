@@ -10,6 +10,7 @@ interface IProps {
   account?: IAccount;
   partialStorage?: IPartialStorage;
   client: Window["fetch"];
+  revisions: string[];
 }
 
 export function PlannerHtml(props: IProps): JSX.Element {

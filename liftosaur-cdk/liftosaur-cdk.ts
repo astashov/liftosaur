@@ -206,6 +206,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
       bucketName: `${LftS3Buckets.stats}${suffix.toLowerCase()}`,
     });
 
+    const programsBucket = new s3.Bucket(this, `LftS3Programs${suffix}`, {
+      bucketName: `${LftS3Buckets.programs}${suffix.toLowerCase()}`,
+    });
+
     const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
     const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
     const lambdaFunction = new lambda.Function(this, `LftLambda${suffix}`, {
@@ -279,14 +283,15 @@ export class LiftosaurCdkStack extends cdk.Stack {
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
     exceptionsbucket.grantReadWrite(lambdaFunction);
+    programsBucket.grantReadWrite(lambdaFunction);
+    statsBucket.grantReadWrite(lambdaFunction);
+    statsBucket.grantReadWrite(statsLambdaFunction);
     freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
     allSecrets.grantRead(freeformLambdaFunction);
     allSecrets.grantRead(statsLambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     usersTable.grantReadWriteData(statsLambdaFunction);
-    statsBucket.grantReadWrite(lambdaFunction);
-    statsBucket.grantReadWrite(statsLambdaFunction);
     googleAuthKeysTable.grantReadWriteData(lambdaFunction);
     appleAuthKeysTable.grantReadWriteData(lambdaFunction);
     historyRecordsTable.grantReadWriteData(lambdaFunction);
@@ -315,4 +320,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

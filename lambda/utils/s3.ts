@@ -13,6 +13,7 @@ export interface IS3Util {
       contentType?: AWS.S3.ContentType;
     };
   }): Promise<void>;
+  deleteObject(args: { bucket: string; key: string }): Promise<void>;
 }
 
 export class S3Util implements IS3Util {
@@ -84,5 +85,11 @@ export class S3Util implements IS3Util {
       })
       .promise();
     this.log.log("S3 put:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
+  }
+
+  public async deleteObject(args: { bucket: string; key: string }): Promise<void> {
+    const startTime = Date.now();
+    await this.s3.deleteObject({ Bucket: args.bucket, Key: args.key }).promise();
+    this.log.log("S3 delete:", `${args.bucket}/${args.key}`, `- ${Date.now() - startTime}ms`);
   }
 }

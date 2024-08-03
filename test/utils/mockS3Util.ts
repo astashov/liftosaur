@@ -19,4 +19,8 @@ export class MockS3Util implements IS3Util {
       contentType?: AWS.S3.ContentType;
     };
   }): Promise<void> {}
+
+  public async deleteObject(args: { bucket: string; key: string }): Promise<void> {
+    return undefined;
+  }
 }
