@@ -147,6 +147,19 @@ export class Service {
     return json;
   }
 
+  public async getProgramRevision(programId: string, revision: string): Promise<IEither<string, string>> {
+    const result = await this.client(`${__API_HOST__}/api/programrevision/${programId}/${revision}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return { success: true, data: json.text };
+    } else {
+      return { success: false, error: "error" };
+    }
+  }
+
   public async postSync(args: {
     storageUpdate: IStorageUpdate;
     tempUserId: string | undefined;

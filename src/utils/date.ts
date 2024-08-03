@@ -67,6 +67,24 @@ export namespace DateUtils {
     return [year, month, day].join("-");
   }
 
+  export function parseYYYYMMDDHHMM(dateStr: string): Date | undefined {
+    const match = dateStr.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+    if (match != null) {
+      const [, year, month, day, hours, minutes, seconds] = match;
+      return new Date(
+        new Date(
+          parseInt(year, 10),
+          parseInt(month, 10) - 1,
+          parseInt(day, 10),
+          parseInt(hours, 10),
+          parseInt(minutes, 10),
+          parseInt(seconds, 10)
+        )
+      );
+    }
+    return undefined;
+  }
+
   export function formatYYYYMMDDHHMM(date: Date | string | number): string {
     const d = new Date(date);
     let seconds = `${d.getSeconds()}`;

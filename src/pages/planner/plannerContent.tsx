@@ -47,6 +47,8 @@ import { ProgramQrCode } from "../../components/programQrCode";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { Program } from "../../models/program";
+import { LinkButton } from "../../components/linkButton";
+import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 
 declare let __HOST__: string;
 
@@ -56,6 +58,7 @@ export interface IPlannerContentProps {
   partialStorage?: IPartialStorage;
   account?: IAccount;
   shouldSync?: boolean;
+  revisions: string[];
 }
 
 async function saveProgram(
@@ -215,6 +218,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [showHelp, setShowHelp] = useState(false);
+  const [showRevisions, setShowRevisions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
@@ -227,20 +231,29 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   return (
     <section className="px-4">
-      <h1 className="flex items-center mb-4 text-2xl font-bold leading-tight">
-        <div>Web Editor</div>
-        {!showHelp && (
-          <button
-            className="block ml-3 nm-planner-help"
-            onClick={() => {
-              setShowHelp(true);
-              window.localStorage.removeItem("hide-planner-help");
-            }}
-          >
-            <IconHelp />
-          </button>
+      <div className="flex">
+        <h1 className="flex items-center mb-4 mr-auto text-2xl font-bold leading-tightm">
+          <div>Web Editor</div>
+          {!showHelp && (
+            <button
+              className="block ml-3 nm-planner-help"
+              onClick={() => {
+                setShowHelp(true);
+                window.localStorage.removeItem("hide-planner-help");
+              }}
+            >
+              <IconHelp />
+            </button>
+          )}
+        </h1>
+        {props.shouldSync && props.revisions && props.revisions.length > 0 && (
+          <div>
+            <LinkButton name="show-revisions" onClick={() => setShowRevisions(true)}>
+              Versions
+            </LinkButton>
+          </div>
         )}
-      </h1>
+      </div>
 
       <div
         style={{ display: showHelp ? "block" : "none" }}
@@ -328,13 +341,22 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               }}
             />
           </h2>
-          <button
-            className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
-            style={{ marginTop: "-0.5rem" }}
-            onClick={() => dispatch(lb<IPlannerState>().p("id").record(UidFactory.generateUid(8)))}
-          >
-            id: {state.id}
-          </button>
+          {props.shouldSync ? (
+            <span
+              className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
+              style={{ marginTop: "-0.5rem" }}
+            >
+              id: {state.id}
+            </span>
+          ) : (
+            <button
+              className="text-xs font-normal text-grayv2-main nm-program-content-change-id"
+              style={{ marginTop: "-0.5rem" }}
+              onClick={() => dispatch(lb<IPlannerState>().p("id").record(UidFactory.generateUid(8)))}
+            >
+              id: {state.id}
+            </button>
+          )}
         </div>
         <div className="flex items-center">
           {props.shouldSync && (
@@ -594,6 +616,22 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           customExerciseName={modalExerciseUi.customExerciseName}
           exerciseType={modalExerciseUi.exerciseType}
           initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
+        />
+      )}
+      {showRevisions && props.revisions.length > 0 && (
+        <ModalPlannerProgramRevisions
+          programId={state.id}
+          client={props.client}
+          revisions={props.revisions}
+          onClose={() => setShowRevisions(false)}
+          onRestore={(text) => {
+            window.isUndoing = true;
+            dispatch([
+              lb<IPlannerState>().p("current").p("program").p("weeks").record(PlannerProgram.evaluateText(text)),
+            ]);
+            setShowRevisions(false);
+            dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "stop-is-undoing");
+          }}
         />
       )}
     </section>

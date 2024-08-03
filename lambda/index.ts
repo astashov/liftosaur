@@ -61,6 +61,7 @@ import { LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate } from "../src/utils/sync";
 import { IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
+import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -220,6 +221,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         di.log.log("Fetch: Safe update");
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
+          await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
           return response(200, {
             type: "clean",
             new_original_id: result.data,
@@ -235,6 +237,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         storageUpdate.originalId = Date.now();
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
+          await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
           const fullUser = (await userDao.getById(userId))!;
           const storage = fullUser.storage;
           if (key) {
@@ -574,7 +577,11 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       settings: Settings.applyExportedProgram(user.storage.settings, exportedProgram),
       originalId: Date.now(),
     };
-    await Promise.all([userDao.saveProgram(user.id, exportedProgram.program), userDao.store(user)]);
+    await Promise.all([
+      userDao.saveProgram(user.id, exportedProgram.program),
+      userDao.store(user),
+      userDao.saveProgramRevision(user.id, exportedProgram.program),
+    ]);
     return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
   }
   return ResponseUtils.json(400, event, { error: "Not Authorized" });
@@ -1397,6 +1404,27 @@ const postUserPlannerProgramHandler: RouteHandler<
   return ResponseUtils.json(200, event, { id: program.id });
 };
 
+const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision");
+const getProgramRevisionHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramRevisionEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const currentUserId = await getCurrentUserId(event, di);
+  if (currentUserId == null) {
+    return ResponseUtils.json(401, event, { error: "not_authorized" });
+  }
+  const userDao = new UserDao(di);
+  const programRevision = await userDao.getProgramRevision(currentUserId, params.programid, params.revision);
+  const program = programRevision?.program;
+  if (!program || !program.planner) {
+    return ResponseUtils.json(404, event, { error: "not_found" });
+  }
+  const fulltext = PlannerProgram.generateFullText(program.planner.weeks);
+  return ResponseUtils.json(200, event, { text: fulltext });
+};
+
 const getUserProgramEndpoint = Endpoint.build("/user/p/:programid");
 const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserProgramEndpoint> = async ({
   payload,
@@ -1419,9 +1447,11 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     };
   }
 
+  const userDao = new UserDao(di);
+  const programRevisions = await userDao.listProgramRevisions(user.id, params.programid);
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, storage),
+    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, storage, programRevisions),
     headers: { "content-type": "text/html" },
   };
 };
@@ -1935,6 +1965,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
       .get(getUserProgramEndpoint, getUserProgramHandler)
+      .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(googleLoginEndpoint, googleLoginHandler)

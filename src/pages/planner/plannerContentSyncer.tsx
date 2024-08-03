@@ -11,6 +11,8 @@ export interface IPlannerContentSyncerProps {
   account?: IAccount;
   exportedProgram?: IExportedProgram;
   shouldSyncProgram: boolean;
+  revisions: string[];
+  currentRevision?: string;
 }
 
 export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Element {
@@ -37,6 +39,7 @@ export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Ele
       partialStorage={props.storage}
       account={props.account}
       shouldSync={props.shouldSyncProgram}
+      revisions={props.revisions}
     />
   );
 }

@@ -12,7 +12,8 @@ export function renderProgramHtml(
   shouldSyncProgram: boolean,
   program?: IExportedProgram,
   account?: IAccount,
-  storage?: IStorage
+  storage?: IStorage,
+  revisions: string[] = []
 ): string {
   return renderPage(
     <ProgramHtml
@@ -22,6 +23,7 @@ export function renderProgramHtml(
       client={client}
       account={account}
       storage={storage}
+      revisions={revisions}
     />
   );
 }

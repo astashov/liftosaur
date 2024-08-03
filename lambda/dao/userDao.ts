@@ -20,6 +20,9 @@ import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
 import { IStorageUpdate } from "../../src/utils/sync";
 import { IEither } from "../../src/utils/types";
+import { LftS3Buckets } from "./buckets";
+import { DateUtils } from "../../src/utils/date";
+import * as path from "path";
 
 export const userTableNames = {
   dev: {
@@ -44,6 +47,15 @@ export const userTableNames = {
   },
 } as const;
 
+const bucketNames = {
+  dev: {
+    programs: `${LftS3Buckets.programs}dev`,
+  },
+  prod: {
+    programs: LftS3Buckets.programs,
+  },
+} as const;
+
 export type IUserDao = {
   id: string;
   email: string;
@@ -52,6 +64,12 @@ export type IUserDao = {
   appleId?: string;
   storage: IStorage;
   nickname?: string;
+};
+
+export type IProgramRevision = {
+  program: IProgram;
+  userId: string;
+  time: string;
 };
 
 export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
@@ -489,6 +507,64 @@ export class UserDao {
     } else {
       return undefined;
     }
+  }
+
+  public async maybeSaveProgramRevision(userId: string, storageUpdate: IStorageUpdate): Promise<void> {
+    const programs = storageUpdate.programs || [];
+    await Promise.all(programs.map((p) => this.saveProgramRevision(userId, p)));
+  }
+
+  public async saveProgramRevision(userId: string, program: IProgram): Promise<void> {
+    if (program.planner == null) {
+      return;
+    }
+    const env = Utils.getEnv();
+    const now = Date.now();
+    const date = DateUtils.formatYYYYMMDDHHMM(now);
+    const programRevision: IProgramRevision = { program, userId, time: date };
+    await this.di.s3.putObject({
+      bucket: bucketNames[env].programs,
+      key: `programs/${userId}/${program.id}/${date}.json`,
+      body: JSON.stringify(programRevision),
+      opts: { contentType: "application/json" },
+    });
+    const revisions = await this.listProgramRevisions(userId, program.id);
+    const revisionsToRemove = revisions.slice(100);
+    await Promise.all(
+      revisionsToRemove.map((r) => {
+        return this.di.s3.deleteObject({
+          bucket: bucketNames[env].programs,
+          key: `programs/${userId}/${program.id}/${r}.json`,
+        });
+      })
+    );
+  }
+
+  public async listProgramRevisions(userId: string, programId: string): Promise<string[]> {
+    const env = Utils.getEnv();
+    const result = await this.di.s3.listObjects({
+      bucket: bucketNames[env].programs,
+      prefix: `programs/${userId}/${programId}`,
+    });
+    const revisions = (result || []).map((p) => path.basename(p, path.extname(p)));
+    revisions.sort((a, b) => b.localeCompare(a));
+    return revisions;
+  }
+
+  public async getProgramRevision(
+    userId: string,
+    programId: string,
+    revision: string
+  ): Promise<IProgramRevision | undefined> {
+    const env = Utils.getEnv();
+    const programRevision = await this.di.s3.getObject({
+      bucket: bucketNames[env].programs,
+      key: `programs/${userId}/${programId}/${revision}.json`,
+    });
+    if (programRevision == null) {
+      return undefined;
+    }
+    return JSON.parse(programRevision.toString());
   }
 
   public async saveStorage(user: ILimitedUserDao, storage: IPartialStorage): Promise<void> {
