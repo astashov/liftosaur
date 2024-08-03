@@ -66,7 +66,10 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
       noPaddings={true}
     >
       <div className="flex flex-1 min-h-0">
-        <div className="w-64 p-4 border-r bg-grayv2-50 border-grayv2-200" style={{ borderRadius: "0.5rem 0 0 0.5rem" }}>
+        <div
+          className="p-4 border-r bg-grayv2-50 border-grayv2-200"
+          style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
+        >
           <h3 className="mb-2 text-lg font-bold">Version History</h3>
           <ul>
             {props.revisions.map((revision) => {
@@ -76,11 +79,12 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
               }
               const text = DateUtils.formatWithTime(date);
               return (
-                <li>
+                <li className="text-left">
                   {revision === currentRevision ? (
                     <span className="font-bold">{text}</span>
                   ) : (
                     <LinkButton
+                      className="text-left"
                       name="change-program-revision"
                       onClick={() => {
                         loadRevision(revision);
@@ -94,7 +98,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
             })}
           </ul>
         </div>
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 overflow-auto">
           {!programRevision || programRevision.isLoading ? (
             <div className="flex items-center justify-center h-full">
               <IconSpinner width={40} height={40} />
