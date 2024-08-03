@@ -857,8 +857,8 @@ export type IStatsEnabled = Readonly<t.TypeOf<typeof TStatsEnabled>>;
 
 export const TSettingsTimers = t.type(
   {
-    warmup: t.union([t.number, t.undefined]),
-    workout: t.union([t.number, t.undefined]),
+    warmup: t.union([t.number, t.undefined, t.null]),
+    workout: t.union([t.number, t.undefined, t.null]),
   },
   "TSettingsTimers"
 );
