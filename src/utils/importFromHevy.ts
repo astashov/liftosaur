@@ -6,7 +6,7 @@ import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { UidFactory } from "./generator";
 
-const exerciseMapping: Partial<Record<string, [string, string]>> = {
+const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "21s Bicep Curl": ["Bicep Curl", "barbell"],
   "Ab Wheel": ["Ab Wheel", "bodyweight"],
   "Arnold Press (Dumbbell)": ["Arnold Press", "dumbbell"],
@@ -382,7 +382,6 @@ export class ImportFromHevy {
             customExercises[exerciseId] = {
               id: exerciseId,
               name: record.exercise_title,
-              defaultEquipment: "bodyweight",
               isDeleted: false,
               meta: {
                 bodyParts: [],
@@ -395,7 +394,7 @@ export class ImportFromHevy {
           } else {
             exerciseId = maybeExerciseId;
           }
-          exerciseNameAndEquipment = [record.exercise_title, "bodyweight"];
+          exerciseNameAndEquipment = [record.exercise_title, undefined];
         } else {
           const [exerciseName] = exerciseNameAndEquipment;
           const exercise = Exercise.findByName(exerciseName, {})!;

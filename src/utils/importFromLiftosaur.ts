@@ -1,19 +1,9 @@
-import {
-  IHistoryRecord,
-  ICustomExercise,
-  ISettings,
-  equipments,
-  IEquipmentData,
-  IHistoryEntry,
-  availableMuscles,
-  IMuscle,
-} from "../types";
+import { IHistoryRecord, ICustomExercise, ISettings, IHistoryEntry, availableMuscles, IMuscle } from "../types";
 import Papa from "papaparse";
 import { CollectionUtils } from "./collection";
 import { ObjectUtils } from "./object";
 import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
-import { Equipment } from "../models/equipment";
 import { StringUtils } from "./string";
 
 interface ILiftosaurRecord {
@@ -64,7 +54,6 @@ export class ImportFromLiftosaur {
   ): {
     historyRecords: IHistoryRecord[];
     customExercises: Record<string, ICustomExercise>;
-    customEquipment: Record<string, IEquipmentData>;
   } {
     const liftosaurRecords = Papa.parse<ILiftosaurRecord>(liftosaurCsvRaw, {
       header: true,
@@ -75,7 +64,6 @@ export class ImportFromLiftosaur {
           "program",
           "dayname",
           "exercise",
-          "equipment",
           "isWarmupSet",
           "requiredReps",
           "completedReps",
@@ -94,29 +82,22 @@ export class ImportFromLiftosaur {
 
     const groupedRecords = CollectionUtils.groupByKey(liftosaurRecords, "workoutDateTime");
     const customExercises: Record<string, ICustomExercise> = {};
-    const customEquipment: Record<string, IEquipmentData> = {};
     const historyRecords = CollectionUtils.compact(ObjectUtils.values(groupedRecords)).map((records) => {
       const rawEntries = CollectionUtils.compact(ObjectUtils.values(CollectionUtils.groupByKey(records, "exercise")));
       const entries = rawEntries.map((rawSets) => {
         const firstSet = rawSets[0];
-        let equipment: string | undefined = equipments.find((e) => e === firstSet.equipment);
-        if (!equipment) {
-          const equipmentId = StringUtils.dashcase(firstSet.equipment || "bodyweight");
-          customEquipment[equipmentId] = Equipment.build(firstSet.equipment || "bodyweight");
-          equipment = equipmentId;
-        }
-
         const exerciseName = firstSet.exercise || "Unknown";
-        const exercise = Exercise.findByName(exerciseName, settings.exercises);
+        const exercise = Exercise.findByNameAndEquipment(exerciseName, settings.exercises);
         let exerciseId: string;
+        let exerciseEquipment: string | undefined = undefined;
         if (exercise) {
           exerciseId = exercise.id;
+          exerciseEquipment = exercise.equipment;
         } else {
           const id = StringUtils.dashcase(exerciseName || "exercise");
           customExercises[id] = {
             id,
             name: exerciseName,
-            defaultEquipment: equipment,
             isDeleted: false,
             meta: {
               bodyParts: [],
@@ -137,7 +118,7 @@ export class ImportFromLiftosaur {
         const rawWorkoutSets = rawSets.filter((set) => set.isWarmupSet !== "1");
 
         const entry: IHistoryEntry = {
-          exercise: { id: exerciseId, equipment: equipment },
+          exercise: { id: exerciseId, equipment: exerciseEquipment },
           warmupSets: rawWarmupSets.map((set) => ({
             reps: getNumber(set.requiredReps),
             weight: Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit)),
@@ -182,6 +163,6 @@ export class ImportFromLiftosaur {
       return historyRecord;
     });
 
-    return { historyRecords, customExercises, customEquipment };
+    return { historyRecords, customExercises };
   }
 }

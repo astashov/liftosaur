@@ -464,11 +464,10 @@ export namespace Thunk {
   export function importCsvData(rawCsv: string): IThunk {
     return async (dispatch, getState, env) => {
       try {
-        const {
-          historyRecords,
-          customExercises,
-          customEquipment,
-        } = ImportFromLiftosaur.convertLiftosaurCsvToHistoryRecords(rawCsv, getState().storage.settings);
+        const { historyRecords, customExercises } = ImportFromLiftosaur.convertLiftosaurCsvToHistoryRecords(
+          rawCsv,
+          getState().storage.settings
+        );
         updateState(dispatch, [
           lb<IState>()
             .p("storage")
@@ -485,13 +484,6 @@ export namespace Thunk {
             .p("exercises")
             .recordModify((oldExercises) => {
               return { ...oldExercises, ...customExercises };
-            }),
-          lb<IState>()
-            .p("storage")
-            .p("settings")
-            .p("equipment")
-            .recordModify((oldEquipment) => {
-              return { ...oldEquipment, ...customEquipment };
             }),
         ]);
       } catch (e) {

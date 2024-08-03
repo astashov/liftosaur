@@ -3574,8 +3574,12 @@ export namespace Exercise {
   }
 
   export function fullName(exercise: IExercise, settings?: ISettings): string {
-    const eqName = exercise.equipment ? equipmentName(exercise.equipment, settings?.equipment) : undefined;
-    return `${exercise.name}${eqName ? `, ${eqName}` : ""}`;
+    if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
+      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      return `${exercise.name}, ${equipment}`;
+    } else {
+      return exercise.name;
+    }
   }
 
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
