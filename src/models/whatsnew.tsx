@@ -1217,6 +1217,30 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240803": {
+    title: <span>Program Version History</span>,
+    body: (
+      <ul>
+        <li>
+          There's still a way to lose your program changes you did e.g. in the Web Editor, if immediately after saving
+          on the Web you change a program in the app (e.g. by finishing a workout, or changing a program weight) - then
+          the changes from the app will overwrite the changes from the Web.
+        </li>
+        <li>
+          That could be super frustrating. So as a way to fix that, I'm adding <strong>Program Version History</strong>.
+        </li>
+        <li>
+          Now each time you save a program (both on the web or in the app), it creates a snapshot of the program. You
+          can access the history of all the snapshots in the Web Editor (there's <strong>Versions</strong> link there,
+          that opens a modal with all the snapshots), and restore any of the past snapshots. I'll store up to 100 recent
+          snapshots.
+        </li>
+        <li>
+          Hopefully it'll reduce the chances of losing your program changes, and make the process less frustrating!
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
