@@ -3652,22 +3652,34 @@ export namespace Exercise {
   ): IExercise | undefined {
     const parts = nameAndEquipment.split(",").map((p) => p.trim());
     let name: string | undefined;
-    let equipment: IEquipment | undefined;
+    let equipment: IEquipment | undefined | null;
     if (parts.length > 1) {
-      const foundEquipment = equipments.filter((e) => equipmentName(e).indexOf(parts[parts.length - 1]) !== -1)[0];
+      const foundEquipment = equipments.filter(
+        (e) => equipmentName(e).toLowerCase() === parts[parts.length - 1].toLowerCase()
+      )[0];
       if (foundEquipment != null) {
         equipment = foundEquipment;
         name = parts.slice(0, parts.length - 1).join(", ");
+      } else {
+        equipment = null;
       }
     }
     if (name == null) {
       name = nameAndEquipment;
     }
-    const exerciseId = findIdByName(name, customExercises);
-    if (exerciseId != null) {
-      const exercise = findById(exerciseId, customExercises);
+    let exerciseId = findIdByName(name, {});
+    if (exerciseId != null && equipment !== null) {
+      const exercise = findById(exerciseId, {});
       if (exercise != null) {
-        return { ...exercise, equipment: equipment };
+        return { ...exercise, equipment: equipment || exercise.defaultEquipment };
+      }
+    } else {
+      exerciseId = findIdByName(nameAndEquipment, customExercises);
+      if (exerciseId != null) {
+        const exercise = findById(exerciseId, customExercises);
+        if (exercise != null) {
+          return { ...exercise };
+        }
       }
     }
     return undefined;

@@ -11,12 +11,10 @@ import {
   IPlannerProgramProperty,
   IPlannerProgramReuse,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, equipments, IExerciseType } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, IExerciseType } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
-import { ObjectUtils } from "../../utils/object";
-import { Equipment } from "../../models/equipment";
 import { ScriptRunner } from "../../parser";
 import { Progress } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
@@ -692,28 +690,11 @@ export class PlannerExerciseEvaluator {
       label = label.trim();
     }
     const nameEquipment = nameEquipmentItems.join(":").trim();
-    const matchingExercise = Exercise.findByName(nameEquipment, settings.exercises);
+    const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, settings.exercises);
     if (matchingExercise) {
-      return { name: matchingExercise.name, label: label ? label : undefined };
+      return { name: matchingExercise.name, label: label ? label : undefined, equipment: matchingExercise.equipment };
     }
-    let equipment: string | undefined;
-    const parts = nameEquipment.split(",");
-    if (parts.length > 1) {
-      const potentialEquipment = parts[parts.length - 1]?.trim();
-      const allowedEquipments = [
-        ...equipments,
-        ...equipments.map((e) => equipmentName(e)),
-        ...ObjectUtils.keys(settings.equipment),
-        ...ObjectUtils.keys(settings.equipment).map((e) => equipmentName(e, settings.equipment)),
-      ].map((e) => e.toLowerCase().trim());
-      if (potentialEquipment != null && allowedEquipments.indexOf(potentialEquipment.toLowerCase()) !== -1) {
-        const equipmentKey = Equipment.equipmentKeyByName(potentialEquipment, settings.equipment);
-        equipment = equipmentKey;
-        parts.pop();
-      }
-    }
-    const name = parts.join(",").trim();
-    return { name, label: label ? label : undefined, equipment };
+    return { name: nameEquipment, label: label ? label : undefined };
   }
 
   private addDescription(value: string): void {
@@ -848,7 +829,7 @@ export class PlannerExerciseEvaluator {
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings);
       const key = PlannerKey.fromFullName(fullName, this.settings);
       const shortName = `${name}${equipment ? `, ${equipmentName(equipment)}` : ""}`;
-      const exercise = Exercise.findByName(name, this.settings.exercises);
+      const exercise = Exercise.findByNameAndEquipment(name, this.settings.exercises);
       if (exercise == null) {
         this.error(`Unknown exercise ${name}`, nameNode);
       }

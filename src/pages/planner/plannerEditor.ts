@@ -143,7 +143,9 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
 
                 const title = document.createElement("div");
                 title.classList.add("exercise-completion-title");
-                title.textContent = `${exercise.name}, ${equipmentName(exercise.equipment)}`;
+                title.textContent = `${exercise.name}${
+                  exercise.equipment ? `, ${equipmentName(exercise.equipment)}` : ""
+                }`;
 
                 const description = document.createElement("div");
                 description.classList.add("exercise-completion-description");
