@@ -26,6 +26,7 @@ interface IProps {
   adminKey?: string;
   loading: ILoading;
   plannerState?: IPlannerState;
+  isLoggedIn: boolean;
 }
 
 export function ScreenEditProgram(props: IProps): JSX.Element {
@@ -51,6 +52,7 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
             editProgram={props.editProgram}
             plannerState={props.plannerState}
             adminKey={props.adminKey}
+            isLoggedIn={props.isLoggedIn}
           />
         );
       }

@@ -62,6 +62,7 @@ import { IStorageUpdate } from "../src/utils/sync";
 import { IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
+import { renderLoginHtml } from "./login";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1345,10 +1346,12 @@ async function getUserAccount(
 ): Promise<IEither<{ user: ILimitedUserDao; account: IAccount }, APIGatewayProxyResult>> {
   const currentUserId = await getCurrentUserId(payload.event, payload.di);
   if (currentUserId == null) {
+    const currentUrl = payload.event.path;
+    const url = `/login?url=${encodeURIComponent(currentUrl)}`;
     const result: APIGatewayProxyResult = {
       statusCode: 302,
       body: "",
-      headers: { "content-type": "text/html", location: "/program" },
+      headers: { "content-type": "text/html", location: url },
     };
     return { success: false, error: result };
   }
@@ -1423,6 +1426,23 @@ const getProgramRevisionHandler: RouteHandler<
   }
   const fulltext = PlannerProgram.generateFullText(program.planner.weeks);
   return ResponseUtils.json(200, event, { text: fulltext });
+};
+
+const getLoginEndpoint = Endpoint.build("/login", { url: "string?" });
+const getLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getLoginEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const currentUser = await getCurrentLimitedUser(event, di);
+  const account = currentUser
+    ? Account.getFromStorage(currentUser.id, currentUser.email, currentUser.storage)
+    : undefined;
+  return {
+    statusCode: 200,
+    body: renderLoginHtml(di.fetch, account, params.url),
+    headers: { "content-type": "text/html" },
+  };
 };
 
 const getUserProgramEndpoint = Endpoint.build("/user/p/:programid");
@@ -1949,6 +1969,7 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getFreeformEndpoint, getFreeformHandler)
+      .get(getLoginEndpoint, getLoginHandler)
       .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)

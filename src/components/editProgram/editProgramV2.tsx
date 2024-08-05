@@ -36,6 +36,10 @@ import { IconHelp } from "../icons/iconHelp";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { IconKebab } from "../icons/iconKebab";
+import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
+import { ClipboardUtils } from "../../utils/clipboard";
+import { UrlUtils } from "../../utils/url";
 
 interface IProps {
   editProgram: IProgram;
@@ -47,7 +51,10 @@ interface IProps {
   adminKey?: string;
   settings: ISettings;
   loading: ILoading;
+  isLoggedIn: boolean;
 }
+
+declare let __HOST__: string;
 
 export function EditProgramV2(props: IProps): JSX.Element {
   const [shouldShowPublishModal, setShouldShowPublishModal] = useState<boolean>(false);
@@ -77,6 +84,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
   useUndoRedo(plannerState, plannerDispatch);
   const modalExerciseUi = plannerState.ui.modalExercise;
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
 
   return (
     <Surface
@@ -84,6 +92,15 @@ export function EditProgramV2(props: IProps): JSX.Element {
         <NavbarView
           loading={props.loading}
           dispatch={props.dispatch}
+          rightButtons={[
+            <button
+              data-cy="navbar-3-dot"
+              className="p-2 nm-edit-program-v2-navbar-kebab"
+              onClick={() => setShouldShowBottomSheet(true)}
+            >
+              <IconKebab />
+            </button>,
+          ]}
           helpContent={<HelpEditProgramV2 />}
           screenStack={props.screenStack}
           title="Edit Program"
@@ -92,6 +109,18 @@ export function EditProgramV2(props: IProps): JSX.Element {
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <>
+          <BottomSheetEditProgramV2
+            onExportProgramToLink={() => {
+              setShouldShowBottomSheet(false);
+              props.dispatch(
+                Thunk.generateAndCopyLink(props.editProgram, props.settings, (url) => {
+                  alert(`Copied link to the clipboard: ${url}`);
+                })
+              );
+            }}
+            isHidden={!shouldShowBottomSheet}
+            onClose={() => setShouldShowBottomSheet(false)}
+          />
           <ModalPublishProgram
             isHidden={!shouldShowPublishModal}
             program={props.editProgram}
@@ -331,14 +360,19 @@ export function EditProgramV2(props: IProps): JSX.Element {
               <LinkButton
                 name="edit-program-copy-program-link"
                 onClick={async () => {
-                  props.dispatch(
-                    Thunk.generateAndCopyLink(props.editProgram, props.settings, () => {
-                      setIsCopied(true);
-                      setTimeout(() => {
-                        setIsCopied(false);
-                      }, 3000);
-                    })
-                  );
+                  const cb = (): void => {
+                    setIsCopied(true);
+                    setTimeout(() => {
+                      setIsCopied(false);
+                    }, 3000);
+                  };
+                  if (props.isLoggedIn) {
+                    const url = UrlUtils.build(`/user/p/${props.editProgram.id}`, __HOST__);
+                    ClipboardUtils.copy(url.toString());
+                    cb();
+                  } else {
+                    props.dispatch(Thunk.generateAndCopyLink(props.editProgram, props.settings, cb));
+                  }
                 }}
               >
                 this link

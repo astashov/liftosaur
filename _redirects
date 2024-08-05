@@ -19,3 +19,4 @@
 /user/programs https://api3.liftosaur.com/user/programs  200
 /user/p/:id https://api3.liftosaur.com/user/p/:id  200
 /docs https://www.liftosaur.com/blog/docs  200
+/login https://api3.liftosaur.com/login  200

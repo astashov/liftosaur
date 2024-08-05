@@ -1,9 +1,6 @@
 - Push notif for the forgotten session
-- AMRAP as an expression
 - Dynamic sets!
 - Use state vars for warmups
-- Add negative indexing (-1)
-- Names for variation sets
 - Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
@@ -35,39 +32,22 @@
 * Add time spent on each exercise
 
 - Fix bug with disappearing always on when importing a program via "Add this program to your account"
-- Need to do "Save" after updating the program on Web
 - Add a last week note to the last week sets
-- Calculate e1RM based on AMRAPs
-- Fix freezing on plates calculator
-- Add an option to disable equipment calculation
 - Make it more explicit to replace exercise only for the workout or for the whole program
 - Properly open repeated exercises when editing
 - Missing Description Bug (https://www.liftosaur.com/n/9b1a6b12)
-- Sync bug
-- Check e1RM calculation on graphs
 - Mix ask weight and regular weights (probably same for RPE/log RPE)
 - Add a check when importing invalid program
 - Synergist multiplier is not saving
+- Fix e1RM in PRs
 
 - Set variations when multi-week
 - Bug - swap exercise and changing weight returns exercise back
 
-- Add tests for the new UI
-
-
-- Program sync is still unreliable
 - Need to tighten up the edit link in the program screen
 - Made numberOfSets = 0 work in update blocks
 - Need to add lb to kg converter properly.
 
----
-
-- Program text - YDoc -> S3 object
-- Custom exercises, planner settings - YDoc -> DynamoDB 
-- History, stats, settings -> DynamoDB
-
-- Wake up the app - fetch new data
-- Implement pull to refresh
-
-
-* postUserPlannerProgramEndpoint
+User debug page:
+- Programs, their version history
+- 

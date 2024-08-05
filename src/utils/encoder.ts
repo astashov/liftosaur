@@ -9,7 +9,7 @@ export class Encoder {
 
   public static async encodeIntoUrl(str: string, base: string): Promise<URL> {
     const base64data = await Encoder.encode(str.replace("liftosaur://", "https://"));
-    const url = UrlUtils.build(base.replace("liftosaur://", "https://"));
+    const url = UrlUtils.build(base);
     const urlParams = new URLSearchParams(url.search);
     urlParams.set("data", base64data);
     url.search = urlParams.toString();

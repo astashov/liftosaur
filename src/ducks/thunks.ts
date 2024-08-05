@@ -505,18 +505,18 @@ export namespace Thunk {
     };
   }
 
-  export function generateAndCopyLink(editProgram: IProgram, settings: ISettings, cb: () => void): IThunk {
+  export function generateAndCopyLink(editProgram: IProgram, settings: ISettings, cb: (link: string) => void): IThunk {
     return async (dispatch, getState, env) => {
       const link = await Program.exportProgramToLink(editProgram, settings, getLatestMigrationVersion());
       try {
         const service = new Service(env.service.client);
         const url = await service.postShortUrl(link, "p");
         ClipboardUtils.copy(url);
-        cb();
+        cb(url);
       } catch (e) {
         Rollbar.error(e);
         ClipboardUtils.copy(link);
-        cb();
+        cb(link);
       }
     };
   }

@@ -12,6 +12,7 @@ const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").t
 module.exports = {
   entry: {
     main: ["./src/main.tsx", "./src/index.css"],
+    login: ["./src/login.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
@@ -264,6 +265,10 @@ module.exports = {
         changeOrigin: true,
       },
       "/dashboards/users": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/login": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },

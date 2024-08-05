@@ -1183,7 +1183,8 @@ export namespace Program {
   }
 
   export function exportProgram(program: IProgram, settings: ISettings, version?: string): IExportedProgram {
-    const customExerciseIds = program.exercises.reduce<string[]>((memo, programExercise) => {
+    const aFullProgram = Program.fullProgram(program, settings);
+    const customExerciseIds = aFullProgram.exercises.reduce<string[]>((memo, programExercise) => {
       const id = programExercise.exerciseType.id;
       const isBuiltIn = !!Exercise.findById(id, {});
       if (!isBuiltIn) {

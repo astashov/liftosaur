@@ -400,6 +400,7 @@ export function AppView(props: IProps): JSX.Element | null {
           weekIndex={state.editProgram?.weekIndex}
           editProgram={editProgram}
           plannerState={state.editProgramV2}
+          isLoggedIn={state.user != null}
         />
       );
     } else {
