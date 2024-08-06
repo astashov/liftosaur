@@ -47,6 +47,7 @@ import { ScreenGyms } from "./screenGyms";
 import PullToRefresh from "pulltorefreshjs";
 import { renderToString } from "preact-render-to-string";
 import { IconSpinner } from "./icons/iconSpinner";
+import { ScreenExercises } from "./screenExercises";
 
 interface IProps {
   client: Window["fetch"];
@@ -368,6 +369,19 @@ export function AppView(props: IProps): JSX.Element | null {
         loading={state.loading}
         dispatch={dispatch}
         settings={state.storage.settings}
+      />
+    );
+  } else if (Screen.current(state.screenStack) === "exercises") {
+    if (currentProgram == null) {
+      throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
+    }
+    content = (
+      <ScreenExercises
+        screenStack={state.screenStack}
+        loading={state.loading}
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        program={currentProgram}
       />
     );
   } else if (Screen.current(state.screenStack) === "graphs") {

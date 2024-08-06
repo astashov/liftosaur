@@ -149,42 +149,12 @@ const ExercisesList = forwardRef(
     const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
     const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
     if (filter) {
-      exercises = exercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
-      customExercises = ObjectUtils.filter(customExercises, (e, v) =>
-        v ? StringUtils.fuzzySearch(filter, v.name.toLowerCase()) : true
-      );
+      exercises = Exercise.filterExercises(exercises, filter);
+      customExercises = Exercise.filterCustomExercises(customExercises, filter);
     }
     if (filterTypes && filterTypes.length > 0) {
-      exercises = exercises.filter((e) => {
-        const targetMuscleGroups = Exercise.targetMusclesGroups(e, {}).map(StringUtils.capitalize);
-        const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, {}).map(StringUtils.capitalize);
-        return filterTypes.every((ft) => {
-          return (
-            targetMuscleGroups.indexOf(ft) !== -1 ||
-            synergistMuscleGroups.indexOf(ft) !== -1 ||
-            e.types.map(StringUtils.capitalize).indexOf(ft) !== -1 ||
-            equipmentName(e.equipment) === ft
-          );
-        });
-      });
-      customExercises = ObjectUtils.filter(customExercises, (_id, exercise) => {
-        if (!exercise) {
-          return false;
-        }
-        const targetMuscleGroups = Array.from(
-          new Set(CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
-        ).map((m) => StringUtils.capitalize(m));
-        const synergistMuscleGroups = Array.from(
-          new Set(CollectionUtils.flat(exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
-        ).map((m) => StringUtils.capitalize(m));
-        return filterTypes.every((ft) => {
-          return (
-            targetMuscleGroups.indexOf(ft) !== -1 ||
-            synergistMuscleGroups.indexOf(ft) !== -1 ||
-            (exercise.types || []).map(StringUtils.capitalize).indexOf(ft) !== -1
-          );
-        });
-      });
+      exercises = Exercise.filterExercisesByType(exercises, filterTypes);
+      customExercises = Exercise.filterCustomExercisesByType(customExercises, filterTypes);
     }
 
     exercises.sort((a, b) => {

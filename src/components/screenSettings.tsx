@@ -156,6 +156,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
 
         <GroupHeader name="Workout" topPadding={true} />
         <MenuItem
+          name="Exercises"
+          onClick={() => props.dispatch(Thunk.pushScreen("exercises"))}
+          shouldShowRightArrow={true}
+        />
+        <MenuItem
           name="Timers"
           onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
           shouldShowRightArrow={true}
