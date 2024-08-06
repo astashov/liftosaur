@@ -29,6 +29,7 @@ export type IScreen =
   | "measurements"
   | "subscription"
   | "exerciseStats"
+  | "exercises"
   | "programPreview";
 
 export namespace Screen {
@@ -115,6 +116,9 @@ export namespace Screen {
         return "settings";
       }
       case "gyms": {
+        return "settings";
+      }
+      case "exercises": {
         return "settings";
       }
       case "programs": {

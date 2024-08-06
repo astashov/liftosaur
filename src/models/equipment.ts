@@ -40,6 +40,29 @@ export namespace Equipment {
     }
   }
 
+  export function getEquipmentNameForExerciseType(
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): string | undefined {
+    if (exerciseType == null) {
+      return undefined;
+    }
+
+    const exerciseData = settings.exerciseData[Exercise.toKey(exerciseType)];
+    const exerciseEquipment = exerciseData?.equipment;
+    if (exerciseEquipment == null) {
+      return undefined;
+    }
+
+    const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+    const equipment = exerciseEquipment[currentGym.id];
+    if (equipment == null) {
+      return undefined;
+    }
+    const name = currentGym.equipment[equipment]?.name;
+    return name || equipmentName(equipment);
+  }
+
   export function getEquipmentForExerciseType(
     settings: ISettings,
     exerciseType?: IExerciseType

@@ -1241,6 +1241,26 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240808": {
+    title: <span>Settings - Exercises screen</span>,
+    body: (
+      <ul>
+        <li>
+          A lot of users were finding it weird you can only make 1RM or equipment adjustments for exercises during a
+          workout. Which makes sense, so I added a separate "Exercises" screen that you can access from the "Settings"
+          screen ("Workout" section).
+        </li>
+        <li>
+          You can see exercises grouped by the ones used in your current program, and the ones you did previously, but
+          not included into the current program. You can filter them by name, type, muscle groups, etc.
+        </li>
+        <li>
+          And for each exercise you can see their 1RM and currently attached equipment (or default rounding if no
+          equipment attached).
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

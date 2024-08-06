@@ -4009,4 +4009,58 @@ export namespace Exercise {
       return acc;
     }, {});
   }
+
+  export function filterExercises<T extends { name: string }>(allExercises: T[], filter: string): T[] {
+    return allExercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
+  }
+
+  export function filterExercisesByType<T extends IExerciseType>(
+    allExercises: T[],
+    filterTypes: string[],
+    settings: ISettings
+  ): T[] {
+    return allExercises.filter((e) => {
+      const exercise = get(e, settings.exercises);
+      const targetMuscleGroups = Exercise.targetMusclesGroups(e, {}).map(StringUtils.capitalize);
+      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, {}).map(StringUtils.capitalize);
+      return filterTypes.every((ft) => {
+        return (
+          targetMuscleGroups.indexOf(ft) !== -1 ||
+          synergistMuscleGroups.indexOf(ft) !== -1 ||
+          exercise.types.map(StringUtils.capitalize).indexOf(ft) !== -1 ||
+          equipmentName(e.equipment) === ft
+        );
+      });
+    });
+  }
+
+  export function filterCustomExercises(customExercises: IAllCustomExercises, filter: string): IAllCustomExercises {
+    return ObjectUtils.filter(customExercises, (e, v) =>
+      v ? StringUtils.fuzzySearch(filter, v.name.toLowerCase()) : true
+    );
+  }
+
+  export function filterCustomExercisesByType(
+    customExercises: IAllCustomExercises,
+    filterTypes: string[]
+  ): IAllCustomExercises {
+    return ObjectUtils.filter(customExercises, (_id, exercise) => {
+      if (!exercise) {
+        return false;
+      }
+      const targetMuscleGroups = Array.from(
+        new Set(CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
+      ).map((m) => StringUtils.capitalize(m));
+      const synergistMuscleGroups = Array.from(
+        new Set(CollectionUtils.flat(exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))
+      ).map((m) => StringUtils.capitalize(m));
+      return filterTypes.every((ft) => {
+        return (
+          targetMuscleGroups.indexOf(ft) !== -1 ||
+          synergistMuscleGroups.indexOf(ft) !== -1 ||
+          (exercise.types || []).map(StringUtils.capitalize).indexOf(ft) !== -1
+        );
+      });
+    });
+  }
 }
