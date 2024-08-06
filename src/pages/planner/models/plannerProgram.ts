@@ -301,7 +301,7 @@ export class PlannerProgram {
             ongoingDescriptions = false;
             if (!line.used) {
               if (line.descriptions && line.descriptions.length > 0) {
-                str += `${line.descriptions.join("\n\n")}\n`;
+                str += `${line.descriptions.filter((d) => d.trim()).join("\n\n")}\n`;
               }
               let repeatStr = "";
               if ((line.order != null && line.order !== 0) || (line.repeatRanges && line.repeatRanges.length > 0)) {

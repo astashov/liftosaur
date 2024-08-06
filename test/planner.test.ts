@@ -23,6 +23,30 @@ Squat / 2x5 / 105lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
 `);
   });
 
+  it("properly compacts multiple empty lines in-between descriptions", () => {
+    const programText = `# Week 1
+## Day 1
+// Hey
+
+/// Sup
+
+
+// Hey hey
+Squat / 2x5 100lb`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+/// Sup
+// Hey
+
+// Hey hey
+Squat / 2x5 / 100lb
+
+
+`);
+  });
+
   it("compacts repeated exercises", () => {
     const programText = `# Week 1
 ## Day 1
