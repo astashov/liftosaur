@@ -41,7 +41,7 @@ weight[1:2] = rpeMultiplier(6, 10) // Set the 2nd set's weight of the 1st set va
 Now, if we have that, we can introduce new progress function in the Workout Planner - `custom()`. In that function, in the curly braces, we can add our Liftoscript code!
 
 ```javascript
-Bench Press / 5x5 / progress: custom() {
+Bench Press, Barbell / 5x5 / progress: custom() {
   if (completedReps >= reps) {
     state.weight += 5lb
   }
@@ -51,7 +51,7 @@ Bench Press / 5x5 / progress: custom() {
 Between the parentheses in the `custom` function we can define the state variables. Some state variables would be available by default (like `weight`). E.g. if we want to increase weight after 3 successful attempts, and reduce weight after 2 failures, it'd be:
 
 ```javascript
-Bench Press / 5x5 / progress: custom(success: 0, failures: 0) {
+Bench Press, Barbell / 5x5 / progress: custom(success: 0, failures: 0) {
   if (completedReps >= reps) {
     state.success += 1
     if (state.success > 3) {
@@ -73,7 +73,7 @@ Bench Press / 5x5 / progress: custom(success: 0, failures: 0) {
 Unlike regular Liftoscript and Web Editor, you cannot use state variables in reps/weight/timer/etc. But you can directly change them for the next workout in the script using our new Liftoscript syntax we introduced above. Like for the double progression:
 
 ```javascript
-Bench Press / 3x8 / progress: custom(success: 0, failures: 0) {
+Bench Press, Barbell / 3x8 / progress: custom(success: 0, failures: 0) {
   if (completedReps >= reps) {
     reps = reps[1] + 1
   }
@@ -87,7 +87,7 @@ Bench Press / 3x8 / progress: custom(success: 0, failures: 0) {
 We can also introduce set variations in the Workout Planner, just by listing them one after another, like:
 
 ```javascript
-Bench Press / 5x3 / 6x2 / 10x1 / progress: custom() {
+Bench Press, Barbell / 5x3 / 6x2 / 10x1 / progress: custom() {
   if (!(completedReps >= reps)) {
     state.setVariation += 1
   }
@@ -101,7 +101,7 @@ Similar way you can specify multiple descriptions and switch between them via `s
 // First description
 
 // Second description
-Bench Press / 5x3 / 6x2 / 10x1 / progress: custom() {
+Bench Press, Barbell / 5x3 / 6x2 / 10x1 / progress: custom() {
   if (completedReps >= reps) {
     state.description += 1
   }
@@ -111,8 +111,8 @@ Bench Press / 5x3 / 6x2 / 10x1 / progress: custom() {
 We also will introduce new Workout Planner syntax to reuse logic of exercises, which will look like this:
 
 {% plannercode %}
-Bench Press / 5x5
-Squat / ...Bench Press
+Bench Press, Barbell / 5x5
+Squat, Barbell / ...Bench Press, Barbell
 {% endplannercode %}
 
 This way Squat will reuse whatever sets/reps, progression, etc are defined for the Bench Press.
@@ -123,7 +123,7 @@ Using all of that, we can e.g. implement GZCLP:
 # Week 1
 ## Day 1
 
-t1: Squat / 5x3 100% / 6x2 100% / 10x1 100% / progress: custom(increase: 10lb) {
+t1: Squat, Barbell / 5x3 100% / 6x2 100% / 10x1 100% / progress: custom(increase: 10lb) {
   if (completedReps >= reps) {
     state.weight += state.increase
   } else if (sets == 3) {
@@ -132,7 +132,7 @@ t1: Squat / 5x3 100% / 6x2 100% / 10x1 100% / progress: custom(increase: 10lb) {
     state.setVariation += 1
   }
 }
-t2: Bench Press / 3x10 100% / 3x8 100% / 3x6 100% / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb) {
+t2: Bench Press, Barbell / 3x10 100% / 3x8 100% / 3x6 100% / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb) {
   if (completedReps >= reps) {
     state.weight += 5lb
   } else if (state.stage == 1) {
@@ -145,26 +145,26 @@ t2: Bench Press / 3x10 100% / 3x8 100% / 3x6 100% / progress: custom(state1weigh
     state.weight = state.stage1weight + state.stage3increase
   }
 }
-t3: Lat Pulldown / 3x15 100%, 15+ 100% / progress: custom() {
+t3: Lat Pulldown, Cable / 3x15 100%, 15+ 100% / progress: custom() {
   if (completedReps[ns] >= 25) {
     state.weight += 5lb
   }
 }
 
 ## Day 2
-t1: Overhead Press / ...t1: Squat / progress: custom(increase: 5lb)
-t2: Deadlift / ...t2: Bench Press / progress: custom(state1weight: 0lb, increase: 10lb, state3increase: 15lb)
-t3: Bent Over Row / ...t3: Lat Pulldown
+t1: Overhead Press, Barbell / ...t1: Squat, Barbell / progress: custom(increase: 5lb)
+t2: Deadlift, Barbell / ...t2: Bench Press, Barbell / progress: custom(state1weight: 0lb, increase: 10lb, state3increase: 15lb)
+t3: Bent Over Row, Barbell / ...t3: Lat Pulldown, Cable
 
 ## Day 3
-t1: Bench Press / ...t1: Squat / progress: custom(increase: 5lb)
-t2: Squat / ...t2: Bench Press / progress: custom(state1weight: 0lb, increase: 10lb, state3increase: 15lb)
-t3: Lat Pulldown / ...
+t1: Bench Press, Barbell / ...t1: Squat, Barbell / progress: custom(increase: 5lb)
+t2: Squat, Barbell / ...t2: Bench Press, Barbell / progress: custom(state1weight: 0lb, increase: 10lb, state3increase: 15lb)
+t3: Lat Pulldown, Cable / ...
 
 ## Day 4
-t1: Deadlift / ...t1: Squat / progress: custom(increase: 5lb)
-t2: Overhead Press / ...t2: Bench Press / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb)
-t3: Bent Over Row / ...
+t1: Deadlift, Barbell / ...t1: Squat, Barbell / progress: custom(increase: 5lb)
+t2: Overhead Press, Barbell / ...t2: Bench Press, Barbell / progress: custom(state1weight: 0lb, increase: 5lb, state3increase: 10lb)
+t3: Bent Over Row, Barbell / ...
 ```
 
 Note that reusing exercises can define their values for the state variables via the same `custom(foo: 3)` syntax, just without the block withing the curly braces - it'll be reused from the original exercise.
@@ -174,8 +174,8 @@ And that's it! That pretty much would be the whole GZCLP program, with all the a
 All that stuff makes the Workout Planner pretty much as powerful as the regular Liftosaur's program editor. And a big advantage is that you don't really need to know/use all of that, you still can do simple programs like:
 
 {% plannercode %}
-Squat / 5x5
-Bench Press / 3x8 @8 / progress: lp(5lb)
+Squat, Barbell / 5x5
+Bench Press, Barbell / 3x8 @8 / progress: lp(5lb)
 {% endplannercode %}
 
 But if you really want something very custom and unusual for you progression, you can use this new `custom() { }` syntax

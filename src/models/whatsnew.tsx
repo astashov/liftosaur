@@ -876,7 +876,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           it now. Do something like:
           <div className="m-2 overflow-x-auto">
             <PlannerCodeBlock
-              script={`Squat / 1x6+, 3x3 / update: custom() {~
+              script={`Squat, Barbell / 1x6+, 3x3 / update: custom() {~
     if (setIndex == 1) {
       reps = floor(completedReps[1] / 2)
     }
@@ -932,7 +932,7 @@ const whatsNew: Record<string, IWhatsNew> = {
         <li>
           Also, you can override the reused weights, RPE and timer. For example, if you do:
           <div className="m-2 overflow-x-auto">
-            <PlannerCodeBlock script={`Squat / ...Bench Press / 200lb`} />
+            <PlannerCodeBlock script={`Squat, Barbell / ...Bench Press, Barbell / 200lb`} />
           </div>
           Then it would reuse sets x reps, timer, RPE and warmups from Bench Press - everything except the weight.
         </li>
@@ -950,7 +950,7 @@ const whatsNew: Record<string, IWhatsNew> = {
           Looks like this:
           <div className="m-2 overflow-x-auto">
             <PlannerCodeBlock
-              script={`Bench Press / 3x8 / progress: custom() {~
+              script={`Bench Press, Barbell / 3x8 / progress: custom() {~
   for (var.i in completedReps) {
     weights[var.i] = weights[var.i] + 5lb
   }
@@ -1037,8 +1037,8 @@ const whatsNew: Record<string, IWhatsNew> = {
           exercise from a progress block of another exercise. For example:
           <div className="m-2 overflow-x-auto">
             <PlannerCodeBlock
-              script={`Squat / 3x8 / id: tags(123) / progress: custom(rating: 0) {~ ~}
-Bench Press / 3x8 / progress: custom() {~
+              script={`Squat, Barbell / 3x8 / id: tags(123) / progress: custom(rating: 0) {~ ~}
+Bench Press, Barbell / 3x8 / progress: custom() {~
   state[123].rating = 2
 ~}`}
             />

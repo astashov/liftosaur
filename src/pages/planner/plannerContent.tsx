@@ -227,7 +227,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const modalExerciseUi = state.ui.modalExercise;
   const isInvalid = !PlannerProgram.isValid(state.current.program, settings);
 
-  const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
+  const script = "Squat, Barbell / 3x3-5\nRomanian Deadlift, Barbell / 3x8";
 
   return (
     <section className="px-4">

@@ -673,16 +673,16 @@ export const basicBeginnerProgram: IProgram = {
           {
             name: "Workout A",
             exerciseText:
-              "Bent Over Row / 2x5, 1x5+ / 95lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nBench Press / 2x5, 1x5+ / 45lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nSquat / 2x5, 1x5+ / 45lb / progress: lp(5lb, 1, 0, 10%, 1, 0)",
+              "Bent Over Row, Barbell / 2x5, 1x5+ / 95lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nBench Press, Barbell / 2x5, 1x5+ / 45lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nSquat, Barbell / 2x5, 1x5+ / 45lb / progress: lp(5lb, 1, 0, 10%, 1, 0)",
           },
           {
             name: "Workout B",
             exerciseText:
-              "Chin Up / 2x5, 1x5+ / 0lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nOverhead Press / 2x5, 1x5+ / 45lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nDeadlift / 2x5, 1x5+ / 95lb / progress: lp(5lb, 1, 0, 10%, 1, 0)",
+              "Chin Up / 2x5, 1x5+ / 0lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nOverhead Press, Barbell / 2x5, 1x5+ / 45lb / progress: lp(2.5lb, 1, 0, 10%, 1, 0)\nDeadlift, Barbell / 2x5, 1x5+ / 95lb / progress: lp(5lb, 1, 0, 10%, 1, 0)",
           },
           {
             name: "Workout A",
-            exerciseText: "Bent Over Row / 2x5, 1x5+ / 95lb\nBench Press / 2x5, 1x5+ / 45lb\nSquat / 2x5, 1x5+ / 45lb",
+            exerciseText: "Bent Over Row, Barbell / 2x5, 1x5+ / 95lb\nBench Press, Barbell / 2x5, 1x5+ / 45lb\nSquat, Barbell / 2x5, 1x5+ / 45lb",
           },
         ],
       },
@@ -691,15 +691,15 @@ export const basicBeginnerProgram: IProgram = {
         days: [
           {
             name: "Workout A",
-            exerciseText: "Chin Up / 2x5, 1x5+ / 0lb\nOverhead Press / 2x5, 1x5+ / 45lb\nDeadlift / 2x5, 1x5+ / 95lb",
+            exerciseText: "Chin Up / 2x5, 1x5+ / 0lb\nOverhead Press, Barbell / 2x5, 1x5+ / 45lb\nDeadlift, Barbell / 2x5, 1x5+ / 95lb",
           },
           {
             name: "Workout B",
-            exerciseText: "Bent Over Row / 2x5, 1x5+ / 95lb\nBench Press / 2x5, 1x5+ / 45lb\nSquat / 2x5, 1x5+ / 45lb",
+            exerciseText: "Bent Over Row, Barbell / 2x5, 1x5+ / 95lb\nBench Press, Barbell / 2x5, 1x5+ / 45lb\nSquat, Barbell / 2x5, 1x5+ / 45lb",
           },
           {
             name: "Workout B",
-            exerciseText: "Chin Up / 2x5, 1x5+ / 0lb\nOverhead Press / 2x5, 1x5+ / 45lb\nDeadlift / 2x5, 1x5+ / 95lb",
+            exerciseText: "Chin Up / 2x5, 1x5+ / 0lb\nOverhead Press, Barbell / 2x5, 1x5+ / 45lb\nDeadlift, Barbell / 2x5, 1x5+ / 95lb",
           },
         ],
       },

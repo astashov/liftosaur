@@ -30,19 +30,19 @@ I described it in one of the previous posts, but will quickly remind you here.
 Each exercise goes on a separate line. It consists of sections separated by a slash (`/`). First should go the exercise name, and then in any order you can put the sections. The simplest exercise is written like this:
 
 {% plannercode %}
-Bench Press / 3x8
+Bench Press, Barbell / 3x8
 {% endplannercode %}
 
 You can do rep ranges too:
 
 {% plannercode %}
-Bench Press / 3x8-12
+Bench Press, Barbell / 3x8-12
 {% endplannercode %}
 
 You can list multiple sets, separated by commas, like this:
 
 {% plannercode %}
-Bench Press / 1x5, 1x3, 1x1, 5x5
+Bench Press, Barbell / 1x5, 1x3, 1x1, 5x5
 {% endplannercode %}
 
 That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets of 5 reps.
@@ -52,64 +52,64 @@ If you don't specify the weight, it'll use the weight calculated from
 tables, like [this one](https://articles.reactivetrainingsystems.com/wp-content/uploads/2015/11/E1RM-TABLE.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
 
 {% plannercode %}
-Bench Press / 3x12
+Bench Press, Barbell / 3x12
 {% endplannercode %}
 
 It'll check in the RPE table that for if you want to do 12 reps til failure (@10 RPE), you probably should use 65% of 1RM, so it'll set the weight to 65% of 1RM under the hood. If you don't want to go to full failure, you can specify desired RPE:
 
 {% plannercode %}
-Bench Press / 3x12 @8
+Bench Press, Barbell / 3x12 @8
 {% endplannercode %}
 
 Then the weight would be lower - 60%. You can specify the weight explicitly, as a percentage of 1RM, like this:
 
 {% plannercode %}
-Bench Press / 3x12 80%
+Bench Press, Barbell / 3x12 80%
 {% endplannercode %}
 
 Or you can specify the weight in kg/lb, like this:
 
 {% plannercode %}
-Bench Press / 3x12 60kg
+Bench Press, Barbell / 3x12 60kg
 {% endplannercode %}
 
 RPE, percentage and weight can be specified for each set or range of sets individually, so you can mix and match:
 
 {% plannercode %}
-Bench Press / 1x5 @8, 1x3 @9, 1x1 @10, 5x5 50%
+Bench Press, Barbell / 1x5 @8, 1x3 @9, 1x1 @10, 5x5 50%
 {% endplannercode %}
 
 You can specify the rest time. E.g. this is how you could do **myo-reps** - i.e. doing heavy 12, and then doing 5x5 with short rest times and same weight:
 
 {% plannercode %}
-Bench Press / 1x12 20s 60%, 5x5 20s 60%
+Bench Press, Barbell / 1x12 20s 60%, 5x5 20s 60%
 {% endplannercode %}
 
 You can also specify the rest time, weight, 1RM percentage and RPE also, for all sets, so you don't have to repeat yourself. Do it in a separate section like this:
 
 {% plannercode %}
-Bench Press / 1x12, 5x5 / 20s 60%
+Bench Press, Barbell / 1x12, 5x5 / 20s 60%
 {% endplannercode %}
 
 To add AMRAP sets, add `+` after the reps number. And to log RPE, add `+` after the RPE number. Like this:
 
 {% plannercode %}
-Bench Press / 4x5, 1x5+ @8+
+Bench Press, Barbell / 4x5, 1x5+ @8+
 {% endplannercode %}
 
 If you want to enable "Quick add sets" feature (where you may have more sets than you planned), add `+` after the set number:
 
 {% plannercode %}
-Bench Press / 3+x5
+Bench Press, Barbell / 3+x5
 {% endplannercode %}
 
 So, an example workout may look something like this:
 
 {% plannercode %}
-Bench Press / 3x5 80%
-Incline Bench Press / 3x8-12 @8 / 90s
-Skullcrusher / 3x15 @8
-Lateral Raise / 3x15 @8
+Bench Press, Barbell / 3x5 80%
+Incline Bench Press, Barbell / 3x8-12 @8 / 90s
+Skullcrusher, Dumbbell  / 3x15 @8
+Lateral Raise, Dumbbell / 3x15 @8
 {% endplannercode %}
 
 By default, it'll use default equipment - e.g. for **Bench Press** it'll use **Barbell**. If you want to specify different equipment, add it after the exercise name, like this:
@@ -129,13 +129,13 @@ You can also specify the progressive overload for each exercise. There're 3 buil
 You can add a progression like this:
 
 {% plannercode %}
-Bench Press / 3x8 / progress: lp(5lb, 3)
+Bench Press, Barbell / 3x8 / progress: lp(5lb, 3)
 {% endplannercode %}
 
 That will increase the weight by 5lb after 3 successful attempts. Or like this:
 
 {% plannercode %}
-Bench Press / 3x8 / progress: dp(5lb, 8, 12)
+Bench Press, Barbell / 3x8 / progress: dp(5lb, 8, 12)
 {% endplannercode %}
 
 It will keep increasing reps from 8 to 12, and then reset the reps to 8 and increase the weight by 5lb.
@@ -147,14 +147,14 @@ There's a way to switch to the "Full Mode", where your whole program is just one
 {% plannercode %}
 # Week 1
 ## Day 1
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 
 ## Day 2
-Squat / 3x8
+Squat, Barbell / 3x8
 
 # Week 2
 ## Day 1
-Squat / 5x4
+Squat, Barbell / 5x4
 {% endplannercode %}
 
 I.e. prefixing week names with `#`, and day names with `##`.
@@ -164,7 +164,7 @@ I.e. prefixing week names with `#`, and day names with `##`.
 You can add descriptions to exercises via `//` comments, like this:
 {% plannercode %}
 // Pause **2 seconds** at the bottom
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 {% endplannercode %}
 
 You can use Markdown syntax there, and also the descriptions would be reused in the following weeks/days, until you overwrite them. E.g. if you have description on Week 1 and Week 3, Week 2 would reuse Week 1 description, and Week 4+ would reuse Week 3 description. You can stop that by adding empty `//` comment, like this, then this week and following weeks won't reuse the description. Like this:
@@ -173,20 +173,20 @@ You can use Markdown syntax there, and also the descriptions would be reused in 
 # Week 1
 ## Day 1
 // Pause **2 seconds** at the bottom
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 
 # Week 2
 ## Day 1
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 
 # Week 3
 ## Day 1
 // 
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 
 # Week 4
 ## Day 1
-Squat / 5x5 / progress: lp(5lb)
+Squat, Barbell / 5x5 / progress: lp(5lb)
 {% endplannercode %}
 
 In this case, Week 1 and Week 2 will have the description about the pause, and Week 3 and Week 4 won't.
@@ -199,11 +199,11 @@ you want to apply different progressions for them), you can mark exercises with 
 {% plannercode %}
 # Week 1
 ## Day 1
-main: Squat / 5x5 / progress: lp(5lb)
+main: Squat, Barbell / 5x5 / progress: lp(5lb)
 
 # Week 2
 ## Day 1
-accessory: Squat / 3x8 / progress: dp(5lb, 8, 12)
+accessory: Squat, Barbell / 3x8 / progress: dp(5lb, 8, 12)
 {% endplannercode %}
 
 ### Set Labels
@@ -211,7 +211,7 @@ accessory: Squat / 3x8 / progress: dp(5lb, 8, 12)
 If you can add labels to the sets (8 characters max!), just putting them in parentheses `()` when you specify the sets x reps:
 
 {% plannercode %}
-Squat / 4x5 (Main), 1x5+ (AMRAP) / progress: lp(5lb)
+Squat, Barbell / 4x5 (Main), 1x5+ (AMRAP) / progress: lp(5lb)
 {% endplannercode %}
 
 ### Warmups
@@ -219,7 +219,7 @@ Squat / 4x5 (Main), 1x5+ (AMRAP) / progress: lp(5lb)
 By default, it will add some warmups, but if you want to change that, you can use `warmup` section, like this:
 
 {% plannercode %}
-Squat / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
+Squat, Barbell / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
 {% endplannercode %}
 
 Syntax is very similar to the regular sets x reps, but you cannot specify timer and RPE there. Also, percentages are not
@@ -228,7 +228,7 @@ Syntax is very similar to the regular sets x reps, but you cannot specify timer 
 If you don't want warmups at all, you can specify `warmup: none`:
 
 {% plannercode %}
-Squat / 5x5 / warmup: none
+Squat, Barbell / 5x5 / warmup: none
 {% endplannercode %}
 
 ## New syntax
@@ -243,7 +243,7 @@ Instead, you'll change the weights, reps, timer and RPE directly in the exercise
 together with the planner syntax. There's a new `progress` property that you can apply to the exercise - `custom()`. It looks like this:
 
 {% plannercode %}
-Bench Press / 5x5 / 100lb / progress: custom() {~
+Bench Press, Barbell / 5x5 / 100lb / progress: custom() {~
   if (completedReps >= reps) {
     weights += 5lb
   }
@@ -255,7 +255,7 @@ Note that we include Liftoscript inside `{~ ~}` - curly braces with tildas! This
 So, instead of changing the state variable `state.weight`, you just directly change the built-in variable `weights`. And when you finish the workout and open the program again, you'll see that weight went up and the program now looks like this:
 
 {% plannercode %}
-Bench Press / 5x5 / 105lb / progress: custom() {~
+Bench Press, Barbell / 5x5 / 105lb / progress: custom() {~
   if (completedReps >= reps) {
     weights += 5lb
   }
@@ -265,7 +265,7 @@ Bench Press / 5x5 / 105lb / progress: custom() {~
 Instead of `100lb` now it says `105lb`! And that's another important feature of the new programs - they will update based on the progressive overload. If you update reps, weight, timer, etc in your `custom() {~ ~}` block, it will be reflected in the program text.
 
 {% plannercode %}
-Bench Press / 5x5 / 105lb 30s @8 / progress: custom() {~
+Bench Press, Barbell / 5x5 / 105lb 30s @8 / progress: custom() {~
   if (completedReps >= reps) {
     weights += 5lb /// Update weights of all sets
     reps = 7 /// Set reps of all sets
@@ -277,7 +277,7 @@ Bench Press / 5x5 / 105lb 30s @8 / progress: custom() {~
 After completion, it'll look like this:
 
 {% plannercode %}
-Bench Press / 5x7 / 110lb 90s @8 / progress: custom() {~
+Bench Press, Barbell / 5x7 / 110lb 90s @8 / progress: custom() {~
   if (completedReps >= reps) {
     weights += 5lb /// Update weights of all sets
     reps = 7 /// Set reps of all sets
@@ -291,7 +291,7 @@ Similar to old Liftosaur programs, you can specify set variations. You don't nee
 To add set variations, just list sets x reps in another section, like this:
 
 {% plannercode %}
-Bench Press / 3x5 / 2x7 / progress: custom() {~
+Bench Press, Barbell / 3x5 / 2x7 / progress: custom() {~
   if (!(completedReps >= reps)) {
     setVariationIndex += 1
   }
@@ -301,7 +301,7 @@ Bench Press / 3x5 / 2x7 / progress: custom() {~
 Here you have 2 set variations - `3x5` and `2x7`. You can switch between set variations via a special `setVariationIndex` variable. By default, first set variation is selected, and if you want to use another one, you add exclamation mark (`!`) in front of it, like this:
 
 {% plannercode %}
-Bench Press / 3x5 / ! 2x7 / progress: custom() {~
+Bench Press, Barbell / 3x5 / ! 2x7 / progress: custom() {~
   if (!(completedReps >= reps)) {
     setVariationIndex += 1
   }
@@ -313,7 +313,7 @@ Now, `2x7` would be selected. After finishing a workout, when it runs the finish
 When you update weights, reps, etc - you can target specific sets, set variations, days or weeks. Like this:
 
 {% plannercode %}
-Bench Press / 5x7 / 110lb 90s @8 / progress: custom() {~
+Bench Press, Barbell / 5x7 / 110lb 90s @8 / progress: custom() {~
   if (completedReps >= reps) {
     weights[1] += 5lb /// Only update weight of 1st set
     weights[1:2] += 5lb /// Only update 2st set of 1st set variation
@@ -329,7 +329,7 @@ If you omit week, day, set variation or set, it'll assume it's `*` for them. I.e
 If you want to use state variables, you need to specify them inside `custom()` parentheses, like this:
 
 {% plannercode %}
-Bench Press / 5x7 / 110lb 90s @8 / progress: custom(increment: 5lb) {~
+Bench Press, Barbell / 5x7 / 110lb 90s @8 / progress: custom(increment: 5lb) {~
   if (completedReps >= reps) {
     weights += state.increment
   }
@@ -341,12 +341,12 @@ It will create a state variable `increment`, which you can use in your Finish Da
 You can also reuse Finish Day Scripts, like this:
 
 {% plannercode %}
-Bench Press / 5x5 / progress: custom(increment: 5lb) {~
+Bench Press, Barbell / 5x5 / progress: custom(increment: 5lb) {~
   if (completedReps >= reps) {
     weights += state.increment
   }
 ~}
-Squat / 3x4 / progress: custom(increment: 10lb) { ...Bench Press }
+Squat, Barbell / 3x4 / progress: custom(increment: 10lb) { ...Bench Press, Barbell}
 {% endplannercode %}
 
 Here, we reuse the same finish day script for both Bench Press and Squat, but for Squat we'll increment the weight by 10lb. I.e. we also can use state variables to parameterize our Finish Day Scripts. Note that in this case it's just curly braces `{ }`, without tildas - because it's still Workout Planner syntax.
@@ -385,7 +385,7 @@ You can only change non-completed sets. You cannot change already completed sets
 For example, if you want to adjust half-sets after the first AMRAP set, you can do:
 
 {% plannercode %}
-Squat / 1x6+, 3x3 / update: custom() {~
+Squat, Barbell / 1x6+, 3x3 / update: custom() {~
   if (setIndex == 1) {
     reps = floor(completedReps[1] / 2)
   }
@@ -402,7 +402,7 @@ I added new numeric type to Liftoscript - percentage (both in old and new progra
 
 Two features were removed from the Liftoscript syntax:
 
-* Reusing of previous week sets x reps via `...`, like `Bench Press / ...`
+* Reusing of previous week sets x reps via `...`, like `Bench Press, Barbell / ...`
 * Omitting set number when there's just one set. I.e. previously you could write `5 50lb` for 5 reps and 50lb. Now, you have to specify sets too, i.e. `1x5 50lb`.
 
 I had to kill reusing sets x reps because over time weeks can go out of sync, e.g. if you increased reps of the exercise on week 2 or something like that. And for the set numbers - it's to make it more future-proof, when I add e.g. time-based exercises.
@@ -422,14 +422,14 @@ That one is pretty simple:
 {% plannercode %}
 # Week1
 ## Workout A
-Squat / 5x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
-Bench Press / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
-Bent Over Row / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
+Squat, Barbell / 5x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
+Bench Press, Barbell / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
+Bent Over Row, Barbell / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
 
 ## Workout B
-Squat / 5x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
-Overhead Press / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
-Deadlift / 1x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
+Squat, Barbell / 5x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
+Overhead Press, Barbell / 5x5 / progress: lp(5lb, 1, 0, 10%, 3, 0)
+Deadlift, Barbell / 1x5 / progress: lp(10lb, 1, 0, 10%, 3, 0)
 {% endplannercode %}
 
 ### Greyskull LP
@@ -439,18 +439,18 @@ Also pretty trivial :)
 {% plannercode %}
 # Week 1
 ## Workout A
-Bench Press / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
-Bent Over Row / 2x5, 1x5+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
-Squat / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
-Triceps Extension / 2x12, 1x12+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Bench Press, Barbell / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Bent Over Row, Barbell / 2x5, 1x5+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Squat, Barbell / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Triceps Extension, Cable / 2x12, 1x12+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
 Ab Wheel / 2x12, 1x12+ / 0lb
 
 ## Workout B
-Overhead Press / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Overhead Press, Barbell / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
 Chin Up / 2x5, 1x5+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
-Deadlift / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(5lb, 1, 0, 10%, 1, 0)
-Bicep Curl / 2x12, 1x12+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
-Shrug / 2x12, 1x12+ / progress: lp(10lb, 1, 0, 10%, 1, 0)
+Deadlift, Barbell / 2x5, 1x5+ / warmup: 5 45lb, 4 55% , 3 70%, 2 85% / progress: lp(5lb, 1, 0, 10%, 1, 0)
+Biceps Curl, Dumbbell / 2x12, 1x12+ / progress: lp(2.5lb, 1, 0, 10%, 1, 0)
+Shrug, Barbell / 2x12, 1x12+ / progress: lp(10lb, 1, 0, 10%, 1, 0)
 {% endplannercode %}
 
 ### GZCLP
@@ -463,7 +463,7 @@ But we still can do it! It'd look like this:
 ## Day 1
 /// Note that we specify 4 set variations. The last one is a testing week,
 /// to get the new weight before going back to the first set.
-t1: Squat / 5x3 75% / 6x2 75% / 10x1 75% / 1x5 (5RM Test) / progress: custom(increase: 10lb) {~
+t1: Squat, Barbell / 5x3 75% / 6x2 75% / 10x1 75% / 1x5 (5RM Test) / progress: custom(increase: 10lb) {~
   /// Fourth set is 5RM retesting week. So, we'll use 85% of the new 5RM for the weights,
   /// and also we'll update our 1RM for the exercise based on that - and that value would be transferrable
   /// to other programs too!
@@ -478,7 +478,7 @@ t1: Squat / 5x3 75% / 6x2 75% / 10x1 75% / 1x5 (5RM Test) / progress: custom(inc
   }
 ~}
 /// Here we have 3 set variations, and we use a state variable to remember stage 1 weight.
-t2: Bench Press / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 5lb, stage3increase: 10lb) {~
+t2: Bench Press, Barbell / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 5lb, stage3increase: 10lb) {~
   if (completedReps >= reps) {
     weights = weights[ns] + 5lb
   } else if (setVariationIndex == 1) {
@@ -492,7 +492,7 @@ t2: Bench Press / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 
   }
 ~}
 /// That one is simple - we just increase the weight by 5lb if we did 25 reps on the last set.
-t3: Lat Pulldown / 3x15 60%, 1x15+ 60% / progress: custom() {~
+t3: Lat Pulldown, Cable / 3x15 60%, 1x15+ 60% / progress: custom() {~
   if (completedReps[ns] >= 25) {
     weights = weights[ns] + 5lb
   }
@@ -500,19 +500,19 @@ t3: Lat Pulldown / 3x15 60%, 1x15+ 60% / progress: custom() {~
 
 ## Day 2
 /// All the logic is the same for all T1s, T2s and T3s, so we just reuse the Finish Day Scripts
-t1: Overhead Press / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat }
-t2: Deadlift / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 10lb, stage3increase: 15lb) { ...t2: Bench Press }
-t3: Bent Over Row / 3x15 60%, 1x15+ 60% / progress: custom() { ...t3: Lat Pulldown }
+t1: Overhead Press, Barbell / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat, Barbell }
+t2: Deadlift, Barbell / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 10lb, stage3increase: 15lb) { ...t2: Bench Press, Barbell}
+t3: Bent Over Row, Barbell / 3x15 60%, 1x15+ 60% / progress: custom() { ...t3: Lat Pulldown, Cable }
 
 ## Day 3
-t1: Bench Press / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat }
-t2: Squat / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 10lb, stage3increase: 15lb) { ...t2: Bench Press }
-t3: Lat Pulldown / 3x15 60%, 1x15+ 60%
+t1: Bench Press, Barbell / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat, Barbell }
+t2: Squat, Barbell / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 10lb, stage3increase: 15lb) { ...t2: Bench Press, Barbell}
+t3: Lat Pulldown, Cable / 3x15 60%, 1x15+ 60%
 
 ## Day 4
-t1: Deadlift / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat }
-t2: Overhead Press / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 5lb, stage3increase: 10lb) { ...t2: Bench Press }
-t3: Bent Over Row / 3x15 60%, 1x15+ 60%
+t1: Deadlift, Barbell / 5x3 75% / 6x2 75% / 10x1 75% / progress: custom(increase: 5lb) { ...t1: Squat, Barbell }
+t2: Overhead Press, Barbell / 3x10 35% / 3x8 35% / 3x6 35% / progress: custom(stage1weight: 0lb, increase: 5lb, stage3increase: 10lb) { ...t2: Bench Press, Barbell}
+t3: Bent Over Row, Barbell / 3x15 60%, 1x15+ 60%
 {% endplannercode %}
 
 Once you get familiar with the syntax, it's IMHO pretty easy to figure out how it works, just by reading the text.

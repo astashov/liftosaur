@@ -24,7 +24,7 @@ test("Warmups", async ({ page }) => {
 
   await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText(
-    "Bench Press / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 81lb"
+    "Bench Press, Barbell / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 81lb"
   );
 });
 
@@ -56,7 +56,7 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("num-input-edit-exercise-minreps-plus").nth(1).click();
   await page.getByText("Ask Weight?").first().click();
   await page.getByTestId("editor-v2-full-program").click();
-  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 88lb+, 2x2");
+  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press, Barbell / 2x5+ 88lb+, 2x2");
 });
 
 test("Change exercise", async ({ page }) => {
@@ -99,7 +99,7 @@ test("Reuse without overwrite", async ({ page }) => {
     `# Week 1
 ## Day 1
 
-Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
+Squat, Barbell / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
   );
   await page.getByTestId("editor-v2-save-full").click();
   await page.getByTestId("planner-add-day").click();
@@ -113,7 +113,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("num-input-edit-exercise-globals-rpe-value").fill("8");
   await page.getByTestId("close-edit-exercise").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Bench Press / ...Squat / @8");
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Bench Press, Barbell / ...Squat, Barbell / @8");
 });
 
 test("Reuse with overwrites", async ({ page }) => {
@@ -130,7 +130,7 @@ test("Reuse with overwrites", async ({ page }) => {
     `# Week 1
 ## Day 1
 
-Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
+Squat, Barbell / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
   );
   await page.getByTestId("editor-v2-save-full").click();
   await page.getByTestId("planner-add-day").click();
@@ -160,7 +160,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("close-edit-exercise").click();
   await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor").nth(1)).toContainText(
-    "Bench Press / ...Squat / 2x2+ / warmup: 2x5 45lb, 1x3 136lb"
+    "Bench Press, Barbell / ...Squat, Barbell / 2x2+ / warmup: 2x5 45lb, 1x3 136lb"
   );
 });
 
@@ -178,12 +178,12 @@ test("Reuse progresses", async ({ page }) => {
     `# Week 1
 ## Day 1
 
-Squat / 3x8 60lb / progress: lp(5lb)
-Bench Press / 3x8 60lb / progress: lp(10lb)
-Deadlift / 3x8 60lb / progress: dp(5lb, 8, 12)
-Overhead Press / 3x3 / progress: custom(foo: 1) {~ reps = state.foo ~}
-Bent Over Row / 3x3 / progress: custom(foo: 1) { ...Overhead Press }
-Bicep Curl / 3x3`
+Squat, Barbell / 3x8 60lb / progress: lp(5lb)
+Bench Press, Barbell / 3x8 60lb / progress: lp(10lb)
+Deadlift, Barbell / 3x8 60lb / progress: dp(5lb, 8, 12)
+Overhead Press, Barbell / 3x3 / progress: custom(foo: 1) {~ reps = state.foo ~}
+Bent Over Row, Barbell / 3x3 / progress: custom(foo: 1) { ...Overhead Press, Barbell }
+Biceps Curl, Dumbbell / 3x3`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
@@ -196,7 +196,7 @@ Bicep Curl / 3x3`
   await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText("Progress: dp(5lb, 8, 12)");
   await page.getByTestId("edit-exercise-reuse-progress-select").selectOption("Overhead Press");
   await expect(page.getByTestId("edit-program-progress").nth(5)).toContainText(
-    "Progress: custom(foo: 1) { ...Overhead Press }"
+    "Progress: custom(foo: 1) { ...Overhead Press, Barbell }"
   );
 });
 
@@ -215,8 +215,8 @@ test("Converts global weights into per-set weights", async ({ page }) => {
     `# Week 1
 ## Day 1
 
-Squat / 4x3, 1x3+ / 5x2, 1x2+ / 75% / progress: custom() {~ weights += 5lb ~}
-Bench Press / 3x3`
+Squat, Barbell / 4x3, 1x3+ / 5x2, 1x2+ / 75% / progress: custom() {~ weights += 5lb ~}
+Bench Press, Barbell / 3x3`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
@@ -226,6 +226,6 @@ Bench Press / 3x3`
   await page.getByTestId("editor-v2-full-program").click();
 
   await expect(page.getByTestId("planner-editor")).toContainText(
-    "Squat / 4x3 75%, 1x3+ 75% / 5x2 75%, 1x2+ 75% / progress: custom() {~ weights += 5lb ~}Bench Press / 3x3 / progress: custom() { ...Squat }"
+    "Squat, Barbell / 4x3 75%, 1x3+ 75% / 5x2 75%, 1x2+ 75% / progress: custom() {~ weights += 5lb ~}Bench Press, Barbell / 3x3 / progress: custom() { ...Squat, Barbell }"
   );
 });

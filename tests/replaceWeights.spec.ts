@@ -17,15 +17,15 @@ test("replaces weights", async ({ page }) => {
     "planner-editor",
     `# Week 1
 ## Day 1
-Squat / 3x8 51lb, 2x8 62kg / 4x8 30%
-Bench Press / 3x8 50lb
-Bicep Curl / ...Bench Press / 30lb
+Squat, Barbell / 3x8 51lb, 2x8 62kg / 4x8 30%
+Bench Press, Barbell / 3x8 50lb
+Biceps Curl, Dumbbell / ...Bench Press, Barbell / 30lb
 
 # Week 2
 ## Day 1
-Squat / 3x8 51lb, 1x8 70lb / 4x8 80lb
-Bench Press / 3x8 70lb
-Bicep Curl / 1x8 80lb`
+Squat, Barbell / 3x8 51lb, 1x8 70lb / 4x8 80lb
+Bench Press, Barbell / 3x8 70lb
+Biceps Curl, Dumbbell / 1x8 80lb`
   );
 
   await page.getByTestId("editor-v2-save-full").click();
@@ -83,11 +83,11 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("editor-v2-full-program").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 2x8 61kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`
+    `Squat, Barbell / 3x8 52.5lb, 2x8 61kg / 4x8 31%Bench Press, Barbell / 3x8 / 50lbBiceps Curl, Dumbbell / ...Bench Press, Barbell / 30lb`
   );
   await page.getByTestId("tab-week-2").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press / 3x8 / 70lbBicep Curl / 1x8 / 80lb`
+    `Squat, Barbell / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press, Barbell / 3x8 / 70lbBiceps Curl, Dumbbell / 1x8 / 80lb`
   );
 });
