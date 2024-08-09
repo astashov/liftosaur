@@ -10,6 +10,7 @@ import { Footer2View } from "./footer2";
 import { IScreen, Screen } from "../models/screen";
 import { HelpPlates } from "./help/helpPlates";
 import { useEffect } from "preact/hooks";
+import { MenuItemEditable } from "./menuItemEditable";
 
 interface IProps {
   dispatch: IDispatch;
@@ -48,9 +49,20 @@ export function ScreenEquipment(props: IProps): JSX.Element {
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <section className="px-2">
-        {props.settings.gyms.length > 1 && (
-          <h2 className="mb-2 text-lg font-bold text-center">Gym "{selectedGym.name}"</h2>
-        )}
+        <div className="px-2 pb-2">
+          {props.settings.gyms.length > 1 && (
+            <MenuItemEditable
+              type="text"
+              name="Gym Name"
+              value={selectedGym.name}
+              onChange={(name) => {
+                updateState(props.dispatch, [
+                  lb<IState>().p("storage").p("settings").p("gyms").findBy("id", selectedGym.id).p("name").record(name),
+                ]);
+              }}
+            />
+          )}
+        </div>
         <EquipmentSettings
           expandedEquipment={props.expandedEquipment}
           lensPrefix={lb<IState>()
