@@ -56,9 +56,17 @@ export function ScreenEquipment(props: IProps): JSX.Element {
               name="Gym Name"
               value={selectedGym.name}
               onChange={(name) => {
-                updateState(props.dispatch, [
-                  lb<IState>().p("storage").p("settings").p("gyms").findBy("id", selectedGym.id).p("name").record(name),
-                ]);
+                if (name) {
+                  updateState(props.dispatch, [
+                    lb<IState>()
+                      .p("storage")
+                      .p("settings")
+                      .p("gyms")
+                      .findBy("id", selectedGym.id)
+                      .p("name")
+                      .record(name),
+                  ]);
+                }
               }}
             />
           )}
