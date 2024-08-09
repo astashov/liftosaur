@@ -48,6 +48,8 @@
 - Made numberOfSets = 0 work in update blocks
 - Need to add lb to kg converter properly.
 
+- Muscles shown for historical workouts
+
 User debug page:
 - Programs, their version history
 - 

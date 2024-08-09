@@ -220,8 +220,10 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
+        di.log.log(storageUpdate);
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
+          di.log.log("New original id", result.data);
           await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
           return response(200, {
             type: "clean",
@@ -235,9 +237,11 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         }
       } else {
         di.log.log("Fetch: Merging update");
+        di.log.log(storageUpdate);
         storageUpdate.originalId = Date.now();
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
+          di.log.log("New original id", result.data);
           await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
           const fullUser = (await userDao.getById(userId))!;
           const storage = fullUser.storage;
@@ -1954,6 +1958,8 @@ export const getRawHandler = (di: IDI): IHandler => {
     const userid = await getCurrentUserId(event, di);
     if (userid) {
       di.log.setUser(userid);
+    } else {
+      di.log.setUser("anonymous");
     }
     di.log.log("--------> Starting request", event.httpMethod, event.path);
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");

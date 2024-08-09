@@ -4,16 +4,7 @@ import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment } from "../models/equipment";
 import { equipmentName, Exercise } from "../models/exercise";
-import {
-  equipments,
-  exerciseKinds,
-  IEquipmentData,
-  IExerciseType,
-  IProgram,
-  ISettings,
-  IWeight,
-  screenMuscles,
-} from "../types";
+import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight, screenMuscles } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
