@@ -286,7 +286,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               </div>
             )}
           </div>
-          <div className="fixed bottom-0 py-2 text-center bg-white shadow-xs" style={{ width: statsWidth }}>
+          <div className="fixed bottom-0 py-2 text-center bg-white ring-1 ring-black ring-opacity-5" style={{ width: statsWidth }}>
             <Button
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}

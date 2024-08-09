@@ -27,7 +27,7 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring"
           type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
           placeholder={`${StringUtils.capitalize(props.equipment)} weight in ${props.units}`}

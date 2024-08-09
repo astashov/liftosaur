@@ -75,7 +75,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
 
   let className =
-    "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:ring";
   if (props.error != null) {
     className += " border-red-500";
   } else {

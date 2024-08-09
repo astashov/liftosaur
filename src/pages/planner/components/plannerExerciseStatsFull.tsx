@@ -48,7 +48,7 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
   const volumeKey = JSON.stringify(volumeGraphData);
 
   return (
-    <div className="py-1 bg-white shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
+    <div className="py-1 bg-white ring-1 ring-black ring-opacity-5" style={{ borderRadius: "8px 8px 0 0" }}>
       <div className="px-4 pb-2">
         <LinkButton
           name="planner-swap-exercise"

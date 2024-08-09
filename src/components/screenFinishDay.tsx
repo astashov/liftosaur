@@ -153,7 +153,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                   <li>
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
-                      <span className="whitespace-no-wrap">
+                      <span className="whitespace-nowrap">
                         {set.completedReps || 0} {StringUtils.pluralize("rep", set.completedReps || 0)} x{" "}
                         {Weight.display(Weight.convertTo(set.weight, props.settings.units))}
                       </span>

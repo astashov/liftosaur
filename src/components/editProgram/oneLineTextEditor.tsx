@@ -60,7 +60,7 @@ export function OneLineTextEditor(props: IProps): JSX.Element {
   }, [props.value]);
 
   let className =
-    "relative z-10 block w-full px-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "relative z-10 block w-full px-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:ring";
   if (props.label) {
     className += " pt-4";
   } else {

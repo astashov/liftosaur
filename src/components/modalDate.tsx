@@ -31,7 +31,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
         <h3 className="pb-2 font-bold">Please enter new date</h3>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring"
           type="date"
           placeholder="Date"
           value={formattedDate}

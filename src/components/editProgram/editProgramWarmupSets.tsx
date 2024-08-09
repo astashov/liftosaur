@@ -147,7 +147,7 @@ function EditWarmupSet(props: IEditWarmupSetProps): JSX.Element {
           ))}
         </select>
       </div>
-      <div className="px-2 whitespace-no-wrap">if &gt;</div>
+      <div className="px-2 whitespace-nowrap">if &gt;</div>
       <div>
         <input
           data-cy="edit-warmup-set-threshold"

@@ -34,7 +34,7 @@ export function ModalShare(props: IProps): JSX.Element {
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h3 className="pb-2 font-bold text-center">Share this workout</h3>
       <div
-        className="p-2 overflow-x-auto whitespace-no-wrap bg-gray-100 border border-gray-600 rounded-lg"
+        className="p-2 overflow-x-auto whitespace-nowrap bg-gray-100 border border-gray-600 rounded-lg"
         ref={linkRef}
       >
         {link}

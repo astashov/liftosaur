@@ -17,7 +17,7 @@ interface IEditProgramExerciseSimpleProgressionProps {
 
 export function EditProgramExerciseSimpleProgression(props: IEditProgramExerciseSimpleProgressionProps): JSX.Element {
   const { settings, finishDayExpr } = props;
-  const inputClassName = `inline-block w-10 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline`;
+  const inputClassName = `inline-block w-10 px-1 py-1 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring`;
 
   const [progression, setProgression] = ReactUtils.useStateWithCallback<IProgression | undefined>(
     () => Progression.getProgression(finishDayExpr),
