@@ -142,11 +142,13 @@ export async function getInitialState(
 export type IChangeDate = {
   type: "ChangeDate";
   date: string;
+  time: number;
 };
 
 export type IConfirmDate = {
   type: "ConfirmDate";
   date?: string;
+  time?: number;
 };
 
 export type ISyncStorage = {
@@ -608,9 +610,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       };
     }
   } else if (action.type === "ChangeDate") {
-    return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date));
+    return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date, action.time));
   } else if (action.type === "ConfirmDate") {
-    return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date));
+    return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date, action.time));
   } else if (action.type === "CancelProgress") {
     const progress = Progress.getProgress(state)!;
     return {

@@ -59,6 +59,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const editModalProgramExercise = progress.ui?.editModal?.programExercise.id;
+  const dateModal = progress.ui?.dateModal;
 
   if (progress != null) {
     return (
@@ -71,10 +72,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
             helpContent={<HelpWorkout />}
             onTitleClick={() => {
               if (!Progress.isCurrent(progress)) {
-                props.dispatch({ type: "ChangeDate", date: progress.date });
+                props.dispatch({
+                  type: "ChangeDate",
+                  date: progress.date,
+                  time: (progress.endTime ?? props.progress.startTime) - props.progress.startTime,
+                });
               }
             }}
-            title={Progress.isCurrent(progress) ? "Ongoing workout" : DateUtils.format(progress.date)}
+            title={Progress.isCurrent(progress) ? "Ongoing workout" : `${DateUtils.format(progress.date)} h`}
             subtitle={
               !Progress.isCurrent(progress) && progress.endTime ? (
                 TimeUtils.formatHHMM(progress.endTime - props.progress.startTime)
@@ -142,11 +147,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 dispatch={props.dispatch}
               />
             )}
-            <ModalDate
-              isHidden={progress.ui?.dateModal == null}
-              dispatch={props.dispatch}
-              date={progress.ui?.dateModal?.date ?? ""}
-            />
+            {dateModal != null && (
+              <ModalDate
+                isHidden={false}
+                dispatch={props.dispatch}
+                date={dateModal.date ?? ""}
+                time={dateModal.time ?? 0}
+              />
+            )}
             {progress.ui?.exerciseModal != null && (
               <ModalExercise
                 isHidden={progress.ui?.exerciseModal == null}

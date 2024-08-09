@@ -536,12 +536,12 @@ export namespace Progress {
     };
   }
 
-  export function showUpdateDate(progress: IHistoryRecord, date: string): IHistoryRecord {
+  export function showUpdateDate(progress: IHistoryRecord, date: string, time: number): IHistoryRecord {
     return {
       ...progress,
       ui: {
         ...progress.ui,
-        dateModal: { date },
+        dateModal: { date, time },
       },
     };
   }
@@ -559,10 +559,12 @@ export namespace Progress {
     }, {});
   }
 
-  export function changeDate(progress: IHistoryRecord, date?: string): IHistoryRecord {
+  export function changeDate(progress: IHistoryRecord, date?: string, time?: number): IHistoryRecord {
+    const endTime = time != null ? progress.startTime + time : progress.endTime;
     return {
       ...progress,
       ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
+      endTime,
       ui: {
         ...progress.ui,
         dateModal: undefined,

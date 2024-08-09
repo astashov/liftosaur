@@ -586,6 +586,7 @@ export const TProgressUi = t.partial(
     }),
     dateModal: t.type({
       date: t.string,
+      time: t.number,
     }),
     exerciseModal: t.partial({
       exerciseType: TExerciseType,

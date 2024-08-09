@@ -56,7 +56,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
               name="Gym Name"
               value={selectedGym.name}
               onChange={(name) => {
-                if (name) {
+                if (name?.trim()) {
                   updateState(props.dispatch, [
                     lb<IState>()
                       .p("storage")
@@ -64,7 +64,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
                       .p("gyms")
                       .findBy("id", selectedGym.id)
                       .p("name")
-                      .record(name),
+                      .record(name.trim()),
                   ]);
                 }
               }}
