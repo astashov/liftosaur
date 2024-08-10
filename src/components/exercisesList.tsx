@@ -27,7 +27,7 @@ import { Weight } from "../models/weight";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ModalCustomExercise } from "./modalExercise";
-import { lb } from "../../../lens-shmens/dist";
+import { lb } from "lens-shmens";
 import { updateSettings } from "../models/state";
 import { ObjectUtils } from "../utils/object";
 import { Settings } from "../models/settings";
