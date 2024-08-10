@@ -692,7 +692,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
 
   return (
     <ProgramPreviewPlaygroundDay
-      program={program}
+      program={Program.fullProgram(program, settings)}
       dayIndex={0}
       isPlayground={true}
       settings={settings}

@@ -3637,7 +3637,7 @@ export namespace Exercise {
   }
 
   export function defaultRounding(type: IExerciseType, settings: ISettings): number {
-    return Math.max(0.1, settings.exerciseData[Exercise.toKey(type)]?.rounding ?? 0.5);
+    return Math.max(0.1, settings.exerciseData[Exercise.toKey(type)]?.rounding ?? (settings.units === "kg" ? 2.5 : 5));
   }
 
   export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {

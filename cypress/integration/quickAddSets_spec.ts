@@ -36,7 +36,7 @@ describe("Program", () => {
       "multiline-editor-finish-day",
       "if (numberOfSets > 4) {\n  state.weight = state.weight + 5\n}\nstate.lastrep = reps[ns]"
     );
-    g("save-program").click();
+    g("save-exercise").click();
 
     g("navbar-back").click();
     g("navbar-back").click();
