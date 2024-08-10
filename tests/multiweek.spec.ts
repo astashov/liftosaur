@@ -34,7 +34,7 @@ state.day = day
 state.dayInWeek = dayInWeek`
   );
 
-  await page.getByTestId("save-program").click();
+  await page.getByTestId("save-exercise").click();
   await page.getByTestId("navbar-back").click();
 
   await page.getByTestId("menu-item-squat").getByTestId("clone-exercise").click();

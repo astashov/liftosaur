@@ -29,7 +29,7 @@ test("User Prompted State Vars", async ({ page }) => {
     "if (state.rpe > 7) {\n  state.weight = state.weight - 5lb\n} else if (state.rpe < 3) {\n  state.weight = state.weight + 5lb\n}"
   );
 
-  await page.getByTestId("save-program").click();
+  await page.getByTestId("save-exercise").click();
   await page.getByTestId("edit-day").click();
   await page.getByTestId("menu-item-squat").click();
 

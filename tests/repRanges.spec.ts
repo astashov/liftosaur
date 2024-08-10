@@ -34,7 +34,7 @@ test("rep ranges", async ({ page }) => {
   state.weight -= 15lb
 }`
   );
-  await page.getByTestId("save-program").click();
+  await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("history-entry-sets-next").nth(0)).toHaveText("5");

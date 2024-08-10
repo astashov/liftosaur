@@ -118,6 +118,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                 targetMuscles: IMuscle[],
                 synergistMuscles: IMuscle[],
                 types: IExerciseKind[],
+                smallImageUrl?: string,
+                largeImageUrl?: string,
                 exercise?: ICustomExercise
               ) => {
                 const exercises = Exercise.createOrUpdateCustomExercise(
@@ -126,6 +128,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
                   targetMuscles,
                   synergistMuscles,
                   types,
+                  smallImageUrl,
+                  largeImageUrl,
                   exercise
                 );
                 updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));

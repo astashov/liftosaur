@@ -38,7 +38,7 @@ test("rpe", async ({ page }) => {
     "state.boom = completedRPE[3] + completedRPE[4] + RPE[1]"
   );
 
-  await page.getByTestId("save-program").click();
+  await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("footer-workout").click();
 

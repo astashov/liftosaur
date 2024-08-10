@@ -29,7 +29,7 @@ test("rm1", async ({ page }) => {
 
   await page.getByTestId("workout-set").getByTestId("set-nonstarted").click();
   await expect(page.getByTestId("variable-changes-value-1-rm")).toHaveText("135 lb -> 140 lb");
-  await page.getByTestId("save-program").click();
+  await page.getByTestId("save-exercise").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();

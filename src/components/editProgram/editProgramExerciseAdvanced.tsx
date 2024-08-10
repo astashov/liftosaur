@@ -333,7 +333,7 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
         <Button
           name="save-exercise-advanced"
           kind="orange"
-          data-cy="save-program"
+          data-cy="save-exercise"
           disabled={cannotSave}
           onClick={() => {
             if (!cannotSave) {
@@ -361,8 +361,26 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
       <ModalExercise
         isHidden={!showModalExercise}
         settings={props.settings}
-        onCreateOrUpdate={(shouldClose, name, targetMuscles, synergistMuscles, types, exercise) => {
-          EditCustomExercise.createOrUpdate(props.dispatch, name, targetMuscles, synergistMuscles, types, exercise);
+        onCreateOrUpdate={(
+          shouldClose,
+          name,
+          targetMuscles,
+          synergistMuscles,
+          types,
+          smallImageUrl,
+          largeImageUrl,
+          exercise
+        ) => {
+          EditCustomExercise.createOrUpdate(
+            props.dispatch,
+            name,
+            targetMuscles,
+            synergistMuscles,
+            types,
+            smallImageUrl,
+            largeImageUrl,
+            exercise
+          );
         }}
         onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
         exerciseType={programExercise.exerciseType}

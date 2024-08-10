@@ -154,7 +154,16 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         isHidden={!showModalExercise}
         settings={props.settings}
         exerciseType={programExercise.exerciseType}
-        onCreateOrUpdate={(shouldClose, name, targetMuscles, synergistMuscles, types, ex) => {
+        onCreateOrUpdate={(
+          shouldClose,
+          name,
+          targetMuscles,
+          synergistMuscles,
+          types,
+          smallImageUrl,
+          largeImageUrl,
+          ex
+        ) => {
           props.dispatch(
             EditCustomExerciseLenses.createOrUpdate(
               lb<IProgramEditorState>().p("settings"),
@@ -162,6 +171,8 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
               targetMuscles,
               synergistMuscles,
               types,
+              smallImageUrl,
+              largeImageUrl,
               ex
             )
           );

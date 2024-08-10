@@ -590,6 +590,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             targetMuscles: IMuscle[],
             synergistMuscles: IMuscle[],
             types: IExerciseKind[],
+            smallImageUrl?: string,
+            largeImageUrl?: string,
             exercise?: ICustomExercise
           ) => {
             const exercises = Exercise.createOrUpdateCustomExercise(
@@ -598,6 +600,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               targetMuscles,
               synergistMuscles,
               types,
+              smallImageUrl,
+              largeImageUrl,
               exercise
             );
             setSettings(lf(settings).p("exercises").set(exercises));

@@ -3923,6 +3923,8 @@ export namespace Exercise {
     tMuscles: IMuscle[],
     sMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ): IAllCustomExercises {
     if (exercise != null) {
@@ -3930,6 +3932,8 @@ export namespace Exercise {
         ...exercise,
         name,
         types,
+        smallImageUrl,
+        largeImageUrl,
         meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
       };
       return { ...allExercises, [newExercise.id]: newExercise };
@@ -3945,6 +3949,8 @@ export namespace Exercise {
             ...deletedExercise,
             name,
             types,
+            smallImageUrl,
+            largeImageUrl,
             isDeleted: false,
             meta: {
               targetMuscles: tMuscles,
@@ -3960,6 +3966,8 @@ export namespace Exercise {
           name,
           isDeleted: false,
           types,
+          smallImageUrl,
+          largeImageUrl,
           meta: {
             targetMuscles: tMuscles,
             synergistMuscles: sMuscles,

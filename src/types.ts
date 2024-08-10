@@ -357,6 +357,8 @@ export const TCustomExercise = t.intersection(
     t.partial({
       defaultEquipment: TEquipment,
       types: t.array(TExerciseKind),
+      largeImageUrl: t.string,
+      smallImageUrl: t.string,
     }),
   ],
   "TCustomExercise"

@@ -1,4 +1,4 @@
-import { IExerciseType } from "../types";
+import { IExerciseType, ISettings } from "../types";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -681,11 +681,23 @@ export namespace ExerciseImageUtils {
     return size === "small" ? availableSmallImages.has(id(type)) : availableLargeImages.has(id(type));
   }
 
-  export function url(type: IExerciseType, size: "small" | "large"): string | undefined {
-    const src =
-      size === "large"
-        ? `/externalimages/exercises/full/large/${id(type)}_full_large.png`
-        : `/externalimages/exercises/single/small/${id(type)}_single_small.png`;
-    return src;
+  export function existsCustom(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
+    const customExercise = settings?.exercises?.[type.id];
+    return size === "small" ? !!customExercise?.smallImageUrl : !!customExercise?.largeImageUrl;
+  }
+
+  export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
+    if (exists(type, size)) {
+      const src =
+        size === "large"
+          ? `/externalimages/exercises/full/large/${id(type)}_full_large.png`
+          : `/externalimages/exercises/single/small/${id(type)}_single_small.png`;
+      return src;
+    } else if (existsCustom(type, size, settings)) {
+      const customExercise = settings?.exercises?.[type.id];
+      return size === "large" ? customExercise?.largeImageUrl : customExercise?.smallImageUrl;
+    } else {
+      return undefined;
+    }
   }
 }

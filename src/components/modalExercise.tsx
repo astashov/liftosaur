@@ -26,7 +26,6 @@ import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { ExerciseImage } from "./exerciseImage";
 import { IconEditSquare } from "./icons/iconEditSquare";
-import { IconDefaultExercise } from "./icons/iconDefaultExercise";
 import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
@@ -44,6 +43,8 @@ interface IModalExerciseProps {
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ) => void;
   customExerciseName?: string;
@@ -102,6 +103,8 @@ interface IModalCustomExerciseProps {
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ) => void;
 }
@@ -254,12 +257,7 @@ const ExercisesList = forwardRef(
                   >
                     <section className="flex items-center">
                       <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
-                        <div
-                          className="relative inline-block w-full h-full overflow-hidden align-middle"
-                          style={{ paddingBottom: "100%" }}
-                        >
-                          <IconDefaultExercise className={`absolute top-0 left-0 w-full h-full`} />
-                        </div>
+                        <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
                       </div>
                       <div className="flex-1 py-2 text-left">
                         <div>{e.name}</div>
@@ -379,6 +377,8 @@ interface IEditCustomExerciseProps {
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ) => void;
   customExerciseName?: string;
@@ -391,10 +391,13 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
   const [targetMuscles, setTargetMuscles] = useState<IMuscle[]>(props.exercise?.meta.targetMuscles || []);
   const [synergistMuscles, setSynergistMuscles] = useState<IMuscle[]>(props.exercise?.meta.synergistMuscles || []);
   const [types, setTypes] = useState<IExerciseKind[]>(props.exercise?.types || []);
+  const [smallImageUrl, setSmallImageUrl] = useState<string>(props.exercise?.smallImageUrl || "");
+  const [largeImageUrl, setLargeImageUrl] = useState<string>(props.exercise?.largeImageUrl || "");
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
       <LabelAndInput
+        star={true}
         identifier="custom-exercise-name"
         label="Name"
         errorMessage={nameError}
@@ -427,6 +430,30 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         initialSelectedValues={new Set(props.exercise?.types || [])}
         onChange={(t) => setTypes(Array.from(t) as IExerciseKind[])}
       />
+      <LabelAndInput
+        identifier="custom-exercise-small-image"
+        label="Small Image Url"
+        value={smallImageUrl}
+        hint="1:1 aspect ratio, >= 150px width"
+        placeholder="https://www.img.com/small.jpg"
+        onInput={(e) => {
+          if (e.currentTarget.value != null) {
+            setSmallImageUrl(e.currentTarget.value);
+          }
+        }}
+      />
+      <LabelAndInput
+        identifier="custom-exercise-large-image"
+        label="Large Image Url"
+        value={largeImageUrl}
+        hint="4:3 aspect ratio, >= 800px width"
+        placeholder="https://www.img.com/large.jpg"
+        onInput={(e) => {
+          if (e.currentTarget.value != null) {
+            setLargeImageUrl(e.currentTarget.value);
+          }
+        }}
+      />
       <div class="py-4 flex">
         <div class="flex-1">
           <Button
@@ -454,12 +481,16 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
                 setNameError("Name already taken");
               } else {
                 setNameError(undefined);
+                const cleanedSmallImageUrl = smallImageUrl.trim();
+                const cleanedLargeImageUrl = largeImageUrl.trim();
                 props.onCreateOrUpdate(
                   !!props.customExerciseName,
                   name,
                   targetMuscles,
                   synergistMuscles,
                   types,
+                  cleanedSmallImageUrl || undefined,
+                  cleanedLargeImageUrl || undefined,
                   props.exercise
                 );
                 props.setIsCustomExerciseDisplayed(false);

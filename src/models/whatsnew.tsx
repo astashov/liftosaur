@@ -1261,6 +1261,17 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240810": {
+    title: <span>Custom Exercise Images</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can optionally set exercise images to your custom exercises. You can provide URLs for a small image
+          (used across the workout screen/program preview/etc) and a large image (used on the exercise stats screen).
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

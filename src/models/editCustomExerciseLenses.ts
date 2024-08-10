@@ -11,10 +11,21 @@ export namespace EditCustomExerciseLenses {
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ): ILensRecordingPayload<T> {
     return prefix.p("exercises").recordModify((exercises) => {
-      return Exercise.createOrUpdateCustomExercise(exercises, name, targetMuscles, synergistMuscles, types, exercise);
+      return Exercise.createOrUpdateCustomExercise(
+        exercises,
+        name,
+        targetMuscles,
+        synergistMuscles,
+        types,
+        smallImageUrl,
+        largeImageUrl,
+        exercise
+      );
     });
   }
 

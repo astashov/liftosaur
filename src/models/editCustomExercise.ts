@@ -11,6 +11,8 @@ export namespace EditCustomExercise {
     targetMuscles: IMuscle[],
     synergistMuscles: IMuscle[],
     types: IExerciseKind[],
+    smallImageUrl?: string,
+    largeImageUrl?: string,
     exercise?: ICustomExercise
   ): void {
     updateState(dispatch, [
@@ -20,6 +22,8 @@ export namespace EditCustomExercise {
         targetMuscles,
         synergistMuscles,
         types,
+        smallImageUrl,
+        largeImageUrl,
         exercise
       ),
     ]);

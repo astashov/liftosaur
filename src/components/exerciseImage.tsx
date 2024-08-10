@@ -42,8 +42,10 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
   if (isLoading || isError) {
     className += "invisible h-0";
   }
-  const src = ExerciseImageUtils.url(exerciseType, size);
-  const doesExist = ExerciseImageUtils.exists(exerciseType, size);
+  const src = ExerciseImageUtils.url(exerciseType, size, props.settings);
+  const doesExist =
+    ExerciseImageUtils.exists(exerciseType, size) ||
+    ExerciseImageUtils.existsCustom(exerciseType, size, props.settings);
 
   if (size === "small") {
     return (

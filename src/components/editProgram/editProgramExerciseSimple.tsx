@@ -107,8 +107,26 @@ function Edit(props: IProps): JSX.Element {
         isHidden={!showModalExercise}
         settings={props.settings}
         exerciseType={programExercise.exerciseType}
-        onCreateOrUpdate={(shouldClose, name, targetMuscles, synergistMuscles, types, exercise) => {
-          EditCustomExercise.createOrUpdate(props.dispatch, name, targetMuscles, synergistMuscles, types, exercise);
+        onCreateOrUpdate={(
+          shouldClose,
+          name,
+          targetMuscles,
+          synergistMuscles,
+          types,
+          smallImageUrl,
+          largeImageUrl,
+          exercise
+        ) => {
+          EditCustomExercise.createOrUpdate(
+            props.dispatch,
+            name,
+            targetMuscles,
+            synergistMuscles,
+            types,
+            smallImageUrl,
+            largeImageUrl,
+            exercise
+          );
         }}
         onDelete={(id) => EditCustomExercise.markDeleted(props.dispatch, id)}
         onChange={(exerciseType, shouldClose) => {
