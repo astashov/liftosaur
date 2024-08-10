@@ -1,6 +1,7 @@
-import { ISettings, IPlannerSettings, IAllEquipment } from "../types";
+import { ISettings, IPlannerSettings, IAllEquipment, IAllCustomExercises } from "../types";
 import { Weight } from "./weight";
 import { IExportedProgram } from "./program";
+import { ObjectUtils } from "../utils/object";
 
 export namespace Settings {
   export function programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -298,5 +299,9 @@ export namespace Settings {
       },
       planner: exportedProgram.settings.planner || settings.planner,
     };
+  }
+
+  export function activeCustomExercises(settings: ISettings): IAllCustomExercises {
+    return ObjectUtils.filter(settings.exercises, (k, v) => !v?.isDeleted);
   }
 }

@@ -4,7 +4,18 @@ import { Thunk } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment } from "../models/equipment";
 import { equipmentName, Exercise } from "../models/exercise";
-import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight, screenMuscles } from "../types";
+import {
+  equipments,
+  exerciseKinds,
+  ICustomExercise,
+  IExerciseKind,
+  IExerciseType,
+  IMuscle,
+  IProgram,
+  ISettings,
+  IWeight,
+  screenMuscles,
+} from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { StringUtils } from "../utils/string";
 import { ExerciseImage } from "./exerciseImage";
@@ -14,6 +25,12 @@ import { Multiselect } from "./multiselect";
 import { IHistoryRecord } from "../types";
 import { Weight } from "../models/weight";
 import { IconArrowRight } from "./icons/iconArrowRight";
+import { LinkButton } from "./linkButton";
+import { ModalCustomExercise } from "./modalExercise";
+import { lb } from "../../../lens-shmens/dist";
+import { updateSettings } from "../models/state";
+import { ObjectUtils } from "../utils/object";
+import { Settings } from "../models/settings";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -46,6 +63,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [showCustomExerciseModal, setShowCustomExerciseModal] = useState<boolean>(false);
 
   let programExercises = buildExercises(
     CollectionUtils.uniqByExpr(props.program.exercises, (e) => Exercise.toKey(e.exerciseType)).map(
@@ -58,9 +76,15 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
     CollectionUtils.uniqByExpr(
       props.history
         .flatMap((hr) => hr.entries.map((e) => e.exercise))
-        .filter((e) => !programExercisesKeys.has(Exercise.toKey(e))),
+        .filter(
+          (e) => !programExercisesKeys.has(Exercise.toKey(e)) && !Exercise.isCustom(e.id, props.settings.exercises)
+        ),
       (e) => Exercise.toKey(e)
     ),
+    props.settings
+  );
+  let customExercises = buildExercises(
+    CollectionUtils.compact(ObjectUtils.values(Settings.activeCustomExercises(props.settings))),
     props.settings
   );
 
@@ -73,16 +97,21 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
   if (filter) {
     programExercises = Exercise.filterExercises(programExercises, filter);
     historyExercises = Exercise.filterExercises(historyExercises, filter);
+    customExercises = Exercise.filterExercises(customExercises, filter);
   }
   if (filterTypes && filterTypes.length > 0) {
     programExercises = Exercise.filterExercisesByType(programExercises, filterTypes, props.settings);
     historyExercises = Exercise.filterExercisesByType(historyExercises, filterTypes, props.settings);
+    customExercises = Exercise.filterExercisesByType(customExercises, filterTypes, props.settings);
   }
 
   programExercises.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
   historyExercises.sort((a, b) => {
+    return a.name.localeCompare(b.name);
+  });
+  customExercises.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
 
@@ -108,8 +137,25 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           onChange={(ft) => setFilterTypes(Array.from(ft))}
         />
       </form>
+      <div className="text-right">
+        <LinkButton name="create-custom-exercise" onClick={() => setShowCustomExerciseModal(true)}>
+          Create custom exercise
+        </LinkButton>
+      </div>
 
-      <GroupHeader name="Current program exercises" topPadding={true} />
+      {customExercises.length > 0 && <GroupHeader name="Custom Exercises" topPadding={true} />}
+      {customExercises.map((exercise) => {
+        return (
+          <ExerciseItem
+            key={Exercise.toKey(exercise)}
+            dispatch={props.dispatch}
+            settings={props.settings}
+            exercise={exercise}
+          />
+        );
+      })}
+
+      {programExercises.length > 0 && <GroupHeader name="Current program exercises" topPadding={true} />}
       {programExercises.map((exercise) => {
         return (
           <ExerciseItem
@@ -120,7 +166,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           />
         );
       })}
-      <GroupHeader name="Exercises from history" topPadding={true} />
+      {historyExercises.length > 0 && <GroupHeader name="Exercises from history" topPadding={true} />}
       {historyExercises.map((exercise) => {
         return (
           <ExerciseItem
@@ -131,6 +177,33 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           />
         );
       })}
+      {showCustomExerciseModal && (
+        <ModalCustomExercise
+          settings={props.settings}
+          onClose={() => setShowCustomExerciseModal(false)}
+          onCreateOrUpdate={(
+            shouldClose: boolean,
+            name: string,
+            targetMuscles: IMuscle[],
+            synergistMuscles: IMuscle[],
+            types: IExerciseKind[],
+            exercise?: ICustomExercise
+          ) => {
+            const exercises = Exercise.createOrUpdateCustomExercise(
+              props.settings.exercises,
+              name,
+              targetMuscles,
+              synergistMuscles,
+              types,
+              exercise
+            );
+            updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+            if (shouldClose) {
+              setShowCustomExerciseModal(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

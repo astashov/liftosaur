@@ -66,6 +66,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
       <div style={{ maxWidth: "600px", minWidth: "260px" }}>
         {isCustomExerciseDisplayed ? (
           <CustomExerciseForm
+            backLabel="Back to list"
             exercise={editingExercise}
             customExerciseName={props.customExerciseName}
             setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
@@ -86,6 +87,36 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
             settings={props.settings}
           />
         )}
+      </div>
+    </Modal>
+  );
+}
+
+interface IModalCustomExerciseProps {
+  exercise?: ICustomExercise;
+  onClose: () => void;
+  settings: ISettings;
+  onCreateOrUpdate: (
+    shouldClose: boolean,
+    name: string,
+    targetMuscles: IMuscle[],
+    synergistMuscles: IMuscle[],
+    types: IExerciseKind[],
+    exercise?: ICustomExercise
+  ) => void;
+}
+
+export function ModalCustomExercise(props: IModalCustomExerciseProps): JSX.Element {
+  return (
+    <Modal shouldShowClose={true} onClose={props.onClose}>
+      <div style={{ maxWidth: "600px", minWidth: "260px" }}>
+        <CustomExerciseForm
+          backLabel="Cancel"
+          exercise={props.exercise}
+          setIsCustomExerciseDisplayed={() => props.onClose()}
+          settings={props.settings}
+          onCreateOrUpdate={props.onCreateOrUpdate}
+        />
       </div>
     </Modal>
   );
@@ -339,6 +370,7 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
 
 interface IEditCustomExerciseProps {
   settings: ISettings;
+  backLabel: string;
   exercise?: ICustomExercise;
   setIsCustomExerciseDisplayed: (value: boolean) => void;
   onCreateOrUpdate: (
@@ -352,7 +384,7 @@ interface IEditCustomExerciseProps {
   customExerciseName?: string;
 }
 
-function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
+export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const customExercises = props.settings.exercises;
   const [name, setName] = useState<string>(props.exercise?.name || props.customExerciseName || "");
   const [nameError, setNameError] = useState<string | undefined>(undefined);
@@ -406,7 +438,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
               props.setIsCustomExerciseDisplayed(false);
             }}
           >
-            Back to list
+            {props.backLabel}
           </Button>
         </div>
         <div class="flex-1 text-right">
@@ -442,7 +474,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   );
 }
 
-function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
+export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
   const { exercise, settings } = props;
   const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises).map((m) =>
     StringUtils.capitalize(m)
@@ -542,7 +574,7 @@ function MuscleView(props: {
   );
 }
 
-function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JSX.Element {
+export function CustomMuscleGroupsView(props: { exercise: ICustomExercise }): JSX.Element {
   const { exercise } = props;
   const targetMuscleGroups = Array.from(
     new Set(CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m))))

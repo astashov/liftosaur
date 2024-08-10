@@ -3573,6 +3573,10 @@ export namespace Exercise {
     return !!exercise;
   }
 
+  export function isCustom(id: string, customExercises: IAllCustomExercises): boolean {
+    return customExercises[id] != null;
+  }
+
   export function fullName(exercise: IExercise, settings?: ISettings): string {
     if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
       const equipment = equipmentName(exercise.equipment, settings?.equipment);

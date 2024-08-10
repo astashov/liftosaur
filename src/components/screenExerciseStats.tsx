@@ -1,8 +1,16 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen } from "../models/screen";
-import { IExerciseType, IHistoryRecord, ISettings, ISubscription } from "../types";
-import { ILoading, IState, updateState, updateSettings } from "../models/state";
+import {
+  ICustomExercise,
+  IExerciseKind,
+  IExerciseType,
+  IHistoryRecord,
+  IMuscle,
+  ISettings,
+  ISubscription,
+} from "../types";
+import { ILoading, updateSettings } from "../models/state";
 import { History } from "../models/history";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -24,11 +32,13 @@ import { useState } from "preact/hooks";
 import { Weight } from "../models/weight";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
-import { StringUtils } from "../utils/string";
 import { useGradualList } from "../utils/useGradualList";
 import { ObjectUtils } from "../utils/object";
 import { Reps } from "../models/set";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
+import { MuscleGroupsView, ModalCustomExercise } from "./modalExercise";
+import { LinkButton } from "./linkButton";
+import { Thunk } from "../ducks/thunks";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -44,16 +54,18 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const [showFilters, setShowFilters] = useState(false);
   const exerciseType = props.exerciseType;
   const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
+  const customExercise = props.settings.exercises[exerciseType.id];
   const historyCollector = Collector.build(props.history)
     .addFn(History.collectMinAndMaxTime())
     .addFn(History.collectAllUsedExerciseTypes())
     .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
     .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
     .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
+  const [showCustomExerciseModal, setShowCustomExerciseModal] = useState(false);
 
   const [
     { maxTime: maxX, minTime: minX },
-    exerciseTypes,
+    _exerciseTypes,
     unsortedHistory,
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
@@ -79,18 +91,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   });
 
   const [containerRef, visibleRecords] = useGradualList(history, 20, () => {});
-
-  const exercises = CollectionUtils.nonnull(
-    Object.values(exerciseTypes).map<[string, string] | undefined>((e) => {
-      if (e != null) {
-        const exercise = Exercise.find(e, props.settings.exercises);
-        if (exercise != null) {
-          return [Exercise.toKey(e), Exercise.fullName(exercise)];
-        }
-      }
-      return undefined;
-    })
-  );
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
   return (
@@ -103,24 +103,84 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           helpContent={<HelpExerciseStats />}
           screenStack={props.screenStack}
           title="Exercise Stats"
-          subtitle={StringUtils.truncate(fullExercise.name, 35)}
         />
+      }
+      addons={
+        <>
+          {showCustomExerciseModal && (
+            <ModalCustomExercise
+              exercise={customExercise}
+              settings={props.settings}
+              onClose={() => setShowCustomExerciseModal(false)}
+              onCreateOrUpdate={(
+                shouldClose: boolean,
+                name: string,
+                targetMuscles: IMuscle[],
+                synergistMuscles: IMuscle[],
+                types: IExerciseKind[],
+                exercise?: ICustomExercise
+              ) => {
+                const exercises = Exercise.createOrUpdateCustomExercise(
+                  props.settings.exercises,
+                  name,
+                  targetMuscles,
+                  synergistMuscles,
+                  types,
+                  exercise
+                );
+                updateSettings(props.dispatch, lb<ISettings>().p("exercises").record(exercises));
+                if (shouldClose) {
+                  setShowCustomExerciseModal(false);
+                }
+              }}
+            />
+          )}
+        </>
       }
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
     >
       <section className="px-4">
-        {exercises.length > 0 && (
-          <MenuItemEditable
-            type="select"
-            name="Exercise"
-            value={Exercise.toKey(exerciseType)}
-            values={exercises}
-            onChange={(value) => {
-              const exType = value ? Exercise.fromKey(value) : undefined;
-              updateState(props.dispatch, [lb<IState>().p("viewExerciseType").record(exType)]);
-            }}
-          />
+        <h1 className="text-xl font-bold">{Exercise.fullName(fullExercise)}</h1>
+        <div className="text-xs text-grayv2-main" style={{ marginTop: "-0.25rem" }}>
+          {Exercise.isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
+        </div>
+        <div className="py-2">
+          <MuscleGroupsView exercise={fullExercise} settings={props.settings} />
+        </div>
+        {Exercise.isCustom(fullExercise.id, props.settings.exercises) && (
+          <div className="flex">
+            <div className="mr-auto">
+              <LinkButton name="edit-custom-exercise-stats" onClick={() => setShowCustomExerciseModal(true)}>
+                Edit
+              </LinkButton>
+            </div>
+            <div>
+              <LinkButton
+                name="edit-custom-exercise-stats"
+                className="text-redv2-main"
+                onClick={() => {
+                  if (confirm("Are you sure you want to delete this exercise?")) {
+                    updateSettings(
+                      props.dispatch,
+                      lb<ISettings>()
+                        .p("exercises")
+                        .recordModify((exercises) => {
+                          const exercise = exercises[fullExercise.id];
+                          return exercise != null
+                            ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } }
+                            : exercises;
+                        })
+                    );
+                    props.dispatch(Thunk.pullScreen());
+                  }
+                }}
+              >
+                Delete Exercise
+              </LinkButton>
+            </div>
+          </div>
         )}
+
         <ExerciseDataSettings
           fullExercise={fullExercise}
           settings={props.settings}
