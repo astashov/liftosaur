@@ -25,6 +25,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
   const pageWrapperProps: IPageWrapperProps = {
     skipTopNavMenu: props.skipTopNavMenu,
     maxWidth: props.maxWidth,
+    maxBodyWidth: props.maxBodyWidth,
     url: props.url,
     skipFooter: props.skipFooter,
     account: props.account,

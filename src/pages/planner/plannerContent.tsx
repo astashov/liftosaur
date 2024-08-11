@@ -228,10 +228,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const isInvalid = !PlannerProgram.isValid(state.current.program, settings);
 
   const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
+  const maxWidth = "1200px";
 
   return (
     <section className="px-4">
-      <div className="flex">
+      <div className="flex mx-auto" style={{ maxWidth }}>
         <h1 className="flex items-center mb-4 mr-auto text-2xl font-bold leading-tightm">
           <div>Web Editor</div>
           {!showHelp && (
@@ -255,79 +256,85 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         )}
       </div>
 
-      <div
-        style={{ display: showHelp ? "block" : "none" }}
-        className="relative px-8 py-4 mb-4 mr-0 bg-yellow-100 border border-orange-400 rounded-lg sm:mr-64"
-      >
-        <div>
-          <p className="mb-2">
-            This tool allows you to quickly build your weightlifting programs, ensure you have proper{" "}
-            <strong>weekly volume per muscle group</strong>, and balance it with the{" "}
-            <strong>time you spend in a gym</strong>. You can build multi-week programs, plan your mesocycles, deload
-            weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each exercise on a graph.
-          </p>
-          <p className="mb-2">
-            Set the program name, create weeks and days, type the list of exercises for each day, putting each exercise
-            on a new line, along with the number of sets and reps after slash (<pre className="inline">/</pre>)
-            character, like this:
-          </p>
-          <div>
-            <div className="inline-block px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
-              <PlannerCodeBlock script={script} />
-            </div>
-          </div>
-          <p className="mb-2">
-            Autocomplete will help you with the exercise names. You can also create custom exercises if they're missing
-            in the library.
-          </p>
-          <p className="mb-2">
-            On the right you'll see <strong>Weekly Stats</strong>, where you can see the number of sets per week per
-            muscle group, whether you're in the recommended range (indicated by color), strength/hypertrophy split, and
-            if you hover a mouse over the numbers - you'll see what exercises contribute to that number, and how much.
-          </p>
-          <p className="mb-2">
-            The exercise syntax supports{" "}
-            <abbr title="RPE - Rate of Perceived Exertion. It's a subjective measure of how hard the set was.">
-              RPEs
-            </abbr>{" "}
-            , percentage of{" "}
-            <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
-            timers, various progressive overload types, etc. Read more about the features{" "}
-            <a target="_blank" className="font-bold underline text-bluev2" href="https://www.liftosaur.com/docs/">
-              in the docs
-            </a>
-            !
-          </p>
-          <p className="mb-2">
-            When you're done, you can convert this program to Liftosaur program, and run what you planned in the gym,
-            using the <strong>Liftosaur app</strong>!
-          </p>
-        </div>
-        <button
-          className="absolute nm-planner-help-close"
-          style={{ top: "0.5rem", right: "0.5rem" }}
-          onClick={() => {
-            setShowHelp(false);
-            window.localStorage.setItem("hide-planner-help", "true");
-          }}
+      <div className="mx-auto" style={{ maxWidth }}>
+        <div
+          style={{ display: showHelp ? "block" : "none" }}
+          className="relative px-8 py-4 mb-4 mr-0 bg-yellow-100 border border-orange-400 rounded-lg sm:mr-64"
         >
-          <IconCloseCircleOutline />
-        </button>
+          <div>
+            <p className="mb-2">
+              This tool allows you to quickly build your weightlifting programs, ensure you have proper{" "}
+              <strong>weekly volume per muscle group</strong>, and balance it with the{" "}
+              <strong>time you spend in a gym</strong>. You can build multi-week programs, plan your mesocycles, deload
+              weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each exercise on a
+              graph.
+            </p>
+            <p className="mb-2">
+              Set the program name, create weeks and days, type the list of exercises for each day, putting each
+              exercise on a new line, along with the number of sets and reps after slash (
+              <pre className="inline">/</pre>) character, like this:
+            </p>
+            <div>
+              <div className="inline-block px-4 py-2 my-1 mb-2 bg-white border rounded-md border-grayv2-300">
+                <PlannerCodeBlock script={script} />
+              </div>
+            </div>
+            <p className="mb-2">
+              Autocomplete will help you with the exercise names. You can also create custom exercises if they're
+              missing in the library.
+            </p>
+            <p className="mb-2">
+              On the right you'll see <strong>Weekly Stats</strong>, where you can see the number of sets per week per
+              muscle group, whether you're in the recommended range (indicated by color), strength/hypertrophy split,
+              and if you hover a mouse over the numbers - you'll see what exercises contribute to that number, and how
+              much.
+            </p>
+            <p className="mb-2">
+              The exercise syntax supports{" "}
+              <abbr title="RPE - Rate of Perceived Exertion. It's a subjective measure of how hard the set was.">
+                RPEs
+              </abbr>{" "}
+              , percentage of{" "}
+              <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
+              timers, various progressive overload types, etc. Read more about the features{" "}
+              <a target="_blank" className="font-bold underline text-bluev2" href="https://www.liftosaur.com/docs/">
+                in the docs
+              </a>
+              !
+            </p>
+            <p className="mb-2">
+              When you're done, you can convert this program to Liftosaur program, and run what you planned in the gym,
+              using the <strong>Liftosaur app</strong>!
+            </p>
+          </div>
+          <button
+            className="absolute nm-planner-help-close"
+            style={{ top: "0.5rem", right: "0.5rem" }}
+            onClick={() => {
+              setShowHelp(false);
+              window.localStorage.setItem("hide-planner-help", "true");
+            }}
+          >
+            <IconCloseCircleOutline />
+          </button>
+        </div>
       </div>
 
       {!props.shouldSync && (
-        <PlannerBanner
-          isBannerLoading={isBannerLoading}
-          account={props.account}
-          onAddProgram={async () => {
-            const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
-            setIsBannerLoading(true);
-            const id = await saveProgram(props.client, exportedProgram);
-            if (id != null) {
-              window.location.href = `${__HOST__}/user/p/${id}`;
-            }
-          }}
-        />
+        <div className="mx-auto" style={{ maxWidth }}>
+          <PlannerBanner
+            isBannerLoading={isBannerLoading}
+            account={props.account}
+            onAddProgram={async () => {
+              const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
+              setIsBannerLoading(true);
+              const id = await saveProgram(props.client, exportedProgram);
+              if (id != null) {
+                window.location.href = `${__HOST__}/user/p/${id}`;
+              }
+            }}
+          />
+        </div>
       )}
 
       <div className="flex flex-col mb-2 sm:flex-row">
@@ -454,6 +461,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </div>
         </>
       )}
+
       <div>
         {state.fulltext != null ? (
           <PlannerContentFull

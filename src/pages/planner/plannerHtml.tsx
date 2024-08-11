@@ -23,6 +23,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}
+      maxBodyWidth={2400}
       title="Web Editor"
       ogTitle="Liftosaur: Web Editor"
       ogDescription="The weightlifting program editor, allowing to balance volume, time and muscles worked"
