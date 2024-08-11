@@ -612,7 +612,13 @@ export class ProgramToPlanner {
         const args = progressMatch[2].split(",").map((a) => a.trim());
         if (name === "lp") {
           const [increment, totalSuccess, , decrement, totalFailure] = args;
-          return `lp(${increment}, ${totalSuccess}, ${state.successes}, ${decrement}, ${totalFailure}, ${state.failures})`;
+          if (totalSuccess === "1" && totalFailure === "0") {
+            return `lp(${increment})`;
+          } else if (Number(totalSuccess) > 1 && totalFailure === "0") {
+            return `lp(${increment}, ${totalSuccess}, ${state.successes})`;
+          } else {
+            return `lp(${increment}, ${totalSuccess}, ${state.successes}, ${decrement}, ${totalFailure}, ${state.failures})`;
+          }
         } else if (name === "dp" || name === "sum") {
           return `${name}(${args.join(", ")})`;
         }

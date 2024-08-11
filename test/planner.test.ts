@@ -9,7 +9,7 @@ import { Weight } from "../src/models/weight";
 import { Program } from "../src/models/program";
 
 describe("Planner", () => {
-  it("updates weight and lp progress after completing", () => {
+  it("updates weight after completing", () => {
     const programText = `# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: lp(5lb)`;
@@ -17,7 +17,35 @@ Squat / 2x5 / 100lb / progress: lp(5lb)`;
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-Squat / 2x5 / 105lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
+Squat / 2x5 / 105lb / progress: lp(5lb)
+
+
+`);
+  });
+
+  it("updates lp after completing", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5 / 100lb / progress: lp(5lb, 2, 0)`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 100lb / progress: lp(5lb, 2, 1)
+
+
+`);
+  });
+
+  it("updates lp and weight after failing", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5 / 100lb / progress: lp(5lb, 1, 0, 10lb, 2, 1)`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 3]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 90lb / progress: lp(5lb, 1, 0, 10lb, 2, 0)
 
 
 `);
@@ -186,7 +214,7 @@ Bench Press[1-5] / ...Squat / 120lb / progress: lp(5lb)
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x6 100lb, 1x4 200lb / 60s / progress: dp(5lb, 3, 8)
-Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
+Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb)
 
 
 `);
@@ -207,8 +235,8 @@ Bench Press / ...Squat / progress: lp(5lb)
     const newText = PlannerProgram.generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
-Squat / 1x5 105lb+, 1x3 105lb / 60s / progress: lp(5lb, 1, 0, 10lb, 0, 0)
-Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb, 1, 0, 10lb, 0, 0)
+Squat / 1x5 105lb+, 1x3 105lb / 60s / progress: lp(5lb)
+Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb)
 
 
 `);
@@ -225,7 +253,7 @@ Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
     });
     expect(newText.trim()).to.equal(`# Week 1
 ## Day 1
-Squat / 1x5 100lb, 1x3 250lb / 60s / progress: lp(5lb, 1, 0, 10lb, 0, 0)`);
+Squat / 1x5 100lb, 1x3 250lb / 60s / progress: lp(5lb)`);
   });
 
   it("properly update global weights", () => {
@@ -239,7 +267,7 @@ Squat / 1x5 100lb, 1x3 200lb / 80lb / 60s / progress: lp(80lb)
     });
     expect(newText.trim()).to.equal(`# Week 1
 ## Day 1
-Squat / 1x5, 1x3 / 100lb / 60s / progress: lp(80lb, 1, 0, 10lb, 0, 0)`);
+Squat / 1x5, 1x3 / 100lb / 60s / progress: lp(80lb)`);
   });
 
   it("properly update default weights", () => {
@@ -254,7 +282,7 @@ Squat / 1x5, 1x3 / 60s / progress: lp(5lb)
     });
     expect(newText.trim()).to.equal(`# Week 1
 ## Day 1
-Squat / 1x5 100lb, 1x3 150lb / 60s / progress: lp(5lb, 1, 0, 10lb, 0, 0)`);
+Squat / 1x5 100lb, 1x3 150lb / 60s / progress: lp(5lb)`);
   });
 
   it("use loops", () => {
