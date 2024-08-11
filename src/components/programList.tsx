@@ -138,7 +138,7 @@ interface IBuiltInProgramProps {
 }
 
 function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
-  const program = props.program;
+  const program = props.program.weeks.length === 0 ? Program.fullProgram(props.program, props.settings) : props.program;
   const exerciseObj: Partial<Record<string, IExercise>> = {};
   const equipmentSet: Set<IEquipment | undefined> = new Set();
   for (const day of program.days) {

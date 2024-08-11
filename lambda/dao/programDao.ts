@@ -39,6 +39,7 @@ export class ProgramDao {
       "gzcl-uhf-5-weeks",
       "gzcl-vdip",
       "gzcl-general-gainz",
+      "gzcl-ggbb",
       "gzcl-general-gainz-burrito-but-big",
       "madcow",
       "dbPpl",

@@ -75,6 +75,10 @@ body {
   text-decoration: underline;
 }
 
+.program-description p {
+  margin-bottom: 0.25rem;
+}
+
 @keyframes rotation {
   from {
     transform: rotate(0deg);
