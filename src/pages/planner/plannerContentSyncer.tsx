@@ -26,7 +26,10 @@ export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Ele
         program: exportedProgram?.program.planner,
         plannerSettings: storage?.settings.planner,
         settings: {
-          exercises: storage?.settings?.exercises || {},
+          exercises: {
+            ...(storage?.settings?.exercises || {}),
+            ...(exportedProgram.customExercises || {}),
+          },
           timer: storage?.settings?.timers?.workout || 180,
         },
       }
