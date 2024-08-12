@@ -207,12 +207,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       try {
         const state = getState();
-        if (
-          state.errors.corruptedstorage == null &&
-          state.adminKey == null &&
-          !state.nosync &&
-          (state.user != null || args?.force)
-        ) {
+        if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
           await env.queue.enqueue(
             async (args2) => {
               await load(dispatch, "Sync", async () => {

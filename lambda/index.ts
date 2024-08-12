@@ -250,6 +250,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {
+          di.log.log("Error", result.error);
           return response(400, { type: "error", error: result.error, key });
         }
       }
