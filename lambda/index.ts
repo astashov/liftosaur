@@ -1603,7 +1603,6 @@ const getProgramShorturlHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const di = payload.di;
   const id = params.id;
-  const env = Utils.getEnv();
   let program: IExportedProgram | undefined;
   const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const urlString = await new UrlDao(di).get(id);
@@ -1616,29 +1615,6 @@ const getProgramShorturlHandler: RouteHandler<
         const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
-          if (program?.program.planner != null) {
-            const host =
-              env === "dev"
-                ? Utils.isLocal()
-                  ? "local.liftosaur.com:8080"
-                  : "stage.liftosaur.com"
-                : "www.liftosaur.com";
-            const redirectUrl = UrlUtils.build(`https://${host}`);
-            redirectUrl.pathname = "/planner";
-            const exportedProgram: IExportedPlannerProgram = {
-              id: program.program.id,
-              program: program.program.planner,
-              type: "v2",
-              version: program.version,
-              settings: {
-                exercises: program.customExercises,
-                timer: program.settings.timers?.workout ?? 180,
-              },
-            };
-            redirectUrl.searchParams.set("data", await NodeEncoder.encode(JSON.stringify(exportedProgram)));
-            return { statusCode: 303, body: "Redirecting...", headers: { Location: redirectUrl.toString() } };
-          }
-
           let user: ILimitedUserDao | undefined;
           let account: IAccount | undefined;
           const userResult = await getUserAccount(payload, { withPrograms: true });

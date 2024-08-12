@@ -1,7 +1,6 @@
 - Push notif for the forgotten session
 - Dynamic sets!
 - Use state vars for warmups
-- Add image URL for the exercise
 - Custom exercise lists
 - Take custom timers into account
 - Import from Perseus
@@ -19,7 +18,6 @@
 - Add 'Rhomboids' 
 * Add 'Goals'
 * Add default for dynamic double progression
-* Add +/- button for the set weight/reps/rpe on long press
 - Change ID when cloning a program
 
 * Add achievements
@@ -31,7 +29,6 @@
 * Widget on iOS lock screen
 * Add time spent on each exercise
 
-- Fix bug with disappearing always on when importing a program via "Add this program to your account"
 - Add a last week note to the last week sets
 - Make it more explicit to replace exercise only for the workout or for the whole program
 - Properly open repeated exercises when editing
@@ -40,14 +37,10 @@
 - Add a check when importing invalid program
 - Synergist multiplier is not saving
 - Fix e1RM in PRs
-
 - Set variations when multi-week
 - Bug - swap exercise and changing weight returns exercise back
-
-- Need to tighten up the edit link in the program screen
 - Made numberOfSets = 0 work in update blocks
 - Need to add lb to kg converter properly.
-
 - Muscles shown for historical workouts
 
 User debug page:

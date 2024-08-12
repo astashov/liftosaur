@@ -32,7 +32,6 @@ import { IconHelp } from "../../components/icons/iconHelp";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { PlannerContentFull } from "./plannerContentFull";
-import { useRef } from "preact/compat";
 import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
@@ -46,7 +45,7 @@ import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { ProgramQrCode } from "../../components/programQrCode";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
-import { Program } from "../../models/program";
+import { IExportedProgram, Program } from "../../models/program";
 import { LinkButton } from "../../components/linkButton";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 
@@ -61,11 +60,7 @@ export interface IPlannerContentProps {
   revisions: string[];
 }
 
-async function saveProgram(
-  client: Window["fetch"],
-  exportedPlannerProgram: IExportedPlannerProgram
-): Promise<string | undefined> {
-  const exportedProgram = Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram);
+async function saveProgram(client: Window["fetch"], exportedProgram: IExportedProgram): Promise<string | undefined> {
   const service = new Service(client);
   const result = await service.postSaveProgram(exportedProgram);
   if (result.success) {
@@ -84,9 +79,10 @@ function isChanged(state: IPlannerState): boolean {
   );
 }
 
-function buildExportedProgram(id: string, program: IPlannerProgram, settings: ISettings): IExportedPlannerProgram {
+function buildExportedProgram(id: string, program: IPlannerProgram, settings: ISettings): IExportedProgram {
   const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
-  return {
+
+  const exportedPlannerProgram: IExportedPlannerProgram = {
     id,
     type: "v2",
     version: getLatestMigrationVersion(),
@@ -97,11 +93,7 @@ function buildExportedProgram(id: string, program: IPlannerProgram, settings: IS
       timer: settings.timers.workout ?? 0,
     },
   };
-}
-
-function updateUrl(id: string, program: IPlannerProgram, settings: ISettings): void {
-  const exportedProgram = buildExportedProgram(id, program, settings);
-  Encoder.encodeIntoUrlAndSetUrl(JSON.stringify(exportedProgram));
+  return Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram);
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
@@ -132,7 +124,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     props.partialStorage?.settings?.timers.workout ??
     initialSettings.timers.workout;
   initialSettings.planner = props.initialProgram?.plannerSettings || initialSettings.planner;
-  const prevSettings = useRef(initialSettings);
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
@@ -155,9 +146,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       if (oldState.current.program !== newState.current.program) {
         const exportedProgram = buildExportedProgram(newState.id, newState.current.program, settings);
         dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportedProgram)));
-        if (!props.shouldSync) {
-          updateUrl(newState.id, newState.current.program, settings);
-        }
       }
     },
     async (action, oldState, newState) => {
@@ -185,19 +173,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
       const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
-      Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then((url) => {
+      Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then(() => {
         dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportedProgram)));
       });
     }
   }, []);
-  useEffect(() => {
-    if (prevSettings.current !== settings) {
-      if (!props.shouldSync) {
-        updateUrl(state.id, state.current.program, settings);
-      }
-    }
-    prevSettings.current = settings;
-  }, [settings, state.current.program]);
   useEffect(() => {
     function onBeforeUnload(e: Event): void {
       if (isChanged(state)) {
@@ -220,6 +200,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [showHelp, setShowHelp] = useState(false);
   const [showRevisions, setShowRevisions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program");
   const program = state.current.program;
@@ -232,6 +213,15 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   return (
     <section className="px-4">
+      {!props.shouldSync && isChanged(state) && !clearHasChanges && (
+        <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b bg-redv2-200 border-redv2-500 text-redv2-main">
+          Made changes to the program, but the link still goes to the original version. If you want to share updated
+          version, generate a new link.
+          <button className="p-2 align-middle nm-clear-has-changes" onClick={() => setClearHasChanges(true)}>
+            <IconCloseCircleOutline size={14} />
+          </button>
+        </div>
+      )}
       <div className="flex mx-auto" style={{ maxWidth }}>
         <h1 className="flex items-center mb-4 mr-auto text-2xl font-bold leading-tightm">
           <div>Web Editor</div>
@@ -425,7 +415,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               <BuilderCopyLink
                 suppressShowInfo={true}
                 onShowInfo={setShowClipboardInfo}
-                type="n"
+                type="p"
                 program={program}
                 client={props.client}
                 encodedProgram={async () => {
