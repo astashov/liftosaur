@@ -33,7 +33,7 @@ interface IProps {
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
-  const program = props.program;
+  const program = Program.fullProgram(props.program, props.settings);
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
   const [exerciseTypeInfo, setExerciseTypeInfo] = useState<IExerciseType | undefined>(undefined);
 

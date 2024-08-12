@@ -296,6 +296,10 @@ export namespace Thunk {
       ) {
         screen = "subscription";
       }
+      const screensWithoutCurrentProgram = ["first", "onboarding", "programs", "programPreview"];
+      if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
+        screen = "programs";
+      }
       dispatch({ type: "PushScreen", screen });
       window.scroll(0, 0);
     };
