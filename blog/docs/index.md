@@ -46,7 +46,7 @@ That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets o
 
 If you don't specify the weight, it'll use the weight calculated from
 <abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
-tables, like [this one](https://articles.reactivetrainingsystems.com/wp-content/uploads/2015/11/E1RM-TABLE.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
+tables, like [this one](/blog/images/rpetable.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
 
 {% plannercode %}
 Bench Press / 3x12
