@@ -42,6 +42,7 @@
 - Made numberOfSets = 0 work in update blocks
 - Need to add lb to kg converter properly.
 - Muscles shown for historical workouts
+- Start workout timer AFTER the first set
 
 User debug page:
 - Programs, their version history

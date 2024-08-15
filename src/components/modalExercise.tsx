@@ -405,7 +405,7 @@ export function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element
         placeholder="Super Squat"
         onInput={(e) => {
           if (e.currentTarget.value != null) {
-            setName(e.currentTarget.value);
+            setName(e.currentTarget.value?.trim() || "");
           }
         }}
       />
