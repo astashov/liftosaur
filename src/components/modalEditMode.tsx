@@ -35,6 +35,9 @@ interface IModalEditModeProps {
 
 export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
   const programExercise = props.program.exercises.filter((e) => e.id === props.programExerciseId)[0];
+  if (programExercise == null) {
+    return <Fragment />;
+  }
   const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
   const onClose = (): void => {
     updateState(props.dispatch, [
