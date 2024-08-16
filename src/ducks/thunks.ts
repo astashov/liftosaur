@@ -361,6 +361,16 @@ export namespace Thunk {
     if (editExercise) {
       updateState(dispatch, [lb<IState>().p("editExercise").record(undefined)]);
     }
+
+    const editProgram = state.editProgram;
+    if (editProgram) {
+      updateState(dispatch, [lb<IState>().p("editProgram").record(undefined)]);
+    }
+
+    const editProgramV2 = state.editProgramV2;
+    if (editProgramV2) {
+      updateState(dispatch, [lb<IState>().p("editProgramV2").record(undefined)]);
+    }
   }
 
   export function pullScreen(): IThunk {
