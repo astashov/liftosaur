@@ -14,9 +14,10 @@ export function FreeformHtml(props: IProps): JSX.Element {
       css={["freeform"]}
       js={["freeform"]}
       maxWidth={1020}
-      title="Freeform Program Builder"
-      ogTitle="Liftosaur: Freeform Program jBuilder"
-      ogDescription="The freeform program builder powered by GPT"
+      title="Freeform Program Builder | Liftosaur"
+      canonical="https://www.liftosaur.com/freeform"
+      ogTitle="Freeform Program Builder | Liftosaur"
+      description="The freeform program builder powered by GPT"
       ogUrl="https://www.liftosaur.com/freeform"
       data={data}
       client={client}

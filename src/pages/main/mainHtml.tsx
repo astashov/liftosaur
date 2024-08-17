@@ -19,7 +19,8 @@ export function MainHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title="Liftosaur: Weightlifting Planner and Tracker app"
       ogTitle="Liftosaur: Weightlifting Planner and Tracker app"
-      ogDescription="The app that allows you to build weightlifting programs or pick built-in ones and track your progress"
+      description="The app that allows you to build weightlifting programs or pick built-in ones and track your progress"
+      canonical="https://www.liftosaur.com"
       ogUrl="https://www.liftosaur.com"
       data={data}
       account={props.account}

@@ -15,15 +15,17 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
   const program = programs.filter((p) => p.id === selectedProgramId)[0] || programs[0];
   const audio = new MockAudioInterface();
   const { client, ...data } = props;
+  const title = `${program.name} program explained | Liftosaur`;
+  const url = `https://www.liftosaur.com/programs/${program.id}`;
 
   return (
     <Page
       css={["programdetails"]}
       js={["programdetails"]}
-      title={`Program Details - ${program.name}`}
-      ogTitle={`Liftosaur: Program Details - ${program.name}`}
-      ogDescription={`What days and exercises the program '${program.name}' consists of`}
-      ogUrl={`https://www.liftosaur.com/programs/${program.id}`}
+      title={title}
+      description={`Weightlifting program details - exercises, sets, reps, muscles worked, progressive overload, etc`}
+      canonical={url}
+      ogUrl={url}
       ogImage={`https://www.liftosaur.com/programimage/${program.id}`}
       maxWidth={1020}
       data={data}

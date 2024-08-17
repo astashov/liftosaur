@@ -1,7 +1,7 @@
 ---
-title: Launched Workout planner!
 date: "2023-09-13"
-og_title: Launched Workout planner!
+title: Launched Workout planner! | Liftosaur blog
+og_title: Launched Workout planner! | Liftosaur blog
 og_image: /images/workout-planner-hero-2.png
 og_description: "Description of a workout planner, that helps you design weightlifting programs and run them on Liftosaur"
 tags: ["tech", "weightlifting"]

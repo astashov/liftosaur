@@ -1,7 +1,7 @@
 ---
 date: "2021-01-30"
-title: How I came to weightlifting
-og_title: How I came to weightlifting
+title: How I came to weightlifting | Liftosaur blog 
+og_title: How I came to weightlifting | Liftosaur blog
 og_description: My journey to weightlifting
 og_image: /images/how-i-came-to-weightlifting-intro.jpg
 tags: ["weightlifting"]

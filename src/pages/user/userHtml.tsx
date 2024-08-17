@@ -10,14 +10,17 @@ interface IProps {
 }
 
 export function UserHtml(props: IProps): JSX.Element {
+  const username = props.data.settings.nickname;
+  const title = username ? `${username} Profile Page | Liftosaur` : "Profile Page | Liftosaur";
+  const url = `https://www.liftosaur.com/profile/${props.userId}`;
   return (
     <Page
       css={["user"]}
       js={["user"]}
-      title="Profile Page"
-      ogTitle={`Liftosaur: User Profile${props.data.settings.nickname ? `- ${props.data.settings.nickname}` : ""}`}
-      ogDescription="Liftosaur User Profile - What program user follows, the max weights lifted and progress graphs."
-      ogUrl={`https://www.liftosaur.com/profile/${props.userId}`}
+      title={title}
+      canonical={url}
+      ogUrl={url}
+      description="User Profile - What program user follows, the max weights lifted and progress graphs."
       ogImage={`https://www.liftosaur.com/profileimage/${props.userId}`}
       data={props.data}
       client={props.client}

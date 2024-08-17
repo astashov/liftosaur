@@ -19,7 +19,12 @@ interface IProps {
 
 export function ProgramHtml(props: IProps): JSX.Element {
   const { client, ...data } = props;
-  const title = HtmlUtils.escapeHtml(data.exportedProgram?.program?.name || "Program Builder");
+  const programName = data.exportedProgram?.program?.name;
+  const title =
+    programName != null
+      ? `${HtmlUtils.escapeHtml(programName)} | Workout Editor | Liftosaur`
+      : "Weightlifting Workout Planner | Liftosaur";
+  const url = "https://www.liftosaur.com" + (data.exportedProgram?.program?.planner ? "/planner" : "/program");
 
   return (
     <Page
@@ -27,9 +32,9 @@ export function ProgramHtml(props: IProps): JSX.Element {
       js={["program"]}
       maxWidth={1200}
       title={title}
-      ogTitle="Liftosaur: Program Builder"
-      ogDescription="The program builder for the Liftosaur app"
-      ogUrl="https://www.liftosaur.com/builder"
+      description="The weightlifting program editor"
+      canonical={url}
+      ogUrl={url}
       data={data}
       account={props.account}
       client={client}

@@ -1,7 +1,7 @@
 ---
-title: Quirks of building a PWA app
 date: "2021-02-05"
-og_title: Quirks of building a PWA app
+title: Quirks of building a PWA app | Liftosaur blog
+og_title: Quirks of building a PWA app | Liftosaur blog
 og_description: "Main pain points of building a PWA app, and how I worked around them"
 og_image: /images/quirks-of-building-a-pwa-app-pwa.png
 tags: ["tech"]

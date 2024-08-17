@@ -1,7 +1,7 @@
 ---
 date: "2021-01-17"
-title: How to start weightlifting
-og_title: How to start weightlifting
+title: How to start weightlifting | Liftosaur blog
+og_title: How to start weightlifting | Liftosaur blog
 og_description: Simple and straightforward steps how to start weightlifting
 og_image: /images/how-to-start-weightlifting-intro.jpg
 tags: ["weightlifting"]

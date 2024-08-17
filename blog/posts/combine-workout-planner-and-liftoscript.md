@@ -1,7 +1,7 @@
 ---
 date: "2024-01-04"
-title: Combine Workout Planner and Liftoscript
-og_title: Combine Workout Planner and Liftoscript
+title: Combine Workout Planner and Liftoscript | Liftosaur blog
+og_title: Combine Workout Planner and Liftoscript | Liftosaur blog
 og_description: Integrating Liftoscript into Workout Planner syntax to make the planner as powerful as a regular Liftosaur editor
 og_image: /images/combine-workout-planner-and-liftoscript-intro.jpg
 tags: ["weightlifting", "tech"]

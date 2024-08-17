@@ -68,10 +68,10 @@ function Hero(): JSX.Element {
       <div style={{ flex: 2 }}>
         <div className="mx-auto" style={{ maxWidth: "30rem" }}>
           <h1 className="hidden mt-12 mb-4 text-6xl font-bold leading-none md:block">Liftosaur</h1>
-          <p className="mb-4 text-xl">
+          <h2 className="mb-4 text-xl">
             The most powerful weightlifting <span className="font-bold text-purplev2-main">planner</span> and{" "}
             <span className="font-bold text-orangev2">tracker</span> app
-          </p>
+          </h2>
           <p className="mb-4 text-xl">
             It's like having mobile-friendly <strong>Google Sheets</strong> and <strong>Strong</strong> in the same app!
           </p>

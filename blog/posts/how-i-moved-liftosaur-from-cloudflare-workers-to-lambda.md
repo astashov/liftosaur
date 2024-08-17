@@ -1,7 +1,7 @@
 ---
-title: How I moved Liftosaur from Cloudflare Workers to AWS Lambda
 date: "2021-06-22"
-og_title: How I moved Liftosaur from Cloudflare Workers to AWS Lambda
+title: How I moved Liftosaur from Cloudflare Workers to AWS Lambda | Liftosaur blog
+og_title: How I moved Liftosaur from Cloudflare Workers to AWS Lambda | Liftosaur blog
 og_description: Why did I move Liftosaur to Cloudflare, the process, obstacles, the result, and also the starter skeleton.
 og_image: /images/how-i-moved-liftosaur-from-cloudflare-workers-to-lambda-intro.png
 tags: ["tech"]

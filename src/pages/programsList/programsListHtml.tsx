@@ -2,7 +2,6 @@ import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IStorage } from "../../types";
-import { HtmlUtils } from "../../utils/html";
 import { ProgramsListContent } from "./programsListContent";
 
 interface IProps {
@@ -14,7 +13,8 @@ interface IProps {
 
 export function ProgramsListHtml(props: IProps): JSX.Element {
   const { client, ...data } = props;
-  const title = HtmlUtils.escapeHtml("Your Programs List");
+  const title = "Your Programs List | Liftosaur";
+  const url = "https://www.liftosaur.com/user/programs";
 
   return (
     <Page
@@ -22,9 +22,9 @@ export function ProgramsListHtml(props: IProps): JSX.Element {
       js={["programsList"]}
       maxWidth={1200}
       title={title}
-      ogTitle="Liftosaur: Your Programs List"
-      ogDescription="All the programs from your account"
-      ogUrl="https://www.liftosaur.com/user/programs"
+      description="All the weightlifting programs from your account"
+      canonical={url}
+      ogUrl={url}
       data={data}
       account={props.account}
       client={client}

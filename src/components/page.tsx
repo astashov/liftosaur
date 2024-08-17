@@ -4,9 +4,11 @@ import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
 interface IProps<T> extends IPageWrapperProps {
   title: string;
+  canonical: string;
   css: string[];
   js: string[];
   ogTitle?: string;
+  description?: string;
   ogDescription?: string;
   ogUrl?: string;
   ogImage?: string;
@@ -34,7 +36,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
   return (
     <html lang="en">
       <head>
-        <title>Liftosaur: Weight Lifting Tracking App | {props.title}</title>
+        <title>{props.title}</title>
         {props.css.map((c) => (
           <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
@@ -46,12 +48,10 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <link rel="preconnect" href="https://api3.liftosaur.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
+        <link rel="canonical" href={props.canonical} />
         <link rel="apple-touch-icon" href="/icons/icon512.png" />
         <meta name="theme-color" content="#ffffff" />
-        <meta
-          name="description"
-          content="A weight lifting tracking app, that allows you to follow popular weight lifting routines"
-        />
+        <meta name="description" content={props.description} />
         <script
           async
           type="text/javascript"
@@ -62,8 +62,8 @@ export function Page<T>(props: IProps<T>): JSX.Element {
             __html: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','t2_hoob2');rdt('track', 'PageVisit');`,
           }}
         />
-        {props.ogTitle && <meta property="og:title" content={props.ogTitle} />}
-        {props.ogDescription && <meta property="og:description" content={props.ogDescription} />}
+        <meta property="og:title" content={props.ogTitle || props.title} />
+        <meta property="og:description" content={props.ogDescription || props.description} />
         <meta property="fb:app_id" content="3448767138535273" />
         {props.ogUrl && <meta property="og:url" content={props.ogUrl} />}
         <meta property="og:type" content="website" />

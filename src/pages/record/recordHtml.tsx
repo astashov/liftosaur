@@ -15,14 +15,15 @@ export function RecordHtml({
   recordId: number;
   client: Window["fetch"];
 }): JSX.Element {
+  const url = `https://www.liftosaur.com/record?user=${userId}&id=${recordId}`;
   return (
     <Page
       css={["main", "record"]}
       js={["record"]}
-      title="Workout summary"
-      ogTitle="Liftosaur: Workout summary"
-      ogDescription="Liftosaur Workout Summary - what exercises were done, with what sets, reps, weights, new personal records."
-      ogUrl={`https://www.liftosaur.com/record?user=${userId}&id=${recordId}`}
+      title="Workout summary | Liftosaur"
+      description="Workout summary - what exercises were done, with what sets, reps, weights, new personal records."
+      canonical={url}
+      ogUrl={url}
       ogImage={`https://www.liftosaur.com/recordimage?user=${userId}&id=${recordId}`}
       data={data}
       client={client}

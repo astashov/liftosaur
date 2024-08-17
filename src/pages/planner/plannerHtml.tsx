@@ -4,6 +4,7 @@ import { PlannerContent } from "./plannerContent";
 import { IExportedPlannerProgram } from "./models/types";
 import { IAccount } from "../../models/account";
 import { IPartialStorage } from "../../types";
+import { HtmlUtils } from "../../utils/html";
 
 interface IProps {
   initialProgram?: IExportedPlannerProgram;
@@ -16,6 +17,11 @@ interface IProps {
 export function PlannerHtml(props: IProps): JSX.Element {
   const { client, ...rawData } = props;
   const data = { ...rawData, shouldSync: false };
+  const programName = data.initialProgram?.program?.name;
+  const title =
+    programName != null
+      ? `${HtmlUtils.escapeHtml(programName)} | Workout Editor | Liftosaur`
+      : "Weightlifting Workout Planner | Liftosaur";
 
   return (
     <Page
@@ -24,9 +30,9 @@ export function PlannerHtml(props: IProps): JSX.Element {
       js={["planner"]}
       maxWidth={1200}
       maxBodyWidth={2400}
-      title="Web Editor"
-      ogTitle="Liftosaur: Web Editor"
-      ogDescription="The weightlifting program editor, allowing to balance volume, time and muscles worked"
+      title={title}
+      description="The weightlifting program editor, that helps to balance volume, time and muscles worked"
+      canonical="https://www.liftosaur.com/planner"
       ogUrl="https://www.liftosaur.com/planner"
       data={data}
       url="/planner"

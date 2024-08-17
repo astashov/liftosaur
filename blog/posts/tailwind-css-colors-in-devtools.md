@@ -1,7 +1,7 @@
 ---
-title: Tailwind CSS colors in Chrome Devtools
 date: "2021-03-06"
-og_title: Tailwind CSS colors in Chrome Devtools
+title: Tailwind CSS colors in Chrome Devtools | Liftosaur blog
+og_title: Tailwind CSS colors in Chrome Devtools | Liftosaur blog
 og_description: "How to export Tailwind CSS colors as CSS variables in devtools"
 og_image: /images/tailwind-css-colors-in-devtools-intro.png
 tags: ["tech"]

@@ -1,7 +1,7 @@
 ---
 date: "2024-01-25"
-title: New Experimental Program Editor
-og_title: New Experimental Program Editor
+title: New Experimental Program Editor | Liftosaur blog
+og_title: New Experimental Program Editor | Liftosaur blog
 og_description: New Experimental Program Editor combines Workout Planner + Liftoscript, and makes writing Liftosaur programs way faster.
 og_image: /images/new-experimental-program-editor-intro.jpg
 tags: ["weightlifting", "tech"]
