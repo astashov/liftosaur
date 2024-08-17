@@ -3,6 +3,7 @@ https://www.liftosaur.com/about
 https://www.liftosaur.com/app
 https://www.liftosaur.com/docs
 https://www.liftosaur.com/blog
+https://www.liftosaur.com/planner
 https://www.liftosaur.com/privacy.html
 https://www.liftosaur.com/terms.html
 https://www.liftosaur.com/affiliates
@@ -12,8 +13,6 @@ https://www.liftosaur.com/blog/posts/how-to-start-weightlifting
 https://www.liftosaur.com/blog/posts/workout-planner
 https://www.liftosaur.com/blog/posts/launched-workout-planner
 https://www.liftosaur.com/blog/weightlifting
-https://www.liftosaur.com/program
-https://www.liftosaur.com/planner
 
 https://www.liftosaur.com/programs/the5314b
 https://www.liftosaur.com/programs/basicBeginner
@@ -25,6 +24,7 @@ https://www.liftosaur.com/programs/gzcl-uhf-9-weeks
 https://www.liftosaur.com/programs/gzcl-uhf-5-weeks
 https://www.liftosaur.com/programs/gzcl-vdip
 https://www.liftosaur.com/programs/gzcl-general-gainz
+https://www.liftosaur.com/programs/gzcl-general-gainz-burrito-but-big
 
 https://www.liftosaur.com/programs/lylegenericbulking
 https://www.liftosaur.com/programs/metallicadpappl
