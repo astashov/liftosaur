@@ -175,10 +175,11 @@ const ExercisesList = forwardRef(
 
     let exercises = Exercise.allExpanded({});
     let customExercises = props.settings.exercises;
+    const capitalizedScreenMuscles = screenMuscles.map(StringUtils.capitalize);
     const filterOptions = [
       ...equipments.map((e) => equipmentName(e)),
       ...exerciseKinds.map(StringUtils.capitalize),
-      ...screenMuscles.map(StringUtils.capitalize),
+      ...capitalizedScreenMuscles,
     ];
     const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
     const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
@@ -197,6 +198,23 @@ const ExercisesList = forwardRef(
         const aRating = Exercise.similarRating(exerciseType, a, props.settings.exercises);
         const bRating = Exercise.similarRating(exerciseType, b, props.settings.exercises);
         return bRating - aRating;
+      } else if (filterTypes && capitalizedScreenMuscles.some((t) => filterTypes.indexOf(t) !== -1)) {
+        const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
+        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, props.settings.exercises);
+        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, props.settings.exercises);
+        if (
+          aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+          bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
+        ) {
+          return -1;
+        } else if (
+          bTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+          aTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
+        ) {
+          return 1;
+        } else {
+          return a.name.localeCompare(b.name);
+        }
       } else {
         return a.name.localeCompare(b.name);
       }
