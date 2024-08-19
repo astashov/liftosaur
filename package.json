@@ -119,7 +119,7 @@
     "micromark": "^2.11.4",
     "micromark-extension-gfm": "^0.3.3",
     "mock-match-media": "^0.4.2",
-    "openai": "^4.56.0",
+    "openai": "^3.2.1",
     "papaparse": "^5.4.1",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
