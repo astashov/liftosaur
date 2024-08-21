@@ -11,6 +11,7 @@ import { Service } from "../api/service";
 
 export function TopNavMenu(props: {
   client: Window["fetch"];
+  mobileRight?: JSX.Element;
   maxWidth: number;
   current?: string;
   account?: IAccount;
@@ -22,19 +23,24 @@ export function TopNavMenu(props: {
   return (
     <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
       <div class="flex items-center cursor-pointer">
-        <div className="mr-2 md:hidden">
-          <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
-            <IconHamburger />
-          </button>
-          <a href="/" class="text-gray-900 align-middle no-underline ml-3">
-            <img
-              className="inline align-middle"
-              style={{ width: "3em", height: "3em" }}
-              src="/images/logo.svg"
-              alt="Liftosaur Logo"
-            />
-          </a>
-          <span className="ml-4 text-3xl font-bold align-middle">Liftosaur</span>
+        <div className="flex w-full mr-2 md:hidden">
+          <div>
+            <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
+              <IconHamburger />
+            </button>
+          </div>
+          <div>
+            <a href="/" class="text-gray-900 align-middle no-underline ml-3">
+              <img
+                className="inline align-middle"
+                style={{ width: "2.5em", height: "2.5em" }}
+                src="/images/logo.svg"
+                alt="Liftosaur Logo"
+              />
+            </a>
+          </div>
+          <div className="flex-1 ml-4 text-2xl font-bold align-middle sm:text-3xl">Liftosaur</div>
+          {props.mobileRight && <div className="ml-auto">{props.mobileRight}</div>}
         </div>
         {isMenuOpen && (
           <BottomSheet isHidden={!isMenuOpen} onClose={() => setIsMenuOpen(false)}>
@@ -122,6 +128,7 @@ function getMenuItemsList(isLoggedIn: boolean): readonly (readonly [string, stri
     ["About", "/about"],
     ["Docs", "/docs"],
     ["Blog", "/blog"],
+    ["Exercises", "/exercises"],
     ["Web Editor", "/planner"],
     ...(isLoggedIn ? [["Your Programs", "/user/programs"] as const] : []),
   ];

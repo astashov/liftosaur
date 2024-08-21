@@ -28,4 +28,24 @@ interface Window {
   loadRollbar: (item: string | number, token: string) => Promise<void>;
 
   structuredClone?: (obj: any) => any;
+  onYouTubeIframeAPIReady?: () => void;
+  YT: typeof YT;
+}
+
+declare namespace YT {
+  class Player {
+    constructor(element: string, options: YT.PlayerOptions): void;
+    public loadVideoById(id: string): void;
+    public stopVideo(): void;
+  }
+
+  // Player constructor options
+  interface IPlayerOptions {
+    height?: string;
+    width?: string;
+    videoId?: string;
+    events?: {
+      onReady?: (event: PlayerEvent) => void;
+    };
+  }
 }

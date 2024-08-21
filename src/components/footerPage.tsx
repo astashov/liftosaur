@@ -45,6 +45,7 @@ export function FooterPage(props: IProps): JSX.Element {
               <ul className="flex-1">
                 {[
                   ["Blog", "/blog"],
+                  ["Exercises", "/exercises"],
                   ["Terms & Conditions", "/terms.html"],
                   ["Privacy", "/privacy.html"],
                   ["Affiliate Program", "/affiliates"],

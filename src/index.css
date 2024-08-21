@@ -314,6 +314,60 @@ input[type="checkbox"].checkbox:disabled {
   line-height: 1.1;
 }
 
+.exercise-description-markdown {
+  overflow-x: auto;
+  font-size: 1rem;
+}
+
+.exercise-description-markdown p {
+  margin-bottom: 0.5rem;
+}
+
+.exercise-description-markdown a {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #28839f;
+}
+
+.exercise-description-markdown ul {
+  list-style: disc;
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+#exercise-youtube-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.exercise-description-markdown ol {
+  list-style: decimal;
+  margin-bottom: 0.5rem;
+}
+
+.exercise-description-markdown li {
+  margin-left: 1rem;
+}
+
+.exercise-description-markdown blockquote {
+  padding-left: 0.5rem;
+  border-left: 1px solid #8b9bab;
+  color: #607284;
+}
+
+.exercise-description-markdown h1,
+.exercise-description-markdown h2,
+.exercise-description-markdown h3,
+.exercise-description-markdown h4 {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 .uplot.graph-max-weight .u-title,
 .uplot.graph-muscle-group .u-title {
   padding-left: 0.75rem;

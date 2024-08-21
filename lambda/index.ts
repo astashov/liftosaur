@@ -63,6 +63,10 @@ import { IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { renderLoginHtml } from "./login";
+import { ExerciseImageUtils } from "../src/models/exerciseImage";
+import { Exercise } from "../src/models/exercise";
+import { renderExerciseHtml } from "./exercise";
+import { renderAllExercisesHtml } from "./allExercises";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1376,6 +1380,54 @@ async function getUserAccount(
   return { success: true, data: { user, account } };
 }
 
+const getAllExercisesEndpoint = Endpoint.build("/exercises");
+const getAllExercisesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllExercisesEndpoint> = async ({
+  payload,
+}) => {
+  const { di } = payload;
+  let account: IAccount | undefined;
+  const userResult = await getUserAccount(payload, { withPrograms: true });
+  if (userResult.success) {
+    account = userResult.data.account;
+  }
+  return {
+    statusCode: 200,
+    body: renderAllExercisesHtml(di.fetch, account),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+const getExerciseEndpoint = Endpoint.build("/exercises/:id", { filtertypes: "string?" });
+const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getExerciseEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { di } = payload;
+  const exerciseType = Exercise.fromUrlSlug(params.id);
+  const filterTypes = (params.filtertypes || "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t);
+  if (exerciseType && ExerciseImageUtils.exists(exerciseType, "small")) {
+    let account: IAccount | undefined;
+    const userResult = await getUserAccount(payload, { withPrograms: true });
+    if (userResult.success) {
+      account = userResult.data.account;
+    }
+    return {
+      statusCode: 200,
+      body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, account),
+      headers: { "content-type": "text/html" },
+    };
+  } else {
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html" },
+    };
+  }
+};
+
 const postUserPlannerProgramEndpoint = Endpoint.build("/api/userplannerprogram");
 const postUserPlannerProgramHandler: RouteHandler<
   IPayload,
@@ -1994,7 +2046,9 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(pingEndpoint, pingHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
-      .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler);
+      .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler)
+      .get(getExerciseEndpoint, getExerciseHandler)
+      .get(getAllExercisesEndpoint, getAllExercisesHandler);
     // r.post(".*/api/loadbackup", loadBackupHandler);
     const url = UrlUtils.build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {

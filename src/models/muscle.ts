@@ -2,6 +2,7 @@ import { Program } from "./program";
 import { Exercise } from "./exercise";
 import { ObjectUtils } from "../utils/object";
 import { IProgram, ISettings, IProgramDay, IProgramExercise, IMuscle, IDayData, IScreenMuscle } from "../types";
+import { StringUtils } from "../utils/string";
 
 export type IScreenMusclePointsColl = Partial<Record<IScreenMuscle, number>>;
 
@@ -79,6 +80,10 @@ export namespace Muscle {
       calves: 0,
       forearms: 0,
     };
+  }
+
+  export function imageUrl(muscle: IMuscle): string {
+    return `/externalimages/muscles/muscle-${StringUtils.dashcase(muscle)}.jpeg`;
   }
 
   function normalize(obj: IScreenMusclePointsColl, maxValue: number): IScreenMusclePointsColl {

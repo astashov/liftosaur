@@ -17,6 +17,7 @@ import {
   ICustomExercise,
   IScreenMuscle,
   IAllEquipment,
+  screenMuscles,
 } from "../types";
 import { Muscle } from "./muscle";
 import { StringUtils } from "../utils/string";
@@ -3586,6 +3587,15 @@ export namespace Exercise {
     }
   }
 
+  export function reverseName(exercise: IExercise, settings?: ISettings): string {
+    if (exercise.equipment) {
+      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      return `${equipment} ${exercise.name}`;
+    } else {
+      return exercise.name;
+    }
+  }
+
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
     const allExercises = allExpanded({});
     const exerciseNames = allExercises
@@ -3728,8 +3738,79 @@ export namespace Exercise {
       );
   }
 
+  export function toUrlSlug(type: IExerciseType): string {
+    const possibleEquipments: Record<string, IEquipment> = {
+      barbell: "barbell",
+      cable: "cable",
+      dumbbell: "dumbbell",
+      smith: "smith",
+      band: "band",
+      kettlebell: "kettlebell",
+      bodyweight: "bodyweight",
+      leverageMachine: "leverage-machine",
+      medicineball: "medicine-ball",
+      ezbar: "ez-bar",
+      trapbar: "trap-bar",
+    };
+
+    const equipment = type.equipment ? possibleEquipments[type.equipment] : undefined;
+    const equipmentSlug = equipment ? `${equipment}-` : "";
+    return `${equipmentSlug}${StringUtils.dashcase(StringUtils.uncamelCase(type.id))}`;
+  }
+
+  export function fromUrlSlug(slug: string): IExerciseType | undefined {
+    // slug looks like leverage-machine-squat or barbell-bench-press
+    const possibleEquipments: Record<string, IEquipment> = {
+      barbell: "barbell",
+      cable: "cable",
+      dumbbell: "dumbbell",
+      smith: "smith",
+      band: "band",
+      kettlebell: "kettlebell",
+      bodyweight: "bodyweight",
+      "leverage-machine": "leverageMachine",
+      "medicine-ball": "medicineball",
+      "ez-bar": "ezbar",
+      "trap-bar": "trapbar",
+    };
+    let equipment: IEquipment | undefined = undefined;
+    const equipmentKey = ObjectUtils.keys(possibleEquipments).find((e) => slug.startsWith(e));
+    if (equipmentKey != null) {
+      equipment = possibleEquipments[equipmentKey];
+      slug = slug.slice(equipmentKey.length + 1);
+    }
+    const exerciseId = StringUtils.camelCase(StringUtils.undashcase(slug));
+    if (exercises[exerciseId]) {
+      return { id: exerciseId as IExerciseId, equipment };
+    } else {
+      return undefined;
+    }
+  }
+
   export function eq(a: IExerciseType, b: IExerciseType): boolean {
     return a.id === b.id && a.equipment === b.equipment;
+  }
+
+  export function filterExercisesByNameAndType(
+    settings: ISettings,
+    filter: string,
+    filterTypes: string[],
+    isSubstitute: boolean,
+    exerciseType?: IExerciseType,
+    length?: number
+  ): IExercise[] {
+    let allExercises = Exercise.allExpanded({});
+    if (filter) {
+      allExercises = Exercise.filterExercises(allExercises, filter);
+    }
+    if (filterTypes && filterTypes.length > 0) {
+      allExercises = Exercise.filterExercisesByType(allExercises, filterTypes, settings);
+    }
+    allExercises = Exercise.sortExercises(allExercises, isSubstitute, settings, filterTypes, exerciseType);
+    if (length != null) {
+      allExercises = allExercises.slice(0, length);
+    }
+    return allExercises;
   }
 
   export function getWarmupSets(
@@ -4026,6 +4107,47 @@ export namespace Exercise {
     return allExercises.filter((e) => StringUtils.fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
   }
 
+  export function sortExercises(
+    allExercises: IExercise[],
+    isSubstitute: boolean,
+    settings: ISettings,
+    filterTypes?: string[],
+    currentExerciseType?: IExerciseType
+  ): IExercise[] {
+    return CollectionUtils.sort(allExercises, (a, b) => {
+      const exerciseType = currentExerciseType;
+      if (isSubstitute && exerciseType) {
+        const aRating = Exercise.similarRating(exerciseType, a, settings.exercises);
+        const bRating = Exercise.similarRating(exerciseType, b, settings.exercises);
+        return bRating - aRating;
+      } else if (
+        filterTypes &&
+        screenMuscles
+          .map((m) => m.toLowerCase())
+          .some((t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1)
+      ) {
+        const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
+        const aTargetMuscleGroups = Exercise.targetMusclesGroups(a, settings.exercises);
+        const bTargetMuscleGroups = Exercise.targetMusclesGroups(b, settings.exercises);
+        if (
+          aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+          bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
+        ) {
+          return -1;
+        } else if (
+          bTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
+          aTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
+        ) {
+          return 1;
+        } else {
+          return a.name.localeCompare(b.name);
+        }
+      } else {
+        return a.name.localeCompare(b.name);
+      }
+    });
+  }
+
   export function filterExercisesByType<T extends IExerciseType>(
     allExercises: T[],
     filterTypes: string[],
@@ -4033,16 +4155,18 @@ export namespace Exercise {
   ): T[] {
     return allExercises.filter((e) => {
       const exercise = get(e, settings.exercises);
-      const targetMuscleGroups = Exercise.targetMusclesGroups(e, {}).map(StringUtils.capitalize);
-      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, {}).map(StringUtils.capitalize);
-      return filterTypes.every((ft) => {
-        return (
-          targetMuscleGroups.indexOf(ft) !== -1 ||
-          synergistMuscleGroups.indexOf(ft) !== -1 ||
-          exercise.types.map(StringUtils.capitalize).indexOf(ft) !== -1 ||
-          equipmentName(e.equipment) === ft
-        );
-      });
+      const targetMuscleGroups = Exercise.targetMusclesGroups(e, {}).map((m) => m.toLowerCase());
+      const synergistMuscleGroups = Exercise.synergistMusclesGroups(e, {}).map((m) => m.toLowerCase());
+      return filterTypes
+        .map((ft) => ft.toLowerCase())
+        .every((ft) => {
+          return (
+            targetMuscleGroups.indexOf(ft) !== -1 ||
+            synergistMuscleGroups.indexOf(ft) !== -1 ||
+            exercise.types.map((t) => t.toLowerCase()).indexOf(ft) !== -1 ||
+            equipmentName(e.equipment).toLowerCase() === ft
+          );
+        });
     });
   }
 

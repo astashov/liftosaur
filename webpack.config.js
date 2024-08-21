@@ -13,6 +13,8 @@ module.exports = {
   entry: {
     main: ["./src/main.tsx", "./src/index.css"],
     login: ["./src/login.tsx", "./src/index.css"],
+    exercise: ["./src/exercise.tsx", "./src/index.css"],
+    allexercises: ["./src/allExercises.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
@@ -269,6 +271,14 @@ module.exports = {
         secure: false,
       },
       "/login": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/exercises": {
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
+      "/exercises/*": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },

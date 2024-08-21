@@ -16,6 +16,24 @@ export namespace StringUtils {
     return string.replace(/[:,]/g, "").replace(/\s+/g, "-").toLowerCase();
   }
 
+  export function undashcase(string: string): string {
+    return string.replace(/-/g, " ");
+  }
+
+  export function uncamelCase(string: string): string {
+    return string.replace(/([a-z])([A-Z])/g, "$1 $2");
+  }
+
+  export function camelCase(string: string): string {
+    return string
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, (letter, index) => (index === 0 ? letter.toLowerCase() : letter.toUpperCase()))
+      .replace(/\s+/g, "");
+  }
+
+  export function snakecase(string: string): string {
+    return string.replace(/[:,]/g, "").replace(/\s+/g, "_").toLowerCase();
+  }
+
   export function truncate(string: string, length: number): string {
     if (string.length > length) {
       return `${string.slice(0, length - 3)}...`;

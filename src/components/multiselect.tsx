@@ -54,7 +54,9 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
   const input = useRef<HTMLInputElement>(null);
   const [showValuesList, setShowValuesList] = useState(false);
   const [filter, setFilter] = useState("");
-  const [height, setHeight] = useState(window.visualViewport?.height || window.innerHeight);
+  const [height, setHeight] = useState(
+    typeof window !== "undefined" ? window.visualViewport?.height || window.innerHeight : 100
+  );
 
   useEffect(() => {
     function onResize(): void {

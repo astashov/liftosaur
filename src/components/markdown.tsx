@@ -6,6 +6,7 @@ import { useEffect, useRef } from "preact/hooks";
 
 interface IProps {
   value: string;
+  className?: string;
 }
 
 export function Markdown(props: IProps): JSX.Element {
@@ -23,5 +24,7 @@ export function Markdown(props: IProps): JSX.Element {
     }
   });
 
-  return <div ref={containerRef} className="markdown" dangerouslySetInnerHTML={{ __html: result }} />;
+  return (
+    <div ref={containerRef} className={props.className || "markdown"} dangerouslySetInnerHTML={{ __html: result }} />
+  );
 }
