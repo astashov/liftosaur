@@ -5,7 +5,7 @@ import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
 import { equipmentName, Exercise, IExercise } from "../../models/exercise";
 import { Settings } from "../../models/settings";
-import { equipments, exerciseKinds, IExerciseType, IMuscle, ISettings, screenMuscles } from "../../types";
+import { equipments, exerciseKinds, IExerciseType, IMuscle, screenMuscles } from "../../types";
 import { StringUtils } from "../../utils/string";
 import { muscleDescriptions } from "../../models/muscleDescriptions";
 import { Muscle } from "../../models/muscle";
