@@ -22,7 +22,7 @@ export function TopNavMenu(props: {
 
   return (
     <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
-      <div class="flex items-center cursor-pointer">
+      <div class="flex items-center">
         <div className="flex w-full mr-2 md:hidden">
           <div>
             <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
