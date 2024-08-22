@@ -121,6 +121,11 @@ module.exports = {
         toType: "file",
       },
       {
+        from: process.env.STAGE ? "robots_stage.txt" : "robots_prod.txt",
+        to: "./robots.txt",
+        toType: "file",
+      },
+      {
         from: "_headers",
         to: "",
       },

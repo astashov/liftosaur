@@ -250,6 +250,7 @@ export type IFreeformExercise = t.TypeOf<typeof TFreeformExercise>;
 
 const TFreeformSettings = t.type(
   {
+    // @ts-ignore
     unit: TUnit,
   },
   "ISettings"
