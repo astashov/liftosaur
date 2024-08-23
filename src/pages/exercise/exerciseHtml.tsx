@@ -2,6 +2,7 @@ import { h, JSX } from "preact";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { Exercise } from "../../models/exercise";
+import { ExerciseImageUtils } from "../../models/exerciseImage";
 import { IExerciseType } from "../../types";
 import { ExerciseContent } from "./exerciseContent";
 
@@ -31,6 +32,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
       account={props.account}
       description="Description of the exercise, how to perform it with proper form, muscles worked, and with what exercises you can substitute it."
       ogUrl={url}
+      ogImage={`https://www.liftosaur.com${ExerciseImageUtils.ogImageUrl(data.exerciseType)}`}
       data={data}
       client={client}
     >

@@ -1,4 +1,5 @@
 import { IExerciseType, ISettings } from "../types";
+import { Exercise } from "./exercise";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -684,6 +685,11 @@ export namespace ExerciseImageUtils {
   export function existsCustom(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
     const customExercise = settings?.exercises?.[type.id];
     return size === "small" ? !!customExercise?.smallImageUrl : !!customExercise?.largeImageUrl;
+  }
+
+  export function ogImageUrl(type: IExerciseType): string {
+    const key = Exercise.toUrlSlug(type);
+    return `/externalimages/exercises/ogimages/${key}.png`;
   }
 
   export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
