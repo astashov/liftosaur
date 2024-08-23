@@ -344,6 +344,10 @@ input[type="checkbox"].checkbox:disabled {
   bottom: 0;
 }
 
+iframe#exercise-youtube-player {
+  z-index: 1;
+}
+
 .exercise-description-markdown ol {
   list-style: decimal;
   margin-bottom: 0.5rem;
