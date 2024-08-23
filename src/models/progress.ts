@@ -369,7 +369,7 @@ export namespace Progress {
         setIndex + 1,
         setVariationIndex
       );
-      if (timerExpr && `${timerExpr}`.trim() && state) {
+      if (timerExpr != null && `${timerExpr}`.trim() && state) {
         timer = ScriptRunner.safe(
           () =>
             new ScriptRunner(
