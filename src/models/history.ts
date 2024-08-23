@@ -418,11 +418,10 @@ export namespace History {
     currentEntry: IHistoryEntry
   ): IHistoryRecordAndEntry | undefined {
     for (const record of history) {
-      if (record.programId === progress.programId && record.day === progress.day) {
+      if (record.day === progress.day) {
         for (const entry of record.entries) {
           if (
             Exercise.eq(currentEntry.exercise, entry.exercise) &&
-            currentEntry.programExerciseId === entry.programExerciseId &&
             entry.sets.length > 0 &&
             entry.sets.some((s) => (s.completedReps || 0) > 0)
           ) {
