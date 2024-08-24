@@ -366,6 +366,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
         >
           Source Code on Github
         </a>
+        <a
+          href="https://github.com/astashov/liftosaur/discussions"
+          className="block py-3 text-base text-left border-b border-gray-200"
+        >
+          📍 Roadmap
+        </a>
       </section>
     </Surface>
   );

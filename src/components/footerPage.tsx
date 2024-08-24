@@ -27,7 +27,7 @@ export function FooterPage(props: IProps): JSX.Element {
             <div className="flex flex-1 md:pr-6">
               <ul className="flex-1">
                 {[
-                  ["About", "/about"],
+                  ["📍 Roadmap", "https://github.com/astashov/liftosaur/discussions"],
                   ["Docs", "/docs"],
                   ["Legacy Web Editor", "/program"],
                   ["Web Editor", "/planner"],
