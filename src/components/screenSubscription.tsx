@@ -19,10 +19,12 @@ import { ISubscription } from "../types";
 import { Thunk } from "../ducks/thunks";
 import { ModalCoupon } from "./modalCoupon";
 import { IconClose } from "./icons/iconClose";
+import { ObjectUtils } from "../utils/object";
 
 interface IProps {
   loading: ILoading;
   screenStack: IScreen[];
+  prices?: Partial<Record<string, string>>;
   subscription: ISubscription;
   subscriptionLoading?: ISubscriptionLoading;
   dispatch: IDispatch;
@@ -33,6 +35,12 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const [isGraphsShown, setIsGraphsShown] = useState<boolean>(false);
   const [isNotifsShown, setIsNotifsShown] = useState<boolean>(false);
   const [isRedeemShown, setIsRedeemShown] = useState<boolean>(false);
+  const monthlyPrice =
+    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("mont") !== -1)?.[0]?.[1] ?? "$4.99";
+  const yearlyPrice =
+    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("year") !== -1)?.[0]?.[1] ?? "$39.99";
+  const lifetimePrice =
+    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$69.99";
 
   return (
     <Surface
@@ -204,7 +212,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-monthly"
                     >
                       {!props.subscriptionLoading?.monthly ? (
-                        "$4.99/month"
+                        monthlyPrice + "/month"
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}
@@ -228,7 +236,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-yearly"
                     >
                       {!props.subscriptionLoading?.yearly ? (
-                        "$39.99/year"
+                        yearlyPrice + "/year"
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}
@@ -256,7 +264,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       data-cy="button-subscription-lifetime"
                     >
                       {!props.subscriptionLoading?.lifetime ? (
-                        "Lifetime - $69.99"
+                        "Lifetime - " + lifetimePrice
                       ) : (
                         <IconSpinner color="white" width={18} height={18} />
                       )}

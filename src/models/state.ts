@@ -65,6 +65,7 @@ export interface IState {
   notification?: INotification;
   screenStack: IScreen[];
   currentHistoryRecord?: number;
+  prices?: Partial<Record<string, string>>;
   loading: ILoading;
   defaultEquipmentExpanded?: IEquipment;
   subscriptionLoading?: ISubscriptionLoading;

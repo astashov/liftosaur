@@ -134,6 +134,9 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.sync2({ force: true }));
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
+      } else if (event.data?.type === "products") {
+        const newPrices = { ...state.prices, ...event.data.data };
+        updateState(dispatch, [lb<IState>().p("prices").record(newPrices)]);
       } else if (event.data?.type === "universalLink") {
         ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
@@ -195,6 +198,7 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen.current(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription
+        prices={state.prices}
         subscription={state.storage.subscription}
         subscriptionLoading={state.subscriptionLoading}
         dispatch={dispatch}
