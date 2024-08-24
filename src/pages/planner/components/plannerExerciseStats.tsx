@@ -1,6 +1,6 @@
 import { h, JSX, Fragment } from "preact";
 import { ExerciseImage } from "../../../components/exerciseImage";
-import { Exercise } from "../../../models/exercise";
+import { Exercise, IExercise } from "../../../models/exercise";
 import { Weight } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { StringUtils } from "../../../utils/string";
@@ -12,6 +12,7 @@ import { LinkButton } from "../../../components/linkButton";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { PlannerKey } from "../plannerKey";
+import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -22,28 +23,51 @@ interface IPlannerExerciseStatsProps {
   exerciseLine: number;
 }
 
-export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Element {
-  const evaluatedWeek = props.evaluatedWeeks[props.weekIndex];
-  const evaluatedDay = evaluatedWeek[props.dayIndex];
+export function getExerciseForStats(
+  weekIndex: number,
+  dayIndex: number,
+  exerciseLine: number,
+  evaluatedWeeks: IPlannerEvalResult[][],
+  settings: ISettings
+): { exercise: IExercise; evaluatedExercise: IPlannerProgramExercise } | undefined {
+  const evaluatedWeek = evaluatedWeeks[weekIndex];
+  const evaluatedDay = evaluatedWeek[dayIndex];
 
   if (!evaluatedDay.success) {
-    return <></>;
+    return undefined;
   }
 
-  const evaluatedExercise = evaluatedDay.data.find((e) => e.line === props.exerciseLine);
+  const evaluatedExercise = evaluatedDay.data.find((e) => e.line === exerciseLine);
   if (!evaluatedExercise) {
-    return <></>;
+    return undefined;
   }
 
-  const customExercises = props.settings.exercises;
+  const customExercises = settings.exercises;
   let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
-    return <></>;
+    return undefined;
   }
   exercise = Exercise.find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
   if (!exercise) {
+    return undefined;
+  }
+  return { exercise, evaluatedExercise };
+}
+
+export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Element {
+  const result = getExerciseForStats(
+    props.weekIndex,
+    props.dayIndex,
+    props.exerciseLine,
+    props.evaluatedWeeks,
+    props.settings
+  );
+  if (!result) {
     return <></>;
   }
+  const evaluatedWeek = props.evaluatedWeeks[props.weekIndex];
+  const { exercise, evaluatedExercise } = result;
+  const customExercises = props.settings.exercises;
 
   const targetMuscles = Exercise.targetMuscles(exercise, customExercises);
   const synergeticMuscles = Exercise.synergistMuscles(exercise, customExercises);
@@ -66,7 +90,12 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
           <ExerciseImage exerciseType={exercise} size="small" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold">{evaluatedExercise.name}</h3>
+          <h3 className="mb-2 text-lg font-bold">
+            <a href={Exercise.toExternalUrl(exercise)} target="_blank">
+              <span className="font-bold underline text-bluev2">{evaluatedExercise.name}</span>{" "}
+              <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
+            </a>
+          </h3>
           <div>
             <LinkButton
               name="planner-swap-exercise"

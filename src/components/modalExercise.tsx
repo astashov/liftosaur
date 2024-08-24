@@ -29,6 +29,7 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { Muscle } from "../models/muscle";
 import { CollectionUtils } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
+import { IconExternalLink } from "./icons/iconExternalLink";
 
 interface IModalExerciseProps {
   isHidden: boolean;
@@ -36,6 +37,7 @@ interface IModalExerciseProps {
   settings: ISettings;
   initialFilter?: string;
   initialFilterTypes?: string[];
+  shouldAddExternalLinks?: boolean;
   onChange: (value: IExerciseType | undefined, shouldClose: boolean) => void;
   onCreateOrUpdate: (
     shouldClose: boolean,
@@ -78,6 +80,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
           <ExercisePickerContainer
             filter={filter}
             initialFilterTypes={props.initialFilterTypes}
+            shouldAddExternalLinks={props.shouldAddExternalLinks}
             setFilter={setFilter}
             setIsCustomExerciseDisplayed={setIsCustomExerciseDisplayed}
             setEditingExercise={setEditingExercise}
@@ -158,6 +161,7 @@ const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps
 interface IExercisesListProps {
   settings: ISettings;
   filter: string;
+  shouldAddExternalLinks?: boolean;
   isSubstitute: boolean;
   initialFilterTypes?: string[];
   setFilter: (newFilter: string) => void;
@@ -203,6 +207,7 @@ const ExercisesList = forwardRef(
           <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
             <GroupHeader name="Current" />
             <ExerciseItem
+              shouldAddExternalLinks={props.shouldAddExternalLinks}
               showMuscles={props.isSubstitute}
               settings={props.settings}
               exercise={exercise}
@@ -310,6 +315,7 @@ const ExercisesList = forwardRef(
               }}
             >
               <ExerciseItem
+                shouldAddExternalLinks={props.shouldAddExternalLinks}
                 showMuscles={props.isSubstitute}
                 settings={props.settings}
                 currentExerciseType={props.exerciseType}
@@ -326,6 +332,7 @@ const ExercisesList = forwardRef(
 
 interface IExerciseItemProps {
   settings: ISettings;
+  shouldAddExternalLinks?: boolean;
   currentExerciseType?: IExerciseType;
   exercise: IExercise;
   showMuscles: boolean;
@@ -352,6 +359,15 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
           <MuscleGroupsView exercise={e} settings={props.settings} />
         )}
       </div>
+      {props.shouldAddExternalLinks && (
+        <div className="pl-1">
+          <div className="flex items-center">
+            <a className="p-2" href={Exercise.toExternalUrl(e)} target="_blank">
+              <IconExternalLink />
+            </a>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

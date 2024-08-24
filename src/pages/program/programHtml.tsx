@@ -30,7 +30,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
     <Page
       css={["program"]}
       js={["program"]}
-      maxWidth={1200}
+      maxWidth={props.exportedProgram?.program.planner ? 2400 : 1200}
       title={title}
       description="The weightlifting program editor"
       canonical={url}

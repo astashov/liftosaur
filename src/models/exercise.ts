@@ -3738,6 +3738,10 @@ export namespace Exercise {
       );
   }
 
+  export function toExternalUrl(type: IExerciseType): string {
+    return `/exercises/${toUrlSlug(type)}`;
+  }
+
   export function toUrlSlug(type: IExerciseType): string {
     const possibleEquipments: Record<string, IEquipment> = {
       barbell: "barbell",

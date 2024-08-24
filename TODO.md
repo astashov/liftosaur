@@ -1,5 +1,4 @@
 - Push notif for the forgotten session
-- Dynamic sets!
 - Use state vars for warmups
 - Custom exercise lists
 - Take custom timers into account
@@ -46,4 +45,3 @@
 
 User debug page:
 - Programs, their version history
-- 

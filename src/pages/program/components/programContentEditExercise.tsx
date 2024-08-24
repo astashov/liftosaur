@@ -151,6 +151,7 @@ export function ProgramContentEditExercise(props: IProps): JSX.Element {
         <IconCloseCircleOutline />
       </button>
       <ModalExercise
+        shouldAddExternalLinks={true}
         isHidden={!showModalExercise}
         settings={props.settings}
         exerciseType={programExercise.exerciseType}

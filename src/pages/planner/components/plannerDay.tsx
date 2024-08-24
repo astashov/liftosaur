@@ -9,10 +9,9 @@ import { PlannerEditorView } from "./plannerEditorView";
 import { LinkButton } from "../../../components/linkButton";
 import { CollectionUtils } from "../../../utils/collection";
 import { PlannerDayStats } from "./plannerDayStats";
-import { PlannerExerciseStats } from "./plannerExerciseStats";
+import { getExerciseForStats, PlannerExerciseStats } from "./plannerExerciseStats";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { Exercise } from "../../../models/exercise";
-import { HtmlUtils } from "../../../utils/html";
 import { TimeUtils } from "../../../utils/time";
 import { PlannerStatsUtils } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
@@ -91,12 +90,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               onChange={(e) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
               }}
-              onBlur={(e, text) => {
-                const relatedTarget = e.relatedTarget as HTMLElement;
-                if (!relatedTarget || !HtmlUtils.someInParents(relatedTarget, (el) => el.tagName === "BUTTON")) {
-                  dispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined));
-                }
-              }}
+              onBlur={(e, text) => {}}
               onLineChange={(line) => {
                 if (
                   !focusedExercise ||
@@ -150,18 +144,26 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             </div>
           </div>
         </div>
-        {isFocused && focusedExercise?.exerciseLine != null && (
-          <div className="p-4 mt-2 bg-yellow-100 border border-yellow-800 rounded-lg">
-            <PlannerExerciseStats
-              settings={props.settings}
-              evaluatedWeeks={props.evaluatedWeeks}
-              dispatch={dispatch}
-              weekIndex={weekIndex}
-              dayIndex={dayIndex}
-              exerciseLine={focusedExercise?.exerciseLine}
-            />
-          </div>
-        )}
+        {isFocused &&
+          focusedExercise?.exerciseLine != null &&
+          !!getExerciseForStats(
+            weekIndex,
+            dayIndex,
+            focusedExercise.exerciseLine,
+            props.evaluatedWeeks,
+            props.settings
+          ) && (
+            <div className="p-4 mt-2 bg-yellow-100 border border-yellow-800 rounded-lg">
+              <PlannerExerciseStats
+                settings={props.settings}
+                evaluatedWeeks={props.evaluatedWeeks}
+                dispatch={dispatch}
+                weekIndex={weekIndex}
+                dayIndex={dayIndex}
+                exerciseLine={focusedExercise?.exerciseLine}
+              />
+            </div>
+          )}
         <div className="mb-6">
           <LinkButton
             name="planner-delete-day"
