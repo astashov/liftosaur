@@ -1,6 +1,9 @@
 # 🏋 Liftosaur: Open-source powerful weight lifting tracker PWA for coders.
 
-Link: https://www.liftosaur.com/about
+**[Features roadmap](https://github.com/astashov/liftosaur/discussions)**
+**[Bugs](https://github.com/astashov/liftosaur/issues)**
+
+Link: https://www.liftosaur.com
 
 <img src="https://raw.github.com/astashov/liftosaur/master/screenshot2.png" alt="Liftosaur Screenshot" width="360" />
 
