@@ -40,7 +40,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const yearlyPrice =
     ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("year") !== -1)?.[0]?.[1] ?? "$39.99";
   const lifetimePrice =
-    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$69.99";
+    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$79.99";
 
   return (
     <Surface
