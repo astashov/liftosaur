@@ -1272,6 +1272,23 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240825": {
+    title: <span>💸 Introducing localized pricing</span>,
+    body: (
+      <ul>
+        <li>
+          It was a bit unfair to ask the same price for users from US and e.g. Afganistan or Phillipines, since the
+          purchasing power is so different in those countries.
+        </li>
+        <li>
+          So now the pricing is adjusted according to the country GDP per capita. E.g. it now costs{" "}
+          <strong>$5/$40/$80</strong> for monthly/yearly/lifetime in <strong>US</strong>, and{" "}
+          <strong>$2.5/$20/$40</strong> in <strong>Turkey</strong>, and <strong>$1/$8/$16</strong> in
+          <strong>Phillipines</strong>.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
