@@ -1,6 +1,6 @@
 ---
 date: "2021-03-04"
-title: Offline mode in Liftosaur | Liftosaur blog
+title: Offline mode in Liftosaur
 og_title: Offline mode in Liftosaur | Liftosaur blog
 og_description: "How I built offline mode in Liftosaur"
 og_image: /images/offline-mode-in-liftosaur-no-internet.png

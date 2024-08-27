@@ -1,6 +1,6 @@
 ---
 date: "2023-07-09"
-title: Workout planner inspired by the software development tools | Liftosaur blog
+title: Workout planner inspired by the software development tools
 og_title: Workout planner inspired by the software development tools | Liftosaur blog
 og_description: "Thoughts about building a weightlifting workout planner, which is inspired by the ideas from the software development tools"
 og_image: /images/workout-planner-hero.png

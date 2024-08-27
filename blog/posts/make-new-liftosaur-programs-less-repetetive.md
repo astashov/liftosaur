@@ -1,6 +1,6 @@
 ---
 date: "2024-02-27"
-title: Make new Liftosaur programs less repetitive | Liftosaur blog
+title: Make new Liftosaur programs less repetitive
 og_title: Make new Liftosaur programs less repetitive | Liftosaur blog
 og_description: Planned syntax improvements to make the weightlifting programs using new syntax less repetitive
 og_image: /images/make-new-liftosaur-programs-less-repetetive-intro.jpg
