@@ -25,7 +25,7 @@ export function ModalCorruptedState(props: IModalAmrapProps): JSX.Element {
         <div className="pb-4 font-bold text-center text-redv2-main">Could not back up the history</div>
       )}
       <p className="pb-4">
-        The developer of this app is notified about this, and is going to look into this ASAP. You can contact us at{" "}
+        Please contact the developer of this app, and he is going to look into this ASAP. You can contact us at{" "}
         <a className="font-bold underline text-bluev2" href="mailto:info@liftosaur.com">
           info@liftosaur.com
         </a>

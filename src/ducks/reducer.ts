@@ -87,16 +87,21 @@ export async function getInitialState(
     if (maybeStorage.success) {
       finalStorage = maybeStorage.data;
     } else {
-      const userid = (storage.storage?.tempUserId || `missing-${UidFactory.generateUid(8)}`) as string;
       const service = new Service(client);
-      errors.corruptedstorage = {
-        userid,
-        backup: await service.postDebug(userid, JSON.stringify(storage.storage), { local: "true" }),
-        confirmed: false,
-        local: true,
-      };
-      await service.signout();
-      finalStorage = Storage.getDefault();
+      const userid = (storage.storage?.tempUserId || `missing-${UidFactory.generateUid(8)}`) as string;
+      const serverStorage = await service.getStorage(userid, undefined, undefined);
+      const maybeServerStorage = await Storage.get(client, serverStorage.storage, false);
+      if (maybeServerStorage.success) {
+        finalStorage = maybeServerStorage.data;
+      } else {
+        errors.corruptedstorage = {
+          userid,
+          backup: await service.postDebug(userid, JSON.stringify(storage.storage), { local: "true" }),
+          confirmed: false,
+          local: true,
+        };
+        finalStorage = Storage.getDefault();
+      }
     }
 
     let finalLastSyncedStorage: IStorage | undefined = undefined;
@@ -423,6 +428,8 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     ];
   }
   const newState = reducer(state, action);
+  Storage.validateAndReportStorage(newState.storage);
+
   if (typeof window !== "undefined") {
     if (timerId != null) {
       window.clearTimeout(timerId);

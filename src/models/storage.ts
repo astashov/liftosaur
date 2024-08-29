@@ -37,6 +37,10 @@ export namespace Storage {
     }
   }
 
+  export function validateAndReportStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
+    return validateAndReport(data, TStorage, "storage");
+  }
+
   export function validateAndReport(
     data: Record<string, unknown>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
