@@ -75,7 +75,19 @@ export namespace Program {
     (program: IProgram, settings: ISettings): IProgram => {
       if (program.planner != null) {
         try {
-          return new PlannerToProgram(program.id, program.nextDay, program.planner, settings).convertToProgram();
+          const newProgram = new PlannerToProgram(
+            program.id,
+            program.nextDay,
+            program.planner,
+            settings
+          ).convertToProgram();
+          return {
+            ...newProgram,
+            url: program.url,
+            author: program.author,
+            tags: program.tags,
+            description: program.description,
+          };
         } catch (e) {
           if (typeof window !== "undefined" && window.alert != null) {
             window.alert(

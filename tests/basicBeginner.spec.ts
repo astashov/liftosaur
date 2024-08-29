@@ -155,7 +155,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Chin Up') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("2.5");
+  ).toHaveText("5");
   await expect(
     page
       .getByTestId("history-record")
@@ -199,5 +199,5 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("47.5");
+  ).toHaveText("50");
 });

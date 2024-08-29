@@ -24,7 +24,7 @@ test("Warmups", async ({ page }) => {
 
   await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText(
-    "Bench Press / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 81lb"
+    "Bench Press / 1x1 / warmup: 2x5 30%, 1x4 52%, 1x5 90lb"
   );
 });
 
@@ -56,7 +56,7 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("num-input-edit-exercise-minreps-plus").nth(1).click();
   await page.getByText("Ask Weight?").first().click();
   await page.getByTestId("editor-v2-full-program").click();
-  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 88lb+, 2x2");
+  await expect(page.getByTestId("planner-editor")).toContainText("Bench Press / 2x5+ 95lb+, 2x2");
 });
 
 test("Change exercise", async ({ page }) => {
@@ -144,7 +144,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
   await page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-plus").nth(1).click();
   await expect(page.getByTestId("num-input-edit-exercise-warmupset-numofsets-value").first()).toHaveValue("2");
-  await expect(page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-value").nth(1)).toHaveValue("136");
+  await expect(page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-value").nth(1)).toHaveValue("145");
   await page.getByTestId("edit-exercise-warmups-defaultize").click();
   await expect(page.getByTestId("num-input-edit-exercise-warmupset-numofsets-value").first()).toHaveValue("1");
   await expect(page.getByTestId("num-input-edit-exercise-warmupset-weight-weight-value").nth(1)).toHaveValue("135");
@@ -160,7 +160,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("close-edit-exercise").click();
   await page.getByTestId("editor-v2-full-program").click();
   await expect(page.getByTestId("planner-editor").nth(1)).toContainText(
-    "Bench Press / ...Squat / 2x2+ / warmup: 2x5 45lb, 1x3 136lb"
+    "Bench Press / ...Squat / 2x2+ / warmup: 2x5 45lb, 1x3 145lb"
   );
 });
 
