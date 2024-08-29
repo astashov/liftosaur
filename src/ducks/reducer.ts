@@ -428,7 +428,12 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     ];
   }
   const newState = reducer(state, action);
-  Storage.validateAndReportStorage(newState.storage);
+  if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
+    const validateResult = Storage.validateAndReportStorage(newState.storage);
+    if (!validateResult.success) {
+      newState.reportedCorruptedStorage = true;
+    }
+  }
 
   if (typeof window !== "undefined") {
     if (timerId != null) {

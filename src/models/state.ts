@@ -92,6 +92,7 @@ export interface IState {
   showSignupRequest?: boolean;
   freshMigrations: boolean;
   errors: IStateErrors;
+  reportedCorruptedStorage?: boolean;
   nosync: boolean;
   selectedGymId?: string;
 }
