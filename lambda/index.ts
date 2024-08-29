@@ -42,9 +42,6 @@ import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardCo
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
 import { FreeUserDao } from "./dao/freeUserDao";
-import { renderFreeformHtml } from "./freeform";
-import { LogFreeformDao } from "./dao/logFreeformDao";
-import { FreeformGenerator } from "./utils/freeformGenerator";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
@@ -1154,19 +1151,6 @@ const getProgramDetailsHandler: RouteHandler<
   }
 };
 
-const getFreeformEndpoint = Endpoint.build("/freeform");
-const getFreeformHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFreeformEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const di = payload.di;
-  return {
-    statusCode: 200,
-    body: renderFreeformHtml(di.fetch),
-    headers: { "content-type": "text/html" },
-  };
-};
-
 const postPlannerReformatterEndpoint = Endpoint.build("/api/plannerreformatter");
 const postPlannerReformatterHandler: RouteHandler<
   IPayload,
@@ -1198,53 +1182,6 @@ const postPlannerReformatterFullHandler: RouteHandler<
     return ResponseUtils.json(200, event, { data: result.data });
   } else {
     return ResponseUtils.json(400, event, { error: result.error });
-  }
-};
-
-const postFreeformGeneratorEndpoint = Endpoint.build("/api/freeform");
-const postFreeformGeneratorHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof postFreeformGeneratorEndpoint
-> = async ({ payload }) => {
-  const env = Utils.getEnv();
-  const { event, di } = payload;
-  const bodyJson = getBodyJson(event);
-  const id = UidFactory.generateUid(8);
-  if (process.env.LOCAL_CHATGPT === "true") {
-    freeformLambdaHandler(di)({ prompt: bodyJson.prompt, id: id });
-  } else {
-    await di.lambda.invoke<ILftFreeformLambdaDevEvent>({
-      name: `LftFreeformLambda${env === "dev" ? "Dev" : ""}`,
-      invocationType: "Event",
-      payload: { prompt: bodyJson.prompt, id: id },
-    });
-  }
-  return ResponseUtils.json(200, event, { id: id });
-};
-
-const getFreeformRecordEndpoint = Endpoint.build("/api/freeform/:id");
-const getFreeformRecordHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof getFreeformRecordEndpoint
-> = async ({ payload, match: { params } }) => {
-  const { event, di } = payload;
-  const id = params.id;
-  const logFreeformDao = new LogFreeformDao(di);
-  const result = await logFreeformDao.get(id);
-  if (result) {
-    const program = result.program;
-    if (result.type === "data" && program) {
-      return ResponseUtils.json(200, event, { program: program, response: result.response });
-    } else {
-      return ResponseUtils.json(400, event, {
-        error: result.error,
-        response: result.response,
-      });
-    }
-  } else {
-    return ResponseUtils.json(404, event, {});
   }
 };
 
@@ -1794,18 +1731,6 @@ const rollbar = new Rollbar({
   checkIgnore: RollbarUtils.checkIgnore,
 });
 
-type ILftFreeformLambdaDevEvent = { prompt: string; id: string };
-
-export const getLftFreeformLambdaDev = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
-  rollbar.lambdaHandler(
-    async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(di)(event)
-  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
-
-export const getLftFreeformLambda = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
-  rollbar.lambdaHandler(
-    async (event: ILftFreeformLambdaDevEvent): Promise<APIGatewayProxyResult> => freeformLambdaHandler(di)(event)
-  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
-
 export const getLftStatsLambdaDev = (di: IDI): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
   rollbar.lambdaHandler(
     async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(di)(event)
@@ -1941,37 +1866,6 @@ function getIsNewUser(item: IStatsUserData): boolean {
   );
 }
 
-export const freeformLambdaHandler = (
-  di: IDI
-): ((event: ILftFreeformLambdaDevEvent) => Promise<APIGatewayProxyResult>) => {
-  return async (event) => {
-    di.log.log("Start generating freeform program");
-    const freeformGenerator = new FreeformGenerator(di);
-    const result = await freeformGenerator.generate(event.prompt);
-    if (result.success) {
-      await new LogFreeformDao(di).put(event.id, "data", event.prompt, result.data.response, {
-        program: result.data.program,
-      });
-      di.log.log("Done generating freeform program");
-      return {
-        statusCode: 200,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ data: "done" }),
-      };
-    } else {
-      await new LogFreeformDao(di).put(event.id, "error", event.prompt, result.error.response, {
-        error: result.error.error,
-      });
-      di.log.log("Error generating freeform program");
-      return {
-        statusCode: 400,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ data: "error" }),
-      };
-    }
-  };
-};
-
 export type IHandler = (event: APIGatewayProxyEvent, context: unknown) => Promise<APIGatewayProxyResult>;
 type IRollbarHandler = Rollbar.LambdaHandler<APIGatewayProxyEvent, APIGatewayProxyResult, unknown>;
 export const getHandler = (di: IDI): IRollbarHandler => {
@@ -2003,13 +1897,10 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getPlannerShorturlResponseEndpoint, getPlannerShorturlResponseHandler)
       .get(getPlanShorturlResponseEndpoint, getPlanShorturlResponseHandler)
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
-      .get(getFreeformEndpoint, getFreeformHandler)
       .get(getLoginEndpoint, getLoginHandler)
-      .get(getFreeformRecordEndpoint, getFreeformRecordHandler)
       .post(postPlannerReformatterEndpoint, postPlannerReformatterHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
       .post(postPlannerReformatterFullEndpoint, postPlannerReformatterFullHandler)
-      .post(postFreeformGeneratorEndpoint, postFreeformGeneratorHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)

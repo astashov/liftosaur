@@ -124,13 +124,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    const logsFreeformTable = new dynamodb.Table(this, `LftLogsFreeform${suffix}`, {
-      tableName: `lftLogsFreeform${suffix}`,
-      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: false,
-    });
-
     const userProgramsTable = new dynamodb.Table(this, `LftUserPrograms${suffix}`, {
       tableName: `lftUserPrograms${suffix}`,
       partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
@@ -227,19 +220,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
-    const freeformLambdaFunction = new lambda.Function(this, `LftFreeformLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      functionName: `LftFreeformLambda${suffix}`,
-      code: lambda.Code.fromAsset("dist-lambda"),
-      memorySize: 512,
-      layers: [depsLayer],
-      timeout: cdk.Duration.seconds(300),
-      handler: `lambda/run.LftFreeformLambda${suffix}`,
-      environment: {
-        IS_DEV: `${isDev}`,
-      },
-    });
-
     const statsLambdaFunction = new lambda.Function(this, `LftStatsLambda${suffix}`, {
       runtime: lambda.Runtime.NODEJS_18_X,
       functionName: `LftStatsLambda${suffix}`,
@@ -286,9 +266,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     programsBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(statsLambdaFunction);
-    freeformLambdaFunction.grantInvoke(lambdaFunction);
     allSecrets.grantRead(lambdaFunction);
-    allSecrets.grantRead(freeformLambdaFunction);
     allSecrets.grantRead(statsLambdaFunction);
     usersTable.grantReadWriteData(lambdaFunction);
     usersTable.grantReadWriteData(statsLambdaFunction);
@@ -301,8 +279,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(statsLambdaFunction);
-    logsFreeformTable.grantReadWriteData(lambdaFunction);
-    logsFreeformTable.grantReadWriteData(freeformLambdaFunction);
     urlsTable.grantReadWriteData(lambdaFunction);
     affiliatesTable.grantReadWriteData(lambdaFunction);
     freeUsersTable.grantReadWriteData(lambdaFunction);

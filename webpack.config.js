@@ -27,7 +27,6 @@ module.exports = {
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
     affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
-    freeform: ["./src/freeform.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
   },
   output: {
@@ -296,10 +295,6 @@ module.exports = {
         secure: false,
       },
       "/affiliates": {
-        target: "https://local-api.liftosaur.com:3000/",
-        secure: false,
-      },
-      "/freeform": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },

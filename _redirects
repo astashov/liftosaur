@@ -11,7 +11,6 @@
 /affiliates https://api3.liftosaur.com/affiliates  200
 /programs/:programId https://api3.liftosaur.com/programs/:programId  200
 /planner https://api3.liftosaur.com/planner  200
-/freeform https://api3.liftosaur.com/freeform  200
 /program https://api3.liftosaur.com/program  200
 /p/:id https://api3.liftosaur.com/p/:id  200
 /n/:id https://api3.liftosaur.com/n/:id  200
