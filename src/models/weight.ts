@@ -499,6 +499,19 @@ export namespace Weight {
     }
   }
 
+  export function calculateRepMax(
+    knownReps: number,
+    knownRpe: number,
+    knownWeight: number,
+    targetReps: number,
+    targetRpe: number
+  ): number {
+    const knownRpeMultiplier = Weight.rpeMultiplier(knownReps, knownRpe);
+    const onerm = knownWeight / knownRpeMultiplier;
+    const targetRpeMultiplier = Weight.rpeMultiplier(targetReps, targetRpe);
+    return Math.round(onerm * targetRpeMultiplier);
+  }
+
   export function rpeMultiplier(reps: number, rpe: number): number {
     if (reps === 1 && rpe === 10) {
       return 1;

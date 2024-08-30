@@ -12,19 +12,6 @@ interface IRepMaxCalculatorProps {
   onSelect: (weight?: number) => void;
 }
 
-function calculateWeight(
-  knownReps: number,
-  knownRpe: number,
-  knownWeight: number,
-  targetReps: number,
-  targetRpe: number
-): number {
-  const knownRpeMultiplier = Weight.rpeMultiplier(knownReps, knownRpe);
-  const onerm = knownWeight / knownRpeMultiplier;
-  const targetRpeMultiplier = Weight.rpeMultiplier(targetReps, targetRpe);
-  return Math.round(onerm * targetRpeMultiplier);
-}
-
 export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
   const [knownRepsValue, setKnownRepsValue] = useState<number>(5);
   const [knownRpeValue, setKnownRpeValue] = useState<number>(10);
@@ -49,7 +36,13 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
     };
   }
 
-  const weight = calculateWeight(knownRepsValue, knownRpeValue, knownWeightValue, targetRepsValue, targetRpeValue);
+  const weight = Weight.calculateRepMax(
+    knownRepsValue,
+    knownRpeValue,
+    knownWeightValue,
+    targetRepsValue,
+    targetRpeValue
+  );
 
   return (
     <div>

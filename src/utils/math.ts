@@ -44,6 +44,15 @@ export namespace MathUtils {
       return value;
     }
   }
+
+  export function toWord(num?: number): string | undefined {
+    if (num == null) {
+      return undefined;
+    }
+    return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"][
+      num
+    ];
+  }
 }
 
 export function n(value: number, precision: number = 2): string {

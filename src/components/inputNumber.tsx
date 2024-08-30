@@ -5,7 +5,7 @@ import { StringUtils } from "../utils/string";
 import { Input } from "./input";
 
 interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
-  value: number;
+  value?: number;
   label?: string;
   step?: number;
   min?: number;
@@ -19,9 +19,9 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
   const actualStep = step ?? 1;
 
   function getValue(): number | undefined {
-    const inputValue = inputRef.current.value;
-    const v = Number(inputValue);
-    if (inputValue && !isNaN(v)) {
+    const inputValue = inputRef.current.value || min;
+    const v = inputValue != null ? Number(inputValue) : undefined;
+    if (v != null && !isNaN(v)) {
       return MathUtils.clamp(v, min, max);
     }
     return undefined;

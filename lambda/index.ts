@@ -64,6 +64,8 @@ import { ExerciseImageUtils } from "../src/models/exerciseImage";
 import { Exercise } from "../src/models/exercise";
 import { renderExerciseHtml } from "./exercise";
 import { renderAllExercisesHtml } from "./allExercises";
+import { renderRepMaxHtml } from "./repmax";
+import { MathUtils } from "../src/utils/math";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -1665,6 +1667,43 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   return ResponseUtils.json(200, event, { url: newUrl });
 };
 
+const getRepMaxEndpoint = Endpoint.build("/rep-max-calculator");
+const getRepMaxHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getRepMaxEndpoint> = async ({ payload }) =>
+  showRepMax(payload, undefined);
+
+const repmaxpairs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const repmaxpairswords = repmaxpairs.map((reps) => {
+  const word = MathUtils.toWord(reps);
+  return [
+    Endpoint.build(`/${word}-rep-max-calculator`),
+    async ({ payload }: { payload: IPayload }) => showRepMax(payload, reps),
+  ] as const;
+});
+const repmaxpairnums = repmaxpairs.map((reps) => {
+  return [
+    Endpoint.build(`/${reps}rm`),
+    async ({}: {}) => {
+      const word = MathUtils.toWord(reps);
+      return {
+        statusCode: 301,
+        body: "",
+        headers: { "content-type": "text/html", location: `/${word != null ? `${word}-` : ""}rep-max-calculator` },
+      };
+    },
+  ] as const;
+});
+
+async function showRepMax(payload: IPayload, reps?: number): Promise<APIGatewayProxyResult> {
+  const { di } = payload;
+  const userResult = await getUserAccount(payload);
+  const account = userResult.success ? userResult.data.account : undefined;
+  return {
+    statusCode: 200,
+    body: renderRepMaxHtml(di.fetch, reps, account),
+    headers: { "content-type": "text/html" },
+  };
+}
+
 const rollbar = new Rollbar({
   accessToken: "bcdd086a019f49edb69f790a854b44dd",
   captureUncaught: true,
@@ -1838,7 +1877,7 @@ export const getRawHandler = (di: IDI): IHandler => {
     di.log.log("--------> Starting request", event.httpMethod, event.path);
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
     const request: IPayload = { event, di };
-    const r = new Router<IPayload, APIGatewayProxyResult>(request)
+    let r = new Router<IPayload, APIGatewayProxyResult>(request)
       .get(getMainEndpoint, getMainHandler)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
       .post(postStoreExceptionDataEndpoint, postStoreExceptionDataHandler)
@@ -1890,8 +1929,12 @@ export const getRawHandler = (di: IDI): IHandler => {
       .delete(deleteProgramEndpoint, deleteProgramHandler)
       .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
-      .get(getAllExercisesEndpoint, getAllExercisesHandler);
-    // r.post(".*/api/loadbackup", loadBackupHandler);
+      .get(getAllExercisesEndpoint, getAllExercisesHandler)
+      .get(getRepMaxEndpoint, getRepMaxHandler);
+
+    r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
+    r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
+
     const url = UrlUtils.build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
