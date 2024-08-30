@@ -34,6 +34,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
             data-cy={`input-${StringUtils.dashcase(props.label || "")}-minus`}
+            style={{ userSelect: "none", touchAction: "manipulation" }}
             onClick={() => {
               const v = getValue();
               if (v != null) {
@@ -69,6 +70,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
             data-cy={`input-${StringUtils.dashcase(props.label || "")}-plus`}
+            style={{ userSelect: "none", touchAction: "manipulation" }}
             onClick={() => {
               const v = getValue();
               if (v != null) {
