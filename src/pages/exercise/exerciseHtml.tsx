@@ -19,7 +19,7 @@ export function ExerciseHtml(props: IProps): JSX.Element {
   const exercise = Exercise.get(data.exerciseType, {});
   const name = Exercise.reverseName(exercise);
   const title = `${name} | Liftosaur`;
-  const url = `https://www.liftosaur.com/exercise/${id}`;
+  const url = `https://www.liftosaur.com/exercises/${id}`;
 
   return (
     <Page
