@@ -51,7 +51,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
   return (
     <div className="px-2 text-center">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold">
+        <h1 className="px-6 text-2xl font-bold">
           {repsWord ? `${StringUtils.capitalize(repsWord)} ` : ""}Rep Max ({reps != null ? reps : ""}RM) calculator
         </h1>
         <div>
@@ -172,46 +172,119 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center">
-        <div className="flex gap-6">
-          <div>
-            <div className="mb-2">
-              <h2 className="text-lg font-bold">Other Rep Maxes</h2>
-            </div>
-            {knownReps != null && knownWeight != null && (
-              <ul>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
-                  if (r !== reps) {
-                    const w = Weight.calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
-                    return (
-                      <li key={r}>
-                        {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}:{" "}
-                        <strong>{w}</strong>
-                      </li>
-                    );
-                  }
-                  return null;
-                })}
-              </ul>
-            )}
+      <div className="mb-4">
+        <OtherRepMaxes
+          knownReps={knownReps}
+          knownRpe={knownRpe}
+          knownWeight={knownWeight}
+          reps={reps}
+          rpe={rpe}
+          rpeEnabled={rpeEnabled}
+        />
+      </div>
+      <div className="mb-4">
+        <TMConverter />
+      </div>
+    </div>
+  );
+}
+
+interface IOtherRepMaxesProps {
+  knownReps: number | undefined;
+  knownRpe: number | undefined;
+  knownWeight: number | undefined;
+  reps: number | undefined;
+  rpe: number | undefined;
+  rpeEnabled: boolean;
+}
+
+function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
+  const { knownReps, knownRpe, knownWeight, reps, rpe, rpeEnabled } = props;
+
+  return (
+    <div className="flex items-center justify-center">
+      <div className="flex gap-6">
+        <div>
+          <div className="mb-2">
+            <h2 className="text-lg font-bold">Other Rep Maxes</h2>
           </div>
-          <div className="bg-grayv2-200" style={{ width: "1px" }} />
-          <div>
-            <div className="mb-2">
-              <h2 className="text-lg font-bold">1RM Percentages</h2>
-            </div>
+          {knownReps != null && knownWeight != null && (
             <ul>
-              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
-                const w = (Weight.rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
-                return (
-                  <li key={r}>
-                    {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}:{" "}
-                    <strong>{w}%</strong>
-                  </li>
-                );
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
+                if (r !== reps) {
+                  const w = Weight.calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
+                  return (
+                    <li key={r}>
+                      {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}:{" "}
+                      <strong>{w}</strong>
+                    </li>
+                  );
+                }
+                return null;
               })}
             </ul>
+          )}
+        </div>
+        <div className="bg-grayv2-200" style={{ width: "1px" }} />
+        <div>
+          <div className="mb-2">
+            <h2 className="text-lg font-bold">1RM Percentages</h2>
           </div>
+          <ul>
+            {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
+              const w = (Weight.rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
+              return (
+                <li key={r}>
+                  {r}RM{rpeEnabled ? <span className="text-grayv2-main">@{rpe ?? 10}</span> : ""}: <strong>{w}%</strong>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TMConverter(): JSX.Element {
+  const [tm, setTm] = useState<number>(90);
+  const percentages: number[] = [];
+  for (let i = 100; i > 0; i -= 2.5) {
+    percentages.push(i);
+  }
+
+  return (
+    <div className="flex items-center justify-center">
+      <div className="flex">
+        <div>
+          <div className="mb-2">
+            <h2 className="text-lg font-bold">Convert TM percentages into RM percentages</h2>
+            <p className="text-xs text-grayv2-main">Enter what percentage of RM your TM is</p>
+          </div>
+          <div className="mb-2">
+            <InputNumber
+              label="TM, %"
+              value={tm}
+              data-cy="tm-input"
+              data-name="tm-input"
+              min={0}
+              max={200}
+              step={2.5}
+              className="w-10 outline-none no-arrows"
+              onUpdate={(newValue) => {
+                setTm(MathUtils.clamp(newValue, 0, 200));
+              }}
+            />
+          </div>
+          <ul>
+            {percentages.map((pct) => {
+              return (
+                <li key={pct}>
+                  <strong>{pct}%</strong> TM = <strong>{MathUtils.roundTo05(tm * (pct / 100)).toFixed(1)}%</strong> 1RM
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </div>
