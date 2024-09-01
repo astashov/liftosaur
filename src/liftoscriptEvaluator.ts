@@ -695,7 +695,9 @@ export class LiftoscriptEvaluator {
       const [stateVar, incAssignmentExpr, expression] = getChildren(expr);
       if (
         stateVar == null ||
-        (stateVar.type.name !== NodeName.StateVariable && stateVar.type.name !== NodeName.VariableExpression) ||
+        (stateVar.type.name !== NodeName.StateVariable &&
+          stateVar.type.name !== NodeName.VariableExpression &&
+          stateVar.type.name !== NodeName.Variable) ||
         expression == null ||
         incAssignmentExpr == null
       ) {
@@ -783,6 +785,29 @@ export class LiftoscriptEvaluator {
         } else {
           this.error(`Unknown variable '${variable}'`, stateVar);
         }
+      } else if (stateVar.type.name === NodeName.Variable) {
+        const varKey = this.getValue(stateVar).replace("var.", "");
+        let value = this.evaluate(expression);
+        if (!(Weight.is(value) || Weight.isPct(value) || typeof value === "number")) {
+          value = value ? 1 : 0;
+        }
+        const op = this.getValue(incAssignmentExpr);
+        if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
+          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr);
+        }
+        const currentValue = this.vars[varKey];
+        if (op === "+=") {
+          this.vars[varKey] = this.add(currentValue, value);
+        } else if (op === "-=") {
+          this.vars[varKey] = this.subtract(currentValue, value);
+        } else if (op === "*=") {
+          this.vars[varKey] = this.multiply(currentValue, value);
+        } else if (op === "/=") {
+          this.vars[varKey] = this.divide(currentValue, value);
+        } else {
+          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr);
+        }
+        return this.vars[varKey];
       } else {
         const indexNode = stateVar.getChild(NodeName.StateVariableIndex);
         const stateKeyNode = stateVar.getChild(NodeName.Keyword);
