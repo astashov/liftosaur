@@ -908,7 +908,7 @@ export const TExerciseDataValue = t.partial(
   {
     rm1: TWeight,
     rounding: t.number,
-    equipment: dictionary(t.string, t.string),
+    equipment: dictionary(t.string, t.union([t.string, t.undefined])),
   },
   "TExerciseDataValue"
 );
