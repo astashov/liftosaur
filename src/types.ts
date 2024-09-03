@@ -990,6 +990,7 @@ export const TSettings = t.intersection(
       planner: TPlannerSettings,
     }),
     t.partial({
+      ignoreDoNotDisturb: t.boolean,
       currentGymId: t.string,
       isPublicProfile: t.boolean,
       nickname: t.string,

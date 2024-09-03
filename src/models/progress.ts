@@ -443,6 +443,7 @@ export namespace Progress {
           body = formattedPlates;
         }
       }
+      const ignoreDoNotDisturb = settings.ignoreDoNotDisturb ? "true" : "false";
       SendMessage.toIos({
         type: "startTimer",
         duration: timerForPush.toString(),
@@ -452,6 +453,7 @@ export namespace Progress {
         subtitle,
         bodyHeader,
         body,
+        ignoreDoNotDisturb,
       });
       SendMessage.toAndroid({
         type: "startTimer",
@@ -462,6 +464,7 @@ export namespace Progress {
         subtitle,
         bodyHeader,
         body,
+        ignoreDoNotDisturb,
       });
     }
     return {

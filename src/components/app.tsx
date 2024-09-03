@@ -265,6 +265,7 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenSettings
         loading={state.loading}
         screenStack={state.screenStack}
+        subscription={state.storage.subscription}
         dispatch={dispatch}
         user={state.user}
         currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}

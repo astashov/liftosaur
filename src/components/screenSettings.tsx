@@ -9,7 +9,7 @@ import { IUser } from "../models/user";
 import { ClipboardUtils } from "../utils/clipboard";
 import { Share } from "../models/share";
 import { useState } from "preact/hooks";
-import { ILengthUnit, ISettings, IUnit } from "../types";
+import { ILengthUnit, ISettings, ISubscription, IUnit } from "../types";
 import { ILoading } from "../models/state";
 import { WhatsNew } from "../models/whatsnew";
 import { ImporterStorage } from "./importerStorage";
@@ -26,9 +26,11 @@ import { SendMessage } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
+import { Subscriptions } from "../utils/subscriptions";
 
 interface IProps {
   dispatch: IDispatch;
+  subscription: ISubscription;
   screenStack: IScreen[];
   user?: IUser;
   currentProgramName?: string;
@@ -286,6 +288,28 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 </div>
               </div>
             </MenuItemWrapper>
+            {Subscriptions.hasSubscription(props.subscription) &&
+              SendMessage.isAndroid() &&
+              SendMessage.androidAppVersion() >= 17 && (
+                <MenuItemEditable
+                  type="boolean"
+                  name="Ignore Do Not Disturb"
+                  value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
+                  nextLine={
+                    <div className="mb-2 text-xs text-grayv2-main" style={{ marginTop: "-0.5rem" }}>
+                      Push notification will make a sound even in Silent or Do Not Disturb mode
+                    </div>
+                  }
+                  onChange={(newValue) => {
+                    props.dispatch({
+                      type: "UpdateSettings",
+                      lensRecording: lb<ISettings>()
+                        .p("ignoreDoNotDisturb")
+                        .record(newValue === "true"),
+                    });
+                  }}
+                />
+              )}
           </div>
         )}
         <GroupHeader name="Import / Export" topPadding={true} />
