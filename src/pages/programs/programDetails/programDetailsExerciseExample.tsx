@@ -6,7 +6,6 @@ import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
 import { equipmentName, Exercise } from "../../../models/exercise";
 import { Program } from "../../../models/program";
-import { Reps } from "../../../models/set";
 import { IProgram, IProgramExercise, ISettings, IWeight } from "../../../types";
 import { ObjectUtils } from "../../../utils/object";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
@@ -84,7 +83,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                         <div className="flex flex-no-wrap justify-center">
                           <HistoryRecordSetsView
                             noWrap={true}
-                            sets={Reps.roundSets(week.entry.sets, props.settings, week.entry.exercise)}
+                            sets={week.entry.sets}
                             isNext={true}
                             settings={props.settings}
                           />
@@ -104,9 +103,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             title="Weight week over week"
             yAxisLabel="Weight"
             color="red"
-            getValue={(entry) =>
-              Weight.roundConvertTo(entry.sets[0].weight, settings, props.programExercise.exerciseType).value
-            }
+            getValue={(entry) => entry.sets[0].weight.value}
           />
         </div>
         <div>

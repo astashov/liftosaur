@@ -40,7 +40,9 @@ test("rm1", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await expect(page.getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")).toHaveText("140");
+  await expect(page.getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")).toHaveText(
+    "140lb"
+  );
 
   await page.getByTestId("history-record").nth(1).click();
   await page.getByTestId("exercise-state-vars-toggle").click();
@@ -73,5 +75,7 @@ test("rm1", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await expect(page.getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")).toHaveText("155");
+  await expect(page.getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")).toHaveText(
+    "155lb"
+  );
 });

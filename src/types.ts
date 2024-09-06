@@ -414,6 +414,7 @@ export const TSet = t.intersection(
     t.interface({
       reps: t.number,
       weight: TWeight,
+      originalWeight: TWeight,
     }),
     t.partial({
       completedReps: t.number,
@@ -889,6 +890,7 @@ export const TEquipmentData = t.intersection(
       isFixed: t.boolean,
     }),
     t.partial({
+      unit: TUnit,
       name: t.string,
       similarTo: t.string,
       isDeleted: t.boolean,

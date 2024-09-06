@@ -6,13 +6,14 @@ import { Button } from "./button";
 import { Weight } from "../models/weight";
 import { EditProgressEntry } from "../models/editProgressEntry";
 import { IconQuestion } from "./icons/iconQuestion";
-import { ISet, IProgramExercise, ISubscription, ISettings, IExerciseType } from "../types";
+import { ISet, IProgramExercise, ISubscription, ISettings, IExerciseType, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { Subscriptions } from "../utils/subscriptions";
 import { ProgramExercise } from "../models/programExercise";
 import { InputNumber } from "./inputNumber";
 import { InputWeight } from "./inputWeight";
 import { MathUtils } from "../utils/math";
+import { Equipment } from "../models/equipment";
 
 interface IModalWeightProps {
   subscription: ISubscription;
@@ -33,26 +34,29 @@ interface IModalWeightProps {
 
 function getPlatesStr(
   subscription: ISubscription,
-  weight: number,
+  weight: IWeight | undefined,
   settings: ISettings,
-  exerciseType: IExerciseType
-): string | undefined {
-  if (Subscriptions.hasSubscription(subscription)) {
-    const value = Weight.build(weight, settings.units);
-    const plates = Weight.calculatePlates(value, settings, exerciseType);
-    const oneside = Weight.formatOneSide(settings, plates.plates, exerciseType);
-    return oneside;
-  } else {
+  exerciseType?: IExerciseType
+): { weightDiff?: { original: IWeight; rounded: IWeight }; plates: string } | undefined {
+  if (weight == null || exerciseType == null || !Subscriptions.hasSubscription(subscription)) {
     return undefined;
   }
+  const plates = Weight.calculatePlates(weight, settings, weight.unit, exerciseType);
+  const oneside = Weight.formatOneSide(settings, plates.plates, exerciseType);
+  const weightDiff = !Weight.eq(weight, plates.totalWeight)
+    ? {
+        original: weight,
+        rounded: plates.totalWeight,
+      }
+    : undefined;
+  return { weightDiff, plates: oneside };
 }
 
 export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const set = props.set;
   const isAmrapInput = useRef<HTMLInputElement>(null);
-  const [roundedWeight, setRoundedWeight] = useState(
-    Weight.round(set?.weight || Weight.build(0, props.settings.units), props.settings, props.exerciseType)
-  );
+  const unit = Equipment.getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
+  const [weight, setWeight] = useState(set?.weight || Weight.build(0, unit));
   const initialRpe = set?.rpe;
   const [rpe, setRpe] = useState(initialRpe ?? 0);
   const [reps, setReps] = useState(set?.reps ?? 5);
@@ -63,11 +67,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
     ? ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises || [])
     : false;
 
-  const [platesStr, setPlatesStr] = useState<string | undefined>(
-    props.set && props.exerciseType
-      ? getPlatesStr(props.subscription, roundedWeight.value, props.settings, props.exerciseType)
-      : undefined
-  );
+  const platesStr = getPlatesStr(props.subscription, weight, props.settings, props.exerciseType);
   return (
     <Modal
       isHidden={props.isHidden}
@@ -107,15 +107,10 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
               data-cy="modal-edit-set-weight-input"
               onUpdate={(newWeight) => {
                 if (Weight.is(newWeight)) {
-                  setRoundedWeight(newWeight);
-                  if (Subscriptions.hasSubscription(props.subscription) && props.exerciseType) {
-                    const plates = Weight.calculatePlates(newWeight, props.settings, props.exerciseType);
-                    const oneside = Weight.formatOneSide(props.settings, plates.plates, props.exerciseType);
-                    setPlatesStr(oneside);
-                  }
+                  setWeight(newWeight);
                 }
               }}
-              value={roundedWeight}
+              value={weight}
               label="Weight"
             />
           </div>
@@ -150,7 +145,20 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
         )}
         {platesStr != null && (
           <div className="mt-1 text-xs text-grayv2-main">
-            Plates: <strong>{platesStr || "None"}</strong>
+            Plates:{" "}
+            {platesStr.weightDiff != null && (
+              <span>
+                <span className="line-through">
+                  {Number(platesStr.weightDiff.original.value?.toFixed(2))} {platesStr.weightDiff.original.unit}
+                </span>
+                <span> → </span>
+                <span>
+                  {platesStr.weightDiff.rounded.value} {platesStr.weightDiff.rounded.unit}
+                </span>
+                <span>{" - "}</span>
+              </span>
+            )}
+            <strong>{platesStr.plates || "None"}</strong>
           </div>
         )}
         <div className="mt-4 text-right">
@@ -174,12 +182,12 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
             type="submit"
             onClick={() => {
               const repsValue = MathUtils.round(MathUtils.clamp(reps, 1), 1);
-              const weightValue = Weight.round(roundedWeight, props.settings, props.exerciseType);
               const rpeValue = enableRpe ? MathUtils.round(MathUtils.clamp(rpe, 0, 10), 0.5) : undefined;
               const isAmrap = !!(isAmrapInput.current?.checked || false);
               const newSet: ISet = {
                 reps: repsValue,
-                weight: weightValue,
+                weight,
+                originalWeight: weight,
                 isAmrap,
                 completedReps:
                   props.programExercise != null && quickAddSets && props.setIndex == null ? repsValue : undefined,

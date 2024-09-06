@@ -37,6 +37,7 @@ import { History } from "./history";
 import { CollectionUtils } from "../utils/collection";
 import { MathUtils } from "../utils/math";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
+import { Equipment } from "./equipment";
 
 export interface IScriptBindings {
   day: number;
@@ -242,7 +243,7 @@ export namespace Progress {
   ): IScriptBindings {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
-      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise));
+      bindings.weights.push(set.weight);
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps);
       bindings.completedReps.push(set.completedReps);
@@ -270,7 +271,8 @@ export namespace Progress {
         if (!Weight.is(num)) {
           num = Weight.build(num, settings.units);
         }
-        return Weight.round(num, settings, context?.exerciseType);
+        const unit = Equipment.getUnitForExerciseType(settings, context?.exerciseType);
+        return Weight.round(num, settings, unit ?? settings.units, context?.exerciseType);
       },
       calculateTrainingMax: (weight, reps, context) => {
         if (!Weight.is(weight)) {
@@ -435,7 +437,7 @@ export namespace Progress {
         const { entry, set } = nextEntryAndSet;
         const exercise = Exercise.get(entry.exercise, settings.exercises);
         if (exercise) {
-          const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise);
+          const { plates } = Weight.calculatePlates(set.weight, settings, set.weight.unit, entry.exercise);
           subtitleHeader = "Next Set";
           subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
           const formattedPlates = plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise) : "None";
@@ -720,7 +722,7 @@ export namespace Progress {
     for (const key of keys) {
       for (let i = 0; i < bindings[key].length; i += 1) {
         if (entry.sets[i] == null) {
-          entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb") };
+          entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb"), originalWeight: Weight.build(0, "lb") };
         }
         if (entry.sets[i].completedReps == null) {
           if (key === "RPE") {
@@ -942,26 +944,19 @@ export namespace Progress {
         ...progress,
         ui: { ...progress.ui, weightModal: undefined },
         entries: progress.entries.map((progressEntry) => {
-          const eq = (a: IWeight, b: IWeight): boolean => {
-            const exerciseType = progressEntry.exercise;
-            return Weight.eq(
-              Weight.roundConvertTo(a, settings, exerciseType),
-              Weight.roundConvertTo(b, settings, exerciseType)
-            );
-          };
           if (Exercise.eq(progressEntry.exercise, exercise)) {
             const firstWeight = progressEntry.sets[0]?.weight;
             return {
               ...progressEntry,
               sets: progressEntry.sets.map((set) => {
-                if (eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise) };
+                if (Weight.eq(set.weight, previousWeight) && weight != null) {
+                  return { ...set, weight };
                 } else {
                   return set;
                 }
               }),
               warmupSets:
-                eq(firstWeight, previousWeight) && weight != null
+                Weight.eq(firstWeight, previousWeight) && weight != null
                   ? Exercise.getWarmupSets(exercise, weight, settings, programExercise?.warmupSets)
                   : progressEntry.warmupSets,
             };
@@ -1114,6 +1109,8 @@ export namespace Progress {
             settings,
             "weight"
           );
+          const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
+          const roundedWeight = Weight.roundConvertTo(weight, settings, unit, programExercise.exerciseType);
           newSets.push({
             ...progressSet,
             reps: executeEntryScript(
@@ -1147,7 +1144,8 @@ export namespace Progress {
                   "rpe"
                 )
               : undefined,
-            weight,
+            originalWeight: weight,
+            weight: roundedWeight,
             isAmrap: programSet.isAmrap,
             logRpe: programSet.logRpe,
             label: programSet.label,
@@ -1180,6 +1178,8 @@ export namespace Progress {
             settings,
             "weight"
           );
+          const unit = Equipment.getUnitOrDefaultForExerciseType(settings, programExercise.exerciseType);
+          const roundedWeight = Weight.roundConvertTo(weight, settings, unit, programExercise.exerciseType);
           return {
             reps: executeEntryScript(
               set.repsExpr,
@@ -1201,7 +1201,8 @@ export namespace Progress {
                   "reps"
                 )
               : undefined,
-            weight,
+            originalWeight: weight,
+            weight: roundedWeight,
             rpe: set.rpeExpr
               ? executeEntryScript(
                   set.rpeExpr,

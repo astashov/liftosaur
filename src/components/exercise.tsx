@@ -48,6 +48,7 @@ import { WeightLinesUnsubscribed } from "./weightLinesUnsubscribed";
 import { IProgramMode } from "../models/program";
 import { n } from "../utils/math";
 import { IconSwap } from "./icons/iconSwap";
+import { Equipment } from "../models/equipment";
 
 interface IProps {
   showHelp: boolean;
@@ -162,11 +163,8 @@ const ExerciseContentView = memo(
   (props: IProps): JSX.Element => {
     const isCurrentProgress = Progress.isCurrent(props.progress);
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
-    const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+    const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, exercise);
     const equipment = exercise.equipment;
-    const historicalAmrapSets = isCurrentProgress
-      ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
-      : undefined;
     const historicalSameDay = isCurrentProgress
       ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
       : undefined;
@@ -175,22 +173,25 @@ const ExerciseContentView = memo(
       historicalLastDay != null &&
       (historicalSameDay == null || historicalSameDay.record.startTime < historicalLastDay.record.startTime);
     const workoutWeights = CollectionUtils.compatBy(
-      props.entry.sets.map((s) => ({
-        original: s.weight,
-        rounded: Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise),
-      })),
+      props.entry.sets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
       (w) => w.rounded.value.toString()
     );
-    const hasUnequalWeights = workoutWeights.some(
-      (w) => !Weight.eq(Weight.convertTo(w.original, props.settings.units), w.rounded)
-    );
+    const hasUnequalWeights = workoutWeights.some((w) => !Weight.eq(w.original, w.rounded));
     workoutWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
-    const warmupSets = props.entry.warmupSets;
     const warmupWeights = CollectionUtils.compatBy(
-      props.entry.warmupSets.map((s) => Weight.roundConvertTo(s.weight, props.settings, props.entry.exercise)),
-      (w) => w.value.toString()
-    ).filter((w) => Object.keys(Weight.calculatePlates(w, props.settings, props.entry.exercise).plates).length > 0);
-    warmupWeights.sort(Weight.compare);
+      props.entry.warmupSets.map((s) => ({ original: s.originalWeight, rounded: s.weight })),
+      (w) => w.rounded.value.toString()
+    ).filter((w) =>
+      isCurrentProgress
+        ? Object.keys(Weight.calculatePlates(w.rounded, props.settings, exerciseUnit, props.entry.exercise).plates)
+            .length > 0
+        : true
+    );
+    const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => s.completedReps == null)[0];
+    const historicalAmrapSets = isCurrentProgress
+      ? History.getHistoricalAmrapSets(props.history, props.entry, nextSet)
+      : undefined;
+    warmupWeights.sort((a, b) => Weight.compare(a.rounded, b.rounded));
     const isEditModeRef = useRef(false);
     isEditModeRef.current = props.progress.ui?.entryIndexEditMode === props.index;
     const isSubscribed = Subscriptions.hasSubscription(props.subscription);
@@ -336,9 +337,7 @@ const ExerciseContentView = memo(
                 {isSubscribed ? (
                   <div className="relative pr-8">
                     {warmupWeights.map((w) => {
-                      const isCurrent =
-                        nextSet != null &&
-                        Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise), w);
+                      const isCurrent = nextSet != null && Weight.eq(nextSet.weight, w.rounded);
                       const className = isCurrent ? "font-bold" : "";
                       return (
                         <div className={`${className} flex items-start`}>
@@ -349,9 +348,9 @@ const ExerciseContentView = memo(
                             {isCurrent && <IconArrowRight className="inline-block" color="#ff8066" />}
                           </span>
                           <span className="text-left whitespace-no-wrap text-grayv2-500">
-                            {n(w.value)} {w.unit}
+                            {n(w.rounded.value)} {w.rounded.unit}
                           </span>
-                          <WeightView weight={w} exercise={props.entry.exercise} settings={props.settings} />
+                          <WeightView weight={w.rounded} exercise={props.entry.exercise} settings={props.settings} />
                         </div>
                       );
                     })}
@@ -407,7 +406,7 @@ const ExerciseContentView = memo(
           <ExerciseSets
             isEditMode={isEditModeRef.current}
             dayData={props.dayData}
-            warmupSets={warmupSets}
+            warmupSets={props.entry.warmupSets}
             index={props.index}
             progress={props.progress}
             programExercise={props.programExercise}
@@ -508,7 +507,7 @@ function NextSet(props: { nextSet: ISet; settings: ISettings; exerciseType?: IEx
       <strong>
         {nextSet.isAmrap ? "at least " : ""}
         {nextSet.minReps != null ? `${nextSet.minReps}-` : ""}
-        {nextSet.reps} reps x {Weight.print(Weight.roundConvertTo(nextSet.weight, props.settings, props.exerciseType))}
+        {nextSet.reps} reps x {Weight.print(nextSet.weight)}
         {nextSet.rpe != null ? ` @${nextSet.rpe} RPE` : ""}
       </strong>
     </div>
@@ -569,7 +568,12 @@ function HistoricalAmrapSets(props: {
 
 const WeightView = memo(
   (props: { weight: IWeight; exercise: IExerciseType; settings: ISettings }): JSX.Element | null => {
-    const { plates, totalWeight: weight } = Weight.calculatePlates(props.weight, props.settings, props.exercise);
+    const { plates, totalWeight: weight } = Weight.calculatePlates(
+      props.weight,
+      props.settings,
+      props.weight.unit,
+      props.exercise
+    );
     const className = Weight.eq(weight, props.weight) ? "text-grayv2-600" : "text-redv2-600";
     return (
       <>
@@ -595,9 +599,7 @@ interface IWeightLineProps {
 
 function WeightLine(props: IWeightLineProps): JSX.Element {
   const { weight: w, nextSet } = props;
-  const isCurrent =
-    nextSet != null &&
-    Weight.eq(Weight.roundConvertTo(nextSet.weight, props.settings, props.entry.exercise), w.rounded);
+  const isCurrent = nextSet != null && Weight.eq(nextSet.weight, w.rounded);
   const isEqual = Weight.eq(w.original, w.rounded);
   const className = isCurrent ? "font-bold" : "";
   return (

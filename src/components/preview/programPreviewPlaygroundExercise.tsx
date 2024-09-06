@@ -24,7 +24,6 @@ import { lb } from "lens-shmens";
 import { EditProgressEntry } from "../../models/editProgressEntry";
 import { Program } from "../../models/program";
 import { HistoryRecordSetsView } from "../historyRecordSets";
-import { Weight } from "../../models/weight";
 import { StringUtils } from "../../utils/string";
 
 interface IProps {
@@ -169,14 +168,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
               dispatch={props.dispatch}
             />
           ) : (
-            <HistoryRecordSetsView
-              sets={props.entry.sets.map((set) => ({
-                ...set,
-                weight: Weight.roundConvertTo(set.weight, props.settings, props.entry.exercise),
-              }))}
-              settings={props.settings}
-              isNext={true}
-            />
+            <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
           )}
         </section>
       </div>

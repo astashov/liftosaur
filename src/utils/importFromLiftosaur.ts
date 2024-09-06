@@ -122,6 +122,7 @@ export class ImportFromLiftosaur {
           warmupSets: rawWarmupSets.map((set) => ({
             reps: getNumber(set.requiredReps),
             weight: Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit)),
+            originalWeight: Weight.build(getNumber(set.weightValue), getUnit(set.weightUnit)),
             completedReps: set.completedReps ? getNumber(set.completedReps) : undefined,
             completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
             isAmrap: set.isAmrap === "1",
@@ -131,6 +132,7 @@ export class ImportFromLiftosaur {
           sets: rawWorkoutSets.map((set) => ({
             reps: getNumber(set.requiredReps ?? 0),
             weight: Weight.build(getNumber(set.weightValue ?? 0), getUnit(set.weightUnit)),
+            originalWeight: Weight.build(getNumber(set.weightValue ?? 0), getUnit(set.weightUnit)),
             completedReps: set.completedReps ? getNumber(set.completedReps) : undefined,
             completedRpe: set.rpe ? getNumber(set.rpe) : undefined,
             isAmrap: set.isAmrap === "1",

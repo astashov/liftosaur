@@ -832,4 +832,21 @@ export const migrations = {
     }
     return storage;
   },
+  "20240906074315_add_original_weight_to_sets": async (
+    client: Window["fetch"],
+    aStorage: IStorage
+  ): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const historyRecord of storage.history) {
+      for (const entry of historyRecord.entries) {
+        for (const set of entry.sets) {
+          set.originalWeight = ObjectUtils.clone(set.weight);
+        }
+        for (const set of entry.warmupSets) {
+          set.originalWeight = ObjectUtils.clone(set.weight);
+        }
+      }
+    }
+    return storage;
+  },
 };

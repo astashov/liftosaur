@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PlaywrightUtils } from "./playwrightUtils";
 
 test("custom equipment", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1");
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1&nosync=true");
   await page.getByTestId("create-program").click();
   PlaywrightUtils.disableSubscriptions(page);
 

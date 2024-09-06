@@ -59,15 +59,16 @@ function getData(
       }).find((s) => s.completedReps != null && s.completedReps > 0);
       const volume = Reps.volume(entry.sets);
       if (maxSet != null) {
+        const convertedWeight = Weight.convertTo(maxSet.weight, settings.units);
         let onerm = null;
         if (isWithOneRm) {
-          onerm = Weight.getOneRepMax(maxSet.weight, maxSet.completedReps || 0).value;
+          onerm = Weight.getOneRepMax(convertedWeight, maxSet.completedReps || 0).value;
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
         memo.push([
           timestamp,
-          Weight.convertTo(maxSet.weight, settings.units).value,
+          Weight.convertTo(convertedWeight, settings.units).value,
           maxSet.completedReps!,
           onerm,
           volume.value,

@@ -7,6 +7,7 @@ import {
   IWeight,
   IUnit,
   IExerciseType,
+  IGym,
 } from "../types";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
@@ -40,6 +41,10 @@ export namespace Equipment {
     }
   }
 
+  export function getCurrentGym(settings: ISettings): IGym {
+    return settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+  }
+
   export function getEquipmentNameForExerciseType(
     settings: ISettings,
     exerciseType?: IExerciseType
@@ -54,7 +59,7 @@ export namespace Equipment {
       return undefined;
     }
 
-    const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
+    const currentGym = getCurrentGym(settings);
     const equipment = exerciseEquipment[currentGym.id];
     if (equipment == null) {
       return undefined;
@@ -63,7 +68,7 @@ export namespace Equipment {
     return name || equipmentName(equipment);
   }
 
-  export function getEquipmentForExerciseType(
+  export function getEquipmentDataForExerciseType(
     settings: ISettings,
     exerciseType?: IExerciseType
   ): IEquipmentData | undefined {
@@ -81,6 +86,17 @@ export namespace Equipment {
     const equipment = exerciseEquipment[currentGym.id];
 
     return equipment ? currentGym.equipment[equipment] : undefined;
+  }
+
+  export function getUnitOrDefaultForExerciseType(settings: ISettings, exerciseType?: IExerciseType): IUnit {
+    const equipment = getEquipmentDataForExerciseType(settings, exerciseType);
+    return equipment?.unit ?? settings.units;
+  }
+
+  export function getUnitForExerciseType(settings: ISettings, exerciseType?: IExerciseType): IUnit | undefined {
+    const equipment = getEquipmentDataForExerciseType(settings, exerciseType);
+    const equipmentUnit = equipment?.unit;
+    return equipmentUnit == null || equipmentUnit === settings.units ? undefined : equipmentUnit;
   }
 
   export function getEquipmentData(settings: ISettings, key: string): IEquipmentData | undefined {

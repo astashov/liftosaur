@@ -58,7 +58,7 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("edit-weight-plus").nth(2).click();
 
   await expect(page.getByTestId("edit-weight-input").nth(0)).toHaveValue("52.5");
-  await expect(page.getByTestId("edit-weight-input").nth(1)).toHaveValue("61");
+  await expect(page.getByTestId("edit-weight-input").nth(1)).toHaveValue("60");
   await expect(page.getByTestId("edit-weight-input").nth(2)).toHaveValue("31");
 
   await page.getByTestId("edit-weight-calculator").nth(2).click();
@@ -83,7 +83,7 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("editor-v2-full-program").click();
 
   await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 2x8 61kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`
+    `Squat / 3x8 52.5lb, 2x8 60kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`
   );
   await page.getByTestId("tab-week-2").click();
 

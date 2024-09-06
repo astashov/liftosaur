@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&nosync=true");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   PlaywrightUtils.disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
@@ -107,21 +107,21 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("97.5");
+  ).toHaveText("97.5lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("50");
+  ).toHaveText("50lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("45");
+  ).toHaveText("45lb");
 
   // Workout A
 
@@ -155,21 +155,21 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Chin Up') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("5");
+  ).toHaveText("5lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Deadlift') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("100");
+  ).toHaveText("100lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Overhead Press') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("45");
+  ).toHaveText("45lb");
 
   // Workout B
 
@@ -185,19 +185,19 @@ test("Basic Beginner Program", async ({ page }) => {
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("100");
+  ).toHaveText("100lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("45");
+  ).toHaveText("45lb");
   await expect(
     page
       .getByTestId("history-record")
       .first()
       .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
       .first()
-  ).toHaveText("50");
+  ).toHaveText("50lb");
 });
