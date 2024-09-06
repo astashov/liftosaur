@@ -404,6 +404,8 @@ export class ImportFromHevy {
         return {
           exercise: { id: exerciseId, equipment: equipment },
           warmupSets: record.warmupSets.map((set) => ({
+            originalWeight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             weight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
@@ -413,6 +415,8 @@ export class ImportFromHevy {
           })),
           sets: record.sets.map((set) => ({
             weight:
+              set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
+            originalWeight:
               set.weight_lbs != null ? Weight.build(set.weight_lbs ?? 0, "lb") : Weight.build(set.weight_kg ?? 0, "kg"),
             reps: set.reps ?? 1,
             completedReps: set.reps ?? 1,

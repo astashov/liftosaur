@@ -21,7 +21,6 @@ import { ModalEditSet } from "../../../components/modalEditSet";
 import { EditProgressEntry } from "../../../models/editProgressEntry";
 import { WeightLinesUnsubscribed } from "../../../components/weightLinesUnsubscribed";
 import { CollectionUtils } from "../../../utils/collection";
-import { Weight } from "../../../models/weight";
 
 export interface IPlaygroundProps {
   progress: IHistoryRecord;
@@ -55,8 +54,8 @@ export function ProgramContentPlayground(props: IPlaygroundProps): JSX.Element {
 
   const workoutWeights = CollectionUtils.compatBy(
     entry.sets.map((s) => ({
-      original: s.weight,
-      rounded: Weight.roundConvertTo(s.weight, props.settings, entry.exercise),
+      original: s.originalWeight,
+      rounded: s.weight,
     })),
     (w) => w.rounded.value.toString()
   );

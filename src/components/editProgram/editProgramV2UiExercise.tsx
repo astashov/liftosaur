@@ -194,7 +194,12 @@ export function EditProgramV2UiExercise(props: IEditProgramV2UiExerciseProps): J
               const sets = PlannerProgramExercise.sets(plannerExercise, i);
               const hasCurrentSets = !!plannerExercise.setVariations[i]?.sets;
               const globals = plannerExercise.globals;
-              const displayGroups = PlannerProgramExercise.setsToDisplaySets(sets, hasCurrentSets, globals);
+              const displayGroups = PlannerProgramExercise.setsToDisplaySets(
+                sets,
+                hasCurrentSets,
+                globals,
+                props.settings
+              );
               let currentIndex = plannerExercise.setVariations.findIndex((v) => v.isCurrent);
               currentIndex = currentIndex === -1 ? 0 : currentIndex;
               return (

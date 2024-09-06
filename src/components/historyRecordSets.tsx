@@ -14,6 +14,7 @@ export interface IDisplaySet {
   weight: string;
   rpe?: string;
   askWeight?: boolean;
+  unit?: string;
   completedRpe?: string;
   isCompleted?: boolean;
   isInRange?: boolean;
@@ -38,7 +39,7 @@ export function HistoryRecordSetsView(props: {
   noWrap?: boolean;
   settings: ISettings;
 }): JSX.Element {
-  const { sets, isNext, settings } = props;
+  const { sets, isNext } = props;
   const groups = Reps.group(sets, isNext);
   const displayGroups = groups.map((g) => {
     return g.map((set) => {
@@ -46,7 +47,8 @@ export function HistoryRecordSetsView(props: {
         reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
         rpe: set.rpe?.toString(),
         completedRpe: set.completedRpe?.toString(),
-        weight: Weight.display(Weight.convertTo(set.weight, settings.units), false),
+        weight: Weight.display(set.weight, false),
+        unit: set.weight.value > 0 ? set.weight.unit : undefined,
         askWeight: set.askWeight,
         isCompleted: Reps.isCompletedSet(set),
         isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
@@ -144,6 +146,11 @@ export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; 
         >
           {set.weight}
           {set.askWeight ? "+" : ""}
+          {set.unit && (
+            <span className="font-normal text-grayv2-main" style={{ fontSize: "11px" }}>
+              {set.unit}
+            </span>
+          )}
         </div>
       </div>
       {set.timer != null && (

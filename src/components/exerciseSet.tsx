@@ -1,8 +1,7 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { Reps } from "../models/set";
-import { Weight } from "../models/weight";
-import { IExerciseType, ISettings, ISet, IWeight } from "../types";
+import { IExerciseType, ISettings, ISet } from "../types";
 import { useCallback, useRef } from "preact/hooks";
 import { n } from "../utils/math";
 
@@ -21,9 +20,7 @@ interface IProps {
 export const ExerciseSetView = memo(
   (props: IProps): JSX.Element => {
     const set = props.set;
-    const subtitle = `${n(convertMaybeRound(set.weight, props.settings, props.exercise, props.isCurrent).value)}${
-      set.completedReps == null && set.askWeight ? "+" : ""
-    }`;
+    const subtitle = `${n(set.weight.value)}${set.completedReps == null && set.askWeight ? "+" : ""}`;
 
     let cy: string;
     let color: "red" | "green" | "gray" | "yellow";
@@ -96,14 +93,6 @@ export const ExerciseSetView = memo(
     );
   }
 );
-
-function convertMaybeRound(weight: IWeight, settings: ISettings, exercise: IExerciseType, isCurrent: boolean): IWeight {
-  if (isCurrent) {
-    return Weight.roundConvertTo(weight, settings, exercise);
-  } else {
-    return Weight.convertTo(weight, settings.units);
-  }
-}
 
 interface IExerciseSetBaseProps {
   cy: string;

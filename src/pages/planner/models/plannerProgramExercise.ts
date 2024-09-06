@@ -140,7 +140,8 @@ export class PlannerProgramExercise {
   public static setsToDisplaySets(
     sets: IPlannerProgramExerciseSet[],
     hasCurrentSets: boolean,
-    globals: IPlannerProgramExerciseGlobals
+    globals: IPlannerProgramExerciseGlobals,
+    settings: ISettings
   ): IDisplaySet[][] {
     const displaySets: IDisplaySet[] = [];
     for (const set of sets) {
@@ -153,6 +154,7 @@ export class PlannerProgramExercise {
             : set.weight?.value != null
             ? set.weight.value.toString()
             : `${Math.round(Weight.rpeMultiplier(maxReps, set.rpe || 10) * 100)}%`;
+        const unit = set.percentage == null ? set.weight?.unit || settings.units : undefined;
         displaySets.push({
           dimReps: !hasCurrentSets,
           dimRpe: !hasCurrentSets && globals.rpe == null,
@@ -161,6 +163,7 @@ export class PlannerProgramExercise {
           reps: `${minReps !== maxReps ? `${minReps}-` : ""}${maxReps}${set.repRange?.isAmrap ? "+" : ""}`,
           rpe: set.rpe?.toString(),
           weight: weight,
+          unit,
           askWeight: set.askWeight,
           timer: set.timer,
         });

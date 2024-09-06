@@ -42,7 +42,7 @@ Squat / 1x5 115lb / warmup: none`
   await page.getByTestId("menu-item-my-program").click();
 
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
-    "115"
+    "115lb"
   );
 
   for (const weight of [120, 125, 130, 130, 130, 135]) {
@@ -51,7 +51,7 @@ Squat / 1x5 115lb / warmup: none`
     await page.getByRole("button", { name: "Finish the workout" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
-      `${weight}`
+      `${weight}lb`
     );
   }
 });

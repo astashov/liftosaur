@@ -1,5 +1,6 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
+import { Equipment } from "../models/equipment";
 import { Exercise, equipmentName } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryEntry, ISettings } from "../types";
@@ -18,6 +19,7 @@ export const HistoryEntryView = memo(
   (props: IHistoryEntryProps): JSX.Element => {
     const { entry, isNext, isLast, settings, showNotes } = props;
     const exercise = Exercise.get(entry.exercise, settings.exercises);
+    const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
     return (
       <div
         data-cy="history-entry-exercise"
@@ -40,7 +42,9 @@ export const HistoryEntryView = memo(
               <HistoryRecordSetsView
                 sets={entry.sets.map((set) => ({
                   ...set,
-                  weight: isNext ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise) : set.weight,
+                  weight: isNext
+                    ? Weight.roundConvertTo(set.weight, props.settings, exerciseUnit, entry.exercise)
+                    : set.weight,
                 }))}
                 settings={props.settings}
                 isNext={isNext}

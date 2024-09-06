@@ -26,7 +26,7 @@ test("Program Preview", async ({ page }) => {
       .getByTestId("bent-over-row")
       .getByTestId("history-entry-weight")
       .first()
-  ).toHaveText("95");
+  ).toHaveText("95lb");
   await page
     .getByTestId("preview-day-workout-a")
     .first()

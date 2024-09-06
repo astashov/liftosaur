@@ -45,6 +45,7 @@ import { PlannerToProgram } from "./plannerToProgram";
 import { IPlannerState, IExportedPlannerProgram } from "../pages/planner/models/types";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
+import { Equipment } from "./equipment";
 
 declare let __HOST__: string;
 
@@ -125,6 +126,13 @@ export namespace Program {
 
   export function getProgramExercise(program: IProgram, id: string): IProgramExercise | undefined {
     return program.exercises.find((p) => p.id === id);
+  }
+
+  export function getProgramExercisesFromExerciseType(
+    program: IProgram,
+    exerciseType: IExerciseType
+  ): IProgramExercise[] {
+    return program.exercises.filter((p) => Exercise.eq(p.exerciseType, exerciseType));
   }
 
   export function getEditingProgramIndex(state: IState): number {
@@ -231,6 +239,7 @@ export namespace Program {
         5,
         !shouldFallback
       );
+      const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
       const weightValue = ScriptRunner.safe(
         () => {
           let weight = new ScriptRunner(
@@ -239,21 +248,25 @@ export namespace Program {
             {},
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
-            settings.units,
-            { exerciseType: exercise, unit: settings.units },
+            unit,
+            { exerciseType: exercise, unit: unit },
             "regular"
           ).execute("weight");
           if (Weight.isPct(weight)) {
-            weight = Weight.multiply(Exercise.onerm(exercise, settings), MathUtils.roundFloat(weight.value / 100, 4));
+            weight = Weight.convertTo(
+              Weight.multiply(Exercise.onerm(exercise, settings), MathUtils.roundFloat(weight.value / 100, 4)),
+              unit
+            );
           }
           return weight;
         },
         (e) => {
           return `There's an error while calculating weight for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default 100${settings.units}. Please fix the program's weight script.`;
         },
-        Weight.build(100, settings.units),
+        Weight.build(100, unit),
         !shouldFallback
       );
+      const roundedWeight = Weight.roundConvertTo(weightValue, settings, unit, exercise);
       const rpeExpr = set.rpeExpr;
       const rpeValue =
         enabledRpe && rpeExpr?.trim()
@@ -333,7 +346,8 @@ export namespace Program {
         timer: timer,
         logRpe: set.logRpe,
         askWeight: set.askWeight,
-        weight: weightValue,
+        weight: roundedWeight,
+        originalWeight: weightValue,
       };
     });
 

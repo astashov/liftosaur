@@ -59,9 +59,9 @@ test("works", async ({ page }) => {
   await page.getByTestId("entry-bent-over-row").getByTestId("exercise-name").click({ force: true });
   await expect(page.getByTestId("max-weight-value")).toHaveText("100 lb");
   await expect(page.getByTestId("one-rm-value")).toHaveText("115.55 lb (5 x 100 lb)");
-  await expect(page.getByTestId("history-entry-weight").nth(0)).toHaveText("100");
+  await expect(page.getByTestId("history-entry-weight").nth(0)).toHaveText("100lb");
   await page.getByTestId("exercise-stats-history-filter").click({ force: true });
   await page.getByTestId("menu-item-name-ascending-sort-by-date").click({ force: true });
-  await expect(page.getByTestId("history-entry-weight").nth(0)).toHaveText("95");
+  await expect(page.getByTestId("history-entry-weight").nth(0)).toHaveText("95lb");
   await expect(page.getByTestId("graph-data")).toBeVisible();
 });

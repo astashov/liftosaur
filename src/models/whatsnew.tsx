@@ -1289,6 +1289,32 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240914": {
+    title: (
+      <span>
+        Custom unit (<strong>lb/kg</strong>) for equipment
+      </span>
+    ),
+    body: (
+      <ul>
+        <li>Now equipment can override the default unit (lb or kg).</li>
+        <li>
+          The weight of an exercise would be converted to that unit if that equipment is attached to the exercise. You
+          would see the weight in that unit in the history too, but not on graphs - graphs still use default unit.
+        </li>
+        <li>
+          That could be useful if you have equipment with different units in your gym - like some machines are in lb,
+          some plates are in kg - that way you can properly track all of them.
+        </li>
+        <li>
+          To make it even better - you may want to use a matching unit in the program exercise as well, to avoid any
+          conversions at all. Like if you live in the US, and you have default unit as lbs, but the gym you usually go
+          has "Lat Pulldown" cable machine in kgs - it makes sense to specify weights in kg for Lat Pulldown, and set it
+          to the kg-based equipment.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

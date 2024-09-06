@@ -54,14 +54,6 @@ export namespace History {
     };
   }
 
-  export function roundSetsInEntry(
-    entry: IHistoryEntry,
-    settings: ISettings,
-    exerciseType?: IExerciseType
-  ): IHistoryEntry {
-    return { ...entry, sets: Reps.roundSets(entry.sets, settings, exerciseType) };
-  }
-
   export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
     const { deletedProgramExercises, ui, ...historyRecord } = progress;
     const updatedAt = Date.now();
@@ -70,12 +62,6 @@ export namespace History {
       entries: historyRecord.entries.map((entry) => {
         const programExercise = program?.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
         if (Progress.isCurrent(progress)) {
-          entry = {
-            ...entry,
-            sets: entry.sets.map((set) => {
-              return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise) };
-            }),
-          };
           if (programExercise != null) {
             const reuseLogicId = programExercise.reuseLogic?.selected;
             const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;

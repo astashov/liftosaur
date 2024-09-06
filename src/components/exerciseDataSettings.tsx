@@ -1,6 +1,7 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
+import { Equipment } from "../models/equipment";
 import { Exercise, equipmentName, IExercise } from "../models/exercise";
 import { updateState, IState } from "../models/state";
 import { Weight } from "../models/weight";
@@ -14,6 +15,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 interface IExerciseDataSettingsProps {
   settings: ISettings;
   dispatch: IDispatch;
+  programExerciseIds: string[];
   fullExercise: IExercise;
   show1RM: boolean;
 }
@@ -90,6 +92,18 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
                     };
                   }),
               ]);
+              const currentUnit =
+                (equipment ? Equipment.getEquipmentData(props.settings, equipment)?.unit : undefined) ??
+                props.settings.units;
+              const newUnit =
+                (value ? Equipment.getEquipmentData(props.settings, value)?.unit : undefined) ?? props.settings.units;
+              if (currentUnit !== newUnit) {
+                props.dispatch({
+                  type: "ApplyProgramChangesToProgress",
+                  programExerciseIds: props.programExerciseIds,
+                  checkReused: false,
+                });
+              }
             }}
           />
         );

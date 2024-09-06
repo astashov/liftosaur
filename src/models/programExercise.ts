@@ -344,7 +344,7 @@ export namespace ProgramExercise {
     for (const key of Object.keys(newState)) {
       const value = newState[key];
       if (Weight.is(value) && value.unit !== unit) {
-        newState[key] = Weight.roundConvertTo(value, settings);
+        newState[key] = Weight.roundConvertTo(value, settings, unit);
       }
     }
 
@@ -358,7 +358,7 @@ export namespace ProgramExercise {
           for (const key of Object.keys(newReuseState)) {
             const value = newReuseState[key];
             if (Weight.is(value)) {
-              newReuseState[key] = Weight.roundConvertTo(value, settings);
+              newReuseState[key] = Weight.roundConvertTo(value, settings, unit);
             }
           }
           memo[k] = newReuseState;
@@ -369,8 +369,8 @@ export namespace ProgramExercise {
 
     const newWarmupSets = (programExercise.warmupSets || []).map((w) => ({
       ...w,
-      value: Weight.is(w.value) ? Weight.roundConvertTo(w.value, settings) : w.value,
-      threshold: Weight.is(w.threshold) ? Weight.roundConvertTo(w.threshold, settings) : w.threshold,
+      value: Weight.is(w.value) ? Weight.roundConvertTo(w.value, settings, unit) : w.value,
+      threshold: Weight.is(w.threshold) ? Weight.roundConvertTo(w.threshold, settings, unit) : w.threshold,
     }));
 
     return {

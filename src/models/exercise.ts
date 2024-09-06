@@ -24,6 +24,7 @@ import { StringUtils } from "../utils/string";
 import { UidFactory } from "../utils/generator";
 import { CollectionUtils } from "../utils/collection";
 import { ExerciseImageUtils } from "./exerciseImage";
+import { Equipment } from "./equipment";
 
 export const exercises: Record<IExerciseId, IExercise> = {
   abWheel: {
@@ -3525,12 +3526,10 @@ function warmup(
     return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
       if (Weight.gt(weight, programExerciseWarmupSet.threshold)) {
         const value = programExerciseWarmupSet.value;
-        const warmupWeight = Weight.roundConvertTo(
-          typeof value === "number" ? Weight.multiply(weight, value) : value,
-          settings,
-          exerciseType
-        );
-        memo.push({ reps: programExerciseWarmupSet.reps, weight: warmupWeight });
+        const unit = Equipment.getUnitOrDefaultForExerciseType(settings, exerciseType);
+        const warmupWeight = typeof value === "number" ? Weight.multiply(weight, value) : value;
+        const roundedWeight = Weight.roundConvertTo(warmupWeight, settings, unit, exerciseType);
+        memo.push({ reps: programExerciseWarmupSet.reps, weight: roundedWeight, originalWeight: warmupWeight });
       }
       return memo;
     }, []);
@@ -3647,7 +3646,8 @@ export namespace Exercise {
   }
 
   export function defaultRounding(type: IExerciseType, settings: ISettings): number {
-    return Math.max(0.1, settings.exerciseData[Exercise.toKey(type)]?.rounding ?? (settings.units === "kg" ? 2.5 : 5));
+    const units = Equipment.getUnitOrDefaultForExerciseType(settings, type);
+    return Math.max(0.1, settings.exerciseData[Exercise.toKey(type)]?.rounding ?? (units === "kg" ? 2.5 : 5));
   }
 
   export function find(type: IExerciseType, customExercises: IAllCustomExercises): IExercise | undefined {

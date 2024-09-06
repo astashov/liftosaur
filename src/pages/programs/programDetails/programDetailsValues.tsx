@@ -44,7 +44,7 @@ function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
       props.settings,
       "weight"
     );
-    return Weight.roundConvertTo(value, props.settings, props.programExercise.exerciseType);
+    return Weight.roundConvertTo(value, props.settings, props.settings.units, props.programExercise.exerciseType);
   }, []);
 }
 
@@ -78,6 +78,7 @@ export const RepsAndWeight = memo(
       reps,
       minReps,
       weight: weightValues[i],
+      originalWeight: weightValues[i],
       isAmrap: !!props.sets[i]?.isAmrap,
     }));
     const areEqual =

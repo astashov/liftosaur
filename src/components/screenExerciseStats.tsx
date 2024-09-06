@@ -7,6 +7,7 @@ import {
   IExerciseType,
   IHistoryRecord,
   IMuscle,
+  IProgram,
   ISettings,
   ISubscription,
 } from "../types";
@@ -39,6 +40,7 @@ import { ExerciseDataSettings } from "./exerciseDataSettings";
 import { MuscleGroupsView, ModalCustomExercise } from "./modalExercise";
 import { LinkButton } from "./linkButton";
 import { Thunk } from "../ducks/thunks";
+import { Program } from "../models/program";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -48,11 +50,15 @@ interface IProps {
   subscription: ISubscription;
   settings: ISettings;
   loading: ILoading;
+  currentProgram?: IProgram;
 }
 
 export function ScreenExerciseStats(props: IProps): JSX.Element {
   const [showFilters, setShowFilters] = useState(false);
   const exerciseType = props.exerciseType;
+  const programExerciseIds = props.currentProgram
+    ? Program.getProgramExercisesFromExerciseType(props.currentProgram, exerciseType).map((pe) => pe.id)
+    : [];
   const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
   const customExercise = props.settings.exercises[exerciseType.id];
   const historyCollector = Collector.build(props.history)
@@ -187,6 +193,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
 
         <ExerciseDataSettings
           fullExercise={fullExercise}
+          programExerciseIds={programExerciseIds}
           settings={props.settings}
           dispatch={props.dispatch}
           show1RM={true}

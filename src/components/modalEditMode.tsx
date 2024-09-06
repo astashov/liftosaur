@@ -97,6 +97,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             <h2 className="mb-4 text-xl font-bold text-center">{exercise.name}</h2>
             <ExerciseDataSettings
               fullExercise={exercise}
+              programExerciseIds={[programExercise.id]}
               settings={props.settings}
               dispatch={props.dispatch}
               show1RM={!!(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1"))}
