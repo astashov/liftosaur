@@ -37,6 +37,10 @@ export namespace Storage {
     }
   }
 
+  export function validateStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
+    return validate(data, TStorage, "storage");
+  }
+
   export function validateAndReportStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
     return validateAndReport(data, TStorage, "storage");
   }

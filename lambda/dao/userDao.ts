@@ -187,6 +187,9 @@ export class UserDao {
       items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
+    delete newStorage.history;
+    delete newStorage.programs;
+    delete newStorage.stats;
     await Promise.all([
       this.store({ ...limitedUser, storage: newStorage }),
       historyUpdates,

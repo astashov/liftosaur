@@ -104,11 +104,7 @@ export async function getInitialState(
       }
     }
 
-    let finalLastSyncedStorage: IStorage | undefined = undefined;
-    if (storage.lastSyncedStorage) {
-      const maybeLastSyncedStorage = await Storage.get(client, storage.lastSyncedStorage, true);
-      finalLastSyncedStorage = maybeLastSyncedStorage.success ? maybeLastSyncedStorage.data : undefined;
-    }
+    const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
 
     const isProgressValid =
       storage.progress != null

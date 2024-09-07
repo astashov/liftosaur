@@ -142,7 +142,14 @@ export namespace Thunk {
     args?: { force: boolean }
   ): Promise<void> {
     const state = getState();
-    function handleResponse(result: IPostSyncResponse, lastSyncedStorage?: IStorage): boolean {
+    function handleResponse(
+      result: IPostSyncResponse,
+      handleResponseArgs: {
+        lastSyncedStorage?: IStorage;
+        requestedLastStorage?: boolean;
+      }
+    ): boolean {
+      const { lastSyncedStorage, requestedLastStorage } = handleResponseArgs;
       if (result.type === "clean") {
         updateState(dispatch, [
           lb<IState>()
@@ -157,13 +164,17 @@ export namespace Thunk {
         }
         return true;
       } else if (result.type === "dirty") {
-        updateState(dispatch, [
-          lb<IState>().p("lastSyncedStorage").record(result.storage),
-          lb<IState>().p("storage").record(result.storage),
-          lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-        ]);
-        if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
-          dispatch({ type: "Login", email: result.email, userId: result.user_id });
+        if (requestedLastStorage) {
+          updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(result.storage)]);
+        } else {
+          updateState(dispatch, [
+            lb<IState>().p("lastSyncedStorage").record(result.storage),
+            lb<IState>().p("storage").record(result.storage),
+            lb<IState>().p("storage").p("subscription").p("key").record(result.key),
+          ]);
+          if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
+            dispatch({ type: "Login", email: result.email, userId: result.user_id });
+          }
         }
         return true;
       } else if (result.type === "error" && result.error === "not_authorized") {
@@ -185,7 +196,7 @@ export namespace Thunk {
           version: state.storage.version,
         },
       });
-      const handled = handleResponse(result);
+      const handled = handleResponse(result, { requestedLastStorage: true });
       if (handled) {
         await _sync2(dispatch, getState, env, args);
       }
@@ -198,7 +209,7 @@ export namespace Thunk {
           tempUserId: state.storage.tempUserId,
           storageUpdate: storageUpdate,
         });
-        handleResponse(result, lastSyncedStorage);
+        handleResponse(result, { lastSyncedStorage });
       }
     }
   }
