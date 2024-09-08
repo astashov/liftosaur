@@ -31,7 +31,7 @@ export function ScrollableTabs(props: IProps): JSX.Element {
                 const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
 
                 return (
-                  <div className="flex-1 text-center whitespace-no-wrap border-b border-grayv2-50">
+                  <div className="flex-1 text-center whitespace-nowrap border-b border-grayv2-50">
                     <button
                       className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                         selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""

@@ -1,4 +1,7 @@
 module.exports = {
+  content: [
+    './src/**/*.{js,jsx,ts,tsx,vue,css,html}',
+  ],
   theme: {
     extend: {
       colors: {

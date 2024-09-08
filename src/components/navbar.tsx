@@ -179,7 +179,7 @@ export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
   } else {
     return (
       <div className="flex-1 py-2" onClick={props.onTitleClick}>
-        <div className="py-2 text-lg font-semibold whitespace-no-wrap">{props.title}</div>
+        <div className="py-2 text-lg font-semibold whitespace-nowrap">{props.title}</div>
       </div>
     );
   }

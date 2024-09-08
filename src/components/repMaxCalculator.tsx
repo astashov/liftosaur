@@ -112,7 +112,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           />
         </div>
         <div>=</div>
-        <div className="text-lg font-bold whitespace-no-wrap" data-cy="rep-max-calculator-target-weight">
+        <div className="text-lg font-bold whitespace-nowrap" data-cy="rep-max-calculator-target-weight">
           {weight} {props.unit}
         </div>
       </div>
