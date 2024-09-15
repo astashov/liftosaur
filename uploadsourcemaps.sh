@@ -41,7 +41,7 @@ for jsfile in $DIST_DIR/*.js; do
                     -F minified_url="$URL_PREFIX/$jsfilename" \
                     -F source_map=@$mapfile
                 if [ $? -eq 0 ]; then
-                    echo "\nUploading for liftosaur://"
+                    echo "\\nUploading for liftosaur://"
                     curl -m $CURL_TIMEOUT $ENDPOINT \
                         -F access_token=$ROLLBAR_POST_SERVER_ITEM \
                         -F version=$VERSION \
