@@ -34,13 +34,25 @@ for jsfile in $DIST_DIR/*.js; do
 
         (
             for ((i=1; i<=MAX_RETRIES; i++)); do
+                echo "Uploading for https://"
                 curl -m $CURL_TIMEOUT $ENDPOINT \
                     -F access_token=$ROLLBAR_POST_SERVER_ITEM \
                     -F version=$VERSION \
                     -F minified_url="$URL_PREFIX/$jsfilename" \
                     -F source_map=@$mapfile
                 if [ $? -eq 0 ]; then
-                    break
+                    echo "\nUploading for liftosaur://"
+                    curl -m $CURL_TIMEOUT $ENDPOINT \
+                        -F access_token=$ROLLBAR_POST_SERVER_ITEM \
+                        -F version=$VERSION \
+                        -F minified_url="liftosaur:$URL_PREFIX/$jsfilename" \
+                        -F source_map=@$mapfile
+                    if [ $? -eq 0 ]; then
+                        break
+                    else
+                        echo "Retry $i for $jsfilename..."
+                        sleep 2
+                    fi
                 else
                     echo "Retry $i for $jsfilename..."
                     sleep 2

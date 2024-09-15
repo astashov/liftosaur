@@ -29,7 +29,7 @@
     "start:lambda": "yarn cdk-synth && yarn sam-start-api",
     "sam-start-api": "sam local start-api --skip-pull-image 2>&1 | tr \"\\r\" \"\\n\"",
     "cdk-synth": "cdk synth --no-staging LiftosaurStackDev > template.yaml",
-    "upload-source-maps": "NODE_ENV=production yarn build:dev && ./uploadsourcemaps.sh",
+    "upload-source-maps": "rm -rf ./dist && NODE_ENV=production yarn build:dev && ./uploadsourcemaps.sh",
     "cdk-deploy": "yarn upload-source-maps && yarn build:lambda && rm -rf ./dist-lambda/node_modules && cdk deploy --all",
     "test": "mocha -r ts-node/register test/**/*.test.ts",
     "onetest": "TS_NODE_TRANSPILE_ONLY=1 yarn mocha -r ts-node/register",

@@ -66,6 +66,8 @@ export namespace RollbarUtils {
       "is out of range for changeset",
       "Selection points outside of document",
       "Invalid position",
+      "outdated_client_storage",
+      '{"isTrusted":true}',
     ];
     const firstArg = args[0];
     if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) !== -1)) {
