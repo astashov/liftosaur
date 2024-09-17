@@ -384,8 +384,11 @@ export class PlannerProgram {
             const reuseDay = mapping[r - 1]?.[dayIndex];
             if (reuseDay && !reuseDay.some((e) => e.type === "exercise" && e.value === exercise.value)) {
               if (exercise.descriptions) {
-                for (const description of exercise.descriptions) {
-                  reuseDay.push({ type: "description", value: description });
+                for (let di = 0; di < exercise.descriptions.length; di += 1) {
+                  if (di !== 0) {
+                    reuseDay.push({ type: "empty", value: "" });
+                  }
+                  reuseDay.push({ type: "description", value: exercise.descriptions[di] });
                 }
               }
               reuseDay.push({ ...exercise, repeat: undefined });
