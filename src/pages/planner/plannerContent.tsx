@@ -490,6 +490,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         >
           <GroupHeader size="large" name="Program Preview" />
           <ProgramPreviewOrPlayground
+            key={settings.units}
             program={new PlannerToProgram(
               UidFactory.generateUid(8),
               1,
@@ -499,6 +500,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             isMobile={false}
             hasNavbar={false}
             settings={settings}
+            onChangeUnit={(unit) => {
+              setSettings(lf(settings).p("units").set(unit));
+            }}
           />
         </Modal>
       )}

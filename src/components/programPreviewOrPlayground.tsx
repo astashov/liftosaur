@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
 import { IProgramPreviewPlaygroundWeekSetup } from "./preview/programPreviewPlaygroundSetup";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
-import { IProgram, ISettings } from "../types";
+import { IProgram, ISettings, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";
-import { MenuItemEditable } from "./menuItemEditable";
+import { MenuItemEditable, MenuItemValue } from "./menuItemEditable";
 import { useState } from "preact/hooks";
 
 interface IProgramPreviewOrPlaygroundProps {
@@ -11,6 +11,7 @@ interface IProgramPreviewOrPlaygroundProps {
   settings: ISettings;
   isMobile: boolean;
   hasNavbar?: boolean;
+  onChangeUnit?: (unit: IUnit) => void;
 }
 
 export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundProps): JSX.Element {
@@ -26,16 +27,40 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
             onChange={(newValue) => setIsPlayground(newValue === "true")}
           />
         ) : (
-          <MenuItemEditable
-            type="desktop-select"
-            name="Enable Playground"
-            value={isPlayground ? "true" : "false"}
-            values={[
-              ["true", "Yes"],
-              ["false", "No"],
-            ]}
-            onChange={(newValue) => setIsPlayground(newValue === "true")}
-          />
+          <div>
+            <label className="inline-block">
+              <span className="mr-2">Enable Playground:</span>
+              <MenuItemValue
+                type="desktop-select"
+                setPatternError={() => undefined}
+                name="Enable Playground"
+                value={isPlayground ? "true" : "false"}
+                values={[
+                  ["true", "Yes"],
+                  ["false", "No"],
+                ]}
+                onChange={(newValue) => setIsPlayground(newValue === "true")}
+              />
+            </label>
+            <label className="inline-block ml-4">
+              <span className="mr-2">Units:</span>
+              <MenuItemValue
+                name="Units"
+                setPatternError={() => undefined}
+                type="desktop-select"
+                value={props.settings.units}
+                values={[
+                  ["lb", "lb"],
+                  ["kg", "kg"],
+                ]}
+                onChange={(newValue) => {
+                  if (props.onChangeUnit) {
+                    props.onChangeUnit(newValue as IUnit);
+                  }
+                }}
+              />
+            </label>
+          </div>
         )}
       </div>
       {isPlayground && (
