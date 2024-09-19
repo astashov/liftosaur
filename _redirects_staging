@@ -21,6 +21,7 @@
 /login https://api3-dev.liftosaur.com/login  200
 /exercises https://api3-dev.liftosaur.com/exercises  200
 /exercises/:id https://api3-dev.liftosaur.com/exercises/:id  200
+/.well-known/skadnetwork/report-attribution https://api3-dev.liftosaur.com/api/adattr  200
 
 /rep-max-calculator https://api3-dev.liftosaur.com/rep-max-calculator  200
 /one-rep-max-calculator https://api3-dev.liftosaur.com/one-rep-max-calculator  200

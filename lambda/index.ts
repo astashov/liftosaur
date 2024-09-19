@@ -186,6 +186,23 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
+const postReceiveAdAttrEndpoint = Endpoint.build("/api/adattr");
+const postReceiveAdAttrHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postReceiveAdAttrEndpoint
+> = async ({ payload }) => {
+  const body = payload.event.body?.toString() ?? "";
+  const bucket = `${LftS3Buckets.debugs}${Utils.getEnv() === "dev" ? "dev" : ""}`;
+  const uid = UidFactory.generateUid(12);
+  await payload.di.s3.putObject({
+    bucket: bucket,
+    key: "adattrs/" + uid,
+    body: body,
+  });
+  return ResponseUtils.json(200, payload.event, { data: "ok" });
+};
+
 const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
 const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSyncEndpoint> = async ({
   payload,
@@ -1930,7 +1947,8 @@ export const getRawHandler = (di: IDI): IHandler => {
       .post(postUserPlannerProgramEndpoint, postUserPlannerProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
       .get(getAllExercisesEndpoint, getAllExercisesHandler)
-      .get(getRepMaxEndpoint, getRepMaxHandler);
+      .get(getRepMaxEndpoint, getRepMaxHandler)
+      .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler);
 
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);

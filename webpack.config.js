@@ -313,6 +313,11 @@ module.exports = {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
       },
+      "/.well-known/skadnetwork/report-attribution": {
+        pathRewrite: { "^/.well-known/skadnetwork/report-attribution": "/api/adattr" },
+        target: "https://local-api.liftosaur.com:3000/",
+        secure: false,
+      },
       "/program": {
         target: "https://local-api.liftosaur.com:3000/",
         secure: false,
