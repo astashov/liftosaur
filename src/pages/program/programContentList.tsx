@@ -95,6 +95,9 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
       <ul>
         {CollectionUtils.sortByExpr(state.storage.programs, (p) => p.clonedAt || 0, true).map((program) => {
           program = Program.fullProgram(program, state.storage.settings);
+          const usedExerciseIds = new Set(program.days.flatMap((d) => d.exercises.map((e) => e.id)));
+          const usedExercises = program.exercises.filter((e) => usedExerciseIds.has(e.id));
+
           return (
             <li className="mb-8">
               <div>
@@ -165,7 +168,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                 </span>
               </div>
               <div className="pt-2">
-                {CollectionUtils.uniqByExpr(program.exercises, (e) => Exercise.toKey(e.exerciseType))
+                {CollectionUtils.uniqByExpr(usedExercises, (e) => Exercise.toKey(e.exerciseType))
                   .filter((e) => ExerciseImageUtils.exists(e.exerciseType, "small"))
                   .map((e) => (
                     <ExerciseImage
@@ -180,8 +183,8 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                 {program.isMultiweek
                   ? `${program.weeks.length} ${StringUtils.pluralize("week", program.weeks.length)}, `
                   : ""}
-                {program.days.length} {StringUtils.pluralize("day", program.days.length)}, {program.exercises.length}{" "}
-                {StringUtils.pluralize("exercise", program.exercises.length)}
+                {program.days.length} {StringUtils.pluralize("day", program.days.length)}, {usedExercises.length}{" "}
+                {StringUtils.pluralize("exercise", usedExercises.length)}
               </div>
             </li>
           );
