@@ -565,10 +565,11 @@ export namespace Progress {
   }
 
   export function changeDate(progress: IHistoryRecord, date?: string, time?: number): IHistoryRecord {
-    const endTime = time != null ? progress.startTime + time : progress.endTime;
+    const endTime = time != null ? progress.startTime + time : progress.startTime + History.workoutTime(progress);
     return {
       ...progress,
       ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
+      intervals: [[progress.startTime, endTime]],
       endTime,
       ui: {
         ...progress.ui,

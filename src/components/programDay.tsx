@@ -4,6 +4,7 @@ import { IDispatch } from "../ducks/types";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalWeight } from "./modalWeight";
 import { Progress } from "../models/progress";
+import { History } from "../models/history";
 import { ModalDate } from "./modalDate";
 import { ILoading, IState, updateState } from "../models/state";
 import { ModalShare } from "./modalShare";
@@ -75,16 +76,25 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 props.dispatch({
                   type: "ChangeDate",
                   date: progress.date,
-                  time: (progress.endTime ?? props.progress.startTime) - props.progress.startTime,
+                  time: History.workoutTime(progress),
                 });
               }
             }}
-            title={Progress.isCurrent(progress) ? "Ongoing workout" : `${DateUtils.format(progress.date)} h`}
+            title={Progress.isCurrent(progress) ? "Ongoing workout" : `${DateUtils.format(progress.date)}`}
             subtitle={
               !Progress.isCurrent(progress) && progress.endTime ? (
-                TimeUtils.formatHHMM(progress.endTime - props.progress.startTime)
+                TimeUtils.formatHHMM(History.workoutTime(props.progress))
               ) : (
-                <Timer startTime={props.progress.startTime} />
+                <Timer
+                  progress={props.progress}
+                  onPauseResume={() => {
+                    if (History.isPaused(props.progress.intervals)) {
+                      History.resumeWorkoutAction(props.dispatch);
+                    } else {
+                      History.pauseWorkoutAction(props.dispatch);
+                    }
+                  }}
+                />
               )
             }
             rightButtons={[

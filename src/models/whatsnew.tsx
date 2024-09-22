@@ -1315,6 +1315,18 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20240922": {
+    title: <span>Pausing a workout</span>,
+    body: (
+      <ul>
+        <li>
+          You can now pause the workout, by tapping the pause button in the workout screen header. It'll stop the total
+          workout timer.
+        </li>
+        <li>You can unpause it the same way, or just log any set - it'll unpause it too.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

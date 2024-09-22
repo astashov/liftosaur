@@ -640,6 +640,7 @@ export const THistoryRecord = t.intersection(
       week: t.number,
       dayInWeek: t.number,
       ui: TProgressUi,
+      intervals: t.array(t.tuple([t.number, t.union([t.number, t.undefined])])),
       deletedProgramExercises: dictionary(t.string, t.boolean),
       userPromptedStateVars: dictionary(t.string, TProgramState),
       timerSince: t.number,

@@ -675,6 +675,22 @@ iframe#exercise-youtube-player {
   color: #28839f;
 }
 
+.blinking {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* purgecss end ignore */
 
 @tailwind utilities;

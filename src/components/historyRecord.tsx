@@ -7,6 +7,7 @@ import { ComparerUtils } from "../utils/comparer";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils } from "../utils/html";
+import { History } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 
@@ -88,7 +89,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
             <div className="text-left">
               <IconWatch />{" "}
               <span className="inline-block align-middle" style={{ paddingTop: "2px" }}>
-                {TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}
+                {TimeUtils.formatHHMM(History.workoutTime(historyRecord))}
               </span>
             </div>
           </div>

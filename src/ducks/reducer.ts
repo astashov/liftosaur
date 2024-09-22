@@ -490,6 +490,7 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         if (Progress.isFullyFinishedSet(newProgress)) {
           newProgress = Progress.stopTimer(newProgress);
         }
+        newProgress.intervals = History.resumeWorkout(newProgress.intervals);
         return newProgress;
       }
       case "ChangeAMRAPAction": {
@@ -518,6 +519,7 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
         if (Progress.isFullyFinishedSet(progress)) {
           progress = Progress.stopTimer(progress);
         }
+        progress.intervals = History.resumeWorkout(progress.intervals);
         return { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
       }
       case "ChangeWeightAction": {

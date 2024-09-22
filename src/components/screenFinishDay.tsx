@@ -5,7 +5,6 @@ import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
-import { TimeUtils } from "../utils/time";
 import { Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
 import { ModalShare } from "./modalShare";
@@ -83,8 +82,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="flex gap-2">
             <ul className="flex-1">
               <li>
-                <span className="mr-1">🕐</span> Time:{" "}
-                <strong>{TimeUtils.formatHHMM(record.endTime! - record.startTime)}</strong>
+                <span className="mr-1">🕐</span> Time: <strong>{History.workoutTime(record)}</strong>
               </li>
               <li>
                 <span className="mr-1">🏋</span> Volume: <strong>{Weight.display(totalWeight)}</strong>

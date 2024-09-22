@@ -19,6 +19,10 @@ import {
 import { ICollectorFn } from "../utils/collector";
 import { Reps } from "./set";
 import { ProgramExercise } from "./programExercise";
+import { IState, updateState } from "./state";
+import { lb, lbu } from "lens-shmens";
+import { ObjectUtils } from "../utils/object";
+import { IDispatch } from "../ducks/types";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -79,6 +83,7 @@ export namespace History {
       updatedAt: updatedAt,
       timerSince: undefined,
       timerMode: undefined,
+      intervals: History.pauseWorkout(progress.intervals),
       ...(Progress.isCurrent(progress) ? { endTime: Date.now() } : {}),
     };
   }
@@ -532,5 +537,64 @@ export namespace History {
     }
 
     return lines;
+  }
+
+  export function pauseWorkoutAction(dispatch: IDispatch): void {
+    const lensGetters = { progress: lb<IState>().p("progress").pi(0).get() };
+    updateState(dispatch, [
+      lbu<IState, typeof lensGetters>(lensGetters)
+        .p("progress")
+        .pi(0)
+        .p("intervals")
+        .recordModify((intervals, getters) => pauseWorkout(getters.progress.intervals)),
+    ]);
+  }
+
+  export function pauseWorkout(intervals?: [number, number | undefined][]): [number, number | undefined][] | undefined {
+    if (intervals && !isPaused(intervals)) {
+      const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
+      let lastInterval = newIntervals[newIntervals.length - 1];
+      if (lastInterval == null) {
+        lastInterval = [Date.now(), undefined];
+        newIntervals.push(lastInterval);
+      }
+      lastInterval[1] = Date.now();
+      return newIntervals;
+    } else {
+      return intervals;
+    }
+  }
+
+  export function resumeWorkoutAction(dispatch: IDispatch): void {
+    updateState(dispatch, [
+      lb<IState>()
+        .p("progress")
+        .pi(0)
+        .p("intervals")
+        .recordModify((intervals) => resumeWorkout(intervals)),
+    ]);
+  }
+
+  export function isPaused(intervals?: [number, number | undefined][]): boolean {
+    return intervals && intervals.length > 0 ? intervals[intervals.length - 1][1] != null : false;
+  }
+
+  export function resumeWorkout(
+    intervals?: [number, number | undefined][]
+  ): [number, number | undefined][] | undefined {
+    if (isPaused(intervals)) {
+      const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
+      newIntervals.push([Date.now(), undefined]);
+      return newIntervals;
+    } else {
+      return intervals;
+    }
+  }
+
+  export function workoutTime(historyRecord: IHistoryRecord): number {
+    const intervals = historyRecord.intervals || [[historyRecord.startTime, historyRecord.endTime || Date.now()]];
+    return intervals.reduce((memo, interval) => {
+      return memo + ((interval[1] || Date.now()) - interval[0]);
+    }, 0);
   }
 }
