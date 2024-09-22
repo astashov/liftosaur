@@ -403,7 +403,7 @@ export namespace Program {
       date: new Date().toISOString(),
       programId: program.id,
       programName: program.name,
-      intervals: [[now, undefined]],
+      intervals: [],
       day,
       week,
       dayInWeek,

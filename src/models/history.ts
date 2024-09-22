@@ -576,7 +576,7 @@ export namespace History {
   }
 
   export function isPaused(intervals?: [number, number | undefined][]): boolean {
-    return intervals && intervals.length > 0 ? intervals[intervals.length - 1][1] != null : false;
+    return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
   }
 
   export function resumeWorkout(
