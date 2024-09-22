@@ -54,6 +54,12 @@ export namespace SendMessage {
     });
   }
 
+  export function toIosAndAndroid(obj: Record<string, string>): boolean {
+    const toIosResult = toIos(obj);
+    const toAndroidResult = toAndroid(obj);
+    return toIosResult || toAndroidResult;
+  }
+
   export function toIos(obj: Record<string, string>): boolean {
     if (
       typeof window !== "undefined" &&
