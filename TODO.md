@@ -3,7 +3,6 @@
 - Custom exercise lists
 - Take custom timers into account
 - Import from Perseus
-- Add integration with Apple Health
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
 - Incorporate the latest RM into the RM calculator

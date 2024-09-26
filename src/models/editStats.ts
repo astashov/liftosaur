@@ -1,9 +1,33 @@
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
-import { ILength, IPercentage, ISettings, IStatsLength, IStatsPercentage, IStatsWeight, IWeight } from "../types";
+import {
+  ILength,
+  IPercentage,
+  ISettings,
+  IStatsLength,
+  IStatsLengthValue,
+  IStatsPercentage,
+  IStatsPercentageValue,
+  IStatsWeight,
+  IStatsWeightValue,
+  IWeight,
+} from "../types";
 import { IState } from "./state";
 import { ObjectUtils } from "../utils/object";
 import { CollectionUtils } from "../utils/collection";
+import { Weight } from "./weight";
+import { Length } from "./length";
+
+export interface IHealthIOSResponse {
+  added: {
+    timestamp: number;
+    type: "bodyweight" | "bodyfat" | "waist";
+    uuid: string;
+    value: IWeight | IPercentage | ILength;
+  }[];
+  anchor: string;
+  deleted: string[];
+}
 
 export namespace EditStats {
   export function toggleWeightStats(dispatch: IDispatch, name: keyof IStatsWeight, value: boolean): void {
@@ -292,6 +316,74 @@ export namespace EditStats {
           .p("storage")
           .p("deletedStats")
           .recordModify((deletedStats) => [...deletedStats, ts]),
+      ],
+    });
+  }
+
+  export function uploadHealthIOSStats(dispatch: IDispatch, dataAny: unknown, settings: ISettings): void {
+    const response = dataAny as { data: IHealthIOSResponse };
+    const data = response.data;
+    if (!data.added) {
+      return;
+    }
+    const weightValues: IStatsWeightValue[] = [];
+    const bodyfatValues: IStatsPercentageValue[] = [];
+    const waistValues: IStatsLengthValue[] = [];
+
+    for (const d of data.added) {
+      if (d.type === "bodyweight") {
+        weightValues.push({
+          value: Weight.convertTo(d.value as IWeight, settings.units),
+          timestamp: d.timestamp,
+          updatedAt: Date.now(),
+          appleUuid: d.uuid,
+        });
+      } else if (d.type === "bodyfat") {
+        bodyfatValues.push({
+          value: d.value as IPercentage,
+          timestamp: d.timestamp,
+          updatedAt: Date.now(),
+          appleUuid: d.uuid,
+        });
+      } else if (d.type === "waist") {
+        waistValues.push({
+          value: Length.convertTo(d.value as ILength, settings.lengthUnits),
+          timestamp: d.timestamp,
+          updatedAt: Date.now(),
+          appleUuid: d.uuid,
+        });
+      }
+    }
+
+    const applyValues = <T extends { timestamp: number; appleUuid?: string }>(
+      st: T[] | undefined,
+      values: T[]
+    ): T[] => {
+      return CollectionUtils.sortBy(CollectionUtils.uniqBy([...(st || []), ...values], "timestamp"), "timestamp", true);
+    };
+
+    dispatch({
+      type: "UpdateState",
+      lensRecording: [
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("weight")
+          .p("weight")
+          .recordModify((st) => applyValues(st, weightValues)),
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("percentage")
+          .p("bodyfat")
+          .recordModify((st) => applyValues(st, bodyfatValues)),
+        lb<IState>()
+          .p("storage")
+          .p("stats")
+          .p("length")
+          .p("waist")
+          .recordModify((st) => applyValues(st, waistValues)),
+        lb<IState>().p("storage").p("stats").p("appleAnchor").record(data.anchor),
       ],
     });
   }

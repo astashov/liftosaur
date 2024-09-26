@@ -779,7 +779,7 @@ export const TLength = t.type({ value: t.number, unit: TLengthUnit }, "TLength")
 export type ILength = t.TypeOf<typeof TLength>;
 
 export const TStatsWeightValue = t.intersection(
-  [t.interface({ value: TWeight, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  [t.interface({ value: TWeight, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
   "TStatsWeightValue"
 );
 export type IStatsWeightValue = t.TypeOf<typeof TStatsWeightValue>;
@@ -791,7 +791,7 @@ export const TStatsWeight = t.partial(statsWeightDef, "TStatsWeight");
 export type IStatsWeight = t.TypeOf<typeof TStatsWeight>;
 
 export const TStatsLengthValue = t.intersection(
-  [t.interface({ value: TLength, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  [t.interface({ value: TLength, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
   "TStatsLengthValue"
 );
 export type IStatsLengthValue = t.TypeOf<typeof TStatsLengthValue>;
@@ -815,7 +815,7 @@ export const TStatsLength = t.partial(statsLengthDef, "TStatsLength");
 export type IStatsLength = t.TypeOf<typeof TStatsLength>;
 
 export const TStatsPercentageValue = t.intersection(
-  [t.interface({ value: TPercentage, timestamp: t.number }), t.partial({ updatedAt: t.number })],
+  [t.interface({ value: TPercentage, timestamp: t.number }), t.partial({ updatedAt: t.number, appleUuid: t.string })],
   "TStatsPercentageValue"
 );
 export type IStatsPercentageValue = t.TypeOf<typeof TStatsPercentageValue>;
@@ -997,12 +997,16 @@ export const TSettings = t.intersection(
       planner: TPlannerSettings,
     }),
     t.partial({
+      appleHealthSyncWorkout: t.boolean,
+      appleHealthSyncMeasurements: t.boolean,
       ignoreDoNotDisturb: t.boolean,
       currentGymId: t.string,
       isPublicProfile: t.boolean,
       nickname: t.string,
       alwaysOnDisplay: t.boolean,
       vibration: t.boolean,
+      healthSyncWorkouts: t.boolean,
+      healthSyncMeasurements: t.boolean,
     }),
   ],
   "TSettings"
@@ -1010,11 +1014,19 @@ export const TSettings = t.intersection(
 
 export type ISettings = t.TypeOf<typeof TSettings>;
 
-export const TStats = t.type({
-  weight: TStatsWeight,
-  length: TStatsLength,
-  percentage: TStatsPercentage,
-});
+export const TStats = t.intersection(
+  [
+    t.interface({
+      weight: TStatsWeight,
+      length: TStatsLength,
+      percentage: TStatsPercentage,
+    }),
+    t.partial({
+      appleAnchor: t.string,
+    }),
+  ],
+  "TStats"
+);
 export type IStats = t.TypeOf<typeof TStats>;
 
 export const TSubscription = t.intersection([

@@ -27,6 +27,7 @@ import { IconSpeaker } from "./icons/iconSpeaker";
 import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { Subscriptions } from "../utils/subscriptions";
+import { HealthSync } from "../lib/healthSync";
 
 interface IProps {
   dispatch: IDispatch;
@@ -312,6 +313,17 @@ export function ScreenSettings(props: IProps): JSX.Element {
               )}
           </div>
         )}
+        {HealthSync.eligibleForAppleHealth() && (
+          <>
+            <GroupHeader name="Sync" topPadding={true} />
+            <MenuItem
+              shouldShowRightArrow={true}
+              name="Apple Health"
+              onClick={() => props.dispatch(Thunk.pushScreen("appleHealth"))}
+            />
+          </>
+        )}
+
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">
           <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>

@@ -34,6 +34,9 @@ import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
+import RB from "rollbar";
+
+declare let Rollbar: RB;
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location

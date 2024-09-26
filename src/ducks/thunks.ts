@@ -31,6 +31,8 @@ import { UrlUtils } from "../utils/url";
 import { ImportFromLiftosaur } from "../utils/importFromLiftosaur";
 import { Sync } from "../utils/sync";
 import { ObjectUtils } from "../utils/object";
+import { EditStats } from "../models/editStats";
+import { HealthSync } from "../lib/healthSync";
 
 declare let Rollbar: RB;
 
@@ -212,6 +214,37 @@ export namespace Thunk {
         handleResponse(result, { lastSyncedStorage });
       }
     }
+  }
+
+  async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
+    const anchor = getState().storage.stats.appleAnchor;
+    console.log({ type: "getHealthKitData", anchor });
+    const result = await SendMessage.toIosWithResult({ type: "getHealthKitData", anchor });
+    if (result != null) {
+      console.log({ type: "iosWithResult", result });
+      EditStats.uploadHealthIOSStats(dispatch, result, getState().storage.settings);
+    }
+  }
+
+  export function syncHealthKit(cb?: () => void): IThunk {
+    return async (dispatch, getState, env) => {
+      const state = getState();
+      if (!state.storage.settings.appleHealthSyncMeasurements || !HealthSync.eligibleForAppleHealth()) {
+        if (cb != null) {
+          cb();
+        }
+        return;
+      }
+      try {
+        await env.queue.enqueue(async () => {
+          await _syncHealthKit(dispatch, getState, env);
+        });
+      } finally {
+        if (cb != null) {
+          cb();
+        }
+      }
+    };
   }
 
   export function sync2(args?: { force: boolean; cb?: () => void }): IThunk {
