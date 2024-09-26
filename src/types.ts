@@ -462,6 +462,7 @@ export const THistoryEntry = t.intersection(
       state: TProgramState,
       vars: TProgramState,
       notes: t.string,
+      changed: t.boolean,
     }),
   ],
   "THistoryEntry"

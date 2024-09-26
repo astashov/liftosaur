@@ -1036,7 +1036,7 @@ export namespace Progress {
         .p("entries")
         .i(entryIndex)
         .recordModify((entry) => {
-          return { ...entry, exercise: exerciseType };
+          return { ...entry, exercise: exerciseType, changed: true };
         }),
     ]);
   }
@@ -1164,7 +1164,7 @@ export namespace Progress {
 
       return {
         ...progressEntry,
-        exercise: programExercise.exerciseType,
+        exercise: progressEntry.changed ? progressEntry.exercise : programExercise.exerciseType,
         warmupSets: forceWarmupSets
           ? firstWeight != null
             ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
