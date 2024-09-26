@@ -21,6 +21,9 @@ import { Collector } from "../utils/collector";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
 import { TimeUtils } from "../utils/time";
+import { MenuItemEditable } from "./menuItemEditable";
+import { SendMessage } from "../utils/sendMessage";
+import { HealthSync } from "../lib/healthSync";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -41,6 +44,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const startedEntries = History.getStartedEntries(record);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
+  const [syncToHealth, setSyncToHealth] = useState(!!props.settings.appleHealthSyncWorkout);
 
   const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
   const [muscleGroupsData] = historyCollector.run();
@@ -174,6 +178,31 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </section>
         )}
 
+        {HealthSync.eligibleForAppleHealth() && (
+          <div>
+            <MenuItemEditable
+              name="Sync to Apple Health"
+              type="boolean"
+              value={syncToHealth ? "true" : "false"}
+              onChange={(newValue?: string) => {
+                setSyncToHealth(newValue === "true");
+              }}
+            />
+          </div>
+        )}
+        {HealthSync.eligibleForGoogleHealth() && (
+          <div>
+            <MenuItemEditable
+              name="Sync to Google Health"
+              type="boolean"
+              value={syncToHealth ? "true" : "false"}
+              onChange={(newValue?: string) => {
+                setSyncToHealth(newValue === "true");
+              }}
+            />
+          </div>
+        )}
+
         <div className="flex w-full gap-8 px-4 pt-4">
           <div className="flex-1 text-center">
             <Button
@@ -198,6 +227,15 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               className="w-32"
               data-cy="finish-day-continue"
               onClick={() => {
+                SendMessage.toIosAndAndroid({
+                  type: "finishWorkout",
+                  healthSync:
+                    (HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth()) && syncToHealth
+                      ? "true"
+                      : "false",
+                  calories: `${History.calories(record)}`,
+                  intervals: JSON.stringify(record.intervals),
+                });
                 ScreenActions.setScreen(props.dispatch, "main");
                 props.dispatch(Thunk.maybeRequestReview());
                 props.dispatch(Thunk.maybeRequestSignup());

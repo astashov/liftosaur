@@ -443,6 +443,12 @@ export namespace History {
     return undefined;
   }
 
+  export function calories(historyRecord: IHistoryRecord): number {
+    const timeMs = workoutTime(historyRecord);
+    const minutes = Math.floor(timeMs / 60000);
+    return minutes * 6;
+  }
+
   export function getHistoricalAmrapSets(
     history: IHistoryRecord[],
     currentEntry: IHistoryEntry,

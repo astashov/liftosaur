@@ -7,7 +7,7 @@ declare global {
     webkit?: {
       messageHandlers?: {
         liftosaurMessage?: {
-          postMessage: (message: Record<string, string>) => void;
+          postMessage: (message: Record<string, string | undefined>) => void;
         };
       };
     };
@@ -21,8 +21,16 @@ export namespace SendMessage {
     return parseInt(window.lftIosAppVersion || "0", 10);
   }
 
+  export function iosVersion(): number {
+    return parseInt(window.lftIosVersion || "0", 10);
+  }
+
   export function androidAppVersion(): number {
     return parseInt(window.lftAndroidAppVersion || "0", 10);
+  }
+
+  export function androidVersion(): number {
+    return parseInt(window.lftAndroidVersion?.toString() || "0", 10);
   }
 
   export function isIos(): boolean {
@@ -32,7 +40,7 @@ export namespace SendMessage {
     );
   }
 
-  export function toIosWithResult<T>(obj: Record<string, string>): Promise<T | undefined> {
+  export function toIosWithResult<T>(obj: Record<string, string | undefined>): Promise<T | undefined> {
     if (!SendMessage.isIos()) {
       return Promise.resolve(undefined);
     }
@@ -60,7 +68,7 @@ export namespace SendMessage {
     return toIosResult || toAndroidResult;
   }
 
-  export function toIos(obj: Record<string, string>): boolean {
+  export function toIos(obj: Record<string, string | undefined>): boolean {
     if (
       typeof window !== "undefined" &&
       window.webkit &&

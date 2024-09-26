@@ -48,6 +48,8 @@ import PullToRefresh from "pulltorefreshjs";
 import { renderToString } from "preact-render-to-string";
 import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
+import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
+import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
 
 interface IProps {
   client: Window["fetch"];
@@ -88,6 +90,7 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       dispatch(Thunk.sync2({ force: true }));
     }
+    dispatch(Thunk.syncHealthKit());
     const ptr = PullToRefresh.init({
       mainElement: "body",
       iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
@@ -104,7 +107,7 @@ export function AppView(props: IProps): JSX.Element | null {
             Thunk.sync2({
               force: true,
               cb: () => {
-                resolve();
+                dispatch(Thunk.syncHealthKit(() => resolve()));
               },
             })
           );
@@ -136,6 +139,9 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
       } else if (event.data?.type === "wake") {
         dispatch(Thunk.sync2({ force: true }));
+        dispatch(Thunk.syncHealthKit());
+      } else if (event.data?.type === "syncToAppleHealthError") {
+        alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
       } else if (event.data?.type === "products") {
@@ -356,6 +362,24 @@ export function AppView(props: IProps): JSX.Element | null {
         loading={state.loading}
         dispatch={dispatch}
         timers={state.storage.settings.timers}
+      />
+    );
+  } else if (Screen.current(state.screenStack) === "appleHealth") {
+    content = (
+      <ScreenAppleHealthSettings
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
+  } else if (Screen.current(state.screenStack) === "googleHealth") {
+    content = (
+      <ScreenGoogleHealthSettings
+        screenStack={state.screenStack}
+        loading={state.loading}
+        dispatch={dispatch}
+        settings={state.storage.settings}
       />
     );
   } else if (Screen.current(state.screenStack) === "gyms") {

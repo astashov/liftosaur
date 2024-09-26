@@ -25,7 +25,6 @@ import { Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
-import { SendMessage } from "../utils/sendMessage";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -200,7 +199,6 @@ export const CardsView = memo(
                 confirm("Are you sure?")
               ) {
                 props.dispatch({ type: "FinishProgramDayAction" });
-                SendMessage.toIosAndAndroid({ type: "finishWorkout" });
               }
             }}
           >

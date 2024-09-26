@@ -31,6 +31,7 @@ import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
 import { SendMessage } from "../utils/sendMessage";
+import { HealthSync } from "../lib/healthSync";
 
 interface IProps {
   dispatch: IDispatch;
@@ -38,6 +39,18 @@ interface IProps {
   stats: IStats;
   loading: ILoading;
   screenStack: IScreen[];
+}
+
+interface IUpdates {
+  bodyfat?: IPercentage;
+  weight?: IWeight;
+  waist?: ILength;
+}
+
+interface IHealthUpdates {
+  bodyfat?: string;
+  weight?: string;
+  waist?: string;
 }
 
 export function ScreenStats(props: IProps): JSX.Element {
@@ -91,7 +104,7 @@ export function ScreenStats(props: IProps): JSX.Element {
     calfRight: useRef<HTMLInputElement>(),
   };
 
-  function saveWeight(): void {
+  function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
     const payload = ObjectUtils.keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
@@ -109,9 +122,10 @@ export function ScreenStats(props: IProps): JSX.Element {
       {}
     );
     EditStats.addWeightStats(props.dispatch, payload);
+    return payload;
   }
 
-  function saveLength(): void {
+  function saveLength(): Partial<Record<keyof IStatsLength, ILength>> {
     const payload = ObjectUtils.keys(statsEnabled.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
@@ -129,9 +143,10 @@ export function ScreenStats(props: IProps): JSX.Element {
       {}
     );
     EditStats.addLengthStats(props.dispatch, payload);
+    return payload;
   }
 
-  function savePercentage(): void {
+  function savePercentage(): Partial<Record<keyof IStatsPercentage, IPercentage>> {
     const payload = ObjectUtils.keys(statsEnabled.percentage).reduce<
       Partial<Record<keyof IStatsPercentage, IPercentage>>
     >((acc, key) => {
@@ -148,13 +163,45 @@ export function ScreenStats(props: IProps): JSX.Element {
       return acc;
     }, {});
     EditStats.addPercentageStats(props.dispatch, payload);
+    return payload;
   }
 
   function save(): void {
-    saveWeight();
-    saveLength();
-    savePercentage();
+    let updates: IUpdates = { ...saveWeight() };
+    updates = { ...updates, ...saveLength() };
+    updates = { ...updates, ...savePercentage() };
+    if (
+      (HealthSync.eligibleForAppleHealth() && props.settings.appleHealthSyncMeasurements) ||
+      (HealthSync.eligibleForGoogleHealth() && props.settings.googleHealthSyncMeasurements)
+    ) {
+      const updatesForHealthSync = getUpdatesForHealthSync(updates);
+      SendMessage.toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
+    }
     props.dispatch(Thunk.pullScreen());
+  }
+
+  function getUpdatesForHealthSync(updates: IUpdates): IHealthUpdates {
+    const healthSyncUpdates: IHealthUpdates = {};
+    const timestamp = Date.now();
+    ObjectUtils.keys(updates).forEach((key) => {
+      if (key === "weight") {
+        healthSyncUpdates[key] = JSON.stringify({
+          value: updates[key],
+          timestamp,
+        });
+      } else if (key === "bodyfat") {
+        healthSyncUpdates[key] = JSON.stringify({
+          value: updates[key],
+          timestamp,
+        });
+      } else if (key === "waist") {
+        healthSyncUpdates[key] = JSON.stringify({
+          value: updates[key],
+          timestamp,
+        });
+      }
+    });
+    return healthSyncUpdates;
   }
 
   return (
