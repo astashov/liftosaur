@@ -78,7 +78,7 @@ I deploy everything via AWS CDK, the setup is described in [this blog post](lift
 
 # How to run locally
 
-If you want to run it locally firstly ensure that you have Node 16 and yarn installed
+If you want to run liftosaur locally firstly ensure that you have Node 16 and yarn installed
 
 Then comment out the 
 ```
