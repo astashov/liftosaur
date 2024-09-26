@@ -396,7 +396,10 @@ export namespace Program {
       dayInWeek,
     };
 
-    const dayName = program.isMultiweek ? `${program.weeks[week - 1]?.name} - ${programDay.name}` : programDay.name;
+    const dayName =
+      program.isMultiweek && program.weeks.length > 1
+        ? `${program.weeks[week - 1]?.name} - ${programDay.name}`
+        : programDay.name;
     const now = Date.now();
     return {
       id: 0,
