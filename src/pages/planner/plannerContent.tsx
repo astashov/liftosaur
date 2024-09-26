@@ -124,6 +124,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     props.partialStorage?.settings?.timers.workout ??
     initialSettings.timers.workout;
   initialSettings.planner = props.initialProgram?.plannerSettings || initialSettings.planner;
+  initialSettings.units = props.partialStorage?.settings?.units ?? initialSettings.units;
+
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
