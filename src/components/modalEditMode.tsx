@@ -1,7 +1,15 @@
 import { JSX, h, Fragment } from "preact";
 import { Modal } from "./modal";
 import { Button } from "./button";
-import { ISettings, IProgramExercise, IProgram, IProgramStateMetadata, IUnit, IExerciseType } from "../types";
+import {
+  ISettings,
+  IProgramExercise,
+  IProgram,
+  IProgramStateMetadata,
+  IUnit,
+  IExerciseType,
+  IProgramState,
+} from "../types";
 import { Exercise } from "../models/exercise";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -45,16 +53,13 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     ]);
   };
   const onSave = (): void => {
-    ObjectUtils.entries(newState).forEach(([stateKey, newValue]) => {
-      EditProgram.properlyUpdateStateVariableInPlace(
-        props.dispatch,
-        props.program,
-        programExercise,
-        props.settings,
-        stateKey,
-        newValue
-      );
-    });
+    EditProgram.properlyUpdateStateVariableInPlace(
+      props.dispatch,
+      props.program,
+      programExercise,
+      props.settings,
+      newState
+    );
     if (planner != null) {
       const newProgramExercise = PlannerProgram.replaceWeight(programExercise, weightChanges);
       if (programExercise !== newProgramExercise) {
@@ -78,7 +83,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
     onClose();
   };
   const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
-  const [newState, setNewState] = useState<Record<string, string>>({});
+  const [newState, setNewState] = useState<Partial<IProgramState>>({});
   const dayData = Program.getDayData(props.program, props.day, props.settings);
   const [weightChanges, setWeightChanges] = useState(
     ProgramExercise.weightChanges(dayData, programExercise, props.program.exercises, props.settings)
@@ -137,7 +142,10 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
                     );
                   }}
                   onEditStateVariable={(stateKey, newValue) => {
-                    setNewState({ ...newState, [stateKey]: newValue });
+                    setNewState({
+                      ...newState,
+                      [stateKey]: Program.stateValue(programExercise.state, stateKey, newValue),
+                    });
                   }}
                   onOpenCalculator={(key, unit) => setShowCalculator({ type: "state", value: [key, unit] })}
                 />
@@ -236,14 +244,14 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
             onSelect={(weightValue) => {
               if (weightValue != null) {
                 if (showCalculator.type === "state") {
-                  EditProgram.properlyUpdateStateVariableInPlace(
-                    props.dispatch,
-                    props.program,
-                    programExercise,
-                    props.settings,
-                    showCalculator.value[0],
-                    `${weightValue}`
-                  );
+                  setNewState({
+                    ...newState,
+                    [showCalculator.value[0]]: Program.stateValue(
+                      programExercise.state,
+                      showCalculator.value[0],
+                      `${weightValue}`
+                    ),
+                  });
                 } else {
                   const weightChange = weightChanges[showCalculator.value[0]];
                   const newValue: IWeightChange = {
@@ -265,7 +273,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
 interface IStateProps {
   programExercise: IProgramExercise;
   stateMetadata?: IProgramStateMetadata;
-  newState: Record<string, string>;
+  newState: Partial<IProgramState>;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
   onOpenCalculator: (stateKey: string, unit: IUnit) => void;

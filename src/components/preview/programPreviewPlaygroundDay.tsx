@@ -138,8 +138,7 @@ export const ProgramPreviewPlaygroundDay = memo(
                   .pi("exercises")
                   .find((e) => e.id === editModalProgramExercise.id),
                 editModalProgramExercise,
-                stateKey,
-                newValue
+                { [stateKey]: Program.stateValue(editModalProgramExercise.state, stateKey, newValue) }
               );
               const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
               props.onProgramChange(newProgram);

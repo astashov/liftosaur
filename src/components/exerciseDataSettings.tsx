@@ -30,7 +30,6 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
       <InputNumber
         type="number"
         label="Default Rounding"
-        disabled={props.settings.units === "kg"}
         min={0}
         step={0.5}
         max={100}

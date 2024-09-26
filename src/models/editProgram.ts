@@ -16,6 +16,7 @@ import {
   IExerciseType,
   IPlannerProgram,
   IDayData,
+  IProgramState,
 } from "../types";
 import { EditProgramLenses, updateStateVariable } from "./editProgramLenses";
 import { IProgramExerciseExample } from "./programExercise";
@@ -55,17 +56,22 @@ export namespace EditProgram {
     program: IProgram,
     programExercise: IProgramExercise,
     settings: ISettings,
-    stateKey: string,
-    newValue?: string
+    values: Partial<IProgramState>
   ): void {
     if (program.planner) {
       const programCopy = ObjectUtils.clone(program);
       const ex = programCopy.exercises.find((e) => e.id === programExercise.id);
       if (ex != null) {
-        if (newValue == null) {
-          delete ex?.stateMetadata?.[stateKey];
+        for (const [stateKey, newValue] of ObjectUtils.entries(values)) {
+          if (newValue == null) {
+            delete ex?.stateMetadata?.[stateKey];
+          }
+          if (newValue == null || typeof newValue === "string") {
+            ex.state = updateStateVariable(ex.state, stateKey, newValue);
+          } else {
+            ex.state = { ...ex.state, [stateKey]: newValue };
+          }
         }
-        ex.state = updateStateVariable(ex.state, stateKey, newValue);
         const newPlanner = new ProgramToPlanner(programCopy, program.planner, settings, {}, {}).convertToPlanner();
         updateState(dispatch, [
           lb<IState>().p("storage").p("programs").findBy("id", program.id).p("planner").record(newPlanner),
@@ -82,8 +88,7 @@ export namespace EditProgram {
             .p("exercises")
             .findBy("id", programExercise.id),
           programExercise,
-          stateKey,
-          newValue
+          values
         )
       );
     }
@@ -111,17 +116,11 @@ export namespace EditProgram {
   export function properlyUpdateStateVariable<T>(
     dispatch: IDispatch,
     programExercise: IProgramExercise,
-    stateKey: string,
-    newValue?: string
+    values: Partial<IProgramState>
   ): void {
     return updateState(
       dispatch,
-      EditProgramLenses.properlyUpdateStateVariable(
-        lb<IState>().pi("editExercise"),
-        programExercise,
-        stateKey,
-        newValue
-      )
+      EditProgramLenses.properlyUpdateStateVariable(lb<IState>().pi("editExercise"), programExercise, values)
     );
   }
 

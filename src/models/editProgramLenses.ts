@@ -275,24 +275,32 @@ export namespace EditProgramLenses {
     prefix: LensBuilder<T, IProgramExercise, {}>,
     reuseLogicId: string,
     stateKey: string,
-    newValue?: string
+    newValue?: string | number | IWeight | IPercentage
   ): ILensRecordingPayload<T> {
     return prefix
       .pi("reuseLogic")
       .pi("states")
       .pi(reuseLogicId)
       .recordModify((state) => {
-        return updateStateVariable(state, stateKey, newValue);
+        if (newValue == null || typeof newValue === "string") {
+          return updateStateVariable(state, stateKey, newValue);
+        } else {
+          return { ...state, [stateKey]: newValue };
+        }
       });
   }
 
   export function editStateVariable<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     stateKey: string,
-    newValue?: string
+    newValue?: string | number | IWeight | IPercentage
   ): ILensRecordingPayload<T> {
     return prefix.p("state").recordModify((state) => {
-      return updateStateVariable(state, stateKey, newValue);
+      if (newValue == null || typeof newValue === "string") {
+        return updateStateVariable(state, stateKey, newValue);
+      } else {
+        return { ...state, [stateKey]: newValue };
+      }
     });
   }
 
@@ -334,21 +342,24 @@ export namespace EditProgramLenses {
   export function properlyUpdateStateVariable<T>(
     prefix: LensBuilder<T, IProgramExercise, {}>,
     programExercise: IProgramExercise,
-    stateKey: string,
-    newValue?: string
+    values: Partial<IProgramState>
   ): ILensRecordingPayload<T>[] {
     const reuseLogicId = programExercise.reuseLogic?.selected;
     if (reuseLogicId) {
-      return [EditProgramLenses.editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue)];
+      return ObjectUtils.entries(values).map(([stateKey, newValue]) => {
+        return EditProgramLenses.editReuseLogicStateVariable(prefix, reuseLogicId, stateKey, newValue);
+      });
     } else {
-      if (newValue == null) {
-        return [
-          EditProgramLenses.removeStateVariableMetadata(prefix, stateKey),
-          EditProgramLenses.editStateVariable(prefix, stateKey, newValue),
-        ];
-      } else {
-        return [EditProgramLenses.editStateVariable(prefix, stateKey, newValue)];
-      }
+      return ObjectUtils.entries(values).flatMap(([stateKey, newValue]) => {
+        if (newValue == null) {
+          return [
+            EditProgramLenses.removeStateVariableMetadata(prefix, stateKey),
+            EditProgramLenses.editStateVariable(prefix, stateKey, newValue),
+          ];
+        } else {
+          return [EditProgramLenses.editStateVariable(prefix, stateKey, newValue)];
+        }
+      });
     }
   }
 

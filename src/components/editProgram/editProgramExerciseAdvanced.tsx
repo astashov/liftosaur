@@ -176,7 +176,9 @@ export function EditProgramExerciseAdvanced(props: IProps): JSX.Element {
           settings={props.settings}
           programExercise={programExercise}
           onEditStateVariable={(stateKey, newValue) => {
-            EditProgram.properlyUpdateStateVariable(props.dispatch, programExercise, stateKey, newValue);
+            EditProgram.properlyUpdateStateVariable(props.dispatch, programExercise, {
+              [stateKey]: Program.stateValue(programExercise.state, stateKey, newValue),
+            });
           }}
           onAddStateVariable={() => {
             setShouldShowAddStateVariable(true);

@@ -31,7 +31,7 @@ import {
 import { ObjectUtils } from "../utils/object";
 import { Exporter } from "../utils/exporter";
 import { DateUtils } from "../utils/date";
-import { ICustomExercise, IProgramContentSettings, IAllCustomExercises, IPlannerProgram } from "../types";
+import { ICustomExercise, IProgramContentSettings, IAllCustomExercises, IPlannerProgram, IPercentage } from "../types";
 import { ProgramExercise } from "./programExercise";
 import { Thunk } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -377,6 +377,27 @@ export namespace Program {
     entry?: IHistoryEntry
   ): IProgramExercise | undefined {
     return allProgramExercises.find((e) => e.id === entry?.programExerciseId);
+  }
+
+  export function stateValue(
+    state: IProgramState,
+    key: string,
+    value?: string
+  ): number | IWeight | IPercentage | undefined {
+    if (value == null) {
+      return undefined;
+    }
+    const numValue = parseFloat(value);
+    const oldValue = state[key];
+    if (oldValue == null) {
+      return numValue;
+    } else if (Weight.is(oldValue)) {
+      return Weight.build(numValue, oldValue.unit);
+    } else if (Weight.isPct(oldValue)) {
+      return Weight.buildPct(numValue);
+    } else {
+      return numValue;
+    }
   }
 
   export function nextProgramRecord(
