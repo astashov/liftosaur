@@ -10,6 +10,11 @@ export namespace ParserTestUtils {
     day: 1,
     week: 1,
     dayInWeek: 1,
+    originalWeights: [
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+      { value: 40, unit: "lb" },
+    ],
     weights: [
       { value: 40, unit: "lb" },
       { value: 40, unit: "lb" },
@@ -47,6 +52,7 @@ export namespace ParserTestUtils {
       day: args.day ?? 1,
       week: 1,
       dayInWeek: args.day ?? 1,
+      originalWeights: weights,
       weights,
       reps,
       minReps: reps,

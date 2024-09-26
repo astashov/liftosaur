@@ -43,6 +43,7 @@ export interface IScriptBindings {
   day: number;
   week: number;
   dayInWeek: number;
+  originalWeights: IWeight[];
   weights: IWeight[];
   rm1: IWeight;
   reps: number[];
@@ -211,6 +212,7 @@ export namespace Progress {
       day: dayData.day,
       week: dayData.week ?? 1,
       dayInWeek: dayData.dayInWeek ?? dayData.day,
+      originalWeights: [],
       weights: [],
       reps: [],
       minReps: [],
@@ -244,6 +246,7 @@ export namespace Progress {
     const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
     for (const set of entry.sets) {
       bindings.weights.push(set.weight);
+      bindings.originalWeights.push(set.originalWeight);
       bindings.reps.push(set.reps);
       bindings.minReps.push(set.minReps);
       bindings.completedReps.push(set.completedReps);
@@ -323,7 +326,8 @@ export namespace Progress {
             const weightValue = Weight.convertToWeight(bindings.rm1, weight, context.unit);
             bindings.minReps[i] = reps !== minReps ? minReps : undefined;
             bindings.reps[i] = reps;
-            bindings.weights[i] = weightValue;
+            bindings.originalWeights[i] = weightValue;
+            bindings.weights[i] = Weight.round(weightValue, settings, context.unit, context.exerciseType);
             bindings.RPE[i] = rpe !== 0 ? rpe : undefined;
             bindings.amraps[i] = isAmrap !== 0 ? 1 : 0;
             bindings.logrpes[i] = logRpe !== 0 ? 1 : 0;
@@ -716,7 +720,7 @@ export namespace Progress {
   }
 
   export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
-    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers"] as const;
+    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers", "originalWeights"] as const;
     const entry = ObjectUtils.clone(oldEntry);
     const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
     entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
@@ -738,6 +742,9 @@ export namespace Progress {
           } else if (key === "weights") {
             const value = bindings.weights[i];
             entry.sets[i].weight = value;
+          } else if (key === "originalWeights") {
+            const value = bindings.originalWeights[i];
+            entry.sets[i].originalWeight = value;
           } else if (key === "amraps") {
             const value = bindings.amraps[i];
             entry.sets[i].isAmrap = !!value;

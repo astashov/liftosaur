@@ -330,6 +330,7 @@ export class LiftoscriptEvaluator {
     const evaluatedValue = MathUtils.applyOp(this.bindings.numberOfSets, this.evaluateToNumber(expression), op);
 
     this.bindings.weights = this.bindings.weights.slice(0, evaluatedValue);
+    this.bindings.originalWeights = this.bindings.originalWeights.slice(0, evaluatedValue);
     this.bindings.reps = this.bindings.reps.slice(0, evaluatedValue);
     this.bindings.minReps = this.bindings.minReps.slice(0, evaluatedValue);
     this.bindings.RPE = this.bindings.RPE.slice(0, evaluatedValue);
@@ -343,6 +344,7 @@ export class LiftoscriptEvaluator {
     for (let i = 0; i < evaluatedValue; i += 1) {
       if (this.bindings.weights[i] == null) {
         this.bindings.weights[i] = Weight.build(0, this.unit);
+        this.bindings.originalWeights[i] = Weight.build(0, this.unit);
         this.bindings.reps[i] = 0;
         this.bindings.timers[i] = undefined;
         this.bindings.amraps[i] = undefined;
@@ -382,7 +384,8 @@ export class LiftoscriptEvaluator {
           const evalutedValue = this.evaluateToNumberOrWeightOrPercentage(expression);
           const newValue = Weight.applyOp(this.bindings.rm1, this.bindings.weights[i], evalutedValue, op);
           value = Weight.convertToWeight(this.bindings.rm1, newValue, this.unit);
-          this.bindings.weights[i] = value;
+          this.bindings.originalWeights[i] = value;
+          this.bindings.weights[i] = this.fns.roundWeight(value, this.fnContext);
         }
       }
     } else {
