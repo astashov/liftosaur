@@ -20,6 +20,7 @@ import { HistoryEntryView } from "./historyEntry";
 import { Collector } from "../utils/collector";
 import { CollectionUtils } from "../utils/collection";
 import { ObjectUtils } from "../utils/object";
+import { TimeUtils } from "../utils/time";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -82,7 +83,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="flex gap-2">
             <ul className="flex-1">
               <li>
-                <span className="mr-1">🕐</span> Time: <strong>{History.workoutTime(record)}</strong>
+                <span className="mr-1">🕐</span> Time:{" "}
+                <strong>{TimeUtils.formatHHMM(History.workoutTime(record))} h</strong>
               </li>
               <li>
                 <span className="mr-1">🏋</span> Volume: <strong>{Weight.display(totalWeight)}</strong>
