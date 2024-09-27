@@ -107,7 +107,9 @@ export async function getInitialState(
     const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
 
     const isProgressValid =
-      storage.progress != null ? Storage.validate(storage.progress, THistoryRecord, "progress").success : false;
+      storage.progress != null
+        ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
+        : false;
 
     const screenStack: IScreen[] = finalStorage.currentProgramId
       ? ["main"]
