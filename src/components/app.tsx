@@ -92,7 +92,11 @@ export function AppView(props: IProps): JSX.Element | null {
       mainElement: "body",
       iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
       shouldPullToRefresh: () => {
-        return !window.scrollY && Screen.enablePtr(stateRef.current.screenStack);
+        return (
+          !window.scrollY &&
+          Screen.enablePtr(stateRef.current.screenStack) &&
+          !document.body.classList.contains("stop-scrolling")
+        );
       },
       onRefresh: () => {
         return new Promise((resolve) => {
