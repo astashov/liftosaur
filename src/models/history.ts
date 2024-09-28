@@ -15,6 +15,7 @@ import {
   IDayData,
   IScreenMuscle,
   screenMuscles,
+  IIntervals,
 } from "../types";
 import { ICollectorFn } from "../utils/collector";
 import { Reps } from "./set";
@@ -550,7 +551,7 @@ export namespace History {
     ]);
   }
 
-  export function pauseWorkout(intervals?: [number, number | undefined][]): [number, number | undefined][] | undefined {
+  export function pauseWorkout(intervals?: IIntervals): IIntervals | undefined {
     if (intervals && !isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
       let lastInterval = newIntervals[newIntervals.length - 1];
@@ -575,13 +576,11 @@ export namespace History {
     ]);
   }
 
-  export function isPaused(intervals?: [number, number | undefined][]): boolean {
+  export function isPaused(intervals?: IIntervals): boolean {
     return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
   }
 
-  export function resumeWorkout(
-    intervals?: [number, number | undefined][]
-  ): [number, number | undefined][] | undefined {
+  export function resumeWorkout(intervals?: IIntervals): IIntervals | undefined {
     if (isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
       newIntervals.push([Date.now(), undefined]);

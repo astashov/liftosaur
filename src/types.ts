@@ -623,6 +623,9 @@ export const TProgressMode = t.keyof(
 
 export type IProgressMode = t.TypeOf<typeof TProgressMode>;
 
+export const TIntervals = t.array(t.tuple([t.number, t.union([t.number, t.undefined, t.null])]), "TIntervals");
+export type IIntervals = t.TypeOf<typeof TIntervals>;
+
 export const THistoryRecord = t.intersection(
   [
     t.interface({
@@ -641,7 +644,7 @@ export const THistoryRecord = t.intersection(
       week: t.number,
       dayInWeek: t.number,
       ui: TProgressUi,
-      intervals: t.array(t.tuple([t.number, t.union([t.number, t.undefined])])),
+      intervals: TIntervals,
       deletedProgramExercises: dictionary(t.string, t.boolean),
       userPromptedStateVars: dictionary(t.string, TProgramState),
       timerSince: t.number,
