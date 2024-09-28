@@ -59,7 +59,7 @@ export namespace Screen {
 
   export function enablePtr(stack: IScreen[]): boolean {
     const curr = Screen.current(stack);
-    return ["first", "onboarding", "finishDay", "subscription", "programs"].indexOf(curr) === -1;
+    return ["first", "onboarding", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
   }
 
   export function shouldConfirmNavigation(state: IState): string | undefined {
