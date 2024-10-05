@@ -217,17 +217,38 @@ export namespace Thunk {
   }
 
   async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
-    const anchor = getState().storage.stats.appleAnchor;
-    const result = await SendMessage.toIosWithResult({ type: "getHealthKitData", anchor });
-    if (result != null) {
-      EditStats.uploadHealthIOSStats(dispatch, result, getState().storage.settings);
+    if (SendMessage.isIos()) {
+      const anchor = getState().storage.stats.appleAnchor;
+      const result = await SendMessage.toIosWithResult({
+        type: "getHealthKitData",
+        weightunit: getState().storage.settings.units,
+        lengthunit: getState().storage.settings.lengthUnits,
+        anchor,
+      });
+      if (result != null) {
+        EditStats.uploadHealthStats("ios", dispatch, result, getState().storage.settings);
+      }
+    } else {
+      const anchor = getState().storage.stats.googleAnchor;
+      const result = await SendMessage.toAndroidWithResult({
+        type: "getHealthKitData",
+        weightunit: getState().storage.settings.units,
+        lengthunit: getState().storage.settings.lengthUnits,
+        anchor,
+      });
+      if (result != null) {
+        EditStats.uploadHealthStats("android", dispatch, result, getState().storage.settings);
+      }
     }
   }
 
   export function syncHealthKit(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
       const state = getState();
-      if (!state.storage.settings.appleHealthSyncMeasurements || !HealthSync.eligibleForAppleHealth()) {
+      if (
+        !(state.storage.settings.appleHealthSyncMeasurements && HealthSync.eligibleForAppleHealth()) &&
+        !(state.storage.settings.googleHealthSyncMeasurements && HealthSync.eligibleForGoogleHealth())
+      ) {
         if (cb != null) {
           cb();
         }

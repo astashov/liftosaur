@@ -1023,6 +1023,7 @@ export const TStats = t.intersection(
     }),
     t.partial({
       appleAnchor: t.string,
+      googleAnchor: t.string,
     }),
   ],
   "TStats"

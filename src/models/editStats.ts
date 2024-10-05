@@ -18,7 +18,7 @@ import { CollectionUtils } from "../utils/collection";
 import { Weight } from "./weight";
 import { Length } from "./length";
 
-export interface IHealthIOSResponse {
+export interface IHealthResponse {
   added: {
     timestamp: number;
     type: "bodyweight" | "bodyfat" | "waist";
@@ -320,8 +320,13 @@ export namespace EditStats {
     });
   }
 
-  export function uploadHealthIOSStats(dispatch: IDispatch, dataAny: unknown, settings: ISettings): void {
-    const response = dataAny as { data: IHealthIOSResponse };
+  export function uploadHealthStats(
+    platform: "ios" | "android",
+    dispatch: IDispatch,
+    dataAny: unknown,
+    settings: ISettings
+  ): void {
+    const response = dataAny as { data: IHealthResponse };
     const data = response.data;
     if (!data.added) {
       return;
@@ -333,32 +338,29 @@ export namespace EditStats {
     for (const d of data.added) {
       if (d.type === "bodyweight") {
         weightValues.push({
-          value: Weight.convertTo(d.value as IWeight, settings.units),
+          value: Weight.roundTo005(Weight.convertTo(d.value as IWeight, settings.units)),
           timestamp: d.timestamp,
           updatedAt: Date.now(),
-          appleUuid: d.uuid,
+          ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
         });
       } else if (d.type === "bodyfat") {
         bodyfatValues.push({
           value: d.value as IPercentage,
           timestamp: d.timestamp,
           updatedAt: Date.now(),
-          appleUuid: d.uuid,
+          ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
         });
       } else if (d.type === "waist") {
         waistValues.push({
           value: Length.convertTo(d.value as ILength, settings.lengthUnits),
           timestamp: d.timestamp,
           updatedAt: Date.now(),
-          appleUuid: d.uuid,
+          ...(platform === "ios" ? { appleUuid: d.uuid } : { googleUuid: d.uuid }),
         });
       }
     }
 
-    const applyValues = <T extends { timestamp: number; appleUuid?: string }>(
-      st: T[] | undefined,
-      values: T[]
-    ): T[] => {
+    const applyValues = <T extends { timestamp: number }>(st: T[] | undefined, values: T[]): T[] => {
       return CollectionUtils.sortBy(CollectionUtils.uniqBy([...(st || []), ...values], "timestamp"), "timestamp", true);
     };
 
@@ -383,7 +385,9 @@ export namespace EditStats {
           .p("length")
           .p("waist")
           .recordModify((st) => applyValues(st, waistValues)),
-        lb<IState>().p("storage").p("stats").p("appleAnchor").record(data.anchor),
+        platform === "ios"
+          ? lb<IState>().p("storage").p("stats").p("appleAnchor").record(data.anchor)
+          : lb<IState>().p("storage").p("stats").p("googleAnchor").record(data.anchor),
       ],
     });
   }

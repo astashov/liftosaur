@@ -32,6 +32,7 @@ import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
 import { SendMessage } from "../utils/sendMessage";
 import { HealthSync } from "../lib/healthSync";
+import { MenuItemEditable } from "./menuItemEditable";
 
 interface IProps {
   dispatch: IDispatch;
@@ -85,6 +86,8 @@ export function ScreenStats(props: IProps): JSX.Element {
     return acc;
   }, {});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncWorkout);
+  const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncWorkout);
 
   const refs = {
     weight: useRef<HTMLInputElement>(),
@@ -171,8 +174,8 @@ export function ScreenStats(props: IProps): JSX.Element {
     updates = { ...updates, ...saveLength() };
     updates = { ...updates, ...savePercentage() };
     if (
-      (HealthSync.eligibleForAppleHealth() && props.settings.appleHealthSyncMeasurements) ||
-      (HealthSync.eligibleForGoogleHealth() && props.settings.googleHealthSyncMeasurements)
+      (HealthSync.eligibleForAppleHealth() && syncToAppleHealth) ||
+      (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
     ) {
       const updatesForHealthSync = getUpdatesForHealthSync(updates);
       SendMessage.toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
@@ -369,6 +372,30 @@ export function ScreenStats(props: IProps): JSX.Element {
               )
             }
           />
+        )}
+        {HealthSync.eligibleForAppleHealth() && (
+          <div>
+            <MenuItemEditable
+              name="Sync to Apple Health"
+              type="boolean"
+              value={syncToAppleHealth ? "true" : "false"}
+              onChange={(newValue?: string) => {
+                setSyncToAppleHealth(newValue === "true");
+              }}
+            />
+          </div>
+        )}
+        {HealthSync.eligibleForGoogleHealth() && (
+          <div>
+            <MenuItemEditable
+              name="Sync to Google Health Connect"
+              type="boolean"
+              value={syncToGoogleHealth ? "true" : "false"}
+              onChange={(newValue?: string) => {
+                setSyncToGoogleHealth(newValue === "true");
+              }}
+            />
+          </div>
         )}
         <div className="py-4 mb-2 text-center">
           <Button

@@ -44,7 +44,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const startedEntries = History.getStartedEntries(record);
   const totalReps = History.totalRecordReps(record);
   const totalSets = History.totalRecordSets(record);
-  const [syncToHealth, setSyncToHealth] = useState(!!props.settings.appleHealthSyncWorkout);
+  const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncWorkout);
+  const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncWorkout);
 
   const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
   const [muscleGroupsData] = historyCollector.run();
@@ -183,9 +184,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <MenuItemEditable
               name="Sync to Apple Health"
               type="boolean"
-              value={syncToHealth ? "true" : "false"}
+              value={syncToAppleHealth ? "true" : "false"}
               onChange={(newValue?: string) => {
-                setSyncToHealth(newValue === "true");
+                setSyncToAppleHealth(newValue === "true");
               }}
             />
           </div>
@@ -193,11 +194,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         {HealthSync.eligibleForGoogleHealth() && (
           <div>
             <MenuItemEditable
-              name="Sync to Google Health"
+              name="Sync to Google Health Connect"
               type="boolean"
-              value={syncToHealth ? "true" : "false"}
+              value={syncToGoogleHealth ? "true" : "false"}
               onChange={(newValue?: string) => {
-                setSyncToHealth(newValue === "true");
+                setSyncToGoogleHealth(newValue === "true");
               }}
             />
           </div>
@@ -230,7 +231,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                 SendMessage.toIosAndAndroid({
                   type: "finishWorkout",
                   healthSync:
-                    (HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth()) && syncToHealth
+                    (HealthSync.eligibleForAppleHealth() && syncToAppleHealth) ||
+                    (HealthSync.eligibleForGoogleHealth() && syncToGoogleHealth)
                       ? "true"
                       : "false",
                   calories: `${History.calories(record)}`,

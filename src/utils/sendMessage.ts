@@ -62,6 +62,28 @@ export namespace SendMessage {
     });
   }
 
+  export function toAndroidWithResult<T>(obj: Record<string, string | undefined>): Promise<T | undefined> {
+    if (!SendMessage.isAndroid()) {
+      return Promise.resolve(undefined);
+    }
+    return new Promise((resolve) => {
+      toAndroid(obj);
+      if (receiveMessage != null) {
+        window.removeEventListener("message", receiveMessage);
+      }
+      receiveMessage = (event) => {
+        if (event.data?.type === "androidResponse") {
+          if (receiveMessage != null) {
+            window.removeEventListener("message", receiveMessage);
+            receiveMessage = undefined;
+          }
+          resolve(event.data);
+        }
+      };
+      window.addEventListener("message", receiveMessage);
+    });
+  }
+
   export function toIosAndAndroid(obj: Record<string, string>): boolean {
     const toIosResult = toIos(obj);
     const toAndroidResult = toAndroid(obj);
@@ -82,7 +104,7 @@ export namespace SendMessage {
     }
   }
 
-  export function toAndroid(obj: Record<string, string>): boolean {
+  export function toAndroid(obj: Record<string, string | undefined>): boolean {
     if (typeof window !== "undefined" && window.JSAndroidBridge) {
       window.JSAndroidBridge.sendMessage(JSON.stringify(obj));
       return true;
