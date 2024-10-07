@@ -90,7 +90,6 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       dispatch(Thunk.sync2({ force: true }));
     }
-    dispatch(Thunk.syncHealthKit());
     const ptr = PullToRefresh.init({
       mainElement: "body",
       iconRefreshing: renderToString(<IconSpinner width={12} height={12} />),
@@ -137,6 +136,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk.setAppleReceipt(event.data.receipt));
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+      } else if (event.data?.type === "loaded") {
+        dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "wake") {
         dispatch(Thunk.sync2({ force: true }));
         dispatch(Thunk.syncHealthKit());
