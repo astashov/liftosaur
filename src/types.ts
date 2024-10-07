@@ -999,8 +999,10 @@ export const TSettings = t.intersection(
     t.partial({
       appleHealthSyncWorkout: t.boolean,
       appleHealthSyncMeasurements: t.boolean,
+      appleHealthAnchor: t.string,
       googleHealthSyncWorkout: t.boolean,
       googleHealthSyncMeasurements: t.boolean,
+      googleHealthAnchor: t.string,
       ignoreDoNotDisturb: t.boolean,
       currentGymId: t.string,
       isPublicProfile: t.boolean,
@@ -1014,18 +1016,12 @@ export const TSettings = t.intersection(
 
 export type ISettings = t.TypeOf<typeof TSettings>;
 
-export const TStats = t.intersection(
-  [
-    t.interface({
-      weight: TStatsWeight,
-      length: TStatsLength,
-      percentage: TStatsPercentage,
-    }),
-    t.partial({
-      appleAnchor: t.string,
-      googleAnchor: t.string,
-    }),
-  ],
+export const TStats = t.type(
+  {
+    weight: TStatsWeight,
+    length: TStatsLength,
+    percentage: TStatsPercentage,
+  },
   "TStats"
 );
 export type IStats = t.TypeOf<typeof TStats>;

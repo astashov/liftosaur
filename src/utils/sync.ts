@@ -147,6 +147,12 @@ export class Sync {
       ...diffVal(lastSettings, currentSettings, "nickname"),
       ...diffVal(lastSettings, currentSettings, "alwaysOnDisplay"),
       ...diffVal(lastSettings, currentSettings, "vibration"),
+      ...diffVal(lastSettings, currentSettings, "appleHealthAnchor"),
+      ...diffVal(lastSettings, currentSettings, "googleHealthAnchor"),
+      ...diffVal(lastSettings, currentSettings, "appleHealthSyncMeasurements"),
+      ...diffVal(lastSettings, currentSettings, "appleHealthSyncWorkout"),
+      ...diffVal(lastSettings, currentSettings, "googleHealthSyncMeasurements"),
+      ...diffVal(lastSettings, currentSettings, "googleHealthSyncWorkout"),
       ...gymsArr,
     };
     return settingsUpdate;

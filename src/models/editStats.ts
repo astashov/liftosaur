@@ -386,8 +386,8 @@ export namespace EditStats {
           .p("waist")
           .recordModify((st) => applyValues(st, waistValues)),
         platform === "ios"
-          ? lb<IState>().p("storage").p("stats").p("appleAnchor").record(data.anchor)
-          : lb<IState>().p("storage").p("stats").p("googleAnchor").record(data.anchor),
+          ? lb<IState>().p("storage").p("settings").p("appleHealthAnchor").record(data.anchor)
+          : lb<IState>().p("storage").p("settings").p("googleHealthAnchor").record(data.anchor),
       ],
     });
   }

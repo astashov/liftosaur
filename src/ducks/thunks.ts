@@ -218,7 +218,7 @@ export namespace Thunk {
 
   async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
     if (SendMessage.isIos()) {
-      const anchor = getState().storage.stats.appleAnchor;
+      const anchor = getState().storage.settings.appleHealthAnchor;
       const result = await SendMessage.toIosWithResult({
         type: "getHealthKitData",
         weightunit: getState().storage.settings.units,
@@ -229,7 +229,7 @@ export namespace Thunk {
         EditStats.uploadHealthStats("ios", dispatch, result, getState().storage.settings);
       }
     } else {
-      const anchor = getState().storage.stats.googleAnchor;
+      const anchor = getState().storage.settings.googleHealthAnchor;
       const result = await SendMessage.toAndroidWithResult({
         type: "getHealthKitData",
         weightunit: getState().storage.settings.units,
