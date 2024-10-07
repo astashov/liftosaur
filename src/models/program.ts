@@ -1254,12 +1254,16 @@ export namespace Program {
   }
 
   export function exportedPlannerProgramToExportedProgram(
-    exportedPlannerProgram: IExportedPlannerProgram
+    exportedPlannerProgram: IExportedPlannerProgram,
+    aNextDay?: number
   ): IExportedProgram {
     const program = {
       ...Program.create(exportedPlannerProgram.program.name, exportedPlannerProgram.id),
       planner: exportedPlannerProgram.program,
     };
+    if (aNextDay != null) {
+      program.nextDay = aNextDay;
+    }
     const exportedProgram: IExportedProgram = {
       customExercises: exportedPlannerProgram.settings.exercises,
       program,

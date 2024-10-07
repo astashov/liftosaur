@@ -38,6 +38,7 @@ export function PlannerContentSyncer(props: IPlannerContentSyncerProps): JSX.Ele
   return (
     <PlannerContent
       client={props.client}
+      nextDay={exportedProgram?.program.nextDay}
       initialProgram={exportedPlannerProgram}
       partialStorage={props.storage}
       account={props.account}

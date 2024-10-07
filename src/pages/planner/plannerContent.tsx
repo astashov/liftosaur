@@ -53,6 +53,7 @@ declare let __HOST__: string;
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
+  nextDay?: number;
   initialProgram?: IExportedPlannerProgram;
   partialStorage?: IPartialStorage;
   account?: IAccount;
@@ -79,7 +80,12 @@ function isChanged(state: IPlannerState): boolean {
   );
 }
 
-function buildExportedProgram(id: string, program: IPlannerProgram, settings: ISettings): IExportedProgram {
+function buildExportedProgram(
+  id: string,
+  program: IPlannerProgram,
+  settings: ISettings,
+  nextDay?: number
+): IExportedProgram {
   const { evaluatedWeeks } = PlannerProgram.evaluate(program, settings);
 
   const exportedPlannerProgram: IExportedPlannerProgram = {
@@ -93,7 +99,7 @@ function buildExportedProgram(id: string, program: IPlannerProgram, settings: IS
       timer: settings.timers.workout ?? 0,
     },
   };
-  return Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram);
+  return Program.exportedPlannerProgramToExportedProgram(exportedPlannerProgram, nextDay);
 }
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
@@ -146,7 +152,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [state, dispatch] = useLensReducer(initialState, { client: props.client }, [
     async (action, oldState, newState) => {
       if (oldState.current.program !== newState.current.program) {
-        const exportedProgram = buildExportedProgram(newState.id, newState.current.program, settings);
+        const exportedProgram = buildExportedProgram(newState.id, newState.current.program, settings, props.nextDay);
         dispatch(lb<IPlannerState>().p("encodedProgram").record(JSON.stringify(exportedProgram)));
       }
     },
@@ -174,7 +180,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useEffect(() => {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
-      const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
+      const exportedProgram = buildExportedProgram(state.id, state.current.program, settings, props.nextDay);
       Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), window.location.href).then(() => {
         dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(JSON.stringify(exportedProgram)));
       });
@@ -318,7 +324,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             isBannerLoading={isBannerLoading}
             account={props.account}
             onAddProgram={async () => {
-              const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
+              const exportedProgram = buildExportedProgram(state.id, state.current.program, settings, props.nextDay);
               setIsBannerLoading(true);
               const id = await saveProgram(props.client, exportedProgram);
               if (id != null) {
@@ -369,7 +375,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 onClick={async () => {
                   setIsLoading(true);
                   try {
-                    const exportedProgram = buildExportedProgram(state.id, state.current.program, settings);
+                    const exportedProgram = buildExportedProgram(
+                      state.id,
+                      state.current.program,
+                      settings,
+                      props.nextDay
+                    );
                     await saveProgram(props.client, exportedProgram);
                     dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram));
                   } finally {
@@ -421,7 +432,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 program={program}
                 client={props.client}
                 encodedProgram={async () => {
-                  const exportedProgram = buildExportedProgram(state.id, program, settings);
+                  const exportedProgram = buildExportedProgram(state.id, program, settings, props.nextDay);
                   const baseUrl = UrlUtils.build("/planner", window.location.href);
                   const encodedUrl = await Encoder.encodeIntoUrl(JSON.stringify(exportedProgram), baseUrl.toString());
                   return encodedUrl.toString();
