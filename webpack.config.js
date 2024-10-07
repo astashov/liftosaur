@@ -150,6 +150,10 @@ module.exports = {
         to: `privacy.html`,
       },
       {
+        from: `src/healthconnectprivacypolicy.html`,
+        to: `healthconnectprivacypolicy.html`,
+      },
+      {
         from: `src/terms.html`,
         to: `terms.html`,
       },
