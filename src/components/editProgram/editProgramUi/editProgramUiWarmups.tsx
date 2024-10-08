@@ -189,7 +189,7 @@ function WarmupRow(props: IWarmupRowProps): JSX.Element {
       <div className="leading-none">
         <button
           data-cy="edit-exercise-warmupset-delete"
-          className={`px-1 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`px-1 ${props.disabled ? "opacity-50 cursor-not-allowed nm-warmupset-delete" : ""}`}
           onClick={() => {
             if (!props.disabled) {
               props.onUpdate(undefined);

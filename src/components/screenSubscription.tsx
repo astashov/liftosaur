@@ -20,6 +20,7 @@ import { Thunk } from "../ducks/thunks";
 import { ModalCoupon } from "./modalCoupon";
 import { IconClose } from "./icons/iconClose";
 import { ObjectUtils } from "../utils/object";
+import { lg } from "../utils/posthog";
 
 interface IProps {
   loading: ILoading;
@@ -198,6 +199,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       name="subscription-monthly"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          lg("start-subscription-monthly");
                           SendMessage.toIos({ type: "subscribeMontly" });
                           SendMessage.toAndroid({ type: "subscribeMontly" });
                           updateState(props.dispatch, [
@@ -224,6 +226,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       name="subscription-yearly"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          lg("start-subscription-yearly");
                           SendMessage.toIos({ type: "subscribeYearly" });
                           SendMessage.toAndroid({ type: "subscribeYearly" });
                           updateState(props.dispatch, [lb<IState>().p("subscriptionLoading").record({ yearly: true })]);
@@ -250,6 +253,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       name="subscription-lifetime"
                       onClick={() => {
                         if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                          lg("start-subscription-lifetime");
                           SendMessage.toIos({ type: "subscribeLifetime" });
                           SendMessage.toAndroid({ type: "subscribeLifetime" });
                           updateState(props.dispatch, [

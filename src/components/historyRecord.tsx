@@ -29,9 +29,9 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
       className={`history-record rounded-2xl mx-4 mb-4 px-4 text-sm ${
         Progress.isCurrent(historyRecord)
           ? props.isOngoing
-            ? "bg-yellow-100 border border-yellow-400"
-            : "bg-purplev2-200"
-          : "bg-grayv2-50"
+            ? "bg-yellow-100 border border-yellow-400 nm-continue-workout"
+            : "bg-purplev2-200 nm-start-workout"
+          : "bg-grayv2-50 nm-edit-workout"
       }`}
       style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
       onClick={(event) => {

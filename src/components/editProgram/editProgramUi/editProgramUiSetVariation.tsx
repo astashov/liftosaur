@@ -63,7 +63,7 @@ export function EditProgramUiSetVariation(props: IEditProgramUiSetVariationProps
           rightAddOn={
             <div>
               <button
-                className="px-1 py-2"
+                className="px-1 py-2 nm-delete-set-variation"
                 onClick={() => {
                   modify((ex) => {
                     ex.setVariations.splice(props.index, 1);
@@ -163,7 +163,10 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
     <div className={` mb-1 ${props.index ? "pt-1 border-t border-grayv2-100" : ""}`}>
       <div className="flex items-center">
         {!props.isOnlySet && !props.disabled && (
-          <div className="p-2 cursor-move" style={{ touchAction: "none", marginLeft: "-0.5rem" }}>
+          <div
+            className="p-2 cursor-move nm-reorder-set-variations"
+            style={{ touchAction: "none", marginLeft: "-0.5rem" }}
+          >
             <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
               <IconHandle />
             </span>
@@ -176,7 +179,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
         <div className="flex items-center">
           <div className="relative">
             <button
-              className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed nm-set-group-options" : ""}`}
               data-cy="edit-exercise-set-group-more"
               onClick={() => {
                 if (!props.disabled) {
@@ -238,7 +241,7 @@ function SetRow(props: ISetRowProps): JSX.Element | null {
             <div className="ml-2">
               <button
                 data-cy="edit-exercise-set-delete"
-                className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`px-1 py-2 ${props.disabled ? "opacity-50 cursor-not-allowed nm-set-variation-delete" : ""}`}
                 onClick={() => {
                   props.onUpdate(undefined);
                 }}

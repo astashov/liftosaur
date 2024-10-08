@@ -91,7 +91,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
               />
             </button>
             <button
-              className="p-2"
+              className="p-2 nm-ui-mode-switch"
               data-cy="editor-v2-full-program"
               disabled={isInvalid}
               onClick={() => {
@@ -112,7 +112,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             </button>
             <button
               data-cy="editor-v2-week-muscles"
-              className="p-2"
+              className="p-2 nm-show-week-muscles"
               onClick={() => {
                 props.plannerDispatch(props.lbUi.p("showWeekStats").record(true));
               }}
@@ -121,7 +121,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             </button>
             <button
               disabled={!enabledDayStats}
-              className="p-2"
+              className="p-2 nm-show-day-muscles"
               data-cy="editor-v2-day-muscles"
               onClick={() => {
                 if (enabledDayStats) {
@@ -134,7 +134,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             <button
               disabled={!enabledDayStats}
               data-cy="editor-v2-exercise-stats"
-              className="p-2"
+              className="p-2 nm-show-exercise-stats"
               onClick={() => {
                 if (enabledDayStats) {
                   props.plannerDispatch(props.lbUi.p("showExerciseStats").record(true));
@@ -146,7 +146,7 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
             <button
               disabled={isInvalid}
               data-cy="program-preview"
-              className="p-2"
+              className="p-2 nm-show-program-preview"
               onClick={() => {
                 if (!isInvalid) {
                   props.plannerDispatch(props.lbUi.p("showPreview").record(true));

@@ -26,6 +26,7 @@ import { Progress } from "../models/progress";
 import { ImportFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils } from "../utils/log";
+import { lg } from "../utils/posthog";
 import { RollbarUtils } from "../utils/rollbar";
 import { UrlUtils } from "../utils/url";
 import { ImportFromLiftosaur } from "../utils/importFromLiftosaur";
@@ -68,6 +69,7 @@ export namespace Thunk {
 
   export function appleSignIn(): IThunk {
     return async (dispatch, getState, env) => {
+      lg("apple-sign-in");
       let id_token: string;
       let code: string;
       if (SendMessage.isIos()) {
@@ -118,6 +120,7 @@ export namespace Thunk {
 
   export function logOut(cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
+      lg("log-out");
       if (getState().user?.id) {
         await env.service.signout();
         dispatch({ type: "Logout" });
@@ -218,6 +221,7 @@ export namespace Thunk {
 
   async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
     if (SendMessage.isIos()) {
+      lg("read-apple-health");
       const anchor = getState().storage.settings.appleHealthAnchor;
       const result = await SendMessage.toIosWithResult({
         type: "getHealthKitData",
@@ -229,6 +233,7 @@ export namespace Thunk {
         EditStats.uploadHealthStats("ios", dispatch, result, getState().storage.settings);
       }
     } else {
+      lg("read-google-health");
       const anchor = getState().storage.settings.googleHealthAnchor;
       const result = await SendMessage.toAndroidWithResult({
         type: "getHealthKitData",
@@ -339,6 +344,7 @@ export namespace Thunk {
 
   export function pushScreen(screen: IScreen): IThunk {
     return async (dispatch, getState) => {
+      lg("navigate-to-" + screen);
       const confirmation = Screen.shouldConfirmNavigation(getState());
       if (confirmation) {
         if (confirm(confirmation)) {
@@ -376,6 +382,7 @@ export namespace Thunk {
           reviewRequests.length < 3 &&
           (!lastReviewRequest || now - lastReviewRequest > 1000 * 60 * 60 * 24 * 32)
         ) {
+          lg("request-review");
           SendMessage.toIos({ type: "requestReview" });
           SendMessage.toAndroid({ type: "requestReview" });
         }
@@ -400,6 +407,7 @@ export namespace Thunk {
           signupRequests.length < 3 &&
           (!lastsignupRequest || now - lastsignupRequest > 1000 * 60 * 60 * 24 * 14)
         ) {
+          lg("request-signup");
           updateState(dispatch, [lb<IState>().p("showSignupRequest").record(true)]);
         }
       } catch (error) {
@@ -488,12 +496,14 @@ export namespace Thunk {
 
   export function exportStorage(): IThunk {
     return async (dispatch, getState, env) => {
+      lg("export-storage-to-json");
       ImportExporter.exportStorage(getState().storage);
     };
   }
 
   export function exportProgramToFile(program: IProgram): IThunk {
     return async (dispatch, getState, env) => {
+      lg("export-program-to-file");
       const state = getState();
       Program.exportProgramToFile(program, state.storage.settings, state.storage.version);
     };
@@ -501,6 +511,7 @@ export namespace Thunk {
 
   export function exportProgramToLink(program: IProgram): IThunk {
     return async (dispatch, getState, env) => {
+      lg("export-program-to-link");
       const state = getState();
       const link = await Program.exportProgramToLink(program, state.storage.settings, state.storage.version);
       await ClipboardUtils.copy(link);
@@ -510,6 +521,7 @@ export namespace Thunk {
 
   export function exportHistoryToCSV(): IThunk {
     return async (dispatch, getState, env) => {
+      lg("export-history-to-csv");
       const state = getState();
       const csv = CSV.toString(History.exportAsCSV(state.storage.history, state.storage.settings));
       Exporter.toFile(`liftosaur_${DateUtils.formatYYYYMMDD(Date.now())}.csv`, csv);
@@ -518,6 +530,7 @@ export namespace Thunk {
 
   export function importStorage(maybeStorage: string): IThunk {
     return async (dispatch, getState, env) => {
+      lg("import-json-storage");
       let parsedMaybeStorage: Record<string, unknown>;
       try {
         parsedMaybeStorage = JSON.parse(maybeStorage);
@@ -538,6 +551,7 @@ export namespace Thunk {
   export function importCsvData(rawCsv: string): IThunk {
     return async (dispatch, getState, env) => {
       try {
+        lg("import-csv-data");
         const { historyRecords, customExercises } = ImportFromLiftosaur.convertLiftosaurCsvToHistoryRecords(
           rawCsv,
           getState().storage.settings
@@ -569,6 +583,7 @@ export namespace Thunk {
 
   export function importFromLink(link: string): IThunk {
     return async (dispatch, getState, env) => {
+      lg("import-from-link");
       const data = await ImportFromLink.importFromLink(link, env.service.client);
       if (data.success) {
         Storage.setAffiliate(dispatch, data.data.source);
@@ -581,6 +596,7 @@ export namespace Thunk {
 
   export function generateAndCopyLink(editProgram: IProgram, settings: ISettings, cb: (link: string) => void): IThunk {
     return async (dispatch, getState, env) => {
+      lg("generate-and-copy-link");
       const link = await Program.exportProgramToLink(editProgram, settings, getLatestMigrationVersion());
       try {
         const service = new Service(env.service.client);
@@ -598,6 +614,7 @@ export namespace Thunk {
 
   export function importProgram(maybeProgram: string): IThunk {
     return async (dispatch, getState, env) => {
+      lg("import-program-from-link");
       const state = getState();
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
@@ -641,6 +658,7 @@ export namespace Thunk {
 
   export function createAccount(): IThunk {
     return async (dispatch, getState, env) => {
+      lg("create-account");
       dispatch(
         Thunk.logOut(async () => {
           const newState = await getInitialState(env.service.client);
@@ -653,6 +671,7 @@ export namespace Thunk {
 
   export function deleteAccount(id: string, cb?: () => void): IThunk {
     return async (dispatch, getState, env) => {
+      lg("delete-local-account");
       await IndexedDBUtils.remove(`liftosaur_${id}`);
       if (cb) {
         cb();
@@ -664,6 +683,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       await load(dispatch, "Delete cloud account", () => {
         return new Promise(async (resolve) => {
+          lg("delete-remove-account");
           const result = await env.service.deleteAccount();
           dispatch(
             Thunk.logOut(() => {
@@ -682,6 +702,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       dispatch(
         Thunk.logOut(async () => {
+          lg("switch-account");
           const rawStorage = (await IndexedDBUtils.get(`liftosaur_${id}`)) as string | undefined;
           if (rawStorage != null) {
             const result = await Storage.get(env.service.client, JSON.parse(rawStorage)?.storage);
@@ -733,6 +754,7 @@ export namespace Thunk {
 
   export function redeemCoupon(code: string): IThunk {
     return async (dispatch, getState, env) => {
+      lg("redeem-coupon");
       const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code));
       if (result.success) {
         const { key, expires } = result.data;
@@ -771,6 +793,7 @@ export namespace Thunk {
             receipt
           )
         ) {
+          lg("complete-apple-subscription");
           dispatch(log("ls-set-apple-receipt"));
           Subscriptions.setAppleReceipt(dispatch, receipt);
           if (Screen.current(getState().screenStack) === "subscription") {
@@ -795,6 +818,7 @@ export namespace Thunk {
         const state = getState();
         const userId = state.user?.id || state.storage.tempUserId;
         if (await Subscriptions.verifyGooglePurchaseToken(env.service, userId, purchaseToken)) {
+          lg("complete-google-subscription");
           dispatch(log("ls-set-google-purchase-token"));
           Subscriptions.setGooglePurchaseToken(dispatch, purchaseToken);
           if (Screen.current(getState().screenStack) === "subscription") {
@@ -874,6 +898,7 @@ async function handleLogin(
   oldUserId?: string
 ): Promise<void> {
   if (result.email != null) {
+    lg("login");
     Rollbar.configure(RollbarUtils.config({ person: { email: result.email, id: result.user_id } }));
     let storage: IStorage;
     const storageResult = await Storage.get(client, result.storage, true);
@@ -888,12 +913,14 @@ async function handleLogin(
     storage.tempUserId = result.user_id;
     storage.email = result.email;
     if (oldUserId === result.user_id) {
+      lg("login-same-user");
       updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)]);
       dispatch({ type: "Login", email: result.email, userId: result.user_id });
       if (storage.subscription.key !== result.key) {
         updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(result.key)]);
       }
     } else {
+      lg("login-different-user");
       storage.subscription.key = result.key;
       const newState = await getInitialState(client, { storage });
       newState.lastSyncedStorage = ObjectUtils.clone(newState.storage);

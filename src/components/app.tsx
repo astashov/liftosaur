@@ -50,6 +50,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
+import { identifyPosthog, lg, setupAppPosthog } from "../utils/posthog";
 
 interface IProps {
   client: Window["fetch"];
@@ -82,6 +83,12 @@ export function AppView(props: IProps): JSX.Element | null {
   useLoopCatcher();
 
   useEffect(() => {
+    const userId = state.user?.id || state.storage.tempUserId;
+    identifyPosthog(userId, state.user?.email);
+  }, [state.user?.id, state.storage.tempUserId]);
+
+  useEffect(() => {
+    setupAppPosthog();
     const url =
       typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
     const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
@@ -119,16 +126,27 @@ export function AppView(props: IProps): JSX.Element | null {
       while (el != null && el.getAttribute != null) {
         const element = el as HTMLElement;
         const classes = (element.getAttribute("class") || "").split(/\s+/);
-        if (classes.some((cl) => cl.startsWith("ls-"))) {
+        if (classes.some((cl) => cl.startsWith("ls-")) || classes.some((cl) => cl.startsWith("nm-"))) {
           button = el;
           break;
         }
         el = el.parentNode as HTMLElement | undefined;
       }
       if (button != null) {
-        const name = (button.getAttribute("class") || "").split(/\s+/).filter((c) => c.startsWith("ls-"))[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatch(Thunk.log(name));
+        const lsName = (button.getAttribute("class") || "")
+          .split(/\s+/)
+          .map((s) => s.trim())
+          .filter((c) => c.startsWith("ls-"))[0];
+        const nsName = (button.getAttribute("class") || "")
+          .split(/\s+/)
+          .map((s) => s.trim())
+          .filter((c) => c.startsWith("nm-"))[0];
+        const name = lsName || nsName;
+        lg("click-" + name);
+        if (lsName) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          dispatch(Thunk.log(lsName));
+        }
       }
     });
     window.addEventListener("message", (event) => {
@@ -137,11 +155,13 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
       } else if (event.data?.type === "loaded") {
+        lg("loaded");
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "wake") {
         dispatch(Thunk.sync2({ force: true }));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {
+        lg("apple-health-error");
         alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
@@ -153,6 +173,7 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.pullScreen());
       } else if (event.data?.type === "setReferrer") {
+        lg("set-referrer");
         updateState(
           dispatch,
           [
@@ -164,6 +185,7 @@ export function AppView(props: IProps): JSX.Element | null {
           "Set Referrer"
         );
       } else if (event.data?.type === "requestedReview") {
+        lg("requested-review");
         updateState(dispatch, [
           lb<IState>()
             .p("storage")

@@ -5,6 +5,7 @@ import { StringUtils } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
 import { SendMessage } from "../utils/sendMessage";
+import { lg } from "../utils/posthog";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
 
@@ -38,6 +39,12 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   if (numberOfVisibleItems % 2 === 0) {
     numberOfVisibleItems += 1;
   }
+  const onChange = (v?: string, e?: Event): void => {
+    lg(`menu-item-edit-${StringUtils.dashcase(props.name)}`);
+    if (props.onChange != null) {
+      props.onChange(v, e);
+    }
+  };
   return (
     <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
       <label
@@ -68,14 +75,14 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               patternMessage={props.patternMessage}
               values={props.values}
               setPatternError={setPatternError}
-              onChange={props.onChange}
+              onChange={onChange}
             />
           </div>
           {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
           {props.value != null && props.hasClear && (
             <button
               data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
-              onClick={() => props.onChange && props.onChange(undefined)}
+              onClick={() => onChange(undefined)}
               style={{ marginRight: "-0.5rem" }}
               className={`p-2 nm-menu-item-delete-${StringUtils.dashcase(props.name)}`}
             >
@@ -99,7 +106,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             isExpanded={isExpanded}
             values={props.values || []}
             defaultSelectedValue={props.value}
-            onSelect={(v) => props.onChange && props.onChange(v)}
+            onSelect={(v) => onChange(v)}
           />
         </div>
       )}

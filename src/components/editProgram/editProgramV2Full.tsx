@@ -128,7 +128,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
                   props.plannerDispatch(props.lbUi.p("showWeekStats").record(true));
                 }
               }}
-              className={`${weekIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
+              className={`${weekIndex === -1 ? "cursor-not-allowed nm-full-show-week-muscles" : ""} p-2`}
             >
               <IconMusclesW color={weekIndex !== -1 ? "#3C5063" : "#D2D8DE"} size={22} />
             </button>
@@ -139,7 +139,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
                   props.plannerDispatch(props.lbUi.p("showDayStats").record(true));
                 }
               }}
-              className={`${dayIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
+              className={`${dayIndex === -1 ? "cursor-not-allowed nm-full-show-day-muscles" : ""} p-2`}
             >
               <IconMusclesD color={dayIndex !== -1 ? "#3C5063" : "#D2D8DE"} size={22} />
             </button>
@@ -150,7 +150,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
                   props.plannerDispatch(props.lbUi.p("showExerciseStats").record(true));
                 }
               }}
-              className={`${!focusedExercise ? "cursor-not-allowed" : ""} p-2`}
+              className={`${!focusedExercise ? "cursor-not-allowed nm-full-show-exercise-stats" : ""} p-2`}
             >
               <IconGraphsE color={focusedExercise ? "#3C5063" : "#D2D8DE"} width={16} height={22} />
             </button>
