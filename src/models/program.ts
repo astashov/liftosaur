@@ -46,6 +46,7 @@ import { IPlannerState, IExportedPlannerProgram } from "../pages/planner/models/
 import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
 import { Equipment } from "./equipment";
+import { showAlert } from "../lib/alert";
 
 declare let __HOST__: string;
 
@@ -459,11 +460,18 @@ export namespace Program {
       settings,
       shouldFallback
     );
+    let variationIndex: number;
     if (!variationIndexResult.success) {
-      throw new Error(variationIndexResult.error);
+      showAlert(
+        `There's an error while calculating variation index for the next workout for '${programExercise.name}' exercise:\n\n${variationIndexResult.error}.\n\nWe fallback to the first variation index. Please fix the program exercise set variation script.`,
+        10000
+      );
+      variationIndex = 1;
+    } else {
+      variationIndex = variationIndexResult.data;
     }
     const variations = ProgramExercise.getVariations(programExercise, allProgramExercises);
-    return Math.floor(Math.max(0, Math.min(variationIndexResult.data - 1, variations.length - 1)));
+    return Math.floor(Math.max(0, Math.min(variationIndex - 1, variations.length - 1)));
   }
 
   export function parseExerciseFinishDayScript(
