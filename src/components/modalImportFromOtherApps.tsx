@@ -28,7 +28,8 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
       const result = ImportFromHevy.convertHevyCsvToHistoryRecords(contents);
       historyRecords = result.historyRecords;
       customExercises = result.customExercises;
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       console.error(e);
       Rollbar.error(e);
       historyRecords = [];

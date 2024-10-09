@@ -298,7 +298,8 @@ export class PlannerReformatter {
         throw new Error("Missing message in response");
       }
       return { success: true, data: msg };
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       return { success: false, error: e.message };
     }
   }

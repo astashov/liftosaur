@@ -413,9 +413,12 @@ export namespace ProgramExercise {
       K3 extends keyof IProgramExercise[K1][K2],
       K4 extends keyof IProgramExercise[K1][K2][K3]
     >(key1: K1, key2: K2, key3: K3, key4: K4): IProgramExercise[K1][K2][K3][K4] {
-      const diffPath = `${key1}.${key2}.${key3}.${key4}`;
-      const oldValue = oldExercise[key1]?.[key2]?.[key3]?.[key4];
-      const newValue = newExercise[key1][key2][key3][key4];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const diffPath = `${key1}.${key2 as any}.${key3 as any}.${key4 as any}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oldValue = ((oldExercise[key1] as any)?.[key2] as any)?.[key3]?.[key4];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newValue = (newExercise[key1] as any)[key2]?.[key3][key4];
       return enforceNew || (newExercise.diffPaths || []).some((dp) => dp.startsWith(diffPath))
         ? newValue ?? oldValue ?? newValue
         : oldValue ?? newValue;

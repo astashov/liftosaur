@@ -152,11 +152,6 @@ export type IConfirmDate = {
   time?: number;
 };
 
-export type ISyncStorage = {
-  type: "SyncStorage";
-  storage: IStorage;
-};
-
 export type ILoginAction = {
   type: "Login";
   email: string;
@@ -305,7 +300,6 @@ export type IAction =
   | IDeleteProgress
   | IPushScreen
   | IPullScreen
-  | ISyncStorage
   | IChangeDate
   | IConfirmDate
   | ILoginAction
@@ -718,14 +712,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       }
       return newState;
     }, state);
-  } else if (action.type === "SyncStorage") {
-    const oldStorage = state.storage;
-    const newStorage = action.storage;
-    if (newStorage.id != null && oldStorage.id != null) {
-      return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage, true) };
-    } else {
-      return state;
-    }
   } else if (action.type === "CreateProgramAction") {
     const newProgram = Program.create(action.name);
     let newState = lf(state)

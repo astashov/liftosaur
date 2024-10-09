@@ -26,7 +26,7 @@ export class NodeEncoder {
         const base64 = dataUrl.split(",")[1];
         if (base64) {
           const buffer2 = Buffer.from(base64, "base64");
-          gunzip(buffer2, (err, result) => {
+          gunzip((buffer2 as unknown) as Uint8Array, (err, result) => {
             if (err) {
               reject(err);
             } else {

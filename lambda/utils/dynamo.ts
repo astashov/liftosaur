@@ -119,7 +119,8 @@ export class DynamoUtil implements IDynamoUtil {
         .then((r) => r.Item as T | undefined);
       this.log.log(`Dynamo get: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
       return result;
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       this.log.log(`FAILED Dynamo get: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
       if ("code" in e && e.code === "ResourceNotFoundException") {
         return undefined;
@@ -133,7 +134,8 @@ export class DynamoUtil implements IDynamoUtil {
     const startTime = Date.now();
     try {
       await this.dynamo.put({ TableName: args.tableName, Item: args.item }).promise();
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       this.log.log(`FAILED Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
       this.log.log(e.message);
       this.log.log(e.stack);

@@ -15,7 +15,7 @@ export class MockFetch {
     }
     const body = options?.body;
     const headers = { Cookie: `session=${session}`, ...options?.headers };
-    const url = UrlUtils.build(typeof urlStr === "string" ? urlStr : urlStr.url);
+    const url = UrlUtils.build(typeof urlStr === "string" ? urlStr : (urlStr as Request).url);
     const qs: Record<string, string> = {};
     url.searchParams.forEach((value, key) => (qs[key] = value));
     const request: APIGatewayProxyEvent = {
@@ -78,5 +78,9 @@ class MockHeaders implements Headers {
       const value = this.headers[key];
       callbackfn(value, key, this);
     }
+  }
+
+  public getSetCookie(): string[] {
+    return this.headers["Set-Cookie"]?.split(",") || [];
   }
 }

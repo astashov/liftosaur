@@ -200,7 +200,8 @@ describe("sync", () => {
     let threw = false;
     try {
       await mockReducer.run([Thunk.sync2({ force: true })]);
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       expect(e.message).to.eql("outdated_client_storage");
       threw = true;
     }

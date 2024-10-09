@@ -1002,7 +1002,8 @@ export class LiftoscriptEvaluator {
   ): IWeight | number | IPercentage {
     try {
       return Weight.op(onerm, a, b, op);
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       throw new LiftoscriptSyntaxError(e.message, 0, 0, 0, 0);
     }
   }

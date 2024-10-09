@@ -56,7 +56,7 @@ export namespace ClipboardUtils {
     return new Promise(async (resolve, reject) => {
       try {
         navigator.permissions
-          .query({ name: "clipboard-write" })
+          .query({ name: "clipboard-write" as PermissionName })
           .then(async (result) => {
             if (result.state === "granted" || result.state === "prompt") {
               await navigator.clipboard.writeText(text);
@@ -86,7 +86,7 @@ export namespace ClipboardUtils {
 
   export async function canReadTextFromClipboard(): Promise<boolean> {
     try {
-      const queryResult = await navigator.permissions.query({ name: "clipboard-read" });
+      const queryResult = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
       return queryResult.state === "granted" || queryResult.state === "prompt";
     } catch (_) {
       return false;
@@ -95,7 +95,7 @@ export namespace ClipboardUtils {
 
   async function readTextFromClipboard(): Promise<IEither<string | undefined, undefined>> {
     try {
-      const queryResult = await navigator.permissions.query({ name: "clipboard-read" });
+      const queryResult = await navigator.permissions.query({ name: "clipboard-read" as PermissionName });
       if (queryResult.state === "granted" || queryResult.state === "prompt") {
         return { success: true, data: await navigator.clipboard.readText() };
       } else {

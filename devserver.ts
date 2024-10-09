@@ -80,9 +80,13 @@ const server = https.createServer(
       }
       res.end(body);
     } catch (e) {
-      console.error(e);
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      if (e instanceof Error) {
+        console.error(e);
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      } else {
+        throw e;
+      }
     }
   }
 );

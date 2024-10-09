@@ -179,7 +179,7 @@ function diffObj<T, K extends keyof T>(a: T, b: T, key: K): T[K] extends object 
 }
 
 function diffVal<T, K extends keyof T>(a: T, b: T, key: K): { [P in K]?: T[K] } {
-  return (!ObjectUtils.isEqual(a[key], b[key]) ? { [key]: b[key] } : {}) as any;
+  return (!ObjectUtils.isEqual(a[key] as any, b[key]) ? { [key]: b[key] } : {}) as any;
 }
 
 function diffStats<T extends { timestamp: number }>(lastArr?: T[], currentArr?: T[]): T[] {

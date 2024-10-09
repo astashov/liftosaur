@@ -1,7 +1,8 @@
 import { ObjectUtils } from "./object";
 
 export namespace ComparerUtils {
-  export function noFns<T>(prev: T, next: T): boolean {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  export function noFns<T extends object>(prev: T, next: T): boolean {
     if (Object.keys(prev).length !== Object.keys(next).length) {
       return false;
     } else {

@@ -1,4 +1,4 @@
-import { S3 } from "aws-sdk";
+import { AWSError, S3 } from "aws-sdk";
 import { ILogUtil } from "./log";
 
 export interface IS3Util {
@@ -39,7 +39,7 @@ export class S3Util implements IS3Util {
         .promise();
       result = result.concat(response.Contents?.map((c) => c.Key!) ?? []);
       nextMarker = response.NextMarker;
-      nextPageAvailable = !!response.NextMarker ?? false;
+      nextPageAvailable = !!(response.NextMarker ?? false);
     }
     this.log.log(
       "S3 list objects:",
@@ -55,7 +55,8 @@ export class S3Util implements IS3Util {
     try {
       const response = await this.s3.getObject({ Bucket: args.bucket, Key: args.key }).promise();
       result = response.Body;
-    } catch (e) {
+    } catch (error) {
+      const e = error as AWSError;
       result = undefined;
       if (e.code !== "NoSuchKey") {
         throw e;

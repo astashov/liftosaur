@@ -661,7 +661,8 @@ export const migrations = {
               program.planner = newPlanner;
               storage.programs[i] = program;
             }
-          } catch (e) {
+          } catch (error) {
+            const e = error as Error;
             Rollbar.error(e);
             console.error(e);
           }
@@ -683,7 +684,8 @@ export const migrations = {
         }
       }
       return storage;
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       Rollbar.error(e);
       console.error(e);
       const id = UidFactory.generateUid(8);

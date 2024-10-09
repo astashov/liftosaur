@@ -26,7 +26,8 @@ export async function runMigrations(
   for (const version of newVersions) {
     try {
       result = await migrations[version](client, result);
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       console.error(`Error running migration ${version}: ${e}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof window !== "undefined" && (window as any).Rollbar != null) {

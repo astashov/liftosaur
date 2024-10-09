@@ -651,7 +651,8 @@ export namespace Progress {
       );
       runner.execute();
       return Progress.applyBindings(entry, bindings);
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       console.error(e);
       alert(`Error during executing 'update: custom()' script: ${e.message}`);
       return entry;

@@ -189,8 +189,9 @@ export namespace ObjectUtils {
 
   export function findMaxValue<T extends Record<string, number | undefined>>(obj: T): number {
     return ObjectUtils.keys(obj).reduce<number>((memo, key) => {
-      if (obj[key] > memo) {
-        memo = obj[key]! || 0;
+      const v = obj[key];
+      if (v != null && v > memo) {
+        memo = v || 0;
       }
       return memo;
     }, 0);

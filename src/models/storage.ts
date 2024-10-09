@@ -229,8 +229,13 @@ export namespace Storage {
     }
 
     function merge2<T extends keyof IStorage, V extends keyof IStorage[T]>(key: T, key2: V): IStorage[T][V] {
-      const k = `${key}.${key2}`;
-      return fields && fields.indexOf(k) === -1 ? oldStorage[key][key2] : newStorage[key][key2];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const k = `${key}.${key2 as any}`;
+      return fields && fields.indexOf(k) === -1
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((oldStorage[key] as any)[key2] as any)
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((newStorage[key] as any)[key2] as any);
     }
 
     function mergeAs<T extends keyof IStorage>(
@@ -245,10 +250,13 @@ export namespace Storage {
       key2: V,
       cb: (a: IStorage[T][V], b: IStorage[T][V]) => IStorage[T][V]
     ): IStorage[T][V] {
-      const k = `${key}.${key2}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const k = `${key}.${key2 as any}`;
       return fields && fields.indexOf(k) === -1
-        ? oldStorage[key][key2]
-        : cb(oldStorage[key][key2], newStorage[key][key2]);
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((oldStorage[key] as any)[key2] as any)
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          cb((oldStorage[key] as any)[key2], (newStorage[key] as any)[key2]);
     }
 
     const storage: IStorage = {

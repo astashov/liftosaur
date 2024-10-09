@@ -89,7 +89,8 @@ export namespace Program {
             tags: program.tags,
             description: program.description,
           };
-        } catch (e) {
+        } catch (error) {
+          const e = error as Error;
           if (typeof window !== "undefined" && window.alert != null) {
             window.alert(
               `There's an error executing your program code. Go to 'Program' in the footer to fix it.\n\n${e.message}`

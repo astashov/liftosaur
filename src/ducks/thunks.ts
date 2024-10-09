@@ -379,7 +379,8 @@ export namespace Thunk {
           SendMessage.toIos({ type: "requestReview" });
           SendMessage.toAndroid({ type: "requestReview" });
         }
-      } catch (e) {
+      } catch (error) {
+        const e = error as Error;
         Rollbar.error(e);
       }
     };
@@ -401,7 +402,8 @@ export namespace Thunk {
         ) {
           updateState(dispatch, [lb<IState>().p("showSignupRequest").record(true)]);
         }
-      } catch (e) {
+      } catch (error) {
+        const e = error as Error;
         Rollbar.error(e);
       }
     };
@@ -585,7 +587,8 @@ export namespace Thunk {
         const url = await service.postShortUrl(link, "p");
         ClipboardUtils.copy(url);
         cb(url);
-      } catch (e) {
+      } catch (error) {
+        const e = error as Error;
         Rollbar.error(e);
         ClipboardUtils.copy(link);
         cb(link);

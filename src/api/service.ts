@@ -235,7 +235,8 @@ export class Service {
         const json = await response.json();
         return { success: false, error: json.error };
       }
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       return { success: false, error: e.message };
     }
   }
@@ -254,7 +255,8 @@ export class Service {
         const json = await response.json();
         return { success: false, error: json.error };
       }
-    } catch (e) {
+    } catch (error) {
+      const e = error as Error;
       return { success: false, error: e.message };
     }
   }
