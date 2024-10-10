@@ -29,10 +29,12 @@ export function setupPagePosthog(): void {
 }
 
 export function identifyPosthog(id: string, email?: string): void {
-  const source = window.localStorage.getItem("source");
   const props: Record<string, string> = {};
-  if (source) {
-    props.source = source;
+  if (typeof window !== "undefined" && window.localStorage) {
+    const source = window.localStorage.getItem("source");
+    if (source) {
+      props.source = source;
+    }
   }
   if (email) {
     props.email = email;
