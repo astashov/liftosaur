@@ -86,8 +86,8 @@ export function ScreenStats(props: IProps): JSX.Element {
     return acc;
   }, {});
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncWorkout);
-  const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncWorkout);
+  const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
+  const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
 
   const refs = {
     weight: useRef<HTMLInputElement>(),
