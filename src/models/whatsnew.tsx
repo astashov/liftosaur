@@ -1327,6 +1327,23 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241011": {
+    title: <span>Apple Health and Google Health Connect integration</span>,
+    body: (
+      <ul>
+        <li>Now you can submit workouts and body measurements to Apple Health and Google Health Connect.</li>
+        <li>
+          For the body measurements - it will submit your bodyweight, body fat, and (Apple Health only) - waist
+          circumference.
+        </li>
+        <li>
+          It will also read the bodyweight/bodyfat and (Apple Health only) waist circumference from Apple Health or
+          Google Health Connect, and add them to the app.
+        </li>
+        <li>You can enable that in the Settings - Sync - Apple (or Google) Health.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
