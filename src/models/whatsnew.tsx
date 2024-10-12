@@ -1331,7 +1331,10 @@ Bench Press / 3x8 / progress: custom() {~
     title: <span>Apple Health and Google Health Connect integration</span>,
     body: (
       <ul>
-        <li>Now you can submit workouts and body measurements to Apple Health and Google Health Connect.</li>
+        <li>
+          Now you can submit workouts and body measurements to <strong>Apple Health</strong> and{" "}
+          <strong>Google Health Connect</strong>.
+        </li>
         <li>
           For the body measurements - it will submit your bodyweight, body fat, and (Apple Health only) - waist
           circumference.
@@ -1341,6 +1344,9 @@ Bench Press / 3x8 / progress: custom() {~
           Google Health Connect, and add them to the app.
         </li>
         <li>You can enable that in the Settings - Sync - Apple (or Google) Health.</li>
+        <li>
+          It's available for <strong>Android 14</strong> and for <strong>iOS 15</strong> and higher.
+        </li>
       </ul>
     ),
   },
