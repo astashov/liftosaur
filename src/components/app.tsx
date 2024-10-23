@@ -213,8 +213,8 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch({ type: "ReplaceState", state: newState });
       };
     }
-    SendMessage.toIos({ type: "loaded" });
-    SendMessage.toAndroid({ type: "loaded" });
+    SendMessage.toIos({ type: "loaded", userid: userId });
+    SendMessage.toAndroid({ type: "loaded", userid: userId });
     return () => {
       ptr.destroy();
     };
