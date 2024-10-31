@@ -224,7 +224,7 @@ export namespace Weight {
     const availablePlatesArr = equipmentType.plates.filter((p) => p.weight.unit === units);
     const barWeight = equipmentType.bar[units];
     const multiplier = equipmentType.multiplier || 1;
-    const weight = Weight.subtract(allWeight, barWeight);
+    const weight = Weight.roundTo005(Weight.subtract(allWeight, barWeight));
     const availablePlates: IPlate[] = JSON.parse(JSON.stringify(availablePlatesArr));
     availablePlates.sort((a, b) => Weight.compareReverse(a.weight, b.weight));
     const useFastMethod = true;
