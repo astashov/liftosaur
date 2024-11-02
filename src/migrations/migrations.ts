@@ -851,4 +851,9 @@ export const migrations = {
     }
     return storage;
   },
+  "20241101192254_add_deleted_gyms": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.deletedGyms = storage.settings.deletedGyms || [];
+    return storage;
+  },
 };

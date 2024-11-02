@@ -239,6 +239,7 @@ export namespace Settings {
           equipment: defaultEquipment(),
         },
       ],
+      deletedGyms: [],
       volume: 1.0,
       vibration: false,
       lengthUnits: "in",

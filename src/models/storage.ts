@@ -178,10 +178,12 @@ export namespace Storage {
 
   export function applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {
     const { stats, ...update } = updateWithStats;
+
+    const deletedGyms = new Set([...storage.settings.deletedGyms, ...(update.settings?.deletedGyms || [])]);
     const lastGyms = CollectionUtils.groupByKeyUniq(storage.settings.gyms || [], "id");
     const newGyms = CollectionUtils.groupByKeyUniq(update.settings?.gyms || [], "id");
     const gymsObj = { ...lastGyms, ...newGyms };
-    const gymsArr = CollectionUtils.compact(ObjectUtils.values(gymsObj));
+    const gymsArr = CollectionUtils.compact(ObjectUtils.values(gymsObj)).filter((g) => !deletedGyms.has(g.id));
 
     const deletedHistory = Array.from(new Set([...storage.deletedHistory, ...(update.deletedHistory || [])]));
     const deletedPrograms = Array.from(new Set([...storage.deletedPrograms, ...(update.deletedPrograms || [])]));
@@ -223,6 +225,7 @@ export namespace Storage {
     const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
     const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
     const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
+    const deletedGyms = new Set([...oldStorage.settings.deletedGyms, ...newStorage.settings.deletedGyms]);
 
     function merge<T extends keyof IStorage>(key: T): IStorage[T] {
       return fields && fields.indexOf(key) === -1 ? oldStorage[key] : newStorage[key];
@@ -357,6 +360,7 @@ export namespace Storage {
       settings: {
         equipment: mergeAs2("settings", "equipment", (a, b) => Equipment.mergeEquipment(a, b)),
         gyms: mergeAs2("settings", "gyms", (_, b) => b || []),
+        deletedGyms: Array.from(deletedGyms),
         graphsSettings: merge2("settings", "graphsSettings"),
         graphOptions: merge2("settings", "graphOptions"),
         exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
