@@ -2804,8 +2804,8 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     sortedEquipment: ["cable"],
   },
   reverseLunge: {
-    targetMuscles: ["Gluteus Maximus", "Hamstrings"],
-    synergistMuscles: ["Adductor Magnus", "Soleus"],
+    targetMuscles: ["Quadriceps"],
+    synergistMuscles: ["Adductor Magnus", "Soleus", "Gluteus Maximus"],
     bodyParts: ["Thighs"],
     sortedEquipment: ["barbell", "dumbbell", "bodyweight", "cable"],
   },
