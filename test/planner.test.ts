@@ -23,6 +23,102 @@ Squat / 2x5 / 105lb / progress: lp(5lb)
 `);
   });
 
+  it("increases num of sets", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
+  numberOfSets += 1
+~}
+
+## Day 2
+Squat / 3x5 / 4x8 / 100lb
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 3x8 / 100lb / progress: custom() {~
+  numberOfSets += 1
+~}
+
+## Day 2
+Squat / 4x5 / 5x8 / 100lb
+
+
+`);
+  });
+
+  it("decreases num of sets on specific set variation", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
+  numberOfSets[2:*:2] -= 2
+~}
+
+# Week 2
+## Day 1
+Squat / 3x5 / 4x8 / 100lb
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
+  numberOfSets[2:*:2] -= 2
+~}
+
+# Week 2
+## Day 1
+Squat / 3x5 / 2x8 / 100lb
+
+
+`);
+  });
+
+  it("deletes all the sets", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x5 / 100lb / progress: custom() {~
+  numberOfSets -= 6
+~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 0x1 0lb / progress: custom() {~
+  numberOfSets -= 6
+~}
+
+
+`);
+  });
+
+  it.only("configures all the new sets", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x5 / 100lb / progress: custom() {~
+  numberOfSets = 5
+  weights[4] = 110lb
+  weights[5] = 110lb
+  reps[4] = 8
+  reps[5] = 8
+~}`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x5 100lb, 2x8 110lb / progress: custom() {~
+  numberOfSets = 5
+  weights[4] = 110lb
+  weights[5] = 110lb
+  reps[4] = 8
+  reps[5] = 8
+~}
+
+
+`);
+  });
+
   it("updates lp after completing", () => {
     const programText = `# Week 1
 ## Day 1

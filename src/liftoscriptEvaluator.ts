@@ -125,7 +125,8 @@ export type ILiftoscriptEvaluatorUpdate =
   | { type: "minReps"; value: ILiftoscriptVariableValue<number> }
   | { type: "weights"; value: ILiftoscriptVariableValue<number | IPercentage | IWeight> }
   | { type: "timers"; value: ILiftoscriptVariableValue<number> }
-  | { type: "RPE"; value: ILiftoscriptVariableValue<number> };
+  | { type: "RPE"; value: ILiftoscriptVariableValue<number> }
+  | { type: "numberOfSets"; value: ILiftoscriptVariableValue<number> };
 
 export class LiftoscriptEvaluator {
   private readonly script: string;
@@ -254,11 +255,6 @@ export class LiftoscriptEvaluator {
           const nameNode = variableNode.getChild(NodeName.Keyword);
           if (nameNode != null) {
             const name = this.getValue(nameNode);
-            if (this.mode !== "update") {
-              if (["numberOfSets"].indexOf(name) !== -1) {
-                this.error(`Cannot assign to '${name}'`, variableNode);
-              }
-            }
             if (this.mode === "update") {
               if (["reps", "weights", "RPE", "minReps", "numberOfSets", "timers"].indexOf(name) === -1) {
                 this.error(`Cannot assign to '${name}'`, variableNode);
@@ -303,6 +299,7 @@ export class LiftoscriptEvaluator {
             "RPE",
             "setVariationIndex",
             "descriptionIndex",
+            "numberOfSets",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode);
@@ -327,6 +324,7 @@ export class LiftoscriptEvaluator {
   }
 
   private changeNumberOfSets(expression: SyntaxNode, op: IAssignmentOp): number | IWeight | IPercentage {
+    const oldNumberOfSets = this.bindings.weights.length;
     const evaluatedValue = MathUtils.applyOp(this.bindings.numberOfSets, this.evaluateToNumber(expression), op);
 
     this.bindings.weights = this.bindings.weights.slice(0, evaluatedValue);
@@ -341,16 +339,23 @@ export class LiftoscriptEvaluator {
     this.bindings.amraps = this.bindings.amraps.slice(0, evaluatedValue);
     this.bindings.logrpes = this.bindings.logrpes.slice(0, evaluatedValue);
 
+    const ns = oldNumberOfSets - 1;
     for (let i = 0; i < evaluatedValue; i += 1) {
       if (this.bindings.weights[i] == null) {
-        this.bindings.weights[i] = Weight.build(0, this.unit);
-        this.bindings.originalWeights[i] = Weight.build(0, this.unit);
-        this.bindings.reps[i] = 0;
-        this.bindings.timers[i] = undefined;
-        this.bindings.amraps[i] = undefined;
-        this.bindings.logrpes[i] = undefined;
-        this.bindings.minReps[i] = undefined;
-        this.bindings.RPE[i] = undefined;
+        this.bindings.weights[i] = Weight.build(
+          this.bindings.weights[ns]?.value ?? 0,
+          this.bindings.weights[ns]?.unit || "lb"
+        );
+        this.bindings.originalWeights[i] = Weight.build(
+          this.bindings.originalWeights[ns]?.value ?? 0,
+          this.bindings.originalWeights[ns]?.unit || "lb"
+        );
+        this.bindings.reps[i] = this.bindings.reps[ns] ?? 0;
+        this.bindings.timers[i] = this.bindings.timers[ns];
+        this.bindings.amraps[i] = this.bindings.amraps[ns];
+        this.bindings.logrpes[i] = this.bindings.logrpes[ns];
+        this.bindings.minReps[i] = this.bindings.minReps[ns];
+        this.bindings.RPE[i] = this.bindings.RPE[ns];
         this.bindings.w[i] = this.bindings.weights[i];
         this.bindings.r[i] = this.bindings.reps[i];
         this.bindings.mr[i] = this.bindings.minReps[i];
@@ -404,13 +409,14 @@ export class LiftoscriptEvaluator {
   }
 
   private recordVariableUpdate(
-    key: "reps" | "weights" | "timers" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex",
+    key: "reps" | "weights" | "timers" | "RPE" | "minReps" | "setVariationIndex" | "descriptionIndex" | "numberOfSets",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
   ): number | IWeight | IPercentage {
     const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
-    const maxTargetLength = key === "setVariationIndex" || key === "descriptionIndex" ? 2 : 4;
+    const maxTargetLength =
+      key === "setVariationIndex" || key === "descriptionIndex" ? 2 : key === "numberOfSets" ? 3 : 4;
     if (key === "setVariationIndex") {
       if (indexes.length > maxTargetLength) {
         this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
@@ -418,6 +424,10 @@ export class LiftoscriptEvaluator {
     } else if (key === "descriptionIndex") {
       if (indexes.length > maxTargetLength) {
         this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+      }
+    } else if (key === "numberOfSets") {
+      if (indexes.length > maxTargetLength) {
+        this.error(`numberOfSets can only have 3 values inside [*:*:*]`, expression);
       }
     } else if (indexes.length > maxTargetLength) {
       this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
@@ -440,6 +450,16 @@ export class LiftoscriptEvaluator {
         const [week, day] = normalizedIndexValues;
         if ((week === "*" || week === this.bindings.week) && (day === "*" || day === this.bindings.day)) {
           this.bindings.descriptionIndex = result;
+        }
+      } else if (key === "numberOfSets") {
+        const [week, day, setVariationIndex] = normalizedIndexValues;
+        if (
+          (week === "*" || week === this.bindings.week) &&
+          (day === "*" || day === this.bindings.day) &&
+          (setVariationIndex === "*" || setVariationIndex === this.bindings.setVariationIndex)
+        ) {
+          this.bindings.numberOfSets = result;
+          this.bindings.ns = result;
         }
       }
     }
@@ -638,7 +658,8 @@ export class LiftoscriptEvaluator {
             variable === "minReps" ||
             variable === "timers" ||
             variable === "setVariationIndex" ||
-            variable === "descriptionIndex")
+            variable === "descriptionIndex" ||
+            variable === "numberOfSets")
         ) {
           return this.recordVariableUpdate(variable, expression, indexExprs, "=");
         } else if (this.mode === "update" && variable === "numberOfSets") {
@@ -759,7 +780,8 @@ export class LiftoscriptEvaluator {
             variable === "minReps" ||
             variable === "timers" ||
             variable === "setVariationIndex" ||
-            variable === "descriptionIndex")
+            variable === "descriptionIndex" ||
+            variable === "numberOfSets")
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {

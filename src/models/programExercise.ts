@@ -27,6 +27,7 @@ import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { ProgramToPlanner } from "./programToPlanner";
 import { Progress } from "./progress";
 import { PlannerKey } from "../pages/planner/plannerKey";
+import { MathUtils } from "../utils/math";
 
 export interface IWeightChange {
   originalWeight: IWeight | IPercentage;
@@ -559,6 +560,20 @@ export namespace ProgramExercise {
             const variations = programExercise.variations.slice(from, to);
             for (let variationIndex = 0; variationIndex < variations.length; variationIndex += 1) {
               const sets = variations[variationIndex].sets;
+              if (
+                (week === "*" || week === weekIndex + 1) &&
+                (day === "*" || day === dayInWeekIndex + 1) &&
+                (variation === "*" || variation === variationIndex + 1)
+              ) {
+                if (key === "numberOfSets" && typeof value.value === "number") {
+                  const newValue = MathUtils.applyOp(sets.length, value.value, value.op);
+                  const lastSet = sets[sets.length - 1] || { repsExpr: "1", weightExpr: "100lb" };
+                  sets.splice(newValue);
+                  for (let i = sets.length; i < newValue; i += 1) {
+                    sets.push(ObjectUtils.clone(lastSet));
+                  }
+                }
+              }
               for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
                 if (
                   (week === "*" || week === weekIndex + 1) &&

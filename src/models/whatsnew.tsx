@@ -1350,6 +1350,25 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241103": {
+    title: <span>Change numberOfSets in progress scripts</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can change <strong>numberOfSets</strong> in the progress scripts. So, sets based progressions just got
+          way easier to do. Before you had to use either <strong>numsets</strong> state variable + update script, or use
+          multiple set variations. Now you can just do <strong>numberOfSets = 4</strong> or{" "}
+          <strong>numberOfSets += 1</strong> in your progress scripts.
+        </li>
+        <li>
+          <strong>numberOfSets</strong> also behaves a bit differently now - if you add sets, it'll add them the same as
+          the last set you had before. So, most of the time you don't need to pair it with the <strong>sets()</strong>
+          function anymore. E.g. if you have <strong>2x4, 3x8 / 100lb</strong> and you do{" "}
+          <strong>numberOfSets += 1</strong> - you'll end up with <strong>2x4, 4x8 / 100lb</strong>.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
