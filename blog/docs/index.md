@@ -825,7 +825,7 @@ You cannot change other set variations, weeks or days, so syntax like `weights[1
 
 By changing `numberOfSets` you can add or delete sets. E.g. if you had 2 sets, and you do `numberOfSets = 5`, you'll add 3 more sets. You can also delete the sets - if you had 5 sets, and you do `numberOfSets = 2`, it'd delete last 3 sets. But again - only if they weren't already finished.
 
-To quickly setup new sets (or change existing), you can use `sets()` function. It accepts 9 arguments (!), and looks like this:
+By default, it will add the same sets as the last set in that exercise. If you want to tweak new sets (or change existing), you can use `sets()` function. It accepts 9 arguments (!), and looks like this:
 
 ```javascript
 sets(fromIndex, toIndex, minReps, maxReps, isAmrap, weight, timer, rpe, shouldLogRpe)
@@ -863,6 +863,25 @@ Squat / 3x8 / update: custom() { ...Bench Press }
 {% endplannercode %}
 
 You can specify both `update: custom()` and any `progress: ` within the same exercise.
+
+### Number of sets
+
+To do do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
+
+{% plannercode %}
+Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    if (numberOfSets < 5) {
+      numberOfSets += 1
+    } else {
+      weights += 5lb
+      numberOfSets = 3
+    }
+  }
+~}
+{% endplannercode %}
+
+You can also target specific weeks/days/setvariations if you want to. E.g. if you only want to change the number of sets on week 2, day 3, set variation 1, you can do `numberOfSets[2:3:1] += 1`.
 
 ### Set Variations
 
@@ -1079,6 +1098,7 @@ You assign new values to them.
 - `rm1` - 1 Rep Max of a current exercise.
 - `setVariationIndex` - index of the current set variation
 - `descriptionIndex` - index of the current description
+- `numberOfSets[week:day:setvariation]` - number of sets for the exercise in this workout
 
 #### For `update: custom()`:
 

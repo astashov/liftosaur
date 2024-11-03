@@ -1361,10 +1361,16 @@ Bench Press / 3x8 / progress: custom() {~
           <strong>numberOfSets += 1</strong> in your progress scripts.
         </li>
         <li>
-          <strong>numberOfSets</strong> also behaves a bit differently now - if you add sets, it'll add them the same as
-          the last set you had before. So, most of the time you don't need to pair it with the <strong>sets()</strong>
+          <strong>numberOfSets</strong> also behaves a bit differently now both in <strong>progress</strong> and{" "}
+          <strong>update</strong> scripts - if you add sets, it'll add them the same as the last set you had before. So,
+          most of the time you don't need to pair it with the <strong>sets()</strong>
           function anymore. E.g. if you have <strong>2x4, 3x8 / 100lb</strong> and you do{" "}
           <strong>numberOfSets += 1</strong> - you'll end up with <strong>2x4, 4x8 / 100lb</strong>.
+        </li>
+        <li>
+          In <strong>progress</strong> scripts you can also specify what week/day/set variation specifically you want to
+          change number of sets for, by doing <strong>numberOfSets[week:day:setvariation] = 3</strong>, for example:
+          <strong>numberOfSets[2:*:2] = 3</strong>.
         </li>
       </ul>
     ),
