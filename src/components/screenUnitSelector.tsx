@@ -14,11 +14,11 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
   return (
     <section className="flex flex-col items-center justify-center h-full text-blackv2">
       <div className="box-content flex items-center max-w-sm px-16 py-8">
-        <div className="flex-1 ml-4 text-center">
+        <div className="flex-1 text-center">
           <h1 className="pb-6 text-xl">
             Pick your <strong>default</strong> units
           </h1>
-          <div className="flex pb-6">
+          <div className="flex gap-8 pb-6">
             <div className="flex-1">
               <Button
                 name="unit-lb"

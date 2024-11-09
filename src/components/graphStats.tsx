@@ -75,6 +75,10 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       },
       [[], [], []]
     );
+    const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
+    const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
+    const allMaxX = props.maxX;
+    const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
@@ -114,7 +118,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       legend: {
         show: false,
       },
-      scales: props.isSameXAxis ? { x: { min: props.minX, max: props.maxX } } : undefined,
+      scales: props.isSameXAxis ? { x: { min: allMinX, max: allMaxX } } : { x: { min: dataMinX, max: dataMaxX } },
       series: [
         {},
         {

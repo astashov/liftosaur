@@ -143,6 +143,10 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
     const exercise = Exercise.get(props.exercise, props.settings.exercises);
     const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
     const data = result.data;
+    const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
+    const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
+    const allMaxX = props.maxX;
+    const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
     const opts: UPlot.Options = {
       title: props.title || `${exercise.name}`,
       class: "graph-max-weight",
@@ -250,7 +254,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
           },
         },
       ],
-      scales: props.isSameXAxis ? { x: { min: props.minX, max: props.maxX } } : undefined,
+      scales: props.isSameXAxis ? { x: { min: allMinX, max: allMaxX } } : { x: { min: dataMinX, max: dataMaxX } },
       legend: {
         show: false,
       },

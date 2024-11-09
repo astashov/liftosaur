@@ -45,6 +45,8 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
   useEffect(() => {
     const rect = graphRef.current.getBoundingClientRect();
     const data = props.data;
+    const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
+    const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
     const opts: UPlot.Options = {
       title: `${StringUtils.capitalize(props.muscleGroup)} Weekly ${StringUtils.capitalize(props.selectedType)}`,
       class: "graph-muscle-group",
@@ -54,6 +56,7 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
         y: false,
         lock: true,
       },
+      scales: { x: { min: dataMinX, max: dataMaxX } },
       plugins: [
         GraphsPlugins.zoom(),
         ...(props.programChangeTimes ? [GraphsPlugins.programLines(props.programChangeTimes)] : []),
