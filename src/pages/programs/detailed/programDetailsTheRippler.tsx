@@ -11,6 +11,7 @@ import { MusclesView } from "../../../components/muscles/musclesView";
 import { ProgramDetailsGzclPrinciple } from "./programDetailsGzclPrinciple";
 import { ProgramDetailsWorkoutPlayground } from "../programDetails/programDetailsWorkoutPlayground";
 import { buildWeekSetup } from "../../../components/programPreviewOrPlayground";
+import { Program } from "../../../models/program";
 
 export interface IProgramDetailsTheRipplerProps {
   settings: ISettings;
@@ -20,7 +21,7 @@ export interface IProgramDetailsTheRipplerProps {
 }
 
 export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps): JSX.Element {
-  const program = ObjectUtils.clone(props.program);
+  const program = Program.fullProgram(ObjectUtils.clone(props.program), props.settings);
   const weekSetup = buildWeekSetup(program);
   const programForMuscles = ObjectUtils.clone(program);
   const t3Exercises = programForMuscles.exercises.filter((e) => /(T3a|T3b)/.test(e.description || ""));
@@ -75,8 +76,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <h3>Example of a T1 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
+              program={program}
+              programExercise={program.exercises.find((pe) => pe.exerciseType.id === "benchPress")!}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 12).map((w, i) => ({ ...w, name: `${w.name} (${t1Pct[i]}%)` }))}
             />
@@ -90,8 +91,8 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
           <h3>Example of a T2 exercise sets/reps/weight week over week</h3>
           <div className="mb-4">
             <ProgramDetailsExerciseExample
-              program={props.program}
-              programExercise={props.program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
+              program={program}
+              programExercise={program.exercises.find((pe) => pe.exerciseType.id === "inclineBenchPress")!}
               settings={props.settings}
               weekSetup={weekSetup.slice(0, 10).map((w, i) => ({ ...w, name: `${w.name} (${t2Pct[i]}%)` }))}
             />
@@ -148,7 +149,7 @@ export function ProgramDetailsTheRippler(props: IProgramDetailsTheRipplerProps):
         exercise variables (weight, reps, TM, RIR, etc) by clicking on the <IconEditSquare className="inline-block" />{" "}
         icon.
       </p>
-      <ProgramDetailsWorkoutPlayground program={props.program} settings={props.settings} weekSetup={weekSetup} />
+      <ProgramDetailsWorkoutPlayground program={program} settings={props.settings} weekSetup={weekSetup} />
       <div className="mt-8">
         <ProgramDetailsUpsell />
       </div>
