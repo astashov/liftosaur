@@ -51,6 +51,7 @@ import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
 import { identifyPosthog, lg, setupAppPosthog } from "../utils/posthog";
+import { ScreenUnitSelector } from "./screenUnitSelector";
 
 interface IProps {
   client: Window["fetch"];
@@ -228,6 +229,8 @@ export function AppView(props: IProps): JSX.Element | null {
     content = <ScreenFirst dispatch={dispatch} />;
   } else if (Screen.current(state.screenStack) === "onboarding") {
     content = <ScreenOnboarding dispatch={dispatch} />;
+  } else if (Screen.current(state.screenStack) === "units") {
+    content = <ScreenUnitSelector dispatch={dispatch} />;
   } else if (Screen.current(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription

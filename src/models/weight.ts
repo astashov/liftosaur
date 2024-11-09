@@ -20,6 +20,30 @@ export namespace Weight {
     }
   }
 
+  export function smartConvert(weight: IWeight, toUnit: IUnit): IWeight {
+    if (weight.unit === toUnit) {
+      return weight;
+    }
+    const value = weight.value;
+    if (weight.unit === "kg") {
+      if (value < 15) {
+        return Weight.build(value * 2, toUnit);
+      } else {
+        return Weight.build(MathUtils.round(value * 2.25, 5), toUnit);
+      }
+    } else {
+      if (value < 15) {
+        return Weight.build(MathUtils.round(value / 2, 0.25), toUnit);
+      } else {
+        return Weight.build(MathUtils.round(value / 2.25, 2.5), toUnit);
+      }
+    }
+  }
+
+  export function oppositeUnit(unit: IUnit): IUnit {
+    return unit === "kg" ? "lb" : "kg";
+  }
+
   export function print(weight: IWeight | IPercentage): string {
     return `${weight.value}${weight.unit}`;
   }

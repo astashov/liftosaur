@@ -198,6 +198,45 @@ export class LiftoscriptEvaluator {
     return false;
   }
 
+  private getWeight(expr?: SyntaxNode | null): IWeight | undefined {
+    if (expr?.type.name === NodeName.WeightExpression) {
+      const numberNode = expr.getChild(NodeName.NumberExpression);
+      const unitNode = expr.getChild(NodeName.Unit);
+      if (numberNode == null || unitNode == null) {
+        assert(NodeName.WeightExpression);
+      }
+      const num = this.evaluate(numberNode);
+      if (typeof num !== "number") {
+        this.error("WeightExpression must contain a number", numberNode);
+      }
+      return Weight.build(num, this.getValue(unitNode) as IUnit);
+    } else {
+      return undefined;
+    }
+  }
+
+  public switchWeightsToUnit(programNode: SyntaxNode, toUnit: IUnit): string {
+    const cursor = programNode.cursor();
+    let script = this.script;
+    let shift = 0;
+    do {
+      if (cursor.node.type.name === NodeName.WeightExpression) {
+        const weight = this.getWeight(cursor.node);
+        if (weight != null) {
+          if (weight.unit !== toUnit) {
+            const from = cursor.node.from;
+            const to = cursor.node.to;
+            const oldWeightStr = Weight.print(weight);
+            const newWeightStr = Weight.print(Weight.smartConvert(weight, toUnit));
+            script = script.substring(0, from + shift) + newWeightStr + script.substring(to + shift);
+            shift = shift + newWeightStr.length - oldWeightStr.length;
+          }
+        }
+      }
+    } while (cursor.next());
+    return script;
+  }
+
   public getStateVariableKeys(expr: SyntaxNode): Set<string> {
     const cursor = expr.cursor();
     const stateKeys: Set<string> = new Set();
@@ -236,7 +275,7 @@ export class LiftoscriptEvaluator {
           assert(NodeName.BuiltinFunctionExpression);
         }
         const name = this.getValue(keyword);
-        if (!(name in this.fns) || (name === "sets" && this.mode !== "update")) {
+        if (!(name in this.fns)) {
           this.error(`Unknown function '${name}'`, keyword);
         }
         if (name === "sets" && fnArgs.length !== 9) {
@@ -900,16 +939,7 @@ export class LiftoscriptEvaluator {
       const evaluated = this.evaluate(expression);
       return !evaluated;
     } else if (expr.type.name === NodeName.WeightExpression) {
-      const numberNode = expr.getChild(NodeName.NumberExpression);
-      const unitNode = expr.getChild(NodeName.Unit);
-      if (numberNode == null || unitNode == null) {
-        assert(NodeName.WeightExpression);
-      }
-      const num = this.evaluate(numberNode);
-      if (typeof num !== "number") {
-        this.error("WeightExpression must contain a number", numberNode);
-      }
-      return Weight.build(num, this.getValue(unitNode) as IUnit);
+      return this.getWeight(expr) ?? Weight.build(0, this.unit);
     } else if (expr.type.name === NodeName.VariableExpression) {
       const [nameNode, ...indexExprs] = getChildren(expr);
       if (nameNode == null) {

@@ -34,6 +34,8 @@ import { Sync } from "../utils/sync";
 import { ObjectUtils } from "../utils/object";
 import { EditStats } from "../models/editStats";
 import { HealthSync } from "../lib/healthSync";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
+import { Weight } from "../models/weight";
 
 declare let Rollbar: RB;
 
@@ -297,7 +299,7 @@ export namespace Thunk {
     return async (dispatch, getState, env) => {
       const program = CollectionUtils.findBy(getState().programs, "id", id);
       if (program != null) {
-        Program.cloneProgram(dispatch, program);
+        Program.cloneProgram(dispatch, program, getState().storage.settings);
         const clonedProgram = CollectionUtils.findBy(getState().storage.programs, "id", id);
         if (clonedProgram) {
           updateState(dispatch, [lb<IState>().p("screenStack").record([])]);
@@ -360,7 +362,7 @@ export namespace Thunk {
       ) {
         screen = "subscription";
       }
-      const screensWithoutCurrentProgram = ["first", "onboarding", "programs", "programPreview"];
+      const screensWithoutCurrentProgram = ["first", "onboarding", "units", "programs", "programPreview"];
       if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
         screen = "programs";
       }
@@ -619,13 +621,20 @@ export namespace Thunk {
       const result = await ImportExporter.getExportedProgram(env.service.client, maybeProgram, state.storage.settings);
       if (result.success) {
         const { program, customExercises } = result.data;
-        const newProgram: IProgram = { ...program, clonedAt: Date.now() };
+        const newProgram: IProgram = { ...ObjectUtils.clone(program), clonedAt: Date.now() };
         if (!confirm(`Do you want to import program ${newProgram.name}?`)) {
           return;
         }
         const hasExistingProgram = getState().storage.programs.some((p) => p.id === newProgram.id);
         if (hasExistingProgram && !confirm("Program with the same id already exists, do you want to overwrite it?")) {
           return;
+        }
+        if (newProgram.planner && PlannerProgram.hasNonSelectedWeightUnit(newProgram.planner, state.storage.settings)) {
+          const fromUnit = Weight.oppositeUnit(state.storage.settings.units);
+          const toUnit = state.storage.settings.units;
+          if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
+            newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, state.storage.settings);
+          }
         }
         updateState(
           dispatch,

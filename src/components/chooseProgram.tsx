@@ -58,7 +58,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               onClose={() => setSelectedProgramId(undefined)}
               onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
               onSelect={() => {
-                Program.cloneProgram(props.dispatch, program);
+                Program.cloneProgram(props.dispatch, program, props.settings);
                 props.dispatch(Thunk.pushScreen("main"));
               }}
             />

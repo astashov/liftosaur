@@ -11,7 +11,7 @@ import {
   IPlannerProgramProperty,
   IPlannerProgramReuse,
 } from "./models/types";
-import { IWeight, IProgramState, IDayData, ISettings, IExerciseType } from "../../types";
+import { IWeight, IProgramState, IDayData, ISettings, IExerciseType, IUnit } from "../../types";
 import * as W from "../../models/weight";
 import { IPlannerProgramExerciseWarmupSet } from "./models/types";
 import { PlannerNodeName } from "./plannerExerciseStyles";
@@ -1001,6 +1001,57 @@ export class PlannerExerciseEvaluator {
         throw e;
       }
     }
+  }
+
+  public hasWeightInUnit(programNode: SyntaxNode, unit: IUnit): boolean {
+    const cursor = programNode.cursor();
+    do {
+      const weight = this.getWeight(cursor.node);
+      if (weight != null) {
+        if (weight.unit === unit) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
+  }
+
+  public switchWeightsToUnit(programNode: SyntaxNode, settings: ISettings): string {
+    const cursor = programNode.cursor();
+    let script = this.script;
+    let shift = 0;
+    do {
+      if (cursor.node.type.name === PlannerNodeName.Weight) {
+        const weight = this.getWeight(cursor.node);
+        if (weight != null) {
+          if (weight.unit !== settings.units) {
+            const from = cursor.node.from;
+            const to = cursor.node.to;
+            const oldWeightStr = Weight.print(weight);
+            const newWeightStr = Weight.print(Weight.smartConvert(weight, settings.units));
+            script = script.substring(0, from + shift) + newWeightStr + script.substring(to + shift);
+            shift = shift + newWeightStr.length - oldWeightStr.length;
+          }
+        }
+      } else if (cursor.node.type.name === PlannerNodeName.Liftoscript) {
+        const oldLiftoscript = this.getValueTrim(cursor.node);
+        const liftoscriptEvaluator = new ScriptRunner(
+          oldLiftoscript,
+          {},
+          {},
+          Progress.createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
+          Progress.createScriptFunctions(settings),
+          settings.units,
+          { unit: settings.units },
+          "planner"
+        );
+        const newLiftoscript = liftoscriptEvaluator.switchWeightsToUnit(settings.units);
+        script =
+          script.substring(0, cursor.node.from + shift) + newLiftoscript + script.substring(cursor.node.to + shift);
+        shift = shift + newLiftoscript.length - oldLiftoscript.length;
+      }
+    } while (cursor.next());
+    return script;
   }
 
   public topLineMap(programNode: SyntaxNode): IPlannerTopLineItem[] {

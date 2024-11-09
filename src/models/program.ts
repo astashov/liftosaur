@@ -47,6 +47,7 @@ import { PlannerKey } from "../pages/planner/plannerKey";
 import memoize from "micro-memoize";
 import { Equipment } from "./equipment";
 import { showAlert } from "../lib/alert";
+import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 
 declare let __HOST__: string;
 
@@ -1011,13 +1012,16 @@ export namespace Program {
     dispatch(Thunk.pushScreen("programPreview"));
   }
 
-  export function cloneProgram(dispatch: IDispatch, program: IProgram): void {
+  export function cloneProgram(dispatch: IDispatch, program: IProgram, settings: ISettings): void {
     updateState(dispatch, [
       lb<IState>()
         .p("storage")
         .p("programs")
         .recordModify((programs) => {
           const newProgram = { ...program, clonedAt: Date.now() };
+          if (newProgram.planner) {
+            newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, settings);
+          }
           if (programs.some((p) => p.id === program.id)) {
             if (
               confirm(

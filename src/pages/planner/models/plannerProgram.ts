@@ -214,6 +214,31 @@ export class PlannerProgram {
     return str;
   }
 
+  public static switchToUnit(plannerProgram: IPlannerProgram, settings: ISettings): IPlannerProgram {
+    const newPlannerProgram = ObjectUtils.clone(plannerProgram);
+    for (const week of newPlannerProgram.weeks) {
+      for (const day of week.days) {
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        day.exerciseText = evaluator.switchWeightsToUnit(tree.topNode, settings);
+      }
+    }
+    return newPlannerProgram;
+  }
+
+  public static hasNonSelectedWeightUnit(plannerProgram: IPlannerProgram, settings: ISettings): boolean {
+    for (const week of plannerProgram.weeks) {
+      for (const day of week.days) {
+        const tree = plannerExerciseParser.parse(day.exerciseText);
+        const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
+        if (evaluator.hasWeightInUnit(tree.topNode, settings.units === "kg" ? "lb" : "kg")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public static compact(
     oldPlannerProgram: IPlannerProgram,
     plannerProgram: IPlannerProgram,

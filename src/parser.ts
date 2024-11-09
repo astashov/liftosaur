@@ -61,6 +61,21 @@ export class ScriptRunner {
     return [liftoscriptEvaluator, liftoscriptTree];
   }
 
+  public switchWeightsToUnit(toUnit: IUnit): string {
+    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptEvaluator = new LiftoscriptEvaluator(
+      this.script,
+      this.state,
+      this.otherStates,
+      this.bindings,
+      this.fns,
+      this.context,
+      this.units,
+      this.mode
+    );
+    return liftoscriptEvaluator.switchWeightsToUnit(liftoscriptTree.topNode, toUnit);
+  }
+
   public getStateVariableKeys(): Set<string> {
     const liftoscriptTree = LiftoscriptParser.parse(this.script);
     const liftoscriptEvaluator = new LiftoscriptEvaluator(

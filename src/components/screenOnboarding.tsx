@@ -114,10 +114,10 @@ export function ScreenOnboarding(props: IProps): JSX.Element {
         >
           <Button
             name="onboarding-choose-a-program"
-            onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+            onClick={() => props.dispatch(Thunk.pushScreen("units"))}
             kind="purple"
           >
-            <span className="align-middle">Choose a program</span>{" "}
+            <span className="align-middle">Continue</span>{" "}
             <IconArrowRight className="inline ml-2 align-middle left-right-animation" color="white" />
           </Button>
         </div>

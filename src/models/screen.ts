@@ -21,6 +21,7 @@ export type IScreen =
   | "finishDay"
   | "muscles"
   | "stats"
+  | "units"
   | "appleHealth"
   | "googleHealth"
   | "editProgram"
@@ -175,6 +176,9 @@ export namespace Screen {
         return "program";
       }
       case "first": {
+        return "program";
+      }
+      case "units": {
         return "program";
       }
     }

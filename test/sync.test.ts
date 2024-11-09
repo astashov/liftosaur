@@ -66,7 +66,9 @@ async function initTheAppAndRecordWorkout(): Promise<{
   const mockReducer = MockReducer.build(initialState, env);
   await mockReducer.run([Thunk.fetchInitial(), Thunk.sync2({ force: true })]);
 
-  await mockReducer.run([mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram))]);
+  await mockReducer.run([
+    mockDispatch((ds) => Program.cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
+  ]);
   await logWorkout(mockReducer, basicBeginnerProgram, [
     [5, 5, 5],
     [5, 5, 5],

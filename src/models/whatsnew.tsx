@@ -1375,6 +1375,19 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241109": {
+    title: <span>Improve experience with kg units</span>,
+    body: (
+      <ul>
+        <li>
+          Now all the newly cloned programs will be automatically converted to the unit (kg or lb) you have selected in
+          Settings. And if you import a program via link, and it has different units from the Settings one, it'll ask
+          you if you want to convert into the Settings units.
+        </li>
+        <li>Also, for the new users the app will ask to pick your units before choosing a program.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

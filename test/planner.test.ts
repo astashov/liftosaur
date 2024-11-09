@@ -67,6 +67,7 @@ Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
   numberOfSets[2:*:2] -= 2
 ~}
 
+
 # Week 2
 ## Day 1
 Squat / 3x5 / 2x8 / 100lb
@@ -93,7 +94,7 @@ Squat / 0x1 0lb / progress: custom() {~
 `);
   });
 
-  it.only("configures all the new sets", () => {
+  it("configures all the new sets", () => {
     const programText = `# Week 1
 ## Day 1
 Squat / 3x5 / 100lb / progress: custom() {~
