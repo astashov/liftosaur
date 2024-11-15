@@ -232,7 +232,13 @@ export namespace Thunk {
         anchor,
       });
       if (result != null) {
-        EditStats.uploadHealthStats("ios", dispatch, result, getState().storage.settings);
+        EditStats.uploadHealthStats(
+          "ios",
+          dispatch,
+          result,
+          getState().storage.settings,
+          getState().storage.deletedStats
+        );
       }
     } else {
       lg("read-google-health");
@@ -244,7 +250,13 @@ export namespace Thunk {
         anchor,
       });
       if (result != null) {
-        EditStats.uploadHealthStats("android", dispatch, result, getState().storage.settings);
+        EditStats.uploadHealthStats(
+          "android",
+          dispatch,
+          result,
+          getState().storage.settings,
+          getState().storage.deletedStats
+        );
       }
     }
   }

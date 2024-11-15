@@ -324,8 +324,10 @@ export namespace EditStats {
     platform: "ios" | "android",
     dispatch: IDispatch,
     dataAny: unknown,
-    settings: ISettings
+    settings: ISettings,
+    deletedStatsArr: number[]
   ): void {
+    const deletedStats = new Set(deletedStatsArr);
     const response = dataAny as { data: IHealthResponse };
     const data = response.data;
     if (!data.added) {
@@ -336,6 +338,9 @@ export namespace EditStats {
     const waistValues: IStatsLengthValue[] = [];
 
     for (const d of data.added) {
+      if (deletedStats.has(d.timestamp)) {
+        continue;
+      }
       if (d.type === "bodyweight") {
         weightValues.push({
           value: Weight.roundTo005(Weight.convertTo(d.value as IWeight, settings.units)),
