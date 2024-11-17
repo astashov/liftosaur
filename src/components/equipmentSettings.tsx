@@ -29,7 +29,7 @@ interface IProps<T> {
   settings: ISettings;
 }
 
-function buildDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
+function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
   return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>) => {
     originalDispatch({
       type: "UpdateState",
@@ -39,12 +39,8 @@ function buildDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 }
 
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
-  const [modalNewPlateEquipmentToShow, setModalNewPlateEquipmentToShow] = useState<IEquipment | undefined>(undefined);
-  const [modalNewFixedWeightEquipmentToShow, setModalNewFixedWeightEquipmentToShow] = useState<IEquipment | undefined>(
-    undefined
-  );
   const [modalNewEquipment, setModalNewEquipment] = useState(false);
-  const dispatch = buildDispatch(props.dispatch);
+  const lensDispatch = buildLensDispatch(props.dispatch);
   return (
     <>
       {props.settings.gyms.length === 1 && (
@@ -70,11 +66,10 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                   key={bar}
                   lensPrefix={props.lensPrefix}
                   allEquipment={props.allEquipment}
-                  dispatch={dispatch}
+                  dispatch={props.dispatch}
+                  lensDispatch={lensDispatch}
                   isExpanded={props.expandedEquipment === bar}
                   equipment={bar}
-                  setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
-                  setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
                   equipmentData={equipmentData}
                   settings={props.settings}
                 />
@@ -100,60 +95,9 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                 [id]: Equipment.build(name),
               };
             });
-            dispatch(lensRecording);
+            lensDispatch(lensRecording);
           }
           setModalNewEquipment(false);
-        }}
-      />
-      <ModalPlates
-        isHidden={modalNewPlateEquipmentToShow == null}
-        units={
-          modalNewPlateEquipmentToShow
-            ? props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units
-            : props.settings.units
-        }
-        onInput={(weight) => {
-          setModalNewPlateEquipmentToShow(undefined);
-          if (weight != null && modalNewPlateEquipmentToShow != null) {
-            const units = modalNewPlateEquipmentToShow
-              ? props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units
-              : props.settings.units;
-            const newWeight = Weight.build(weight, units);
-            const plates =
-              props.allEquipment[modalNewPlateEquipmentToShow]?.plates.filter((p) => p.weight.unit === units) || [];
-            if (plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
-              const lensRecording = props.lensPrefix
-                .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
-                .recordModify((p) => [...p, { weight: newWeight, num: 2 }]);
-              dispatch(lensRecording);
-            }
-          }
-        }}
-      />
-      <ModalNewFixedWeight
-        isHidden={modalNewFixedWeightEquipmentToShow == null}
-        equipment={modalNewFixedWeightEquipmentToShow || "barbell"}
-        units={
-          modalNewFixedWeightEquipmentToShow
-            ? props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units
-            : props.settings.units
-        }
-        onInput={(weight) => {
-          setModalNewFixedWeightEquipmentToShow(undefined);
-          if (weight != null && modalNewFixedWeightEquipmentToShow != null) {
-            const units = modalNewFixedWeightEquipmentToShow
-              ? props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units
-              : props.settings.units;
-            const newWeight = Weight.build(weight, units);
-            const fixedWeights =
-              props.allEquipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter((p) => p.unit === units) || [];
-            if (fixedWeights.every((p) => !Weight.eqeq(p, newWeight))) {
-              const lensRecording = props.lensPrefix
-                .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
-                .recordModify((p) => [...p, newWeight]);
-              dispatch(lensRecording);
-            }
-          }
         }}
       />
     </>
@@ -161,13 +105,12 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
 }
 
 interface IEquipmentSettingsContentProps<T> {
-  dispatch: ILensDispatch<T>;
+  dispatch: IDispatch;
+  lensDispatch: ILensDispatch<T>;
   lensPrefix: Lens<T, IAllEquipment>;
   equipment: IEquipment;
   allEquipment: IAllEquipment;
   isExpanded?: boolean;
-  setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
-  setModalNewFixedWeightEquipmentToShow: (equipment: IEquipment) => void;
   equipmentData: IEquipmentData;
   settings: ISettings;
 }
@@ -186,63 +129,20 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
                 const lensRecording = props.lensPrefix
                   .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
                   .record(newValue || undefined);
-                props.dispatch(lensRecording);
+                props.lensDispatch(lensRecording);
               }
             }}
           />
         )}
-        <MenuItemEditable
-          name="Is Fixed Weight"
-          type="boolean"
-          value={props.equipmentData.isFixed ? "true" : "false"}
-          onChange={(newValue?: string) => {
-            const lensRecording = props.lensPrefix
-              .then(lb<IAllEquipment>().pi(props.equipment).p("isFixed").get())
-              .record(newValue === "true");
-            props.dispatch(lensRecording);
-          }}
+        <EquipmentSettingsValues
+          lensPrefix={props.lensPrefix}
+          equipment={props.equipment}
+          allEquipment={props.allEquipment}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          lensDispatch={props.lensDispatch}
+          equipmentData={props.equipmentData}
         />
-        <MenuItemEditable
-          name="Unit"
-          type="select"
-          value={props.equipmentData.unit ?? ""}
-          values={[
-            ["", "Default"],
-            ["lb", "lb"],
-            ["kg", "kg"],
-          ]}
-          onChange={(newValue?: string) => {
-            if (!newValue) {
-              newValue = undefined;
-            }
-            props.dispatch(
-              props.lensPrefix
-                .then(lb<IAllEquipment>().pi(props.equipment).p("unit").get())
-                .record(newValue as IUnit | undefined)
-            );
-          }}
-        />
-        {props.equipmentData.isFixed ? (
-          <EquipmentSettingsFixed
-            lensPrefix={props.lensPrefix}
-            equipmentData={props.equipmentData}
-            allEquipment={props.allEquipment}
-            setModalNewFixedWeightEquipmentToShow={props.setModalNewFixedWeightEquipmentToShow}
-            name={props.equipment}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
-        ) : (
-          <EquipmentSettingsPlates
-            lensPrefix={props.lensPrefix}
-            equipmentData={props.equipmentData}
-            allEquipment={props.allEquipment}
-            setModalNewPlateEquipmentToShow={props.setModalNewPlateEquipmentToShow}
-            name={props.equipment}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
-        )}
         {props.equipmentData.name && (
           <div className="mt-2 text-right">
             <LinkButton
@@ -252,7 +152,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
                     .record(true);
-                  props.dispatch(lensRecording);
+                  props.lensDispatch(lensRecording);
                 }
               }}
             >
@@ -262,6 +162,125 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
         )}
       </GroupHeader>
     </div>
+  );
+}
+
+interface IEquipmentSettingsValuesProps<T> {
+  lensDispatch: ILensDispatch<T>;
+  dispatch: IDispatch;
+  lensPrefix: Lens<T, IAllEquipment>;
+  equipment: IEquipment;
+  allEquipment: IAllEquipment;
+  settings: ISettings;
+  equipmentData: IEquipmentData;
+}
+
+export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<T>): JSX.Element {
+  const [modalNewPlateEquipmentToShow, setModalNewPlateEquipmentToShow] = useState<IEquipment | undefined>(undefined);
+  const [modalNewFixedWeightEquipmentToShow, setModalNewFixedWeightEquipmentToShow] = useState<IEquipment | undefined>(
+    undefined
+  );
+  return (
+    <>
+      <MenuItemEditable
+        name="Is Fixed Weight"
+        type="boolean"
+        value={props.equipmentData.isFixed ? "true" : "false"}
+        onChange={(newValue?: string) => {
+          const lensRecording = props.lensPrefix
+            .then(lb<IAllEquipment>().pi(props.equipment).p("isFixed").get())
+            .record(newValue === "true");
+          props.lensDispatch(lensRecording);
+        }}
+      />
+      <MenuItemEditable
+        name="Unit"
+        type="select"
+        value={props.equipmentData.unit ?? ""}
+        values={[
+          ["", "Default"],
+          ["lb", "lb"],
+          ["kg", "kg"],
+        ]}
+        onChange={(newValue?: string) => {
+          if (!newValue) {
+            newValue = undefined;
+          }
+          props.lensDispatch(
+            props.lensPrefix
+              .then(lb<IAllEquipment>().pi(props.equipment).p("unit").get())
+              .record(newValue as IUnit | undefined)
+          );
+          props.dispatch({
+            type: "ApplyProgramChangesToProgress",
+          });
+        }}
+      />
+      {props.equipmentData.isFixed ? (
+        <EquipmentSettingsFixed
+          lensPrefix={props.lensPrefix}
+          equipmentData={props.equipmentData}
+          allEquipment={props.allEquipment}
+          name={props.equipment}
+          settings={props.settings}
+          setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
+          dispatch={props.lensDispatch}
+        />
+      ) : (
+        <EquipmentSettingsPlates
+          lensPrefix={props.lensPrefix}
+          equipmentData={props.equipmentData}
+          allEquipment={props.allEquipment}
+          setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
+          name={props.equipment}
+          settings={props.settings}
+          dispatch={props.lensDispatch}
+        />
+      )}
+      {modalNewPlateEquipmentToShow != null && (
+        <ModalPlates
+          isHidden={false}
+          units={props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units}
+          onInput={(weight) => {
+            setModalNewPlateEquipmentToShow(undefined);
+            if (weight != null) {
+              const units = props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units;
+              const newWeight = Weight.build(weight, units);
+              const plates =
+                props.allEquipment[modalNewPlateEquipmentToShow]?.plates.filter((p) => p.weight.unit === units) || [];
+              if (plates.every((p) => !Weight.eqeq(p.weight, newWeight))) {
+                const lensRecording = props.lensPrefix
+                  .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
+                  .recordModify((p) => [...p, { weight: newWeight, num: 2 }]);
+                props.lensDispatch(lensRecording);
+              }
+            }
+          }}
+        />
+      )}
+      {modalNewFixedWeightEquipmentToShow != null && (
+        <ModalNewFixedWeight
+          isHidden={false}
+          equipment={modalNewFixedWeightEquipmentToShow}
+          units={props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units}
+          onInput={(weight) => {
+            setModalNewFixedWeightEquipmentToShow(undefined);
+            if (weight != null) {
+              const units = props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units;
+              const newWeight = Weight.build(weight, units);
+              const fixedWeights =
+                props.allEquipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter((p) => p.unit === units) || [];
+              if (fixedWeights.every((p) => !Weight.eqeq(p, newWeight))) {
+                const lensRecording = props.lensPrefix
+                  .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
+                  .recordModify((p) => [...p, newWeight]);
+                props.lensDispatch(lensRecording);
+              }
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 

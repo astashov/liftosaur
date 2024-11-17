@@ -10,6 +10,7 @@ import { HtmlUtils } from "../utils/html";
 import { History } from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
+import { Button } from "./button";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -53,20 +54,21 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           <div className="flex-1 font-bold" data-cy="history-record-date">
             {Progress.isCurrent(historyRecord) ? (
               !props.isOngoing ? (
-                <span data-cy="start-workout" className="underline">
+                <Button name="start-workout-button" data-cy="start-workout" kind="orange" onClick={() => undefined}>
                   Start
-                </span>
+                </Button>
               ) : (
-                <span data-cy="start-workout" className="underline">
+                <Button name="continue-workout-button" data-cy="start-workout" kind="purple" onClick={() => undefined}>
                   Continue
-                </span>
+                </Button>
               )
             ) : (
               DateUtils.format(historyRecord.date)
             )}
           </div>
           <div className="flex-1 text-xs text-right text-gray-600" data-cy="history-record-program">
-            {historyRecord.programName}, {historyRecord.dayName}
+            {historyRecord.programName}
+            {historyRecord.dayName ? `, ${historyRecord.dayName}` : ""}
           </div>
         </div>
         <div className="flex flex-col mt-2" data-cy="history-entry">

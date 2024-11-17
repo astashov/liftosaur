@@ -220,6 +220,7 @@ const ExercisesList = forwardRef(
           className="block w-full px-4 py-2 mb-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
+          data-cy="exercise-filter-by-name"
           placeholder="Filter by name"
           onInput={() => {
             setFilter(textInput.current.value.toLowerCase());
@@ -228,6 +229,7 @@ const ExercisesList = forwardRef(
         <Multiselect
           id="filtertypes"
           label=""
+          data-cy="exercise-filter-by-type"
           placeholder="Filter by type"
           values={filterOptions}
           initialSelectedValues={new Set(initialFilterOptions)}

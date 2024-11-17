@@ -1,7 +1,6 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { Equipment } from "../models/equipment";
 import { Exercise, equipmentName, IExercise } from "../models/exercise";
 import { updateState, IState } from "../models/state";
 import { Weight } from "../models/weight";
@@ -11,6 +10,7 @@ import { ExerciseRM } from "./exerciseRm";
 import { GroupHeader } from "./groupHeader";
 import { InputNumber } from "./inputNumber";
 import { MenuItemEditable } from "./menuItemEditable";
+import { EditEquipment } from "../models/editEquipment";
 
 interface IExerciseDataSettingsProps {
   settings: ISettings;
@@ -35,18 +35,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         max={100}
         value={Exercise.defaultRounding(fullExercise, props.settings)}
         onUpdate={(value) => {
-          if (!isNaN(value)) {
-            updateState(props.dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("exerciseData")
-                .recordModify((data) => {
-                  const k = Exercise.toKey(fullExercise);
-                  return { ...data, [k]: { ...data[k], rounding: Math.max(value, 0.1) } };
-                }),
-            ]);
-          }
+          EditEquipment.setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
       <div className="text-xs text-right text-grayv2-main">Used when Equipment is not set</div>
@@ -75,34 +64,14 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             value={equipment ?? ""}
             values={values}
             onChange={(value) => {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("exerciseData")
-                  .recordModify((data) => {
-                    const k = Exercise.toKey(fullExercise);
-                    return {
-                      ...data,
-                      [k]: {
-                        ...data[k],
-                        equipment: { ...data[k]?.equipment, [gym.id]: value ? value : undefined },
-                      },
-                    };
-                  }),
-              ]);
-              const currentUnit =
-                (equipment ? Equipment.getEquipmentData(props.settings, equipment)?.unit : undefined) ??
-                props.settings.units;
-              const newUnit =
-                (value ? Equipment.getEquipmentData(props.settings, value)?.unit : undefined) ?? props.settings.units;
-              if (currentUnit !== newUnit) {
-                props.dispatch({
-                  type: "ApplyProgramChangesToProgress",
-                  programExerciseIds: props.programExerciseIds,
-                  checkReused: false,
-                });
-              }
+              EditEquipment.setEquipmentForExercise(
+                fullExercise,
+                value,
+                props.programExerciseIds,
+                props.dispatch,
+                props.settings,
+                gym.id
+              );
             }}
           />
         );

@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { equipmentName, Exercise } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { History, IHistoryRecordAndEntry } from "../models/history";
 import { IDispatch } from "../ducks/types";
 import { Weight } from "../models/weight";
@@ -164,7 +164,6 @@ const ExerciseContentView = memo(
     const isCurrentProgress = Progress.isCurrent(props.progress);
     const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
     const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(props.settings, exercise);
-    const equipment = exercise.equipment;
     const historicalSameDay = isCurrentProgress
       ? History.getHistoricalSameDay(props.history, props.progress, props.entry)
       : undefined;
@@ -210,6 +209,7 @@ const ExerciseContentView = memo(
       );
     }
     const volume = Reps.volume(props.entry.sets);
+    const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
 
     return (
       <div data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}>
@@ -231,7 +231,7 @@ const ExerciseContentView = memo(
                   data-cy="exercise-name"
                   onClick={() => props.onExerciseInfoClick?.(exercise)}
                 >
-                  <span className="pr-1">{exercise.name}</span>{" "}
+                  <span className="pr-1">{Exercise.reverseName(exercise)}</span>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
               </div>
@@ -302,11 +302,25 @@ const ExerciseContentView = memo(
                 </div>
               )}
             </div>
-            {equipment && (
-              <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
-                {equipmentName(equipment)}
-              </div>
-            )}
+            <div data-cy="exercise-equipment" className="text-sm text-grayv2-600">
+              Equipment:{" "}
+              <LinkButton
+                name="exercise-equipment-picker"
+                data-cy="exercise-equipment-picker"
+                onClick={() => {
+                  updateState(props.dispatch, [
+                    lb<IState>()
+                      .p("progress")
+                      .pi(props.progress.id)
+                      .pi("ui")
+                      .p("equipmentModal")
+                      .record({ exerciseType: props.entry.exercise }),
+                  ]);
+                }}
+              >
+                {currentEquipmentName || "None"}
+              </LinkButton>
+            </div>
             {description && (
               <div className="mt-2">
                 <Markdown value={description} />
@@ -374,26 +388,24 @@ const ExerciseContentView = memo(
                   </div>
                 )}
                 {props.showHelp && hasUnequalWeights && (
-                  <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
-                    <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit
-                    your bar and plates. Adjust your{" "}
-                    <LinkButton
-                      name="nux-rounding-equipment-settings"
-                      onClick={() => {
-                        updateState(props.dispatch, [
-                          lb<IState>().p("defaultEquipmentExpanded").record(props.entry.exercise.equipment),
-                        ]);
-                        props.dispatch(Thunk.pushScreen("plates"));
-                      }}
-                    >
-                      Equipment settings there
-                    </LinkButton>
-                    .
-                  </Nux>
+                  <HelpEquipment
+                    helps={props.helps}
+                    entry={props.entry}
+                    progress={props.progress}
+                    dispatch={props.dispatch}
+                  />
                 )}
               </div>
             ) : (
-              <WeightLinesUnsubscribed weights={workoutWeights} />
+              <div className="mt-2">
+                <WeightLinesUnsubscribed weights={workoutWeights} />
+                <HelpEquipment
+                  helps={props.helps}
+                  entry={props.entry}
+                  progress={props.progress}
+                  dispatch={props.dispatch}
+                />
+              </div>
             )}
             {(!isSubscribed || props.hidePlatesCalculator) && (
               <div className="h-4">
@@ -498,6 +510,38 @@ const ExerciseContentView = memo(
     );
   }
 );
+
+interface IHelpEquipmentProps {
+  helps: string[];
+  entry: IHistoryEntry;
+  progress: IHistoryRecord;
+  dispatch: IDispatch;
+}
+
+function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
+  return (
+    <Nux className="mt-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
+      <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar and
+      plates. Adjust your{" "}
+      <LinkButton
+        name="nux-rounding-equipment-settings"
+        onClick={() => {
+          updateState(props.dispatch, [
+            lb<IState>()
+              .p("progress")
+              .pi(props.progress.id)
+              .pi("ui")
+              .p("equipmentModal")
+              .record({ exerciseType: props.entry.exercise }),
+          ]);
+        }}
+      >
+        Equipment settings there
+      </LinkButton>
+      .
+    </Nux>
+  );
+}
 
 function NextSet(props: { nextSet: ISet; settings: ISettings; exerciseType?: IExerciseType }): JSX.Element {
   const nextSet = props.nextSet;

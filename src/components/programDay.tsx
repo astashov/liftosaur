@@ -39,6 +39,7 @@ import { EditProgram } from "../models/editProgram";
 import { PlannerProgram } from "../pages/planner/models/plannerProgram";
 import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
+import { ModalEquipment } from "./modalEquipment";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -263,6 +264,19 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 isWarmup={progress.ui?.editSetModal?.isWarmup || false}
                 entryIndex={progress.ui?.editSetModal?.entryIndex || 0}
                 setIndex={progress.ui?.editSetModal?.setIndex}
+              />
+            )}
+            {progress.ui?.equipmentModal?.exerciseType && (
+              <ModalEquipment
+                settings={props.settings}
+                exercise={progress.ui?.equipmentModal.exerciseType}
+                entries={progress.entries}
+                dispatch={props.dispatch}
+                onClose={() => {
+                  updateState(props.dispatch, [
+                    lb<IState>().p("progress").pi(props.progress.id).pi("ui").p("equipmentModal").record(undefined),
+                  ]);
+                }}
               />
             )}
             {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (

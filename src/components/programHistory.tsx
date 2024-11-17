@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { Program } from "../models/program";
+import { emptyProgramId, Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
 import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
@@ -18,6 +18,7 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { useGradualList } from "../utils/useGradualList";
 import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   program: IProgram;
@@ -97,6 +98,21 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </BottomSheet>
       }
     >
+      {props.progress == null && (
+        <div className="px-4 pb-2">
+          <div className="text-right">
+            <LinkButton
+              name="start-empty-workout"
+              data-cy="start-empty-workout"
+              onClick={() => {
+                dispatch({ type: "StartProgramDayAction", programId: emptyProgramId });
+              }}
+            >
+              Ad-Hoc Workout
+            </LinkButton>
+          </div>
+        </div>
+      )}
       {doesProgressNotMatchProgram && (
         <div className="mx-4 mb-1 text-xs text-center text-grayv2-main">
           You currently have ongoing workout. Finish it first to see newly chosen program or a different day.

@@ -194,6 +194,7 @@ export type IFinishProgramDayAction = {
 
 export type IStartProgramDayAction = {
   type: "StartProgramDayAction";
+  programId?: string;
 };
 
 export type IChangeAMRAPAction = {
@@ -554,15 +555,19 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
             : state.screenStack,
       };
     } else if (state.storage.currentProgramId != null) {
-      // TODO: What if the program is missing?
-      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
-      const newProgress = Program.nextProgramRecord(program, state.storage.settings);
-      return {
-        ...state,
-        currentHistoryRecord: 0,
-        screenStack: Screen.push(state.screenStack, "progress"),
-        progress: { ...state.progress, 0: newProgress },
-      };
+      const program = Program.getProgram(state, action.programId || state.storage.currentProgramId);
+      if (program != null) {
+        const newProgress = Program.nextProgramRecord(program, state.storage.settings);
+        return {
+          ...state,
+          currentHistoryRecord: 0,
+          screenStack: Screen.push(state.screenStack, "progress"),
+          progress: { ...state.progress, 0: newProgress },
+        };
+      } else {
+        alert("No currently selected program");
+        return state;
+      }
     } else {
       return state;
     }

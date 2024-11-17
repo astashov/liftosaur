@@ -54,46 +54,46 @@ export const CardsView = memo(
     return (
       <section className="px-4 pb-4">
         <div className="flex pb-2">
-          <div className="flex-1">
-            <div className="text-lg font-semibold">{props.progress?.programName}</div>
-            <div className="flex text-sm text-grayv2-main">
-              <div data-cy="day-name" className="flex-1 mr-2 align-middle">
+          <div className="flex items-center flex-1">
+            <div className="flex-1 mr-2 align-middle">
+              <div className="text-lg font-semibold">{props.progress?.programName}</div>
+              <div data-cy="day-name" className="text-sm text-grayv2-main">
                 {props.progress?.dayName}
               </div>
-              <div className="mr-2 align-middle">
-                {program && (
-                  <button
-                    className="px-2 ml-1 align-middle nm-workout-edit-day"
-                    onClick={() => {
-                      if (program.planner) {
-                        const dayData = Program.getDayData(program, props.progress.day, props.settings);
-                        const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
-                        Program.editAction(props.dispatch, program.id, plannerState);
-                      } else {
-                        const programDay = Program.getProgramDay(program, props.progress.day);
-                        const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
-                        Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
-                      }
-                    }}
-                  >
-                    <IconEditSquare />
-                  </button>
-                )}
-                {program && (
-                  <button
-                    onClick={() => {
-                      const dayIndex = Program.getProgramDayIndex(program, props.progress.day);
-                      updateState(props.dispatch, [
-                        lb<IState>().p("muscleView").record({ type: "day", programId: program.id, dayIndex }),
-                      ]);
-                      props.dispatch(Thunk.pushScreen("muscles"));
-                    }}
-                    className="px-2 align-middle nm-workout-day-muscles"
-                  >
-                    <IconMuscles2 />
-                  </button>
-                )}
-              </div>
+            </div>
+            <div className="mr-2 align-middle">
+              {program && (
+                <button
+                  className="px-2 ml-1 align-middle nm-workout-edit-day"
+                  onClick={() => {
+                    if (program.planner) {
+                      const dayData = Program.getDayData(program, props.progress.day, props.settings);
+                      const plannerState = EditProgram.initPlannerState(program.id, program.planner, dayData);
+                      Program.editAction(props.dispatch, program.id, plannerState);
+                    } else {
+                      const programDay = Program.getProgramDay(program, props.progress.day);
+                      const dayIndex = programDay ? program.days.indexOf(programDay) : props.progress.day - 1;
+                      Progress.editDayAction(props.dispatch, props.progress.programId, dayIndex);
+                    }
+                  }}
+                >
+                  <IconEditSquare />
+                </button>
+              )}
+              {program && (
+                <button
+                  onClick={() => {
+                    const dayIndex = Program.getProgramDayIndex(program, props.progress.day);
+                    updateState(props.dispatch, [
+                      lb<IState>().p("muscleView").record({ type: "day", programId: program.id, dayIndex }),
+                    ]);
+                    props.dispatch(Thunk.pushScreen("muscles"));
+                  }}
+                  className="px-2 align-middle nm-workout-day-muscles"
+                >
+                  <IconMuscles2 />
+                </button>
+              )}
             </div>
           </div>
           {!Progress.isCurrent(props.progress) && (
