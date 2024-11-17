@@ -596,6 +596,12 @@ export const TProgressUi = t.partial(
       exerciseType: TExerciseType,
       entryIndex: t.number,
     }),
+    equipmentModal: t.partial({
+      exerciseType: TExerciseType,
+    }),
+    rm1Modal: t.partial({
+      exerciseType: TExerciseType,
+    }),
     editSetModal: t.type({
       isWarmup: t.boolean,
       entryIndex: t.number,

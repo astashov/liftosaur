@@ -45,10 +45,7 @@ export namespace Equipment {
     return settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
   }
 
-  export function getEquipmentNameForExerciseType(
-    settings: ISettings,
-    exerciseType?: IExerciseType
-  ): string | undefined {
+  export function getEquipmentIdForExerciseType(settings: ISettings, exerciseType?: IExerciseType): string | undefined {
     if (exerciseType == null) {
       return undefined;
     }
@@ -60,10 +57,18 @@ export namespace Equipment {
     }
 
     const currentGym = getCurrentGym(settings);
-    const equipment = exerciseEquipment[currentGym.id];
+    return exerciseEquipment[currentGym.id];
+  }
+
+  export function getEquipmentNameForExerciseType(
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): string | undefined {
+    const equipment = getEquipmentIdForExerciseType(settings, exerciseType);
     if (equipment == null) {
       return undefined;
     }
+    const currentGym = getCurrentGym(settings);
     const name = currentGym.equipment[equipment]?.name;
     return name || equipmentName(equipment);
   }

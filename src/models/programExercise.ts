@@ -339,6 +339,16 @@ export namespace ProgramExercise {
     });
   }
 
+  export function doesUse1RM(programExercise: IProgramExercise): boolean {
+    const usesPercentageWeights = programExercise.variations.some((v) => {
+      return v.sets.some((set) => {
+        return set.weightExpr && set.weightExpr.includes("%");
+      });
+    });
+    const usesRM1Var = ProgramExercise.isUsingVariable(programExercise, "rm1");
+    return usesPercentageWeights || usesRM1Var;
+  }
+
   export function switchToUnit(programExercise: IProgramExercise, settings: ISettings): IProgramExercise {
     const unit = settings.units;
     const newState = { ...programExercise.state };

@@ -1388,6 +1388,22 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241117": {
+    title: <span>Added some convenience shortcuts</span>,
+    body: (
+      <ul>
+        <li>Now you can change the next day or start empty ("Ad-Hoc") workout from the history screen.</li>
+        <li>
+          On the workout screen there's "Equipment" and (if exercises uses it) - "1RM" links. They open modal to edit
+          those, and in Equipment you can define availables plates right from the modal.
+        </li>
+        <li>
+          Added big bold "Start" and "Continue" buttons to the start workout card, because some new users were confused
+          how to start a workout.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

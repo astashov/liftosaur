@@ -59,10 +59,15 @@ export interface IExportedProgram {
 }
 
 export type IProgramMode = "planner" | "regular" | "update";
+export const emptyProgramId = "emptyprogram";
 
 export namespace Program {
   export function getProgram(state: IState, id?: string): IProgram | undefined {
-    return state.storage.programs.find((p) => p.id === id);
+    if (id === emptyProgramId) {
+      return createEmptyProgram();
+    } else {
+      return state.storage.programs.find((p) => p.id === id);
+    }
   }
 
   export function getFullProgram(state: IState, id?: string): IProgram | undefined {
@@ -420,10 +425,14 @@ export namespace Program {
       dayInWeek,
     };
 
-    const dayName =
-      program.isMultiweek && program.weeks.length > 1
-        ? `${program.weeks[week - 1]?.name} - ${programDay.name}`
-        : programDay.name;
+    const dayNameParts: string[] = [];
+    if (program.isMultiweek && program.weeks.length > 1) {
+      dayNameParts.push(program.weeks[week - 1]?.name ?? "");
+    }
+    if (program.days.length > 1) {
+      dayNameParts.push(programDay.name);
+    }
+    const dayName = dayNameParts.join(" - ");
     const now = Date.now();
     return {
       id: 0,
@@ -1012,6 +1021,22 @@ export namespace Program {
     dispatch(Thunk.pushScreen("programPreview"));
   }
 
+  export function createEmptyProgram(): IProgram {
+    return {
+      exercises: [],
+      id: emptyProgramId,
+      name: "Ad-Hoc Workout",
+      description: "",
+      url: "",
+      author: "",
+      nextDay: 1,
+      days: [{ exercises: [], id: "emptyworkoutday", name: "Day 1" }],
+      weeks: [],
+      isMultiweek: false,
+      tags: [],
+    };
+  }
+
   export function cloneProgram(dispatch: IDispatch, program: IProgram, settings: ISettings): void {
     updateState(dispatch, [
       lb<IState>()
@@ -1120,16 +1145,25 @@ export namespace Program {
     return day;
   }
 
+  export function getDayName(program: IProgram, day: number, settings: ISettings): string {
+    const dayData = getDayData(program, day, settings);
+    const programDay = getProgramDay(program, day);
+    const week = program.weeks[(dayData.week || 1) - 1];
+    const isMultiweek = program.isMultiweek && program.weeks.length > 1 && week != null;
+    return `${isMultiweek ? `${week.name} - ` : ""}${programDay.name}`;
+  }
+
   export function getListOfDays(program: IProgram, settings: ISettings): [string, string][] {
     program = fullProgram(program, settings);
     if (program.isMultiweek) {
       const result: [string, string][] = [];
       let dayIndex = 1;
+      const isReallyMultiweek = program.weeks.length > 1;
       for (const week of program.weeks) {
         for (const day of week.days) {
           const programDay = program.days.find((d) => d.id === day.id);
           if (programDay) {
-            result.push([`${dayIndex}`, `${week.name} - ${programDay.name}`]);
+            result.push([`${dayIndex}`, `${isReallyMultiweek ? `${week.name} - ` : ""}${programDay.name}`]);
             dayIndex += 1;
           }
         }

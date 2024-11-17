@@ -3,11 +3,31 @@ import { PlaywrightUtils } from "./playwrightUtils";
 
 test("Rep Max Calculator", async ({ page }) => {
   await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
-  await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
-  await page.getByTestId("clone-program").click();
+  await page.getByTestId("create-program").click();
+
+  await page.getByTestId("modal-create-program-input").clear();
+  await page.getByTestId("modal-create-program-input").fill("My Program");
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await page.getByTestId("editor-v2-full-program").click();
+
+  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils.typeCodeMirror(
+    page,
+    "planner-editor",
+    `# Week 1
+## Day 1
+
+Squat / 1x8 / 80% / progress: lp(5lb)`
+  );
+
+  await page.getByTestId("editor-v2-save-full").click();
+  await page.getByTestId("editor-save-v2-top").click();
+  await page.getByTestId("menu-item-my-program").click();
+
   await page.getByTestId("start-workout").click();
 
-  await page.getByTestId("entry-bench-press").getByTestId("exercise-edit-mode").click();
+  await page.getByTestId("exercise-rm1-picker").click();
   await page.getByTestId("onerm-calculator").click();
 
   await PlaywrightUtils.type("3", () => page.getByTestId("rep-max-calculator-known-reps"));

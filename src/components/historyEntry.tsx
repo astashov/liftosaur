@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { Equipment } from "../models/equipment";
-import { Exercise, equipmentName } from "../models/exercise";
+import { Exercise } from "../models/exercise";
 import { Weight } from "../models/weight";
 import { IHistoryEntry, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
@@ -30,13 +30,10 @@ export const HistoryEntryView = memo(
         </div>
         <div className="flex-1">
           <div className="flex items-center">
-            <div className="pr-2" style={{ width: "40%" }}>
+            <div className="pr-2" style={{ width: "50%" }}>
               <div data-cy="history-entry-exercise-name" className="font-bold">
-                {exercise.name}
+                {Exercise.reverseName(exercise)}
               </div>
-              {exercise.equipment && (
-                <div className="text-xs text-grayv2-main">{equipmentName(exercise.equipment)}</div>
-              )}
             </div>
             <div className="flex-1">
               <HistoryRecordSetsView

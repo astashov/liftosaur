@@ -1,7 +1,6 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { useMemo } from "preact/hooks";
-import { parser as plannerExerciseParser } from "../../pages/planner/plannerExerciseParser";
 import { LinkButton } from "../../components/linkButton";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -9,7 +8,6 @@ import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { EditProgramV2Days } from "./editProgramV2Days";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
-import { PlannerExerciseEvaluator } from "../../pages/planner/plannerExerciseEvaluator";
 
 export interface IPlannerContentPerDayProps {
   state: IPlannerState;
@@ -26,18 +24,6 @@ export function EditProgramV2PerDay(props: IPlannerContentPerDayProps): JSX.Elem
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluate(plannerProgram, settings);
   }, [plannerProgram, settings]);
-
-  plannerProgram.weeks.forEach((week) => {
-    week.days.forEach((day) => {
-      const evaluator = new PlannerExerciseEvaluator(day.exerciseText, settings, "perday");
-      const tree = plannerExerciseParser.parse(day.exerciseText);
-      console.log("text", day.exerciseText);
-      console.log("lb", evaluator.hasWeightInUnit(tree.topNode, "lb"));
-      console.log("kg", evaluator.hasWeightInUnit(tree.topNode, "kg"));
-      console.log("new text", evaluator.switchWeightsToUnit(tree.topNode, settings));
-      console.log("");
-    });
-  });
 
   return (
     <div>

@@ -2,7 +2,7 @@ import "mocha";
 import { expect } from "chai";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils } from "./utils/plannerTestUtils";
-import { IPlannerProgram } from "../src/types";
+import { IPlannerProgram, IUnit } from "../src/types";
 import { Settings } from "../src/models/settings";
 import { PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight } from "../src/models/weight";
@@ -18,6 +18,39 @@ Squat / 2x5 / 100lb / progress: lp(5lb)`;
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 105lb / progress: lp(5lb)
+
+
+`);
+  });
+
+  it("switches toe program from lb to kg", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb / 2x8 150kg / progress: custom(increase: 5lb) {~
+  if (completedReps >= reps) {
+    weights += 5lb
+    state.increase += 10lb
+  }
+~}
+
+## Day 2
+Squat / 3x5 / 4x8 / 100lb
+`;
+    const settings = { ...Settings.build(), units: "kg" as IUnit };
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] }, settings);
+    const kgProgram = PlannerProgram.switchToUnit(program.planner!, settings);
+    const newText = PlannerProgram.generateFullText(kgProgram.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x5 47.5kg / 2x8 152.5kg / progress: custom(increase: 7.5kg) {~
+  if (completedReps >= reps) {
+    weights += 2.5kg
+    state.increase += 5kg
+  }
+~}
+
+## Day 2
+Squat / 3x5 / 4x8 / 47.5kg
 
 
 `);

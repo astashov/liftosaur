@@ -264,6 +264,7 @@ export function AppView(props: IProps): JSX.Element | null {
           editProgramId={state.progress[0]?.programId}
           screenStack={state.screenStack}
           loading={state.loading}
+          allPrograms={state.storage.programs}
           program={currentProgram}
           progress={state.progress?.[0]}
           userId={state.user?.id}

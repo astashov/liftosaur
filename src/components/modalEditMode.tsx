@@ -105,7 +105,7 @@ export function ModalEditMode(props: IModalEditModeProps): JSX.Element {
               programExerciseIds={[programExercise.id]}
               settings={props.settings}
               dispatch={props.dispatch}
-              show1RM={!!(props.program.planner || ProgramExercise.isUsingVariable(programExercise, "rm1"))}
+              show1RM={false}
             />
             {planner && (
               <EditWeights

@@ -18,6 +18,11 @@ export interface IExercisePoints {
   hypertrophy: IExercisePointsColl;
 }
 
+export interface IUnifiedPoints {
+  screenMusclePoints: IScreenMusclePointsColl;
+  exercisePoints: IExercisePointsColl;
+}
+
 export interface IPoints {
   screenMusclePoints: IScreenMusclePoints;
   exercisePoints: IExercisePoints;
@@ -116,6 +121,17 @@ export namespace Muscle {
     };
   }
 
+  export function normalizeUnifiedPoints(points: IUnifiedPoints): IUnifiedPoints {
+    const maxValues = ObjectUtils.findMaxValue(points.screenMusclePoints);
+    return {
+      screenMusclePoints: normalize(points.screenMusclePoints, maxValues),
+      exercisePoints: ObjectUtils.keys(points.exercisePoints).reduce<IExercisePointsColl>((memo, key) => {
+        memo[key] = normalize(points.exercisePoints[key]!, maxValues);
+        return memo;
+      }, {}),
+    };
+  }
+
   export function combinePoints(points: IPoints): IPoints {
     return {
       screenMusclePoints: {
@@ -184,6 +200,63 @@ export namespace Muscle {
       },
       { screenMusclePoints, exercisePoints }
     );
+  }
+
+  export function getUnifiedPointsForDay(
+    program: IProgram,
+    programDay: IProgramDay,
+    settings: ISettings
+  ): IUnifiedPoints {
+    const screenMusclePoints: IScreenMusclePointsColl = {};
+    const exercisePoints: IExercisePointsColl = {};
+
+    return programDay.exercises.reduce(
+      (memo, exerciseId) => {
+        const programExercise = program.exercises.find((e) => e.id === exerciseId.id)!;
+        const dayData = Program.getDayData(program, program.nextDay, settings);
+        return mergeUnifiedPoints(
+          memo,
+          getUnifiedPointsForExercise(programExercise, program.exercises, dayData, settings)
+        );
+      },
+      { screenMusclePoints, exercisePoints }
+    );
+  }
+
+  export function getUnifiedPointsForExercise(
+    programExercise: IProgramExercise,
+    allProgramExercises: IProgramExercise[],
+    dayData: IDayData,
+    settings: ISettings
+  ): IUnifiedPoints {
+    const screenMusclePoints: IScreenMusclePointsColl = {};
+    const exercisePoints: IExercisePointsColl = {};
+
+    const id = Exercise.toKey(programExercise.exerciseType);
+    const historyEntry = Program.programExerciseToHistoryEntry(programExercise, allProgramExercises, dayData, settings);
+    const targetMuscles = Exercise.targetMuscles(programExercise.exerciseType, settings.exercises);
+    const synergistMuscles = Exercise.synergistMuscles(programExercise.exerciseType, settings.exercises);
+    const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
+    const screenSynergistMuscles = Array.from(
+      new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
+    );
+    for (const _set of historyEntry.sets) {
+      for (const muscle of screenTargetMuscles) {
+        screenMusclePoints[muscle] = screenMusclePoints[muscle] || 0;
+        screenMusclePoints[muscle]! += 100;
+        exercisePoints[id] = exercisePoints[id] || {};
+        exercisePoints[id]![muscle] = exercisePoints[id]![muscle] || 0;
+        exercisePoints[id]![muscle]! += 100;
+      }
+      for (const muscle of screenSynergistMuscles) {
+        screenMusclePoints[muscle] = screenMusclePoints[muscle] || 0;
+        screenMusclePoints[muscle]! += 30;
+        exercisePoints[id] = exercisePoints[id] || {};
+        exercisePoints[id]![muscle] = exercisePoints[id]![muscle] || 0;
+        exercisePoints[id]![muscle]! += 30;
+      }
+    }
+    return { screenMusclePoints, exercisePoints };
   }
 
   export function getPointsForExercise(
@@ -279,6 +352,13 @@ export namespace Muscle {
         strength: mergeExercisePoints(oldPoints.exercisePoints.strength, newPoints.exercisePoints.strength),
         hypertrophy: mergeExercisePoints(oldPoints.exercisePoints.hypertrophy, newPoints.exercisePoints.hypertrophy),
       },
+    };
+  }
+
+  function mergeUnifiedPoints(oldPoints: IUnifiedPoints, newPoints: IUnifiedPoints): IUnifiedPoints {
+    return {
+      screenMusclePoints: mergeScreenMusclePoints(oldPoints.screenMusclePoints, newPoints.screenMusclePoints),
+      exercisePoints: mergeExercisePoints(oldPoints.exercisePoints, newPoints.exercisePoints),
     };
   }
 }

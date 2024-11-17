@@ -70,9 +70,9 @@ test("edits sets properly", async ({ page }) => {
   await expect(page.locator(arnoldPressSelector).nth(0).locator("[data-cy=weight-value]")).toHaveText("250");
   await expect(page.locator(arnoldPressSelector).nth(0)).toHaveAttribute("data-cy", "set-nonstarted");
 
-  await page.getByTestId("entry-squat").locator("[data-cy=exercise-edit-mode]").click();
+  await page.getByTestId("entry-squat").locator("[data-cy=exercise-name]").click();
   await page.getByTestId("menu-item-value-1-rep-max").fill("200");
-  await page.getByTestId("modal-edit-mode-save-statvars").click();
+  await page.getByTestId("navbar-back").click();
 
   await expect(page.getByTestId("entry-bent-over-row")).not.toBeVisible();
   await expect(page.getByTestId("entry-arnold-press")).toBeVisible();
