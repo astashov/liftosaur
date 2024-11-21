@@ -31,7 +31,7 @@ export function TopNavMenu(props: {
   return (
     <nav class="w-full mx-auto px-2 my-10" style={{ maxWidth: `${props.maxWidth}px` }}>
       <div class="flex items-center">
-        <div className="flex w-full mr-2 md:hidden">
+        <div className="flex items-center w-full mr-2 md:hidden">
           <div>
             <button className="p-2 align-middle nm-navbar-hamburger" onClick={() => setIsMenuOpen(true)}>
               <IconHamburger />
@@ -41,7 +41,7 @@ export function TopNavMenu(props: {
             <a href="/" class="text-gray-900 align-middle no-underline ml-3">
               <img
                 className="inline align-middle"
-                style={{ width: "2.5em", height: "2.5em" }}
+                style={{ width: "3.5em", height: "3.5em" }}
                 src="/images/logo.svg"
                 alt="Liftosaur Logo"
               />
@@ -88,7 +88,7 @@ export function TopNavMenu(props: {
             <a href="/" class="text-gray-900 no-underline">
               <img
                 className="inline align-middle"
-                style={{ width: "4em", height: "4em" }}
+                style={{ width: "5em", height: "5em" }}
                 src="/images/logo.svg"
                 alt="Liftosaur Logo"
               />

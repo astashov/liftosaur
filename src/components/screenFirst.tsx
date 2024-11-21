@@ -11,8 +11,8 @@ interface IProps {
 export function ScreenFirst(props: IProps): JSX.Element {
   return (
     <section className="flex flex-col h-full text-blackv2">
-      <div className="flex items-center px-16 py-8">
-        <img className="w-12" src="/images/logo.svg" />
+      <div className="flex items-center px-12 py-8">
+        <img className="w-20" src="/images/logo.svg" />
         <div className="flex-1 ml-4">
           <h1 className="text-2xl font-bold">Liftosaur</h1>
           <h2 className="text-sm text-grayv2-main">

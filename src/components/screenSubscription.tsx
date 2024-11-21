@@ -132,11 +132,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     >
       <section className="flex flex-col flex-1 px-4">
         <div
-          className="pt-16 mt-2 mb-2 bg-no-repeat"
+          className="pt-16 mb-2 bg-no-repeat"
           style={{
             backgroundImage: "url(/images/logo.svg)",
             backgroundPosition: "top center",
-            backgroundSize: "2.5rem",
+            backgroundSize: "4rem",
           }}
         ></div>
         <p className="mb-4 text-sm">
