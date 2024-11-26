@@ -1,5 +1,5 @@
 import { h, JSX, Fragment } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
 import { MenuItemWrapper } from "./menuItem";
@@ -8,8 +8,6 @@ import { IconUser } from "./icons/iconUser";
 import { IAccount } from "../models/account";
 import { Modal } from "./modal";
 import { Service } from "../api/service";
-import { UidFactory } from "../utils/generator";
-import { setupPagePosthog, identifyPosthog } from "../utils/posthog";
 
 export function TopNavMenu(props: {
   client: Window["fetch"];
@@ -18,12 +16,6 @@ export function TopNavMenu(props: {
   current?: string;
   account?: IAccount;
 }): JSX.Element {
-  useEffect(() => {
-    setupPagePosthog();
-    const id = UidFactory.generateUid(10);
-    identifyPosthog(id, props.account?.email);
-  }, []);
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const service = new Service(props.client);

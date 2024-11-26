@@ -30,7 +30,6 @@
     "node-fetch": "^2.6.1",
     "openai": "^3.2.1",
     "papaparse": "^5.4.1",
-    "posthog-js": "^1.167.0",
     "preact": "^10.5.13",
     "preact-render-to-string": "^5.1.19",
     "prismjs": "^1.25.0",

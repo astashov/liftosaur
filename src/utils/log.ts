@@ -1,6 +1,5 @@
 import RB from "rollbar";
 import { UrlUtils } from "./url";
-import posthog from "posthog-js";
 
 declare let Rollbar: RB;
 declare let __API_HOST__: string;
@@ -25,7 +24,6 @@ export namespace LogUtils {
       version: window.lftAndroidAppVersion || window.lftIosAppVersion,
     };
     const url = UrlUtils.build(`${__API_HOST__}/api/log`);
-    posthog.capture(action);
     try {
       fetch(url.toString(), {
         method: "POST",

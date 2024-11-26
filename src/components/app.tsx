@@ -50,7 +50,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
-import { identifyPosthog, lg, setupAppPosthog } from "../utils/posthog";
+import { lg } from "../utils/posthog";
 import { ScreenUnitSelector } from "./screenUnitSelector";
 
 interface IProps {
@@ -84,12 +84,6 @@ export function AppView(props: IProps): JSX.Element | null {
   useLoopCatcher();
 
   useEffect(() => {
-    const userId = state.user?.id || state.storage.tempUserId;
-    identifyPosthog(userId, state.user?.email);
-  }, [state.user?.id, state.storage.tempUserId]);
-
-  useEffect(() => {
-    setupAppPosthog();
     const url =
       typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
     const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
