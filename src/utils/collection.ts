@@ -111,6 +111,15 @@ export namespace CollectionUtils {
     }, {});
   }
 
+  export function groupByExpr<T>(arr: T[], expr: (item: T) => string): Partial<Record<string, T[]>> {
+    return arr.reduce<Partial<Record<string, T[]>>>((memo, item) => {
+      const value = expr(item);
+      memo[value] = memo[value] || [];
+      memo[value]!.push(item);
+      return memo;
+    }, {});
+  }
+
   export function groupByKeyUniq<
     T,
     K extends keyof T,

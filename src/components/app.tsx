@@ -50,8 +50,11 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
-import { lg } from "../utils/posthog";
 import { ScreenUnitSelector } from "./screenUnitSelector";
+import RB from "rollbar";
+import { exceptionIgnores } from "../utils/rollbar";
+
+declare let Rollbar: RB;
 
 interface IProps {
   client: Window["fetch"];
@@ -137,7 +140,7 @@ export function AppView(props: IProps): JSX.Element | null {
           .map((s) => s.trim())
           .filter((c) => c.startsWith("nm-"))[0];
         const name = lsName || nsName;
-        lg("click-" + name);
+        dispatch(Thunk.postevent("click-" + name));
         if (lsName) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           dispatch(Thunk.log(lsName));
@@ -150,13 +153,13 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "setGooglePurchaseToken") {
         dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
       } else if (event.data?.type === "loaded") {
-        lg("loaded");
+        dispatch(Thunk.postevent("loaded"));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "wake") {
         dispatch(Thunk.sync2({ force: true }));
         dispatch(Thunk.syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {
-        lg("apple-health-error");
+        dispatch(Thunk.postevent("apple-health-error"));
         alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)]);
@@ -168,7 +171,7 @@ export function AppView(props: IProps): JSX.Element | null {
       } else if (event.data?.type === "goBack") {
         dispatch(Thunk.pullScreen());
       } else if (event.data?.type === "setReferrer") {
-        lg("set-referrer");
+        dispatch(Thunk.postevent("set-referrer"));
         updateState(
           dispatch,
           [
@@ -180,7 +183,7 @@ export function AppView(props: IProps): JSX.Element | null {
           "Set Referrer"
         );
       } else if (event.data?.type === "requestedReview") {
-        lg("requested-review");
+        dispatch(Thunk.postevent("requested-review"));
         updateState(dispatch, [
           lb<IState>()
             .p("storage")
@@ -193,6 +196,36 @@ export function AppView(props: IProps): JSX.Element | null {
     Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
     Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
     dispatch(Thunk.fetchInitial());
+    const onerror = (error: string | ErrorEvent): void => {
+      Rollbar.error(error, (_err, data) => {
+        const uuid = data?.result?.uuid;
+        service.postEvent({
+          type: "error",
+          userId: userId,
+          timestamp: Date.now(),
+          message: typeof error === "string" ? error : error?.error?.message || "",
+          stack: typeof error === "string" ? "" : error?.error?.stack || "",
+          rollbar_id: uuid || "",
+        });
+      });
+    };
+    const onunhandledexception = (event: PromiseRejectionEvent): void => {
+      const reason = event.reason;
+      Rollbar.error(reason, (_err, data) => {
+        const uuid = data?.result?.uuid;
+        const message = reason.message;
+        if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
+          service.postEvent({
+            type: "error",
+            userId: userId,
+            timestamp: Date.now(),
+            message: message || "",
+            stack: reason.stack || "",
+            rollbar_id: uuid || "",
+          });
+        }
+      });
+    };
     if (typeof window !== "undefined") {
       const source = url?.searchParams.get("s");
       if (source) {
@@ -207,11 +240,16 @@ export function AppView(props: IProps): JSX.Element | null {
       window.replaceState = (newState: any) => {
         dispatch({ type: "ReplaceState", state: newState });
       };
+      window.addEventListener("error", onerror);
+      window.addEventListener("unhandledrejection", onunhandledexception);
     }
     SendMessage.toIos({ type: "loaded", userid: userId });
     SendMessage.toAndroid({ type: "loaded", userid: userId });
+
     return () => {
       ptr.destroy();
+      window.removeEventListener("error", onerror);
+      window.removeEventListener("unhandledrejection", onunhandledexception);
     };
   }, []);
 

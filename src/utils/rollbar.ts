@@ -18,6 +18,25 @@ interface IOccurenceResponse {
 
 declare let __API_HOST__: string;
 
+export const exceptionIgnores = [
+  "Script error",
+  "Failed to fetch",
+  "Failed to register a ServiceWorker",
+  "The element has no supported sources",
+  "The operation was aborted",
+  "FetchEvent.respondWith received an error",
+  "play() failed because the user",
+  "play() request was interrupted",
+  "The request is not allowed by the user agent or the platform",
+  "Load failed",
+  "Function timed out",
+  "is out of range for changeset",
+  "Selection points outside of document",
+  "Invalid position",
+  "outdated_client_storage",
+  '{"isTrusted":true}',
+];
+
 export namespace RollbarUtils {
   export async function load(item: string | number, token: string): Promise<void> {
     const result = await fetch(`https://api.rollbar.com/api/1/instance/${item}`, {
@@ -51,26 +70,9 @@ export namespace RollbarUtils {
   }
 
   export function checkIgnore(isUncaught: boolean, args: LogArgument[], item: Dictionary): boolean {
-    const ignores = [
-      "Script error",
-      "Failed to fetch",
-      "Failed to register a ServiceWorker",
-      "The element has no supported sources",
-      "The operation was aborted",
-      "FetchEvent.respondWith received an error",
-      "play() failed because the user",
-      "play() request was interrupted",
-      "The request is not allowed by the user agent or the platform",
-      "Load failed",
-      "Function timed out",
-      "is out of range for changeset",
-      "Selection points outside of document",
-      "Invalid position",
-      "outdated_client_storage",
-      '{"isTrusted":true}',
-    ];
     const firstArg = args[0];
-    if (firstArg && typeof firstArg === "string" && ignores.some((i) => firstArg.indexOf(i) !== -1)) {
+    const message = typeof firstArg === "object" && "message" in firstArg ? firstArg.message : firstArg;
+    if (message && typeof message === "string" && exceptionIgnores.some((i) => message.indexOf(i) !== -1)) {
       return true;
     }
     return false;
@@ -90,7 +92,11 @@ export namespace RollbarUtils {
         ...(payload || {}),
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transform: async (pld: any) => {
+      transform: async (pld: any, item: any) => {
+        const shouldIgnore = checkIgnore(false, [item?.err?.message], item);
+        if (shouldIgnore) {
+          return;
+        }
         const id = UidFactory.generateUid(12);
         pld.liftosaur_exception_id = id;
         fetch(`${__API_HOST__}/api/exception`, {
