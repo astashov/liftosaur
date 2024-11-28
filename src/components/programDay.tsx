@@ -211,21 +211,28 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                         );
                         if (program && programExercise) {
                           if (program.planner) {
-                            const newPlanner = PlannerProgram.replaceExercise(
+                            const newPlannerResult = PlannerProgram.replaceExercise(
                               program.planner,
                               PlannerKey.fromProgramExercise(programExercise, props.settings),
                               exerciseType,
                               props.settings
                             );
-                            const newProgram = Program.cleanPlannerProgram({ ...program, planner: newPlanner });
-                            updateState(props.dispatch, [
-                              lb<IState>()
-                                .p("storage")
-                                .p("programs")
-                                .recordModify((programs) => {
-                                  return CollectionUtils.setBy(programs, "id", program.id, newProgram);
-                                }),
-                            ]);
+                            if (newPlannerResult.success) {
+                              const newProgram = Program.cleanPlannerProgram({
+                                ...program,
+                                planner: newPlannerResult.data,
+                              });
+                              updateState(props.dispatch, [
+                                lb<IState>()
+                                  .p("storage")
+                                  .p("programs")
+                                  .recordModify((programs) => {
+                                    return CollectionUtils.setBy(programs, "id", program.id, newProgram);
+                                  }),
+                              ]);
+                            } else {
+                              alert(newPlannerResult.error);
+                            }
                           } else {
                             EditProgram.swapExercise(
                               props.dispatch,

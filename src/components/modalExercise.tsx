@@ -244,6 +244,7 @@ const ExercisesList = forwardRef(
                 const e = customExercises[id]!;
                 return (
                   <section
+                    key={customExercises.id}
                     data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
                     className="w-full px-2 py-1 text-left border-b border-gray-200"
                     onClick={(event) => {
@@ -308,6 +309,7 @@ const ExercisesList = forwardRef(
         {exercises.map((e) => {
           return (
             <section
+              key={Exercise.toKey(e)}
               data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
                 e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
               }`}

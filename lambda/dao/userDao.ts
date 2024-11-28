@@ -34,6 +34,7 @@ export const userTableNames = {
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
     programs: "lftUserProgramsDev",
+    events: "lftEventsDev",
   },
   prod: {
     users: "lftUsers",
@@ -44,6 +45,7 @@ export const userTableNames = {
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
     programs: "lftUserPrograms",
+    events: "lftEvents",
   },
 } as const;
 

@@ -541,22 +541,30 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   name: state.current.program.name,
                   weeks: PlannerProgram.evaluateText(state.fulltext.text),
                 };
-                const newPlannerProgram = PlannerProgram.replaceExercise(
+                const newPlannerProgramResult = PlannerProgram.replaceExercise(
                   newProgram,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings
                 );
-                const newText = PlannerProgram.generateFullText(newPlannerProgram.weeks);
-                dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                if (newPlannerProgramResult.success) {
+                  const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.weeks);
+                  dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                } else {
+                  alert(newPlannerProgramResult.error);
+                }
               } else {
-                const newPlannerProgram = PlannerProgram.replaceExercise(
+                const newPlannerProgramResult = PlannerProgram.replaceExercise(
                   state.current.program,
                   modalExerciseUi.exerciseKey,
                   exerciseType,
                   settings
                 );
-                dispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                if (newPlannerProgramResult.success) {
+                  dispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgramResult.data)]);
+                } else {
+                  alert(newPlannerProgramResult.error);
+                }
               }
             } else {
               dispatch([

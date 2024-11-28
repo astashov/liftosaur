@@ -643,12 +643,15 @@ export const migrations = {
                 });
                 const newExerciseType = { id: custom.exercise.id };
                 for (const key of keys) {
-                  plannerProgram = PlannerProgram.replaceExercise(
+                  const plannerProgramResult = PlannerProgram.replaceExercise(
                     plannerProgram,
                     key,
                     newExerciseType,
                     storage.settings
                   );
+                  if (plannerProgramResult.success) {
+                    plannerProgram = plannerProgramResult.data;
+                  }
                 }
               }
               const newPlanner = new ProgramToPlanner(

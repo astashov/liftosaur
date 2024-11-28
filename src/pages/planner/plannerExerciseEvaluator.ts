@@ -64,6 +64,10 @@ export class PlannerSyntaxError extends SyntaxError {
     this.from = from;
     this.to = to;
   }
+
+  public toString(): string {
+    return this.message;
+  }
 }
 
 export type IPlannerEvalResult = IEither<IPlannerProgramExercise[], PlannerSyntaxError>;

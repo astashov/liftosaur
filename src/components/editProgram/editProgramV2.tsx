@@ -181,14 +181,18 @@ export function EditProgramV2(props: IProps): JSX.Element {
                       name: plannerState.current.program.name,
                       weeks: PlannerProgram.evaluateText(plannerState.fulltext.text),
                     };
-                    const newPlannerProgram = PlannerProgram.replaceExercise(
+                    const newPlannerProgramResult = PlannerProgram.replaceExercise(
                       program,
                       modalExerciseUi.exerciseKey,
                       exerciseType,
                       props.settings
                     );
-                    const newText = PlannerProgram.generateFullText(newPlannerProgram.weeks);
-                    plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                    if (newPlannerProgramResult.success) {
+                      const newText = PlannerProgram.generateFullText(newPlannerProgramResult.data.weeks);
+                      plannerDispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)]);
+                    } else {
+                      alert(newPlannerProgramResult.error);
+                    }
                   } else {
                     if (modalExerciseUi.change === "one") {
                       const focusedExercise = modalExerciseUi.focusedExercise;
@@ -224,13 +228,19 @@ export function EditProgramV2(props: IProps): JSX.Element {
                         plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
                       }
                     } else {
-                      const newPlannerProgram = PlannerProgram.replaceExercise(
+                      const newPlannerProgramResult = PlannerProgram.replaceExercise(
                         plannerState.current.program,
                         modalExerciseUi.exerciseKey,
                         exerciseType,
                         props.settings
                       );
-                      plannerDispatch([lb<IPlannerState>().p("current").p("program").record(newPlannerProgram)]);
+                      if (newPlannerProgramResult.success) {
+                        plannerDispatch([
+                          lb<IPlannerState>().p("current").p("program").record(newPlannerProgramResult.data),
+                        ]);
+                      } else {
+                        alert(newPlannerProgramResult.error);
+                      }
                     }
                   }
                 } else {

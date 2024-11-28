@@ -372,6 +372,45 @@ Bench Press / ...Squat / 1x5 105lb+, 1x3 105lb / progress: lp(5lb)
 `);
   });
 
+  it("replace exercise", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
+
+## Day 2
+Bench Press / 3x8 / progress: dp(5lb, 8, 12)
+`;
+    const newText = PlannerTestUtils.changeExercise(programText, "Squat", {
+      id: "overheadPress",
+      equipment: "barbell",
+    }).trim();
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Overhead Press / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
+
+## Day 2
+Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
+  });
+
+  it("replace exercise to the one that already exists in the program", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
+
+## Day 2
+Bench Press / 3x8 / progress: dp(5lb, 8, 12)
+`;
+    const newText = PlannerTestUtils.changeExercise(programText, "Squat", {
+      id: "benchPress",
+      equipment: "barbell",
+    }).trim();
+    expect(newText).to.contain(`Bench Press / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
+
+## Day 2
+Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
+    expect(newText.split("\n")[2]).to.match(/^[a-z]{3}: Bench Press/);
+  });
+
   it("properly update weights", () => {
     const programText = `# Week 1
 ## Day 1

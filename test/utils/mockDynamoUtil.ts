@@ -8,6 +8,7 @@ import { ObjectUtils } from "../../src/utils/object";
 
 const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.users]: ["id"],
+  [userTableNames.prod.events]: ["userId", "timestamp"],
   [userTableNames.prod.historyRecords]: ["userId", "id"],
   [userTableNames.prod.programs]: ["userId", "id"],
   [userTableNames.prod.stats]: ["userId", "name"],

@@ -32,7 +32,7 @@ export const HistoryEntryView = memo(
           <div className="flex items-center">
             <div className="pr-2" style={{ width: "50%" }}>
               <div data-cy="history-entry-exercise-name" className="font-bold">
-                {Exercise.reverseName(exercise)}
+                {Exercise.nameWithEquipment(exercise, props.settings)}
               </div>
             </div>
             <div className="flex-1">

@@ -2,11 +2,12 @@ import { PlannerToProgram } from "../../src/models/plannerToProgram";
 import { Program } from "../../src/models/program";
 import { Settings } from "../../src/models/settings";
 import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
-import { IProgram, ISettings, IPlannerProgram } from "../../src/types";
+import { IProgram, ISettings, IPlannerProgram, IExerciseType } from "../../src/types";
 import { UidFactory } from "../../src/utils/generator";
 import { IWeightChange, ProgramExercise } from "../../src/models/programExercise";
 import { CollectionUtils } from "../../src/utils/collection";
 import { ProgramToPlanner } from "../../src/models/programToPlanner";
+import { PlannerKey } from "../../src/pages/planner/plannerKey";
 
 export interface ICompletedEntries {
   completedReps: number[][];
@@ -37,6 +38,18 @@ export class PlannerTestUtils {
     const newPlanner = new ProgramToPlanner(newProgram, planner, settings, {}, {}).convertToPlanner();
     newProgram.planner = newPlanner;
     return PlannerProgram.generateFullText(newPlanner.weeks);
+  }
+
+  public static changeExercise(programText: string, oldExercise: string, newExercise: IExerciseType): string {
+    const { planner } = PlannerTestUtils.get(programText);
+    const settings = Settings.build();
+    const key = PlannerKey.fromFullName(oldExercise, settings);
+    const result = PlannerProgram.replaceExercise(planner, key, newExercise, settings);
+    if (result.success) {
+      return PlannerProgram.generateFullText(result.data.weeks);
+    } else {
+      throw result.error;
+    }
   }
 
   public static finish(

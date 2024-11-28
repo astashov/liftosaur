@@ -1,6 +1,11 @@
 import { IPlannerProgramExerciseWarmupSet, IPlannerProgramProperty, IExportedPlannerProgram } from "./types";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
-import { IPlannerEvalFullResult, IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
+import {
+  IPlannerEvalFullResult,
+  IPlannerEvalResult,
+  PlannerExerciseEvaluator,
+  PlannerSyntaxError,
+} from "../plannerExerciseEvaluator";
 import {
   IAllCustomExercises,
   IAllEquipment,
@@ -24,6 +29,7 @@ import { Storage } from "../../../models/storage";
 import { Weight } from "../../../models/weight";
 import { PP } from "../../../models/pp";
 import { IEither } from "../../../utils/types";
+import { UidFactory } from "../../../utils/generator";
 
 export type IExerciseTypeToProperties = Record<string, (IPlannerProgramProperty & { dayData: Required<IDayData> })[]>;
 export type IExerciseTypeToWarmupSets = Record<string, IPlannerProgramExerciseWarmupSet[] | undefined>;
@@ -72,13 +78,14 @@ export class PlannerProgram {
     plannerProgram: IPlannerProgram,
     key: string,
     exerciseType: IExerciseType,
-    settings: ISettings
-  ): IPlannerProgram {
+    settings: ISettings,
+    customLabel?: string
+  ): IEither<IPlannerProgram, string> {
     const conversions: Record<string, string> = {};
     const exercise = Exercise.get(exerciseType, settings.exercises);
 
     function getNewFullName(oldFullName: string): string {
-      const { label } = PlannerExerciseEvaluator.extractNameParts(oldFullName, settings);
+      const label = customLabel || PlannerExerciseEvaluator.extractNameParts(oldFullName, settings).label;
       return `${label ? `${label}: ` : ""}${exercise.name}${
         exerciseType.equipment != null && exercise.defaultEquipment !== exerciseType.equipment
           ? `, ${equipmentName(exerciseType.equipment)}`
@@ -86,7 +93,7 @@ export class PlannerProgram {
       }`;
     }
 
-    return this.modifyTopLineItems(plannerProgram, settings, (line) => {
+    const newPlannerProgram = this.modifyTopLineItems(plannerProgram, settings, (line) => {
       if (line.type === "exercise") {
         line.descriptions = line.descriptions?.map((d) => {
           if (d.match(/^\s*\/+\s*\.\.\./)) {
@@ -126,6 +133,31 @@ export class PlannerProgram {
       }
       return line;
     });
+    const { evaluatedWeeks } = PlannerProgram.evaluate(newPlannerProgram, settings);
+    const errors: [number, number, PlannerSyntaxError][] = [];
+    for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
+      const week = evaluatedWeeks[weekIndex];
+      for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex++) {
+        const day = week[dayInWeekIndex];
+        if (!day.success) {
+          errors.push([weekIndex + 1, dayInWeekIndex + 1, day.error]);
+        }
+      }
+    }
+    if (errors.length > 0) {
+      if (customLabel) {
+        return {
+          success: false,
+          error: `Failed to replace exercise:\n${errors
+            .map(([week, day, error]) => `Week ${week}, Day ${day}: ${error.toString()}`)
+            .join("\n")}`,
+        };
+      } else {
+        return this.replaceExercise(plannerProgram, key, exerciseType, settings, UidFactory.generateUid(3));
+      }
+    } else {
+      return { success: true, data: newPlannerProgram };
+    }
   }
 
   public static modifyTopLineItems(

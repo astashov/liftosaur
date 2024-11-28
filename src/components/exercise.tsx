@@ -232,7 +232,7 @@ const ExerciseContentView = memo(
                   data-cy="exercise-name"
                   onClick={() => props.onExerciseInfoClick?.(exercise)}
                 >
-                  <span className="pr-1">{Exercise.reverseName(exercise)}</span>{" "}
+                  <span className="pr-1">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
                   <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
                 </button>
               </div>

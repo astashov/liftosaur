@@ -3595,6 +3595,15 @@ export namespace Exercise {
     }
   }
 
+  export function nameWithEquipment(exercise: IExercise, settings?: ISettings): string {
+    if (exercise.equipment) {
+      const equipment = equipmentName(exercise.equipment, settings?.equipment);
+      return `${exercise.name}, ${equipment}`;
+    } else {
+      return exercise.name;
+    }
+  }
+
   export function searchNames(query: string, customExercises: IAllCustomExercises): string[] {
     const allExercises = allExpanded({});
     const exerciseNames = allExercises
