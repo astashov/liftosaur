@@ -5,10 +5,10 @@ import { DateUtils } from "../../utils/date";
 export interface IUsersDashboardContentProps {
   client: Window["fetch"];
   apiKey: string;
-  usersData: IUserDashboardData[];
+  usersData: IUsersDashboardData[];
 }
 
-export interface IUserDashboardData {
+export interface IUsersDashboardData {
   userId: string;
   email?: string;
   userTs?: number;
@@ -33,7 +33,7 @@ export interface IUserDashboardData {
   };
 }
 
-function getIsNew(item: IUserDashboardData): boolean {
+function getIsNew(item: IUsersDashboardData): boolean {
   const firstActionDate = new Date(item.firstAction.ts);
   const lastActionDate = new Date(item.lastAction.ts);
   return (
@@ -43,7 +43,7 @@ function getIsNew(item: IUserDashboardData): boolean {
   );
 }
 
-function getIsNewUser(item: IUserDashboardData): boolean {
+function getIsNewUser(item: IUsersDashboardData): boolean {
   const lastActionDate = new Date(item.lastAction.ts);
   const userDate = item.userTs && new Date(item.userTs);
   return !!(
@@ -55,7 +55,7 @@ function getIsNewUser(item: IUserDashboardData): boolean {
 }
 
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
-  const data: IUserDashboardData[][][] = [];
+  const data: IUsersDashboardData[][][] = [];
   let lastMonth;
   let lastDay;
   for (const user of props.usersData) {
@@ -164,7 +164,15 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                           <tr>
                             <td>
                               <div>
-                                <span className={isNew ? "text-greenv2-main" : "text-blackv2"}>{item.userId}</span>
+                                <span className={`${isNew ? "text-greenv2-main" : "text-blackv2"}`}>
+                                  <a
+                                    target="_blank"
+                                    className="underline"
+                                    href={`/dashboards/user/${item.userId}?key=${props.apiKey}`}
+                                  >
+                                    {item.userId}
+                                  </a>
+                                </span>
                                 {item.subscriptions.indexOf("apple") !== -1 && (
                                   <span className="ml-2 font-bold text-redv2-main">A</span>
                                 )}
@@ -186,7 +194,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   <a
                                     className="text-blue-700 underline"
                                     target="_blank"
-                                    href={`/?admin=${props.apiKey}&userid=${item.userId}`}
+                                    href={`/app?admin=${props.apiKey}&userid=${item.userId}&nosync=true`}
                                   >
                                     {item.email}
                                   </a>

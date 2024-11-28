@@ -108,7 +108,7 @@ export class UserDao {
   public async applySafeSync(
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate
-  ): Promise<IEither<number, string>> {
+  ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils.getEnv();
     const result = await Storage.get(fetch, limitedUser.storage);
     if (!result.success) {
@@ -120,7 +120,7 @@ export class UserDao {
     }
     const { originalId: oldOriginalId, version, settings, ...restStorageUpdate } = storageUpdate;
     if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils.keys(settings).length === 0) {
-      return { success: true, data: oldOriginalId || Date.now() };
+      return { success: true, data: { originalId: oldOriginalId || Date.now() } };
     }
 
     const originalId = Date.now();
@@ -199,7 +199,7 @@ export class UserDao {
       statsDeletes,
       statsUpdates,
     ]);
-    return { data: originalId, success: true };
+    return { data: { originalId, newStorage }, success: true };
   }
 
   public async getByAppleId(appleId: string): Promise<IUserDao | undefined> {

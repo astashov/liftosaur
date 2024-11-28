@@ -167,6 +167,15 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecovery: true,
     });
 
+    const eventsTable = new dynamodb.Table(this, `LftEvents${suffix}`, {
+      tableName: `lftEvents${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+    });
+
     const secretArns = {
       dev: {
         all: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG",
@@ -193,6 +202,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const exceptionsbucket = new s3.Bucket(this, `LftS3Exceptions${suffix}`, {
       bucketName: `${LftS3Buckets.exceptions}${suffix.toLowerCase()}`,
       lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
+    });
+
+    const storagesBucket = new s3.Bucket(this, `LftS3Storages${suffix}`, {
+      bucketName: `${LftS3Buckets.storages}${suffix.toLowerCase()}`,
+      lifecycleRules: [{ expiration: cdk.Duration.days(14) }],
     });
 
     const statsBucket = new s3.Bucket(this, `LftS3Stats${suffix}`, {
@@ -265,6 +279,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     exceptionsbucket.grantReadWrite(lambdaFunction);
     programsBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(lambdaFunction);
+    storagesBucket.grantReadWrite(lambdaFunction);
     statsBucket.grantReadWrite(statsLambdaFunction);
     allSecrets.grantRead(lambdaFunction);
     allSecrets.grantRead(statsLambdaFunction);
@@ -279,6 +294,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(statsLambdaFunction);
+    eventsTable.grantReadWriteData(lambdaFunction);
     urlsTable.grantReadWriteData(lambdaFunction);
     affiliatesTable.grantReadWriteData(lambdaFunction);
     freeUsersTable.grantReadWriteData(lambdaFunction);
@@ -296,4 +312,4 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
-new LiftosaurCdkStack(app, "LiftosaurStack", false);
+// new LiftosaurCdkStack(app, "LiftosaurStack", false);

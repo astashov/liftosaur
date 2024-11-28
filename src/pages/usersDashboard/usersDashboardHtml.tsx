@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { IUserDashboardData, UsersDashboardContent } from "./usersDashboardContent";
+import { IUsersDashboardData, UsersDashboardContent } from "./usersDashboardContent";
 
 export interface IUsersDashboardHtmlProps {
-  usersData: IUserDashboardData[];
+  usersData: IUsersDashboardData[];
   apiKey: string;
   client: Window["fetch"];
 }

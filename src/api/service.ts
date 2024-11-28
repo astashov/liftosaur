@@ -49,6 +49,35 @@ export type IPostStorageResponse =
 
 type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
 
+export type IEventPayload =
+  | {
+      type: "event";
+      userId?: string;
+      timestamp: number;
+      name: string;
+      extra?: Record<string, string | number>;
+    }
+  | {
+      type: "error";
+      userId?: string;
+      timestamp: number;
+      message: string;
+      stack: string;
+      rollbar_id: string;
+    }
+  | {
+      type: "safesnapshot";
+      userId?: string;
+      timestamp: number;
+      storage_id: string;
+    }
+  | {
+      type: "mergesnapshot";
+      userId?: string;
+      timestamp: number;
+      storage_id: string;
+    };
+
 const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
@@ -170,7 +199,7 @@ export class Service {
     }
     const result = await this.client(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ storageUpdate: args.storageUpdate }),
+      body: JSON.stringify({ storageUpdate: args.storageUpdate, timestamp: Date.now() }),
       credentials: "include",
     });
     const json = await result.json();
@@ -304,7 +333,12 @@ export class Service {
     return { success: false, error: "unknown" };
   }
 
-  public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
+  public async getStorage(
+    tempUserId: string,
+    userId?: string,
+    storageId?: string,
+    adminKey?: string
+  ): Promise<IGetStorageResponse> {
     const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
@@ -312,6 +346,9 @@ export class Service {
     if (userId != null && adminKey != null) {
       url.searchParams.set("userid", userId);
       url.searchParams.set("key", adminKey);
+      if (storageId) {
+        url.searchParams.set("storageid", storageId);
+      }
     }
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
@@ -334,6 +371,20 @@ export class Service {
       cachePromises[key] = fn();
     }
     return cachePromises[key];
+  }
+
+  public async postEvent(event: IEventPayload): Promise<void> {
+    const nosync =
+      typeof window !== "undefined" && UrlUtils.build(window.location.href).searchParams.get("nosync") === "true";
+    if (nosync) {
+      return;
+    }
+    const url = UrlUtils.build(`${__API_HOST__}/api/event`);
+    await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify(event),
+      credentials: "include",
+    });
   }
 
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {

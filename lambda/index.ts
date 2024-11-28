@@ -38,7 +38,7 @@ import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";
 import { renderUsersDashboardHtml } from "./usersDashboard";
 import { DateUtils } from "../src/utils/date";
-import { IUserDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
+import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
 import { FreeUserDao } from "./dao/freeUserDao";
@@ -56,7 +56,7 @@ import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate } from "../src/utils/sync";
-import { IPostSyncResponse } from "../src/api/service";
+import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings } from "../src/models/settings";
 import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
 import { renderLoginHtml } from "./login";
@@ -66,6 +66,9 @@ import { renderExerciseHtml } from "./exercise";
 import { renderAllExercisesHtml } from "./allExercises";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils } from "../src/utils/math";
+import { EventDao } from "./dao/eventDao";
+import { StorageDao } from "./dao/storageDao";
+import { renderUserDashboardHtml } from "./userDashboard";
 
 interface IOpenIdResponseSuccess {
   sub: string;
@@ -212,6 +215,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
   let userId: string | undefined = undefined;
   let setCookie: string | undefined = undefined;
   const bodyJson = getBodyJson(event);
+  const timestamp = bodyJson.timestamp || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate;
   if (params.adminkey != null && params.userid != null && params.adminkey === (await di.secrets.getApiKey())) {
     userId = params.userid;
@@ -233,6 +237,8 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
   const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
   const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
     ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+  const eventDao = new EventDao(di);
+  const storageDao = new StorageDao(di);
   if (userId != null) {
     const userDao = new UserDao(di);
     const limitedUser = await userDao.getLimitedById(userId);
@@ -244,10 +250,21 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
           di.log.log("New original id", result.data);
-          await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
+          const [storageId] = await Promise.all([
+            storageDao.store(limitedUser.id, result.data.newStorage),
+            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
+          ]);
+          if (storageId) {
+            await eventDao.post({
+              type: "safesnapshot",
+              userId: limitedUser.id,
+              timestamp,
+              storage_id: storageId,
+            });
+          }
           return response(200, {
             type: "clean",
-            new_original_id: result.data,
+            new_original_id: result.data.originalId,
             email: limitedUser.email,
             user_id: limitedUser.id,
             key,
@@ -262,11 +279,17 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
           di.log.log("New original id", result.data);
-          await userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate);
           const fullUser = (await userDao.getById(userId))!;
           const storage = fullUser.storage;
+          const [storageId] = await Promise.all([
+            storageDao.store(limitedUser.id, storage),
+            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
+          ]);
           if (key) {
             storage.subscription.key = key;
+          }
+          if (storageId) {
+            await eventDao.post({ type: "mergesnapshot", userId: limitedUser.id, timestamp, storage_id: storageId });
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {
@@ -279,7 +302,12 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
   return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
 };
 
-const getStorageEndpoint = Endpoint.build("/api/storage", { tempuserid: "string?", key: "string?", userid: "string?" });
+const getStorageEndpoint = Endpoint.build("/api/storage", {
+  tempuserid: "string?",
+  key: "string?",
+  userid: "string?",
+  storageid: "string?",
+});
 const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStorageEndpoint> = async ({
   payload,
   match,
@@ -288,7 +316,8 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const querystringParams = event.queryStringParameters || {};
   let userId;
   let setCookie: string | undefined = undefined;
-  if (match.params.key != null && match.params.userid != null && match.params.key === (await di.secrets.getApiKey())) {
+  const passAdminKey = match.params.key != null && match.params.key === (await di.secrets.getApiKey());
+  if (passAdminKey && match.params.userid != null) {
     userId = querystringParams.userid;
     const cookieSecret = await di.secrets.getCookieSecret();
     const session = JWT.sign({ userId: userId }, cookieSecret);
@@ -310,6 +339,13 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     const userDao = new UserDao(di);
     const user = await userDao.getById(userId);
     if (user != null) {
+      if (passAdminKey && match.params.storageid) {
+        const storageDao = new StorageDao(di);
+        const loadedStorage = await storageDao.get(user.id, match.params.storageid);
+        if (loadedStorage) {
+          user.storage = loadedStorage.data as IStorage;
+        }
+      }
       di.log.log(`Responding user data, id: ${user.storage.id}, original id: ${user.storage.originalId}`);
       user.storage.originalId = user.storage.originalId || Date.now();
       return ResponseUtils.json(
@@ -849,6 +885,48 @@ const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   return ResponseUtils.json(400, event, { error });
 };
 
+const getDashboardsUserEndpoint = Endpoint.build("/dashboards/user/:userid", { key: "string" });
+const getDashboardsUserHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsUserEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  const apiKey = await di.secrets.getApiKey();
+  if (match.params.key === apiKey) {
+    const userDao = new UserDao(di);
+    const eventDao = new EventDao(di);
+    const user = await userDao.getById(match.params.userid);
+    const events = await eventDao.getByUserId(match.params.userid);
+    if (user != null || events.length > 0) {
+      return {
+        statusCode: 200,
+        body: renderUserDashboardHtml(
+          di.fetch,
+          apiKey,
+          user
+            ? {
+                email: user.email,
+                id: user.id,
+                workoutsCount: user.storage.history.length,
+                firstWorkoutDate: DateUtils.formatYYYYMMDD(
+                  user.storage.history[user.storage.history.length - 1].startTime
+                ),
+                programNames: user.storage.programs.map((p) => p.name),
+              }
+            : undefined,
+          events
+        ),
+        headers: { "content-type": "text/html" },
+      };
+    } else {
+      return ResponseUtils.json(404, event, { error: "User not found" });
+    }
+  } else {
+    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+  }
+};
+
 const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });
 const getProfileImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProfileImageEndpoint> = async ({
   payload,
@@ -950,7 +1028,7 @@ const getDashboardsUsersHandler: RouteHandler<
     const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
 
     const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
-    const data: IUserDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
+    const data: IUsersDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
       const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
       const programNames = CollectionUtils.sort(userIdToProgramNames[userId] || [], (a, b) => {
         const user = usersById[userId];
@@ -1531,6 +1609,21 @@ const getPlanShorturlResponseHandler: RouteHandler<
   return _getProgramShorturlResponseHandler(payload.di, payload.event, params.id);
 };
 
+const postEventEndpoint = Endpoint.build("/api/event");
+const postEventHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postEventEndpoint> = async ({
+  payload,
+}) => {
+  const { di, event } = payload;
+  const bodyJson: IEventPayload = getBodyJson(event);
+  const userId = (await getCurrentUserId(event, di)) || bodyJson.userId;
+  if (userId == null) {
+    return ResponseUtils.json(400, event, { error: "missing user id" });
+  }
+  const eventDao = new EventDao(di);
+  await eventDao.post({ ...bodyJson, userId });
+  return ResponseUtils.json(200, event, { data: "ok" });
+};
+
 async function _getProgramShorturlResponseHandler(
   di: IDI,
   event: APIGatewayProxyEvent,
@@ -1948,7 +2041,9 @@ export const getRawHandler = (di: IDI): IHandler => {
       .get(getExerciseEndpoint, getExerciseHandler)
       .get(getAllExercisesEndpoint, getAllExercisesHandler)
       .get(getRepMaxEndpoint, getRepMaxHandler)
-      .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler);
+      .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler)
+      .post(postEventEndpoint, postEventHandler)
+      .get(getDashboardsUserEndpoint, getDashboardsUserHandler);
 
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);

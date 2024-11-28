@@ -24,6 +24,7 @@ interface Window {
   structuredClone?: (obj: any) => any;
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;
+  tempUserId?: string;
 }
 
 declare namespace YT {

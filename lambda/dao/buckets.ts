@@ -3,6 +3,7 @@ export const LftS3Buckets = {
   stats: "liftosaurstats",
   debugs: "liftosaurdebugs2",
   exceptions: "liftosaurexceptions2",
+  storages: "liftosaurstorages",
   programs: "liftosaurprograms",
   images: "liftosaurimages2",
 };
