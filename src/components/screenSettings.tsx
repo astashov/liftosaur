@@ -89,26 +89,24 @@ export function ScreenSettings(props: IProps): JSX.Element {
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk.pushScreen("account"))}
         />
-        {props.user && (
-          <MenuItemEditable
-            type="text"
-            name="Nickname"
-            value={props.settings.nickname || ""}
-            nextLine={
-              <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-grayv2-main">
-                Used for profile page
-              </div>
-            }
-            onChange={(newValue) => {
-              props.dispatch({
-                type: "UpdateSettings",
-                lensRecording: lb<ISettings>()
-                  .p("nickname")
-                  .record(newValue ? newValue : undefined),
-              });
-            }}
-          />
-        )}
+        <MenuItemEditable
+          type="text"
+          name="Nickname"
+          value={props.settings.nickname || ""}
+          nextLine={
+            <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-grayv2-main">
+              Used for profile page if you have an account
+            </div>
+          }
+          onChange={(newValue) => {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
+                .p("nickname")
+                .record(newValue ? newValue : undefined),
+            });
+          }}
+        />
         {props.user && (
           <MenuItemEditable
             type="boolean"
