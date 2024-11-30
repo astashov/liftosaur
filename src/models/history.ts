@@ -90,8 +90,16 @@ export namespace History {
   }
 
   export function getMaxSetFromEntry(entry: IHistoryEntry): ISet | undefined {
+    return getMaxSet(entry.sets);
+  }
+
+  export function getMax1RMFromEntry(entry: IHistoryEntry): ISet | undefined {
+    return getMax1RM(entry.sets);
+  }
+
+  export function getMaxSet(sets: ISet[]): ISet | undefined {
     return CollectionUtils.sort(
-      entry.sets.filter((s) => (s.completedReps || 0) > 0),
+      sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
         const weightDiff = Weight.compare(b.weight, a.weight);
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
@@ -102,11 +110,14 @@ export namespace History {
     )[0];
   }
 
-  export function getMaxSet(sets: ISet[]): ISet | undefined {
+  export function getMax1RM(sets: ISet[]): ISet | undefined {
     return CollectionUtils.sort(
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
-        const weightDiff = Weight.compare(b.weight, a.weight);
+        const weightDiff = Weight.compare(
+          Weight.getOneRepMax(b.weight, b.completedReps || 0),
+          Weight.getOneRepMax(a.weight, a.completedReps || 0)
+        );
         if (weightDiff === 0 && a.completedReps && b.completedReps) {
           return b.completedReps - a.completedReps;
         }

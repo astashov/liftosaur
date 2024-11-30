@@ -1404,6 +1404,23 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241130": {
+    title: <span>Added Week Insights</span>,
+    body: (
+      <ul>
+        <li>After each week workouts on the Workout History screen - there'll be a card with "Week Insights".</li>
+        <li>
+          It's pretty much the same as "Week Stats" on the Program screen, but for the actual week - it'll show how many
+          sets total, hypertrophy/strength split, sets per muscle group you did with the workouts that week.
+        </li>
+        <li>
+          It can help you analyze your performace in case you skipped workouts, or did Ad-Hoc workouts, or mixed
+          different programs.
+        </li>
+        <li>It's a Premium-only feature! 💵</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

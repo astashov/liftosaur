@@ -1,5 +1,5 @@
 export namespace DateUtils {
-  export function format(dateStr: string | Date | number, hideWeekday?: boolean): string {
+  export function format(dateStr: string | Date | number, hideWeekday?: boolean, hideYear?: boolean): string {
     let date;
     if (typeof dateStr === "string") {
       date = new Date(Date.parse(dateStr));
@@ -10,7 +10,7 @@ export namespace DateUtils {
     }
     return date.toLocaleDateString(undefined, {
       weekday: !hideWeekday ? "short" : undefined,
-      year: "numeric",
+      year: !hideYear ? "numeric" : undefined,
       month: "short",
       day: "numeric",
     });
@@ -111,6 +111,24 @@ export namespace DateUtils {
     }
 
     return [year, month, day, hours, minutes, seconds].join("");
+  }
+
+  export function firstDayOfWeekTimestamp(date: Date | number): number {
+    const d = new Date(date);
+    const weekDay = d.getDay();
+    const currentDay = d.getDate();
+    const beginningOfWeekDay = currentDay - weekDay + 1;
+    const newDate = new Date(d.getFullYear(), d.getMonth(), beginningOfWeekDay);
+    return newDate.getTime();
+  }
+
+  export function lastDayOfWeekTimestamp(date: Date | number): number {
+    const d = new Date(date);
+    const weekDay = d.getDay();
+    const currentDay = d.getDate();
+    const endOfWeekDay = currentDay + (6 - weekDay);
+    const newDate = new Date(d.getFullYear(), d.getMonth(), endOfWeekDay);
+    return newDate.getTime();
   }
 
   export function formatHHMMSS(date: Date | string | number, withMs: boolean = false): string {

@@ -99,7 +99,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   );
 }
 
-function labelSet(
+export function labelSet(
   label: string,
   showLink: boolean,
   types: IExerciseKind[],
@@ -130,7 +130,7 @@ function labelSet(
   }
 }
 
-function PlannerSetSplit(props: {
+export function PlannerSetSplit(props: {
   split: ISetSplit;
   settings: ISettings;
   shouldIncludeFrequency: boolean;
@@ -186,7 +186,7 @@ function PlannerSetSplit(props: {
   );
 }
 
-function colorPctValue(total: number, num: number, target: number): string {
+export function colorPctValue(total: number, num: number, target: number): string {
   const strengthPct = total > 0 ? Math.round((num * 100) / total) : 0;
   if (strengthPct >= target) {
     return "text-greenv2-main";
@@ -197,7 +197,7 @@ function colorPctValue(total: number, num: number, target: number): string {
   }
 }
 
-function colorRangeValue(value: number, min: number, max: number): string {
+export function colorRangeValue(value: number, min: number, max: number): string {
   if (value >= min && value <= max) {
     return "text-greenv2-main";
   } else if (value >= min * 0.7 && value <= max * 1.3) {
@@ -207,7 +207,7 @@ function colorRangeValue(value: number, min: number, max: number): string {
   }
 }
 
-function directionValue(value: number, min: number, max: number): string {
+export function directionValue(value: number, min: number, max: number): string {
   if (value < min) {
     return "↑";
   } else if (value > max) {
@@ -249,7 +249,7 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
           return (
             <li className={`font-bold ${exercise.isSynergist ? "text-grayv2-main" : "text-blackv2"}`}>
-              {exercise.exerciseName}: {totalSets} ({exercise.strengthSets}s, {exercise.hypertrophySets}h)
+              {exercise.exerciseName}: {n(totalSets)} ({exercise.strengthSets}s, {n(exercise.hypertrophySets)}h)
             </li>
           );
         })}

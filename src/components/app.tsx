@@ -306,6 +306,7 @@ export function AppView(props: IProps): JSX.Element | null {
           stats={state.storage.stats}
           settings={state.storage.settings}
           history={state.storage.history}
+          subscription={state.storage.subscription}
           dispatch={dispatch}
         />
       );
