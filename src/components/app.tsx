@@ -212,9 +212,11 @@ export function AppView(props: IProps): JSX.Element | null {
     };
     const onunhandledexception = (event: PromiseRejectionEvent): void => {
       const reason = event.reason;
+      console.log(reason);
+      console.error(reason);
+      const message = (typeof reason === "string" ? reason : reason.message) ?? "No Message";
       Rollbar.error(reason, (_err, data) => {
         const uuid = data?.result?.uuid;
-        const message = (typeof reason === "string" ? reason : reason.message) ?? "No Message";
         if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
           service.postEvent({
             type: "error",
