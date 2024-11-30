@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { emptyProgramId, Program } from "../models/program";
 import { Thunk } from "../ducks/thunks";
 import { useState } from "preact/hooks";
-import { IProgram, IHistoryRecord, ISettings, IStats } from "../types";
+import { IProgram, IHistoryRecord, ISettings, IStats, ISubscription } from "../types";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { ILoading } from "../models/state";
 import { Surface } from "./surface";
@@ -32,6 +32,7 @@ interface IProps {
   userId?: string;
   settings: ISettings;
   loading: ILoading;
+  subscription: ISubscription;
   dispatch: IDispatch;
 }
 
@@ -139,6 +140,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       )}
       <HistoryRecordsList
         history={history}
+        subscription={props.subscription}
         progress={props.progress}
         settings={props.settings}
         dispatch={dispatch}
