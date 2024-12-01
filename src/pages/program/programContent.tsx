@@ -23,6 +23,8 @@ import { IProgram, ISettings } from "../../types";
 import { ImportExporter } from "../../lib/importexporter";
 import { ImportFromLink } from "../../utils/importFromLink";
 import { Button } from "../../components/button";
+import { Weight } from "../../models/weight";
+import { PlannerProgram } from "../planner/models/plannerProgram";
 
 export interface IProgramContentProps {
   client: Window["fetch"];
@@ -176,6 +178,18 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
                       ...state.settings,
                       exercises: { ...state.settings.exercises, ...customExercises },
                     };
+                    if (
+                      newProgram.planner &&
+                      PlannerProgram.hasNonSelectedWeightUnit(newProgram.planner, state.settings)
+                    ) {
+                      const fromUnit = Weight.oppositeUnit(state.settings.units);
+                      const toUnit = state.settings.units;
+                      if (
+                        confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)
+                      ) {
+                        newProgram.planner = PlannerProgram.switchToUnit(newProgram.planner, state.settings);
+                      }
+                    }
                     alert("Starting to import!");
                     const exportedProgram = Program.exportProgram(newProgram, newSettings);
                     const id = await saveProgram(props.client, exportedProgram);

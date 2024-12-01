@@ -48,6 +48,7 @@ import { IconSpinner } from "../../components/icons/iconSpinner";
 import { IExportedProgram, Program } from "../../models/program";
 import { LinkButton } from "../../components/linkButton";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
+import { Weight } from "../../models/weight";
 
 declare let __HOST__: string;
 
@@ -326,6 +327,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             account={props.account}
             onAddProgram={async () => {
               const exportedProgram = buildExportedProgram(state.id, state.current.program, settings, props.nextDay);
+              const pg = exportedProgram.program;
+              if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
+                const fromUnit = Weight.oppositeUnit(settings.units);
+                const toUnit = settings.units;
+                if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
+                  pg.planner = PlannerProgram.switchToUnit(pg.planner, settings);
+                }
+              }
               setIsBannerLoading(true);
               const id = await saveProgram(props.client, exportedProgram);
               if (id != null) {
