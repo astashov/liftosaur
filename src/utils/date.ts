@@ -115,7 +115,10 @@ export namespace DateUtils {
 
   export function firstDayOfWeekTimestamp(date: Date | number): number {
     const d = new Date(date);
-    const weekDay = d.getDay();
+    let weekDay = d.getDay();
+    if (weekDay === 0) {
+      weekDay = 7;
+    }
     const currentDay = d.getDate();
     const beginningOfWeekDay = currentDay - weekDay + 1;
     const newDate = new Date(d.getFullYear(), d.getMonth(), beginningOfWeekDay);
@@ -124,10 +127,13 @@ export namespace DateUtils {
 
   export function lastDayOfWeekTimestamp(date: Date | number): number {
     const d = new Date(date);
-    const weekDay = d.getDay();
+    let weekDay = d.getDay();
+    if (weekDay === 0) {
+      weekDay = 7;
+    }
     const currentDay = d.getDate();
-    const endOfWeekDay = currentDay + (6 - weekDay);
-    const newDate = new Date(d.getFullYear(), d.getMonth(), endOfWeekDay);
+    const endOfWeekDay = currentDay + (7 - weekDay);
+    const newDate = new Date(d.getFullYear(), d.getMonth(), endOfWeekDay, 23, 59, 59);
     return newDate.getTime();
   }
 
