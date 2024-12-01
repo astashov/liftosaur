@@ -899,6 +899,11 @@ const getDashboardsUserHandler: RouteHandler<
     const user = await userDao.getById(match.params.userid);
     const events = await eventDao.getByUserId(match.params.userid);
     if (user != null || events.length > 0) {
+      const firstWorkoutDate =
+        user && user.storage.history.length > 0
+          ? DateUtils.formatYYYYMMDD(user.storage.history[user.storage.history.length - 1].startTime)
+          : undefined;
+
       return {
         statusCode: 200,
         body: renderUserDashboardHtml(
@@ -909,9 +914,7 @@ const getDashboardsUserHandler: RouteHandler<
                 email: user.email,
                 id: user.id,
                 workoutsCount: user.storage.history.length,
-                firstWorkoutDate: DateUtils.formatYYYYMMDD(
-                  user.storage.history[user.storage.history.length - 1].startTime
-                ),
+                firstWorkoutDate,
                 programNames: user.storage.programs.map((p) => p.name),
               }
             : undefined,

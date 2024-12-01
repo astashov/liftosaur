@@ -15,7 +15,7 @@ export interface IUserDashboardData {
   programNames: string[];
   id: string;
   workoutsCount: number;
-  firstWorkoutDate: string;
+  firstWorkoutDate?: string;
 }
 
 export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Element {
@@ -45,8 +45,12 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
         </h2>
         {userDao && (
           <div className="text-base">
-            Workouts: <strong>{userDao.workoutsCount}</strong>, First workout:{" "}
-            <strong>{userDao.firstWorkoutDate}</strong>
+            Workouts: <strong>{userDao.workoutsCount}</strong>
+            {userDao.firstWorkoutDate && (
+              <span>
+                , First workout: <strong>{userDao.firstWorkoutDate}</strong>
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -110,7 +114,6 @@ function EventView(props: IEventViewProps): JSX.Element | null {
       </div>
     );
   } else if (event.type === "error") {
-    console.log(event.stack);
     return (
       <div>
         <div>
