@@ -213,7 +213,11 @@ export function AppView(props: IProps): JSX.Element | null {
     const onunhandledexception = (event: PromiseRejectionEvent): void => {
       const reason = event.reason;
       console.log(reason);
-      console.error(reason);
+      try {
+        console.log(JSON.stringify(reason));
+      } catch (e) {
+        console.log("Failed to stringify onunhandledexception reason");
+      }
       const message = (typeof reason === "string" ? reason : reason.message) ?? "No Message";
       Rollbar.error(reason, (_err, data) => {
         const uuid = data?.result?.uuid;
