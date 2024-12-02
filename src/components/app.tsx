@@ -212,26 +212,22 @@ export function AppView(props: IProps): JSX.Element | null {
     };
     const onunhandledexception = (event: PromiseRejectionEvent): void => {
       const reason = event.reason;
-      console.log(reason);
-      try {
-        console.log(JSON.stringify(reason));
-      } catch (e) {
-        console.log("Failed to stringify onunhandledexception reason");
+      const message = typeof reason === "string" ? reason : reason.message;
+      if (message != null) {
+        Rollbar.error(reason, (_err, data) => {
+          const uuid = data?.result?.uuid;
+          if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
+            service.postEvent({
+              type: "error",
+              userId: userId,
+              timestamp: Date.now(),
+              message: message || "",
+              stack: reason.stack || "",
+              rollbar_id: uuid || "",
+            });
+          }
+        });
       }
-      const message = (typeof reason === "string" ? reason : reason.message) ?? "No Message";
-      Rollbar.error(reason, (_err, data) => {
-        const uuid = data?.result?.uuid;
-        if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
-          service.postEvent({
-            type: "error",
-            userId: userId,
-            timestamp: Date.now(),
-            message: message || "",
-            stack: reason.stack || "",
-            rollbar_id: uuid || "",
-          });
-        }
-      });
     };
     if (typeof window !== "undefined") {
       const source = url?.searchParams.get("s");
