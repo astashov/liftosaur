@@ -214,6 +214,7 @@ export function AppView(props: IProps): JSX.Element | null {
       const reason = event.reason;
       const message = typeof reason === "string" ? reason : reason.message;
       if (message != null) {
+        console.log("Message", message);
         Rollbar.error(reason, (_err, data) => {
           const uuid = data?.result?.uuid;
           if (exceptionIgnores.every((ignore) => !message.includes(ignore))) {
