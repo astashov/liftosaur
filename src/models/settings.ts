@@ -9,6 +9,7 @@ export namespace Settings {
       timers: {
         warmup: 90,
         workout: 180,
+        reminder: 900,
       },
       units: "lb",
       planner: buildPlannerSettings(),

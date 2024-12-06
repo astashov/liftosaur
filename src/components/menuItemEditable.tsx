@@ -13,7 +13,7 @@ interface IMenuItemEditableValueProps {
   name: string;
   prefix?: ComponentChildren;
   type: IMenuItemType;
-  value: string | null;
+  value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
   onChange?: (v?: string, e?: Event) => void;

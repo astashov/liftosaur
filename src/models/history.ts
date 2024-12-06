@@ -24,6 +24,7 @@ import { IState, updateState } from "./state";
 import { lb, lbu } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
+import { SendMessage } from "../utils/sendMessage";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -559,6 +560,7 @@ export namespace History {
 
   export function pauseWorkoutAction(dispatch: IDispatch): void {
     const lensGetters = { progress: lb<IState>().p("progress").pi(0).get() };
+    SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
     updateState(dispatch, [
       lbu<IState, typeof lensGetters>(lensGetters)
         .p("progress")
@@ -583,13 +585,13 @@ export namespace History {
     }
   }
 
-  export function resumeWorkoutAction(dispatch: IDispatch): void {
+  export function resumeWorkoutAction(dispatch: IDispatch, settings: ISettings): void {
     updateState(dispatch, [
       lb<IState>()
         .p("progress")
         .pi(0)
         .p("intervals")
-        .recordModify((intervals) => resumeWorkout(intervals)),
+        .recordModify((intervals) => resumeWorkout(intervals, settings.timers.reminder)),
     ]);
   }
 
@@ -597,7 +599,8 @@ export namespace History {
     return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
   }
 
-  export function resumeWorkout(intervals?: IIntervals): IIntervals | undefined {
+  export function resumeWorkout(intervals?: IIntervals, reminder?: number): IIntervals | undefined {
+    SendMessage.toIosAndAndroid({ type: "resumeWorkout", reminder: `${reminder || 0}` });
     if (isPaused(intervals)) {
       const newIntervals = intervals ? ObjectUtils.clone(intervals) : [];
       newIntervals.push([Date.now(), undefined]);

@@ -870,11 +870,16 @@ export const TStatsEnabled = t.type(
 );
 export type IStatsEnabled = Readonly<t.TypeOf<typeof TStatsEnabled>>;
 
-export const TSettingsTimers = t.type(
-  {
-    warmup: t.union([t.number, t.undefined, t.null]),
-    workout: t.union([t.number, t.undefined, t.null]),
-  },
+export const TSettingsTimers = t.intersection(
+  [
+    t.interface({
+      warmup: t.union([t.number, t.undefined, t.null]),
+      workout: t.union([t.number, t.undefined, t.null]),
+    }),
+    t.partial({
+      reminder: t.number,
+    }),
+  ],
   "TSettingsTimers"
 );
 export type ISettingsTimers = t.TypeOf<typeof TSettingsTimers>;

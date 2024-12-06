@@ -91,7 +91,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                   progress={props.progress}
                   onPauseResume={() => {
                     if (History.isPaused(props.progress.intervals)) {
-                      History.resumeWorkoutAction(props.dispatch);
+                      History.resumeWorkoutAction(props.dispatch, props.settings);
                     } else {
                       History.pauseWorkoutAction(props.dispatch);
                     }

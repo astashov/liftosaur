@@ -33,6 +33,10 @@ export namespace SendMessage {
     return parseInt(window.lftAndroidVersion?.toString() || "0", 10);
   }
 
+  export function isIosOrAndroid(): boolean {
+    return isIos() || isAndroid();
+  }
+
   export function isIos(): boolean {
     return (
       typeof window !== "undefined" &&
