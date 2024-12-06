@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Locator, Page, expect } from "@playwright/test";
+import { localdomain } from "../src/localdomain";
+
+export const startpage = `https://${localdomain}.liftosaur.com:8080/app/`;
 
 export class PlaywrightUtils {
   public static async clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {

@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 async function finishExercise(page: Page, name: string): Promise<void> {
   const exerciseSets = page.locator(`[data-cy^=exercise-]:has-text('${name}') [data-cy^=set-]`);
@@ -18,7 +18,7 @@ async function switchBackToFirstDay(page: Page): Promise<void> {
 }
 
 test("works", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.locator("button:has-text('Basic Beginner Routine')").click({ force: true });
   await page.getByTestId("clone-program").click({ force: true });
   await page.getByTestId("start-workout").click({ force: true });

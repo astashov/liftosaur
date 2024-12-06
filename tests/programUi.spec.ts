@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("Warmups", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
@@ -29,7 +29,7 @@ test("Warmups", async ({ page }) => {
 });
 
 test("Sets", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -60,7 +60,7 @@ test("Sets", async ({ page }) => {
 });
 
 test("Change exercise", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -86,7 +86,7 @@ test("Change exercise", async ({ page }) => {
 });
 
 test("Reuse without overwrite", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -117,7 +117,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
 });
 
 test("Reuse with overwrites", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -165,7 +165,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
 });
 
 test("Reuse progresses", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();
@@ -201,7 +201,7 @@ Bicep Curl / 3x3`
 });
 
 test("Converts global weights into per-set weights", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
   await page.getByTestId("modal-create-program-input").fill("My Program");
   await page.getByTestId("modal-create-experimental-program-submit").click();

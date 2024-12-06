@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { localdomain } from "./src/localdomain";
 
 export default defineConfig({
   // Look for test files in the "tests" directory, relative to this configuration file.
@@ -21,7 +22,7 @@ export default defineConfig({
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`.
-    baseURL: "https://local.liftosaur.com:8080?skipintro=1",
+    baseURL: `https://${localdomain}.liftosaur.com:8080?skipintro=1`,
 
     // Collect trace when retrying the failed test.
     trace: "on-first-retry",

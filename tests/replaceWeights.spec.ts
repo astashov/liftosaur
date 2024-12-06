@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("replaces weights", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByTestId("create-program").click();
 
   await page.getByTestId("modal-create-program-input").clear();

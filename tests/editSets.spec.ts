@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { startpage } from "./playwrightUtils";
 
 test("edits sets properly", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.locator("button:has-text('Basic Beginner Routine')").click();
   await page.getByTestId("clone-program").click();
   await page.getByTestId("start-workout").click();

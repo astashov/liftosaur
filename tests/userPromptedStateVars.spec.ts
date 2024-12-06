@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 
 test("User Prompted State Vars", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1");
+  await page.goto(startpage + "?skipintro=1&legacy=1");
   // Creating the program
 
   await page.getByTestId("create-program").click();

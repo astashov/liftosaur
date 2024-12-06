@@ -1,6 +1,10 @@
+import { localdomain } from "../../src/localdomain";
+
 export function g(...dataCys: string[]): ReturnType<typeof cy.get> {
   return cy.get(s(...dataCys), { timeout: 8000 });
 }
+
+export const startpage = `https://${localdomain}.liftosaur.com:8080/app/`;
 
 export function s(...dataCys): string {
   return dataCys.map((dataCy) => `[data-cy=${dataCy}]`).join(" ");
@@ -47,7 +51,7 @@ export function clearAll(): void {
 
 export function login(email: string): void {
   clearAll();
-  cy.visit(`https://local.liftosaur.com:8080/app/?forceuseremail=${email}&skipintro=1`);
+  cy.visit(`${startpage}/?forceuseremail=${email}&skipintro=1`);
   cy.get("button:contains('Basic Beginner Routine')").click();
   g("clone-program").click();
   g("footer-settings").click();

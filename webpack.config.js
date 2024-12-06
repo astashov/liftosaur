@@ -1,4 +1,5 @@
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+const { main: localdomain, api: localapidomain } = require("./localdomain");
 
 const path = require("path");
 const fs = require("fs");
@@ -7,6 +8,9 @@ const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
 const fullCommitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+
+const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
+const local = `https://${localdomain}.liftosaur.com:8080/`;
 
 // Export a function. Accept the base config as the only param.
 module.exports = {
@@ -94,7 +98,7 @@ module.exports = {
           ? process.env.STAGE
             ? "https://api3-dev.liftosaur.com"
             : "https://api3.liftosaur.com"
-          : "https://local-api.liftosaur.com:3000"
+          : `https://${localapidomain}.liftosaur.com:3000`
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
@@ -102,7 +106,7 @@ module.exports = {
           ? process.env.STAGE
             ? "https://stage.liftosaur.com"
             : "https://www.liftosaur.com"
-          : "https://local.liftosaur.com:8080"
+          : `https://${localdomain}.liftosaur.com:8080`
       ),
     }),
     new CopyPlugin([
@@ -208,8 +212,10 @@ module.exports = {
       process.env.NODE_ENV === "production"
         ? undefined
         : {
-            key: fs.readFileSync(path.join(process.env.HOME, ".secrets/live/local.liftosaur.com/privkey.pem")),
-            cert: fs.readFileSync(path.join(process.env.HOME, ".secrets/live/local.liftosaur.com/fullchain.pem")),
+            key: fs.readFileSync(path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`)),
+            cert: fs.readFileSync(
+              path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`)
+            ),
           },
     hot: false,
     allowedHosts: "all",
@@ -217,34 +223,34 @@ module.exports = {
     host: "0.0.0.0",
     proxy: {
       "/p/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/docs": {
-        target: "https://local.liftosaur.com:8080/blog",
+        target: local + "/blog",
         secure: false,
       },
       "/about": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         pathRewrite: (p, req) => {
           return "/main";
         },
         secure: false,
       },
       "/n/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/record": {
-        target: "https://local-api.liftosaur.com:3000/api",
+        target: localapi + "/api",
         secure: false,
       },
       "/admin": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/profileimage/*": {
-        target: "https://local-api.liftosaur.com:3000",
+        target: localapi,
         secure: false,
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
@@ -252,7 +258,7 @@ module.exports = {
         },
       },
       "/profile/*": {
-        target: "https://local-api.liftosaur.com:3000",
+        target: localapi,
         secure: false,
         pathRewrite: (p, req) => {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
@@ -260,15 +266,15 @@ module.exports = {
         },
       },
       "/programs/*": {
-        target: "https://0.0.0.0:3000",
+        target: localapi,
         secure: false,
       },
       "/planner": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/dashboards/affiliates/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/externalimages/*": {
@@ -277,78 +283,78 @@ module.exports = {
         changeOrigin: true,
       },
       "/dashboards/users": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/dashboards/user/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/login": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/exercises": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
-      "/rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/one-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/two-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/three-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/four-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/five-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/six-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/seven-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/eight-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/nine-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/ten-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/evelen-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/twelve-rep-max-calculator": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/1rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/2rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/3rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/4rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/5rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/6rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/7rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/8rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/9rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/10rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/11rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
-      "/12rm": { target: "https://local-api.liftosaur.com:3000/", secure: false },
+      "/rep-max-calculator": { target: localapi, secure: false },
+      "/one-rep-max-calculator": { target: localapi, secure: false },
+      "/two-rep-max-calculator": { target: localapi, secure: false },
+      "/three-rep-max-calculator": { target: localapi, secure: false },
+      "/four-rep-max-calculator": { target: localapi, secure: false },
+      "/five-rep-max-calculator": { target: localapi, secure: false },
+      "/six-rep-max-calculator": { target: localapi, secure: false },
+      "/seven-rep-max-calculator": { target: localapi, secure: false },
+      "/eight-rep-max-calculator": { target: localapi, secure: false },
+      "/nine-rep-max-calculator": { target: localapi, secure: false },
+      "/ten-rep-max-calculator": { target: localapi, secure: false },
+      "/evelen-rep-max-calculator": { target: localapi, secure: false },
+      "/twelve-rep-max-calculator": { target: localapi, secure: false },
+      "/rm": { target: localapi, secure: false },
+      "/1rm": { target: localapi, secure: false },
+      "/2rm": { target: localapi, secure: false },
+      "/3rm": { target: localapi, secure: false },
+      "/4rm": { target: localapi, secure: false },
+      "/5rm": { target: localapi, secure: false },
+      "/6rm": { target: localapi, secure: false },
+      "/7rm": { target: localapi, secure: false },
+      "/8rm": { target: localapi, secure: false },
+      "/9rm": { target: localapi, secure: false },
+      "/10rm": { target: localapi, secure: false },
+      "/11rm": { target: localapi, secure: false },
+      "/12rm": { target: localapi, secure: false },
       "/exercises/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/.well-known/skadnetwork/report-attribution": {
         pathRewrite: { "^/.well-known/skadnetwork/report-attribution": "/api/adattr" },
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/program": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/user/*": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/affiliates": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/programimage/*": {
-        target: "https://local-api.liftosaur.com:3000/api",
+        target: localapi + "/api",
         secure: false,
       },
       "/user/programs": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         secure: false,
       },
       "/": {
-        target: "https://local-api.liftosaur.com:3000/",
+        target: localapi,
         bypass: function (req, res, proxyOptions) {
           // If the request is not for the root path, bypass the proxy
           if (req.path !== "/") {

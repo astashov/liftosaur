@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { startpage } from "./playwrightUtils";
 
 test("rest timer", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("clone-program").click();
   await page.getByTestId("start-workout").click();

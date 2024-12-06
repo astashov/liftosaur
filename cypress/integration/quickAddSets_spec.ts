@@ -1,4 +1,4 @@
-import { g, clearCodeMirror, typeCodeMirror } from "../support/utils";
+import { g, clearCodeMirror, typeCodeMirror, startpage } from "../support/utils";
 
 describe("Program", () => {
   beforeEach(() => {
@@ -9,7 +9,7 @@ describe("Program", () => {
   });
 
   it("creates a new program and runs it", () => {
-    cy.visit("https://local.liftosaur.com:8080/app/?skipintro=1&legacy=1");
+    cy.visit(startpage + "?skipintro=1&legacy=1");
 
     // Creating the program
 

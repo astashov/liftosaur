@@ -10,6 +10,7 @@ import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
 import childProcess from "child_process";
+import { localapidomain } from "./src/localdomain";
 
 declare global {
   namespace NodeJS {
@@ -63,8 +64,8 @@ const di = buildDi(log, fetch);
 const handler = getHandler(di);
 const server = https.createServer(
   {
-    key: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/privkey.pem")),
-    cert: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/fullchain.pem")),
+    key: fs.readFileSync(path.join(process.env.HOME!, `.secrets/live/${localapidomain}.liftosaur.com/privkey.pem`)),
+    cert: fs.readFileSync(path.join(process.env.HOME!, `.secrets/live/${localapidomain}.liftosaur.com/fullchain.pem`)),
   },
   async (req, res) => {
     try {

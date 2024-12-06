@@ -1,9 +1,9 @@
-import { PlaywrightUtils } from "./playwrightUtils";
+import { PlaywrightUtils, startpage } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1&nosync=true");
+  await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   PlaywrightUtils.disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
