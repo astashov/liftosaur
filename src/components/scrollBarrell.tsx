@@ -5,7 +5,7 @@ import { StringUtils } from "../utils/string";
 interface IProps {
   isExpanded: boolean;
   values: [string, string][];
-  defaultSelectedValue: string | null;
+  defaultSelectedValue: string | null | undefined;
   numberOfVisibleItems: number;
   itemHeight: number;
   onSelect: (value: string) => void;
