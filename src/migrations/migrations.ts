@@ -859,4 +859,9 @@ export const migrations = {
     storage.settings.deletedGyms = storage.settings.deletedGyms || [];
     return storage;
   },
+  "20241207120042_add_reminder_timer": async (client: Window["fetch"], aStorage: IStorage): Promise<IStorage> => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.timers.reminder = storage.settings.timers.reminder ?? 900;
+    return storage;
+  },
 };

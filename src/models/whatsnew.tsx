@@ -1421,6 +1421,26 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241207": {
+    title: <span>Added ongoing workout reminder push notification</span>,
+    body: (
+      <ul>
+        <li>
+          In case you forget to finish the workout, there will be an additional push notification that will remind you
+          that you have an ongoing workout.
+        </li>
+        <li>
+          It's mostly useful if you keep forgetting to finish it, and then you open it in like 5 hours, and it syncs to
+          Apple/Google Health, and your calories stats go crazy.
+        </li>
+        <li>
+          You can control the delay when it will notify you on the Settings - Timers screen. By default it's set to 15
+          minutes.
+        </li>
+        <li>You need to update the app from App Store or Google Play to get the feature.</li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
