@@ -9,9 +9,37 @@ import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ObjectUtils } from "../../../utils/object";
 import { IDisplaySet, groupDisplaySets } from "../../../components/historyRecordSets";
 import { Weight } from "../../../models/weight";
-import { ISettings } from "../../../types";
+import { IPercentage, ISettings, IWeight } from "../../../types";
 import { Exercise, IExercise, warmupValues } from "../../../models/exercise";
 import { ProgramExercise } from "../../../models/programExercise";
+import { MathUtils } from "../../../utils/math";
+
+export type ILinearProgressionType = {
+  type: "linear";
+  increase: IWeight | IPercentage;
+  successesRequired?: number;
+  decrease?: IWeight | IPercentage;
+  failuresRequired?: number;
+};
+export type IDoubleProgressionType = {
+  type: "double";
+  increase: IWeight | IPercentage;
+  minReps: number;
+  maxReps: number;
+};
+export type ISumRepsProgressionType = {
+  type: "sumreps";
+  increase: IWeight | IPercentage;
+  reps: number;
+};
+export type ICustomProgressionType = {
+  type: "custom";
+};
+export type IProgressionType =
+  | ILinearProgressionType
+  | IDoubleProgressionType
+  | ISumRepsProgressionType
+  | ICustomProgressionType;
 
 export class PlannerProgramExercise {
   public static numberOfSets(exercise: IPlannerProgramExercise): number {
@@ -41,7 +69,7 @@ export class PlannerProgramExercise {
   public static sets(exercise: IPlannerProgramExercise, variationIndex?: number): IPlannerProgramExerciseSet[] {
     const reusedSets = exercise.reuse?.exercise?.sets;
     const reusedGlobals = exercise.reuse?.exercise?.globals || {};
-    variationIndex = variationIndex ?? this.currentSetVariation(exercise);
+    variationIndex = variationIndex ?? this.currentSetVariationIndex(exercise);
     const currentSets = exercise.setVariations[variationIndex]?.sets;
     const currentGlobals = exercise.globals;
     const sets = currentSets || reusedSets || [];
@@ -173,7 +201,7 @@ export class PlannerProgramExercise {
     return groupDisplaySets(displaySets);
   }
 
-  public static currentSetVariation(exercise: IPlannerProgramExercise): number {
+  public static currentSetVariationIndex(exercise: IPlannerProgramExercise): number {
     const index = exercise.setVariations.findIndex((sv) => sv.isCurrent);
     return index === -1 ? 0 : index;
   }
@@ -194,5 +222,51 @@ export class PlannerProgramExercise {
         return acc;
       }
     }, 0);
+  }
+
+  public static progressionType(exercise: IPlannerProgramExercise): IProgressionType | undefined {
+    const progress = exercise.properties.find((p) => p.name === "progress");
+    if (!progress) {
+      return undefined;
+    }
+    const name = progress.fnName;
+    const args = progress.fnArgs;
+    if (name === "lp") {
+      const increase = Weight.parsePct(args[0]);
+      if (increase == null) {
+        return undefined;
+      }
+      return {
+        type: "linear",
+        increase: increase,
+        successesRequired: MathUtils.parse(args[2]),
+        decrease: Weight.parsePct(args[3]),
+        failuresRequired: MathUtils.parse(args[5]),
+      };
+    } else if (name === "dp") {
+      const increase = Weight.parsePct(args[0]);
+      if (increase == null) {
+        return undefined;
+      }
+      return {
+        type: "double",
+        increase: increase,
+        minReps: MathUtils.parse(args[1]) || 0,
+        maxReps: MathUtils.parse(args[2]) || 0,
+      };
+    } else if (name === "sum") {
+      const increase = Weight.parsePct(args[1]);
+      if (increase == null) {
+        return undefined;
+      }
+      return {
+        type: "sumreps",
+        increase: increase,
+        reps: MathUtils.parse(args[0]) || 0,
+      };
+    } else if (name === "custom") {
+      return { type: "custom" };
+    }
+    return undefined;
   }
 }

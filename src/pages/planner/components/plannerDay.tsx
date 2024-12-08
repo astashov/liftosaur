@@ -126,7 +126,9 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               customExercises={exercises}
               error={evaluatedDay.success ? undefined : evaluatedDay.error}
               value={day.exerciseText}
-              onCustomErrorCta={(err) => <PlannerEditorCustomCta dispatch={props.dispatch} err={err} />}
+              onCustomErrorCta={(err) => (
+                <PlannerEditorCustomCta dispatch={props.dispatch} err={err} isInvertedColors={true} />
+              )}
               onChange={(e) => {
                 dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e));
               }}
