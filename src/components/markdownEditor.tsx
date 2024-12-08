@@ -14,7 +14,6 @@ interface IProps {
 export function MarkdownEditor(props: IProps): JSX.Element {
   const divRef = useRef<HTMLDivElement>();
   const codeEditor = useRef<EditorView | undefined>(undefined);
-  console.log("MarkdownEditor", props.value);
   useEffect(() => {
     const updateFacet = EditorView.updateListener.of((update) => {
       if (update.docChanged && props.onChange && !window.isUndoing) {

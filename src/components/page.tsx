@@ -41,7 +41,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
         <link
-          href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,300;1,600;1,700&display=swap"
           rel="stylesheet"
         />
         <meta charSet="UTF-8" />
