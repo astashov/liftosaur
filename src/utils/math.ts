@@ -57,6 +57,14 @@ export namespace MathUtils {
       num
     ];
   }
+
+  export function parse(value?: string): number | undefined {
+    if (value == null) {
+      return undefined;
+    }
+    const num = Number(value);
+    return isNaN(num) ? undefined : num;
+  }
 }
 
 export function n(value: number, precision: number = 2): string {

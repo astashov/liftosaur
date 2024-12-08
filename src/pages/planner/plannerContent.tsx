@@ -49,6 +49,8 @@ import { IExportedProgram, Program } from "../../models/program";
 import { LinkButton } from "../../components/linkButton";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 import { Weight } from "../../models/weight";
+import { IconPicture } from "../../components/icons/iconPicture";
+import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
 
 declare let __HOST__: string;
 
@@ -408,6 +410,19 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="p-2"
               onClick={() => {
                 if (!isInvalid) {
+                  dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(true));
+                }
+              }}
+            >
+              <IconPicture size={24} />
+            </button>
+          </div>
+          <div className={state.fulltext != null ? "hidden sm:block" : ""}>
+            <button
+              disabled={isInvalid}
+              className="p-2"
+              onClick={() => {
+                if (!isInvalid) {
                   dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
                 }
               }}
@@ -654,6 +669,13 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           customExerciseName={modalExerciseUi.customExerciseName}
           exerciseType={modalExerciseUi.exerciseType}
           initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils.capitalize)}
+        />
+      )}
+      {state.ui.showPictureExport && (
+        <ModalPlannerPictureExport
+          settings={settings}
+          program={program}
+          onClose={() => dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false))}
         />
       )}
       {showRevisions && props.revisions.length > 0 && (

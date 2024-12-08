@@ -48,7 +48,10 @@ export namespace Weight {
     return `${weight.value}${weight.unit}`;
   }
 
-  export function parsePct(str: string): IPercentage | IWeight | undefined {
+  export function parsePct(str?: string): IPercentage | IWeight | undefined {
+    if (str == null) {
+      return undefined;
+    }
     const match = str.match(/^([0-9.]+)%$/);
     if (match) {
       return buildPct(MathUtils.roundFloat(parseFloat(match[1]), 2));

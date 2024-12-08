@@ -141,6 +141,7 @@ export interface IPlannerUi {
   editWeekDayModal?: { weekIndex: number; dayIndex?: number };
   weekIndex: number;
   subscreen?: "weeks" | "full";
+  showPictureExport?: boolean;
   showWeekStats?: boolean;
   showDayStats?: boolean;
   showExerciseStats?: boolean;

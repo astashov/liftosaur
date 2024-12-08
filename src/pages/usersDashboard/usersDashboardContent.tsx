@@ -19,7 +19,6 @@ export interface IUsersDashboardData {
   workoutsCount: number;
   platforms: string[];
   affiliates: string[];
-  referrer?: string;
   freeUserExpires?: number;
   programNames?: string[];
   subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
@@ -153,7 +152,6 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>Review Reqs</th>
                         <th>Signup Reqs</th>
                         <th>Free Exp</th>
-                        <th>Ref</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -249,9 +247,6 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>
                             <td>{item.freeUserExpires && DateUtils.format(item.freeUserExpires)}</td>
-                            <td className="text-xs break-all" style={{ maxWidth: "12rem" }}>
-                              {item.referrer}
-                            </td>
                           </tr>
                         );
                       })}
