@@ -15,7 +15,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
             props.programExercise.exerciseType,
             props.dayData,
             ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-            { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
+            { exerciseType: props.programExercise.exerciseType, unit: props.settings.units, prints: [] },
             props.settings,
             "reps"
           )
@@ -25,7 +25,7 @@ function getRepsValues(props: IRepsWeightsProps, minRepsEnabled?: boolean): [num
       props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
+      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units, prints: [] },
       props.settings,
       "reps"
     );
@@ -40,7 +40,7 @@ function getWeightsValues(props: IRepsWeightsProps): IWeight[] {
       props.programExercise.exerciseType,
       props.dayData,
       ProgramExercise.getState(props.programExercise, props.allProgramExercises),
-      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units },
+      { exerciseType: props.programExercise.exerciseType, unit: props.settings.units, prints: [] },
       props.settings,
       "weight"
     );

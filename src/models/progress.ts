@@ -66,6 +66,7 @@ export interface IScriptBindings {
 }
 
 export interface IScriptFnContext {
+  prints: (number | IWeight | IPercentage)[][];
   unit: IUnit;
   exerciseType?: IExerciseType;
 }
@@ -100,6 +101,7 @@ export interface IScriptFunctions {
   max(vals: number[]): number;
   max(vals: IWeight[]): IWeight;
   zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
+  print(...args: unknown[]): typeof args[0];
   sets(
     from: number,
     to: number,
@@ -308,6 +310,14 @@ export namespace Progress {
       min,
       max,
       zeroOrGte,
+      print: (...fnArgs) => {
+        fnArgs.pop();
+        const context = fnArgs.pop() as IScriptFnContext;
+        const args = [...fnArgs] as (number | IWeight | IPercentage)[];
+        context.prints = context.prints || [];
+        context.prints.push(args);
+        return args[0];
+      },
       sets(
         from: number,
         to: number,
@@ -388,6 +398,7 @@ export namespace Progress {
               {
                 exerciseType: exercise,
                 unit: settings.units,
+                prints: [],
               },
               "regular"
             ).execute("timer"),
@@ -639,6 +650,7 @@ export namespace Progress {
     );
     const otherStates = Program.getOtherStates(allProgramExercises);
     try {
+      const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
       const runner = new ScriptRunner(
         script,
         state,
@@ -646,11 +658,15 @@ export namespace Progress {
         bindings,
         Progress.createScriptFunctions(settings),
         settings.units,
-        { exerciseType: exercise, unit: settings.units },
+        fnContext,
         "update"
       );
       runner.execute();
-      return Progress.applyBindings(entry, bindings);
+      const newEntry = Progress.applyBindings(entry, bindings);
+      if (fnContext.prints.length > 0) {
+        newEntry.updatePrints = fnContext.prints;
+      }
+      return newEntry;
     } catch (error) {
       const e = error as Error;
       console.error(e);
@@ -1094,7 +1110,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
             settings,
             "weight"
           )
@@ -1114,7 +1130,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
             settings,
             "weight"
           );
@@ -1127,7 +1143,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { exerciseType: programExercise.exerciseType, unit: settings.units },
+              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
               settings,
               "reps"
             ),
@@ -1137,7 +1153,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
                   settings,
                   "reps"
                 )
@@ -1148,7 +1164,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
                   settings,
                   "rpe"
                 )
@@ -1183,7 +1199,7 @@ export namespace Progress {
             programExercise.exerciseType,
             dayData,
             state,
-            { exerciseType: programExercise.exerciseType, unit: settings.units },
+            { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
             settings,
             "weight"
           );
@@ -1195,7 +1211,7 @@ export namespace Progress {
               programExercise.exerciseType,
               dayData,
               state,
-              { exerciseType: programExercise.exerciseType, unit: settings.units },
+              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
               settings,
               "reps"
             ),
@@ -1205,7 +1221,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
                   settings,
                   "reps"
                 )
@@ -1218,7 +1234,7 @@ export namespace Progress {
                   programExercise.exerciseType,
                   dayData,
                   state,
-                  { exerciseType: programExercise.exerciseType, unit: settings.units },
+                  { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
                   settings,
                   "rpe"
                 )

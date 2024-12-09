@@ -237,7 +237,7 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             settings.units,
-            { exerciseType: exercise, unit: settings.units },
+            { exerciseType: exercise, unit: settings.units, prints: [] },
             "regular"
           ).execute("reps");
         },
@@ -257,7 +257,7 @@ export namespace Program {
             Progress.createEmptyScriptBindings(dayData, settings, exercise),
             Progress.createScriptFunctions(settings),
             unit,
-            { exerciseType: exercise, unit: unit },
+            { exerciseType: exercise, unit: unit, prints: [] },
             "regular"
           ).execute("weight");
           if (Weight.isPct(weight)) {
@@ -287,7 +287,7 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { exerciseType: exercise, unit: settings.units },
+                  { exerciseType: exercise, unit: settings.units, prints: [] },
                   "regular"
                 ).execute("rpe");
               },
@@ -310,7 +310,7 @@ export namespace Program {
                   Progress.createEmptyScriptBindings(dayData, settings, exercise),
                   Progress.createScriptFunctions(settings),
                   settings.units,
-                  { exerciseType: exercise, unit: settings.units },
+                  { exerciseType: exercise, unit: settings.units, prints: [] },
                   "regular"
                 ).execute("reps");
               },
@@ -335,6 +335,7 @@ export namespace Program {
                 {
                   exerciseType: exercise,
                   unit: settings.units,
+                  prints: [],
                 },
                 "regular"
               ).execute("timer"),
@@ -498,7 +499,7 @@ export namespace Program {
       Progress.createEmptyScriptBindings(dayData, settings),
       Progress.createScriptFunctions(settings),
       settings.units,
-      { exerciseType, unit: settings.units },
+      { exerciseType, unit: settings.units, prints: [] },
       "regular"
     );
 
@@ -536,7 +537,15 @@ export namespace Program {
     program: IProgram,
     mode: IProgramMode,
     staticState?: IProgramState
-  ): IEither<{ state: IProgramState; bindings: IScriptBindings; updates: ILiftoscriptEvaluatorUpdate[] }, string> {
+  ): IEither<
+    {
+      state: IProgramState;
+      bindings: IScriptBindings;
+      updates: ILiftoscriptEvaluatorUpdate[];
+      prints: [number | IPercentage | IWeight][];
+    },
+    string
+  > {
     const allProgramExercises = program.exercises;
     const script = ProgramExercise.getFinishDayScript(programExercise, allProgramExercises);
     const setVariationIndexResult = Program.runVariationScript(
@@ -578,17 +587,9 @@ export namespace Program {
     let updates: ILiftoscriptEvaluatorUpdate[] = [];
     const otherStates = getOtherStates(allProgramExercises);
 
+    const fnContext = { exerciseType: entry.exercise, unit: settings.units, prints: [] };
     try {
-      const runner = new ScriptRunner(
-        script,
-        newState,
-        otherStates,
-        bindings,
-        fns,
-        settings.units,
-        { exerciseType: entry.exercise, unit: settings.units },
-        mode
-      );
+      const runner = new ScriptRunner(script, newState, otherStates, bindings, fns, settings.units, fnContext, mode);
       runner.execute();
       updates = runner.getUpdates();
     } catch (e) {
@@ -602,7 +603,7 @@ export namespace Program {
       newState[key] = state[key];
     }
 
-    return { success: true, data: { state: newState, updates, bindings } };
+    return { success: true, data: { state: newState, updates, bindings, prints: fnContext.prints } };
   }
 
   export function runDescriptionScript(
@@ -621,7 +622,7 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, exercise),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType: exercise, unit: settings.units },
+          { exerciseType: exercise, unit: settings.units, prints: [] },
           "regular"
         );
         return { success: true, data: scriptRunnerResult.execute("reps") };
@@ -657,7 +658,7 @@ export namespace Program {
               Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
               Progress.createScriptFunctions(settings),
               settings.units,
-              { exerciseType: programExercise.exerciseType, unit: settings.units },
+              { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
               "regular"
             ).execute("reps");
           },
@@ -714,7 +715,7 @@ export namespace Program {
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType: programExercise.exerciseType, unit: settings.units },
+          { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
           "regular"
         );
         return { success: true, data: scriptRunnerResult.execute(type as "reps") };
@@ -830,7 +831,7 @@ export namespace Program {
         bindings,
         fns,
         settings.units,
-        { exerciseType: programExercise.exerciseType, unit: settings.units },
+        { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
         mode
       );
       runner.execute();

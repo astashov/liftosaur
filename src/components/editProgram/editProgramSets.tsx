@@ -180,7 +180,7 @@ function SetFields(props: ISetFieldsProps): JSX.Element {
           ),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType: props.exerciseType, unit: settings.units },
+          { exerciseType: props.exerciseType, unit: settings.units, prints: [] },
           "regular"
         );
         if (type === "reps") {

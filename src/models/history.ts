@@ -74,6 +74,7 @@ export namespace History {
             const useRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
             entry = {
               ...entry,
+              updatePrints: undefined,
               state: { ...state },
               vars: useRm1 ? { rm1: Exercise.onerm(programExercise.exerciseType, settings) } : {},
             };

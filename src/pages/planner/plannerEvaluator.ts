@@ -420,7 +420,7 @@ export class PlannerEvaluator {
           Progress.createEmptyScriptBindings(dayData, settings),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType, unit: settings.units },
+          { exerciseType, unit: settings.units, prints: [] },
           "update"
         );
         try {

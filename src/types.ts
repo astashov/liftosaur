@@ -463,6 +463,7 @@ export const THistoryEntry = t.intersection(
       vars: TProgramState,
       notes: t.string,
       changed: t.boolean,
+      updatePrints: t.array(t.array(t.union([t.number, TWeight, TPercentage]))),
     }),
   ],
   "THistoryEntry"

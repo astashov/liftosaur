@@ -1,7 +1,7 @@
 import { CollectionUtils } from "../utils/collection";
 
 import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType } from "../types";
-import { MathUtils } from "../utils/math";
+import { MathUtils, n } from "../utils/math";
 import { Equipment } from "./equipment";
 import { Exercise } from "./exercise";
 
@@ -44,8 +44,12 @@ export namespace Weight {
     return unit === "kg" ? "lb" : "kg";
   }
 
-  export function print(weight: IWeight | IPercentage): string {
-    return `${weight.value}${weight.unit}`;
+  export function print(weight: IWeight | IPercentage | number): string {
+    if (typeof weight === "number") {
+      return `${n(weight)}`;
+    } else {
+      return `${weight.value}${weight.unit}`;
+    }
   }
 
   export function parsePct(str: string): IPercentage | IWeight | undefined {

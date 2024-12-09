@@ -1441,6 +1441,40 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241208": {
+    title: <span>Added `print` function</span>,
+    body: (
+      <ul>
+        <li>
+          Useful for debugging your scripts. Use it like:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x3 / progress: custom() {~
+  print(1, completedReps[1])
+~}`}
+            />
+          </div>
+        </li>
+        <li>
+          It accepts any number of arguments, and outputs them in the playground or during a workout. Unfortunately
+          Liftoscript still doesn't support strings, but you can use numbers to distinguish prints, like:
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`Squat / 3x3 / progress: custom() {~
+  var.a = 10%
+  print(1, completedReps[1])
+  print(2, 30lb)
+  print(3, var.a)
+~}`}
+            />
+          </div>
+        </li>
+        <li>
+          You can use them both in <strong>progress</strong> and <strong>update</strong> scripts.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

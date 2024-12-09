@@ -788,6 +788,18 @@ The syntax is `for (var.i in weights)`, where `var.i` should always be a tempora
 the expression on the right side of `in` should return an array.
 The `var.i` would contain the index of each set, starting from 1.
 
+### Prints
+
+For debugging purposes, there's `print` function. You can use it to debug your scripts. Liftoscript doesn't support strings, so you can only pass numbers, weights or percentages there. It looks like this:
+
+{% plannercode %}
+print(1, 20lb, 30%)
+print(100, weights[1], completedReps[2])
+print(var.max)
+{% endplannercode %}
+
+It accepts any number of arguments, and you'll see all the prints either in playground or when you finish exercise during workout, after all sets are done.
+
 ### Update
 
 `progress: ` logic updates the weights/reps/etc **in the program**, after you finish a workout. But there's also a way to update sets while you're doing a workout! For example, you want to set the number of drop sets or dropset reps based on the first set completed reps, or something like that.

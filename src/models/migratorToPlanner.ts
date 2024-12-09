@@ -274,7 +274,7 @@ export class MigratorToPlanner {
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType: programExercise.exerciseType, unit: settings.units },
+          { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
           "regular"
         ).execute("reps")
       : undefined;
@@ -295,7 +295,7 @@ export class MigratorToPlanner {
           Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { exerciseType: programExercise.exerciseType, unit: settings.units },
+          { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
           "regular"
         ).execute("rpe")
       : undefined;
@@ -315,7 +315,7 @@ export class MigratorToPlanner {
       Progress.createEmptyScriptBindings(dayData, settings, programExercise.exerciseType),
       Progress.createScriptFunctions(settings),
       settings.units,
-      { exerciseType: programExercise.exerciseType, unit: settings.units },
+      { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
       "regular"
     ).execute("weight");
   }

@@ -387,7 +387,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { exerciseType, unit: this.settings.units },
+            { exerciseType, unit: this.settings.units, prints: [] },
             "update"
           );
           const stateKeys = liftoscriptEvaluator.getStateVariableKeys();
@@ -515,7 +515,7 @@ export class PlannerExerciseEvaluator {
             Progress.createEmptyScriptBindings(this.dayData, this.settings),
             Progress.createScriptFunctions(this.settings),
             this.settings.units,
-            { exerciseType, unit: this.settings.units },
+            { exerciseType, unit: this.settings.units, prints: [] },
             "planner"
           );
           try {
@@ -1046,7 +1046,7 @@ export class PlannerExerciseEvaluator {
           Progress.createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
           Progress.createScriptFunctions(settings),
           settings.units,
-          { unit: settings.units },
+          { unit: settings.units, prints: [] },
           "planner"
         );
         const newLiftoscript = liftoscriptEvaluator.switchWeightsToUnit(settings.units);

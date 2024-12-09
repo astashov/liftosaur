@@ -38,7 +38,7 @@ export namespace ProgramSet {
       programExercise.exerciseType,
       dayData,
       ProgramExercise.getState(programExercise, allProgramExercises),
-      { exerciseType: programExercise.exerciseType, unit: settings.units },
+      { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
       settings,
       "reps"
     );
