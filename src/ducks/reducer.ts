@@ -34,6 +34,7 @@ import { CollectionUtils } from "../utils/collection";
 import { Subscriptions } from "../utils/subscriptions";
 import deepmerge from "deepmerge";
 import { Exercise } from "../models/exercise";
+import { SendMessage } from "../utils/sendMessage";
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
@@ -637,6 +638,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = Progress.getProgress(state);
     if (progress != null) {
       const history = state.storage.history.filter((h) => h.id !== progress.id);
+      if (Progress.isCurrent(progress)) {
+        SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
+      }
       return {
         ...state,
         currentHistoryRecord: undefined,
