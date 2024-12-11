@@ -676,30 +676,38 @@ export const TProgramDayEntry = t.type(
 );
 export type IProgramDayEntry = Readonly<t.TypeOf<typeof TProgramDayEntry>>;
 
-export const TProgramWeek = t.type(
-  {
-    id: t.string,
-    name: t.string,
-    days: t.array(
-      t.type({
-        id: t.string,
-      })
-    ),
-  },
+export const TProgramWeek = t.intersection(
+  [
+    t.interface({
+      id: t.string,
+      name: t.string,
+      days: t.array(
+        t.type({
+          id: t.string,
+        })
+      ),
+    }),
+    t.partial({
+      description: t.string,
+    }),
+  ],
   "TProgramWeek"
 );
 export type IProgramWeek = Readonly<t.TypeOf<typeof TProgramWeek>>;
 
-export const TProgramDay = t.type(
-  {
-    id: t.string,
-    name: t.string,
-    exercises: t.array(
-      t.type({
-        id: t.string,
-      })
-    ),
-  },
+export const TProgramDay = t.intersection(
+  [
+    t.interface({
+      id: t.string,
+      name: t.string,
+      exercises: t.array(
+        t.type({
+          id: t.string,
+        })
+      ),
+    }),
+    t.partial({ description: t.string }),
+  ],
   "TProgramDay"
 );
 export type IProgramDay = Readonly<t.TypeOf<typeof TProgramDay>>;
@@ -724,22 +732,41 @@ export const TProgramTag = t.keyof(
 );
 export type IProgramTag = Readonly<t.TypeOf<typeof TProgramTag>>;
 
-export const TPlannerProgramDay = t.type({
-  name: t.string,
-  exerciseText: t.string,
-});
+export const TPlannerProgramDay = t.intersection(
+  [
+    t.interface({
+      name: t.string,
+      exerciseText: t.string,
+    }),
+    t.partial({
+      description: t.string,
+    }),
+  ],
+  "TPlannerProgramDay"
+);
 export type IPlannerProgramDay = t.TypeOf<typeof TPlannerProgramDay>;
 
-export const TPlannerProgramWeek = t.type({
-  name: t.string,
-  days: t.array(TPlannerProgramDay),
-});
+export const TPlannerProgramWeek = t.intersection(
+  [
+    t.interface({
+      name: t.string,
+      days: t.array(TPlannerProgramDay),
+    }),
+    t.partial({
+      description: t.string,
+    }),
+  ],
+  "TPlannerProgramWeek"
+);
 export type IPlannerProgramWeek = Readonly<t.TypeOf<typeof TPlannerProgramWeek>>;
 
-export const TPlannerProgram = t.type({
-  name: t.string,
-  weeks: t.array(TPlannerProgramWeek),
-});
+export const TPlannerProgram = t.type(
+  {
+    name: t.string,
+    weeks: t.array(TPlannerProgramWeek),
+  },
+  "TPlannerProgram"
+);
 export type IPlannerProgram = Readonly<t.TypeOf<typeof TPlannerProgram>>;
 
 export const TProgram = t.intersection(

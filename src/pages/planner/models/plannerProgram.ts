@@ -288,6 +288,19 @@ export class PlannerProgram {
       });
     }
 
+    const lastDescriptions: Partial<Record<number, string | undefined>> = {};
+    plannerProgram.weeks.forEach((week) => {
+      week.days.forEach((day, dayInWeekIndex) => {
+        if (lastDescriptions[dayInWeekIndex] == null) {
+          lastDescriptions[dayInWeekIndex] = day.description;
+        } else if (lastDescriptions[dayInWeekIndex] === day.description) {
+          day.description = undefined;
+        } else {
+          lastDescriptions[dayInWeekIndex] = day.description;
+        }
+      });
+    });
+
     const mapping = plannerProgram.weeks.map((week, weekIndex) => {
       return week.days.map((day, dayInWeekIndex) => {
         const tree = plannerExerciseParser.parse(day.exerciseText);
@@ -475,12 +488,14 @@ export class PlannerProgram {
     const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
     const tree = plannerExerciseParser.parse(fullProgramText);
     const data = evaluator.evaluate(tree.topNode);
-    const weeks = data.map((week) => {
+    const weeks: IPlannerProgramWeek[] = data.map((week) => {
       return {
         name: week.name,
+        description: week.description,
         days: week.days.map((day) => {
           return {
             name: day.name,
+            description: day.description,
             exerciseText: day.exercises.join("").trim(),
           };
         }),
@@ -501,8 +516,22 @@ export class PlannerProgram {
   public static generateFullText(weeks: IPlannerProgramWeek[]): string {
     let fullText = "";
     for (const week of weeks) {
+      if (week.description != null) {
+        fullText +=
+          week.description
+            .split("\n")
+            .map((l) => (l ? `// ${l}` : "//"))
+            .join("\n") + "\n";
+      }
       fullText += `# ${week.name}\n`;
       for (const day of week.days) {
+        if (day.description != null) {
+          fullText +=
+            day.description
+              .split("\n")
+              .map((l) => `// ${l}`)
+              .join("\n") + "\n";
+        }
         fullText += `## ${day.name}\n`;
         fullText += `${day.exerciseText}\n\n`;
       }

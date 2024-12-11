@@ -17,6 +17,7 @@ import { Program } from "../../models/program";
 import { StringUtils } from "../../utils/string";
 import { Exercise } from "../../models/exercise";
 import { Weight } from "../../models/weight";
+import { Markdown } from "../markdown";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IProgram;
@@ -54,6 +55,7 @@ export const ProgramPreviewPlaygroundDay = memo(
           {props.weekName ? `${props.weekName} - ` : ""}
           {programDay.name}
         </h3>
+        {programDay.description && <Markdown value={programDay.description} />}
         {props.progress.entries.map((entry, index) => {
           const programExercise = props.program.exercises.find((e) => e.id === entry.programExerciseId)!;
           const staticState = props.staticStates[programExercise.id];

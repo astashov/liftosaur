@@ -1180,6 +1180,12 @@ export namespace Program {
     return program.days.findIndex((d) => d.id === programDay.id);
   }
 
+  export function getProgramWeek(program: IProgram, settings: ISettings, day?: number): IProgramWeek | undefined {
+    const full = Program.fullProgram(program, settings);
+    const dayData = getDayData(full, day ?? full.nextDay, settings);
+    return dayData.week != null ? full.weeks[dayData.week - 1] ?? full.weeks[0] : full.weeks[0];
+  }
+
   export function getProgramDay(program: IProgram, day: number): IProgramDay {
     const d = day - 1;
     if (program.isMultiweek) {

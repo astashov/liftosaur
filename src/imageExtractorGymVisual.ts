@@ -11,7 +11,7 @@ import { LftS3Buckets } from "../lambda/dao/buckets";
 // Usage:
 // Extract all images from gymvisual.com into a directory
 // Name each directory exerciseid_equipment_boxindex
-// Run yarn ts-node src/imageExtractorGymVisual.ts source-dir destination-dir
+// Run npx ts-node src/imageExtractorGymVisual.ts source-dir destination-dir
 // It'll generate images and upload to S3
 // Copy Available Images output to the `exerciseImage.ts` availableSmallImages and availableSmallImages arrays
 

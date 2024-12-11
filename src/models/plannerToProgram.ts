@@ -82,14 +82,28 @@ export class PlannerToProgram {
     let dayIndex = 0;
     const variationIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
     const descriptionIndexes: Record<string, Record<string, { count: number; current: number }>> = {};
+    const lastDayDescriptions: Partial<Record<number, string>> = {};
     for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex += 1) {
       const week = evaluatedWeeks[weekIndex];
       const plannerWeek = this.plannerProgram.weeks[weekIndex];
-      const programWeek: IProgramWeek = { id: UidFactory.generateUid(8), name: plannerWeek.name, days: [] };
+      const programWeek: IProgramWeek = {
+        id: UidFactory.generateUid(8),
+        name: plannerWeek.name,
+        days: [],
+        description: plannerWeek.description,
+      };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex += 1) {
         const day = week[dayInWeekIndex];
         const plannerDay = plannerWeek.days[dayInWeekIndex];
-        const programDay: IProgramDay = { id: UidFactory.generateUid(8), name: plannerDay.name, exercises: [] };
+        if (plannerDay.description != null) {
+          lastDayDescriptions[dayInWeekIndex] = plannerDay.description;
+        }
+        const programDay: IProgramDay = {
+          id: UidFactory.generateUid(8),
+          name: plannerDay.name,
+          exercises: [],
+          description: plannerDay.description != null ? plannerDay.description : lastDayDescriptions[dayInWeekIndex],
+        };
         if (day.success) {
           for (const evalExercise of CollectionUtils.sortBy(day.data, "order")) {
             const key = PlannerKey.fromPlannerExercise(evalExercise, this.settings);

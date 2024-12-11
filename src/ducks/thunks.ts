@@ -198,10 +198,12 @@ export namespace Thunk {
         return false;
       } else if (result.type === "error") {
         if (result.error === "outdated_client_storage") {
-          alert(
-            "The version of the storage on a device is older than on the server, so sync failed. " +
-              "To fix it - kill/restart the app a couple times."
-          );
+          if (typeof window !== "undefined") {
+            alert(
+              "The version of the storage on a device is older than on the server, so sync failed. " +
+                "To fix it - kill/restart the app a couple times."
+            );
+          }
         }
         throw new NoRetryError(result.error);
       }

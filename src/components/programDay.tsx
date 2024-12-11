@@ -63,6 +63,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const editModalProgramExercise = progress.ui?.editModal?.programExercise.id;
   const dateModal = progress.ui?.dateModal;
+  const programDay = props.program ? Program.getProgramDay(props.program, progress.day) : undefined;
 
   if (progress != null) {
     return (
@@ -303,6 +304,7 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
           helps={props.helps}
           settings={props.settings}
           program={props.program}
+          programDay={programDay}
           userId={props.userId}
           progress={progress}
           isTimerShown={!!props.timerSince}
