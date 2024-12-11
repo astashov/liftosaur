@@ -475,12 +475,16 @@ export class PlannerProgram {
     const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
     const tree = plannerExerciseParser.parse(fullProgramText);
     const data = evaluator.evaluate(tree.topNode);
-    const weeks = data.map((week) => {
+    const weeks: IPlannerProgramWeek[] = data.map((week) => {
       return {
         name: week.name,
+        description: week.description,
+        stopRepeatingDescription: week.description === "",
         days: week.days.map((day) => {
           return {
             name: day.name,
+            description: day.description,
+            stopRepeatingDescription: day.description === "",
             exerciseText: day.exercises.join("").trim(),
           };
         }),
@@ -498,11 +502,42 @@ export class PlannerProgram {
       : [[fullResult]];
   }
 
+  public static getLastDayDescription(
+    weeks: IPlannerProgramWeek[],
+    weekIndex: number,
+    dayIndex: number
+  ): string | undefined {
+    let lastDescription: string | undefined = undefined;
+    for (let i = weekIndex - 1; i >= 0; i -= 1) {
+      const thatDay = weeks[i].days[dayIndex];
+      if (thatDay.stopRepeatingDescription) {
+        return lastDescription;
+      } else if (thatDay.description) {
+        lastDescription = thatDay.description;
+      }
+    }
+    return lastDescription;
+  }
+
   public static generateFullText(weeks: IPlannerProgramWeek[]): string {
     let fullText = "";
     for (const week of weeks) {
+      if (week.description) {
+        fullText +=
+          week.description
+            .split("\n")
+            .map((l) => (l ? `// ${l}` : "//"))
+            .join("\n") + "\n";
+      }
       fullText += `# ${week.name}\n`;
       for (const day of week.days) {
+        if (day.description) {
+          fullText +=
+            day.description
+              .split("\n")
+              .map((l) => `// ${l}`)
+              .join("\n") + "\n";
+        }
         fullText += `## ${day.name}\n`;
         fullText += `${day.exerciseText}\n\n`;
       }

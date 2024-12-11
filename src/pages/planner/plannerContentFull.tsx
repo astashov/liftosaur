@@ -4,10 +4,7 @@ import { h, JSX } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
-import { IconHelp } from "../../components/icons/iconHelp";
 import { IconPreview } from "../../components/icons/iconPreview";
-import { IconSpinner } from "../../components/icons/iconSpinner";
-import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
 import { Exercise } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
@@ -60,7 +57,6 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [showWeekStats, setShowWeekStats] = useState(false);
   const [showDayStats, setShowDayStats] = useState(false);
   const [showExerciseStats, setShowExerciseStats] = useState(false);
-  const [reformatterSpinner, setReformatterSpinner] = useState(false);
 
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
     return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
@@ -223,32 +219,6 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               props.dispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line));
             }}
           />
-          <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
-            {reformatterSpinner && <IconSpinner width={12} height={12} />}
-            <LinkButton
-              name="planner-reformat-full"
-              className="ml-1 text-xs font-normal align-middle"
-              onClick={async () => {
-                setReformatterSpinner(true);
-                const result = await props.service.postPlannerReformatterFull(props.fullText.text);
-                setReformatterSpinner(false);
-                window.isUndoing = true;
-                props.dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(result)], "stop-is-undoing");
-              }}
-            >
-              Reformat
-            </LinkButton>
-            <button
-              className="ml-1 align-middle nm-planner-reformat"
-              onClick={() =>
-                alert(
-                  "It'll try to format the program properly using ChatGPT - so that each exercise goes on a separate line, with proper sets x reps formatting. It's not 100% accurate, it'll do its best attempt! :)"
-                )
-              }
-            >
-              <IconHelp size={12} />
-            </button>
-          </div>
           <div className="fixed bottom-0 hidden sm:block" style={{ width: editorWidth }}>
             {focusedExercise?.exerciseLine != null && (
               <PlannerExerciseStatsFull
