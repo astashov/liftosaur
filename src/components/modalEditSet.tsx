@@ -63,9 +63,7 @@ export function ModalEditSet(props: IModalWeightProps): JSX.Element {
   const quickAddSets = props.programExercise
     ? ProgramExercise.getQuickAddSets(props.programExercise, props.allProgramExercises || [])
     : false;
-  let enableRpe = props.programExercise
-    ? ProgramExercise.getEnableRpe(props.programExercise, props.allProgramExercises || [])
-    : false;
+  let enableRpe = props.programExercise?.enableRpe || (props.allProgramExercises || []).some((pe) => pe.enableRpe);
   enableRpe = enableRpe || set?.rpe != null;
 
   const platesStr = getPlatesStr(props.subscription, weight, props.settings, props.exerciseType);
