@@ -70,12 +70,14 @@ export type IEventPayload =
       userId?: string;
       timestamp: number;
       storage_id: string;
+      update: string;
     }
   | {
       type: "mergesnapshot";
       userId?: string;
       timestamp: number;
       storage_id: string;
+      update: string;
     };
 
 const cachePromises: Partial<Record<string, unknown>> = {};

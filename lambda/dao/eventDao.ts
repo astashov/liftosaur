@@ -15,11 +15,15 @@ export class EventDao {
   constructor(private readonly di: IDI) {}
 
   public async post(event: IEventPayload): Promise<void> {
-    const env = Utils.getEnv();
-    return this.di.dynamo.put({
-      tableName: eventsTableNames[env].events,
-      item: { ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14 },
-    });
+    try {
+      const env = Utils.getEnv();
+      return this.di.dynamo.put({
+        tableName: eventsTableNames[env].events,
+        item: { ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14 },
+      });
+    } catch (e) {
+      console.error("Error posting event", e);
+    }
   }
 
   public getByUserId(userid: string): Promise<IEventPayload[]> {

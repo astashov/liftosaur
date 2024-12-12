@@ -260,6 +260,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               userId: limitedUser.id,
               timestamp,
               storage_id: storageId,
+              update: JSON.stringify(storageUpdate),
             });
           }
           return response(200, {
@@ -289,7 +290,13 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
             storage.subscription.key = key;
           }
           if (storageId) {
-            await eventDao.post({ type: "mergesnapshot", userId: limitedUser.id, timestamp, storage_id: storageId });
+            await eventDao.post({
+              type: "mergesnapshot",
+              userId: limitedUser.id,
+              timestamp,
+              storage_id: storageId,
+              update: JSON.stringify(storageUpdate),
+            });
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {

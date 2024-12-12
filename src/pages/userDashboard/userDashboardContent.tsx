@@ -144,6 +144,9 @@ function EventView(props: IEventViewProps): JSX.Element | null {
         >
           {event.storage_id}
         </a>
+        <span className="ml-2">
+          update: <pre>{event.update}</pre>
+        </span>
       </div>
     );
   }
