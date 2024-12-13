@@ -260,7 +260,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               userId: limitedUser.id,
               timestamp,
               storage_id: storageId,
-              update: JSON.stringify(storageUpdate),
+              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
             });
           }
           return response(200, {
@@ -295,7 +295,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               userId: limitedUser.id,
               timestamp,
               storage_id: storageId,
-              update: JSON.stringify(storageUpdate),
+              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
             });
           }
           return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
