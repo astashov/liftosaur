@@ -148,7 +148,7 @@ Squat / 5x4
 
 I.e. prefixing week names with `#`, and day names with `##`.
 
-### Descriptions
+### Exercise Descriptions
 
 You can add descriptions to exercises via `//` comments, like this:
 {% plannercode %}
@@ -179,6 +179,26 @@ Squat / 5x5 / progress: lp(5lb)
 {% endplannercode %}
 
 In this case, Week 1 and Week 2 will have the description about the pause, and Week 3 and Week 4 won't.
+
+### Week and day descriptions
+
+You can also add descriptions to weeks and days. You can also use [Markdown](https://www.markdownguide.org/cheat-sheet/) syntax there, and the day descriptions would be reused in the following days, until you overwrite them - same logic as for Exercise Descriptions.
+
+You can add them through UI, or in the full mode, you also can add them as comments to `# Week` and `## Day` lines, like this:
+
+{% plannercode %}
+
+// This is a description for week 1
+// * Do this
+// * Then do that
+# Week 1
+
+// This is a description for day 1
+// **Very important to do this:**
+## Day 1
+
+Squat / 5x5 / progress: lp(5lb)
+{% endplannercode %}
 
 ### Exercise Labels
 

@@ -286,7 +286,7 @@ export class ProgramToPlanner {
 
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
       const week = this.program.weeks[weekIndex];
-      const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
+      const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [], description: week.description };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
         const topLines = topLineMap[weekIndex][dayInWeekIndex];
         const weekDay = week.days[dayInWeekIndex];
@@ -442,6 +442,7 @@ export class ProgramToPlanner {
           }
         }
         plannerDay.exerciseText = exerciseTextArr.join("\n");
+        plannerDay.description = programDay.description;
         plannerWeek.days.push(plannerDay);
         dayIndex += 1;
       }

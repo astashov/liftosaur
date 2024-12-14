@@ -668,4 +668,82 @@ Squat / 1x1 / 100lb / progress: custom() {~ weights += 5lb ~}
 
 `);
   });
+
+  it("preserves the day descriptions after finishing the workout", () => {
+    const programText = `# Week 1
+// A: Day 1
+## Day 1
+Squat / 2x5 / 100lb
+
+## Day 2
+Bench Press / 2x5 / 100lb
+
+// Week 2
+# Week 2
+
+## Day 1
+Squat / 2x5 / 100lb
+
+// B: Day 2
+## Day 2
+Bench Press / 2x5 / 100lb
+
+# Week 3
+//
+## Day 1
+Squat / 2x5 / 100lb
+
+## Day 2
+Bench Press / 2x5 / 100lb
+
+# Week 4
+## Day 1
+Squat / 2x5 / 100lb
+
+//
+## Day 2
+Bench Press / 2x5 / 100lb
+
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+// A: Day 1
+## Day 1
+Squat / 2x5 / 100lb
+
+## Day 2
+Bench Press / 2x5 / 100lb
+
+
+// Week 2
+# Week 2
+## Day 1
+Squat / 2x5 / 100lb
+
+// B: Day 2
+## Day 2
+Bench Press / 2x5 / 100lb
+
+
+# Week 3
+// 
+## Day 1
+Squat / 2x5 / 100lb
+
+## Day 2
+Bench Press / 2x5 / 100lb
+
+
+# Week 4
+## Day 1
+Squat / 2x5 / 100lb
+
+// 
+## Day 2
+Bench Press / 2x5 / 100lb
+
+
+`);
+  });
 });

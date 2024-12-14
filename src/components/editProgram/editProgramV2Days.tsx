@@ -23,6 +23,8 @@ import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
 import { IconPreview } from "../icons/iconPreview";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
+import { GroupHeader } from "../groupHeader";
+import { MarkdownEditor } from "../markdownEditor";
 
 export interface IEditProgramV2DaysProps {
   state: IPlannerState;
@@ -164,76 +166,114 @@ export function EditProgramV2Days(props: IEditProgramV2DaysProps): JSX.Element {
           defaultIndex={ui.focusedDay?.week ? ui.focusedDay.week - 1 : undefined}
           onChange={(index) => props.plannerDispatch(props.lbUi.p("weekIndex").record(index))}
           tabs={plannerProgram.weeks.map((week, weekIndex) => {
+            const showProgramDescription = week.description != null;
             return {
               label: week.name,
               isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
               children: (
-                <div key={weekIndex} className="flex flex-col mt-4 md:flex-row">
-                  <div className="flex-1">
-                    <DraggableList
-                      items={week.days}
-                      onDragEnd={(startIndex, endIndex) => {
-                        applyChangesInEditor(plannerDispatch, () => {
-                          plannerDispatch([
-                            lbProgram
-                              .p("weeks")
-                              .i(weekIndex)
-                              .p("days")
-                              .recordModify((days) => {
-                                const newDays = [...days];
-                                const [daysToMove] = newDays.splice(startIndex, 1);
-                                newDays.splice(endIndex, 0, daysToMove);
-                                return newDays;
-                              }),
-                          ]);
-                        });
-                      }}
-                      element={(plannerDay, dayInWeekIndex, handleTouchStart) => {
-                        const dayData = { week: weekIndex + 1, dayInWeek: dayInWeekIndex + 1, day: dayIndex + 1 };
-                        dayIndex += 1;
-                        return (
-                          <div key={dayInWeekIndex}>
-                            <EditProgramV2Day
-                              exerciseFullNames={props.exerciseFullNames}
-                              evaluatedWeeks={evaluatedWeeks}
-                              settings={settings}
-                              showDelete={week.days.length > 1}
-                              onEditDayName={() => {
-                                props.onEditDayModal({ weekIndex, dayIndex: dayInWeekIndex });
-                              }}
-                              plannerDispatch={plannerDispatch}
-                              handleTouchStart={handleTouchStart}
-                              plannerDay={plannerDay}
-                              dayData={dayData}
-                              ui={ui}
-                              lbProgram={lbProgram}
-                            />
-                          </div>
-                        );
-                      }}
-                    />
-                    <div className="pb-8">
+                <div key={weekIndex}>
+                  {!showProgramDescription ? (
+                    <div>
                       <LinkButton
-                        name="planner-add-day"
-                        data-cy="planner-add-day"
+                        name="planner-add-week-description"
                         onClick={() => {
-                          plannerDispatch(
-                            lbProgram
-                              .p("weeks")
-                              .i(weekIndex)
-                              .p("days")
-                              .recordModify((days) => [
-                                ...days,
-                                {
-                                  name: `Day ${days.length + 1}`,
-                                  exerciseText: "",
-                                },
-                              ])
-                          );
+                          props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(""));
                         }}
                       >
-                        Add Day
+                        Add Week Description
                       </LinkButton>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <div className="leading-none">
+                        <GroupHeader name="Week Description (Markdown)" />
+                      </div>
+                      <MarkdownEditor
+                        value={week.description ?? ""}
+                        onChange={(v) => {
+                          props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(v));
+                        }}
+                      />
+                      <div>
+                        <LinkButton
+                          className="text-xs"
+                          name="planner-delete-week-description"
+                          onClick={() => {
+                            props.plannerDispatch(lbProgram.p("weeks").i(weekIndex).p("description").record(undefined));
+                          }}
+                        >
+                          Delete Week Description
+                        </LinkButton>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex flex-col mt-4 md:flex-row">
+                    <div className="flex-1">
+                      <DraggableList
+                        items={week.days}
+                        onDragEnd={(startIndex, endIndex) => {
+                          applyChangesInEditor(plannerDispatch, () => {
+                            plannerDispatch([
+                              lbProgram
+                                .p("weeks")
+                                .i(weekIndex)
+                                .p("days")
+                                .recordModify((days) => {
+                                  const newDays = [...days];
+                                  const [daysToMove] = newDays.splice(startIndex, 1);
+                                  newDays.splice(endIndex, 0, daysToMove);
+                                  return newDays;
+                                }),
+                            ]);
+                          });
+                        }}
+                        element={(plannerDay, dayInWeekIndex, handleTouchStart) => {
+                          const dayData = { week: weekIndex + 1, dayInWeek: dayInWeekIndex + 1, day: dayIndex + 1 };
+                          dayIndex += 1;
+                          return (
+                            <div key={dayInWeekIndex}>
+                              <EditProgramV2Day
+                                exerciseFullNames={props.exerciseFullNames}
+                                evaluatedWeeks={evaluatedWeeks}
+                                settings={settings}
+                                showDelete={week.days.length > 1}
+                                onEditDayName={() => {
+                                  props.onEditDayModal({ weekIndex, dayIndex: dayInWeekIndex });
+                                }}
+                                plannerDispatch={plannerDispatch}
+                                handleTouchStart={handleTouchStart}
+                                plannerDay={plannerDay}
+                                dayData={dayData}
+                                ui={ui}
+                                lbProgram={lbProgram}
+                              />
+                            </div>
+                          );
+                        }}
+                      />
+                      <div className="pb-8">
+                        <LinkButton
+                          name="planner-add-day"
+                          data-cy="planner-add-day"
+                          onClick={() => {
+                            plannerDispatch(
+                              lbProgram
+                                .p("weeks")
+                                .i(weekIndex)
+                                .p("days")
+                                .recordModify((days) => [
+                                  ...days,
+                                  {
+                                    name: `Day ${days.length + 1}`,
+                                    exerciseText: "",
+                                  },
+                                ])
+                            );
+                          }}
+                        >
+                          Add Day
+                        </LinkButton>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -20,6 +20,8 @@ import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
 import { LinkButton } from "./linkButton";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
+import { Markdown } from "./markdown";
+import { GroupHeader } from "./groupHeader";
 
 interface IProps {
   program: IProgram;
@@ -41,6 +43,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const sortedHistory = props.history.sort((a, b) => {
     return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
   });
+  const weekDescription = Program.getProgramWeek(props.program, props.settings)?.description;
   const nextHistoryRecord = props.progress || Program.nextProgramRecord(props.program, props.settings);
   const history = [nextHistoryRecord, ...sortedHistory];
   const [containerRef, visibleRecords] = useGradualList(history, 20, () => undefined);
@@ -131,6 +134,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               Ad-Hoc Workout
             </LinkButton>
           </div>
+        </div>
+      )}
+      {weekDescription && (
+        <div className="px-4 pb-2 text-sm">
+          <GroupHeader name="Week Description" />
+          <Markdown value={weekDescription} />
         </div>
       )}
       {doesProgressNotMatchProgram && (

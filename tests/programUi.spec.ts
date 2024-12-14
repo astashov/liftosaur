@@ -66,7 +66,7 @@ test("Change exercise", async ({ page }) => {
   await page.getByTestId("modal-create-experimental-program-submit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
-  await page.getByRole("button", { name: "Add Day" }).click();
+  await page.getByTestId("planner-add-day").click();
   await page.getByTestId("add-exercise").nth(1).click();
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
   await page.getByTestId("edit-exercise").first().click();

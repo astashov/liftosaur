@@ -12,6 +12,7 @@ import {
   IProgramExercise,
   ISubscription,
   IExerciseType,
+  IProgramDay,
 } from "../types";
 import { IState, updateState } from "../models/state";
 import { Thunk } from "../ducks/thunks";
@@ -25,11 +26,13 @@ import { Program } from "../models/program";
 import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
+import { Markdown } from "./markdown";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
   progress: IHistoryRecord;
   program?: IProgram;
+  programDay?: IProgramDay;
   userId?: string;
   nickname?: string;
   helps: string[];
@@ -115,6 +118,7 @@ export const CardsView = memo(
             </div>
           )}
         </div>
+        {props.programDay?.description && <Markdown value={props.programDay.description} />}
         {props.progress.entries.map((entry, index) => {
           let programExercise: IProgramExercise | undefined;
           if (props.program) {

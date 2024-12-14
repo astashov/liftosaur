@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { useState } from "preact/hooks";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -18,6 +18,9 @@ import { IconTrash } from "../icons/iconTrash";
 import { EditProgramV2TextExercises } from "./editProgramV2TextExercises";
 import { EditProgramV2UiExercises } from "./editProgramV2UiExercises";
 import { applyChangesInEditor } from "./editProgramV2Utils";
+import { GroupHeader } from "../groupHeader";
+import { LinkButton } from "../linkButton";
+import { MarkdownEditor } from "../markdownEditor";
 
 interface IEditProgramV2DayProps {
   dayData: Required<IDayData>;
@@ -42,6 +45,7 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
   );
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
   const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
+  const showProgramDescription = plannerDay.description != null;
 
   return (
     <div className="flex flex-col pb-4 md:flex-row">
@@ -115,6 +119,48 @@ export function EditProgramV2Day(props: IEditProgramV2DayProps): JSX.Element {
             )}
           </div>
         </div>
+        {showProgramDescription ? (
+          <>
+            <div className="leading-none">
+              <GroupHeader name="Day Description (Markdown)" />
+            </div>
+            <MarkdownEditor
+              value={plannerDay.description ?? ""}
+              onChange={(v) => {
+                props.plannerDispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v)
+                );
+              }}
+            />
+            <div>
+              <LinkButton
+                className="text-xs"
+                name="planner-add-day-description"
+                onClick={() => {
+                  props.plannerDispatch(
+                    lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(undefined)
+                  );
+                }}
+              >
+                Delete Day Description
+              </LinkButton>
+            </div>
+          </>
+        ) : (
+          <div>
+            <LinkButton
+              className="text-xs"
+              name="planner-add-day-description"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record("")
+                );
+              }}
+            >
+              Add Day Description
+            </LinkButton>
+          </div>
+        )}
         <div className="flex">
           {!isCollapsed &&
             (props.ui.isUiMode && isValidProgram ? (

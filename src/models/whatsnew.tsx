@@ -1475,6 +1475,37 @@ Bench Press / 3x8 / progress: custom() {~
       </ul>
     ),
   },
+  "20241214": {
+    title: <span>Added day/week descriptions</span>,
+    body: (
+      <ul>
+        <li>
+          Now you can add week and day descriptions, in Markdown format. Current week description will be shown on the
+          history screen, and the day description will be shown on the ongoing workout screen.
+        </li>
+        <li>
+          You can do that through UI, or in the full program mode you just add comments above the day or week, similarly
+          how you do that for the exercises. Like:
+        </li>
+        <li>
+          <div className="m-2 overflow-x-auto">
+            <PlannerCodeBlock
+              script={`// This is a description for week 1
+// * Do this
+// * Then do that
+# Week 1
+
+// This is a description for day 1
+// **Do those exercises:**
+## Day 1
+
+Squat / 5x5 / progress: lp(5lb)`}
+            />
+          </div>
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {

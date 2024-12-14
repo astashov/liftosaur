@@ -117,7 +117,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
                 }
               }}
             >
-              Save
+              Apply
             </Button>
           </div>
           <div>
@@ -189,7 +189,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               }
             }}
           >
-            Save
+            Apply
           </Button>
         </div>
       </div>

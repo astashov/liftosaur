@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { h, JSX } from "preact";
+import { h, JSX, Fragment } from "preact";
 import { BuilderLinkInlineInput } from "../../builder/components/builderInlineInput";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -16,12 +16,11 @@ import { TimeUtils } from "../../../utils/time";
 import { PlannerStatsUtils } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Service } from "../../../api/service";
-import { IconSpinner } from "../../../components/icons/iconSpinner";
-import { useState } from "preact/hooks";
-import { IconHelp } from "../../../components/icons/iconHelp";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
 import { PlannerCodeBlock } from "./plannerCodeBlock";
+import { MarkdownEditor } from "../../../components/markdownEditor";
+import { GroupHeader } from "../../../components/groupHeader";
 
 interface IPlannerDayProps {
   weekIndex: number;
@@ -40,7 +39,6 @@ interface IPlannerDayProps {
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
   const { exercises } = props.settings;
-  const [reformatterSpinner, setReformatterSpinner] = useState(false);
   const focusedExercise = props.ui.focusedExercise;
   const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
@@ -56,6 +54,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
+  const showProgramDescription = day.description != null;
   const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
 
   return (
@@ -77,8 +76,49 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             </div>
           )}
         </div>
+        {showProgramDescription ? (
+          <>
+            <div className="leading-none">
+              <GroupHeader name="Day Description (Markdown)" />
+            </div>
+            <MarkdownEditor
+              value={evaluatedDay.success ? day.description ?? "" : ""}
+              onChange={(v) => {
+                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v));
+              }}
+            />
+            <div>
+              <LinkButton
+                className="text-xs"
+                name="planner-add-day-description"
+                onClick={() => {
+                  dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(undefined));
+                }}
+              >
+                Delete Day Description
+              </LinkButton>
+            </div>
+          </>
+        ) : (
+          <div>
+            <LinkButton
+              className="text-xs"
+              name="planner-add-day-description"
+              onClick={() => {
+                dispatch(lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(""));
+              }}
+            >
+              Add Day Description
+            </LinkButton>
+          </div>
+        )}
         <div className="flex">
           <div className="flex-1 w-0">
+            {showProgramDescription && (
+              <div className="mt-1 leading-none">
+                <GroupHeader name="Exercises" />
+              </div>
+            )}
             <PlannerEditorView
               lineNumbers={true}
               name="Exercises"
@@ -113,35 +153,6 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                 ))}
               </ul>
             )}
-            <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
-              {reformatterSpinner && <IconSpinner width={12} height={12} />}
-              <LinkButton
-                name="planner-reformat-day"
-                className="ml-1 text-xs font-normal align-middle"
-                onClick={async () => {
-                  setReformatterSpinner(true);
-                  const result = await props.service.postPlannerReformatter(day.exerciseText);
-                  setReformatterSpinner(false);
-                  window.isUndoing = true;
-                  dispatch(
-                    [lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(result)],
-                    "stop-is-undoing"
-                  );
-                }}
-              >
-                Reformat
-              </LinkButton>
-              <button
-                className="ml-1 align-middle nm-planner-reformat"
-                onClick={() =>
-                  alert(
-                    "It'll try to format the exercises properly using ChatGPT - so that each exercise goes on a separate line, with proper sets x reps formatting. It's not 100% accurate, it'll do its best attempt! :)"
-                  )
-                }
-              >
-                <IconHelp size={12} />
-              </button>
-            </div>
           </div>
         </div>
         {isFocused &&
