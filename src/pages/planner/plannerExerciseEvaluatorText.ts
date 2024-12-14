@@ -17,7 +17,13 @@ function getChildren(node: SyntaxNode): SyntaxNode[] {
 export interface IPlannerExerciseEvaluatorTextWeek {
   name: string;
   description?: string;
-  days: { name: string; description?: string; exercises: string[] }[];
+  days: IPlannerExerciseEvaluatorTextDay[];
+}
+
+export interface IPlannerExerciseEvaluatorTextDay {
+  name: string;
+  description?: string;
+  exercises: string[];
 }
 
 type IPlannerNonExerciseFullTextLine =
@@ -49,27 +55,79 @@ export class PlannerExerciseEvaluatorText {
     return this.script.slice(node.from, node.to);
   }
 
-  private getWeekDayOngoingLines(): IPlannerNonExerciseFullTextLine[] {
+  private getWeekDayOngoingLines(): {
+    linesToPreviousExercise: IPlannerNonExerciseFullTextLine[];
+    nextLines: IPlannerNonExerciseFullTextLine[];
+  } {
     const ongoingLines = [...this.ongoingLines];
-    while (ongoingLines.length > 0 && ongoingLines[0]?.type !== "comment") {
-      ongoingLines.shift();
+    let anyCommentStarted = false;
+    let commentStarted = false;
+    const linesToPreviousExercise: IPlannerNonExerciseFullTextLine[] = [];
+    const nextLines: IPlannerNonExerciseFullTextLine[] = [];
+    for (let i = 0; i < ongoingLines.length; i++) {
+      const line = ongoingLines[i];
+      if (!anyCommentStarted && line?.type === "empty") {
+        continue;
+      }
+      if (line?.type === "comment" || line?.type === "triplelinecomment") {
+        anyCommentStarted = true;
+      }
+      if (line?.type === "comment") {
+        commentStarted = true;
+      }
+      if (anyCommentStarted && !commentStarted) {
+        linesToPreviousExercise.push(line);
+      }
+      if (commentStarted && line?.type === "comment") {
+        nextLines.push(line);
+      }
     }
-    return ongoingLines;
+    for (let i = nextLines.length - 1; i >= 0; i--) {
+      const line = nextLines[i];
+      if (line.type === "empty") {
+        nextLines.pop();
+      } else {
+        break;
+      }
+    }
+    for (let i = linesToPreviousExercise.length - 1; i >= 0; i--) {
+      const line = linesToPreviousExercise[i];
+      if (line.type === "empty") {
+        linesToPreviousExercise.pop();
+      } else {
+        break;
+      }
+    }
+    return { linesToPreviousExercise, nextLines };
+  }
+
+  private getWeekDayDescriptionAndFillLastDay(): string | undefined {
+    const { linesToPreviousExercise, nextLines } = this.getWeekDayOngoingLines();
+    if (linesToPreviousExercise.length > 0) {
+      const lastDay = this.getLastDay();
+      if (lastDay) {
+        lastDay.exercises.push(...linesToPreviousExercise.map((line) => line.line));
+      }
+    }
+    const description =
+      nextLines.length > 0 ? nextLines.map(fullTextLineToWeekdayDescription).join("\n").trim() : undefined;
+    return description;
+  }
+
+  private getLastDay(): IPlannerExerciseEvaluatorTextDay | undefined {
+    const lastWeek = this.weeks[this.weeks.length - 1];
+    return lastWeek?.days[lastWeek.days.length - 1];
   }
 
   private evaluateLine(expr: SyntaxNode): void {
     if (expr.type.name === PlannerNodeName.Week) {
       const weekName = this.getValue(expr).replace(/^#+/, "").trim();
-      const ongoingLines = this.getWeekDayOngoingLines();
-      const description =
-        ongoingLines.length > 0 ? ongoingLines.map(fullTextLineToWeekdayDescription).join("\n").trim() : undefined;
+      const description = this.getWeekDayDescriptionAndFillLastDay();
       this.weeks.push({ name: weekName, description, days: [] });
       this.ongoingLines = [];
     } else if (expr.type.name === PlannerNodeName.Day) {
       const dayName = this.getValue(expr).replace(/^#+/, "").trim();
-      const ongoingLines = this.getWeekDayOngoingLines();
-      const description =
-        ongoingLines.length > 0 ? ongoingLines.map(fullTextLineToWeekdayDescription).join("\n").trim() : undefined;
+      const description = this.getWeekDayDescriptionAndFillLastDay();
       this.weeks[this.weeks.length - 1].days.push({ name: dayName, exercises: [], description });
       this.ongoingLines = [];
     } else if (expr.type.name === PlannerNodeName.EmptyExpression) {

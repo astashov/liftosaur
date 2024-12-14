@@ -746,4 +746,78 @@ Bench Press / 2x5 / 100lb
 
 `);
   });
+
+  it("preserves triple comments at the end of the day", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5 / 100lb
+/// Some stuff
+
+// More stuff
+## Day 2
+Bench Press / 2x5 / 100lb
+
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 100lb
+/// Some stuff
+
+// More stuff
+## Day 2
+Bench Press / 2x5 / 100lb
+
+
+`);
+  });
+
+  it("preserves end of exercise properly", () => {
+    const programText = `/// Some stuff
+
+// Week description
+
+# Week 1
+## Day 1
+Squat / 2x5 / 100lb
+/// Some stuff
+
+/// More
+
+// More stuff
+
+/// Triple comment
+
+## Day 2
+/// Triple Comment
+
+// Description
+
+
+/// More stuff
+Bench Press / 2x5 / 100lb
+
+`;
+    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`// Week description
+# Week 1
+## Day 1
+Squat / 2x5 / 100lb
+/// Some stuff
+
+/// More
+
+// More stuff
+## Day 2
+/// Triple Comment
+
+/// More stuff
+// Description
+Bench Press / 2x5 / 100lb
+
+
+`);
+  });
 });
