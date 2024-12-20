@@ -40,6 +40,7 @@ import { IconKebab } from "../icons/iconKebab";
 import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { ClipboardUtils } from "../../utils/clipboard";
 import { UrlUtils } from "../../utils/url";
+import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
 
 interface IProps {
   editProgram: IProgram;
@@ -85,6 +86,7 @@ export function EditProgramV2(props: IProps): JSX.Element {
   const modalExerciseUi = plannerState.ui.modalExercise;
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
+  const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
 
   return (
     <Surface
@@ -118,6 +120,10 @@ export function EditProgramV2(props: IProps): JSX.Element {
                 })
               );
             }}
+            onGenerateProgramImage={() => {
+              setShouldShowBottomSheet(false);
+              setShouldShowGenerateImageModal(true);
+            }}
             isHidden={!shouldShowBottomSheet}
             onClose={() => setShouldShowBottomSheet(false)}
           />
@@ -129,6 +135,15 @@ export function EditProgramV2(props: IProps): JSX.Element {
               setShouldShowPublishModal(false);
             }}
           />
+          {shouldShowGenerateImageModal && (
+            <ModalPlannerPictureExport
+              settings={props.settings}
+              program={plannerState.current.program}
+              onClose={() => {
+                setShouldShowGenerateImageModal(false);
+              }}
+            />
+          )}
           {plannerState.ui.showPreview && (
             <Modal
               isFullWidth={true}
