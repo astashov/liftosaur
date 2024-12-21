@@ -194,7 +194,7 @@ Using lb/kg is recommended for when you deal with weights, because they will be 
 
 The following operators are available:
 
-Math: +, -, /, \*, %
+Math: +, -, /, \*, %, ^
 Boolean: >, <, <=, >=, ==, &&, ||
 Ternary operator: for example `3 > 4 ? 1 : 2`
 
