@@ -103,7 +103,7 @@ export const ProgramShareOutput = forwardRef(
                             isMultiweek={props.program.weeks.length > 1}
                             week={week}
                             day={day}
-                            exercises={data}
+                            exercises={data.filter((e) => !e.notused)}
                             settings={props.settings}
                             options={props.options}
                           />
