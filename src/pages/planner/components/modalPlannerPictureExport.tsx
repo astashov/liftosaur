@@ -12,6 +12,7 @@ import { CollectionUtils } from "../../../utils/collection";
 import { LinkButton } from "../../../components/linkButton";
 import { StringUtils } from "../../../utils/string";
 import { ImageShareUtils } from "../../../utils/imageshare";
+import { ScrollableTabs } from "../../../components/scrollableTabs";
 
 interface IModalPlannerPictureExportProps {
   settings: ISettings;
@@ -45,7 +46,35 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
-      <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
+      <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
+        <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
+      </div>
+      <div className="block sm:hidden" style={{ minWidth: "22rem" }}>
+        <ScrollableTabs
+          defaultIndex={0}
+          tabs={[
+            {
+              label: "Settings",
+              children: (
+                <div className="px-4">
+                  <SettingsTab
+                    program={props.program}
+                    initialDaysToShow={initialDaysToShow}
+                    sourceRef={sourceRef}
+                    config={config}
+                    setConfig={setConfig}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: "Preview",
+              children: <ProgramShareOutput settings={props.settings} program={props.program} options={config} />,
+            },
+          ]}
+        />
+      </div>
+      <div className="hidden sm:flex">
         <div
           className="p-4 border-r bg-grayv2-50 border-grayv2-200"
           style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
@@ -63,7 +92,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
             <div className="px-4 py-2">
               <GroupHeader size="large" name="Preview" />
             </div>
-            <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
+            <ProgramShareOutput settings={props.settings} program={props.program} options={config} />
           </div>
         </div>
       </div>
