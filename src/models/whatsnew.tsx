@@ -1506,6 +1506,22 @@ Squat / 5x5 / progress: lp(5lb)`}
       </ul>
     ),
   },
+  "20241223": {
+    title: <span>Added a way to generate program images</span>,
+    body: (
+      <ul>
+        <li>You can share them in the social media, chats, etc.</li>
+        <li>
+          You can configure what the image would look like - how many columns (days) would it have, what days to
+          include, etc.
+        </li>
+        <li>
+          Available in the Web Editor (the picture icon on the right), or in the kebab menu in the top right corner on
+          the Program screen in the app.
+        </li>
+      </ul>
+    ),
+  },
 };
 
 export namespace WhatsNew {
