@@ -45,7 +45,7 @@ export class ImageShareUtils {
         title: "Workout Program Image",
       });
     } catch (error) {
-      alert("Error sharing file");
+      alert("Error sharing file. Likely because the image is too large to generate. Try to disable some weeks/days.");
     }
   }
 

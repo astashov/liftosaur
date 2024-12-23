@@ -46,17 +46,19 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
-      <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-        <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
+      <div className="relative w-full h-px overflow-hidden">
+        <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
+          <ProgramShareOutput ref={sourceRef} settings={props.settings} program={props.program} options={config} />
+        </div>
       </div>
-      <div className="block sm:hidden" style={{ minWidth: "22rem" }}>
+      <div className="relative z-0 block px-4 pt-2 sm:hidden" style={{ minWidth: "20rem" }}>
         <ScrollableTabs
           defaultIndex={0}
           tabs={[
             {
               label: "Settings",
               children: (
-                <div className="px-4">
+                <div>
                   <SettingsTab
                     program={props.program}
                     initialDaysToShow={initialDaysToShow}
@@ -69,7 +71,11 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
             },
             {
               label: "Preview",
-              children: <ProgramShareOutput settings={props.settings} program={props.program} options={config} />,
+              children: (
+                <div className="overflow-x-auto" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
+                  <ProgramShareOutput settings={props.settings} program={props.program} options={config} />
+                </div>
+              ),
             },
           ]}
         />
@@ -145,6 +151,13 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         const filename = StringUtils.dashcase(props.program.name) + ".png";
         const imageShareUtils = new ImageShareUtils(dataUrl, filename);
         imageShareUtils.shareOrDownload();
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        console.error(error);
+        alert(
+          "Unknown error happened. Likely because the image is too large to generate. Try to disable some weeks/days."
+        );
       });
   }
   const weekDayMapping = getWeekDayMapping(props.program);
@@ -152,7 +165,13 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
   return (
     <div>
       <div className="my-2 text-center">
-        <Button name="export-program-picture" kind="orange" className="w-48" onClick={() => save()}>
+        <Button
+          disabled={isLoading}
+          name="export-program-picture"
+          kind="orange"
+          className="w-48"
+          onClick={() => save()}
+        >
           {isLoading ? <IconSpinner width={12} height={12} color="white" /> : "Generate image"}
         </Button>
       </div>
