@@ -257,6 +257,10 @@ export namespace CollectionUtils {
     return from.filter((t) => t !== item);
   }
 
+  export function removeAll<T>(from: T[], item: T[]): T[] {
+    return from.filter((t) => !item.includes(t));
+  }
+
   export function removeAt<T>(from: T[], index: number): T[] {
     const result = [...from];
     result.splice(index, 1);

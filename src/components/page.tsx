@@ -43,6 +43,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <link
           href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,300;1,600;1,700&display=swap"
           rel="stylesheet"
+          crossOrigin="anonymous"
         />
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://api3.liftosaur.com" />

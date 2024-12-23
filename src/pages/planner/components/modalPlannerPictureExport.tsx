@@ -79,21 +79,46 @@ interface ISettingsTabProps {
   setConfig: (config: IProgramShareOutputOptions) => void;
 }
 
+function getWeekDayMapping(program: IPlannerProgram): Record<number, Record<number, number>> {
+  let dayIndex = 0;
+  return program.weeks.reduce<Record<number, Record<number, number>>>((acc, week, weekIndex) => {
+    week.days.forEach((day, dayInWeekIndex) => {
+      acc[weekIndex] = acc[weekIndex] || {};
+      acc[weekIndex][dayInWeekIndex] = dayIndex;
+      dayIndex += 1;
+    });
+    return acc;
+  }, {});
+}
+
 function SettingsTab(props: ISettingsTabProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const { config, setConfig, sourceRef } = props;
 
   function save(): void {
+    const maxSize = 16384;
+    const width = sourceRef.current.clientWidth;
+    const height = sourceRef.current.clientHeight;
+    console.log(`${width}x${height}`);
+    if (width >= maxSize || height >= maxSize) {
+      alert(
+        `The image is too large to generate - max size is 16384x16384, and the image would be ${width}x${height}. Try to set more columns, or disable some weeks/days.`
+      );
+      return;
+    }
     setIsLoading(true);
-    htmlToImage.toPng(sourceRef.current, { pixelRatio: 2 }).then((dataUrl) => {
-      setIsLoading(false);
-      const filename = StringUtils.dashcase(props.program.name) + ".png";
-      const imageShareUtils = new ImageShareUtils(dataUrl, filename);
-      imageShareUtils.shareOrDownload();
-    });
+    htmlToImage
+      .toPng(sourceRef.current, {
+        pixelRatio: 2,
+      })
+      .then((dataUrl) => {
+        setIsLoading(false);
+        const filename = StringUtils.dashcase(props.program.name) + ".png";
+        const imageShareUtils = new ImageShareUtils(dataUrl, filename);
+        imageShareUtils.shareOrDownload();
+      });
   }
-
-  let dayIndex = 0;
+  const weekDayMapping = getWeekDayMapping(props.program);
 
   return (
     <div>
@@ -143,27 +168,45 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         </LinkButton>
       </div>
       {props.program.weeks.map((week, weekIndex) => {
-        return week.days.map((day, i) => {
-          const item = (
+        const dayIndexes = week.days.map((_, i) => weekDayMapping[weekIndex][i]);
+        const allDaysSelected = dayIndexes.every((di) => config.daysToShow.includes(di));
+        return (
+          <div>
             <MenuItemEditable
-              key={dayIndex}
-              name={`Week ${weekIndex + 1}, Day ${i + 1}`}
+              key={weekIndex}
+              name={`Week ${weekIndex + 1}`}
               type="boolean"
-              value={config.daysToShow.includes(dayIndex) ? "true" : "false"}
-              onChange={((di) => {
-                return (v) => {
-                  if (v === "true") {
-                    setConfig({ ...config, daysToShow: [...config.daysToShow, di] });
-                  } else {
-                    setConfig({ ...config, daysToShow: CollectionUtils.remove(config.daysToShow, di) });
-                  }
-                };
-              })(dayIndex)}
+              value={allDaysSelected ? "true" : "false"}
+              onChange={(v) => {
+                if (v === "true") {
+                  setConfig({ ...config, daysToShow: Array.from(new Set([...config.daysToShow, ...dayIndexes])) });
+                } else {
+                  setConfig({ ...config, daysToShow: CollectionUtils.removeAll(config.daysToShow, dayIndexes) });
+                }
+              }}
             />
-          );
-          dayIndex += 1;
-          return item;
-        });
+            {week.days.map((_, i) => {
+              const dayIndex = weekDayMapping[weekIndex][i];
+              const daySelected = config.daysToShow.includes(dayIndex);
+              return (
+                <MenuItemEditable
+                  key={dayIndex}
+                  prefix={<span className="inline-block w-4" />}
+                  name={`• Day ${i + 1}`}
+                  type="boolean"
+                  value={daySelected ? "true" : "false"}
+                  onChange={(v) => {
+                    if (v === "true") {
+                      setConfig({ ...config, daysToShow: Array.from(new Set([...config.daysToShow, dayIndex])) });
+                    } else {
+                      setConfig({ ...config, daysToShow: CollectionUtils.remove(config.daysToShow, dayIndex) });
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
       })}
     </div>
   );
