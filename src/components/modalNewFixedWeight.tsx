@@ -2,20 +2,22 @@ import { h, JSX } from "preact";
 import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { IEquipment, IUnit } from "../types";
-import { StringUtils } from "../utils/string";
+import { IAllEquipment, IEquipment, IUnit } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { SendMessage } from "../utils/sendMessage";
+import { equipmentName } from "../models/exercise";
 
 interface IProps {
   units: IUnit;
   equipment: IEquipment;
   onInput: (value?: number) => void;
   isHidden: boolean;
+  allEquipment: IAllEquipment;
 }
 
 export function ModalNewFixedWeight(props: IProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
+  const name = equipmentName(props.equipment, props.allEquipment);
   return (
     <Modal
       isHidden={props.isHidden}
@@ -23,14 +25,14 @@ export function ModalNewFixedWeight(props: IProps): JSX.Element {
       shouldShowClose={true}
       onClose={() => props.onInput(undefined)}
     >
-      <GroupHeader size="large" name={`Enter new ${props.equipment} fixed weight`} />
+      <GroupHeader size="large" name={`Enter new ${name} fixed weight`} />
       <form onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           className="block w-full px-4 py-2 text-base leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
           type={SendMessage.isIos() ? "number" : "tel"}
           min="0"
-          placeholder={`${StringUtils.capitalize(props.equipment)} weight in ${props.units}`}
+          placeholder={`${name} weight in ${props.units}`}
         />
         <div className="mt-4 text-right">
           <Button

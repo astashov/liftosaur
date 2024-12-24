@@ -260,6 +260,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
       )}
       {modalNewFixedWeightEquipmentToShow != null && (
         <ModalNewFixedWeight
+          allEquipment={props.allEquipment}
           isHidden={false}
           equipment={modalNewFixedWeightEquipmentToShow}
           units={props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units}
