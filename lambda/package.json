@@ -40,7 +40,8 @@
     "rsa-pem-from-mod-exp": "^0.8.5",
     "source-map-support": "^0.5.19",
     "uplot": "^1.6.23",
-    "yatro": "^0.2.7"
+    "yatro": "^0.2.7",
+    "zingtouch": "^1.0.6"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.2",

@@ -200,6 +200,8 @@ describe("sync", () => {
     mockReducer.state.storage.version = "20231009191950";
     // expect to throw
     let threw = false;
+    let msg = "";
+    global.alert = (m) => (msg = m);
     try {
       await mockReducer.run([Thunk.sync2({ force: true })]);
     } catch (error) {
@@ -208,6 +210,8 @@ describe("sync", () => {
       threw = true;
     }
     expect(threw).to.eql(true);
+    // eslint-disable-next-line no-unused-expressions
+    expect(msg).to.contain("kill/restart");
   });
 });
 

@@ -80,7 +80,7 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click({ force: true });
   await page.getByTestId("navbar-3-dot").click({ force: true });
-  await page.getByTestId("bottom-sheet-muscles-program").click({ force: true });
+  await page.getByTestId("bottom-sheet-muscles-program").click();
   await expect(page.getByTestId("target-muscles-list")).toContainText("Hamstrings");
   await expect(page.getByTestId("target-muscles-list")).toContainText("Shoulders");
   await expect(page.getByTestId("synergist-muscles-list")).toContainText("Abs");

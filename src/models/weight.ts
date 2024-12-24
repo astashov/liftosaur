@@ -165,13 +165,13 @@ export namespace Weight {
     }
   }
 
-  export function getOneRepMax(weight: IWeight, reps: number): IWeight {
+  export function getOneRepMax(weight: IWeight, reps: number, rpe?: number): IWeight {
     if (reps === 0) {
       return Weight.build(0, weight.unit);
     } else if (reps === 1) {
       return weight;
     } else {
-      return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, 10)));
+      return Weight.roundTo005(Weight.divide(weight, Weight.rpeMultiplier(reps, rpe || 10)));
     }
   }
 

@@ -88,10 +88,20 @@ export namespace SendMessage {
     });
   }
 
-  export function toIosAndAndroid(obj: Record<string, string>): boolean {
+  export function toIosAndAndroid(obj: Record<string, string | undefined>): boolean {
     const toIosResult = toIos(obj);
     const toAndroidResult = toAndroid(obj);
     return toIosResult || toAndroidResult;
+  }
+
+  export function toIosAndAndroidWithResult<T>(obj: Record<string, string | undefined>): Promise<T | undefined> {
+    if (SendMessage.isIos()) {
+      return toIosWithResult(obj);
+    } else if (SendMessage.isAndroid()) {
+      return toAndroidWithResult(obj);
+    } else {
+      return Promise.resolve(undefined);
+    }
   }
 
   export function toIos(obj: Record<string, string | undefined>): boolean {

@@ -27,6 +27,7 @@ import { lb } from "lens-shmens";
 import { EditProgram } from "../models/editProgram";
 import { Exercise } from "../models/exercise";
 import { Markdown } from "./markdown";
+import { SendMessage } from "../utils/sendMessage";
 
 interface ICardsViewProps {
   history: IHistoryRecord[];
@@ -99,24 +100,22 @@ export const CardsView = memo(
               )}
             </div>
           </div>
-          {!Progress.isCurrent(props.progress) && (
-            <div className="pt-1 pl-2">
-              <Button
-                name="finish-day-share"
-                className="ls-finish-day-share"
-                kind="purple"
-                onClick={() => {
-                  if (props.userId == null) {
-                    alert("You should be logged in to share workouts.");
-                  } else {
+          {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
+            (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20)) &&
+            !Progress.isCurrent(props.progress) && (
+              <div className="pt-1 pl-2">
+                <Button
+                  name="past-workout-share"
+                  className="ls-past-workout-share"
+                  kind="purple"
+                  onClick={() => {
                     props.setIsShareShown(true);
-                  }
-                }}
-              >
-                Share
-              </Button>
-            </div>
-          )}
+                  }}
+                >
+                  Share
+                </Button>
+              </div>
+            )}
         </div>
         {props.programDay?.description && <Markdown value={props.programDay.description} />}
         {props.progress.entries.map((entry, index) => {
