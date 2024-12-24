@@ -25,6 +25,7 @@ import { lb, lbu } from "lens-shmens";
 import { ObjectUtils } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { SendMessage } from "../utils/sendMessage";
+import memoize from "micro-memoize";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -34,6 +35,16 @@ export interface IHistoricalEntries {
 export interface IHistoryRecordAndEntry {
   record: IHistoryRecord;
   entry: IHistoryEntry;
+}
+
+// history id -> exercise key -> personal records
+export type IPersonalRecords = Partial<Record<string, Partial<Record<string, IHistoryEntryPersonalRecords>>>>;
+
+export interface IHistoryEntryPersonalRecords {
+  maxWeightSet?: ISet;
+  prevMaxWeightSet?: ISet;
+  max1RMSet?: ISet;
+  prevMax1RMSet?: ISet;
 }
 
 export namespace History {
@@ -91,15 +102,15 @@ export namespace History {
     };
   }
 
-  export function getMaxSetFromEntry(entry: IHistoryEntry): ISet | undefined {
-    return getMaxSet(entry.sets);
+  export function getMaxWeightSetFromEntry(entry: IHistoryEntry): ISet | undefined {
+    return getMaxWeightSet(entry.sets);
   }
 
   export function getMax1RMFromEntry(entry: IHistoryEntry): ISet | undefined {
     return getMax1RM(entry.sets);
   }
 
-  export function getMaxSet(sets: ISet[]): ISet | undefined {
+  export function getMaxWeightSet(sets: ISet[]): ISet | undefined {
     return CollectionUtils.sort(
       sets.filter((s) => (s.completedReps || 0) > 0),
       (a, b) => {
@@ -287,7 +298,7 @@ export namespace History {
     return {
       fn: (acc, hr) => {
         const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
-        const maxSet = getMaxSet(entries.flatMap((e) => e.sets));
+        const maxSet = getMaxWeightSet(entries.flatMap((e) => e.sets));
         if (maxSet != null && Weight.gt(maxSet.weight, acc.maxWeight)) {
           acc = { maxWeight: maxSet.weight, maxWeightHistoryRecord: hr };
         }
@@ -320,7 +331,7 @@ export namespace History {
     const maxSets: Partial<Record<string, ISet>> = {};
     for (const r of history) {
       for (const e of r.entries) {
-        const entryMaxSet = getMaxSetFromEntry(e);
+        const entryMaxSet = getMaxWeightSetFromEntry(e);
         const key = Exercise.toKey(e.exercise);
         if (
           entryMaxSet != null &&
@@ -334,12 +345,65 @@ export namespace History {
     return maxSets;
   }
 
+  export const getPersonalRecords = memoize(
+    (history: IHistoryRecord[]): IPersonalRecords => {
+      const result: IPersonalRecords = {};
+      const sortedHistory = CollectionUtils.sortBy(history, "id");
+      const max1RMSets: Partial<Record<string, ISet | undefined>> = {};
+      const maxWeightSets: Partial<Record<string, ISet | undefined>> = {};
+      for (const record of sortedHistory) {
+        for (const entry of record.entries) {
+          const key = Exercise.toKey(entry.exercise);
+
+          const thisMaxWeightSet = getMaxWeightSetFromEntry(entry);
+          const thisMaxWeight = thisMaxWeightSet ? thisMaxWeightSet.weight : undefined;
+          const lastMaxWeight = maxWeightSets[key]?.weight;
+          if (thisMaxWeight != null && (lastMaxWeight == null || Weight.gt(thisMaxWeight, lastMaxWeight))) {
+            const prevMaxWeightSet = maxWeightSets[key];
+            maxWeightSets[key] = thisMaxWeightSet;
+            result[record.id] = result[record.id] || {};
+            result[record.id]![key] = result[record.id]![key] || {};
+            result[record.id]![key]!.prevMaxWeightSet = prevMaxWeightSet;
+            result[record.id]![key]!.maxWeightSet = thisMaxWeightSet;
+          }
+
+          const thisMax1RMSet = getMax1RMFromEntry(entry);
+          const thisMax1RM = thisMax1RMSet
+            ? Weight.getOneRepMax(
+                thisMax1RMSet.weight,
+                thisMax1RMSet.completedReps || 0,
+                thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
+              )
+            : undefined;
+          const lastMax1RMSet = max1RMSets[key];
+          const lastMax1RM = lastMax1RMSet
+            ? Weight.getOneRepMax(
+                lastMax1RMSet.weight,
+                lastMax1RMSet?.completedReps || 0,
+                lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
+              )
+            : undefined;
+          if (thisMax1RM != null && (lastMax1RM == null || Weight.gt(thisMax1RM, lastMax1RM))) {
+            const prevMax1RMSet = max1RMSets[key];
+            max1RMSets[key] = thisMax1RMSet;
+            result[record.id] = result[record.id] || {};
+            result[record.id]![key] = result[record.id]![key] || {};
+            result[record.id]![key]!.prevMax1RMSet = prevMax1RMSet;
+            result[record.id]![key]!.max1RMSet = thisMax1RMSet;
+          }
+        }
+      }
+      return result;
+    },
+    { maxSize: 10 }
+  );
+
   export function findMaxSet(exerciseType: IExerciseType, history: IHistoryRecord[]): ISet | undefined {
     let maxSet: ISet | undefined = undefined;
     for (const r of history) {
       for (const e of r.entries) {
         if (Exercise.eq(e.exercise, exerciseType)) {
-          const entryMaxSet = getMaxSetFromEntry(e);
+          const entryMaxSet = getMaxWeightSetFromEntry(e);
           if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
             if (maxSet == null || Weight.gt(entryMaxSet.weight, maxSet.weight)) {
               maxSet = entryMaxSet;
@@ -353,7 +417,7 @@ export namespace History {
 
   export function findPersonalRecord(id: number, entry: IHistoryEntry, history: IHistoryRecord[]): ISet | undefined {
     let isMax: boolean | undefined;
-    const entryMaxSet = getMaxSetFromEntry(entry);
+    const entryMaxSet = getMaxWeightSetFromEntry(entry);
     if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
       for (const r of history) {
         if (r.id < id) {
@@ -362,7 +426,7 @@ export namespace History {
               if (isMax == null) {
                 isMax = true;
               }
-              const maxSet = getMaxSetFromEntry(e);
+              const maxSet = getMaxWeightSetFromEntry(e);
               if (maxSet != null && Weight.gte(maxSet.weight, entryMaxSet.weight)) {
                 isMax = false;
               }

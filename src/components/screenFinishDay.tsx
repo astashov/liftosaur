@@ -1,15 +1,14 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { History } from "../models/history";
+import { History, IHistoryEntryPersonalRecords } from "../models/history";
 import { Button } from "./button";
 import { ScreenActions } from "../actions/screenActions";
 import { StringUtils } from "../utils/string";
 import { Weight } from "../models/weight";
 import { Exercise } from "../models/exercise";
 import { useState } from "preact/hooks";
-import { ModalShare } from "./modalShare";
 import { Confetti } from "./confetti";
-import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
+import { IHistoryRecord, IScreenMuscle, ISet, ISettings } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { ILoading } from "../models/state";
@@ -24,6 +23,11 @@ import { TimeUtils } from "../utils/time";
 import { MenuItemEditable } from "./menuItemEditable";
 import { SendMessage } from "../utils/sendMessage";
 import { HealthSync } from "../lib/healthSync";
+import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
+import { BottomSheet } from "./bottomSheet";
+import { IconInstagram } from "./icons/iconInstagram";
+import { IconTiktok } from "./icons/iconTiktok";
+import { WorkoutShareButton } from "./workoutShareButton";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -37,9 +41,11 @@ interface IProps {
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
 
-  const prs = History.findAllPersonalRecords(record, props.history);
+  const allPrs = History.getPersonalRecords(props.history);
+  const recordPrs = allPrs[record.id] || {};
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const totalWeight = History.totalRecordWeight(record, props.settings.units);
+  const [shareType, setShareType] = useState<"tiktok" | "igstory" | "igfeed">("igstory");
 
   const startedEntries = History.getStartedEntries(record);
   const totalReps = History.totalRecordReps(record);
@@ -72,9 +78,15 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       footer={<></>}
       addons={
         <>
-          {isShareShown && props.userId != null && (
-            <ModalShare userId={props.userId} id={record.id} onClose={() => setIsShareShown(false)} />
-          )}
+          <BottomSheet isHidden={!isShareShown} onClose={() => setIsShareShown(false)} shouldShowClose={true}>
+            <WorkoutSocialShareSheet
+              history={props.history}
+              type={shareType}
+              isHidden={!isShareShown}
+              record={props.history[0]}
+              settings={props.settings}
+            />
+          </BottomSheet>
         </>
       }
     >
@@ -146,37 +158,52 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </div>
         </div>
 
-        {prs.size > 0 ? (
-          <section className="px-4 py-4 mt-4">
-            <h3 className="pb-2 font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
-            <ul>
-              {Array.from(prs.keys()).map((exerciseType) => {
-                const exercise = Exercise.get(exerciseType, props.settings.exercises);
-                const set = prs.get(exerciseType)!;
-                const previousMaxSet = History.findMaxSet(exerciseType, props.history.slice(1));
-                return (
-                  <li>
-                    <div>
-                      <strong>{exercise.name}</strong>:{" "}
-                      <span className="whitespace-no-wrap">
-                        {set.completedReps || 0} {StringUtils.pluralize("rep", set.completedReps || 0)} x{" "}
-                        {Weight.display(Weight.convertTo(set.weight, props.settings.units))}
-                      </span>
-                    </div>
-                    {previousMaxSet != null && (
-                      <div className="text-xs italic text-gray-700">
-                        (was {previousMaxSet.completedReps!} x {Weight.display(previousMaxSet.weight)})
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ) : (
-          <section className="px-4 pt-8 pb-4 text-center">
-            <div>No new personal records this time</div>
-          </section>
+        <PersonalRecords recordPrs={recordPrs} settings={props.settings} />
+
+        {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
+          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20)) && (
+          <div className="px-4 py-4">
+            <GroupHeader name="Share it!" />
+            <div className="flex justify-between gap-4 text-xs text-grayv2-main">
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setShareType("igstory");
+                    setIsShareShown(true);
+                  }}
+                >
+                  <IconInstagram />
+                </button>
+                <div>IG Story</div>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setShareType("igfeed");
+                    setIsShareShown(true);
+                  }}
+                >
+                  <IconInstagram />
+                </button>
+                <div>IG Feed</div>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setShareType("tiktok");
+                    setIsShareShown(true);
+                  }}
+                >
+                  <IconTiktok />
+                </button>
+                <div>Tiktok</div>
+              </div>
+              <div className="text-center">
+                <WorkoutShareButton history={props.history} record={props.history[0]} settings={props.settings} />
+                <div>More</div>
+              </div>
+            </div>
+          </div>
         )}
 
         {HealthSync.eligibleForAppleHealth() && (
@@ -207,22 +234,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         <div className="flex w-full gap-8 px-4 pt-4">
           <div className="flex-1 text-center">
             <Button
-              name="finish-day-share"
-              className="w-32 ls-finish-day-share"
-              kind="purple"
-              onClick={() => {
-                if (props.userId == null) {
-                  alert("You should be logged in to share workouts.");
-                } else {
-                  setIsShareShown(true);
-                }
-              }}
-            >
-              Share
-            </Button>
-          </div>
-          <div className="flex-1 text-center">
-            <Button
               name="finish-day-continue"
               kind="orange"
               className="w-32"
@@ -250,5 +261,128 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       </section>
       <Confetti />
     </Surface>
+  );
+}
+
+interface IPersonalRecords {
+  recordPrs: Partial<Record<string, IHistoryEntryPersonalRecords>>;
+  settings: ISettings;
+}
+
+interface IPersonalRecordItems {
+  maxWeight: {
+    exerciseKey: string;
+    set: ISet;
+    prev?: ISet;
+  }[];
+  max1RM: {
+    exerciseKey: string;
+    set: ISet;
+    prev?: ISet;
+  }[];
+}
+
+function PersonalRecords(props: IPersonalRecords): JSX.Element {
+  if (ObjectUtils.keys(props.recordPrs).length === 0) {
+    return (
+      <section className="px-4 pt-8 pb-4 text-center">
+        <div>No new personal records this time</div>
+      </section>
+    );
+  }
+
+  const items = ObjectUtils.keys(props.recordPrs).reduce<IPersonalRecordItems>(
+    (memo, key) => {
+      const maxWeight = props.recordPrs[key]?.maxWeightSet;
+      if (maxWeight) {
+        memo.maxWeight.push({ exerciseKey: key, set: maxWeight, prev: props.recordPrs[key]?.prevMaxWeightSet });
+      }
+      const max1RM = props.recordPrs[key]?.max1RMSet;
+      if (max1RM) {
+        memo.max1RM.push({ exerciseKey: key, set: max1RM, prev: props.recordPrs[key]?.prevMax1RMSet });
+      }
+      return memo;
+    },
+    { maxWeight: [], max1RM: [] }
+  );
+
+  return (
+    <section className="px-4 py-4 mt-4">
+      <h3
+        className="pb-1 font-bold text-yellow-600"
+        dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }}
+      />
+      {items.maxWeight.length > 0 && (
+        <>
+          <h4 className="text-xs text-grayv2-main">Max Weight</h4>
+          <ul className="pb-2">
+            {items.maxWeight.map((item) => {
+              const exerciseType = Exercise.fromKey(item.exerciseKey);
+              const exercise = Exercise.get(exerciseType, props.settings.exercises);
+              return (
+                <li>
+                  <div>
+                    <strong>{exercise.name}</strong>:{" "}
+                    <span className="whitespace-no-wrap">
+                      <strong>{Weight.display(item.set.weight)}</strong>, {item.set.completedReps || 0}{" "}
+                      {StringUtils.pluralize("rep", item.set.completedReps || 0)}
+                    </span>
+                  </div>
+                  {item.prev != null && (
+                    <div className="text-xs italic text-gray-700">
+                      (was {item.prev.completedReps || 0} × {Weight.display(item.prev.weight)})
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+      {items.max1RM.length > 0 && (
+        <>
+          <h4 className="text-xs text-grayv2-main">Max Estimated One Rep Max</h4>
+          <ul className="pb-2">
+            {items.max1RM.map((item) => {
+              const exerciseType = Exercise.fromKey(item.exerciseKey);
+              const exercise = Exercise.get(exerciseType, props.settings.exercises);
+              const estimated1RM = Weight.getOneRepMax(
+                item.set.weight,
+                item.set.completedReps || 0,
+                item.set.completedRpe ?? item.set.rpe
+              );
+              const previous1RM = item.prev
+                ? Weight.getOneRepMax(
+                    item.prev.weight || 0,
+                    item.prev.completedReps || 0,
+                    item.prev.completedRpe ?? item.prev.rpe
+                  )
+                : undefined;
+              const setRpe = item.set.completedRpe ?? item.set.rpe;
+              const prevRpe = item.prev?.completedRpe ?? item.prev?.rpe;
+              return (
+                <li>
+                  <div>
+                    <strong>{exercise.name}</strong>:{" "}
+                    <span className="whitespace-no-wrap">
+                      <strong>{Weight.display(estimated1RM)}</strong> ({item.set.completedReps || 0} ×{" "}
+                      {Weight.display(item.set.weight)}
+                      {setRpe ? ` @${setRpe}` : ""})
+                    </span>
+                  </div>
+                  {item.prev != null && previous1RM && (
+                    <div className="text-xs italic text-gray-700">
+                      (was <strong>{Weight.display(previous1RM)}</strong>, {item.prev.completedReps || 0} ×{" "}
+                      {Weight.display(item.prev.weight)}
+                      {prevRpe ? ` @${prevRpe}` : ""})
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </section>
   );
 }

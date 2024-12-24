@@ -15,6 +15,10 @@ export namespace Reps {
     }
   }
 
+  export function isSameSet(set1: ISet, set2: ISet): boolean {
+    return Weight.eq(set1.weight, set2.weight) && set1.completedReps === set2.completedReps && set1.rpe === set2.rpe;
+  }
+
   export function displayReps(set: ISet): string {
     const reps = set.minReps != null ? `${set.minReps}-${set.reps}` : `${set.reps}`;
     return set.isAmrap ? `${reps}+` : `${reps}`;

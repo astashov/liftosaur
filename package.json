@@ -133,6 +133,7 @@
     "rsa-pem-from-mod-exp": "^0.8.5",
     "uplot": "^1.6.23",
     "upng-js": "^2.1.0",
-    "yatro": "^0.2.7"
+    "yatro": "^0.2.7",
+    "zingtouch": "^1.0.6"
   }
 }

@@ -427,7 +427,7 @@ export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IA
     }
   }
 
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
     window.tempUserId = newState.storage.tempUserId;
     if (timerId != null) {
       window.clearTimeout(timerId);

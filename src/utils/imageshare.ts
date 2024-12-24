@@ -1,11 +1,27 @@
 import { Mobile } from "../../lambda/utils/mobile";
+import * as htmlToImage from "html-to-image";
+import { SendMessage } from "./sendMessage";
 
 export class ImageShareUtils {
   constructor(private readonly dataURL: string, private readonly fileName: string) {}
 
+  public static async generateImageDataUrl(element: HTMLElement): Promise<string> {
+    await htmlToImage.toPng(element, { pixelRatio: 2 });
+    await htmlToImage.toPng(element, { pixelRatio: 2 });
+    return htmlToImage.toPng(element, { pixelRatio: 2 });
+  }
+
   public shareOrDownload(): void {
     if (this.canShareDataUrl()) {
       this.shareDataURL();
+    } else if (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) {
+      SendMessage.toAndroid({
+        type: "share",
+        target: "image",
+        useCustomBackground: "false",
+        backgroundImage: undefined,
+        workoutImage: this.dataURL,
+      });
     } else {
       this.saveDataURLToFile();
     }

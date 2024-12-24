@@ -7,7 +7,6 @@ import { Progress } from "../models/progress";
 import { History } from "../models/history";
 import { ModalDate } from "./modalDate";
 import { ILoading, IState, updateState } from "../models/state";
-import { ModalShare } from "./modalShare";
 import { useState } from "preact/hooks";
 import { ModalEditSet } from "./modalEditSet";
 import { EditProgressEntry } from "../models/editProgressEntry";
@@ -41,6 +40,7 @@ import { CollectionUtils } from "../utils/collection";
 import { PlannerKey } from "../pages/planner/plannerKey";
 import { ModalEquipment } from "./modalEquipment";
 import { Modal1RM } from "./modal1RM";
+import { BottomSheetShareOptions } from "./bottomSheetShareOptions";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -292,8 +292,14 @@ export function ProgramDayView(props: IProps): JSX.Element | null {
                 dispatch={props.dispatch}
               />
             )}
-            {isShareShown && !Progress.isCurrent(progress) && props.userId != null && (
-              <ModalShare userId={props.userId} id={progress.id} onClose={() => setIsShareShown(false)} />
+            {!Progress.isCurrent(progress) && (
+              <BottomSheetShareOptions
+                history={props.history}
+                settings={props.settings}
+                record={progress}
+                isHidden={!isShareShown}
+                onClose={() => setIsShareShown(false)}
+              />
             )}
           </>
         }
