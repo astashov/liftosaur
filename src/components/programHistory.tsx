@@ -10,11 +10,8 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { IScreen, Screen } from "../models/screen";
 import { Footer2View } from "./footer2";
-import { IconDoc } from "./icons/iconDoc";
 import { HelpProgramHistory } from "./help/helpProgramHistory";
 import { BottomSheet } from "./bottomSheet";
-import { BottomSheetItem } from "./bottomSheetItem";
-import { IconEditSquare } from "./icons/iconEditSquare";
 import { useGradualList } from "../utils/useGradualList";
 import { IconUser } from "./icons/iconUser";
 import { ObjectUtils } from "../utils/object";
@@ -22,6 +19,8 @@ import { LinkButton } from "./linkButton";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Markdown } from "./markdown";
 import { GroupHeader } from "./groupHeader";
+import { WorkoutShareSheet } from "./workoutShareSheet";
+import { Button } from "./button";
 
 interface IProps {
   program: IProgram;
@@ -48,7 +47,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const history = [nextHistoryRecord, ...sortedHistory];
   const [containerRef, visibleRecords] = useGradualList(history, 20, () => undefined);
 
-  const [showProgramBottomSheet, setShowProgramBottomSheet] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const isUserLoading = ObjectUtils.values(props.loading.items).some((i) => i?.type === "fetchStorage" && !i.endTime);
 
@@ -79,30 +78,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
       addons={
         <>
-          <BottomSheet isHidden={!showProgramBottomSheet} onClose={() => setShowProgramBottomSheet(false)}>
-            <div className="p-4">
-              <BottomSheetItem
-                name="choose-program"
-                title="Choose Another Program"
-                isFirst={true}
-                icon={<IconDoc />}
-                description="Select a program for the next workout."
-                onClick={() => dispatch(Thunk.pushScreen("programs"))}
-              />
-              <BottomSheetItem
-                name="edit-program"
-                title="Edit Current Program"
-                icon={<IconEditSquare />}
-                description={`Edit the current program '${props.program.name}'.`}
-                onClick={() => {
-                  if (props.editProgramId == null || props.editProgramId !== props.program.id) {
-                    Program.editAction(props.dispatch, props.program.id);
-                  } else {
-                    alert("You cannot edit the program while that program's workout is in progress");
-                  }
-                }}
-              />
-            </div>
+          <BottomSheet isHidden={!showShareSheet} onClose={() => setShowShareSheet(false)}>
+            <WorkoutShareSheet isHidden={!showShareSheet} record={props.history[0]} settings={props.settings} />
           </BottomSheet>
           {showChangeWorkout && (
             <ModalChangeNextDay
@@ -116,6 +93,11 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </>
       }
     >
+      <div className="p-2 text-center">
+        <Button name="share-workout" kind="orange" onClick={() => setShowShareSheet(true)}>
+          Share
+        </Button>
+      </div>
       {props.progress == null && (
         <div className="flex w-full gap-4">
           <div className="px-4 pb-2 text-xs">

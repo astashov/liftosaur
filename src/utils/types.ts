@@ -4,3 +4,4 @@ export type IArrayElement<ArrayType extends readonly unknown[]> = ArrayType[numb
 export type IDeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? IDeepPartial<T[P]> : T[P];
 };
+export type IRect = { x: number; y: number; width: number; height: number };
