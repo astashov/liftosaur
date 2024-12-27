@@ -65,11 +65,15 @@ export class PlannerEvaluatedProgramToText {
 
     for (let weekIndex = 0; weekIndex < this.plannerProgram.weeks.length; weekIndex += 1) {
       const week = this.plannerProgram.weeks[weekIndex];
-      const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [] };
+      const plannerWeek: IPlannerProgramWeek = { name: week.name, days: [], description: week.description };
       for (let dayInWeekIndex = 0; dayInWeekIndex < week.days.length; dayInWeekIndex += 1) {
         const groupedTopLines = groupedTopLineMap[weekIndex][dayInWeekIndex];
         const weekDay = week.days[dayInWeekIndex];
-        const plannerDay: IPlannerProgramDay = { name: weekDay.name, exerciseText: "" };
+        const plannerDay: IPlannerProgramDay = {
+          name: weekDay.name,
+          exerciseText: "",
+          description: weekDay.description,
+        };
         const exerciseTextArr: string[] = [];
         for (let groupIndex = 0; groupIndex < groupedTopLines.length; groupIndex += 1) {
           const group = groupedTopLines[groupIndex];
